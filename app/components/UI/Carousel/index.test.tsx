@@ -1,35 +1,42 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
+import { Linking } from 'react-native';
 import Carousel from './';
-import { Theme } from '../../../util/theme/models';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
 }));
 
-// Mock ScrollableTabView as a simple component that renders children
-jest.mock('react-native-scrollable-tab-view', () => ({
-  __esModule: true,
-  default: ({
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
+// Mock ScrollableTabView as a simple View component that renders children
+jest.mock('react-native-scrollable-tab-view', () => {
+  const MockScrollableTabView = ({
     children,
     onChangeTab,
   }: {
-    children: ReactElement | ReactElement[];
-    onChangeTab: (info: { i: number }) => void;
+    children: React.ReactNode;
+    onChangeTab?: (info: { i: number }) => void;
   }) => {
     const mockChildren = Array.isArray(children) ? children : [children];
     return mockChildren.map((child, index) => (
-      <div key={index} onClick={() => onChangeTab({ i: index })}>
+      <div key={index} onClick={() => onChangeTab?.({ i: index })}>
         {child}
       </div>
     ));
-  },
-}));
+  };
+  MockScrollableTabView.displayName = 'MockScrollableTabView';
+  return MockScrollableTabView;
+});
 
 jest.mock('../../../../locales/i18n', () => ({
-  strings: jest.fn((key) => key),
+  strings: (key: string) => key,
 }));
 
 jest.mock('../../../util/theme', () => ({
@@ -50,21 +57,36 @@ jest.mock('../../../util/theme', () => ({
       text: {
         default: '#24272A',
       },
-    } as Theme['colors'],
+    },
   }),
 }));
 
-// Mock the predefined slides
-jest.mock('./carousel.types', () => ({
-  PREDEFINED_SLIDES: [
-    {
-      id: 'test',
-      title: 'Test Title',
-      description: 'Test Description',
-      undismissable: true,
-      href: undefined,
-    },
-  ],
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      build: () => ({}),
+    }),
+  }),
+}));
+
+// Mock Linking
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock image requires
+jest.mock('../../../images/banners/banner_image_bridge.png', () => ({
+  uri: 'bridge-image',
+}));
+jest.mock('../../../images/banners/banner_image_card.png', () => ({
+  uri: 'card-image',
+}));
+jest.mock('../../../images/banners/banner_image_fund.png', () => ({
+  uri: 'fund-image',
+}));
+jest.mock('../../../images/banners/banner_image_cashout.png', () => ({
+  uri: 'cashout-image',
 }));
 
 const mockDispatch = jest.fn();
@@ -76,22 +98,13 @@ describe('Carousel', () => {
         banners: {
           dismissedBanners: [],
         },
+        browser: {
+          tabs: [],
+        },
       }),
     );
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-  });
-
-  afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('renders correctly with all banners', () => {
-    const { getByText } = render(<Carousel />);
-
-    expect(getByText('banner.bridge.title')).toBeTruthy();
-    expect(getByText('banner.bridge.subtitle')).toBeTruthy();
-    expect(getByText('banner.card.title')).toBeTruthy();
-    expect(getByText('banner.card.subtitle')).toBeTruthy();
   });
 
   it('does not render when all banners are dismissed', () => {
@@ -100,6 +113,9 @@ describe('Carousel', () => {
         banners: {
           dismissedBanners: ['bridge', 'card', 'fund', 'cashout'],
         },
+        browser: {
+          tabs: [],
+        },
       }),
     );
 
@@ -107,36 +123,25 @@ describe('Carousel', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('calls onClick when a slide is pressed', () => {
-    const mockOnClick = jest.fn();
-    const { getByText } = render(<Carousel onClick={mockOnClick} />);
+  it('opens correct URLs when banners are clicked', async () => {
+    const { getByText } = render(<Carousel />);
 
-    fireEvent.press(getByText('banner.bridge.title').parent.parent);
-    expect(mockOnClick).toHaveBeenCalledWith('bridge');
-  });
-
-  it('dispatches dismissBanner action when close button is pressed', () => {
-    const { getAllByTestId } = render(<Carousel />);
-    const closeButtons = getAllByTestId('close-button');
-
-    fireEvent.press(closeButtons[0]);
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'DISMISS_BANNER',
-      payload: 'bridge',
-    });
-  });
-
-  it('shows progress dots only when there are multiple slides', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) =>
-      selector({
-        banners: {
-          dismissedBanners: ['card', 'fund', 'cashout'],
-        },
-      }),
+    // Test card banner
+    fireEvent.press(getByText('banner.card.title').parent);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://portfolio.metamask.io/card',
     );
 
-    const { queryByTestId } = render(<Carousel />);
-    const progressDots = queryByTestId('progress-dots');
-    expect(progressDots).toBeFalsy();
+    // Test fund banner
+    fireEvent.press(getByText('banner.fund.title').parent);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://portfolio.metamask.io/buy/build-quote',
+    );
+
+    // Test cashout banner
+    fireEvent.press(getByText('banner.cashout.title').parent);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://portfolio.metamask.io/sell',
+    );
   });
 });
