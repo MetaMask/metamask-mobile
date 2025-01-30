@@ -3283,6 +3283,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           <View
                             style={
                               {
+                                "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "padding": 16,
                               }
@@ -4049,6 +4050,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           <View
                             style={
                               {
+                                "backgroundColor": "#ffffff",
                                 "flexDirection": "column",
                                 "paddingHorizontal": 8,
                                 "paddingVertical": 4,
@@ -4616,6 +4618,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                           <View
                             style={
                               {
+                                "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "padding": 16,
                               }

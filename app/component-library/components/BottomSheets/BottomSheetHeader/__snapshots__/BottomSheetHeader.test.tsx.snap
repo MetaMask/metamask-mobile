@@ -4,6 +4,7 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
 <View
   style={
     {
+      "backgroundColor": "#ffffff",
       "flexDirection": "row",
       "padding": 16,
     }

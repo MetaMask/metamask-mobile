@@ -954,6 +954,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                             <View
                                               style={
                                                 {
+                                                  "backgroundColor": "#ffffff",
                                                   "flexDirection": "row",
                                                   "padding": 16,
                                                 }
@@ -1305,6 +1306,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                             <View
                                               style={
                                                 {
+                                                  "backgroundColor": "#ffffff",
                                                   "flexDirection": "row",
                                                   "paddingHorizontal": 8,
                                                   "paddingVertical": 4,

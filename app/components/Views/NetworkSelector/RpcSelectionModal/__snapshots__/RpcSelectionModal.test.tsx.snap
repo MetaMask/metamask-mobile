@@ -118,6 +118,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
       <View
         style={
           {
+            "backgroundColor": "#ffffff",
             "flexDirection": "row",
             "padding": 16,
           }
