@@ -19,7 +19,7 @@ const styleSheet = (params: {
   theme: Theme;
   vars: HeaderBaseStyleSheetVars;
 }) => {
-  const { vars } = params;
+  const { vars, theme } = params;
   const { style, startAccessorySize, endAccessorySize } = vars;
   let accessoryWidth;
   if (startAccessorySize && endAccessorySize) {
@@ -29,6 +29,7 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
+        backgroundColor: theme.colors.background.default,
         flexDirection: 'row',
       } as ViewStyle,
       style,
