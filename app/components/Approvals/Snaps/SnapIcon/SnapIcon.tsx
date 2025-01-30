@@ -1,4 +1,5 @@
 import React, { FunctionComponent } from 'react';
+import { useSelector } from 'react-redux';
 import { IconSize } from '../../../../component-library/components/Icons/Icon';
 import {
   AvatarFaviconProps,
@@ -12,6 +13,7 @@ import AvatarBase from '../../../../component-library/components/Avatars/Avatar/
 import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import Text from '../../../../component-library/components/Texts/Text';
+import { selectSnapsMetadata } from '../../../../selectors/snaps/snapController';
 
 type SnapIconProps = {
   snapId: string;
@@ -26,20 +28,11 @@ export const SnapIcon: FunctionComponent<SnapIconProps> = ({
   avatarSize = IconSize.Lg,
   ...props
 }) => {
-  // TODO: Not sure where this is coming from on mobile
-  // const subjectMetadata = useSelector((state) =>
-  //   getTargetSubjectMetadata(state, snapId),
-  // );
-  // const { name: snapName } = useSelector((state) =>
-  //   getSnapMetadata(state, snapId),
-  // );
+  const snapsMetadata = useSelector(selectSnapsMetadata);
 
-  // const iconUrl = subjectMetadata?.iconUrl;
-
-  // TODO: Get iconUrl from snap
-  const iconUrl = undefined;
-  // TODO: Get snapName from snap
-  const snapName = 'Snap Name';
+  const snapSubjectMetadata = snapsMetadata[snapId];
+  const iconUrl = snapSubjectMetadata.iconUrl;
+  const snapName = snapSubjectMetadata.name;
 
   // // We choose the first non-symbol char as the fallback icon.
   const fallbackIcon = getAvatarFallbackLetter(snapName);
@@ -50,7 +43,7 @@ export const SnapIcon: FunctionComponent<SnapIconProps> = ({
       style={{
         backgroundColor: 'var(--color-background-alternative-hover)',
       }}
-      imageSource={iconUrl}
+      imageSource={{ uri: iconUrl }}
       name={snapName}
       size={avatarSize as unknown as AvatarFaviconSize}
     />
