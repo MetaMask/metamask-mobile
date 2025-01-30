@@ -248,7 +248,7 @@ const AccountBackupStep1B = (props) => {
           style={styles.wrapper}
           testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
         >
-          {/* <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} /> */}
+          <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
             <Text style={styles.titleIcon}>🔒</Text>
             <Text style={styles.title}>
