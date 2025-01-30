@@ -16,6 +16,10 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { isBtcAccount, isSolanaAccount } from '../../../core/Multichain/utils';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -71,6 +75,16 @@ class NavbarTitle extends PureComponent {
      * Content to display inside text element
      */
     children: PropTypes.node,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    /**
+     * Boolean that specifies if the selected account is a Solana account
+     */
+    isSolanaAccount: PropTypes.bool,
+    /**
+     * Boolean that specifies if the selected account is a Bitcoin account
+     */
+    isBitcoinAccount: PropTypes.bool,
+    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
   };
 
   static defaultProps = {
@@ -111,6 +125,10 @@ class NavbarTitle extends PureComponent {
       showSelectedNetwork,
       children,
       networkName,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      isSolanaAccount,
+      isBitcoinAccount,
+      ///: END:ONLY_INCLUDE_IF(keyring-snaps)
     } = this.props;
     let name = null;
     const color =
@@ -121,7 +139,15 @@ class NavbarTitle extends PureComponent {
 
     if (networkName) {
       name = networkName;
-    } else if (providerConfig.nickname) {
+    }
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    else if (isSolanaAccount) {
+      name = 'Solana';
+    } else if (isBitcoinAccount) {
+      name = 'Bitcoin';
+    }
+    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+    else if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
       name =
@@ -166,6 +192,10 @@ NavbarTitle.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  isSolanaAccount: isSolanaAccount(selectSelectedInternalAccount(state)),
+  isBitcoinAccount: isBtcAccount(selectSelectedInternalAccount(state)),
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 });
 
 export default withNavigation(
