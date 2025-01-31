@@ -26,6 +26,10 @@ class ActivitiesView {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
   }
 
+  get stakeMoreDepositedLabel() {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT, 0);
+  }
+
   get unstakeLabel() {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
   }
@@ -36,10 +40,7 @@ class ActivitiesView {
 
 
   get firstTransactionStatus() {
-    return Matchers.getElementByID(
-      CommonSelectorsIDs.TRANSACTION_STATUS,
-      ActivitiesView.FIRST_ROW,
-    );
+    return element(by.id(CommonSelectorsIDs.TRANSACTION_STATUS)).atIndex(ActivitiesView.FIRST_ROW);
   }
 
   get secondTransactionStatus() {

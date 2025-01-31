@@ -1,35 +1,35 @@
 'use strict';
 import { ethers } from 'ethers';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import TokenOverview from '../../pages/wallet/TokenOverview';
-import WalletView from '../../pages/wallet/WalletView';
+import { loginToApp } from '../../viewHelper.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
+import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from '../../fixtures/fixture-builder.js';
+import { withFixtures } from '../../fixtures/fixture-helper';
+import TokenOverview from '../../pages/wallet/TokenOverview.js';
+import WalletView from '../../pages/wallet/WalletView.js';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import { CustomNetworks, PopularNetworksList } from '../../resources/networks.e2e';
-import TestHelpers from '../../helpers';
-import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
-import { SmokeStake } from '../../tags';
-import Assertions from '../../utils/Assertions';
-import StakeView from '../../pages/Stake/StakeView';
-import StakeConfirmView from '../../pages/Stake/StakeConfirmView';
-import SendView from '../../pages/Send/SendView';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import AmountView from '../../pages/Send/AmountView';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
+} from '../../fixtures/fixture-helper.js';
+import { CustomNetworks, PopularNetworksList } from '../../resources/networks.e2e.js';
+import TestHelpers from '../../helpers.js';
+import FixtureServer from '../../fixtures/fixture-server.js';
+import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
+import { SmokeStake } from '../../tags.js';
+import Assertions from '../../utils/Assertions.js';
+import StakeView from '../../pages/Stake/StakeView.js';
+import StakeConfirmView from '../../pages/Stake/StakeConfirmView.js';
+import SendView from '../../pages/Send/SendView.js';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
+import AmountView from '../../pages/Send/AmountView.js';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
+import NetworkListModal from '../../pages/Network/NetworkListModal.js';
 import axios from 'axios';
 
 import {
@@ -41,7 +41,6 @@ const fixtureServer = new FixtureServer();
 
 describe(SmokeStake('Stake from Actions'), () => {
   const AMOUNT_TO_SEND = '.01'
-  let nonceCount = 0;
   let mockServer;
   const wallet = ethers.Wallet.createRandom();
 
@@ -49,17 +48,15 @@ describe(SmokeStake('Stake from Actions'), () => {
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(PopularNetworksList.zkSync)
       .withNetworkController(CustomNetworks.Holesky)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
-      delete: true,
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
-    await TestHelpers.delay(3000);
+    await TestHelpers.delay(5000);
     await loginToApp();
   });
 
@@ -82,17 +79,12 @@ describe(SmokeStake('Stake from Actions'), () => {
     await AmountView.tapNextButton();
     await TransactionConfirmationView.tapConfirmButton();
     await TabBarComponent.tapActivity();
-    await Assertions.checkIfTextIsNotDisplayed(
-      ActivitiesViewSelectorsText.SUBMITTED_TEXT,
-      120000,
-    );
-    await TestHelpers.delay(7000)
+    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+    await TestHelpers.delay(8000);
+    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
     // Waiting for funds to arrive
-    await Assertions.checkIfElementNotToHaveText(
-      WalletView.totalBalance,
-      '$0',
-    );
+    await Assertions.checkIfTextIsNotDisplayed('$0',60000);
   });
 
   it('should be able to import the funded account', async () => {
@@ -110,58 +102,68 @@ describe(SmokeStake('Stake from Actions'), () => {
   });
 
   it('should Stake ETH', async () => {
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await WalletView.tapOnEarnButton()
     await Assertions.checkIfVisible(StakeView.stakeContainer);
     await StakeView.enterAmount('.004')
     await StakeView.tapReview()
     await StakeView.tapContinue()
     await StakeConfirmView.tapConfirmButton()
+    await TestHelpers.delay(2000)
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
-    await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
-    await TestHelpers.delay(7000)
+    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+    await TestHelpers.delay(8000);
+    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
+    await TabBarComponent.tapWallet();
   })
 
   it('should Stake more ETH', async () => {
+    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum()
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(2000);
+    await TestHelpers.delay(3000);
     await TokenOverview.tapStakeMoreButton();
     await Assertions.checkIfVisible(StakeView.stakeContainer);
     await StakeView.enterAmount('.003')
     await StakeView.tapReview()
     await StakeView.tapContinue()
     await StakeConfirmView.tapConfirmButton()
+    await TestHelpers.delay(2000)
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
-    await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
-    await TestHelpers.delay(7000)
+    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+
+    await TestHelpers.delay(8000);
+    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
+    await TabBarComponent.tapWallet();
   })
 
   it('should Unstake ETH', async () => {
-    await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum()
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(2000);
+    await TestHelpers.delay(3000);
     await TokenOverview.tapUnstakeButton();
     await Assertions.checkIfVisible(StakeView.unstakeContainer);
     await StakeView.enterAmount('.002')
     await StakeView.tapReview()
     await StakeView.tapContinue()
     await StakeConfirmView.tapConfirmButton()
+    await TestHelpers.delay(15000)
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.unstakeLabel);
-    await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
-    await TestHelpers.delay(7000)
+    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+
+    await TestHelpers.delay(8000);
+    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum()
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(2000);
+    await TestHelpers.delay(3000);
     await Assertions.checkIfVisible(TokenOverview.unstakingBanner);
     await TokenOverview.tapBackButton();
   })
@@ -178,65 +180,65 @@ describe(SmokeStake('Stake from Actions'), () => {
     await NetworkEducationModal.tapGotItButton();
   });
 
-  it('should Stake Claim ETH', async () => {
-    const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
-    const response = await axios.get(stakeAPIUrl);
+it('should Stake Claim ETH', async () => {
+  const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
+  const response = await axios.get(stakeAPIUrl);
 
-    if (response.status !== 200) {
-      throw new Error('Error calling Staking API');
-    }
-    const account =  response.data.accounts[0]
-    if (account.exitRequests.lenght === 0) {
-      throw new Error('No claim entries found for this account');
-    }
+  if (response.status !== 200) {
+    throw new Error('Error calling Staking API');
+  }
+  const account =  response.data.accounts[0]
+  if (account.exitRequests.lenght === 0) {
+    throw new Error('No claim entries found for this account');
+  }
 
-    const stakeAPIMock  = {
-      GET: [ {
-          urlEndpoint: stakeAPIUrl,
-          response: {
-            accounts: [
-              {
-                account: account.account,
-                lifetimeRewards: account.lifetimeRewards,
-                assets: account.lifetimeRewards,
-                exitRequests: [
-                  {
+  const testSpecificMock  = {
+    GET: [ {
+        urlEndpoint: stakeAPIUrl,
+        response: {
+          accounts: [
+            {
+              account: account.account,
+              lifetimeRewards: account.lifetimeRewards,
+              assets: account.lifetimeRewards,
+              exitRequests: [
+                {
 
-                    positionTicket: account.exitRequests[0].positionTicket,
-                    timestamp: "1737657204000",
-                    totalShares: account.exitRequests[0].totalShares,
-                    withdrawalTimestamp: "0",
-                    exitQueueIndex: "157",
-                    claimedAssets: "36968822284547795",
-                    leftShares: "0"
-                  },
-                ]
-              }
-            ]
-          },
-          responseCode: 200,
+                  positionTicket: account.exitRequests[0].positionTicket,
+                  timestamp: "1737657204000",
+                  totalShares: account.exitRequests[0].totalShares,
+                  withdrawalTimestamp: "0",
+                  exitQueueIndex: "157",
+                  claimedAssets: "36968822284547795",
+                  leftShares: "0"
+                },
+              ]
+            }
+          ]
         },
-      ],
-    }
-
-    const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(stakeAPIMock);
-    await TestHelpers.launchApp({
-      newInstance: false,
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`, mockServerPort: `${mockServerPort}` },
+        responseCode: 200,
+      },
+    ],
+  }
+  await withFixtures(
+    {
+      fixture: new FixtureBuilder().withNetworkController(CustomNetworks.Holesky).build(),
+      restartDevice: true,
+      testSpecificMock,
+    },
+    async () => {
+      await TestHelpers.delay(6000000);
+      await WalletView.tapOnStakedEthereum()
+      await TokenOverview.scrollOnScreen();
+      await TestHelpers.delay(3000);
+      await TokenOverview.tapClaimButton();
+      await StakeConfirmView.tapConfirmButton();
+      await TokenOverview.tapBackButton();
+      await TabBarComponent.tapActivity();
+      await Assertions.checkIfVisible(ActivitiesView.title);
+      await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
+      await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
     });
-    await TestHelpers.delay(3000);
-    await loginToApp();
-    await Assertions.checkIfVisible(WalletView.container);
-    await WalletView.tapOnStakedEthereum()
-    await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(2000);
-    await TokenOverview.tapClaimButton();
-    await StakeConfirmView.tapConfirmButton();
-    await TokenOverview.tapBackButton();
-    await TabBarComponent.tapActivity();
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
-    await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
   });
 });
+
