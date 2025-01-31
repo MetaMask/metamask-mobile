@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import BigNumber from 'bignumber.js';
+import { isEqual } from 'lodash';
 import { fontStyles } from '../../../../../styles/common';
 import {
   StyleSheet,
@@ -512,6 +513,7 @@ class Amount extends PureComponent {
     internalPrimaryCurrencyIsCrypto: this.props.primaryCurrency === 'ETH',
     estimatedTotalGas: undefined,
     hasExchangeRate: false,
+    gasPollToken: null,
   };
 
   amountInput = React.createRef();
@@ -532,31 +534,28 @@ class Amount extends PureComponent {
     );
   };
 
-  componentDidMount = async () => {
-    const {
-      tokens,
-      ticker,
-      transactionState: { readableValue },
-      navigation,
-      providerType,
-      selectedAsset,
-      isPaymentRequest,
-      gasEstimateType,
-      gasFeeEstimates,
-    } = this.props;
-    // For analytics
-    this.updateNavBar();
-    navigation.setParams({ providerType, isPaymentRequest });
+  async startPollingForGasFeeEstimates() {
+    const { GasFeeController } = Engine.context;
+    try {
+      const newPollToken =
+        await GasFeeController.getGasFeeEstimatesAndStartPolling(
+          this.state.pollToken,
+        );
+      this.setState({ pollToken: newPollToken });
+      console.log('HELLO 100', { newPollToken });
+    } catch (error) {
+      console.error('Failed to start gas fee polling:', error);
+    }
+  }
 
-    this.tokens = [getEther(ticker), ...tokens];
-    this.collectibles = this.processCollectibles();
-    // Wait until navigation finishes to focus
-    InteractionManager.runAfterInteractions(() =>
-      this.amountInput?.current?.focus?.(),
-    );
-    this.onInputChange(readableValue);
-    !selectedAsset.tokenId && this.handleSelectedAssetBalance(selectedAsset);
+  stopPollingForGasFeeEstimates = () => {
+    const { GasFeeController } = Engine.context;
+    GasFeeController.stopPolling(this.state.pollToken);
+    this.setState({ pollToken: null });
+  };
 
+  calculateGasFee = async () => {
+    const { gasEstimateType, gasFeeEstimates } = this.props;
     const [gas] = await Promise.all([this.estimateGasLimit()]);
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
@@ -590,6 +589,38 @@ class Amount extends PureComponent {
       const gasPrice = hexToBN(decGWEIToHexWEI(gasFeeEstimates.gasPrice));
       this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
     }
+  };
+
+  componentDidMount = async () => {
+    const {
+      tokens,
+      ticker,
+      transactionState: { readableValue },
+      navigation,
+      providerType,
+      selectedAsset,
+      isPaymentRequest,
+      gasFeeEstimates,
+    } = this.props;
+
+    if (Object.keys(gasFeeEstimates).length === 0) {
+      this.startPollingForGasFeeEstimates();
+    }
+
+    // For analytics
+    this.updateNavBar();
+    navigation.setParams({ providerType, isPaymentRequest });
+
+    this.tokens = [getEther(ticker), ...tokens];
+    this.collectibles = this.processCollectibles();
+    // Wait until navigation finishes to focus
+    InteractionManager.runAfterInteractions(() =>
+      this.amountInput?.current?.focus?.(),
+    );
+    this.onInputChange(readableValue);
+    !selectedAsset.tokenId && this.handleSelectedAssetBalance(selectedAsset);
+
+    this.calculateGasFee();
 
     const hasExchangeRate = this.hasExchangeRate();
     let internalPrimaryCurrencyIsCrypto =
@@ -607,8 +638,15 @@ class Amount extends PureComponent {
     });
   };
 
-  componentDidUpdate = () => {
+  componentDidUpdate = (prevProps) => {
     this.updateNavBar();
+
+    if (
+      isEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) &&
+      new BigNumber(this.state.estimatedTotalGas).isZero()
+    ) {
+      this.calculateGasFee();
+    }
   };
 
   hasExchangeRate = () => {
@@ -657,6 +695,8 @@ class Amount extends PureComponent {
       internalPrimaryCurrencyIsCrypto,
       maxFiatInput,
     } = this.state;
+
+    this.stopPollingForGasFeeEstimates();
 
     let value;
     if (internalPrimaryCurrencyIsCrypto) {
