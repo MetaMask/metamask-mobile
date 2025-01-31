@@ -166,9 +166,13 @@ export const chainIdSelector: (state: RootState) => string = (
   ) {
     return MultichainNetworks.SOLANA;
   }
+  /**
+   * the chainId variable in the next lines is there to avoid a
+   * lint arrow-body-style error, it should be removed.
+   */
   ///: END:ONLY_INCLUDE_IF
-  // eslint-disable-next-line arrow-body-style
-  return getDecimalChainId(selectChainId(state));
+  const chainId = getDecimalChainId(selectChainId(state));
+  return chainId;
 };
 export const selectedAddressSelector: (
   state: RootState,
