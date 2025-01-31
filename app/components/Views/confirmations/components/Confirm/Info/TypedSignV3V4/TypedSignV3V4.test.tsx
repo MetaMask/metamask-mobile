@@ -17,6 +17,10 @@ jest.mock('../../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../hooks/useTokenDecimalsInTypedSignRequest', () => ({
+  useTokenDecimalsInTypedSignRequest: () => 2,
+}));
+
 describe('TypedSignV3V4', () => {
   it('should contained required text', () => {
     const { getByText } = renderWithProvider(<TypedSignV3V4 />, {
@@ -29,7 +33,7 @@ describe('TypedSignV3V4', () => {
     expect(getByText('Mail')).toBeDefined();
   });
 
-  it('should not display primaty type if simulation section is displayed', () => {
+  it('does not display first row (Primary Type) if simulation section is displayed', async () => {
     const { getByText, queryByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV4ConfirmationState,
     });
@@ -42,13 +46,21 @@ describe('TypedSignV3V4', () => {
 
   it('should show detailed message when message section is clicked', () => {
     const { getByText, getAllByText } = renderWithProvider(<TypedSignV3V4 />, {
-      state: typedSignV3ConfirmationState,
+      state: typedSignV4ConfirmationState,
     });
     fireEvent.press(getByText('Message'));
     expect(getAllByText('Message')).toHaveLength(3);
-    expect(getByText('From')).toBeDefined();
-    expect(getByText('Cow')).toBeDefined();
-    expect(getByText('To')).toBeDefined();
-    expect(getByText('Bob')).toBeDefined();
+    expect(getAllByText('Primary type')).toBeDefined();
+    expect(getAllByText('Permit')).toBeDefined();
+    expect(getAllByText('Owner')).toBeDefined();
+    expect(getAllByText('0x935E7...05477')).toBeDefined();
+    expect(getAllByText('Spender')).toBeDefined();
+    expect(getAllByText('0x5B38D...eddC4')).toBeDefined();
+    expect(getAllByText('Value')).toBeDefined();
+    expect(getAllByText('30')).toBeDefined();
+    expect(getAllByText('Nonce')).toBeDefined();
+    expect(getAllByText('0')).toBeDefined();
+    expect(getAllByText('Deadline')).toBeDefined();
+    expect(getAllByText('09 June 3554, 16:53')).toBeDefined();
   });
 });
