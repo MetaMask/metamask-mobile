@@ -12,6 +12,7 @@ import {
   isMainNet,
   isMultiLayerFeeNetwork,
   getBlockExplorerTxUrl,
+  findBlockExplorerForNonEvmChainId,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -24,7 +25,6 @@ import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import Engine from '../../../../core/Engine';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
   selectChainId,
@@ -48,6 +48,7 @@ import {
 } from '../../../../selectors/transactionController';
 import { swapsControllerTokens } from '../../../../reducers/swaps';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -211,12 +212,15 @@ class TransactionDetails extends PureComponent {
     const {
       providerConfig: { rpcUrl, type },
       networkConfigurations,
+      chainId,
     } = this.props;
     let blockExplorer;
-    if (type === RPC) {
+    if (type === RPC && !isNonEvmChainId(chainId)) {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
+    } else {
+      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
     this.setState({ rpcBlockExplorer: blockExplorer });
     this.updateTransactionDetails();

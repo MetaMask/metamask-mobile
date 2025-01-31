@@ -6,18 +6,15 @@ import { CellVariant } from '../../../component-library/components/Cells/Cell';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { useTheme } from '../../../util/theme';
 import styleSheet from './NetworkCell.styles';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 
 interface NetworkCellProps {
   name: string;
-  chainId: Hex;
+  chainId: Hex | CaipChainId;
   imageSource: ImageSourcePropType;
   secondaryText?: string;
   showIncomingTransactionsNetworks: Record<string, boolean>;
-  toggleEnableIncomingTransactions: (
-    chainId: Hex,
-    value: boolean,
-  ) => void;
+  toggleEnableIncomingTransactions: (chainId: Hex, value: boolean) => void;
   testID?: string;
 }
 

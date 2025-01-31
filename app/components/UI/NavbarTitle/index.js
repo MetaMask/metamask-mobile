@@ -1,16 +1,17 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { scale } from 'react-native-size-matters';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { withNavigation } from '@react-navigation/compat';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import Text, {
   TextVariant,
@@ -71,6 +72,10 @@ class NavbarTitle extends PureComponent {
      * Content to display inside text element
      */
     children: PropTypes.node,
+    /**
+     * Selected multichain chainId
+     */
+    chainId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -92,7 +97,7 @@ class NavbarTitle extends PureComponent {
           this.props.metrics
             .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
             .addProperties({
-              chain_id: getDecimalChainId(this.props.providerConfig.chainId),
+              chain_id: getDecimalChainId(this.props.chainId),
             })
             .build(),
         );
@@ -113,14 +118,13 @@ class NavbarTitle extends PureComponent {
       networkName,
     } = this.props;
     let name = null;
-    const color =
-      (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
-      null;
+
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     if (networkName) {
       name = networkName;
+      // TODO: [SOLANA] Revisit this before shipping, some screens do not pass a network name as a prop, consider using the selector instead
     } else if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
@@ -166,6 +170,7 @@ NavbarTitle.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
+  chainId: selectChainId(state),
 });
 
 export default withNavigation(

@@ -6,6 +6,7 @@ import {
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
+import { isNonEvmChainId } from '../../core/Multichain/utils';
 
 /**
  * Switch to the given chain ID.
@@ -35,11 +36,12 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     ([, { chainId: configChainId }]) =>
       configChainId === toHex(switchToChainId),
   );
-
-  if (entry) {
+  // TODO: [SOLANA] - This do not support non evm networks, need to revisit this handleNetworkSwtich function
+  if (entry && !isNonEvmChainId(entry[1].chainId)) {
     const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] = entry;
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+    // TODO: [SOLANA] - This needs to use multichain network controller instead
     networkController.setActiveNetwork(networkClientId);
 
     return nickname;

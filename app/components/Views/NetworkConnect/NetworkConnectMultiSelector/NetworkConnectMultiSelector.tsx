@@ -33,10 +33,14 @@ import {
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
-import { getNetworkImageSource } from '../../../../util/networks';
+import {
+  getNetworkImageSource,
+  isSolanaEnabled,
+} from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Logger from '../../../../util/Logger';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -116,9 +120,15 @@ const NetworkConnectMultiSelector = ({
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
           // Switch to the network using networkClientId
-          await Engine.context.NetworkController.setActiveNetwork(
-            networkClientId,
-          );
+          if (!isSolanaEnabled()) {
+            await Engine.context.NetworkController.setActiveNetwork(
+              networkClientId,
+            );
+          } else {
+            await Engine.context.MultichainNetworkController.setActiveNetwork(
+              networkClientId,
+            );
+          }
         }
       }
 
@@ -167,9 +177,10 @@ const NetworkConnectMultiSelector = ({
     currentChainId,
     networkConfigurations,
   ]);
-
-  const networks = Object.entries(networkConfigurations).map(
-    ([key, network]: [string, NetworkConfiguration]) => ({
+  // TODO: [SOLANA]  When we support non evm networks, refactor this
+  const networks = Object.entries(networkConfigurations)
+    .filter(([_, network]) => !isNonEvmChainId(network.chainId))
+    .map(([key, network]: [string, NetworkConfiguration]) => ({
       id: key,
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
@@ -178,8 +189,7 @@ const NetworkConnectMultiSelector = ({
       imageSource: getNetworkImageSource({
         chainId: network?.chainId,
       }),
-    }),
-  );
+    }));
 
   const onSelectNetwork = useCallback(
     (clickedChainId) => {

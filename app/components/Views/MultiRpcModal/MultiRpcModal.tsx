@@ -40,6 +40,7 @@ import Routes from '../../../constants/navigation/Routes';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const networkImage = require('../../../images/networks1.png');
 
+// TODO: [SOLANA] - Before ship make sure this component doesn't open when non evm selected
 const MultiRpcModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -87,7 +88,7 @@ const MultiRpcModal = () => {
           <View>
             {Object.values(networkConfigurations).map(
               (networkConfiguration: NetworkConfiguration, index) =>
-                networkConfiguration.rpcEndpoints.length > 1 ? (
+                networkConfiguration?.rpcEndpoints?.length > 1 ? (
                   <Cell
                     key={index}
                     variant={CellVariant.SelectWithMenu}

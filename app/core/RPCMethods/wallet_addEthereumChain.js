@@ -17,6 +17,7 @@ import {
 } from './lib/ethereum-chain-utils';
 import { getDecimalChainId } from '../../util/networks';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { isNonEvmChainId } from '../Multichain/utils';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -69,11 +70,16 @@ const wallet_addEthereumChain = async ({
   if (Object.values(actualChains).find((value) => value === chainId)) {
     throw rpcErrors.invalidParams(`May not specify default MetaMask chain.`);
   }
-
+  // TODO: [SOLANA] - This do not support non evm networks
   const networkConfigurations = selectNetworkConfigurations(store.getState());
-  const existingEntry = Object.entries(networkConfigurations).find(
-    ([, networkConfiguration]) => networkConfiguration.chainId === chainId,
-  );
+  const existingEntry = Object.entries(networkConfigurations)
+    .filter(
+      ([_, networkConfiguration]) =>
+        !isNonEvmChainId(networkConfiguration.chainId),
+    )
+    .find(
+      ([, networkConfiguration]) => networkConfiguration.chainId === chainId,
+    );
   if (existingEntry) {
     const [chainId, networkConfiguration] = existingEntry;
     const currentChainId = selectChainId(store.getState());

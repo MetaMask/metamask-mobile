@@ -15,6 +15,13 @@ import { selectTokenNetworkFilter } from './preferencesController';
 import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
 import { PopularList } from '../util/networks/customNetworks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  selectNonEvmNetworkConfigurationsByChainId,
+  selectNonEvmSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from './multichainNetworkController';
+import { isSolanaEnabled } from '../util/networks';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -127,10 +134,27 @@ export const selectTicker = createSelector(
   (providerConfig) => providerConfig?.ticker,
 );
 
-export const selectChainId = createSelector(
+export const selectEvmChainId = createSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig.chainId,
 );
+
+export const selectChainId = createSelector(
+  selectSelectedNonEvmNetworkChainId,
+  selectEvmChainId,
+  selectNonEvmSelected,
+  (
+    selectedNonEvmChainId: string,
+    selectedEvmChainId: Hex,
+    isNonEvmSelected: boolean,
+  ) =>
+    isSolanaEnabled()
+      ? isNonEvmSelected
+        ? selectedNonEvmChainId
+        : selectedEvmChainId
+      : selectedEvmChainId,
+);
+
 export const selectProviderType = createSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig.type,
@@ -152,10 +176,31 @@ export const selectNetworkStatus = createSelector(
     ].status,
 );
 
-export const selectNetworkConfigurations = createSelector(
+export const selectEvmNetworkConfigurationsByChainId = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState?.networkConfigurationsByChainId,
+);
+
+export const selectNetworkConfigurations = createSelector(
+  selectEvmNetworkConfigurationsByChainId,
+  selectNonEvmNetworkConfigurationsByChainId,
+  (
+    evmNetworkConfigurationsByChainId: Record<
+      `0x${string}`,
+      NetworkConfiguration
+    >,
+    nonEvmNetworkConfigurationsByChainId: Record<
+      string,
+      MultichainNetworkConfiguration
+    >,
+  ) => {
+    const networkConfigurationsByChainId = {
+      ...evmNetworkConfigurationsByChainId,
+      ...nonEvmNetworkConfigurationsByChainId,
+    };
+    return networkConfigurationsByChainId;
+  },
 );
 
 export const selectNetworkClientId = createSelector(

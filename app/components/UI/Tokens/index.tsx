@@ -59,6 +59,7 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -157,6 +158,8 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
   );
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
+  const isNonEvmSelected = useSelector(selectNonEvmSelected);
+
   const styles = createStyles(colors);
 
   const getTokensToDisplay = (allTokens: TokenI[]): TokenI[] => {
@@ -254,7 +257,7 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
   };
 
   const filterTokensByNetwork = (tokensToDisplay: TokenI[]): TokenI[] => {
-    if (isAllNetworks && isPopularNetwork) {
+    if (isAllNetworks && isPopularNetwork && !isNonEvmSelected) {
       return tokensToDisplay;
     }
     return tokensToDisplay.filter((token) => token.chainId === currentChainId);
@@ -369,7 +372,7 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
         CurrencyRateController,
         TokenRatesController,
       } = Engine.context;
-
+      // TODO: [SOLANA] - Token detection must work with non-evm chains
       const actions = [
         TokenDetectionController.detectTokens({
           chainIds: isPortfolioViewEnabled()
@@ -461,7 +464,7 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
               testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
               label={
                 <Text style={styles.controlButtonText} numberOfLines={1}>
-                  {isAllNetworks && isPopularNetwork
+                  {isAllNetworks && isPopularNetwork && !isNonEvmSelected
                     ? `${strings('app_settings.popular')} ${strings(
                         'app_settings.networks',
                       )}`
@@ -469,8 +472,8 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
                 </Text>
               }
               isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
-              onPress={showFilterControls}
-              endIconName={IconName.ArrowDown}
+              onPress={!isNonEvmSelected ? showFilterControls : () => {}}
+              endIconName={!isNonEvmSelected ? IconName.ArrowDown : undefined}
               style={
                 isTestNet(currentChainId) || !isPopularNetwork
                   ? styles.controlButtonDisabled

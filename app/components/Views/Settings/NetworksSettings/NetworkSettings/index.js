@@ -21,6 +21,7 @@ import Networks, {
   isPrivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
+  isSolanaEnabled,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -1536,8 +1537,14 @@ export class NetworkSettings extends PureComponent {
       networkConfigurations?.rpcEndpoints?.[
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
+    if (!isSolanaEnabled()) {
+      NetworkController.setActiveNetwork(networkClientId);
+    } else {
+      Engine.context.MultichainNetworkController.setActiveNetwork(
+        networkClientId,
+      );
+    }
 
-    NetworkController.setActiveNetwork(networkClientId);
     setTimeout(async () => {
       await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);

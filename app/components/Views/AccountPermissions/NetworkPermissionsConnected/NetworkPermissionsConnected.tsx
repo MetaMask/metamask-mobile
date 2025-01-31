@@ -55,6 +55,7 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 const AccountPermissionsConnected = ({
   onSetPermissionsScreen,
@@ -114,7 +115,10 @@ const AccountPermissionsConnected = ({
 
   // Filter networks to only show permitted ones, excluding the active network
   const networks = Object.entries(networkConfigurations)
-    .filter(([key]) => permittedChainIds.includes(key))
+    .filter(
+      ([key, network]) =>
+        permittedChainIds.includes(key) && !isNonEvmChainId(network.chainId),
+    )
     .map(([key, network]) => ({
       id: key,
       name: network.name,

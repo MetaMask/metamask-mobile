@@ -4,11 +4,15 @@ import {
   EthAccountType,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   BtcAccountType,
+  SolScopes,
+  BtcScopes,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { validate, Network } from 'bitcoin-address-validation';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
+import Engine from '../Engine';
+import { CaipChainId, Hex } from '@metamask/utils';
 ///: END:ONLY_INCLUDE_IF
 
 /**
@@ -89,5 +93,46 @@ export function isBtcTestnetAddress(address: string): boolean {
  */
 export function isSolanaAccount(account: InternalAccount): boolean {
   return isSolanaAddress(account.address);
+}
+
+/**
+ * Returns whether an address is a non-EVM address.
+ *
+ * @param address - The address to check.
+ * @returns `true` if the address is a non-EVM address, `false` otherwise.
+ */
+export function isNonEvmAddress(address: string): boolean {
+  return isSolanaAddress(address) || isBtcMainnetAddress(address);
+}
+
+/**
+ * Returns the chain id of the non-EVM network based on the account address.
+ *
+ * @param address - The address to check.
+ * @returns The chain id of the non-EVM network.
+ */
+export function nonEvmNetworkChainIdByAccountAddress(address: string): string {
+  if (isSolanaAddress(address)) {
+    return SolScopes.Mainnet;
+  }
+  return BtcScopes.Mainnet;
+}
+
+export function lastSelectedAccountAddressByNonEvmNetworkChainId(
+  chainId: CaipChainId,
+): string {
+  const { AccountsController } = Engine.context;
+  // TODO: Add teh logic if there is none last selected account what to do
+  return AccountsController.getSelectedMultichainAccount(chainId).address;
+}
+
+/**
+ * Returns whether a chain id is a non-EVM chain id.
+ *
+ * @param chainId - The chain id to check.
+ * @returns `true` if the chain id is a non-EVM chain id, `false` otherwise.
+ */
+export function isNonEvmChainId(chainId: string | Hex): boolean {
+  return chainId === SolScopes.Mainnet || chainId === BtcScopes.Mainnet;
 }
 ///: END:ONLY_INCLUDE_IF

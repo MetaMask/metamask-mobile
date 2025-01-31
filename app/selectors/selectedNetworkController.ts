@@ -15,6 +15,7 @@ import {
   ProviderConfig,
   selectChainId,
 } from './networkController';
+import { isNonEvmChainId } from '../core/Multichain/utils';
 
 const selectSelectedNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.SelectedNetworkController;
@@ -48,6 +49,10 @@ const selectProviderNetworkName = createSelector(
     selectedNetworkClientId,
     chainId,
   ) => {
+    if (isNonEvmChainId(chainId)) {
+      return networkConfigurations[chainId]?.name;
+    }
+
     if (providerConfig.type === 'rpc') {
       return networkConfigurations[chainId]?.rpcEndpoints.find(
         ({ networkClientId }) => networkClientId === selectedNetworkClientId,
@@ -76,7 +81,7 @@ const selectProviderNetworkImageSource = createSelector(
       chainId: providerConfig.chainId,
     }),
 );
-
+// TODO: [SOLANA] - This do not support non evm networks, need to revisit
 export const makeSelectNetworkName = () =>
   createSelector(
     [
@@ -95,7 +100,8 @@ export const makeSelectNetworkName = () =>
       chainId,
       hostname,
     ) => {
-      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK) return providerNetworkName;
+      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK)
+        return providerNetworkName;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       return (
@@ -175,6 +181,7 @@ export const makeSelectChainId = () =>
     },
   );
 
+// TODO: [SOLANA] - This do not support non evm networks, need to revisit
 export const makeSelectRpcUrl = () =>
   createSelector(
     [
@@ -193,7 +200,11 @@ export const makeSelectRpcUrl = () =>
       chainId,
       hostname,
     ) => {
-      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK) return providerRpcUrl;
+      if (isNonEvmChainId(chainId)) {
+        return;
+      }
+      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK)
+        return providerRpcUrl;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       return networkConfigurations[chainId]?.rpcEndpoints.find(

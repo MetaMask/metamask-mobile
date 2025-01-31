@@ -129,6 +129,7 @@ export const TokenListItem = React.memo(
           chainId as Hex
         ]
       : selectedChainTokenBalance;
+
     const nativeCurrency =
       networkConfigurations?.[chainId as Hex]?.nativeCurrency;
 

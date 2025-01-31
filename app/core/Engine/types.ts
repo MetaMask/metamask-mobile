@@ -152,6 +152,15 @@ import {
   NotificationServicesPushController,
   NotificationServicesController,
 } from '@metamask/notification-services-controller';
+import {
+  MultichainNetworkController,
+  MultichainNetworkControllerState,
+} from '@metamask/multichain-network-controller';
+import {
+  MultichainNetworkControllerEvents,
+  MultichainNetworkStateControllerActions,
+} from '@metamask/multichain-network-controller/dist/MultichainNetworkController.cjs';
+
 ///: END:ONLY_INCLUDE_IF
 import {
   AccountsController,
@@ -227,6 +236,7 @@ type GlobalActions =
   | UserStorageController.Actions
   | NotificationServicesController.Actions
   | NotificationServicesPushController.Actions
+  | MultichainNetworkStateControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -259,6 +269,7 @@ type GlobalEvents =
   | UserStorageController.Events
   | NotificationServicesController.Events
   | NotificationServicesPushController.Events
+  | MultichainNetworkControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -335,6 +346,7 @@ export type Controllers = {
   UserStorageController: UserStorageController.Controller;
   NotificationServicesController: NotificationServicesController.Controller;
   NotificationServicesPushController: NotificationServicesPushController.Controller;
+  MultichainNetworkController: MultichainNetworkController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
 };
@@ -376,6 +388,7 @@ export type EngineState = {
   UserStorageController: UserStorageController.UserStorageControllerState;
   NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
   NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
+  MultichainNetworkController: MultichainNetworkControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;

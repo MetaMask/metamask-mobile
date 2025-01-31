@@ -11,6 +11,7 @@ import Text, {
 import Networks, {
   getAllNetworks,
   getNetworkImageSource,
+  isSolanaEnabled,
 } from '../../../../util/networks';
 import {
   selectShowTestNetworks,
@@ -30,6 +31,8 @@ import NetworkCell from '../../../UI/NetworkCell/NetworkCell';
 import { MAINNET, LINEA_MAINNET } from '../../../../../app/constants/network';
 import { INCOMING_TRANSACTIONS_SUPPORTED_CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { NON_EVM_NETWORKS } from '../../../../util/networks/customNetworks';
+import images from 'images/image-icons';
 
 const IncomingTransactionsSettings = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -107,6 +110,20 @@ const IncomingTransactionsSettings = () => {
     return [...mainnetNetworks, ...otherNetworks].map(renderNetwork);
   };
 
+  const renderNonEvmNetworks = () =>
+    NON_EVM_NETWORKS.map((network) => (
+      <NetworkCell
+        key={network.chainId}
+        name={network.nickname}
+        chainId={network.chainId}
+        imageSource={images.SOLANA}
+        //TODO: Disabled for now. but needs to work to enable show incoming transacitons
+        showIncomingTransactionsNetworks={false}
+        toggleEnableIncomingTransactions={toggleEnableIncomingTransactions}
+        testID={'solana-incoming-transactions-toggle'}
+      />
+    ));
+
   const renderOtherNetworks = () => {
     const NetworksTyped = Networks as NetworksI;
     const getOtherNetworks = () => getAllNetworks().slice(2);
@@ -142,6 +159,7 @@ const IncomingTransactionsSettings = () => {
       </Text>
       <View style={styles.transactionsContainer}>
         {renderRpcNetworks()}
+        {isSolanaEnabled() && renderNonEvmNetworks()}
         {showTestNetworks && renderOtherNetworks()}
       </View>
     </View>

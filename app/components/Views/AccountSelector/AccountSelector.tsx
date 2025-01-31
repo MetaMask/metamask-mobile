@@ -38,6 +38,16 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
+import {
+  selectNonEvmSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
+import {
+  isNonEvmAddress,
+  nonEvmNetworkChainIdByAccountAddress,
+} from '../../../core/Multichain/utils';
+import { selectNetworkClientId } from '../../../selectors/networkController';
+import { isSolanaEnabled } from '../../../util/networks';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
@@ -50,6 +60,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
   const privacyMode = useSelector(selectPrivacyMode);
+  const isNonEvmNetworkSelected = useSelector(selectNonEvmSelected);
+  const selectedNonEvmNetworkChainId = useSelector(
+    selectSelectedNonEvmNetworkChainId,
+  );
   const sheetRef = useRef<BottomSheetRef>(null);
   const { accounts, ensByAccountAddress } = useAccounts({
     checkBalanceError,
@@ -68,10 +82,32 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   }, [dispatch, reloadAccounts]);
 
   const _onSelectAccount = useCallback(
-    (address: string) => {
+    async (address: string) => {
       Engine.setSelectedAddress(address);
       sheetRef.current?.onCloseBottomSheet();
       onSelectAccount?.(address);
+
+      if (isSolanaEnabled()) {
+        if (isNonEvmAddress(address) && !isNonEvmNetworkSelected) {
+          const nonEvmNetworkChainId =
+            nonEvmNetworkChainIdByAccountAddress(address);
+          // Switch between selected non evm network
+          // TODO: [SOLANA] Revisit this before shipping, maybe this if else is not needed and we can just call setActiveNetwork
+          if (nonEvmNetworkChainId !== selectedNonEvmNetworkChainId) {
+            await Engine.context.MultichainNetworkController.setActiveNetwork(
+              '',
+              nonEvmNetworkChainId,
+            );
+          } else {
+            // Switch to selected non evm network
+            Engine.context.MultichainNetworkController.setNonEvmSelected();
+          }
+        }
+        // TODO: [SOLANA] Revisit this before shipping, this should be handled by the controllers
+        if (isNonEvmNetworkSelected && !isNonEvmAddress(address)) {
+          Engine.context.MultichainNetworkController.setEvmSelected();
+        }
+      }
 
       // Track Event: "Switched Account"
       trackEvent(

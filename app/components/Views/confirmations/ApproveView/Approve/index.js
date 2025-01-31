@@ -47,7 +47,7 @@ import {
   selectNativeCurrencyByChainId,
   selectNetworkConfigurations,
   selectProviderTypeByChainId,
-  selectRpcUrlByChainId
+  selectRpcUrlByChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectConversionRateByChainId,
@@ -83,6 +83,7 @@ import {
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 import Routes from '../../../../../constants/navigation/Routes';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -820,7 +821,7 @@ class Approve extends PureComponent {
     }
 
     if (!transaction.id) return null;
-
+    // TODO: [SOLANA] - before ship make sure ShowBlockExplorer componentsupports Solana
     return (
       <Modal
         isVisible={this.props.modalVisible && !isChangeInSimulationModalOpen}
@@ -848,7 +849,7 @@ class Approve extends PureComponent {
             savedContactListToArray={savedContactListToArray}
             addressNickname={addressNickname}
           />
-        ) : this.state.isBlockExplorerVisible ? (
+        ) : this.state.isBlockExplorerVisible && !isNonEvmChainId(chainId) ? (
           <ShowBlockExplorer
             setIsBlockExplorerVisible={this.setIsBlockExplorerVisible}
             type={providerType}
@@ -979,7 +980,7 @@ const mapStateToProps = (state) => {
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

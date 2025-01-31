@@ -59,7 +59,7 @@ export class EngineService {
       });
 
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      Engine.init(state, null, metaMetricsId);
+        Engine.init(state, null, metaMetricsId);
       this.updateControllers(Engine);
     } catch (error) {
       Logger.error(
@@ -181,6 +181,10 @@ export class EngineService {
       {
         name: 'NotificationServicesPushController',
         key: 'NotificationServicesPushController:stateChange',
+      },
+      {
+        name: 'MultichainNetworkController',
+        key: 'MultichainNetworkController:stateChange',
       },
       ///: END:ONLY_INCLUDE_IF
       {

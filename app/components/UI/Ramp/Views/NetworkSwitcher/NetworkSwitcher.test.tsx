@@ -122,6 +122,9 @@ jest.mock('../../../../../core/Engine', () => ({
       updateExchangeRate: jest.fn(),
     },
   },
+  /*   MultichainNetworkController: {
+    setActiveNetwork: jest.fn(),
+  }, */
 }));
 
 const mockSetOptions = jest.fn();
@@ -280,6 +283,7 @@ describe('NetworkSwitcher View', () => {
     render(NetworkSwitcher);
     const lineaNetworkText = screen.getByText('Linea Main Network');
     fireEvent.press(lineaNetworkText);
+
     expect(
       (Engine.context.NetworkController.setActiveNetwork as jest.Mock).mock
         .calls,
@@ -290,6 +294,16 @@ describe('NetworkSwitcher View', () => {
         ],
       ]
     `);
+    /*  expect(
+      (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
+        .mock.calls,
+    ).toMatchInlineSnapshot(`
+      [
+        [
+          "linea-mainnet",
+        ],
+      ]
+    `); */
 
     jest.clearAllMocks();
     render(NetworkSwitcher);
@@ -305,6 +319,19 @@ describe('NetworkSwitcher View', () => {
         ],
       ]
     `);
+
+    /*
+     expect(
+      (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
+        .mock.calls,
+    ).toMatchInlineSnapshot(`
+      [
+        [
+          "networkId1",
+        ],
+      ]
+    `);
+    */
   });
 
   it('renders correctly with errors', async () => {

@@ -34,6 +34,7 @@ import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
 import { Hex } from '../../../util/smart-transactions/smart-publish-hook';
 import { appendURLParams } from '../../../util/browser';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 interface Option {
   label: string;
   onPress: () => void;
@@ -75,12 +76,13 @@ const AssetOptions = (props: Props) => {
   // Memoize the provider config for the token explorer
   const { providerConfigTokenExplorer } = useMemo(() => {
     const tokenNetworkConfig = networkConfigurations[networkId as Hex];
-    const tokenRpcEndpoint =
-      networkConfigurations[networkId as Hex]?.rpcEndpoints?.[
-        networkConfigurations[networkId as Hex]?.defaultRpcEndpointIndex
-      ];
+    const tokenRpcEndpoint = !isNonEvmChainId(networkId)
+      ? networkConfigurations[networkId as Hex]?.rpcEndpoints?.[
+          networkConfigurations[networkId as Hex]?.defaultRpcEndpointIndex
+        ]
+      : null;
     let providerConfigToken;
-    if (isPortfolioViewEnabled()) {
+    if (isPortfolioViewEnabled() && tokenRpcEndpoint) {
       providerConfigToken = createProviderConfig(
         tokenNetworkConfig,
         tokenRpcEndpoint,
@@ -97,8 +99,8 @@ const AssetOptions = (props: Props) => {
   }, [networkId, networkConfigurations, providerConfig]);
 
   const explorer = useBlockExplorer(
-    providerConfigTokenExplorer,
     networkConfigurations,
+    providerConfigTokenExplorer,
   );
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 

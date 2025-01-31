@@ -6,7 +6,7 @@ import Text from '../../Base/Text';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
-import { isPrivateConnection } from '../../../util/networks';
+import { isPrivateConnection, isSolanaEnabled } from '../../../util/networks';
 import { toggleUseSafeChainsListValidation } from '../../../util/networks/engineNetworkUtils';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
@@ -46,6 +46,11 @@ import {
   RpcEndpointType,
   AddNetworkFields,
 } from '@metamask/network-controller';
+import {
+  isNonEvmAddress,
+  isNonEvmChainId,
+} from '../../../core/Multichain/utils';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 
 export interface SafeChain {
   chainId: string;
@@ -88,6 +93,9 @@ const NetworkModals = (props: NetworkProps) => {
     safeChains,
   } = props;
   const { trackEvent, createEventBuilder } = useMetrics();
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -225,47 +233,54 @@ const NetworkModals = (props: NetworkProps) => {
 
     const existingNetwork = networkConfigurationByChainId[chainId];
     let networkClientId;
+    // TODO: [SOLANA]
+    if (!isNonEvmChainId(chainId)) {
+      if (existingNetwork) {
+        const updatedNetwork = await NetworkController.updateNetwork(
+          existingNetwork.chainId,
+          existingNetwork,
+          existingNetwork.chainId === chainId
+            ? {
+                replacementSelectedRpcEndpointIndex:
+                  existingNetwork.defaultRpcEndpointIndex,
+              }
+            : undefined,
+        );
 
-    if (existingNetwork) {
-      const updatedNetwork = await NetworkController.updateNetwork(
-        existingNetwork.chainId,
-        existingNetwork,
-        existingNetwork.chainId === chainId
-          ? {
-              replacementSelectedRpcEndpointIndex:
-                existingNetwork.defaultRpcEndpointIndex,
-            }
-          : undefined,
-      );
+        networkClientId =
+          updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex]
+            ?.networkClientId;
+      } else {
+        const addedNetwork = await NetworkController.addNetwork({
+          chainId,
+          blockExplorerUrls: [blockExplorerUrl],
+          defaultRpcEndpointIndex: 0,
+          defaultBlockExplorerUrlIndex: 0,
+          name: nickname,
+          nativeCurrency: ticker,
+          rpcEndpoints: [
+            {
+              url: rpcUrl,
+              name: nickname,
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
 
-      networkClientId =
-        updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex]
-          ?.networkClientId;
-    } else {
-      const addedNetwork = await NetworkController.addNetwork({
-        chainId,
-        blockExplorerUrls: [blockExplorerUrl],
-        defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: 0,
-        name: nickname,
-        nativeCurrency: ticker,
-        rpcEndpoints: [
-          {
-            url: rpcUrl,
-            name: nickname,
-            type: RpcEndpointType.Custom,
-          },
-        ],
-      });
-
-      networkClientId =
-        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
-          ?.networkClientId;
+        networkClientId =
+          addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
+            ?.networkClientId;
+      }
     }
-
     if (networkClientId) {
       onUpdateNetworkFilter();
-      await NetworkController.setActiveNetwork(networkClientId);
+      if (!isSolanaEnabled()) {
+        await NetworkController.setActiveNetwork(networkClientId);
+      } else {
+        await Engine.context.MultichainNetworkController.setActiveNetwork(
+          networkClientId,
+        );
+      }
     }
 
     onClose();
@@ -291,7 +306,13 @@ const NetworkModals = (props: NetworkProps) => {
       updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
       {};
     onUpdateNetworkFilter();
-    await NetworkController.setActiveNetwork(networkClientId);
+    if (!isSolanaEnabled()) {
+      await NetworkController.setActiveNetwork(networkClientId);
+    } else {
+      await Engine.context.MultichainNetworkController.setActiveNetwork(
+        networkClientId,
+      );
+    }
   };
 
   const handleNewNetwork = async (
@@ -337,7 +358,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const switchNetwork = async () => {
-    const { NetworkController } = Engine.context;
+    const { NetworkController, AccountsController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     const existingNetwork = networkConfigurationByChainId[chainId];
 
@@ -360,7 +381,25 @@ const NetworkModals = (props: NetworkProps) => {
         {};
 
       onUpdateNetworkFilter();
-      NetworkController.setActiveNetwork(networkClientId);
+      if (!isSolanaEnabled()) {
+        NetworkController.setActiveNetwork(networkClientId);
+      } else {
+        Engine.context.MultichainNetworkController.setActiveNetwork(
+          networkClientId,
+        );
+        // Only trigger the change of selected address if is changing from a non evm network to an evm network
+        // This is temporary and should be revisited when multichain network controller listens accounts controller selected account
+        if (selectedAddress && isNonEvmAddress(selectedAddress)) {
+          const lastMultiChainAccount =
+            AccountsController.getSelectedMultichainAccount(
+              `eip155:${getDecimalChainId(chainId)}`,
+            );
+          if (lastMultiChainAccount) {
+            //TODO: Verify if the last account Address still exist in the account list if not set the first account as selected
+            Engine.setSelectedAddress(lastMultiChainAccount.address);
+          }
+        }
+      }
     }
     onClose();
 

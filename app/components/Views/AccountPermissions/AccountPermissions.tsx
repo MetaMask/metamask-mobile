@@ -67,6 +67,7 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import NetworkPermissionsConnected from './NetworkPermissionsConnected';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -158,8 +159,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
 
-    const networks = Object.entries(networkConfigurations).map(
-      ([key, network]: [string, NetworkConfiguration]) => ({
+    const networks = Object.entries(networkConfigurations)
+      .filter(([_, network]) => !isNonEvmChainId(network.chainId))
+      .map(([key, network]: [string, NetworkConfiguration]) => ({
         id: key,
         name: network.name,
         rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
@@ -169,8 +171,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         imageSource: getNetworkImageSource({
           chainId: network?.chainId,
         }),
-      }),
-    );
+      }));
 
     const theNetworkAvatars: ({ name: string; imageSource: string } | null)[] =
       currentlyPermittedChains.map((selectedId) => {

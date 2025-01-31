@@ -8,10 +8,6 @@ import PickerNetwork from '../../../component-library/components/Pickers/PickerN
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import {
-  ProviderConfig,
-  selectProviderConfig,
-} from '../../../selectors/networkController';
-import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
@@ -23,9 +19,10 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import AppConstants from '../../../core/AppConstants';
 import styles from './ManageNetworks.styles';
+import { selectChainId } from '../../../selectors/networkController';
 
 export default function ManageNetworksComponent() {
-  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -40,11 +37,11 @@ export default function ManageNetworksComponent() {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
         .addProperties({
-          chain_id: getDecimalChainId(providerConfig.chainId),
+          chain_id: getDecimalChainId(chainId),
         })
         .build(),
     );
-  }, [navigation, trackEvent, providerConfig, createEventBuilder]);
+  }, [navigation, trackEvent, chainId, createEventBuilder]);
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);

@@ -14,6 +14,7 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { type Notification } from '../../../../../util/notifications/types';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 type BlockExplorerFooterProps = ModalFooterBlockExplorer & {
   notification: Notification;
@@ -23,9 +24,14 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const { styles } = useStyles();
   const { notification } = props;
   const { trackEvent, createEventBuilder } = useMetrics();
+
   const defaultBlockExplorer = getBlockExplorerByChainId(props.chainId);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  // TODO: [SOLANA] - before ship make sure this supports non evm networks
   const networkBlockExplorer = useMemo(() => {
+    if (isNonEvmChainId(props.chainId)) {
+      return null;
+    }
     const hexChainId = toHex(props.chainId);
     return Object.values(networkConfigurations).find(
       (networkConfig) => networkConfig.chainId === hexChainId,

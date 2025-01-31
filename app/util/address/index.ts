@@ -20,6 +20,7 @@ import {
 import {
   isMainnetByChainId,
   findBlockExplorerForRpc,
+  isSolanaEnabled,
 } from '../../util/networks';
 import { RPC } from '../../constants/network';
 import { collectConfusables } from '../../util/confusables';
@@ -44,6 +45,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
+import { isNonEvmAddress } from '../../core/Multichain/utils';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -154,7 +156,10 @@ export function renderAccountName(
  * @returns {Promise} - Returns a promise
  */
 
-export async function importAccountFromPrivateKey(private_key: string) {
+export async function importAccountFromPrivateKey(
+  private_key: string,
+  isNonEvmSelected?: boolean,
+) {
   const { KeyringController } = Engine.context;
   // Import private key
   let pkey = private_key;
@@ -168,7 +173,16 @@ export async function importAccountFromPrivateKey(private_key: string) {
       [pkey],
     );
   const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
-  return Engine.setSelectedAddress(checksummedAddress);
+  Engine.setSelectedAddress(checksummedAddress);
+  // TODO: [SOLANA] Revisit this before shipping, maybe this if else is not needed and we can just call setActiveNetwork
+  if (
+    isSolanaEnabled() &&
+    !isNonEvmAddress(checksummedAddress) &&
+    isNonEvmSelected
+  ) {
+    Engine.context.MultichainNetworkController.setEvmSelected();
+  }
+  //TODO: Switch network to non evm if imported a non evm account
 }
 
 /**

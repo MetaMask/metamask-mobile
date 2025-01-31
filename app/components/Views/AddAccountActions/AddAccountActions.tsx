@@ -23,7 +23,6 @@ import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-snap-client';
 import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
-import { MultichainNetworks } from '../../../core/Multichain/constants';
 import { useSelector } from 'react-redux';
 import {
   hasCreatedBtcMainnetAccount,
@@ -34,6 +33,7 @@ import {
   selectIsBitcoinTestnetSupportEnabled,
   selectIsSolanaSupportEnabled,
 } from '../../../selectors/multichain';
+import { BtcScopes, SolScopes } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
@@ -158,7 +158,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               actionTitle={strings('account_actions.add_solana_account')}
               iconName={IconName.Add}
               onPress={async () => {
-                await createSolanaAccount(MultichainNetworks.SOLANA);
+                await createSolanaAccount(SolScopes.Mainnet);
               }}
               disabled={isLoading}
               testID={
@@ -173,7 +173,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               )}
               iconName={IconName.Add}
               onPress={async () => {
-                await createBitcoinAccount(MultichainNetworks.BITCOIN);
+                await createBitcoinAccount(BtcScopes.Mainnet);
               }}
               disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
               testID={
@@ -188,7 +188,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               )}
               iconName={IconName.Add}
               onPress={async () => {
-                await createBitcoinAccount(MultichainNetworks.BITCOIN_TESTNET);
+                await createBitcoinAccount(BtcScopes.Testnet);
               }}
               disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
               testID={

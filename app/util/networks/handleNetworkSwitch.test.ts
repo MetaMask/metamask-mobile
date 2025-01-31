@@ -15,6 +15,9 @@ jest.mock('../../core/Engine', () => ({
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
   },
 }));
 
@@ -105,6 +108,10 @@ describe('useHandleNetworkSwitch', () => {
     expect(
       mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).not.toBeCalled();
+    /*  expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).not.toBeCalled(); */
+
     expect(
       mockEngine.context.NetworkController.setActiveNetwork,
     ).not.toBeCalled();
@@ -122,6 +129,9 @@ describe('useHandleNetworkSwitch', () => {
     expect(
       mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).not.toBeCalled();
+    /*   expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).not.toBeCalled(); */
     expect(
       mockEngine.context.NetworkController.setActiveNetwork,
     ).not.toBeCalled();
@@ -136,6 +146,9 @@ describe('useHandleNetworkSwitch', () => {
 
     const nickname = handleNetworkSwitch('1338');
 
+    /*   expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).toBeCalledWith('networkId1'); */
     expect(
       mockEngine.context.NetworkController.setActiveNetwork,
     ).toBeCalledWith('networkId1');
@@ -153,6 +166,9 @@ describe('useHandleNetworkSwitch', () => {
     expect(
       mockEngine.context.NetworkController.setProviderType,
     ).not.toBeCalledWith();
+    /*   expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).toBeCalled(); */
     expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
     expect(networkType).toBe(SEPOLIA);
   });

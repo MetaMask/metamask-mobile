@@ -19,6 +19,7 @@ import Networks, {
   isDefaultMainnet,
   isLineaMainnet,
   isMainNet,
+  isSolanaEnabled,
   isTestNet,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
@@ -43,6 +44,9 @@ import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { NON_EVM_NETWORKS } from '../../../../util/networks/customNetworks';
+import { SolScopes } from '@metamask/keyring-api';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -226,7 +230,11 @@ class NetworksSettings extends PureComponent {
 
     if (this.networkToRemove === selectedNetworkClientId) {
       // if we delete selected network, switch to mainnet before removing the selected network
-      NetworkController.setActiveNetwork('mainnet');
+      if (!isSolanaEnabled()) {
+        NetworkController.setActiveNetwork('mainnet');
+      } else {
+        Engine.context.MultichainNetworkController.setActiveNetwork('mainnet');
+      }
     }
 
     NetworkController.removeNetwork(chainId);
@@ -324,7 +332,8 @@ class NetworksSettings extends PureComponent {
           isTestNet(chainId) ||
           isMainNet(chainId) ||
           chainId === CHAIN_IDS.LINEA_MAINNET ||
-          chainId === CHAIN_IDS.GOERLI
+          chainId === CHAIN_IDS.GOERLI ||
+          isNonEvmChainId(chainId)
         ) {
           return null;
         }
@@ -421,6 +430,39 @@ class NetworksSettings extends PureComponent {
             <ImageIcons image="LINEA-MAINNET" style={styles.networkIcon} />
             <View style={styles.networkInfo}>
               <Text style={styles.networkLabel}>{lineaMainnetName}</Text>
+            </View>
+          </View>
+          <FontAwesome
+            name="lock"
+            size={20}
+            color={colors.icon.default}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  renderSolanaMainnet() {
+    // TODO: [SOLANA] - Please revisit this since it's supported on a constant array in mobile and should come from multichain network controller
+    const { nickname: solanaMainnetName } = NON_EVM_NETWORKS.find(
+      (network) => network.chainId === SolScopes.Mainnet,
+    );
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <View style={styles.mainnetHeader}>
+        <TouchableOpacity
+          style={styles.network}
+          key={`network-${solanaMainnetName}`}
+          onPress={() => null}
+          disabled
+        >
+          <View style={styles.networkWrapper}>
+            <ImageIcons image={'SOLANA'} style={styles.networkIcon} />
+            <View style={styles.networkInfo}>
+              <Text style={styles.networkLabel}>{solanaMainnetName}</Text>
             </View>
           </View>
           <FontAwesome
@@ -537,6 +579,7 @@ class NetworksSettings extends PureComponent {
               </Text>
               {this.renderMainnet()}
               {this.renderLineaMainnet()}
+              {this.renderSolanaMainnet()}
               {this.renderRpcNetworksView()}
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.test_network_name')}

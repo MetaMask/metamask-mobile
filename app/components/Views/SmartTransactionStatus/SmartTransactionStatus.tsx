@@ -26,6 +26,7 @@ import LoopingScrollAnimation from './LoopingScrollAnimation';
 import { hexToDecimal } from '../../../util/conversions';
 import useRemainingTime from './useRemainingTime';
 import { ThemeColors } from '@metamask/design-tokens';
+import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -254,7 +255,7 @@ const SmartTransactionStatus = ({
 }: Props) => {
   const { status, creationTime, uuid } = smartTransaction;
   const providerConfig = useSelector(selectProviderConfig);
-
+  const isNonEvmSelected = useSelector(selectNonEvmSelected);
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -313,6 +314,7 @@ const SmartTransactionStatus = ({
   });
 
   // Set block explorer link and show explorer on click
+  // TODO: [SOLANA] Smart transactions will support solana? Flagging this revisit this before shipping.
   const txUrl = getPortfolioStxLink(providerConfig.chainId, uuid);
 
   const onViewTransaction = () => {
@@ -378,7 +380,7 @@ const SmartTransactionStatus = ({
         <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
 
-          {renderViewTransactionLink()}
+          {isNonEvmSelected ? renderViewTransactionLink() : null}
         </View>
       </View>
       <LoopingScrollAnimation width={800}>

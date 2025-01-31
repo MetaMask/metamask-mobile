@@ -3,15 +3,19 @@ import { toHex } from '@metamask/controller-utils';
 
 import { getNetworkImageSource } from '../../../../util/networks';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { selectNonEvmSelected } from '../../../../selectors/multichainNetworkController';
 
 const useNetworkInfo = (chainId?: string) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const isNonEvmSelected = useSelector(selectNonEvmSelected);
 
   if (!chainId) {
     return {};
   }
 
-  const networkConfiguration = networkConfigurations[toHex(chainId)];
+  const networkConfiguration = isNonEvmSelected
+    ? networkConfigurations[toHex(chainId)]
+    : null;
 
   if (!networkConfiguration) {
     return {};

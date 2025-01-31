@@ -296,6 +296,7 @@ export async function switchToNetwork({
       networkConfigurationId || networkConfiguration.networkType,
     );
   } else {
+    //TODO: Add non evm support for dapp interaction
     NetworkController.setActiveNetwork(
       networkConfigurationId || networkConfiguration.networkType,
     );

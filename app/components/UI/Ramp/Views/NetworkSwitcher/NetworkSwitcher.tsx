@@ -41,7 +41,11 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
 import { PopularList } from '../../../../../util/networks/customNetworks';
-import { getDecimalChainId } from '../../../../../util/networks';
+import {
+  getDecimalChainId,
+  isSolanaEnabled,
+} from '../../../../../util/networks';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 function NetworkSwitcher() {
   const navigation = useNavigation();
@@ -143,28 +147,38 @@ function NetworkSwitcher() {
   }, [navigation]);
 
   const switchToMainnet = useCallback(
-    (type: 'mainnet' | 'linea-mainnet') => {
-      const { NetworkController } = Engine.context;
-      NetworkController.setActiveNetwork(type);
+    async (type: 'mainnet' | 'linea-mainnet') => {
+      if (!isSolanaEnabled()) {
+        const { NetworkController } = Engine.context;
+        await NetworkController.setActiveNetwork(type);
+      } else {
+        await Engine.context.MultichainNetworkController.setActiveNetwork(type);
+      }
+
       navigateToGetStarted();
     },
     [navigateToGetStarted],
   );
 
   const switchNetwork = useCallback(
-    (networkConfiguration) => {
+    async (networkConfiguration) => {
       const { NetworkController } = Engine.context;
       const config = Object.values(networkConfigurations).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
       );
 
-      if (config) {
+      if (config && !isNonEvmChainId(config?.chainId)) {
         const { rpcEndpoints, defaultRpcEndpointIndex } = config;
 
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
-
-        NetworkController.setActiveNetwork(networkClientId);
+        if (!isSolanaEnabled()) {
+          await NetworkController.setActiveNetwork(networkClientId);
+        } else {
+          await Engine.context.MultichainNetworkController.setActiveNetwork(
+            networkClientId,
+          );
+        }
         navigateToGetStarted();
       }
     },

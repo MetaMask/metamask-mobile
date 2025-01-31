@@ -64,6 +64,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getDecimalChainId,
   isPortfolioViewEnabled,
+  isSolanaEnabled,
 } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
@@ -194,8 +195,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           networkConfiguration?.rpcEndpoints?.[
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
-
-        await NetworkController.setActiveNetwork(networkClientId as string);
+        if (!isSolanaEnabled()) {
+          await NetworkController.setActiveNetwork(networkClientId as string);
+        } else {
+          await Engine.context.MultichainNetworkController.setActiveNetwork(
+            networkClientId as string,
+          );
+        }
       }
     }
     if (asset.isETH && ticker) {
@@ -226,13 +232,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        NetworkController.setActiveNetwork(networkClientId as string).then(
-          () => {
+        if (!isSolanaEnabled()) {
+          NetworkController.setActiveNetwork(networkClientId as string).then(
+            () => {
+              setTimeout(() => {
+                handleSwapNavigation();
+              }, 500);
+            },
+          );
+        } else {
+          Engine.context.MultichainNetworkController.setActiveNetwork(
+            networkClientId as string,
+          ).then(() => {
             setTimeout(() => {
               handleSwapNavigation();
             }, 500);
-          },
-        );
+          });
+        }
       } else {
         handleSwapNavigation();
       }

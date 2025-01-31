@@ -41,5 +41,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'UserStorageController:stateChange',
   'NotificationServicesController:stateChange',
   'NotificationServicesPushController:stateChange',
+  'MultichainNetworkController:stateChange',
   ///: END:ONLY_INCLUDE_IF
 ] as const;

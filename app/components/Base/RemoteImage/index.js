@@ -29,6 +29,7 @@ import {
   getTestNetImageByChainId,
   isLineaMainnet,
   isMainNet,
+  isSolanaMainnet,
   isTestNet,
 } from '../../../util/networks';
 import images from 'images/image-icons';
@@ -137,6 +138,8 @@ const RemoteImage = (props) => {
     if (isMainNet(chainId)) return images.ETHEREUM;
 
     if (isLineaMainnet(chainId)) return images['LINEA-MAINNET'];
+
+    if (isSolanaMainnet(chainId)) return images.SOLANA;
 
     return ticker ? images[ticker] : undefined;
   };

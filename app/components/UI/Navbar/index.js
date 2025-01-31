@@ -60,13 +60,11 @@ import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/R
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import {
-  isBtcAccount,
-  isSolanaAccount,
-  getFormattedAddressFromInternalAccount,
-} from '../../../core/Multichain/utils';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+
 ///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
+import { isSolanaEnabled } from '../../../util/networks';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -885,6 +883,7 @@ export function getOfflineModalNavbar() {
  * @param {boolean | null} isProfileSyncingEnabled - Whether profile syncing is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
+ * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -901,6 +900,7 @@ export function getWalletNavbarOptions(
   isProfileSyncingEnabled,
   unreadNotificationCount,
   readNotificationCount,
+  isNonEvmSelected,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -920,12 +920,11 @@ export function getWalletNavbarOptions(
 
   let formattedAddress = toChecksumHexAddress(selectedInternalAccount.address);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  formattedAddress = getFormattedAddressFromInternalAccount(
-    selectedInternalAccount,
-  );
-  ///: END:ONLY_INCLUDE_IF
-
+  if (isSolanaEnabled()) {
+    formattedAddress = getFormattedAddressFromInternalAccount(
+      selectedInternalAccount,
+    );
+  }
   const onScanSuccess = (data, content) => {
     if (data.private_key) {
       Alert.alert(
@@ -941,7 +940,10 @@ export function getWalletNavbarOptions(
             text: strings('wallet.yes'),
             onPress: async () => {
               try {
-                await importAccountFromPrivateKey(data.private_key);
+                await importAccountFromPrivateKey(
+                  data.private_key,
+                  isNonEvmSelected,
+                );
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });
@@ -1019,33 +1021,6 @@ export function getWalletNavbarOptions(
         hideNetworkName
       />
     );
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (isSolanaAccount(selectedInternalAccount)) {
-      networkPicker = (
-        <PickerNetwork
-          label={'Solana'}
-          imageSource={require('../../../images/solana-logo.png')}
-          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-          hideNetworkName
-          isDisabled
-        />
-      );
-    }
-
-    if (isBtcAccount(selectedInternalAccount)) {
-      networkPicker = (
-        <PickerNetwork
-          label={'Bitcoin'}
-          imageSource={require('../../../images/bitcoin-logo.png')}
-          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-          hideNetworkName
-          isDisabled
-        />
-      );
-    }
-
-    ///: END:ONLY_INCLUDE_IF
 
     return <View style={styles.leftElementContainer}>{networkPicker}</View>;
   };

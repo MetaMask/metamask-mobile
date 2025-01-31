@@ -1,6 +1,7 @@
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { SolScopes } from '@metamask/keyring-api';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -99,6 +100,23 @@ export const PopularList = [
     },
   },
 ];
+// TODO: [SOLANA] - Replace this by constants of multichain network controller
+export const NON_EVM_NETWORKS = [
+  {
+    chainId: SolScopes.Mainnet,
+    nickname: 'Solana',
+    ticker: 'SOL',
+    imageSource: require('../../images/solana-logo.png'),
+    blockExplorerUrls: ['https://explorer.solana.com'],
+  },
+];
+
+export const getNonEvmNetworkImageSourceByChainId = (chainId: string) => {
+  const network = NON_EVM_NETWORKS.find(
+    (network) => network.chainId === chainId,
+  );
+  return network?.imageSource;
+};
 
 export const INFURA_TESTNET_CHAIN_IDS = {
   GOERLI: '0x5',

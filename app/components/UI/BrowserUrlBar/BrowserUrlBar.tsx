@@ -237,6 +237,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
               selectedAddress={selectedAddress}
               isNetworkVisible
               onPress={handleAccountRightButtonPress}
+              disableNonEvm={true}
             />
           )}
         </View>

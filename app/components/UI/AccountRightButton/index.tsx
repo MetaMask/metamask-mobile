@@ -23,13 +23,13 @@ import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { selectProviderConfig } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import UrlParser from 'url-parse';
+import { selectChainId } from '../../../selectors/networkController';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -55,6 +55,7 @@ const AccountRightButton = ({
   selectedAddress,
   onPress,
   isNetworkVisible,
+  disableNonEvm = false,
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
@@ -72,7 +73,7 @@ const AccountRightButton = ({
   /**
    * Current network
    */
-  const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
 
   const handleKeyboardVisibility = useCallback(
     (visibility: boolean) => () => {
@@ -117,11 +118,14 @@ const AccountRightButton = ({
     if (!selectedAddress && isNetworkVisible) {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
+        params: {
+          disableNonEvm,
+        },
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
           .addProperties({
-            chain_id: getDecimalChainId(providerConfig.chainId),
+            chain_id: getDecimalChainId(chainId),
           })
           .build(),
       );
@@ -134,7 +138,7 @@ const AccountRightButton = ({
     isNetworkVisible,
     onPress,
     navigate,
-    providerConfig.chainId,
+    chainId,
     trackEvent,
     createEventBuilder,
   ]);

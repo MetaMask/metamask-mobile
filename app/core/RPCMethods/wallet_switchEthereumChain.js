@@ -9,6 +9,7 @@ import {
   findExistingNetwork,
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
+import { isNonEvmChainId } from '../Multichain/utils';
 
 const wallet_switchEthereumChain = async ({
   req,
@@ -43,7 +44,7 @@ const wallet_switchEthereumChain = async ({
     );
   }
   const _chainId = validateChainId(chainId);
-
+  // TODO: [SOLANA] - This do not support non evm networks
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const existingNetwork = findExistingNetwork(_chainId, networkConfigurations);
   if (existingNetwork) {

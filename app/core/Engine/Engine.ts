@@ -70,6 +70,7 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
@@ -215,6 +216,7 @@ import {
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
+import { SolScopes } from '@metamask/keyring-api';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -834,6 +836,32 @@ export class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    const multichainNetworkController = new MultichainNetworkController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'MultichainNetworkController',
+        allowedActions: ['NetworkController:setActiveNetwork'],
+        allowedEvents: [],
+      }),
+      state: initialState.MultichainNetworkController ?? {
+        multichainNetworkConfigurationsByChainId: {
+          [SolScopes.Mainnet]: {
+            chainId: SolScopes.Mainnet,
+            name: 'Solana',
+            nativeCurrency:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:skynetDj29GH6o6bAqoixCpDuYtWqi1rm8ZNx1hB3vq',
+            blockExplorerUrls: ['https://explorer.solana.com/'],
+          },
+        },
+        multichainNetworksMetadata: {
+          [SolScopes.Mainnet]: {
+            features: [],
+            status: NetworkStatus.Available,
+          },
+        },
+        nonEvmSelected: false,
+        selectedMultichainNetworkChainId: SolScopes.Mainnet,
+      },
+    });
     this.subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
@@ -1454,6 +1482,7 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
+      MultichainNetworkController: multichainNetworkController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -2095,6 +2124,7 @@ export default {
       UserStorageController,
       NotificationServicesController,
       NotificationServicesPushController,
+      MultichainNetworkController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       SelectedNetworkController,
@@ -2130,6 +2160,7 @@ export default {
       UserStorageController,
       NotificationServicesController,
       NotificationServicesPushController,
+      MultichainNetworkController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       SelectedNetworkController,
@@ -2170,7 +2201,8 @@ export default {
     keyringState: KeyringControllerState | null = null,
     metaMetricsId?: string,
   ) {
-    instance = Engine.instance || new Engine(state, keyringState, metaMetricsId);
+    instance =
+      Engine.instance || new Engine(state, keyringState, metaMetricsId);
     Object.freeze(instance);
     return instance;
   },
