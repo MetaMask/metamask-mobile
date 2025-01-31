@@ -14,14 +14,18 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
-      justifyContent: 'space-between',
+      maxHeight: '90%',
     },
     scrollableSection: {
-      flex: 1,
+      padding: 4,
+    },
+    scrollable: {
+      minHeight: '100%',
     },
     scrollWrapper: {
-      minHeight: '68%',
-      maxHeight: '68%',
+      minHeight: '75%',
+      maxHeight: '75%',
+      margin: 0,
     },
   });
 };

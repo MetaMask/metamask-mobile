@@ -26,18 +26,17 @@ const Confirm = () => {
     <QRHardwareContextProvider>
       <BottomModal canCloseOnBackdropClick={false}>
         <View style={styles.container} testID={approvalRequest?.type}>
-          <View>
-            <Title />
-            <View style={styles.scrollWrapper}>
-              <ScrollView>
-                <View style={styles.scrollableSection}>
-                  {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
-                  <SignatureBlockaidBanner />
-                  <AccountNetworkInfo />
-                  <Info />
-                </View>
-              </ScrollView>
-            </View>
+          <Title />
+          <View style={styles.scrollWrapper}>
+            <ScrollView
+              style={styles.scrollable}
+              contentContainerStyle={styles.scrollableSection}
+            >
+              {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
+              <SignatureBlockaidBanner />
+              <AccountNetworkInfo />
+              <Info />
+            </ScrollView>
           </View>
           <Footer />
         </View>
