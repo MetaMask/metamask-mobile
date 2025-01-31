@@ -73,7 +73,6 @@ import migration67 from './067';
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
 import { RootState } from '../../reducers';
 
-
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
 export type MigrationsList = Record<
