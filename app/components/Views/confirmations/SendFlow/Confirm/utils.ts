@@ -1,5 +1,4 @@
 import { BN } from 'ethereumjs-util';
-import type { TransactionMeta } from '@metamask/transaction-controller';
 import { remove0x, add0x } from '@metamask/utils';
 import { toWei } from '../../../../../util/number';
 import { updateEditableParams } from '../../../../../util/transaction-controller';
@@ -34,9 +33,11 @@ export const updateTransactionToMaxValue = async ({
 
   const maxTransactionValueHex = add0x(maxTransactionValueBN.toString(16));
 
-  await updateEditableParams(transactionId, {
-    value: maxTransactionValueHex,
-  });
+  if (transactionId) {
+    await updateEditableParams(transactionId, {
+      value: maxTransactionValueHex,
+    });
+  }
 
   setTransactionValue(maxTransactionValueHex);
 };
