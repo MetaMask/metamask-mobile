@@ -565,6 +565,7 @@ class Confirm extends PureComponent {
         transactionTo,
         transaction: { value, gas, from },
       },
+      transactionMetadata,
       contractBalances,
       selectedAsset,
       maxValueMode,
@@ -600,9 +601,10 @@ class Confirm extends PureComponent {
       this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET;
     const haveGasFeeMaxNativeChanged = isEIP1559Transaction
       ? EIP1559GasTransaction.gasFeeMaxNative !==
-        prevState.EIP1559GasTransaction.gasFeeMaxNative
+      prevState.EIP1559GasTransaction.gasFeeMaxNative
       : legacyGasTransaction.gasFeeMaxNative !==
-        prevState.legacyGasTransaction.gasFeeMaxNative;
+      prevState.legacyGasTransaction.gasFeeMaxNative;
+    const isControllerTransactionAdded = Boolean(!prevProps.transactionMetadata && transactionMetadata);
 
     const haveGasPropertiesChanged =
       (this.props.gasFeeEstimates &&
@@ -613,7 +615,8 @@ class Confirm extends PureComponent {
             this.props.gasFeeEstimates,
           ) ||
           gas !== prevProps?.transactionState?.transaction?.gas)) ||
-      haveEIP1559TotalMaxHexChanged;
+      haveEIP1559TotalMaxHexChanged ||
+      isControllerTransactionAdded;
 
     if (
       recipientIsDefined &&
@@ -636,7 +639,7 @@ class Confirm extends PureComponent {
         maxValueMode &&
         selectedAsset.isETH &&
         !isEmpty(gasFeeEstimates) &&
-        haveGasFeeMaxNativeChanged
+        (haveGasFeeMaxNativeChanged || isControllerTransactionAdded)
       ) {
         updateTransactionToMaxValue({
           transactionId,
