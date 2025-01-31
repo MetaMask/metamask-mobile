@@ -167,6 +167,7 @@ export const chainIdSelector: (state: RootState) => string = (
     return MultichainNetworks.SOLANA;
   }
   ///: END:ONLY_INCLUDE_IF
+  // eslint-disable-next-line arrow-body-style
   return getDecimalChainId(selectChainId(state));
 };
 export const selectedAddressSelector: (
