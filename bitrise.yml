@@ -35,6 +35,10 @@ pipelines:
       - build_e2e_ios_stage: {}
       - run_e2e_ios_stage: {}
       - notify: {}
+
+  test_pipeline:
+    stages:
+      - notify: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
