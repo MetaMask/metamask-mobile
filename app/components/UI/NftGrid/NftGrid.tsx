@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
-import { throttle } from 'lodash';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
@@ -120,15 +119,6 @@ export const useNfts = () => {
 
   return nfts;
 };
-
-const throttleFilterOwnedCollectibles = throttle(
-  (collectibles: Nft[]) =>
-    collectibles.filter(
-      (singleCollectible: Nft) => singleCollectible.isCurrentlyOwned === true,
-    ),
-  1000,
-);
-
 function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   const navigation =
     useNavigation<
@@ -137,7 +127,10 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   const allCollectibles = useSelector(collectiblesSelector);
   // const allCollectibles = useNfts();
   const collectibles = useMemo(
-    () => throttleFilterOwnedCollectibles(allCollectibles),
+    () =>
+      allCollectibles.filter(
+        (singleCollectible: Nft) => singleCollectible.isCurrentlyOwned === true,
+      ),
     [allCollectibles],
   );
   const privacyMode = useSelector(selectPrivacyMode);
