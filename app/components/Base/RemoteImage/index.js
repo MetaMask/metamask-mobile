@@ -35,7 +35,6 @@ import images from 'images/image-icons';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 
 import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../util/Logger';
 
@@ -125,8 +124,8 @@ const RemoteImage = (props) => {
           calculateImageDimensions(width, height);
         setDimensions({ width: calculatedWidth, height: calculatedHeight });
       },
-      () => {
-        Logger.log('Failed to get image dimensions');
+      (error) => {
+        Logger.log('Failed to get image dimensions', error);
       },
     );
   }, [uri]);
@@ -145,8 +144,6 @@ const RemoteImage = (props) => {
     source.uri &&
     source.uri.match('.svg') &&
     (isImageUrl || resolvedIpfsUrl);
-
-  const viewbox = useSvgUriViewBox(uri, isSVG);
 
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
@@ -169,13 +166,15 @@ const RemoteImage = (props) => {
         componentLabel="RemoteImage-SVG"
       >
         <View style={{ ...style, ...styles.svgContainer }}>
-          <SvgUri
-            {...props}
-            uri={uri}
-            width={'100%'}
-            height={'100%'}
-            viewBox={viewbox}
-          />
+          {dimensions && (
+            <SvgUri
+              {...props}
+              uri={uri}
+              width={'100%'}
+              height={'100%'}
+              viewBox={`0 0 ${dimensions.width} ${dimensions.height}`}
+            />
+          )}
         </View>
       </ComponentErrorBoundary>
     );
