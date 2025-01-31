@@ -13,6 +13,18 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+// Mock the selectors
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectSmartTransactionsMigrationApplied: jest.fn(() => true),
+  selectSmartTransactionsBannerDismissed: jest.fn(() => false),
+  selectSmartTransactionsOptInStatus: jest.fn(() => true),
+}));
+
+jest.mock('../../../../../selectors/smartTransactionsController', () => ({
+  selectSmartTransactionsEnabled: jest.fn(() => true),
+  selectShouldUseSmartTransaction: jest.fn(() => true),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
@@ -20,31 +32,31 @@ jest.mock('../../../../../../locales/i18n', () => ({
 describe('SmartTransactionsMigrationBanner', () => {
   const mockStore = configureMockStore();
   const mockSetFeatureFlag = jest.mocked(Engine.context.PreferencesController.setFeatureFlag);
+  const mockedPreferences = jest.requireMock('../../../../../selectors/preferencesController');
+  const mockedSmartTransactions = jest.requireMock('../../../../../selectors/smartTransactionsController');
 
-  const createMockState = (override = {}) => ({
+  const createMockState = () => ({
     engine: {
       backgroundState: {
-        PreferencesController: {
-          smartTransactionsOptInStatus: true,
-          featureFlags: {
-            smartTransactionsBannerDismissed: false,
-            smartTransactionsMigrationApplied: true,
-          },
-          ...override,
-        },
+        PreferencesController: {}
       },
     },
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset all selector mocks to their default values
+    mockedPreferences.selectSmartTransactionsMigrationApplied.mockReturnValue(true);
+    mockedPreferences.selectSmartTransactionsBannerDismissed.mockReturnValue(false);
+    mockedPreferences.selectSmartTransactionsOptInStatus.mockReturnValue(true);
+    mockedSmartTransactions.selectSmartTransactionsEnabled.mockReturnValue(true);
+    mockedSmartTransactions.selectShouldUseSmartTransaction.mockReturnValue(true);
   });
 
   it('renders nothing when banner should be hidden', () => {
-    const store = mockStore(createMockState({
-      featureFlags: { smartTransactionsBannerDismissed: true },
-    }));
+    mockedPreferences.selectSmartTransactionsBannerDismissed.mockReturnValue(true);
 
+    const store = mockStore(createMockState());
     const { queryByTestId } = render(
       <Provider store={store}>
         <SmartTransactionsMigrationBanner />
