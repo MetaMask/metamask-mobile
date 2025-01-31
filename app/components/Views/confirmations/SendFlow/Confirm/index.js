@@ -1621,6 +1621,7 @@ const mapStateToProps = (state) => {
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+    maxValueMode: state.transaction.maxValueMode,
   };
 };
 
