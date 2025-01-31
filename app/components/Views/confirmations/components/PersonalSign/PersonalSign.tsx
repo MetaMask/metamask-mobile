@@ -27,9 +27,8 @@ import Logger from '../../../../../util/Logger';
 import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 import { selectSignatureRequestById } from '../../../../../selectors/signatureController';
-import { selectNetworkTypeByChainId } from '../../../../../selectors/networkController';
+import { selectProviderTypeByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { Hex } from '@metamask/utils';
 
@@ -79,7 +78,7 @@ const PersonalSign = ({
   const { chainId } = signatureRequest ?? {};
 
   const networkType = useSelector((state: RootState) =>
-    selectNetworkTypeByChainId(state, chainId as Hex),
+    selectProviderTypeByChainId(state, chainId as Hex),
   );
 
   // TODO: Replace "any" with type
@@ -111,9 +110,7 @@ const PersonalSign = ({
 
     let blockaidParams: Record<string, unknown> = {};
     if (securityAlertResponse) {
-      blockaidParams = getBlockaidMetricsParams(
-        securityAlertResponse as unknown as SecurityAlertResponse,
-      );
+      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
     }
 
     return {

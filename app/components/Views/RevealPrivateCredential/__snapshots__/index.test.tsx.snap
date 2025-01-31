@@ -157,7 +157,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
         <View
           style={
             {
-              "backgroundColor": "#d738471a",
+              "backgroundColor": "#D738471A",
               "borderColor": "#d73847",
               "borderRadius": 8,
               "borderWidth": 1,
@@ -247,7 +247,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             secureTextEntry={true}
             style={
               {
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 5,
                 "borderWidth": 2,
                 "color": "#141618",
@@ -604,7 +604,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
         <View
           style={
             {
-              "backgroundColor": "#d738471a",
+              "backgroundColor": "#D738471A",
               "borderColor": "#d73847",
               "borderRadius": 8,
               "borderWidth": 1,
@@ -694,7 +694,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             secureTextEntry={true}
             style={
               {
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 5,
                 "borderWidth": 2,
                 "color": "#141618",
@@ -988,7 +988,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#d738471a",
+              "backgroundColor": "#D738471A",
               "borderColor": "#d73847",
               "borderRadius": 8,
               "borderWidth": 1,
@@ -1067,7 +1067,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
             secureTextEntry={true}
             style={
               {
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 5,
                 "borderWidth": 2,
                 "color": "#141618",
@@ -1361,7 +1361,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#d738471a",
+              "backgroundColor": "#D738471A",
               "borderColor": "#d73847",
               "borderRadius": 8,
               "borderWidth": 1,
@@ -1440,7 +1440,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
             secureTextEntry={true}
             style={
               {
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 5,
                 "borderWidth": 2,
                 "color": "#141618",

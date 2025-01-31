@@ -448,7 +448,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://metamask.github.io/test-dapp/',
+              url: 'https://google.com',
               id: 1692550481062,
             },
           ],

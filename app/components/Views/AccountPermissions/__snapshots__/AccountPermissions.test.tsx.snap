@@ -70,14 +70,14 @@ exports[`AccountPermissions renders correctly 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": 1334,
             "overflow": "hidden",
             "paddingBottom": 0,
-            "shadowColor": "#0000001a",
+            "shadowColor": "#0000001A",
             "shadowOffset": {
               "height": 2,
               "width": 0,
@@ -107,7 +107,7 @@ exports[`AccountPermissions renders correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#bbc0c566",
+              "backgroundColor": "#BBC0C566",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -172,7 +172,7 @@ exports[`AccountPermissions renders correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "center",
               "backgroundColor": "#ffffff",
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 99,
               "borderWidth": 1,
               "flexDirection": "row",
@@ -194,18 +194,17 @@ exports[`AccountPermissions renders correctly 1`] = `
               }
             }
           >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={{}}
+            <SvgMock
+              color="#141618"
+              height={20}
+              name="Global"
               style={
                 {
-                  "flex": 1,
-                  "height": undefined,
-                  "width": undefined,
+                  "height": 20,
+                  "width": 20,
                 }
               }
-              testID="favicon-avatar-image"
+              width={20}
             />
           </View>
           <Text
