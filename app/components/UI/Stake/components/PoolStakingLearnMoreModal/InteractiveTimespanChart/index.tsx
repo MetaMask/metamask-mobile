@@ -77,6 +77,9 @@ export interface InteractiveTimespanChartProps<T extends DataPoint> {
  * This "give" is based on the distance from the center of a segment/data point.
  */
 
+export const INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID =
+  'InteractiveTimespanChart';
+
 const InteractiveTimespanChart = <T extends DataPoint>({
   dataPoints,
   graphOptions,
@@ -86,7 +89,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
   titleAccessor,
   subtitleAccessor,
   onTimespanPressed,
-  testID = 'InteractiveTimespanChart',
+  testID = INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
   isLoading = false,
 }: InteractiveTimespanChartProps<T>) => {
   const { styles } = useStyles(styleSheet, {});

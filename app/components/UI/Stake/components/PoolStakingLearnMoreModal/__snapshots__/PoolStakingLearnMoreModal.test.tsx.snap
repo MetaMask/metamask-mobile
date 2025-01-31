@@ -120,7 +120,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
             <View
               style={
                 {
-                  "width": 100,
+                  "width": undefined,
                 }
               }
             >
@@ -133,7 +133,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 {
                   "alignItems": "center",
                   "flex": 1,
-                  "marginHorizontal": 0,
+                  "marginHorizontal": 16,
                 }
               }
             >
@@ -156,7 +156,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
             <View
               style={
                 {
-                  "width": 100,
+                  "width": undefined,
                 }
               }
             >
@@ -418,7 +418,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 >
                   <RNSVGSvgView
                     bbHeight={100}
-                    bbWidth={100}
+                    bbWidth={300}
                     focusable={false}
                     style={
                       [
@@ -428,12 +428,12 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                         },
                         {
                           "height": 100,
-                          "width": 100,
+                          "width": 300,
                         },
                         {
                           "flex": 0,
                           "height": 100,
-                          "width": 100,
+                          "width": 300,
                         },
                       ]
                     }
@@ -447,7 +447,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                       }
                     >
                       <RNSVGPath
-                        d="M0,44.85025249125118L16.666666666666664,35.255971425324546L33.33333333333333,20L50,31.229371496223877L66.66666666666666,45.39613604488909L83.33333333333334,49.50466282315335L100,40.850895011093414L100,80L83.33333333333334,80L66.66666666666666,80L50,80L33.33333333333333,80L16.666666666666664,80L0,80Z"
+                        d="M0,44.85025249125118L50,35.255971425324546L100,20L150,31.229371496223877L200,45.39613604488909L250,49.50466282315335L300,40.850895011093414L300,80L250,80L200,80L150,80L100,80L50,80L0,80Z"
                         fill={
                           {
                             "brushRef": "dataGradient",
@@ -461,7 +461,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                         }
                       />
                       <RNSVGPath
-                        d="M0,44.85025249125118L16.666666666666664,35.255971425324546L33.33333333333333,20L50,31.229371496223877L66.66666666666666,45.39613604488909L83.33333333333334,49.50466282315335L100,40.850895011093414"
+                        d="M0,44.85025249125118L50,35.255971425324546L100,20L150,31.229371496223877L200,45.39613604488909L250,49.50466282315335L300,40.850895011093414"
                         fill={null}
                         opacity={1}
                         propList={

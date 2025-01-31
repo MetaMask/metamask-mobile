@@ -74,8 +74,6 @@ const PoolStakingLearnMoreModal = () => {
 
   const { navigate } = useNavigation();
 
-  const [didFetchGraphData, setDidFetchGraphData] = useState(false);
-
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const { vaultApys, isLoadingVaultApys, refreshVaultApys } = useVaultApys();
@@ -97,6 +95,12 @@ const PoolStakingLearnMoreModal = () => {
   );
 
   useEffect(() => {
+    if (parsedVaultTimespanApyAverages) {
+      setActiveTimespanApyAverage(parsedVaultTimespanApyAverages?.[7]);
+    }
+  }, [parsedVaultTimespanApyAverages]);
+
+  useEffect(() => {
     async function refreshGraphData() {
       await Promise.all([refreshVaultApyAverages(), refreshVaultApys()]).catch(
         (err) =>
@@ -105,14 +109,10 @@ const PoolStakingLearnMoreModal = () => {
             err,
           ),
       );
-      setDidFetchGraphData(true);
     }
 
-    // Refetch on render until we have a more sophisticated data refresh strategy.
-    if (!didFetchGraphData) {
-      refreshGraphData();
-    }
-  }, [didFetchGraphData, refreshVaultApyAverages, refreshVaultApys]);
+    refreshGraphData();
+  }, [refreshVaultApyAverages, refreshVaultApys]);
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();

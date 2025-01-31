@@ -190,7 +190,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       >
         <RNSVGSvgView
           bbHeight={100}
-          bbWidth={100}
+          bbWidth={300}
           focusable={false}
           style={
             [
@@ -200,12 +200,12 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
               },
               {
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
               {
                 "flex": 0,
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
             ]
           }
@@ -465,7 +465,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       >
         <RNSVGSvgView
           bbHeight={100}
-          bbWidth={100}
+          bbWidth={300}
           focusable={false}
           style={
             [
@@ -475,12 +475,12 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
               },
               {
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
               {
                 "flex": 0,
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
             ]
           }
@@ -742,7 +742,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       >
         <RNSVGSvgView
           bbHeight={100}
-          bbWidth={100}
+          bbWidth={300}
           focusable={false}
           style={
             [
@@ -752,12 +752,12 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
               },
               {
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
               {
                 "flex": 0,
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
             ]
           }
@@ -1019,7 +1019,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       >
         <RNSVGSvgView
           bbHeight={100}
-          bbWidth={100}
+          bbWidth={300}
           focusable={false}
           style={
             [
@@ -1029,12 +1029,12 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
               },
               {
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
               {
                 "flex": 0,
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
             ]
           }
@@ -1298,7 +1298,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       >
         <RNSVGSvgView
           bbHeight={100}
-          bbWidth={100}
+          bbWidth={300}
           focusable={false}
           style={
             [
@@ -1308,12 +1308,12 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
               },
               {
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
               {
                 "flex": 0,
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
             ]
           }
@@ -1577,7 +1577,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       >
         <RNSVGSvgView
           bbHeight={100}
-          bbWidth={100}
+          bbWidth={300}
           focusable={false}
           style={
             [
@@ -1587,12 +1587,12 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
               },
               {
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
               {
                 "flex": 0,
                 "height": 100,
-                "width": 100,
+                "width": 300,
               },
             ]
           }

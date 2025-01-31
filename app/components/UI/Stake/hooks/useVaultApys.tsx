@@ -19,13 +19,13 @@ const useVaultApys = () => {
   const chainId = useSelector(selectChainId);
 
   const fetchVaultApys = useCallback(async () => {
-    if (!stakingApiService) return;
-
     setIsLoading(true);
+    dispatch(setVaultApys([]));
     setError(null);
 
     try {
       const numericChainId = hexToNumber(chainId);
+
       const vaultApysResponse = await stakingApiService.getVaultDailyApys(
         numericChainId,
         365,
@@ -43,9 +43,8 @@ const useVaultApys = () => {
   }, [chainId, dispatch]);
 
   useEffect(() => {
-    if (vaultApys.length) return;
     fetchVaultApys();
-  }, [fetchVaultApys, vaultApys.length]);
+  }, [fetchVaultApys]);
 
   return {
     vaultApys,

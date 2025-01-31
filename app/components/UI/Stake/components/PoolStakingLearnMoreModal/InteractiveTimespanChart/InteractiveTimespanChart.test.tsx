@@ -1,13 +1,17 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import InteractiveTimespanChart, { InteractiveTimespanChartProps } from '.';
+import InteractiveTimespanChart, {
+  INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
+  InteractiveTimespanChartProps,
+} from '.';
 import { strings } from '../../../../../../../locales/i18n';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { MOCK_VAULT_APYS_ONE_YEAR } from '../mockVaultRewards';
 import BigNumber from 'bignumber.js';
-import { fireLayoutEvent } from './InteractiveTimespanChart.testUtils';
 import { noop } from 'lodash';
 import { ChartButton } from './ChartTimespanButtonGroup/ChartTimespanButtonGroup.types';
+import { fireLayoutEvent } from '../../../../../../util/testUtils/react-native-svg-charts';
+import { DEFAULT_GRAPH_OPTIONS } from './InteractiveTimespanChart.constants';
 
 const buttons: ChartButton[] = [
   { label: 'Label 1', value: 1 },
@@ -52,37 +56,44 @@ const getProps = (dataPointsType: 'number' | 'object') => {
   } as InteractiveTimespanChartProps<(typeof MOCK_VAULT_APYS_ONE_YEAR)[number]>;
 };
 
-/**
- * react-native-svg-charts components listen for onLayout changes before they render any data.
- * You need to trigger these event handlers for each component in your tests.
- */
-const renderGraph = () => {
-  fireLayoutEvent(screen.root, { width: 100, height: 100 });
+const renderGraph = (
+  dataType: 'number' | 'object',
+  propOverride?: Partial<
+    InteractiveTimespanChartProps<
+      number | (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
+    >
+  >,
+) => {
+  const baseProps = getProps(dataType) as InteractiveTimespanChartProps<
+    number | (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
+  >;
+
+  const props = { ...baseProps, ...propOverride };
+
+  const renderResult = renderWithProvider(
+    <InteractiveTimespanChart {...props} />,
+  );
+
+  /**
+   * react-native-svg-charts components listen for onLayout changes before they render any data.
+   * You need to trigger these event handlers for each component in your tests.
+   */
+  fireLayoutEvent(
+    screen.getByTestId(INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID),
+  );
+
+  return renderResult;
 };
 
 describe('InteractiveTimespanChart', () => {
   it('render matches snapshot', () => {
-    const props = getProps('object') as InteractiveTimespanChartProps<
-      (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
-    >;
-
-    const { toJSON } = renderWithProvider(
-      <InteractiveTimespanChart {...props} />,
-    );
-
-    renderGraph();
+    const { toJSON } = renderGraph('object');
 
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('supports dataPoints as number[]', () => {
-    const props = getProps('number') as InteractiveTimespanChartProps<number>;
-
-    const { toJSON, getByText } = renderWithProvider(
-      <InteractiveTimespanChart {...props} />,
-    );
-
-    renderGraph();
+    const { toJSON, getByText } = renderGraph('number');
 
     expect(toJSON()).toMatchSnapshot();
 
@@ -95,15 +106,7 @@ describe('InteractiveTimespanChart', () => {
   });
 
   it('supports dataPoints as object[]', () => {
-    const props = getProps('object') as InteractiveTimespanChartProps<
-      (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
-    >;
-
-    const { toJSON, getByText } = renderWithProvider(
-      <InteractiveTimespanChart {...props} />,
-    );
-
-    renderGraph();
+    const { toJSON, getByText } = renderGraph('object');
 
     expect(toJSON()).toMatchSnapshot();
 
@@ -116,17 +119,10 @@ describe('InteractiveTimespanChart', () => {
   });
 
   it('renders no title or subtitle when defaultTitle, defaultSubtitle, titleAccessor, and subtitleAccessor are not defined', () => {
-    const { defaultTitle, defaultSubtitle, ...props } = getProps(
-      'object',
-    ) as InteractiveTimespanChartProps<
-      (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
-    >;
-
-    const { toJSON, getByText, queryByText } = renderWithProvider(
-      <InteractiveTimespanChart {...props} />,
-    );
-
-    renderGraph();
+    const { toJSON, getByText, queryByText } = renderGraph('object', {
+      defaultTitle: '',
+      defaultSubtitle: '',
+    });
 
     expect(toJSON()).toMatchSnapshot();
 
@@ -139,17 +135,9 @@ describe('InteractiveTimespanChart', () => {
   });
 
   it('renders only the title when subtitle props are not defined', () => {
-    const { defaultSubtitle, ...props } = getProps(
-      'object',
-    ) as InteractiveTimespanChartProps<
-      (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
-    >;
-
-    const { toJSON, getByText, queryByText } = renderWithProvider(
-      <InteractiveTimespanChart {...props} />,
-    );
-
-    renderGraph();
+    const { toJSON, getByText, queryByText } = renderGraph('object', {
+      defaultSubtitle: '',
+    });
 
     expect(toJSON()).toMatchSnapshot();
 
@@ -162,17 +150,9 @@ describe('InteractiveTimespanChart', () => {
   });
 
   it('renders only the subtitle when title props are not defined', () => {
-    const { defaultTitle, ...props } = getProps(
-      'object',
-    ) as InteractiveTimespanChartProps<
-      (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
-    >;
-
-    const { toJSON, getByText, queryByText } = renderWithProvider(
-      <InteractiveTimespanChart {...props} />,
-    );
-
-    renderGraph();
+    const { toJSON, getByText, queryByText } = renderGraph('object', {
+      defaultTitle: '',
+    });
 
     expect(toJSON()).toMatchSnapshot();
 
@@ -187,19 +167,9 @@ describe('InteractiveTimespanChart', () => {
   it('supports customizing color', async () => {
     const customColor = 'red';
 
-    const { graphOptions, ...props } = getProps(
-      'object',
-    ) as InteractiveTimespanChartProps<
-      (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
-    >;
-
-    const { findByText, getByTestId } = renderWithProvider(
-      <InteractiveTimespanChart
-        {...{ graphOptions: { color: customColor }, ...props }}
-      />,
-    );
-
-    renderGraph();
+    const { findByText, getByTestId } = renderGraph('object', {
+      graphOptions: { ...DEFAULT_GRAPH_OPTIONS, color: customColor },
+    });
 
     const titleText = await findByText(DEFAULT_PROPS.OBJECT_ARRAY.title);
     const plotLine = getByTestId('InteractiveChartPlotLine');
@@ -211,23 +181,17 @@ describe('InteractiveTimespanChart', () => {
   });
 
   it('supports toggling between different timespans', () => {
-    const { graphOptions, ...props } = getProps(
-      'object',
-    ) as InteractiveTimespanChartProps<
-      (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
-    >;
-
-    const { getByText, getByTestId } = renderWithProvider(
-      <InteractiveTimespanChart {...props} />,
-    );
-
-    renderGraph();
+    const { getByText, getByTestId } = renderGraph('object', {
+      graphOptions: DEFAULT_GRAPH_OPTIONS,
+    });
 
     const oneMonthButton = getByText(
       strings('stake.interactive_chart.timespan_buttons.1M'),
     ).parent;
 
-    const interactiveTimespanChart = getByTestId('InteractiveTimespanChart');
+    const interactiveTimespanChart = getByTestId(
+      INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
+    );
     const areaChartComponent =
       interactiveTimespanChart.children[2].children[0].children[0];
 

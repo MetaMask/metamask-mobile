@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import PoolStakingLearnMoreModal from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
-import { screen } from '@testing-library/react-native';
 import {
   MOCK_VAULT_APY_AVERAGES,
   MOCK_VAULT_DAILY_APYS,
 } from './mockVaultRewards';
-import { fireLayoutEvent } from './InteractiveTimespanChart/InteractiveTimespanChart.testUtils';
+import { AreaChart } from 'react-native-svg-charts';
+import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
+import { screen } from '@testing-library/react-native';
+import { INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID } from './InteractiveTimespanChart';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -49,31 +51,27 @@ const initialMetrics: Metrics = {
 };
 
 describe('PoolStakingLearnMoreModal', () => {
-  let renderResult: ReturnType<typeof renderWithProvider>;
-
   beforeEach(() => {
     jest.clearAllMocks();
+  });
 
-    renderResult = renderWithProvider(
+  it('render matches snapshot', async () => {
+    const { toJSON, getByTestId } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <PoolStakingLearnMoreModal />
       </SafeAreaProvider>,
     );
 
-    /**
-     * react-native-svg-charts components listen for onLayout changes before they render any data.
-     * You need to trigger these event handlers for each component in your tests.
-     */
-    fireLayoutEvent(screen.root, { width: 100, height: 100 });
-  });
+    const chartContainer = getByTestId(
+      INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
+    );
+    const areaChart = chartContainer.find(
+      (child: ReactElement) => child.type === AreaChart,
+    );
 
-  afterEach(() => {
-    // Clear render state
-    renderResult = renderWithProvider(<></>);
-  });
+    fireLayoutEvent(areaChart);
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderResult;
+    screen.debug();
 
     expect(toJSON()).toMatchSnapshot();
   });

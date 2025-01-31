@@ -18,8 +18,6 @@ const useVaultApyAverages = () => {
   const chainId = useSelector(selectChainId);
 
   const fetchVaultAprs = useCallback(async () => {
-    if (!stakingApiService) return;
-
     setIsLoading(true);
     setError(null);
 
@@ -37,9 +35,8 @@ const useVaultApyAverages = () => {
   }, [chainId, dispatch]);
 
   useEffect(() => {
-    if (Object.keys(vaultApyAverages).length) return;
     fetchVaultAprs();
-  }, [fetchVaultAprs, vaultApyAverages]);
+  }, [fetchVaultAprs]);
 
   return {
     vaultApyAverages,
