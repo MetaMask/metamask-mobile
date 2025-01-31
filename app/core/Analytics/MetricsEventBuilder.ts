@@ -78,24 +78,22 @@ class MetricsEventBuilder {
   }
 
   #getFilteredLegacyProperties = (properties: JsonMap) => {
-    const [filteredProps, anonymousProps] = Object.entries(properties).reduce(
-        ([filtered, anonymous], [key, value]) => {
-          if (
-              typeof value === 'object' &&
-              value !== null &&
-              'anonymous' in value &&
-              value.anonymous === true
-          ) {
-            // Add to anonymousProps map with the value of the `value` key
-            anonymous[key] = value.value;
-          } else {
-            // Add to filteredProps map
-            filtered[key] = value;
-          }
-          return [filtered, anonymous];
-        },
-        [{}, {}] as [JsonMap, JsonMap]
-    );
+    const filteredProps: JsonMap = {};
+    const anonymousProps: JsonMap = {};
+
+    for (const [key, value] of Object.entries(properties)) {
+      if (
+        value !== null && 
+        typeof value === 'object' && 
+        'anonymous' in value &&
+        value.anonymous === true
+      ) {
+        anonymousProps[key] = value.value;
+      } else {
+        filteredProps[key] = value;
+      }
+    }
+
     return [filteredProps, anonymousProps];
   };
 
