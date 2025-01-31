@@ -3,7 +3,6 @@ import StakingEarnings from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
-import { TokenI } from '../../../Tokens/types';
 
 const mockNavigate = jest.fn();
 
@@ -68,7 +67,21 @@ jest.mock('../../../../../core/Engine', () => ({
 describe('Staking Earnings', () => {
   it('should render correctly', () => {
     const { toJSON, getByText } = renderWithProvider(
-      <StakingEarnings asset={{ chainId: '0x1' } as TokenI} />,
+      <StakingEarnings
+        asset={{
+          chainId: '0x1',
+          symbol: 'ETH',
+          address: '0x0',
+          decimals: 18,
+          image: '',
+          name: '',
+          aggregators: [],
+          balance: '0',
+          balanceFiat: '0',
+          logo: '',
+          isETH: true,
+        }}
+      />,
       {
         state: STATE_MOCK,
       },
@@ -78,6 +91,7 @@ describe('Staking Earnings', () => {
     expect(getByText(strings('stake.annual_rate'))).toBeDefined();
     expect(getByText(strings('stake.lifetime_rewards'))).toBeDefined();
     expect(getByText(strings('stake.estimated_annual_earnings'))).toBeDefined();
+    expect(getByText(strings('stake.view_earnings_history'))).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
 });
