@@ -5,7 +5,7 @@ import { selectChainId } from '../../selectors/networkController';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectSelectedInternalAccount,
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+  ///: END:ONLY_INCLUDE_IF
   selectSelectedInternalAccountFormattedAddress,
 } from '../../selectors/accountsController';
 import {
@@ -25,7 +25,7 @@ import { toHex } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { MultichainNetworks } from '../../core/Multichain/constants';
 import { isBtcAccount, isSolanaAccount } from '../../core/Multichain/utils';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
+///: END:ONLY_INCLUDE_IF
 
 export type { FiatOrder } from './types';
 
@@ -166,7 +166,7 @@ export const chainIdSelector: (state: RootState) => string = (
   ) {
     return MultichainNetworks.SOLANA;
   }
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+  ///: END:ONLY_INCLUDE_IF
   return getDecimalChainId(selectChainId(state));
 };
 export const selectedAddressSelector: (

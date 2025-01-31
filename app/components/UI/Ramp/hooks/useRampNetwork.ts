@@ -43,7 +43,7 @@ function useRampNetwork() {
       ] as const;
     }
   }
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+  ///: END:ONLY_INCLUDE_IF
 
   return [
     isNetworkRampSupported(chainId, networks),

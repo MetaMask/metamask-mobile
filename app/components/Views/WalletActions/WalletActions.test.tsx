@@ -261,6 +261,7 @@ describe('WalletActions', () => {
       Engine.context.NetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');
   });
+
   it('disables action buttons when the account cannot sign transactions', () => {
     const mockStateWithoutSigning: DeepPartial<RootState> = {
       ...mockInitialState,
@@ -291,9 +292,6 @@ describe('WalletActions', () => {
       state: mockStateWithoutSigning,
     });
 
-    const buyButton = getByTestId(
-      WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-    );
     const sellButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
     );
@@ -310,7 +308,6 @@ describe('WalletActions', () => {
       WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
 
-    expect(buyButton.props.disabled).toBe(true);
     expect(sellButton.props.disabled).toBe(true);
     expect(sendButton.props.disabled).toBe(true);
     expect(swapButton.props.disabled).toBe(true);

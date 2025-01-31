@@ -84,7 +84,7 @@ class NavbarTitle extends PureComponent {
      * Boolean that specifies if the selected account is a Bitcoin account
      */
     isBitcoinAccount: PropTypes.bool,
-    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+    ///: END:ONLY_INCLUDE_IF
   };
 
   static defaultProps = {
@@ -128,7 +128,7 @@ class NavbarTitle extends PureComponent {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       isSolanaAccount,
       isBitcoinAccount,
-      ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+      ///: END:ONLY_INCLUDE_IF
     } = this.props;
     let name = null;
     const color =
@@ -146,7 +146,7 @@ class NavbarTitle extends PureComponent {
     } else if (isBitcoinAccount) {
       name = 'Bitcoin';
     }
-    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+    ///: END:ONLY_INCLUDE_IF
     else if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
@@ -195,7 +195,7 @@ const mapStateToProps = (state) => ({
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSolanaAccount: isSolanaAccount(selectSelectedInternalAccount(state)),
   isBitcoinAccount: isBtcAccount(selectSelectedInternalAccount(state)),
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+  ///: END:ONLY_INCLUDE_IF
 });
 
 export default withNavigation(
