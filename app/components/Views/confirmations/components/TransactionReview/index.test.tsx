@@ -48,6 +48,11 @@ jest.mock(
   () => (obj: any) => obj,
 );
 
+jest.mock('../../../../../selectors/smartTransactionsController', () => ({
+  selectSmartTransactionsEnabled: () => false,
+  selectShouldUseSmartTransaction: () => false,
+}));
+
 const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xB374Ca013934e498e5baD3409147F34E6c462389';
 const MOCK_ADDRESS_3 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
