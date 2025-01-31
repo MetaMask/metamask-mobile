@@ -34,9 +34,9 @@ export const updateTransactionToMaxValue = async ({
 
   const maxTransactionValueHex = add0x(maxTransactionValueBN.toString(16));
 
-  const txMeta = (await updateEditableParams(transactionId, {
+  await updateEditableParams(transactionId, {
     value: maxTransactionValueHex,
-  })) as TransactionMeta;
+  });
 
-  setTransactionValue(txMeta.txParams.value as string);
+  setTransactionValue(maxTransactionValueHex);
 };
