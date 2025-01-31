@@ -9,6 +9,7 @@ import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeCon
 import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
 import MaxInputModal from '../components/MaxInputModal';
 import GasImpactModal from '../components/GasImpactModal';
+import StakeEarningsHistoryView from '../Views/StakeEarningsHistoryView/StakeEarningsHistoryView';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
@@ -36,6 +37,10 @@ const StakeScreenStack = () => (
       <Stack.Screen
         name={Routes.STAKING.UNSTAKE_CONFIRMATION}
         component={UnstakeConfirmationView}
+      />
+      <Stack.Screen
+        name={Routes.STAKING.EARNINGS_HISTORY}
+        component={StakeEarningsHistoryView}
       />
     </Stack.Navigator>
   </StakeSDKProvider>
