@@ -56,10 +56,12 @@ app/components/UI/Swaps              @MetaMask/swaps-engineers
 # Notifications Team
 app/components/Views/Notifications @MetaMask/notifications
 app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
-**/Notifications/** @MetaMask/notifications
-**/Notification/** @MetaMask/notifications
-**/notifications/** @MetaMask/notifications
-**/notification/** @MetaMask/notifications
+app/components/UI/Notifications @MetaMask/notifications
+app/reducers/notification  @MetaMask/notifications
+app/actions/notification @MetaMask/notifications
+app/selectors/notification @MetaMask/notifications
+app/util/notifications  @MetaMask/notifications
+app/store/util/notifications @MetaMask/notifications
 
 # Identity Team
 app/actions/identity @MetaMask/identity
@@ -70,6 +72,10 @@ e2e/specs/identity @MetaMask/identity
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
 patches/react-native+0.*.patch       @MetaMask/supply-chain
+
+# Portfolio Team
+app/components/hooks/useTokenSearchDiscovery @MetaMask/portfolio
+app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
 
 # Snaps Team
 **/snaps/**                          @MetaMask/snaps-devs
