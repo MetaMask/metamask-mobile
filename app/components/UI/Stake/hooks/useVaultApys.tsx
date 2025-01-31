@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useStakeContext } from './useStakeContext';
 import { hexToNumber } from '@metamask/utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -7,6 +6,7 @@ import {
   selectVaultApys,
   setVaultApys,
 } from '../../../../core/redux/slices/staking';
+import { stakingApiService } from '../sdk/stakeSdkProvider';
 
 const useVaultApys = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,8 +17,6 @@ const useVaultApys = () => {
   const { vaultApys } = useSelector(selectVaultApys);
 
   const chainId = useSelector(selectChainId);
-
-  const { stakingApiService } = useStakeContext();
 
   const fetchVaultApys = useCallback(async () => {
     if (!stakingApiService) return;
@@ -42,7 +40,7 @@ const useVaultApys = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [chainId, dispatch, stakingApiService]);
+  }, [chainId, dispatch]);
 
   useEffect(() => {
     if (vaultApys.length) return;

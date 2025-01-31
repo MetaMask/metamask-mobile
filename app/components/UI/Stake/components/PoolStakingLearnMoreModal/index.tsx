@@ -171,7 +171,6 @@ const PoolStakingLearnMoreModal = () => {
         {Boolean(vaultApys.length) && activeTimespanApyAverage && (
           <InteractiveTimespanChart
             dataPoints={vaultApys}
-            // dataPoints={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
             yAccessor={(point) => new BigNumber(point.daily_apy).toNumber()}
             defaultTitle={`${new BigNumber(
               activeTimespanApyAverage.apyAverage,

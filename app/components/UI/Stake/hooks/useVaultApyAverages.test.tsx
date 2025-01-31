@@ -2,8 +2,7 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import { MOCK_VAULT_APY_AVERAGES } from '../components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { act, waitFor } from '@testing-library/react-native';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { StakingApiService } from '@metamask/stake-sdk';
-import { Stake } from '../sdk/stakeSdkProvider';
+import { stakingApiService } from '../sdk/stakeSdkProvider';
 import useVaultApyAverages from './useVaultApyAverages';
 
 const mockInitialState = {
@@ -15,29 +14,17 @@ const mockInitialState = {
   },
 };
 
-const mockStakingApiService: Partial<StakingApiService> = {
-  getVaultApyAverages: jest.fn(),
-};
-
-const mockSdkContext: Stake = {
-  stakingApiService: mockStakingApiService as StakingApiService,
-  setSdkType: jest.fn(),
-};
-
-jest.mock('./useStakeContext', () => ({
-  useStakeContext: () => mockSdkContext as Stake,
-}));
-
 describe('useVaultApyAverages', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(stakingApiService, 'getVaultApyAverages');
   });
 
   describe('when fetching vaultApyAverages', () => {
     it('fetches vaultApyAverages and updates state', async () => {
-      (
-        mockStakingApiService.getVaultApyAverages as jest.Mock
-      ).mockResolvedValue(MOCK_VAULT_APY_AVERAGES);
+      jest
+        .spyOn(stakingApiService, 'getVaultApyAverages')
+        .mockResolvedValue(MOCK_VAULT_APY_AVERAGES);
 
       const { result } = renderHookWithProvider(() => useVaultApyAverages(), {
         state: mockInitialState,
@@ -53,9 +40,9 @@ describe('useVaultApyAverages', () => {
     });
 
     it('handles error if API request fails', async () => {
-      (
-        mockStakingApiService.getVaultApyAverages as jest.Mock
-      ).mockRejectedValue(new Error('API Error'));
+      jest
+        .spyOn(stakingApiService, 'getVaultApyAverages')
+        .mockRejectedValue(new Error('API Error'));
 
       const { result } = renderHookWithProvider(() => useVaultApyAverages(), {
         state: mockInitialState,
@@ -71,9 +58,9 @@ describe('useVaultApyAverages', () => {
 
   describe('when refreshing vault APY averages', () => {
     it('refreshes vault APY averages', async () => {
-      (
-        mockStakingApiService.getVaultApyAverages as jest.Mock
-      ).mockResolvedValue(MOCK_VAULT_APY_AVERAGES);
+      const getVaultApyAveragesSpy = jest
+        .spyOn(stakingApiService, 'getVaultApyAverages')
+        .mockResolvedValue(MOCK_VAULT_APY_AVERAGES);
 
       const { result } = renderHookWithProvider(() => useVaultApyAverages(), {
         state: mockInitialState,
@@ -90,9 +77,7 @@ describe('useVaultApyAverages', () => {
       });
 
       await waitFor(() => {
-        expect(mockStakingApiService.getVaultApyAverages).toHaveBeenCalledTimes(
-          2,
-        );
+        expect(getVaultApyAveragesSpy).toHaveBeenCalledTimes(2);
       });
     });
   });

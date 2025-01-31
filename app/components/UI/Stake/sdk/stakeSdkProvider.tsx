@@ -2,8 +2,9 @@ import {
   StakingType,
   StakeSdk,
   PooledStakingContract,
-  type StakingApiService,
   isSupportedChain,
+  StakingApiEnvironments,
+  StakingApiService,
 } from '@metamask/stake-sdk';
 import React, {
   useState,
@@ -21,9 +22,9 @@ import { getDecimalChainId } from '../../../../util/networks';
 
 export const SDK = StakeSdk.create({ stakingType: StakingType.POOLED });
 
+export const stakingApiService = new StakingApiService();
 export interface Stake {
   stakingContract?: PooledStakingContract;
-  stakingApiService?: StakingApiService;
   sdkType?: StakingType;
   setSdkType: (stakeType: StakingType) => void;
   networkClientId?: string;
@@ -61,6 +62,7 @@ export const StakeSDKProvider: React.FC<
     const sdk = StakeSdk.create({
       chainId: getDecimalChainId(chainId),
       stakingType: sdkType,
+      endpointEnv: StakingApiEnvironments.LOCAL,
     });
 
     sdk.pooledStakingContract.connectSignerOrProvider(provider);
@@ -71,17 +73,11 @@ export const StakeSDKProvider: React.FC<
   const stakeContextValue = useMemo(
     (): Stake => ({
       stakingContract: sdkService?.pooledStakingContract,
-      stakingApiService: sdkService?.stakingApiService,
       sdkType,
       setSdkType,
       networkClientId,
     }),
-    [
-      sdkService?.pooledStakingContract,
-      sdkService?.stakingApiService,
-      sdkType,
-      networkClientId,
-    ],
+    [sdkService?.pooledStakingContract, sdkType, networkClientId],
   );
   return (
     <StakeContext.Provider value={stakeContextValue}>

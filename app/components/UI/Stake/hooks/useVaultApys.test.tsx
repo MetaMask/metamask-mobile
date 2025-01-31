@@ -3,8 +3,7 @@ import useVaultApys from './useVaultApys';
 import { MOCK_VAULT_DAILY_APYS } from '../components/PoolStakingLearnMoreModal/mockVaultRewards';
 import { act, waitFor } from '@testing-library/react-native';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { StakingApiService } from '@metamask/stake-sdk';
-import { Stake } from '../sdk/stakeSdkProvider';
+import { stakingApiService } from '../sdk/stakeSdkProvider';
 
 const mockInitialState = {
   settings: {},
@@ -15,19 +14,6 @@ const mockInitialState = {
   },
 };
 
-const mockStakingApiService: Partial<StakingApiService> = {
-  getVaultDailyApys: jest.fn(),
-};
-
-const mockSdkContext: Stake = {
-  stakingApiService: mockStakingApiService as StakingApiService,
-  setSdkType: jest.fn(),
-};
-
-jest.mock('./useStakeContext', () => ({
-  useStakeContext: () => mockSdkContext as Stake,
-}));
-
 describe('useVaultApys', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,9 +21,9 @@ describe('useVaultApys', () => {
 
   describe('when fetching vaultApys', () => {
     it('fetches vaultApys and updates state', async () => {
-      (mockStakingApiService.getVaultDailyApys as jest.Mock).mockResolvedValue(
-        [...MOCK_VAULT_DAILY_APYS].reverse(),
-      );
+      jest
+        .spyOn(stakingApiService, 'getVaultDailyApys')
+        .mockResolvedValue([...MOCK_VAULT_DAILY_APYS].reverse());
 
       const { result } = renderHookWithProvider(() => useVaultApys(), {
         state: mockInitialState,
@@ -51,9 +37,9 @@ describe('useVaultApys', () => {
     });
 
     it('handles error if API request fails', async () => {
-      (mockStakingApiService.getVaultDailyApys as jest.Mock).mockRejectedValue(
-        new Error('API Error'),
-      );
+      jest
+        .spyOn(stakingApiService, 'getVaultDailyApys')
+        .mockRejectedValue(new Error('API Error'));
 
       const { result } = renderHookWithProvider(() => useVaultApys(), {
         state: mockInitialState,
@@ -69,9 +55,9 @@ describe('useVaultApys', () => {
 
   describe('when refreshing vault APYs', () => {
     it('refreshes vault APYs', async () => {
-      (mockStakingApiService.getVaultDailyApys as jest.Mock).mockResolvedValue(
-        [...MOCK_VAULT_DAILY_APYS].reverse(),
-      );
+      const getVaultDailyApysSpy = jest
+        .spyOn(stakingApiService, 'getVaultDailyApys')
+        .mockResolvedValue([...MOCK_VAULT_DAILY_APYS].reverse());
 
       const { result } = renderHookWithProvider(() => useVaultApys(), {
         state: mockInitialState,
@@ -86,9 +72,7 @@ describe('useVaultApys', () => {
       });
 
       await waitFor(() => {
-        expect(mockStakingApiService.getVaultDailyApys).toHaveBeenCalledTimes(
-          2,
-        );
+        expect(getVaultDailyApysSpy).toHaveBeenCalledTimes(2);
       });
     });
   });
