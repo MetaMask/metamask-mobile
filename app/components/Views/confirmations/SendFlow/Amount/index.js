@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import BigNumber from 'bignumber.js';
 import { fontStyles } from '../../../../../styles/common';
 import {
   StyleSheet,
@@ -163,6 +164,13 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
       fontSize: 12,
       color: colors.primary.default,
+      alignSelf: 'flex-end',
+      textTransform: 'uppercase',
+    },
+    maxTextDisabled: {
+      ...fontStyles.normal,
+      fontSize: 12,
+      color: colors.text.alternative,
       alignSelf: 'flex-end',
       textTransform: 'uppercase',
     },
@@ -1458,6 +1466,10 @@ class Amount extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const isEstimateedTotalGasValid = estimatedTotalGas
+      ? BigNumber(estimatedTotalGas).gt(0)
+      : false;
+
     return (
       <SafeAreaView
         edges={['bottom']}
@@ -1517,10 +1529,16 @@ class Amount extends PureComponent {
                 {!selectedAsset.tokenId && (
                   <TouchableOpacity
                     style={styles.actionMaxTouchable}
-                    disabled={!estimatedTotalGas}
+                    disabled={!isEstimateedTotalGasValid}
                     onPress={this.useMax}
                   >
-                    <Text style={styles.maxText}>
+                    <Text
+                      style={
+                        isEstimateedTotalGasValid
+                          ? styles.maxText
+                          : styles.maxTextDisabled
+                      }
+                    >
                       {strings('transaction.use_max')}
                     </Text>
                   </TouchableOpacity>
