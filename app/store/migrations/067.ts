@@ -1,6 +1,5 @@
 import { isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
-import { MAINNET } from '../../constants/network';
 
 export interface State {
   engine: {
@@ -12,24 +11,8 @@ export interface State {
           smartTransactionsBannerDismissed: boolean;
         };
       };
-      SmartTransactionsController?: {
-        smartTransactionsState: {
-          smartTransactions: Record<string, unknown[]>;
-        };
-      };
     };
   };
-}
-
-function isSmartTransactionsState(state: unknown): state is {
-  smartTransactionsState: { smartTransactions: Record<string, unknown[]> };
-} {
-  return (
-    isObject(state) &&
-    'smartTransactionsState' in state &&
-    isObject(state.smartTransactionsState) &&
-    'smartTransactions' in state.smartTransactionsState
-  );
 }
 
 export default function migrate(state: unknown) {
@@ -84,32 +67,17 @@ export default function migrate(state: unknown) {
   // Check current STX opt-in status
   const currentOptInStatus = preferences.smartTransactionsOptInStatus;
 
-  // Enable STX by default unless user has explicitly opted out
-  if (
-    currentOptInStatus === undefined ||
-    currentOptInStatus === null ||
-    (currentOptInStatus === false && !hasExistingSmartTransactions(newState))
-  ) {
+  if (currentOptInStatus === true) {
+    // User previously opted in - preserve their preference, don't show banner
     preferences.smartTransactionsOptInStatus = true;
     preferences.featureFlags.smartTransactionsMigrationApplied = true;
   } else {
-    preferences.featureFlags.smartTransactionsMigrationApplied = true;
+    // Either false or no previous preference - set to true and show banner
+    preferences.smartTransactionsOptInStatus = true;
+    preferences.featureFlags.smartTransactionsMigrationApplied = false;
   }
 
   preferences.featureFlags.smartTransactionsBannerDismissed = false;
 
   return newState;
-}
-
-function hasExistingSmartTransactions(state: State): boolean {
-  if (!state.engine.backgroundState.SmartTransactionsController) {
-    return false;
-  }
-
-  if (!isSmartTransactionsState(state.engine.backgroundState.SmartTransactionsController)) {
-    return false;
-  }
-
-  const smartTransactions = state.engine.backgroundState.SmartTransactionsController.smartTransactionsState.smartTransactions;
-  return (smartTransactions[MAINNET] || []).length > 0;
 }
