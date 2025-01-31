@@ -208,7 +208,7 @@
     "@react-native/eslint-config": "^0.76.5",
     "@react-navigation/bottom-tabs": "^5.11.11",
     "@react-navigation/compat": "^5.3.20",
-    "@react-navigation/native": "^5.9.4",
+    "@react-navigation/native": "^5.9.8",
     "@react-navigation/stack": "^5.14.5",
     "@reduxjs/toolkit": "^2.5.0",
     "@segment/analytics-react-native": "^2.17.0",
