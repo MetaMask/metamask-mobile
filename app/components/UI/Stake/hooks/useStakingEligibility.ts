@@ -1,19 +1,17 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useCallback, useState } from 'react';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { useStakeContext } from './useStakeContext';
 import {
   selectStakingEligibility,
   setStakingEligibility,
 } from '../../../../core/redux/slices/staking';
+import { stakingApiService } from '../sdk/stakeSdkProvider';
 
 const useStakingEligibility = () => {
   const dispatch = useDispatch();
   const selectedAddress =
     useSelector(selectSelectedInternalAccountFormattedAddress) || '';
   const { isEligible } = useSelector(selectStakingEligibility);
-
-  const { stakingApiService } = useStakeContext();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +35,7 @@ const useStakingEligibility = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedAddress, stakingApiService, dispatch]);
+  }, [selectedAddress, dispatch]);
 
   useEffect(() => {
     fetchStakingEligibility();

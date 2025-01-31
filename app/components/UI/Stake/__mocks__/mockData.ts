@@ -153,7 +153,6 @@ const MOCK_POOLED_STAKING_CONTRACT_SERVICE = {
 
 export const MOCK_POOL_STAKING_SDK: Stake = {
   stakingContract: MOCK_POOLED_STAKING_CONTRACT_SERVICE,
-  stakingApiService: MOCK_STAKING_API_SERVICE as StakingApiService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
 };

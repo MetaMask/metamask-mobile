@@ -23,6 +23,7 @@ import { getDecimalChainId } from '../../../../util/networks';
 export const SDK = StakeSdk.create({ stakingType: StakingType.POOLED });
 
 export const stakingApiService = new StakingApiService();
+
 export interface Stake {
   stakingContract?: PooledStakingContract;
   sdkType?: StakingType;
