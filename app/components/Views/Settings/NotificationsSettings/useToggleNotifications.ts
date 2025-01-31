@@ -25,6 +25,7 @@ export function useToggleNotifications({
   setUiNotificationStatus,
 }: Props) {
   const { trackEvent, createEventBuilder } = useMetrics();
+  // Check logic here
   const toggleNotificationsEnabled = useCallback(async () => {
     if (!basicFunctionalityEnabled) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
