@@ -565,7 +565,6 @@ class Confirm extends PureComponent {
         transactionTo,
         transaction: { value, gas, from },
       },
-      transactionMetadata,
       contractBalances,
       selectedAsset,
       maxValueMode,
@@ -604,7 +603,7 @@ class Confirm extends PureComponent {
       prevState.EIP1559GasTransaction.gasFeeMaxNative
       : legacyGasTransaction.gasFeeMaxNative !==
       prevState.legacyGasTransaction.gasFeeMaxNative;
-    const isControllerTransactionAdded = Boolean(!prevProps.transactionMetadata && transactionMetadata);
+    const isControllerTransactionAdded = Boolean(!prevState.transactionMeta?.id && transactionId);
 
     const haveGasPropertiesChanged =
       (this.props.gasFeeEstimates &&
@@ -636,6 +635,7 @@ class Confirm extends PureComponent {
         : this.state.gasSelected;
 
       if (
+        transactionId &&
         maxValueMode &&
         selectedAsset.isETH &&
         !isEmpty(gasFeeEstimates) &&
