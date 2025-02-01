@@ -12,7 +12,15 @@ import initialRootState from '../../../../util/test/initial-root-state';
 
 const TRANSACTION_ID_MOCK = '123';
 jest.mock('../../../../selectors/smartTransactionsController', () => ({
-  selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
+  selectSmartTransactionsEnabled: () => false,
+  selectShouldUseSmartTransaction: () => false
+}));
+
+jest.mock('../../../../selectors/preferencesController', () => ({
+  selectSmartTransactionsBannerDismissed: () => false,
+  selectSmartTransactionsMigrationApplied: () => false,
+  selectSmartTransactionsOptInStatus: () => false,
+  selectUseTransactionSimulations: () => false
 }));
 
 jest.mock('../../../../util/dappTransactions', () => ({
