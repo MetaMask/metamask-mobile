@@ -614,8 +614,7 @@ class Confirm extends PureComponent {
             this.props.gasFeeEstimates,
           ) ||
           gas !== prevProps?.transactionState?.transaction?.gas)) ||
-      haveEIP1559TotalMaxHexChanged ||
-      isControllerTransactionAdded;
+      haveEIP1559TotalMaxHexChanged;
 
     if (
       recipientIsDefined &&
@@ -627,33 +626,33 @@ class Confirm extends PureComponent {
       this.scrollView.scrollToEnd({ animated: true });
     }
 
+    if (
+      transactionId &&
+      maxValueMode &&
+      selectedAsset.isETH &&
+      !isEmpty(gasFeeEstimates) &&
+      (haveGasFeeMaxNativeChanged || isControllerTransactionAdded)
+    ) {
+      updateTransactionToMaxValue({
+        transactionId,
+        isEIP1559Transaction,
+        EIP1559GasTransaction,
+        legacyGasTransaction,
+        accountBalance: accounts[from].balance,
+        setTransactionValue: this.props.setTransactionValue,
+      });
+
+      // In order to prevent race condition do not remove this early return.
+      // Another update will be triggered by `updateEditableParams` and validateAmount will be called next update.
+      return;
+    }
+
     if (haveGasPropertiesChanged) {
       const gasEstimateTypeChanged =
         prevProps.gasEstimateType !== this.props.gasEstimateType;
       const gasSelected = gasEstimateTypeChanged
         ? AppConstants.GAS_OPTIONS.MEDIUM
         : this.state.gasSelected;
-
-      if (
-        transactionId &&
-        maxValueMode &&
-        selectedAsset.isETH &&
-        !isEmpty(gasFeeEstimates) &&
-        (haveGasFeeMaxNativeChanged || isControllerTransactionAdded)
-      ) {
-        updateTransactionToMaxValue({
-          transactionId,
-          isEIP1559Transaction,
-          EIP1559GasTransaction,
-          legacyGasTransaction,
-          accountBalance: accounts[from].balance,
-          setTransactionValue: this.props.setTransactionValue,
-        });
-
-        // In order to prevent race condition do not remove this early return.
-        // Another update will be triggered by `updateEditableParams` and validateAmount will be called next update.
-        return;
-      }
 
       if (
         (!this.state.stopUpdateGas && !this.state.advancedGasInserted) ||
