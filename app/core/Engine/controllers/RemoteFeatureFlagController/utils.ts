@@ -29,6 +29,8 @@ const getFeatureFlagAppDistribution = () => {
   }
 };
 
+export const isRemoteFeatureFlagOverrideActivated = process.env.OVERRIDE_REMOTE_FEATURE_FLAGS;
+
 export const createRemoteFeatureFlagController = ({
   state,
   messenger,
@@ -52,6 +54,8 @@ export const createRemoteFeatureFlagController = ({
 
   if (disabled) {
     Logger.log('Feature flag controller disabled');
+  } else if (isRemoteFeatureFlagOverrideActivated) {
+    Logger.log('Remote feature flags override activated');
   } else {
     remoteFeatureFlagController.updateRemoteFeatureFlags().then(() => {
       Logger.log('Feature flags updated');
