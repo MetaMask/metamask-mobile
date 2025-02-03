@@ -1,25 +1,31 @@
 import React, { ReactChild } from 'react';
 import Modal from 'react-native-modal';
-import { StyleSheet } from 'react-native';
+import { View } from 'react-native';
 
 import { useTheme } from '../../../../../../util/theme';
+import { useStyles } from '../../../../../hooks/useStyles';
+import styleSheet from './BottomModal.styles';
 
 const OPAQUE_GRAY = '#414141';
 interface BottomModalProps {
+  canCloseOnBackdropClick?: boolean;
   children: ReactChild;
   onClose?: () => void;
   hideBackground?: boolean;
 }
 
-const styles = StyleSheet.create({
-  bottomModal: {
-    justifyContent: 'flex-end',
-    margin: 0,
-  },
-});
-
-const BottomModal = ({ children, hideBackground, onClose }: BottomModalProps) => {
+/**
+ * TODO replace BottomModal instances with BottomSheet
+ * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
+ */
+const BottomModal = ({
+  canCloseOnBackdropClick = true,
+  children,
+  hideBackground,
+  onClose,
+}: BottomModalProps) => {
   const { colors } = useTheme();
+  const { styles } = useStyles(styleSheet, {});
 
   return (
     <Modal
@@ -32,11 +38,15 @@ const BottomModal = ({ children, hideBackground, onClose }: BottomModalProps) =>
       animationInTiming={600}
       animationOutTiming={600}
       onBackButtonPress={onClose}
+      onBackdropPress={canCloseOnBackdropClick ? onClose : undefined}
       onSwipeComplete={onClose}
       swipeDirection={'down'}
       propagateSwipe
     >
-      {children}
+      <View style={styles.wrapper}>
+        <View style={styles.topBar} />
+        {children}
+      </View>
     </Modal>
   );
 };

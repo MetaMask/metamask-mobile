@@ -1,7 +1,10 @@
 import { BigNumber } from 'bignumber.js';
 
 const MIN_AMOUNT = new BigNumber('0.000001');
-const PRECISION = 6;
+
+// The default precision for displaying currency values.
+// It set to the number of decimal places in the minimum amount.
+export const DEFAULT_PRECISION = new BigNumber(MIN_AMOUNT).decimalPlaces();
 
 // The number of significant decimals places to show for amounts less than 1.
 const MAX_SIGNIFICANT_DECIMAL_PLACES = 3;
@@ -12,9 +15,18 @@ export function formatAmountMaxPrecision(
   locale: string,
   num: number | BigNumber,
 ): string {
-  return new Intl.NumberFormat(locale, {
-    minimumSignificantDigits: 1,
-  }).format(new BigNumber(num.toString()).toNumber());
+  const bigNumberValue = new BigNumber(num);
+  const numberOfDecimals = bigNumberValue.decimalPlaces();
+  const formattedValue = bigNumberValue.toFixed(numberOfDecimals ?? 0);
+
+  const [integerPart, fractionalPart] = formattedValue.split('.');
+  const formattedIntegerPart = new Intl.NumberFormat(locale).format(
+    integerPart as unknown as number,
+  );
+
+  return fractionalPart
+    ? `${formattedIntegerPart}.${fractionalPart}`
+    : formattedIntegerPart;
 }
 
 /**
@@ -65,7 +77,7 @@ export function formatAmount(locale: string, amount: BigNumber): string {
     return new Intl.NumberFormat(locale, {
       maximumSignificantDigits: MAX_SIGNIFICANT_DECIMAL_PLACES,
     } as Intl.NumberFormatOptions).format(
-      amount.decimalPlaces(PRECISION).toNumber(),
+      amount.dp(DEFAULT_PRECISION ?? 0).toNumber(),
     );
   }
 
@@ -73,7 +85,7 @@ export function formatAmount(locale: string, amount: BigNumber): string {
   // Cap the digits right of the decimal point: The more digits present
   // on the left side of the decimal point, the less decimal places
   // we show on the right side.
-  const digitsLeftOfDecimal = amount.abs().toFixed(0).length;
+  const digitsLeftOfDecimal = amount.abs().dp(0).toString().length;
   const maximumFractionDigits = Math.max(
     0,
     MAX_SIGNIFICANT_DECIMAL_PLACES - digitsLeftOfDecimal + 1,
@@ -81,5 +93,10 @@ export function formatAmount(locale: string, amount: BigNumber): string {
 
   return new Intl.NumberFormat(locale, {
     maximumFractionDigits,
-  } as Intl.NumberFormatOptions).format(amount.toNumber());
+  } as Intl.NumberFormatOptions).format(
+    // string is valid parameter for format function
+    // for some reason it gives TS issue
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/format#number
+    amount.toFixed(maximumFractionDigits) as unknown as number,
+  );
 }

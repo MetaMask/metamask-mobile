@@ -5,7 +5,9 @@ import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 const DEVELOPMENT = 'development';
 const PORTFOLIO_URL =
   process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
-const SECURITY_ALERTS_API_URL = process.env.SECURITY_ALERTS_API_URL ?? 'https://security-alerts.api.cx.metamask.io';
+const SECURITY_ALERTS_API_URL =
+  process.env.SECURITY_ALERTS_API_URL ??
+  'https://security-alerts.api.cx.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -44,9 +46,7 @@ export default {
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
   SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
-  HOMEPAGE_URL:
-    process.env.MM_HOMEPAGE ||
-    'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
+  HOMEPAGE_URL: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
   OLD_HOMEPAGE_URL_HOST: 'home.metamask.io',
   SHORT_HOMEPAGE_URL: 'MetaMask.io',
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
@@ -137,6 +137,9 @@ export default {
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
   },
+  DECODING_API_URL:
+    process.env.DECODING_API_URL ||
+    'https://signature-insights.api.cx.metamask.io/v1',
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',

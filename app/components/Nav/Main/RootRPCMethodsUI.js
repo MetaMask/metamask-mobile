@@ -335,7 +335,7 @@ const RootRPCMethodsUI = (props) => {
               transactionId: transactionMeta.id,
               deviceId,
               // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => { },
+              onConfirmationComplete: () => {},
               type: 'signTransaction',
             }),
           );
@@ -392,6 +392,7 @@ const RootRPCMethodsUI = (props) => {
         autoSign(transactionMeta);
       } else {
         const {
+          chainId,
           networkClientId,
           txParams: { value, gas, gasPrice, data },
         } = transactionMeta;
@@ -404,7 +405,8 @@ const RootRPCMethodsUI = (props) => {
           data &&
           data !== '0x' &&
           to &&
-          (await getMethodData(data, networkClientId)).name === TOKEN_METHOD_TRANSFER
+          (await getMethodData(data, networkClientId)).name ===
+            TOKEN_METHOD_TRANSFER
         ) {
           let asset = props.tokens.find(({ address }) =>
             toLowerCaseEquals(address, to),
@@ -448,6 +450,7 @@ const RootRPCMethodsUI = (props) => {
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
             networkClientId,
+            chainId,
             ...transactionMeta.txParams,
           });
         } else {
@@ -460,6 +463,7 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
+            chainId,
             networkClientId,
             ...transactionMeta.txParams,
           });

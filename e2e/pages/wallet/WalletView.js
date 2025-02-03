@@ -90,6 +90,10 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
+  get sortBy() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BY);
+  }
+
   get tokenNetworkFilterAll() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
@@ -141,14 +145,12 @@ class WalletView {
     await Gestures.waitAndTap(this.importNFTButton);
   }
 
-  get testCollectible() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
+  get mainnetCollectible() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.MAINNET_COLLECTIBLE);
   }
 
   async tapOnNftName() {
-    await Gestures.waitAndTap(this.testCollectible);
+    await Gestures.waitAndTap(this.mainnetCollectible);
   }
 
   async tapImportTokensButton() {
@@ -174,6 +176,16 @@ class WalletView {
     return Matchers.getElementByText(tokenName);
   }
 
+  async getTokensInWallet() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
+    );
+  }
+
+  async nftIDInWallet(nftId) {
+    return Matchers.getElementByID(nftId);
+  }
+
   async nftInWallet(nftName) {
     return Matchers.getElementByText(nftName);
   }
@@ -188,6 +200,10 @@ class WalletView {
 
   async tapTokenNetworkFilter() {
     await Gestures.waitAndTap(this.tokenNetworkFilter);
+  }
+
+  async tapSortBy() {
+    await Gestures.waitAndTap(this.sortBy);
   }
 
   async tapTokenNetworkFilterAll() {

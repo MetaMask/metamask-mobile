@@ -1,21 +1,22 @@
-import { MessageType, SendAnalytics, TrackingEvents } from '@metamask/sdk-communication-layer';
-import { Platform } from 'react-native';
+import {
+  MessageType,
+  SendAnalytics,
+  TrackingEvents,
+} from '@metamask/sdk-communication-layer';
 import { resetConnections } from '../../../../app/actions/sdk';
 import { store } from '../../../../app/store';
 import Routes from '../../../constants/navigation/Routes';
 import { selectChainId } from '../../../selectors/networkController';
-import Device from '../../../util/device';
+import Logger from '../../../util/Logger';
+import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
-import { Minimizer } from '../../NativeModules';
 import { getPermittedAccounts } from '../../Permissions';
 import { Connection, ConnectionProps } from '../Connection';
 import checkPermissions from '../handlers/checkPermissions';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
-import { SDKConnect } from './../SDKConnect';
 import { wait, waitForCondition } from '../utils/wait.util';
-import Logger from '../../../util/Logger';
-import AppConstants from '../../AppConstants';
+import { SDKConnect } from './../SDKConnect';
 
 import packageJSON from '../../../../package.json';
 const { version: walletVersion } = packageJSON;
@@ -136,12 +137,19 @@ async function connectToChannel({
 
       try {
         // We cannot request permissions if the user is on the login screen or the account connect screen otherwise it will kill other permissions requests.
-        const skipRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN, Routes.SHEET.ACCOUNT_CONNECT];
+        const skipRoutes = [
+          Routes.LOCK_SCREEN,
+          Routes.ONBOARDING.LOGIN,
+          Routes.SHEET.ACCOUNT_CONNECT,
+        ];
         // Wait for login screen to be closed
         await waitForCondition({
           fn: () => {
-            const currentRouteName = connected.navigation?.getCurrentRoute()?.name;
-            DevLogger.log(`connectToChannel:: currentRouteName=${currentRouteName}`);
+            const currentRouteName =
+              connected.navigation?.getCurrentRoute()?.name;
+            DevLogger.log(
+              `connectToChannel:: currentRouteName=${currentRouteName}`,
+            );
             return !!currentRouteName && !skipRoutes.includes(currentRouteName);
           },
           context: 'connectToChannel',
@@ -151,14 +159,23 @@ async function connectToChannel({
           connection: connected,
           engine: Engine,
         });
-        DevLogger.log(`SDKConnect::connectToChannel - checkPermissions - authorized`, res);
+        DevLogger.log(
+          `SDKConnect::connectToChannel - checkPermissions - authorized`,
+          res,
+        );
         authorized = true;
       } catch (error) {
-        DevLogger.log(`SDKConnect::connectToChannel - checkPermissions - error`, error);
+        DevLogger.log(
+          `SDKConnect::connectToChannel - checkPermissions - error`,
+          error,
+        );
         // first needs to connect without key exchange to send the event
-        await instance.state.connected[id].remote.reject({channelId: id});
+        await instance.state.connected[id].remote.reject({ channelId: id });
         // Send rejection event without awaiting
-        SendAnalytics({id, event: TrackingEvents.REJECTED, ...originatorInfo}, instance.state.socketServerUrl).catch((err: Error) => {
+        SendAnalytics(
+          { id, event: TrackingEvents.REJECTED, ...originatorInfo },
+          instance.state.socketServerUrl,
+        ).catch((err: Error) => {
           Logger.error(err, 'SendAnalytics failed');
         });
 
@@ -166,28 +183,28 @@ async function connectToChannel({
         // cleanup connection
         await wait(100); // Add delay for connect modal to be fully closed
         await instance.updateSDKLoadingState({ channelId: id, loading: false });
-        // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
-        if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-          connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          });
-        } else {
-          DevLogger.log(`[handleSendMessage] goBack()`);
-          await Minimizer.goBack();
-        }
+        connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        });
         return;
       }
     }
 
     // SDK PROTOCOL pre 0.28.0
-    DevLogger.log(`SDKConnect::connectToChannel - before connect`, instance.state.connected[id]);
+    DevLogger.log(
+      `SDKConnect::connectToChannel - before connect`,
+      instance.state.connected[id],
+    );
 
     // Initialize connection
     await connected.connect({
       withKeyExchange: true,
       authorized,
     });
-    DevLogger.log(`SDKConnect::connectToChannel - connected - state after connect`, instance.state);
+    DevLogger.log(
+      `SDKConnect::connectToChannel - connected - state after connect`,
+      instance.state,
+    );
 
     DevLogger.log(
       `SDKConnect::connectToChannel - connected - authorized=${authorized} initialConnection=${initialConnection}`,
@@ -239,20 +256,18 @@ async function connectToChannel({
         connected.trigger === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK &&
         connected.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
       ) {
-        if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-          DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_MODAL`);
-          connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          });
-        } else {
-          await Minimizer.goBack();
-        }
+        DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_MODAL`);
+        connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        });
       }
     }
   } catch (error) {
     Logger.error(error as Error, 'Failed to connect to channel');
   } finally {
-    DevLogger.log(`SDKConnect::connectToChannel - finally - state.connecting[${id}]=${instance.state.connecting[id]}`);
+    DevLogger.log(
+      `SDKConnect::connectToChannel - finally - state.connecting[${id}]=${instance.state.connecting[id]}`,
+    );
     instance.state.connecting[id] = false;
   }
 }

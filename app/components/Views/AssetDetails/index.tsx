@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -38,6 +38,8 @@ import {
   selectChainId,
   selectProviderConfig,
   selectNetworkConfigurationByChainId,
+  selectNetworkConfigurations,
+  selectIsAllNetworks,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -61,6 +63,7 @@ import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
+import { TokenI } from '../../UI/Tokens/types';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -116,13 +119,13 @@ interface Props {
     params: {
       address: Hex;
       chainId: Hex;
+      asset: TokenI;
     };
   };
 }
 
 const AssetDetails = (props: Props) => {
-  const { address, chainId: networkId } = props.route.params;
-
+  const { address, chainId: networkId, asset } = props.route.params;
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
@@ -136,6 +139,10 @@ const AssetDetails = (props: Props) => {
   const selectedChainId = useSelector(selectChainId);
   const chainId = isPortfolioViewEnabled() ? networkId : selectedChainId;
   const tokens = useSelector(selectTokens);
+
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const tokenNetworkConfig = networkConfigurations[networkId]?.name;
 
   const tokensByChain = useMemo(
     () => allTokens?.[chainId as Hex]?.[selectedAccountAddress as Hex] ?? [],
@@ -179,9 +186,11 @@ const AssetDetails = (props: Props) => {
 
   const { symbol, decimals, aggregators = [] } = token as TokenType;
 
-  const getNetworkName = () => {
+  const getNetworkName = useCallback(() => {
     let name = '';
-    if (providerConfig.nickname) {
+    if (isPortfolioViewEnabled() && isAllNetworks) {
+      name = tokenNetworkConfig;
+    } else if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
       name =
@@ -189,9 +198,10 @@ const AssetDetails = (props: Props) => {
           ?.name || { ...Networks.rpc, color: null }.name;
     }
     return name;
-  };
+  }, [isAllNetworks, tokenNetworkConfig, providerConfig]);
 
   useEffect(() => {
+    const networkName = getNetworkName();
     navigation.setOptions(
       getNetworkNavbarOptions(
         'Token Details',
@@ -200,9 +210,11 @@ const AssetDetails = (props: Props) => {
         colors,
         undefined,
         true,
+        undefined,
+        networkName,
       ),
     );
-  }, [navigation, colors]);
+  }, [navigation, colors, getNetworkName]);
 
   const copyAddressToClipboard = async () => {
     await ClipboardManager.setString(address);
@@ -304,7 +316,7 @@ const AssetDetails = (props: Props) => {
   const renderTokenSymbol = () => (
     <View style={styles.descriptionContainer}>
       <TokenImage
-        asset={{ address }}
+        asset={asset}
         containerStyle={styles.tokenImage}
         iconStyle={styles.tokenImage}
       />

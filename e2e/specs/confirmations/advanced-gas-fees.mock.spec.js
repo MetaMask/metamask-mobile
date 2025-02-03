@@ -2,6 +2,7 @@
 import { SmokeConfirmations } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import AmountView from '../../pages/Send/AmountView';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
@@ -19,18 +20,14 @@ import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
-  let mockServer;
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
   });
 
   it('should edit priority gas settings and send ETH', async () => {
-
-    const testSpecificMock  = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
+    const testSpecificMock = {
+      GET: [mockEvents.GET.suggestedGasFeesApiGanache],
     };
     await withFixtures(
       {
@@ -85,8 +82,8 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         // Tap on the send button
         await TransactionConfirmationView.tapConfirmButton();
 
-        // Check that we are on the wallet screen
-        await Assertions.checkIfVisible(WalletView.container);
+        // Check that we are on the Activities View
+        await Assertions.checkIfVisible(ActivitiesView.container);
       },
     );
   });

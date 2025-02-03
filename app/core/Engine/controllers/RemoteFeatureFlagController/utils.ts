@@ -13,31 +13,43 @@ import { RemoteFeatureFlagInitParamTypes } from './types';
 const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
   switch (env) {
-    case 'local': return EnvironmentType.Development;
-    case 'pre-release': return EnvironmentType.ReleaseCandidate;
-    case 'production': return EnvironmentType.Production;
-    default: return EnvironmentType.Development;
+    case 'local':
+      return EnvironmentType.Development;
+    case 'pre-release':
+      return EnvironmentType.ReleaseCandidate;
+    case 'production':
+      return EnvironmentType.Production;
+    default:
+      return EnvironmentType.Development;
   }
 };
 
 const getFeatureFlagAppDistribution = () => {
   const dist = process.env.METAMASK_BUILD_TYPE;
   switch (dist) {
-    case 'main': return DistributionType.Main;
-    case 'flask': return DistributionType.Flask;
-    default: return DistributionType.Main;
+    case 'main':
+      return DistributionType.Main;
+    case 'flask':
+      return DistributionType.Flask;
+    default:
+      return DistributionType.Main;
   }
 };
+
+export const isRemoteFeatureFlagOverrideActivated =
+  process.env.OVERRIDE_REMOTE_FEATURE_FLAGS;
 
 export const createRemoteFeatureFlagController = ({
   state,
   messenger,
   disabled,
+  getMetaMetricsId,
 }: RemoteFeatureFlagInitParamTypes) => {
   const remoteFeatureFlagController = new RemoteFeatureFlagController({
     messenger,
     state,
     disabled,
+    getMetaMetricsId,
     clientConfigApiService: new ClientConfigApiService({
       fetch,
       config: {
@@ -50,6 +62,8 @@ export const createRemoteFeatureFlagController = ({
 
   if (disabled) {
     Logger.log('Feature flag controller disabled');
+  } else if (isRemoteFeatureFlagOverrideActivated) {
+    Logger.log('Remote feature flags override activated');
   } else {
     remoteFeatureFlagController.updateRemoteFeatureFlags().then(() => {
       Logger.log('Feature flags updated');

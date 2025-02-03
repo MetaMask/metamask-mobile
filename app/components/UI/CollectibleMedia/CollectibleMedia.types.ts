@@ -31,4 +31,5 @@ export interface CollectibleMediaProps {
   onPressColectible?: () => void;
   isTokenImage?: boolean;
   isFullRatio?: boolean;
+  privacyMode?: boolean;
 }

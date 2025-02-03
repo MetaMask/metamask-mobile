@@ -2,9 +2,9 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import {
   TokenOverviewSelectorsIDs,
-  TokenOverviewSelectorsText
+  TokenOverviewSelectorsText,
 } from '../../selectors/wallet/TokenOverview.selectors';
-
+import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors.js';
 class TokenOverview {
   get container() {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
@@ -16,6 +16,12 @@ class TokenOverview {
 
   get sendButton() {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON);
+  }
+
+  get actionSheetSendButton() {
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
+    );
   }
 
   get swapButton() {
@@ -56,6 +62,10 @@ class TokenOverview {
 
   async tapSendButton() {
     await Gestures.waitAndTap(this.sendButton);
+  }
+
+  async tapActionSheetSendButton() {
+    await Gestures.waitAndTap(this.actionSheetSendButton);
   }
 
   async tapSwapButton() {

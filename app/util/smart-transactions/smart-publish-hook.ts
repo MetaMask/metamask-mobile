@@ -53,6 +53,7 @@ export interface SubmitSmartTransactionRequest {
           expectedDeadline: number;
           maxDeadline: number;
           mobileReturnTxHashAsap: boolean;
+          batchStatusPollingInterval: number;
         }
       | Record<string, never>;
   };
@@ -75,6 +76,7 @@ class SmartTransactionHook {
       expectedDeadline?: number;
       maxDeadline?: number;
       mobileReturnTxHashAsap?: boolean;
+      batchStatusPollingInterval?: number;
     };
   };
   #shouldUseSmartTransaction: boolean;
@@ -184,6 +186,14 @@ class SmartTransactionHook {
       // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
       if (!getFeesResponse) {
         return useRegularTransactionSubmit;
+      }
+
+      const batchStatusPollingInterval =
+        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+      if (batchStatusPollingInterval) {
+        this.#smartTransactionsController.setStatusRefreshInterval(
+          batchStatusPollingInterval,
+        );
       }
 
       const submitTransactionResponse = await this.#signAndSubmitTransactions({

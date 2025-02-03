@@ -8,7 +8,10 @@ import {
   ERC721,
   ERC1155,
 } from '@metamask/controller-utils';
-import { isEIP1559Transaction, TransactionType } from '@metamask/transaction-controller';
+import {
+  isEIP1559Transaction,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -125,9 +128,15 @@ const reviewActionKeys = {
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.tx_review_set_approval_for_all',
   ),
-  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
-  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
-  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
+  [TransactionType.stakingClaim]: strings(
+    'transactions.tx_review_staking_claim',
+  ),
+  [TransactionType.stakingDeposit]: strings(
+    'transactions.tx_review_staking_deposit',
+  ),
+  [TransactionType.stakingUnstake]: strings(
+    'transactions.tx_review_staking_unstake',
+  ),
 };
 
 /**
@@ -146,9 +155,15 @@ const actionKeys = {
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.set_approval_for_all',
   ),
-  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
-  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
-  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
+  [TransactionType.stakingClaim]: strings(
+    'transactions.tx_review_staking_claim',
+  ),
+  [TransactionType.stakingDeposit]: strings(
+    'transactions.tx_review_staking_deposit',
+  ),
+  [TransactionType.stakingUnstake]: strings(
+    'transactions.tx_review_staking_unstake',
+  ),
 };
 
 /**
@@ -333,7 +348,10 @@ export async function getMethodData(data, networkClientId) {
   }
   // If it's a new method, use on-chain method registry
   try {
-    const registryObject = await handleMethodData(fourByteSignature, networkClientId);
+    const registryObject = await handleMethodData(
+      fourByteSignature,
+      networkClientId,
+    );
     if (registryObject) {
       return registryObject.parsedRegistryMethod;
     }
@@ -351,7 +369,11 @@ export async function getMethodData(data, networkClientId) {
  * @param {string | undefined} networkClientId - ID of the network client
  * @returns {Promise<boolean>} - Whether the given address is a contract
  */
-export async function isSmartContractAddress(address, chainId, networkClientId = undefined) {
+export async function isSmartContractAddress(
+  address,
+  chainId,
+  networkClientId = undefined,
+) {
   if (!address) return false;
 
   address = toChecksumAddress(address);
@@ -365,8 +387,11 @@ export async function isSmartContractAddress(address, chainId, networkClientId =
   }
 
   const { NetworkController } = Engine.context;
-  const finalNetworkClientId = networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
-  const ethQuery = new EthQuery(NetworkController.getNetworkClientById(finalNetworkClientId).provider);
+  const finalNetworkClientId =
+    networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
+  const ethQuery = new EthQuery(
+    NetworkController.getNetworkClientById(finalNetworkClientId).provider,
+  );
 
   const code = address
     ? await query(ethQuery, 'getCode', [address])
@@ -411,7 +436,13 @@ export async function getTransactionActionKey(transaction, chainId) {
   const txParams = transaction.txParams ?? transaction.transaction ?? {};
   const { data, to } = txParams;
 
-  if ([TransactionType.stakingClaim, TransactionType.stakingDeposit, TransactionType.stakingUnstake].includes(type)) {
+  if (
+    [
+      TransactionType.stakingClaim,
+      TransactionType.stakingDeposit,
+      TransactionType.stakingUnstake,
+    ].includes(type)
+  ) {
     return type;
   }
 
@@ -432,7 +463,7 @@ export async function getTransactionActionKey(transaction, chainId) {
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
-      : await isSmartContractAddress(to, undefined, networkClientId);
+      : await isSmartContractAddress(to, chainId, networkClientId);
 
   if (toSmartContract) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;
@@ -472,11 +503,11 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
           ? strings('transactions.self_sent_unit', { unit: currencySymbol })
           : strings('transactions.self_sent_ether')
         : currencySymbol
-          ? strings('transactions.received_unit', { unit: currencySymbol })
-          : strings('transactions.received_ether')
+        ? strings('transactions.received_unit', { unit: currencySymbol })
+        : strings('transactions.received_ether')
       : currencySymbol
-        ? strings('transactions.sent_unit', { unit: currencySymbol })
-        : strings('transactions.sent_ether');
+      ? strings('transactions.sent_unit', { unit: currencySymbol })
+      : strings('transactions.sent_ether');
   }
   const transactionActionKey = actionKeys[actionKey];
 
@@ -1046,7 +1077,7 @@ export const parseTransactionEIP1559 = (
     maxPriorityFeeNative,
     nativeCurrency,
     Boolean(maxPriorityFeePerGasTimesGasLimitHex) &&
-    maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
+      maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
   );
   const renderableMaxPriorityFeeConversion = formatCurrency(
     maxPriorityFeeConversion,
@@ -1428,9 +1459,14 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
   }
 }
 
+/**
+ * @param {number|string|BigNumber} value
+ * @param {number=} decimals
+ * @returns {BigNumber}
+ */
 export function calcTokenAmount(value, decimals) {
-  const multiplier = Math.pow(10, Number(decimals || 0));
-  return new BigNumber(String(value)).div(multiplier);
+  const divisor = new BigNumber(10).pow(decimals ?? 0);
+  return new BigNumber(String(value)).div(divisor);
 }
 
 export function calcTokenValue(value, decimals) {
@@ -1545,7 +1581,7 @@ export const getIsSwapApproveOrSwapTransaction = (
     (swapsUtils.isValidContractAddress(chainId, to) ||
       (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
         decodeApproveData(data).spenderAddress?.toLowerCase() ===
-        swapsUtils.getSwapsContractAddress(chainId)))
+          swapsUtils.getSwapsContractAddress(chainId)))
   );
 };
 

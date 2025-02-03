@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -11,6 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   selectChainId,
+  selectIsPopularNetwork,
   selectProviderConfig,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -51,11 +52,11 @@ import {
   TotalFiatBalancesCrossChains,
   useGetTotalFiatBalanceCrossChains,
 } from '../../../../hooks/useGetTotalFiatBalanceCrossChains';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getChainIdsToPoll } from '../../../../../selectors/tokensController';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
 
-export const PortfolioBalance = () => {
+export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -68,11 +69,14 @@ export const PortfolioBalance = () => {
   const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
     [selectedInternalAccount as InternalAccount],
-    isTokenNetworkFilterEqualCurrentNetwork,
+    !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork,
     allChainIDs,
   );
+
   const totalFiatBalancesCrossChain: TotalFiatBalancesCrossChains =
     useGetTotalFiatBalanceCrossChains(
       [selectedInternalAccount as InternalAccount],
@@ -108,24 +112,24 @@ export const PortfolioBalance = () => {
     type,
   );
 
-  let total;
-  if (isOriginalNativeTokenSymbol) {
-    if (isPortfolioViewEnabled()) {
-      total = totalFiatBalance ?? 0;
-    } else {
+  const total = useMemo(() => {
+    if (isOriginalNativeTokenSymbol) {
+      if (isPortfolioViewEnabled()) {
+        return totalFiatBalance ?? 0;
+      }
       const tokenFiatTotal = balance?.tokenFiat ?? 0;
       const ethFiatTotal = balance?.ethFiat ?? 0;
-      total = tokenFiatTotal + ethFiatTotal;
+      return tokenFiatTotal + ethFiatTotal;
     }
-  } else if (isPortfolioViewEnabled()) {
-    total = totalTokenFiat ?? 0;
-  } else {
-    total = balance?.tokenFiat ?? 0;
-  }
+    if (isPortfolioViewEnabled()) {
+      return totalTokenFiat ?? 0;
+    }
+    return balance?.tokenFiat ?? 0;
+  }, [isOriginalNativeTokenSymbol, totalFiatBalance, totalTokenFiat, balance]);
 
   const fiatBalance = `${renderFiat(total, currentCurrency)}`;
 
-  const onOpenPortfolio = () => {
+  const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
       isPortfolioUrl(url),
     );
@@ -168,7 +172,14 @@ export const PortfolioBalance = () => {
         })
         .build(),
     );
-  };
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    isEnabled,
+    isDataCollectionForMarketingEnabled,
+    browserTabs,
+  ]);
 
   const renderAggregatedPercentage = () => {
     if (isTestNet(chainId)) {
@@ -195,9 +206,12 @@ export const PortfolioBalance = () => {
     );
   };
 
-  const toggleIsBalanceAndAssetsHidden = (value: boolean) => {
-    PreferencesController.setPrivacyMode(value);
-  };
+  const toggleIsBalanceAndAssetsHidden = useCallback(
+    (value: boolean) => {
+      PreferencesController.setPrivacyMode(value);
+    },
+    [PreferencesController],
+  );
 
   return (
     <View style={styles.portfolioBalance}>
@@ -243,4 +257,4 @@ export const PortfolioBalance = () => {
       </View>
     </View>
   );
-};
+});

@@ -80,6 +80,28 @@ describe('MetricsEventBuilder', () => {
     expect(rebuiltEvent.sensitiveProperties).toEqual(newSensitiveProps);
   });
 
+  it('compares events', () => {
+    const newProps: JsonMap = {
+      newProp: 'newValue',
+    };
+
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+      .addSensitiveProperties(newProps)
+      .build();
+
+    const similarEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+      .addSensitiveProperties(newProps)
+      .build();
+    expect(similarEvent).toEqual(event);
+
+    const differentEvent = MetricsEventBuilder.createEventBuilder(
+      mockLegacyEvent,
+    )
+      .addProperties(newProps)
+      .build();
+    expect(differentEvent).not.toEqual(event);
+  });
+
   it('removes properties', () => {
     const event = MetricsEventBuilder.createEventBuilder(mockEvent)
       .addProperties({ newProp: 'newValue' })

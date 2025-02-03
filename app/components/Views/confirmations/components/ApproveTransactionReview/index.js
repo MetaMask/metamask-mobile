@@ -74,11 +74,10 @@ import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import Routes from '../../../../../constants/navigation/Routes';
 import createStyles from './styles';
 import {
-  selectChainId,
+  selectNativeCurrencyByChainId,
   selectNetworkConfigurations,
-  selectProviderType,
-  selectTicker,
-  selectRpcUrl,
+  selectProviderTypeByChainId,
+  selectRpcUrlByChainId,
 } from '../../../../../selectors/networkController';
 import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
@@ -348,8 +347,7 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
-      transaction: { origin, to, data, from },
-      transaction,
+      transaction: { origin, to, data, from, transaction },
       setTransactionObject,
       tokenList,
       tokenAllowanceState,
@@ -1332,25 +1330,30 @@ class ApproveTransactionReview extends PureComponent {
   };
 }
 
-const mapStateToProps = (state) => ({
-  ticker: selectTicker(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  transaction: getNormalizedTxState(state),
-  tokensLength: selectTokensLength(state),
-  accountsLength: selectAccountsLength(state),
-  providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcUrl(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  activeTabUrl: getActiveTabUrl(state),
-  chainId: selectChainId(state),
-  tokenList: selectTokenList(state),
-  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+
+  return {
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    networkConfigurations: selectNetworkConfigurations(state),
+    transaction: getNormalizedTxState(state),
+    tokensLength: selectTokensLength(state),
+    accountsLength: selectAccountsLength(state),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    providerRpcTarget: selectRpcUrlByChainId(state, chainId),
+    primaryCurrency: state.settings.primaryCurrency,
+    activeTabUrl: getActiveTabUrl(state),
+    chainId,
+    tokenList: selectTokenList(state),
+    isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
+      chainId,
+      getRampNetworks(state),
+    ),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

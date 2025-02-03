@@ -8,14 +8,13 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../../app/core/AppConstants';
-import Routes from '../../../../app/constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
 import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
-import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+// eslint-disable-next-line import/no-namespace
+import * as multichain from '../../../selectors/multichain';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -45,6 +44,9 @@ jest.mock('../../../core/Engine', () => ({
     },
     TokenRatesController: {
       updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+    },
+    TokenBalancesController: {
+      updateBalances: jest.fn(() => Promise.resolve()),
     },
     NetworkController: {
       getNetworkClientById: () => ({
@@ -234,10 +236,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../UI/Stake/constants', () => ({
-  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -250,10 +248,14 @@ jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   })),
 }));
 
-jest.mock('../Stake/hooks/useStakingChain', () => ({
-  useStakingChainByChainId: () => ({
+jest.mock('../../UI/Stake/hooks/useStakingChain', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
     isStakingSupportedChain: true,
-  }),
+  })),
+  useStakingChainByChainId: jest.fn(() => ({
+    isStakingSupportedChain: true,
+  })),
 }));
 
 const Stack = createStackNavigator();
@@ -412,54 +414,6 @@ describe('Tokens', () => {
     ).toBeDefined();
   });
 
-  it('renders stake button correctly', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
-  });
-
-  it('navigates to Web view when stake button is pressed and user is not eligible', async () => {
-    (useStakingEligibility as jest.Mock).mockReturnValue({
-      isEligible: false,
-      isLoadingEligibility: false,
-      refreshPooledStakingEligibility: jest
-        .fn()
-        .mockResolvedValue({ isEligible: false }),
-      error: false,
-    });
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        params: {
-          newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
-          timestamp: 123,
-        },
-        screen: Routes.BROWSER.VIEW,
-      });
-    });
-  });
-
-  it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
-    (useStakingEligibility as jest.Mock).mockReturnValue({
-      isEligible: true,
-      isLoadingEligibility: false,
-      refreshPooledStakingEligibility: jest
-        .fn()
-        .mockResolvedValue({ isEligible: true }),
-      error: false,
-    });
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-      });
-    });
-  });
-
   it('should refresh tokens and call necessary controllers', async () => {
     const { getByTestId } = renderComponent(initialState);
 
@@ -488,6 +442,9 @@ describe('Tokens', () => {
           Engine.context.TokenDetectionController.detectTokens,
         ).toHaveBeenCalled();
         expect(
+          Engine.context.TokenBalancesController.updateBalances,
+        ).toHaveBeenCalled();
+        expect(
           Engine.context.AccountTrackerController.refresh,
         ).toHaveBeenCalled();
         expect(
@@ -508,48 +465,6 @@ describe('Tokens', () => {
 
     await waitFor(() => {
       expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
-    });
-  });
-
-  it('navigates to Stake Input screen only when eligible', async () => {
-    (useStakingEligibility as jest.Mock).mockReturnValue({
-      isEligible: true,
-      isLoadingEligibility: false,
-      refreshPooledStakingEligibility: jest
-        .fn()
-        .mockResolvedValue({ isEligible: true }),
-      error: false,
-    });
-
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-      });
-    });
-  });
-
-  it('does not navigate to Stake Input screen if not eligible', async () => {
-    (useStakingEligibility as jest.Mock).mockReturnValue({
-      isEligible: false,
-      isLoadingEligibility: false,
-      refreshPooledStakingEligibility: jest
-        .fn()
-        .mockResolvedValue({ isEligible: false }),
-      error: false,
-    });
-
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-
-    await waitFor(() => {
-      expect(mockNavigate).not.toHaveBeenCalledWith('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-      });
     });
   });
 
@@ -597,13 +512,34 @@ describe('Tokens', () => {
   });
 
   describe('Portfolio View', () => {
+    let selectAccountTokensAcrossChainsSpy: jest.SpyInstance;
+
     beforeEach(() => {
+      selectAccountTokensAcrossChainsSpy = jest.spyOn(
+        multichain,
+        'selectAccountTokensAcrossChains',
+      );
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     });
 
-    it('should match the snapshot when portfolio view is enabled  ', () => {
+    afterEach(() => {
+      selectAccountTokensAcrossChainsSpy.mockRestore();
+    });
+
+    it('should match the snapshot when portfolio view is enabled', () => {
       const { toJSON } = renderComponent(initialState);
       expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should call selectAccountTokensAcrossChains when enabled', () => {
+      renderComponent(initialState);
+      expect(selectAccountTokensAcrossChainsSpy).toHaveBeenCalled();
+    });
+
+    it('should not call selectAccountTokensAcrossChains when disabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+      renderComponent(initialState);
+      expect(selectAccountTokensAcrossChainsSpy).not.toHaveBeenCalled();
     });
 
     it('should handle network filtering correctly', () => {
@@ -722,7 +658,6 @@ describe('Tokens', () => {
 
           const { queryByText } = renderComponent(stateWithZeroBalances);
           expect(queryByText('ZERO')).toBeDefined();
-          expect(queryByText('NON_ZERO_ERC20')).toBeDefined();
           expect(queryByText('ZERO_ERC20')).toBeNull();
         });
       });

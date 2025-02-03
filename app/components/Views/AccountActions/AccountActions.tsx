@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
 // External dependencies
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -397,7 +397,9 @@ const AccountActions = () => {
             actionTitle={strings('accounts.remove_hardware_account')}
             iconName={IconName.Close}
             onPress={showRemoveHWAlert}
-            testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT
+            }
           />
         )}
         {
