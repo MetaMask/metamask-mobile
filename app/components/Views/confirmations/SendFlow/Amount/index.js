@@ -777,7 +777,7 @@ class Amount extends PureComponent {
       transactionObject.data = collectibleTransferTransactionProperties.data;
       transactionObject.to = collectibleTransferTransactionProperties.to;
       transactionObject.value = collectibleTransferTransactionProperties.value;
-    } else if (!selectedAsset.isETH && !selectedAsset.isNative) {
+    } else if (!selectedAsset.isETH || !selectedAsset.isNative) {
       const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
       transactionObject.data = generateTransferData('transfer', {
         toAddress: transactionTo,
