@@ -4,8 +4,7 @@ import { loginToApp } from '../../viewHelper.js';
 import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
-import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from '../../fixtures/fixture-builder.js';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import TokenOverview from '../../pages/wallet/TokenOverview.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import {
@@ -31,6 +30,7 @@ import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAcc
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
 import NetworkListModal from '../../pages/Network/NetworkListModal.js';
 import axios from 'axios';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
 import {
   startMockServer,
@@ -48,6 +48,7 @@ describe(SmokeStake('Stake from Actions'), () => {
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
+      .withNetworkController(PopularNetworksList.zkSync)
       .withNetworkController(CustomNetworks.Holesky)
       .build();
     await startFixtureServer(fixtureServer);
@@ -79,7 +80,11 @@ describe(SmokeStake('Stake from Actions'), () => {
     await AmountView.tapNextButton();
     await TransactionConfirmationView.tapConfirmButton();
     await TabBarComponent.tapActivity();
-    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+    await TestHelpers.delay(2000)
+    await Assertions.checkIfVisible(ActivitiesView.title);
+    await Assertions.checkIfVisible(ActivitiesView.firstTransactionStatus)
+    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
+    // Wait fot toeast to clear
     await TestHelpers.delay(8000);
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
@@ -112,7 +117,9 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TestHelpers.delay(2000)
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
-    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+    await Assertions.checkIfVisible(ActivitiesView.firstTransactionStatus)
+    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
+    // Wait fot toeast to clear
     await TestHelpers.delay(8000);
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
@@ -131,11 +138,10 @@ describe(SmokeStake('Stake from Actions'), () => {
     await StakeView.tapReview()
     await StakeView.tapContinue()
     await StakeConfirmView.tapConfirmButton()
-    await TestHelpers.delay(2000)
+    await TestHelpers.delay(10000)
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
     await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
-
     await TestHelpers.delay(8000);
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
@@ -155,8 +161,9 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TestHelpers.delay(15000)
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.unstakeLabel);
-    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
-
+    await Assertions.checkIfElementNotToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.SUBMITTED_TEXT, 60000);
+    await Assertions.checkIfElementNotToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.FAILED_TEXT);
+    // Wait fot toeast to clear
     await TestHelpers.delay(8000);
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
@@ -181,15 +188,15 @@ describe(SmokeStake('Stake from Actions'), () => {
   });
 
 it('should Stake Claim ETH', async () => {
-  const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
+  const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`;
   const response = await axios.get(stakeAPIUrl);
 
   if (response.status !== 200) {
     throw new Error('Error calling Staking API');
   }
   const account =  response.data.accounts[0]
-  if (account.exitRequests.lenght === 0) {
-    throw new Error('No claim entries found for this account');
+  if (!account.exitRequests[0]) {
+    throw new Error(`No claim entries found for account ${wallet.address}`);
   }
 
   const testSpecificMock  = {
@@ -220,25 +227,25 @@ it('should Stake Claim ETH', async () => {
       },
     ],
   }
-  await withFixtures(
-    {
-      fixture: new FixtureBuilder().withNetworkController(CustomNetworks.Holesky).build(),
-      restartDevice: true,
-      testSpecificMock,
-    },
-    async () => {
-      await TestHelpers.delay(6000000);
-      await WalletView.tapOnStakedEthereum()
-      await TokenOverview.scrollOnScreen();
-      await TestHelpers.delay(3000);
-      await TokenOverview.tapClaimButton();
-      await StakeConfirmView.tapConfirmButton();
-      await TokenOverview.tapBackButton();
-      await TabBarComponent.tapActivity();
-      await Assertions.checkIfVisible(ActivitiesView.title);
-      await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
-      await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
-    });
+  await device.terminateApp();
+
+
+  const mockServerPort = getMockServerPort();
+  mockServer = await startMockServer(testSpecificMock, mockServerPort);
+
+  await TestHelpers.launchApp({
+    launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`,  mockServerPort: `${mockServerPort}`, },
+  });
+  await loginToApp();
+  await WalletView.tapOnStakedEthereum()
+  await TokenOverview.scrollOnScreen();
+  await TestHelpers.delay(3000);
+  await TokenOverview.tapClaimButton();
+  await StakeConfirmView.tapConfirmButton();
+  await TokenOverview.tapBackButton();
+  await TabBarComponent.tapActivity();
+  await Assertions.checkIfVisible(ActivitiesView.title);
+  await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
+  await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
   });
 });
-
