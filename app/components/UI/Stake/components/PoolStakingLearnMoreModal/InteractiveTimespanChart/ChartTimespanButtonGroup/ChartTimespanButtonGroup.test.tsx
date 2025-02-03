@@ -4,7 +4,7 @@ import ChartTimespanButtonGroup, { ChartTimespanButtonGroupProps } from '.';
 import { CHART_BUTTONS } from '../InteractiveTimespanChart.constants';
 import { noop } from 'lodash';
 import { strings } from '../../../../../../../../locales/i18n';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 
 describe('ChartTimespanButtonGroup', () => {
   it('render matches snapshot', () => {
@@ -32,17 +32,20 @@ describe('ChartTimespanButtonGroup', () => {
 
     const oneMonthButton = getByText(
       strings('stake.interactive_chart.timespan_buttons.1M'),
-    ).parent;
+      // Component hierarchy: ChartTimespanButton < Text < Text < RCTText
+    )?.parent?.parent?.parent;
 
-    const ACTIVE_COLOR = '#ffffff';
-    const INACTIVE_COLOR = '#9fa6ae';
+    const INACTIVE_COLOR = '#ffffff';
+    const ACTIVE_COLOR = '#f2f4f6';
 
     // Inactive before press
-    expect(oneMonthButton.props.style.color).toBe(INACTIVE_COLOR);
+    expect(oneMonthButton.props.style.backgroundColor).toBe(INACTIVE_COLOR);
 
-    fireEvent.press(oneMonthButton);
+    await act(() => {
+      fireEvent.press(oneMonthButton);
+    });
 
     // Active after press
-    expect(oneMonthButton.props.style.color).toBe(ACTIVE_COLOR);
+    expect(oneMonthButton.props.style.backgroundColor).toBe(ACTIVE_COLOR);
   });
 });

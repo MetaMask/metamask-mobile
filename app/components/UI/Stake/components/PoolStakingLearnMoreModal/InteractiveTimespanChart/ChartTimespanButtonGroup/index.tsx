@@ -23,10 +23,7 @@ const ChartTimespanButton = ({
 
   return (
     <TouchableOpacity style={styles.chartTimespanButton} onPress={onPress}>
-      <Text
-        variant={TextVariant.BodyMDMedium}
-        color={isSelected ? TextColor.Inverse : TextColor.Muted}
-      >
+      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
         {label}
       </Text>
     </TouchableOpacity>

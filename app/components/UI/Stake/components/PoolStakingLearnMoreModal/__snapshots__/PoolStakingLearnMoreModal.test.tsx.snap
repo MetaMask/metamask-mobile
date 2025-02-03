@@ -209,7 +209,6 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   "justifyContent": "center",
                   "marginTop": 24,
                   "paddingBottom": 16,
-                  "paddingHorizontal": 16,
                 }
               }
             >
@@ -218,12 +217,10 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#0376c9",
-                    "borderRadius": 8,
-                    "color": "#ffffff",
-                    "flexDirection": "column",
+                    "backgroundColor": "#f2f4f6",
+                    "borderRadius": 32,
+                    "height": 36,
                     "justifyContent": "center",
-                    "minHeight": 36,
                     "paddingHorizontal": 16,
                     "paddingVertical": 7,
                   }
@@ -233,7 +230,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#ffffff",
+                      "color": "#6a737d",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -251,11 +248,9 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderRadius": 8,
-                    "color": "#9fa6ae",
-                    "flexDirection": "column",
+                    "borderRadius": 32,
+                    "height": 36,
                     "justifyContent": "center",
-                    "minHeight": 36,
                     "paddingHorizontal": 16,
                     "paddingVertical": 7,
                   }
@@ -265,7 +260,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#9fa6ae",
+                      "color": "#6a737d",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -283,11 +278,9 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderRadius": 8,
-                    "color": "#9fa6ae",
-                    "flexDirection": "column",
+                    "borderRadius": 32,
+                    "height": 36,
                     "justifyContent": "center",
-                    "minHeight": 36,
                     "paddingHorizontal": 16,
                     "paddingVertical": 7,
                   }
@@ -297,7 +290,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#9fa6ae",
+                      "color": "#6a737d",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -315,11 +308,9 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderRadius": 8,
-                    "color": "#9fa6ae",
-                    "flexDirection": "column",
+                    "borderRadius": 32,
+                    "height": 36,
                     "justifyContent": "center",
-                    "minHeight": 36,
                     "paddingHorizontal": 16,
                     "paddingVertical": 7,
                   }
@@ -329,7 +320,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#9fa6ae",
+                      "color": "#6a737d",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -603,7 +594,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   }
                 }
               >
-                Unstake anytime. Typically takes up to 11 days to process.
+                Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.
               </Text>
             </Text>
             <Text

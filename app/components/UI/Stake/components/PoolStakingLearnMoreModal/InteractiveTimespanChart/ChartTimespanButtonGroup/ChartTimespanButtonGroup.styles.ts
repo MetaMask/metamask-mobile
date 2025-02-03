@@ -11,18 +11,15 @@ const styleSheet = (params: {
 
   const baseStyles = StyleSheet.create({
     chartTimespanButton: {
-      flexDirection: 'column',
-      borderRadius: 8,
+      borderRadius: 32,
       paddingHorizontal: 16,
       paddingVertical: 7,
-      minHeight: 36,
-
+      height: 36,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: isSelected
-        ? colors.primary.default
+        ? colors.background.muted
         : colors.background.default,
-      color: isSelected ? colors.info.inverse : colors.text.muted,
     },
   });
 
@@ -30,17 +27,14 @@ const styleSheet = (params: {
     chartTimespanButtonGroup: {
       flexDirection: 'row',
       justifyContent: 'center',
-      gap: 12,
       marginTop: 24,
       paddingBottom: 16,
-      paddingHorizontal: 16,
       flexWrap: 'wrap',
+      gap: 12,
     },
     chartTimespanButtonGroupSkeleton: {
       flexDirection: 'row',
-      justifyContent: 'center',
       gap: 12,
-      flexWrap: 'wrap',
     },
     chartTimespanButton: baseStyles.chartTimespanButton,
     chartTimespanButtonSkeleton: {
