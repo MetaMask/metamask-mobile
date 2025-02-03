@@ -7,6 +7,7 @@ import {
   Dimensions,
   Linking,
   Image,
+  ImageSourcePropType,
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Text, {
@@ -22,6 +23,12 @@ import { dismissBanner } from '../../../actions/banners/index';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useGoToBridge from '../Bridge/utils/useGoToBridge';
+
+// Import banner images
+import BannerImageBridge from '../../../images/banners/banner_image_bridge.png';
+import BannerImageCard from '../../../images/banners/banner_image_card.png';
+import BannerImageFund from '../../../images/banners/banner_image_fund.png';
+import BannerImageCashout from '../../../images/banners/banner_image_cashout.png';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
@@ -72,11 +79,11 @@ const PREDEFINED_SLIDES: Slide[] = [
   },
 ];
 
-const BannerImages: Record<SlideId, any> = {
-  bridge: require('../../../images/banners/banner_image_bridge.png'),
-  card: require('../../../images/banners/banner_image_card.png'),
-  fund: require('../../../images/banners/banner_image_fund.png'),
-  cashout: require('../../../images/banners/banner_image_cashout.png'),
+const BannerImages: Record<SlideId, ImageSourcePropType> = {
+  bridge: BannerImageBridge,
+  card: BannerImageCard,
+  fund: BannerImageFund,
+  cashout: BannerImageCashout,
 };
 
 const createStyles = (colors: Theme['colors']) =>
@@ -243,8 +250,8 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
     }
 
     if (href) {
-      Linking.openURL(href).catch((error) => {
-        console.log('Error opening URL:', error);
+      Linking.openURL(href).catch(() => {
+        // Error is handled silently as it's not critical for the app
       });
     } else if (onClick) {
       onClick(slideId);
@@ -265,7 +272,7 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
             },
           }}
         >
-          {visibleSlides.map((slide, index) => (
+          {visibleSlides.map((slide, _index) => (
             <Pressable
               key={slide.id}
               style={[
