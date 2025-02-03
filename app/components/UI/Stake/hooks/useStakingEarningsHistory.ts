@@ -3,7 +3,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { useSelector } from 'react-redux';
 import { hexToNumber } from '@metamask/utils';
 import { ChainId } from '@metamask/controller-utils';
-import { StakingApiService } from '@metamask/stake-sdk';
+import { stakingApiService } from '../sdk/stakeSdkProvider';
 
 export interface EarningHistory {
   sumRewards: string;
@@ -13,8 +13,6 @@ export interface EarningHistory {
 export interface EarningHistoryResponse {
   userRewards: EarningHistory[];
 }
-
-const stakingApiService = new StakingApiService();
 
 const useStakingEarningsHistory = ({
   chainId,

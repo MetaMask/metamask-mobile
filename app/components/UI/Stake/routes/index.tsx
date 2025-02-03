@@ -1,7 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import StakeInputView from '../Views/StakeInputView/StakeInputView';
-import LearnMoreModal from '../components/LearnMoreModal';
 import Routes from '../../../../constants/navigation/Routes';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
 import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
@@ -10,6 +9,7 @@ import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
 import MaxInputModal from '../components/MaxInputModal';
 import GasImpactModal from '../components/GasImpactModal';
 import StakeEarningsHistoryView from '../Views/StakeEarningsHistoryView/StakeEarningsHistoryView';
+import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
@@ -55,7 +55,7 @@ const StakeModalStack = () => (
     >
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.LEARN_MORE}
-        component={LearnMoreModal}
+        component={PoolStakingLearnMoreModal}
         options={{ headerShown: false }}
       />
       <ModalStack.Screen
