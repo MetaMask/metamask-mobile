@@ -1,4 +1,8 @@
 import { sanitizeMessage } from '../../../../util/string';
+import {
+  MessageParamsPersonal,
+  SignatureRequest,
+} from '@metamask/signature-controller';
 
 const REGEX_MESSAGE_VALUE_LARGE =
   /"message"\s*:\s*\{[^}]*"value"\s*:\s*(\d{15,})/u;
@@ -47,3 +51,25 @@ export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
   const sanitizedMessage = sanitizeMessage(message, primaryType, types);
   return { sanitizedMessage, primaryType, domain };
 };
+
+type MessageParamsSIWE = MessageParamsPersonal & {
+  siwe: {
+    isSIWEMessage: boolean;
+    parsedMessage: {
+      address: string;
+      chainId: string;
+      domain: string;
+      issuedAt: string;
+      nonce: string;
+      statement: string;
+      uri: string;
+      version: string;
+    };
+  };
+};
+
+export const isSIWESignatureRequest = (signatureRequest?: SignatureRequest) =>
+  (signatureRequest?.messageParams as MessageParamsSIWE)?.siwe?.isSIWEMessage;
+
+export const getSIWEDetails = (signatureRequest?: SignatureRequest) =>
+  (signatureRequest?.messageParams as MessageParamsSIWE)?.siwe;

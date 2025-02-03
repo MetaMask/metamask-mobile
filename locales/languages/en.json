@@ -3621,12 +3621,15 @@
     "reject": "Reject",
     "confirm": "Confirm",
     "title": {
-      "signature": "Signature request"
+      "signature": "Signature request",
+      "signature_siwe": "Sign-in request"
     },
     "sub_title": {
-      "signature": "Review request details before you confirm."
+      "signature": "Review request details before you confirm.",
+      "signature_siwe": "A site wants you to sign in to prove you own this account."
     },
     "request_from": "Request from",
+    "signing_in_with": "Signing in with",
     "message": "Message",
     "primary_type": "Primary type",
     "personal_sign_tooltip": "This site is asking for your signature",
