@@ -7,7 +7,11 @@ import type {
   JsonRpcResponse,
   JsonRpcSuccess,
 } from '@metamask/utils';
-import { type JsonRpcError, providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import {
+  type JsonRpcError,
+  providerErrors,
+  rpcErrors,
+} from '@metamask/rpc-errors';
 import type { TransactionParams } from '@metamask/transaction-controller';
 import Engine from '../Engine';
 import { store } from '../../store';
@@ -22,7 +26,7 @@ import { backgroundState } from '../../util/test/initial-root-state';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
-import { ControllerMessenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/base-controller';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -364,7 +368,7 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('with permission middleware before', () => {
     const engine = new JsonRpcEngine();
-    const controllerMessenger = new ControllerMessenger();
+    const messenger = new Messenger();
     const baseEoaAccount = {
       type: EthAccountType.Eoa,
       options: {},
@@ -391,7 +395,7 @@ describe('getRpcMethodMiddleware', () => {
       },
     ]);
     const permissionController = new PermissionController({
-      messenger: controllerMessenger.getRestricted({
+      messenger: messenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [],
         allowedEvents: [],
