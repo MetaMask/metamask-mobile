@@ -162,8 +162,8 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
           ? MetaMetricsEvents.STAKE_TRANSACTION_INITIATED
           : MetaMetricsEvents.UNSTAKE_TRANSACTION_INITIATED,
         location: isStaking
-          ? 'StakeConfirmationView'
-          : 'UnstakeConfirmationView',
+          ? EVENT_LOCATIONS.STAKE_CONFIRMATION_VIEW
+          : EVENT_LOCATIONS.UNSTAKE_CONFIRMATION_VIEW,
       };
 
       trackEvent(
@@ -205,7 +205,9 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       name: isStaking
         ? MetaMetricsEvents.STAKE_CANCEL_CLICKED
         : MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
-      location: isStaking ? 'StakeConfirmationView' : 'UnstakeConfirmationView',
+      location: isStaking
+        ? EVENT_LOCATIONS.STAKE_CONFIRMATION_VIEW
+        : EVENT_LOCATIONS.UNSTAKE_CONFIRMATION_VIEW,
     };
 
     trackEvent(
