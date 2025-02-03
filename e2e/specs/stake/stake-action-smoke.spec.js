@@ -220,12 +220,12 @@ it('should Stake Claim ETH', async () => {
                 {
 
                   positionTicket: account.exitRequests[0].positionTicket,
-                  timestamp: "1737657204000",
+                  timestamp: '1737657204000',
                   totalShares: account.exitRequests[0].totalShares,
-                  withdrawalTimestamp: "0",
-                  exitQueueIndex: "157",
-                  claimedAssets: "36968822284547795",
-                  leftShares: "0"
+                  withdrawalTimestamp: '0',
+                  exitQueueIndex: '157',
+                  claimedAssets: '36968822284547795',
+                  leftShares: '0'
                 },
               ]
             }
