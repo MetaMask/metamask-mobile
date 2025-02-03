@@ -67,36 +67,6 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should select a different currency', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapBuyButton();
-    await BuildQuoteView.tapCurrencySelector();
-    await SelectCurrencyView.tapCurrencyOption('Euro');
-    await Assertions.checkIfTextIsDisplayed('€0');
-    await Assertions.checkIfTextIsNotDisplayed('$0');
-    await BuildQuoteView.tapCancelButton();
-  });
-
-  it('should select a different token', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapBuyButton();
-    await BuildQuoteView.tapTokenDropdown('Ethereum');
-    await TokenSelectBottomSheet.tapTokenByName('DAI');
-    await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
-    await Assertions.checkIfTextIsNotDisplayed('Ethereum');
-    await BuildQuoteView.tapCancelButton();
-  });
-
-  it('should select a different payment method', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapBuyButton();
-    await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');
-    await SelectPaymentMethodView.tapPaymentMethodOption('Apple Pay');
-    await Assertions.checkIfTextIsDisplayed('Apple Pay');
-    await Assertions.checkIfTextIsNotDisplayed('Debit or Credit');
-    await BuildQuoteView.tapCancelButton();
-  });
-
 
   it('should check order min and maxlimits', async () => {
     await TabBarComponent.tapActions();
@@ -108,19 +78,25 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should select a different region', async () => {
+  it('should change parameters and select a quote', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
+    await BuildQuoteView.tapCurrencySelector();
+    await SelectCurrencyView.tapCurrencyOption('Euro');
+    await BuildQuoteView.tapTokenDropdown('Ethereum');
+    await TokenSelectBottomSheet.tapTokenByName('DAI');
+    await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');
+    await SelectPaymentMethodView.tapPaymentMethodOption('Apple Pay');
     await BuildQuoteView.tapRegionSelector();
     await SelectRegionView.tapRegionOption('France');
+    await Assertions.checkIfTextIsDisplayed('€0');
+    await Assertions.checkIfTextIsNotDisplayed('$0');
+    await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
+    await Assertions.checkIfTextIsNotDisplayed('Ethereum');
+    await Assertions.checkIfTextIsDisplayed('Apple Pay');
+    await Assertions.checkIfTextIsNotDisplayed('Debit or Credit');
     await Assertions.checkIfTextIsNotDisplayed('🇺🇸');
     await Assertions.checkIfTextIsDisplayed('🇫🇷');
-    await BuildQuoteView.tapCancelButton();
-  });
-
-  it('should select a quote', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapBuyButton();
     await BuildQuoteView.enterFiatAmount('100');
     await BuildQuoteView.tapGetQuotesButton();
     await Assertions.checkIfVisible(QuotesView.quotes);
