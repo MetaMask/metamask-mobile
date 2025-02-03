@@ -40,11 +40,11 @@ class BuildQuoteView {
   }
 
   get minLimitErrorMessage() {
-    return Matchers.getElementByText(BuildQuoteSelectors.MIN_LIMIT_ERROR_EUR);
+    return Matchers.getElementByID(BuildQuoteSelectors.MIN_LIMIT_ERROR);
   }
 
   get maxLimitErrorMessage() {
-    return Matchers.getElementByText(BuildQuoteSelectors.MAX_LIMIT_ERROR_EUR);
+    return Matchers.getElementByID(BuildQuoteSelectors.MAX_LIMIT_ERROR);
   }
 
   async tapCancelButton() {

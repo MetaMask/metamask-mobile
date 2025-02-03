@@ -11,6 +11,6 @@ export const BuildQuoteSelectors = {
   SELECT_CURRENCY: 'select-currency',
   REGION_DROPDOWN: 'region-dropdown',
   DONE_BUTTON: enContent.fiat_on_ramp_aggregator.done,
-  MIN_LIMIT_ERROR_EUR: enContent.fiat_on_ramp_aggregator.minimum + ' €5',
-  MAX_LIMIT_ERROR_EUR: enContent.fiat_on_ramp_aggregator.maximum + ' €50,000',
+  MIN_LIMIT_ERROR: 'min-limit-error',
+  MAX_LIMIT_ERROR: 'max-limit-error',
 };
