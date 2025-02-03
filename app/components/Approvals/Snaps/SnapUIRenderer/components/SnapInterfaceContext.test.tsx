@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import React from 'react';
-import { SnapId, UserInputEventType } from '@metamask/snaps-sdk';
+import { UserInputEventType } from '@metamask/snaps-sdk';
 import Engine from '../../../../../core/Engine/Engine';
 import { handleSnapRequest } from '../../../../../core/Snaps/utils';
 import { mergeValue } from '../utils';

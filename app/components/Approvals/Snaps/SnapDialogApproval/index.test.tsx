@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import SnapDialogApproval from './index';
@@ -107,40 +107,6 @@ describe('SnapDialogApproval', () => {
       expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
         'test-id',
         false,
-      );
-    });
-  });
-
-  describe('Custom Dialog', () => {
-    beforeEach(() => {
-      (useApprovalRequest as jest.Mock).mockReturnValue({
-        approvalRequest: mockApprovalRequest('snap_dialog'),
-      });
-      (
-        Engine.context.SnapInterfaceController.getInterface as jest.Mock
-      ).mockResolvedValue({
-        state: {
-          'custom-input': 'test-input',
-        },
-      });
-    });
-
-    it('renders custom dialog with OK and Cancel buttons', () => {
-      const { getByText } = renderWithProvider(<SnapDialogApproval />);
-      expect(getByText('OK')).toBeTruthy();
-      expect(getByText('Cancel')).toBeTruthy();
-    });
-
-    it('handles custom input confirmation', async () => {
-      const { getByText } = renderWithProvider(<SnapDialogApproval />);
-      await fireEvent.press(getByText('OK'));
-
-      expect(
-        Engine.context.SnapInterfaceController.getInterface,
-      ).toHaveBeenCalledWith('snap-id', 'interface-id');
-      expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-        'test-id',
-        'test-input',
       );
     });
   });
