@@ -6,8 +6,10 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
 import AssetElement from '../../AssetElement';
 import { useSelector } from 'react-redux';
-import { selectNetworkName } from '../../../../selectors/networkInfos';
-import { selectChainId } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurationByChainId,
+} from '../../../../selectors/networkController';
 import {
   getTestNetImageByChainId,
   getDefaultNetworkByChainId,
@@ -35,6 +37,7 @@ import {
   UnpopularNetworkList,
   CustomNetworkImgMapping,
 } from '../../../../util/networks/customNetworks';
+import { RootState } from '../../../../reducers';
 
 interface BalanceProps {
   asset: TokenI;
@@ -91,7 +94,9 @@ export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
 const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const networkName = useSelector(selectNetworkName);
+  const networkConfigurationByChainId = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
+  );
   const chainId = useSelector(selectChainId);
 
   const tokenChainId = isPortfolioViewEnabled() ? asset.chainId : chainId;
@@ -156,7 +161,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
             <Badge
               variant={BadgeVariant.Network}
               imageSource={NetworkBadgeSource(tokenChainId as Hex, ticker)}
-              name={networkName || ''}
+              name={networkConfigurationByChainId?.name}
             />
           }
         >

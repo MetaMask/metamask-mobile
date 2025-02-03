@@ -39,7 +39,11 @@ const parseTypedDataMessage = (dataToParse: string) => {
 };
 
 export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
-  const { message, primaryType, types } = parseTypedDataMessage(dataToParse);
+  if (!dataToParse) {
+    return {};
+  }
+  const { message, primaryType, types, domain } =
+    parseTypedDataMessage(dataToParse);
   const sanitizedMessage = sanitizeMessage(message, primaryType, types);
-  return { sanitizedMessage, primaryType };
+  return { sanitizedMessage, primaryType, domain };
 };

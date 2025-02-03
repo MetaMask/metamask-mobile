@@ -16,7 +16,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         "paddingVertical": 10,
       }
     }
-    testID="asset-ETH"
+    testID="asset-Ethereum"
   >
     <View
       onLayout={[Function]}
@@ -49,8 +49,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
                   "width": 24,
                 },
                 undefined,
-                undefined,
-                undefined,
+                false,
+                false,
                 {
                   "borderRadius": 16,
                   "height": 32,
@@ -59,6 +59,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                 },
               ]
             }
+            testID="staking-balance-asset-logo"
           />
           <View
             collapsable={false}
@@ -480,7 +481,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         "paddingVertical": 10,
       }
     }
-    testID="asset-ETH"
+    testID="asset-Ethereum"
   >
     <View
       onLayout={[Function]}
@@ -513,8 +514,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
                   "width": 24,
                 },
                 undefined,
-                undefined,
-                undefined,
+                false,
+                false,
                 {
                   "borderRadius": 16,
                   "height": 32,
@@ -523,6 +524,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
                 },
               ]
             }
+            testID="staking-balance-asset-logo"
           />
           <View
             collapsable={false}
