@@ -1,0 +1,65 @@
+'use strict';
+import { loginToApp } from '../../viewHelper';
+
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { withFixtures } from '../../fixtures/fixture-helper';
+
+import TestHelpers from '../../helpers';
+import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
+import { SmokeRamps } from '../../tags';
+
+import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
+import Assertions from '../../utils/Assertions';
+import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
+import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import { PopularNetworksList } from '../../resources/networks.e2e';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
+import SelectRegionView from '../../pages/Ramps/SelectRegionView';
+import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
+
+describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
+  beforeAll(async () => {
+    await TestHelpers.reverseServerPort();
+  });
+
+  beforeEach(async () => {
+    jest.setTimeout(150000);
+  });
+
+  it('should check order min and maxlimits', async () => {
+    const franceRegion = {
+      currencies: ['/currencies/fiat/eur'],
+      emoji: '🇫🇷',
+      id: '/regions/fr',
+      name: 'France',
+      support: { buy: true, sell: true, recurringBuy: true },
+      unsupported: false,
+      recommended: false,
+      detected: false,
+    };
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withRampsSelectedRegion(franceRegion)
+          .withRampsSelectedPaymentMethod()
+          .build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapBuyButton();
+        await BuyGetStartedView.tapGetStartedButton();
+        await BuildQuoteView.enterFiatAmount('1');
+        await Assertions.checkIfVisible(BuildQuoteView.minLimitErrorMessage);
+        await BuildQuoteView.enterFiatAmount('55555');
+        await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
+        await BuildQuoteView.tapCancelButton();
+      },
+    );
+  });
+});

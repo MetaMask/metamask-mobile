@@ -67,17 +67,6 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-
-  it('should check order min and maxlimits', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapBuyButton();
-    await BuildQuoteView.enterFiatAmount('1');
-    await Assertions.checkIfVisible(BuildQuoteView.minLimitErrorMessage);
-    await BuildQuoteView.enterFiatAmount('55555');
-    await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
-    await BuildQuoteView.tapCancelButton();
-  });
-
   it('should change parameters and select a quote', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
