@@ -1,7 +1,6 @@
 import { updateTransactionToMaxValue } from './utils';
 import { BN } from 'ethereumjs-util';
 import { hexToBN } from '@metamask/controller-utils';
-import { toWei } from '../../../../../util/number';
 
 // Mock the Engine and its context
 jest.mock('../../../../../util/transaction-controller', () => ({
