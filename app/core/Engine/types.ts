@@ -174,6 +174,10 @@ import {
   TokenSearchDiscoveryController,
   TokenSearchDiscoveryControllerState,
 } from '@metamask/token-search-discovery-controller';
+import {
+  TokenSearchDiscoveryControllerActions,
+  TokenSearchDiscoveryControllerEvents,
+} from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -243,7 +247,8 @@ type GlobalActions =
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
-  | RemoteFeatureFlagControllerActions;
+  | RemoteFeatureFlagControllerActions
+  | TokenSearchDiscoveryControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -277,7 +282,8 @@ type GlobalEvents =
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
-  | RemoteFeatureFlagControllerEvents;
+  | RemoteFeatureFlagControllerEvents
+  | TokenSearchDiscoveryControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
