@@ -12,7 +12,7 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../../../selectors/networkController';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { doENSReverseLookup } from '../../../../../util/ENSUtils';
 import { renderFromWei, hexToBN } from '../../../../../util/number';
@@ -27,9 +27,10 @@ const SendFlowAddressFrom = ({
 }: SFAddressFromProps) => {
   const navigation = useNavigation();
 
-  const accounts = useSelector(selectAccounts);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const chainId = useSelector(selectChainId);
+  const accounts = accountsByChainId[chainId];
   const ticker = useSelector(selectTicker);
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
