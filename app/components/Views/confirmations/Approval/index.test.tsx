@@ -46,9 +46,10 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../selectors/confirmationController', () => ({
+jest.mock('../../../../selectors/confirmTransaction', () => ({
   selectCurrentTransactionSecurityAlertResponse: () => null,
   selectCurrentTransactionMetadata: () => null,
+  selectGasFeeEstimates: () => ({})
 }));
 
 jest.mock('../../../../selectors/tokenListController', () => ({
