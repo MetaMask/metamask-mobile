@@ -4,11 +4,8 @@ import {
 } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 class ActivitiesView {
-  static FIRST_ROW = 0;
-  static SECOND_ROW = 1;
 
   get title() {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
@@ -39,12 +36,8 @@ class ActivitiesView {
   }
 
 
-  get firstTransactionStatus() {
-    return Matchers.getElementByID(`transaction-status-${FIRST_ROW}`);
-  }
-
-  get secondTransactionStatus() {
-    return Matchers.getElementByID(`transaction-status-${SECOND_ROW}`);
+  transactionStatus(row) {
+    return Matchers.getElementByID(`transaction-status-${row}`);
   }
 
   generateSwapActivityLabel(sourceToken, destinationToken) {

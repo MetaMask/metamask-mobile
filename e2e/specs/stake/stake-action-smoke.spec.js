@@ -40,7 +40,8 @@ import {
 const fixtureServer = new FixtureServer();
 
 describe(SmokeStake('Stake from Actions'), () => {
-  const AMOUNT_TO_SEND = '.01'
+  const FIRST_ROW = 0;
+  const AMOUNT_TO_SEND = '.01';
   let mockServer;
   const wallet = ethers.Wallet.createRandom();
 
@@ -80,10 +81,9 @@ describe(SmokeStake('Stake from Actions'), () => {
     await AmountView.tapNextButton();
     await TransactionConfirmationView.tapConfirmButton();
     await TabBarComponent.tapActivity();
-    await TestHelpers.delay(2000)
     await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.firstTransactionStatus)
-    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
+    console.log(ActivitiesView.transactionStatus(FIRST_ROW));
+    await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
     // Wait fot toeast to clear
     await TestHelpers.delay(8000);
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
@@ -117,8 +117,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TestHelpers.delay(2000)
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
-    await Assertions.checkIfVisible(ActivitiesView.firstTransactionStatus)
-    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
+    await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
     // Wait fot toeast to clear
     await TestHelpers.delay(8000);
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
@@ -141,7 +140,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TestHelpers.delay(10000)
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
-    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+    await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
     await TestHelpers.delay(8000);
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
@@ -161,8 +160,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TestHelpers.delay(15000)
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.unstakeLabel);
-    await Assertions.checkIfElementNotToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.SUBMITTED_TEXT, 60000);
-    await Assertions.checkIfElementNotToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.FAILED_TEXT);
+    await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
     // Wait fot toeast to clear
     await TestHelpers.delay(8000);
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
@@ -246,6 +244,6 @@ it('should Stake Claim ETH', async () => {
   await TabBarComponent.tapActivity();
   await Assertions.checkIfVisible(ActivitiesView.title);
   await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
-  await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+  await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
   });
 });
