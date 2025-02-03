@@ -427,6 +427,7 @@ class Confirm extends PureComponent {
      * Ref.: https://github.com/MetaMask/metamask-mobile/pull/3989#issuecomment-1367558394
      */
     if (
+      selectedAsset.isETH ||
       selectedAsset.isNative ||
       selectedAsset.tokenId ||
       !selectedAsset.address
@@ -634,7 +635,7 @@ class Confirm extends PureComponent {
 
       if (
         maxValueMode &&
-        selectedAsset.isNative &&
+        (selectedAsset.isETH || selectedAsset.isNative) &&
         !isEmpty(gasFeeEstimates) &&
         haveGasFeeMaxNativeChanged
       ) {
@@ -746,7 +747,7 @@ class Confirm extends PureComponent {
     const symbol = ticker ?? selectedAsset?.symbol;
     const parsedTicker = getTicker(symbol);
 
-    if (selectedAsset.isNative) {
+    if (selectedAsset.isETH || selectedAsset.isNative) {
       transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
       transactionValueFiat = weiToFiat(
         valueBN,
@@ -892,7 +893,11 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (selectedAsset.isNative || selectedAsset.tokenId) {
+    if (
+      selectedAsset.isETH ||
+      selectedAsset.isNative ||
+      selectedAsset.tokenId
+    ) {
       return insufficientBalanceMessage;
     }
 
