@@ -46,6 +46,15 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../selectors/confirmationController', () => ({
+  selectCurrentTransactionSecurityAlertResponse: () => null,
+  selectCurrentTransactionMetadata: () => null,
+}));
+
+jest.mock('../../../../selectors/tokenListController', () => ({
+  selectTokenList: () => ({})
+}));
+
 const Stack = createStackNavigator();
 const mockStore = configureMockStore();
 const navigationPropMock = {
