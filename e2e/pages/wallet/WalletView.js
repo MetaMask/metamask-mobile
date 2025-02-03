@@ -127,9 +127,10 @@ class WalletView {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
 
-  async tapOnToken(token) {
+  async tapOnToken(token, index = 0) {
     const element = Matchers.getElementByText(
       token || WalletViewSelectorsText.DEFAULT_TOKEN,
+      index,
     );
     await Gestures.waitAndTap(element);
   }

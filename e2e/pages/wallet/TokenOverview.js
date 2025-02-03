@@ -29,6 +29,10 @@ class TokenOverview {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
 
+  get stakedBalance() {
+    return Matchers.getElementByID(TokenOverviewSelectorsText.STAKED_BALANCE);
+  }
+
   get actionSheetSendButton() {
     return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
   }

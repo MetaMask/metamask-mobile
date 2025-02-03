@@ -174,12 +174,23 @@ describe(SmokeStake('Stake from Actions'), () => {
   })
 
   it('should make sure staking actions are hidden for ETH assets that are not on main', async () => {
+    const THIRD_ONE = 2
     await TabBarComponent.tapWallet();
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo(PopularNetworksList.zkSync.providerConfig.nickname, false);
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(WalletView.earnButton)
     await Assertions.checkIfNotVisible(WalletView.stakedEthereumLabel)
+    await WalletView.tapTokenNetworkFilter();
+    await WalletView.tapTokenNetworkFilterAll();
+    // 3rd one is Linea Network
+    await WalletView.tapOnToken('Ethereum', THIRD_ONE)
+    await TokenOverview.scrollOnScreen();
+    await TestHelpers.delay(3000);
+    await Assertions.checkIfNotVisible(TokenOverview.stakedBalance);
+    await Assertions.checkIfNotVisible(TokenOverview.unstakingBanner);
+    await Assertions.checkIfNotVisible(TokenOverview.unstakeButton);
+    await TokenOverview.tapBackButton()
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo(CustomNetworks.Holesky.providerConfig.nickname);
     await NetworkEducationModal.tapGotItButton();
