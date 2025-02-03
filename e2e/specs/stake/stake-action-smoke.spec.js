@@ -82,7 +82,6 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TransactionConfirmationView.tapConfirmButton();
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
-    console.log(ActivitiesView.transactionStatus(FIRST_ROW));
     await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
     // Wait fot toeast to clear
     await TestHelpers.delay(8000);
