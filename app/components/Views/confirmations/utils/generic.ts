@@ -11,3 +11,5 @@ export const getHostFromUrl = (url: string) => {
   }
   return;
 };
+
+export const isNativeToken = (isETH: boolean, isNative: boolean) => isETH || isNative;
