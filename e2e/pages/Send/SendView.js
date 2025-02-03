@@ -2,9 +2,7 @@ import TestHelpers from '../../helpers';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
-import {AddAddressModalSelectorsIDs} from '../../selectors/SendFlow/AddAddressModal.selectors'
-import Assertions from '../../utils/Assertions';
-
+import { AddAddressModalSelectorsIDs } from '../../selectors/SendFlow/AddAddressModal.selectors';
 
 class SendView {
   get cancelButton() {
@@ -32,7 +30,9 @@ class SendView {
   }
 
   get sendAddressConfirmation() {
-    return Matchers.getElementByID(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON);
+    return Matchers.getElementByID(
+      AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON,
+    );
   }
 
   get removeAddressButton() {
@@ -88,8 +88,10 @@ class SendView {
     await TestHelpers.delay(1000);
   }
 
-  async splitAddressText(){
-    const attributes = await (await this.sendAddressConfirmation).getAttributes();
+  async splitAddressText() {
+    const attributes = await (
+      await this.sendAddressConfirmation
+    ).getAttributes();
     return await attributes.label.split(' ');
   }
 }
