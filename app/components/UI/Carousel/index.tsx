@@ -25,10 +25,14 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import useGoToBridge from '../Bridge/utils/useGoToBridge';
 
 // Import banner images
-import BannerImageBridge from '../../../images/banners/banner_image_bridge.png';
-import BannerImageCard from '../../../images/banners/banner_image_card.png';
-import BannerImageFund from '../../../images/banners/banner_image_fund.png';
-import BannerImageCashout from '../../../images/banners/banner_image_cashout.png';
+/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+const BannerImages: Record<SlideId, ImageSourcePropType> = {
+  bridge: require('../../../images/banners/banner_image_bridge.png'),
+  card: require('../../../images/banners/banner_image_card.png'),
+  fund: require('../../../images/banners/banner_image_fund.png'),
+  cashout: require('../../../images/banners/banner_image_cashout.png'),
+};
+/* eslint-enable @typescript-eslint/no-require-imports, import/no-commonjs */
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
@@ -78,13 +82,6 @@ const PREDEFINED_SLIDES: Slide[] = [
     href: 'https://portfolio.metamask.io/sell',
   },
 ];
-
-const BannerImages: Record<SlideId, ImageSourcePropType> = {
-  bridge: BannerImageBridge,
-  card: BannerImageCard,
-  fund: BannerImageFund,
-  cashout: BannerImageCashout,
-};
 
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
