@@ -189,6 +189,37 @@ describe('MultichainNonEvm Selectors', () => {
       expect(Array.isArray(networkProviders)).toBe(true);
       expect(networkProviders.length).toBe(5);
     });
+
+    it('returns correct decimal values for each network', () => {
+      const networkProviders = selectMultichainNetworkProviders();
+
+      // Bitcoin networks should have 8 decimals
+      const bitcoinMainnet = networkProviders.find(
+        (provider) => provider.id === 'btc-mainnet',
+      );
+      expect(bitcoinMainnet?.decimal).toBe(8);
+
+      const bitcoinTestnet = networkProviders.find(
+        (provider) => provider.id === 'btc-testnet',
+      );
+      expect(bitcoinTestnet?.decimal).toBe(8);
+
+      // Solana networks should have 9 decimals
+      const solanaMainnet = networkProviders.find(
+        (provider) => provider.id === 'solana-mainnet',
+      );
+      expect(solanaMainnet?.decimal).toBe(9);
+
+      const solanaDevnet = networkProviders.find(
+        (provider) => provider.id === 'solana-devnet',
+      );
+      expect(solanaDevnet?.decimal).toBe(9);
+
+      const solanaTestnet = networkProviders.find(
+        (provider) => provider.id === 'solana-testnet',
+      );
+      expect(solanaTestnet?.decimal).toBe(9);
+    });
   });
   describe('selectMultichainIsEvm', () => {
     it('returns true if selected account is EVM compatible', () => {

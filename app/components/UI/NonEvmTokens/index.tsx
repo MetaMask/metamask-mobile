@@ -14,8 +14,10 @@ import { selectCurrentCurrency } from '../../../selectors/currencyRateController
 import { Image } from 'react-native';
 import Engine from '../../../core/Engine/Engine';
 import Logger from '../../../util/Logger';
-import { MultichainNetworks } from '@metamask/assets-controllers';
-import { MULTICHAIN_TOKEN_IMAGES } from '../../../core/Multichain/constants';
+import {
+  MULTICHAIN_TOKEN_IMAGES,
+  MultichainProviderConfig,
+} from '../../../core/Multichain/constants';
 
 // We need this type to match ScrollableTabView's requirements
 interface NonEvmTokensProps {
@@ -34,7 +36,7 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const { symbol } = useSelector(selectMultichainDefaultToken);
   const conversionRate = useSelector(selectMultichainConversionRate);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
-  const network = useSelector(selectMultichainCurrentNetwork);
+  const networkConfig = useSelector(selectMultichainCurrentNetwork);
 
   function getMultiChainFiatBalance(): string {
     if (conversionRate) {
@@ -49,7 +51,7 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const getTokenImage = () => {
     const imageSource =
       MULTICHAIN_TOKEN_IMAGES[
-        network.chainId as keyof typeof MULTICHAIN_TOKEN_IMAGES
+        networkConfig.chainId as keyof typeof MULTICHAIN_TOKEN_IMAGES
       ];
     return imageSource ? Image.resolveAssetSource(imageSource).uri : '';
   };
@@ -59,9 +61,9 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
     {
       address: '', // Non-EVM chains don't use EVM-style addresses for native tokens
       aggregators: [],
-      decimals: network.chainId === MultichainNetworks.Solana ? 9 : 6, // SOL uses 9 decimals, BTC uses 6
+      decimals: (networkConfig.network as MultichainProviderConfig).decimal,
       image: getTokenImage(),
-      name: network.nickname,
+      name: networkConfig.nickname,
       symbol: defaultToken.symbol,
       balance: nativeTokenBalance || '0',
       balanceFiat: shouldShowFiat ? getMultiChainFiatBalance() : '',

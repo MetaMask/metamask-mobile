@@ -22,6 +22,7 @@ export interface ProviderConfigWithImageUrl {
   rpcUrl?: string;
   type: string;
   ticker: string;
+  decimal: number;
   nickname?: string;
   rpcPrefs?: { blockExplorerUrl?: string };
   id?: string;
@@ -62,6 +63,7 @@ export const MULTICHAIN_PROVIDER_CONFIGS: Record<
     nickname: 'Bitcoin',
     id: 'btc-mainnet',
     type: 'rpc',
+    decimal: 8,
     rpcPrefs: {
       blockExplorerUrl:
         MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[MultichainNetworks.Bitcoin],
@@ -75,6 +77,7 @@ export const MULTICHAIN_PROVIDER_CONFIGS: Record<
     nickname: 'Bitcoin (testnet)',
     id: 'btc-testnet',
     type: 'rpc',
+    decimal: 8,
     rpcPrefs: {
       blockExplorerUrl:
         MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[
@@ -93,6 +96,7 @@ export const MULTICHAIN_PROVIDER_CONFIGS: Record<
     nickname: 'Solana',
     id: 'solana-mainnet',
     type: 'rpc',
+    decimal: 9,
     rpcPrefs: {
       blockExplorerUrl:
         MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[MultichainNetworks.Solana],
@@ -106,6 +110,7 @@ export const MULTICHAIN_PROVIDER_CONFIGS: Record<
     nickname: 'Solana (devnet)',
     id: 'solana-devnet',
     type: 'rpc',
+    decimal: 9,
     rpcPrefs: {
       blockExplorerUrl:
         MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[
@@ -121,6 +126,7 @@ export const MULTICHAIN_PROVIDER_CONFIGS: Record<
     nickname: 'Solana (testnet)',
     id: 'solana-testnet',
     type: 'rpc',
+    decimal: 9,
     rpcPrefs: {
       blockExplorerUrl:
         MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[
