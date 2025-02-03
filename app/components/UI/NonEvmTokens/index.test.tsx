@@ -13,6 +13,7 @@ import {
   MOCK_MULTICHAIN_NON_EVM_ACCOUNTS,
 } from '../../../util/test/accountsControllerTestUtils';
 import { createStackNavigator } from '@react-navigation/stack';
+import { RootState } from '../../../reducers';
 
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
@@ -104,9 +105,7 @@ const initialState = {
 };
 
 const Stack = createStackNavigator();
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderComponent = (state: any = {}) =>
+const renderComponent = (state: Partial<RootState> = {}) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Amount" options={{}}>
