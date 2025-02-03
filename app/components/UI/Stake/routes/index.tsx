@@ -54,7 +54,7 @@ const StakeModalStack = () => (
       screenOptions={clearStackNavigatorOptions}
     >
       <ModalStack.Screen
-        name={Routes.STAKING.MODALS.POOL_STAKING_LEARN_MORE}
+        name={Routes.STAKING.MODALS.LEARN_MORE}
         component={PoolStakingLearnMoreModal}
         options={{ headerShown: false }}
       />
