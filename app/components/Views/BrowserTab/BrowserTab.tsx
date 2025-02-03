@@ -159,7 +159,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   //const [resolvedUrl, setResolvedUrl] = useState('');
   const resolvedUrlRef = useRef('');
   const submittedUrlRef = useRef('');
-  const
+  // Using a reference for the backgroundbridgeUrl so that we don't cause a rerender
   const titleRef = useRef<string>('');
   const iconRef = useRef<ImageSourcePropType | undefined>();
   const sessionENSNamesRef = useRef<SessionENSNames>({});
@@ -177,12 +177,21 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const permittedAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
     // TODO: this needs to be the same url as the background bridge
-    const hostname = new URLParse(resolvedUrlRef.current).hostname;
-    const permittedAcc = getPermittedAccountsByHostname(
-      permissionsControllerState,
-      hostname,
-    );
-    return permittedAcc;
+
+    // const hostname = new URLParse(resolvedUrlRef.current).hostname;
+
+    // Testing with background bridge url
+    if (!backgroundBridgeRef.current) {
+      return [];
+    }
+    else {
+      const hostname = new URLParse(backgroundBridgeRef.current.url).hostname;
+      const permittedAcc = getPermittedAccountsByHostname(
+        permissionsControllerState,
+        hostname,
+      );
+      return permittedAcc;
+    }
   }, isEqual);
 
   const favicon = useFavicon(resolvedUrlRef.current);
@@ -348,13 +357,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
+            }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
+            }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -538,8 +545,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       const disctinctId = await getMetaMetricsId();
       const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-                injectedBookmarks || bookmarks,
-              )};
+        injectedBookmarks || bookmarks,
+      )};
               window.__mmSearchEngine = "${searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
@@ -951,7 +958,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         injectHomePageScripts();
       }
 
-      // Q: do we really need to init backgroundbridge at onLoadStart ?
+      // TODO: see if theres a better place to initialize background bridge othen than onLoadStart webview event
       initializeBackgroundBridge(urlOrigin, true);
     },
     [
