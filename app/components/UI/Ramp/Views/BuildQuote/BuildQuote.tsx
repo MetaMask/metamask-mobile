@@ -837,7 +837,7 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error} testID={BuildQuoteSelectors.MIN_LIMIT_ERROR}>
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.minimum')}{' '}
@@ -852,7 +852,7 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && amountIsAboveMaximum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error} testID={BuildQuoteSelectors.MAX_LIMIT_ERROR}>
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.maximum')}{' '}

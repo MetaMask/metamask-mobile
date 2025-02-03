@@ -21,7 +21,7 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 
-describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
+describe(SmokeRamps('On-Ramp Limits'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
