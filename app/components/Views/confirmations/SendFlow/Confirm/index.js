@@ -892,7 +892,7 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (selectedAsset.isETH || selectedAsset.tokenId) {
+    if (selectedAsset.isNative || selectedAsset.tokenId) {
       return insufficientBalanceMessage;
     }
 

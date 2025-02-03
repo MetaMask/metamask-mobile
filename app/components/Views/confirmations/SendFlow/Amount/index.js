@@ -859,7 +859,7 @@ class Amount extends PureComponent {
       }
 
       if (!amountError) {
-        if (selectedAsset.isETH) {
+        if (selectedAsset.isNative) {
           weiBalance = hexToBN(accounts[selectedAddress].balance);
           weiInput = weiValue.add(estimatedTotalGas);
         } else {
