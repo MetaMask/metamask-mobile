@@ -1,41 +1,73 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
+import { fireEvent, render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
+import CollectibleView from '.';
+import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import CollectibleView from './';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const mockStore = configureMockStore();
 const initialState = {
+  collectibles: {
+    favorites: {},
+  },
   engine: {
     backgroundState,
   },
-  modals: {
-    collectibleContractModalVisible: false,
-  },
 };
+const mockStore = configureMockStore();
 const store = mockStore(initialState);
 
-describe('CollectibleView', () => {
-  const collectibleData = {
-    address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
-    description:
-      'Lil Pudgys are a collection of 22,222 randomly generated NFTs minted on Ethereum.',
-    error: 'Opensea import error',
-    favorite: false,
-    image: 'https://api.pudgypenguins.io/lil/image/11222',
-    isCurrentlyOwned: true,
-    name: 'Lil Pudgy #113',
-    standard: 'ERC721',
-    tokenId: '113',
-    tokenURI: 'https://api.pudgypenguins.io/lil/113',
-  };
-  it('should render correctly', () => {
-    const wrapper = shallow(
+describe('CollectibleView Snapshot', () => {
+  it('renders correctly', () => {
+    const props = {
+      navigation: {
+        navigate: jest.fn(),
+      },
+      route: {
+        params: {
+          contractName: 'Test Collectible',
+          address: '0xABCDEF',
+        },
+      },
+      newAssetTransaction: jest.fn(),
+    };
+
+    const { toJSON } = render(
       <Provider store={store}>
-        <CollectibleView route={{ params: collectibleData }} />
+        <ThemeContext.Provider value={mockTheme}>
+          <CollectibleView {...props} />
+        </ThemeContext.Provider>
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should navigate to SendFlowView when the send button is pressed', () => {
+    const props = {
+      navigation: {
+        navigate: jest.fn(),
+      },
+      route: {
+        params: {
+          contractName: 'Test Collectible',
+          address: '0xABCDEF',
+        },
+      },
+      newAssetTransaction: jest.fn(),
+    };
+
+    const wrapper = render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <CollectibleView {...props} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+
+    const sendButton = wrapper.getByTestId('send-button');
+    fireEvent.press(sendButton);
+
+    expect(props.navigation.navigate).toHaveBeenCalledWith('SendFlowView');
   });
 });
