@@ -14,8 +14,8 @@ export const WalletViewSelectorsIDs = {
   IMPORT_NFT_BUTTON: 'import-collectible-button',
   IMPORT_TOKEN_BUTTON: 'import-token-button',
   IMPORT_TOKEN_BUTTON_LINK: 'import-token-button-link',
-  NAVBAR_NETWORK_BUTTON: 'open-networks-button',
-  NAVBAR_NETWORK_TEXT: 'open-networks-text',
+  NAVBAR_NETWORK_BUTTON: 'navbar-network-button',
+  NAVBAR_NETWORK_TEXT: 'navbar-network-text',
   NFT_TAB_CONTAINER: 'collectible-contracts',
   ACCOUNT_ICON: 'account-picker',
   ACCOUNT_NAME_LABEL_INPUT: 'account-label-text-input',
@@ -33,10 +33,43 @@ export const WalletViewSelectorsIDs = {
   SORT_DECLINING_BALANCE: 'sort-declining-balance',
   SORT_ALPHABETICAL: 'sort-alphabetical',
   SORT_BY: 'sort-by',
-  NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
+  NAVBAR_NETWORK_PICKER: 'navbar-network-picker',
   TOKEN_NETWORK_FILTER: 'token-network-filter',
   TOKEN_NETWORK_FILTER_ALL: 'token-network-filter-all',
   TOKEN_NETWORK_FILTER_CURRENT: 'token-network-filter-current',
+  NAVBAR_TITLE_TEXT: 'navbar-title-text',
+  NETWORK_AVATAR_IMAGE: 'network-avatar-image',
+  NOTIFICATIONS_BUTTON: 'notifications-button',
+  NOTIFICATIONS_COUNT: 'notifications-count',
+  PROFILE_BUTTON: 'profile-button',
+  PROFILE_BUTTON_CONTAINER: 'profile-button-container',
+  PROFILE_BUTTON_AVATAR: 'profile-button-avatar',
+  PROFILE_BUTTON_AVATAR_CONTAINER: 'profile-button-avatar-container',
+  PROFILE_BUTTON_AVATAR_TITLE: 'profile-button-avatar-title',
+  PROFILE_BUTTON_AVATAR_SUBTITLE: 'profile-button-avatar-subtitle',
+  PROFILE_BUTTON_AVATAR_NETWORK: 'profile-button-avatar-network',
+  PROFILE_BUTTON_AVATAR_NETWORK_TEXT: 'profile-button-avatar-network-text',
+  PROFILE_BUTTON_AVATAR_NETWORK_IMAGE: 'profile-button-avatar-network-image',
+  PROFILE_BUTTON_AVATAR_NETWORK_CONTAINER:
+    'profile-button-avatar-network-container',
+  PROFILE_BUTTON_AVATAR_NETWORK_TITLE: 'profile-button-avatar-network-title',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE:
+    'profile-button-avatar-network-subtitle',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_TEXT:
+    'profile-button-avatar-network-subtitle-text',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_ICON:
+    'profile-button-avatar-network-subtitle-icon',
+  PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_CONTAINER:
+    'profile-button-avatar-network-subtitle-container',
+  // Carousel selectors
+  CAROUSEL_CONTAINER: 'carousel-container',
+  CAROUSEL_FIRST_SLIDE: 'carousel-first-slide',
+  CAROUSEL_FIRST_SLIDE_TITLE: 'carousel-first-slide-title',
+  CAROUSEL_SECOND_SLIDE: 'carousel-second-slide',
+  CAROUSEL_SECOND_SLIDE_TITLE: 'carousel-second-slide-title',
+  CAROUSEL_PROGRESS_DOTS: 'progress-dots',
+  CAROUSEL_CLOSE_BUTTON: 'close-button',
+  CAROUSEL_SLIDE: 'carousel-slide',
 };
 
 export const WalletViewSelectorsText = {
@@ -45,4 +78,5 @@ export const WalletViewSelectorsText = {
   TOKENS_TAB: enContent.wallet.tokens,
   HIDE_TOKENS: enContent.wallet.remove,
   DEFAULT_TOKEN: 'Ethereum',
+  NAVBAR_TITLE_TEXT: 'Wallet',
 };

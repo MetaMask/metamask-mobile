@@ -269,9 +269,12 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
             },
           }}
         >
-          {visibleSlides.map((slide, _index) => (
+          {visibleSlides.map((slide, index) => (
             <Pressable
               key={slide.id}
+              testID={
+                index === 0 ? 'carousel-first-slide' : 'carousel-second-slide'
+              }
               style={[
                 styles.slideContainer,
                 pressedSlideId === slide.id && styles.slideContainerPressed,
@@ -293,7 +296,15 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
                 </View>
                 <View style={styles.textContainer}>
                   <View style={styles.textWrapper}>
-                    <Text variant={TextVariant.BodyMD} style={styles.title}>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      style={styles.title}
+                      testID={
+                        index === 0
+                          ? 'carousel-first-slide-title'
+                          : 'carousel-second-slide-title'
+                      }
+                    >
                       {slide.title}
                     </Text>
                     <Text
