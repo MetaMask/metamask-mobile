@@ -14,6 +14,7 @@ import {
   selectProviderConfig,
   selectTicker,
   selectNetworkConfigurations,
+  selectNetworkConfigurationByChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectContractExchangeRates,
@@ -26,7 +27,6 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
-import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { RootState } from '../../../../../reducers';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import {
@@ -99,7 +99,9 @@ export const TokenListItem = React.memo(
       ticker,
       type,
     );
-    const networkName = useSelector(selectNetworkName);
+    const networkConfigurationByChainId = useSelector((state: RootState) =>
+      selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
+    );
     const primaryCurrency = useSelector(
       (state: RootState) => state.settings.primaryCurrency,
     );
@@ -327,7 +329,7 @@ export const TokenListItem = React.memo(
             <Badge
               variant={BadgeVariant.Network}
               imageSource={networkBadgeSource(chainId)}
-              name={networkName}
+              name={networkConfigurationByChainId?.name}
             />
           }
         >

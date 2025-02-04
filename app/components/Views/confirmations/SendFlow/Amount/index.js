@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import BigNumber from 'bignumber.js';
 import { fontStyles } from '../../../../../styles/common';
 import {
   StyleSheet,
@@ -98,7 +99,10 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
-import { selectNativeCurrencyByChainId, selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import {
+  selectNativeCurrencyByChainId,
+  selectProviderTypeByChainId,
+} from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
@@ -158,6 +162,13 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
       fontSize: 12,
       color: colors.primary.default,
+      alignSelf: 'flex-end',
+      textTransform: 'uppercase',
+    },
+    maxTextDisabled: {
+      ...fontStyles.normal,
+      fontSize: 12,
+      color: colors.text.alternative,
       alignSelf: 'flex-end',
       textTransform: 'uppercase',
     },
@@ -1037,14 +1048,14 @@ class Amount extends PureComponent {
   };
 
   handleSelectedAssetBalance = (
-    { address, decimals, symbol, isETH },
+    { address, decimals, symbol, isETH, isNative },
     renderableBalance,
   ) => {
     const { accounts, selectedAddress, contractBalances } = this.props;
     let currentBalance;
     if (renderableBalance) {
       currentBalance = `${renderableBalance} ${symbol}`;
-    } else if (isETH) {
+    } else if (isETH || isNative) {
       currentBalance = `${renderFromWei(
         accounts[selectedAddress].balance,
       )} ${symbol}`;
@@ -1454,6 +1465,10 @@ class Amount extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const isEstimateedTotalGasValid = estimatedTotalGas
+      ? BigNumber(estimatedTotalGas).gt(0)
+      : false;
+
     return (
       <SafeAreaView
         edges={['bottom']}
@@ -1513,10 +1528,16 @@ class Amount extends PureComponent {
                 {!selectedAsset.tokenId && (
                   <TouchableOpacity
                     style={styles.actionMaxTouchable}
-                    disabled={!estimatedTotalGas}
+                    disabled={!isEstimateedTotalGasValid}
                     onPress={this.useMax}
                   >
-                    <Text style={styles.maxText}>
+                    <Text
+                      style={
+                        isEstimateedTotalGasValid
+                          ? styles.maxText
+                          : styles.maxTextDisabled
+                      }
+                    >
                       {strings('transaction.use_max')}
                     </Text>
                   </TouchableOpacity>
@@ -1586,7 +1607,7 @@ const mapStateToProps = (state, ownProps) => {
     chainId,
     networkClientId,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>
