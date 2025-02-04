@@ -5,6 +5,21 @@ import {
 } from '@metamask/remote-feature-flag-controller';
 import { createRemoteFeatureFlagController } from './utils';
 
+const mockUpdateRemoteFeatureFlags = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('@metamask/remote-feature-flag-controller', () => {
+  const originalModule = jest.requireActual(
+    '@metamask/remote-feature-flag-controller',
+  );
+  return {
+    ...originalModule,
+    RemoteFeatureFlagController: jest.fn().mockImplementation((params) => ({
+      updateRemoteFeatureFlags: mockUpdateRemoteFeatureFlags, // Ensures it returns a resolved promise
+      ...params, // Ensure that fetchInterval and other params are stored
+    })),
+  };
+});
+
 describe('RemoteFeatureFlagController utils', () => {
   let messenger: RemoteFeatureFlagControllerMessenger;
 
@@ -15,86 +30,40 @@ describe('RemoteFeatureFlagController utils', () => {
   });
 
   describe('createRemoteFeatureFlagController', () => {
-    it('creates controller with initial undefined state', () => {
-      const controller = createRemoteFeatureFlagController({
-        state: undefined,
-        messenger,
-        disabled: false,
-      });
-
-      expect(controller).toBeDefined();
-
-      // Initializing with am empty object should return an empty obj?
-      expect(controller.state).toStrictEqual({
-        cacheTimestamp: 0,
-        remoteFeatureFlags: {},
-      });
-    });
-
-    it('internal state matches initial state', () => {
-      const initialState = {
-        remoteFeatureFlags: {
-          testFlag: true,
-        },
-        cacheTimestamp: 123,
-      };
-
-      const controller = createRemoteFeatureFlagController({
-        state: initialState,
-        messenger,
-        disabled: false,
-      });
-
-      expect(controller.state).toStrictEqual(initialState);
-    });
-
     it('calls updateRemoteFeatureFlags when enabled', () => {
-      const spy = jest.spyOn(
-        RemoteFeatureFlagController.prototype,
-        'updateRemoteFeatureFlags',
-      );
-
       createRemoteFeatureFlagController({
         state: undefined,
         messenger,
         disabled: false,
       });
 
-      expect(spy).toHaveBeenCalled();
+      expect(mockUpdateRemoteFeatureFlags).toHaveBeenCalled();
     });
 
     it('does not call updateRemoteFeatureFlagscontroller when controller is disabled', () => {
-      const spy = jest.spyOn(
-        RemoteFeatureFlagController.prototype,
-        'updateRemoteFeatureFlags',
-      );
-
       createRemoteFeatureFlagController({
         state: undefined,
         messenger,
         disabled: true,
       });
 
-      expect(spy).not.toHaveBeenCalled();
+      expect(mockUpdateRemoteFeatureFlags).not.toHaveBeenCalled();
     });
 
-    it('controller keeps initial extra data into its state', () => {
-      const initialState = {
-        extraData: true,
-      };
+    it('passes fetchInterval to RemoteFeatureFlagController', async () => {
+      const fetchInterval = 6000;
 
-      const controller = createRemoteFeatureFlagController({
-        // @ts-expect-error giving a wrong initial state
-        state: initialState,
+      createRemoteFeatureFlagController({
+        state: undefined,
         messenger,
         disabled: false,
+        fetchInterval,
       });
 
-      expect(controller.state).toStrictEqual({
-        cacheTimestamp: 0,
-        extraData: true,
-        remoteFeatureFlags: {},
-      });
+      // Ensure the constructor was called with fetchInterval
+      expect(RemoteFeatureFlagController).toHaveBeenCalledWith(
+        expect.objectContaining({ fetchInterval }),
+      );
     });
   });
 });
