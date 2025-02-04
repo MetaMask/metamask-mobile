@@ -163,6 +163,7 @@ stages:
       - run_tag_smoke_ramps_android: {}
       - run_tag_smoke_ramps_ios: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
+      - run_tag_smoke_ramps_android: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
