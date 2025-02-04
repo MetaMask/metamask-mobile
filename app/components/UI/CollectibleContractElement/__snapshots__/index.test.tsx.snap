@@ -217,6 +217,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
         <TouchableOpacity
           onLongPress={[Function]}
           onPress={[Function]}
+          testID="collectible-Collectible1-1"
         >
           <View
             style={{}}
@@ -374,6 +375,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
         <TouchableOpacity
           onLongPress={[Function]}
           onPress={[Function]}
+          testID="collectible-Collectible2-2"
         >
           <View
             style={
@@ -535,6 +537,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
         <TouchableOpacity
           onLongPress={[Function]}
           onPress={[Function]}
+          testID="collectible-Collectible3-3"
         >
           <View
             style={{}}
@@ -702,6 +705,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
         <TouchableOpacity
           onLongPress={[Function]}
           onPress={[Function]}
+          testID="collectible-Collectible4-4"
         >
           <View
             style={{}}
