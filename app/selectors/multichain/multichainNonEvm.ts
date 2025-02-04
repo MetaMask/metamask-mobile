@@ -229,7 +229,7 @@ const selectNonEvmCachedBalance = createDeepEqualSelector(
   (selectedInternalAccount, multichainBalances, multichainCurrentNetwork) => {
     if (!selectedInternalAccount) {
       console.warn('Could not find selected internal account');
-      return 0;
+      return undefined;
     }
     // We assume that there's at least one asset type in and that is the native
     // token for that network.
