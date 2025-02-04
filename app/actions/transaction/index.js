@@ -19,6 +19,7 @@ export function resetTransaction() {
  * @param {object} selectedAsset - Asset to start the transaction with
  */
 export function newAssetTransaction(selectedAsset) {
+  console.log('selectedAsset .....', selectedAsset);
   return {
     type: 'NEW_ASSET_TRANSACTION',
     selectedAsset,
