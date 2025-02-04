@@ -65,7 +65,9 @@ interface TypedSignatureRequest {
  *
  * @param signatureRequest - The signature request to check
  */
-export const isTypedSignV3V4Request = (signatureRequest: SignatureRequest) => {
+export const isTypedSignV3V4Request = (signatureRequest?: SignatureRequest) => {
+  if (!signatureRequest) { return false; }
+
   const {
     type,
     messageParams: { version },
@@ -81,13 +83,7 @@ const isRecognizedOfType = (
   request: SignatureRequest | undefined,
   types: PrimaryType[],
 ) => {
-  if (
-    !request ||
-    request.type !== SignatureRequestType.TypedSign ||
-    !isTypedSignV3V4Request(request)
-  ) {
-    return false;
-  }
+  if (!isTypedSignV3V4Request(request)) { return false; }
 
   const data = (request as SignatureRequest).messageParams?.data as string;
 
