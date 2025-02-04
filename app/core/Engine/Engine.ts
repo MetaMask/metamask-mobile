@@ -140,21 +140,6 @@ import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  AccountsControllerSetSelectedAccountAction,
-  AccountsControllerGetAccountByAddressAction,
-  AccountsControllerSetAccountNameAction,
-  ///: END:ONLY_INCLUDE_IF
-  AccountsControllerGetAccountAction,
-  AccountsControllerGetSelectedAccountAction,
-  AccountsControllerListAccountsAction,
-  AccountsControllerUpdateAccountMetadataAction,
-  AccountsControllerSelectedEvmAccountChangeEvent,
-  AccountsControllerSelectedAccountChangeEvent,
-  AccountsControllerAccountAddedEvent,
-  AccountsControllerAccountRenamedEvent,
-} from './controllers/accounts-controller/constants';
 import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
@@ -214,7 +199,7 @@ import {
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initControllers } from './utils';
-import { accountsControllerInit } from './controllers/accounts-controller/utils';
+import { accountsControllerInit } from './controllers/accounts-controller';
 import { Controller, ControllerInitFunction } from './modular-controller.types';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -375,8 +360,8 @@ export class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
-          AccountsControllerGetAccountAction,
-          AccountsControllerGetSelectedAccountAction,
+          'AccountsController:getAccount',
+          'AccountsController:getSelectedAccount',
           'AssetsContractController:getERC721AssetName',
           'AssetsContractController:getERC721AssetSymbol',
           'AssetsContractController:getERC721TokenURI',
@@ -387,7 +372,7 @@ export class Engine {
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
-          AccountsControllerSelectedEvmAccountChangeEvent,
+          'AccountsController:selectedEvmAccountChange',
         ],
       }),
       state: initialState.NftController,
@@ -415,15 +400,15 @@ export class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           'NetworkController:getNetworkClientById',
-          AccountsControllerGetAccountAction,
-          AccountsControllerGetSelectedAccountAction,
+          'AccountsController:getAccount',
+          'AccountsController:getSelectedAccount',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
           'NetworkController:stateChange',
           'TokenListController:stateChange',
-          AccountsControllerSelectedEvmAccountChangeEvent,
+          'AccountsController:selectedEvmAccountChange',
         ],
       }),
     });
@@ -556,9 +541,9 @@ export class Engine {
         'PhishingController:testOrigin',
         'PhishingController:maybeUpdateState',
         'KeyringController:getAccounts',
-        AccountsControllerSetSelectedAccountAction,
-        AccountsControllerGetAccountByAddressAction,
-        AccountsControllerSetAccountNameAction,
+        'AccountsController:setSelectedAccount',
+        'AccountsController:getAccountByAddress',
+        'AccountsController:setAccountName',
       ],
       allowedEvents: [],
     });
@@ -715,15 +700,15 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'AccountTrackerController',
         allowedActions: [
-          AccountsControllerGetSelectedAccountAction,
-          AccountsControllerListAccountsAction,
+          'AccountsController:getSelectedAccount',
+          'AccountsController:listAccounts',
           'PreferencesController:getState',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
         ],
         allowedEvents: [
-          AccountsControllerSelectedEvmAccountChangeEvent,
-          AccountsControllerSelectedAccountChangeEvent,
+          'AccountsController:selectedEvmAccountChange',
+          'AccountsController:selectedAccountChange',
         ],
       }),
       state: initialState.AccountTrackerController ?? { accounts: {} },
@@ -1033,8 +1018,8 @@ export class Engine {
           'AuthenticationController:performSignIn',
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
-          AccountsControllerListAccountsAction,
-          AccountsControllerUpdateAccountMetadataAction,
+          'AccountsController:listAccounts',
+          'AccountsController:updateAccountMetadata',
           'NetworkController:getState',
           'NetworkController:addNetwork',
           'NetworkController:removeNetwork',
@@ -1043,8 +1028,8 @@ export class Engine {
         allowedEvents: [
           'KeyringController:unlock',
           'KeyringController:lock',
-          AccountsControllerAccountAddedEvent,
-          AccountsControllerAccountRenamedEvent,
+          'AccountsController:accountAdded',
+          'AccountsController:accountRenamed',
           'NetworkController:networkRemoved',
         ],
       }),
@@ -1176,7 +1161,7 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
-          AccountsControllerGetSelectedAccountAction,
+          'AccountsController:getSelectedAccount',
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
           `${networkController.name}:findNetworkClientIdByChainId`,
@@ -1269,7 +1254,7 @@ export class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
-            AccountsControllerGetSelectedAccountAction,
+            'AccountsController:getSelectedAccount',
             'NetworkController:getNetworkClientById',
             'NetworkController:getNetworkConfigurationByNetworkClientId',
             'NetworkController:getState',
@@ -1278,7 +1263,7 @@ export class Engine {
             'TokenListController:getState',
             'TokensController:getState',
             'TokensController:addDetectedTokens',
-            AccountsControllerGetAccountAction,
+            'AccountsController:getAccount',
           ],
           allowedEvents: [
             'KeyringController:lock',
@@ -1287,7 +1272,7 @@ export class Engine {
             'NetworkController:networkDidChange',
             'TokenListController:stateChange',
             'TokensController:stateChange',
-            AccountsControllerSelectedEvmAccountChangeEvent,
+            'AccountsController:selectedEvmAccountChange',
           ],
         }),
         trackMetaMetricsEvent: () =>
@@ -1324,7 +1309,7 @@ export class Engine {
             'NetworkController:getState',
             'NetworkController:getNetworkClientById',
             'PreferencesController:getState',
-            AccountsControllerGetSelectedAccountAction,
+            'AccountsController:getSelectedAccount',
           ],
         }),
         disabled: false,
@@ -1362,13 +1347,13 @@ export class Engine {
             'TokensController:getState',
             'NetworkController:getNetworkClientById',
             'NetworkController:getState',
-            AccountsControllerGetAccountAction,
-            AccountsControllerGetSelectedAccountAction,
+            'AccountsController:getAccount',
+            'AccountsController:getSelectedAccount',
           ],
           allowedEvents: [
             'TokensController:stateChange',
             'NetworkController:stateChange',
-            AccountsControllerSelectedEvmAccountChangeEvent,
+            'AccountsController:selectedEvmAccountChange',
           ],
         }),
         tokenPricesService: codefiTokenApiV2,

@@ -1,2 +1,2 @@
-export { accountsControllerInit } from './utils';
+export { accountsControllerInit } from './init';
 export * from './constants';
