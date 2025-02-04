@@ -1,10 +1,7 @@
 import React, { FunctionComponent } from 'react';
 import { useSelector } from 'react-redux';
 import { IconSize } from '../../../../component-library/components/Icons/Icon';
-import {
-  AvatarFaviconProps,
-  AvatarFaviconSize,
-} from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.types';
+import { AvatarFaviconProps } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.types';
 import {
   BackgroundColor,
   getAvatarFallbackLetter,
@@ -45,7 +42,7 @@ export const SnapIcon: FunctionComponent<SnapIconProps> = ({
       }}
       imageSource={{ uri: iconUrl }}
       name={snapName}
-      size={avatarSize as unknown as AvatarFaviconSize}
+      size={avatarSize as unknown as AvatarSize}
     />
   ) : (
     <AvatarBase

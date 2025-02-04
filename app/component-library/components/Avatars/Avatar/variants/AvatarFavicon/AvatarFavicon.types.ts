@@ -1,26 +1,15 @@
 // Third party dependencies.
 import { ImageSourcePropType, StyleProp, ViewStyle } from 'react-native';
-
-export enum AvatarFaviconSize {
-  Xs = 'xs',
-  Sm = 'sm',
-  Md = 'md',
-  Lg = 'lg',
-  Xl = 'xl',
-}
+import { AvatarBaseProps } from '../../foundation/AvatarBase';
 
 /**
  * AvatarFavicon component props.
  */
-export type AvatarFaviconProps = {
+export interface AvatarFaviconProps extends AvatarBaseProps {
   /**
    * A favicon image from either a local or remote source.
    */
   imageSource?: ImageSourcePropType;
-  /**
-   * The size of the avatar.
-   */
-  size?: AvatarFaviconSize;
   /**
    * Optional boolean to includes border or not.
    * @default false
@@ -34,7 +23,7 @@ export type AvatarFaviconProps = {
    * The name of the avatar.
    */
   name?: string;
-};
+}
 
 /**
  * Style sheet input parameters.
