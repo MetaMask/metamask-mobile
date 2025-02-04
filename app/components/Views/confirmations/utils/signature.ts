@@ -110,16 +110,3 @@ export const isRecognizedPermit = (request?: SignatureRequest) =>
  */
 export const isRecognizedOrder = (request?: SignatureRequest) =>
   isRecognizedOfType(request, PRIMARY_TYPES_ORDER);
-
-/**
- * Returns primary type of typed signature request
- *
- * @param signatureRequest - The signature request get primary type from
- */
-export const getSignatureRequestPrimaryType = (
-  signatureRequest: SignatureRequest,
-) => {
-  const { primaryType } = parseTypedDataMessageFromSignatureRequest(signatureRequest) || {};
-  return primaryType;
-};
-

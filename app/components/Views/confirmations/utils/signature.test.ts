@@ -2,7 +2,7 @@ import {
   parseTypedDataMessage,
   isRecognizedPermit,
   isTypedSignV3V4Request,
-  getSignatureRequestPrimaryType,
+  parseTypedDataMessageFromSignatureRequest,
   isRecognizedOrder,
 } from './signature';
 import {
@@ -144,24 +144,24 @@ describe('Signature Utils', () => {
     });
   });
 
-  describe('getSignatureRequestPrimaryType', () => {
-    it('return correct primary type', () => {
-      expect(getSignatureRequestPrimaryType(typedSignV3SignatureRequest)).toBe(
-        'Mail',
-      );
-      expect(getSignatureRequestPrimaryType(typedSignV4SignatureRequest)).toBe(
-        'Permit',
-      );
+  describe('parseTypedDataMessageFromSignatureRequest', () => {
+    it('parses the correct primary type', () => {
+      expect(
+        parseTypedDataMessageFromSignatureRequest(typedSignV3SignatureRequest)?.primaryType,
+      ).toBe('Mail');
+      expect(
+        parseTypedDataMessageFromSignatureRequest(typedSignV4SignatureRequest)?.primaryType,
+      ).toBe('Permit');
     });
-    it('return undefined for for typed sign V1 message', () => {
-      expect(getSignatureRequestPrimaryType(typedSignV1SignatureRequest)).toBe(
-        undefined,
-      );
+    it('parses undefined for typed sign V1 message', () => {
+      expect(
+        parseTypedDataMessageFromSignatureRequest(typedSignV1SignatureRequest),
+      ).toBe(undefined);
     });
-    it('return undefined for personal sign message', () => {
-      expect(getSignatureRequestPrimaryType(personalSignSignatureRequest)).toBe(
-        undefined,
-      );
+    it('parses undefined for personal sign message', () => {
+      expect(
+        parseTypedDataMessageFromSignatureRequest(personalSignSignatureRequest),
+      ).toBe(undefined);
     });
   });
 });
