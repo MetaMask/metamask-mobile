@@ -6,7 +6,7 @@ import {
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import { getNotificationBadge } from '../../methods/common';
-import METAMASK_FOX from '../../../../images/fox.png';
+import METAMASK_FOX from '../../../../images/branding/fox.png';
 
 type FeatureAnnouncementNotification =
   ExtractedNotification<TRIGGER_TYPES.FEATURES_ANNOUNCEMENT>;

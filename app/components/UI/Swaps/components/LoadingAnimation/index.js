@@ -19,7 +19,7 @@ import Title from '../../../../Base/Title';
 // import Fox from '../../../Fox';
 // import backgroundShapes from './backgroundShapes';
 import { useTheme } from '../../../../../util/theme';
-import foxImage from '../../../../../images/fox.png';
+import foxImage from '../../../../../images/branding/fox.png';
 
 const ANIM_MULTIPLIER = 0.67;
 const INITIAL_DELAY = 1000 * ANIM_MULTIPLIER;

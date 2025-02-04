@@ -381,7 +381,7 @@ class Onboarding extends PureComponent {
         </View>
         <View style={styles.largeFoxWrapper}>
           <Image
-            source={require('../../../images/fox.png')}
+            source={require('../../../images/branding/fox.png')}
             style={styles.foxImage}
             resizeMethod={'auto'}
           />
@@ -455,7 +455,7 @@ class Onboarding extends PureComponent {
             {loading && (
               <View style={styles.foxWrapper}>
                 <Image
-                  source={require('../../../images/fox.png')}
+                  source={require('../../../images/branding/fox.png')}
                   style={styles.image}
                   resizeMethod={'auto'}
                 />

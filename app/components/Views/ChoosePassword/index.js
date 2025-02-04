@@ -573,7 +573,7 @@ class ChoosePassword extends PureComponent {
           <View style={styles.loadingWrapper}>
             <View style={styles.foxWrapper}>
               <Image
-                source={require('../../../images/fox.png')}
+                source={require('../../../images/branding/fox.png')}
                 style={styles.image}
                 resizeMethod={'auto'}
               />

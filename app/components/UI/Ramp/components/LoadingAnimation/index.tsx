@@ -12,7 +12,7 @@ import Device from '../../../../../util/device';
 import BaseTitle from '../../../../Base/Title';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
-import foxImage from '../../../../../images/fox.png';
+import foxImage from '../../../../../images/branding/fox.png';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type
