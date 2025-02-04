@@ -1,7 +1,10 @@
 import React from 'react';
 
 import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
-import { siweSignatureConfirmationState, typedSignV1ConfirmationState } from '../../../../../../../../util/test/confirm-data-helpers';
+import {
+  siweSignatureConfirmationState,
+  typedSignV1ConfirmationState,
+} from '../../../../../../../../util/test/confirm-data-helpers';
 import InfoRowOrigin from './InfoRowOrigin';
 
 describe('InfoRowOrigin', () => {

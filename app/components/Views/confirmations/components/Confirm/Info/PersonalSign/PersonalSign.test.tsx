@@ -1,7 +1,10 @@
 import React from 'react';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { personalSignatureConfirmationState, siweSignatureConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
+import {
+  personalSignatureConfirmationState,
+  siweSignatureConfirmationState,
+} from '../../../../../../../util/test/confirm-data-helpers';
 import PersonalSign from './PersonalSign';
 
 describe('PersonalSign', () => {
@@ -19,6 +22,10 @@ describe('PersonalSign', () => {
     const { getByText } = renderWithProvider(<PersonalSign />, {
       state: siweSignatureConfirmationState,
     });
-    expect(getByText('I accept the MetaMask Terms of Service: https://community.metamask.io/tos')).toBeDefined();
+    expect(
+      getByText(
+        'I accept the MetaMask Terms of Service: https://community.metamask.io/tos',
+      ),
+    ).toBeDefined();
   });
 });
