@@ -43,7 +43,7 @@ export const getIsStablecoinApproveOrLendTransaction = (
   );
 };
 
-const amount = '5000000';
+const amount = '4000000';
 
 export const attemptDepositTransaction = async () => {
   try {
@@ -87,7 +87,7 @@ export const attemptDepositTransaction = async () => {
     console.log('approvalTx', approvalTx);
 
     // add timeout to wait for approval tx to be confirmed
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 20000));
 
     // deposit amount to lend
     const transactionData = contract.interface.encodeFunctionData('deposit', [
