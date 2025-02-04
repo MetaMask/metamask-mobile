@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import {
@@ -19,13 +20,34 @@ describe('PersonalSign', () => {
   });
 
   it('should render tos statement for SIWE', async () => {
-    const { getByText } = renderWithProvider(<PersonalSign />, {
+    const { getByText, getAllByText } = renderWithProvider(<PersonalSign />, {
       state: siweSignatureConfirmationState,
     });
+    expect(getByText('Message')).toBeDefined();
     expect(
       getByText(
         'I accept the MetaMask Terms of Service: https://community.metamask.io/tos',
       ),
     ).toBeDefined();
+    fireEvent.press(getByText('Message'));
+    expect(getAllByText('Message')).toHaveLength(2);
+    expect(
+      getAllByText(
+        'I accept the MetaMask Terms of Service: https://community.metamask.io/tos',
+      ),
+    ).toHaveLength(2);
+    expect(getByText('URL')).toBeDefined();
+    expect(getAllByText('metamask.github.io')).toHaveLength(2);
+    expect(getByText('Network')).toBeDefined();
+    expect(getByText('Ethereum Mainnet')).toBeDefined();
+    expect(getByText('Account')).toBeDefined();
+    expect(getAllByText('0x8Eeee...73D12')).toHaveLength(2);
+    expect(getByText('Version')).toBeDefined();
+    expect(getAllByText('1')).toHaveLength(2);
+    expect(getByText('Chain ID')).toBeDefined();
+    expect(getByText('Nonce')).toBeDefined();
+    expect(getByText('32891757')).toBeDefined();
+    expect(getByText('Issued')).toBeDefined();
+    expect(getByText('30 September 2021, 16:25')).toBeDefined();
   });
 });

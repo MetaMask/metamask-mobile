@@ -3637,6 +3637,15 @@
     "account": "Account",
     "balance": "Balance",
     "network": "Network",
+    "siwe_message": {
+      "url": "URL",
+      "network" : "Network",
+      "account" : "Account",
+      "version" : "Version",
+      "chain_id" : "Chain ID",
+      "nonce" : "Nonce",
+      "issued" : "Issued"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft":  "Expect changes only if someone buys your NFTs.",

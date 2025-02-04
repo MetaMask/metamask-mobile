@@ -1,13 +1,20 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
 import { hexToText } from '@metamask/controller-utils';
+import { numberToHex } from '@metamask/utils';
 
+import { strings } from '../../../../../../../../locales/i18n';
 import { Theme } from '../../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../../styles/common';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { sanitizeString } from '../../../../../../../util/string';
-import { getSIWEDetails } from '../../../../utils/signatures';
+import { getSIWEDetails, SIWEMessage } from '../../../../utils/signatures';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
+import Address from '../../../UI/InfoRow/InfoValue/Address';
+import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
+import InfoDate from '../../../UI/InfoRow/InfoValue/InfoDate';
+import InfoRow from '../../../UI/InfoRow';
+import Network from '../../../UI/InfoRow/InfoValue/Network';
 import SignatureMessageSection from '../../SignatureMessageSection';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -20,46 +27,84 @@ const styleSheet = (params: { theme: Theme }) => {
       fontSize: 14,
       fontWeight: '400',
     },
+    siweTos: {
+      color: theme.colors.text.default,
+      ...fontStyles.normal,
+      fontSize: 14,
+      fontWeight: '400',
+      paddingHorizontal: 8,
+      marginBottom: 8,
+    },
   });
+};
+
+const DetailedSIWEMessage = ({
+  parsedMessage,
+  styles,
+}: {
+  parsedMessage: SIWEMessage;
+  styles: { siweTos: StyleProp<TextStyle> };
+}) => {
+  const { uri, chainId, address, version, nonce, issuedAt } = parsedMessage;
+  return (
+    <View>
+      <Text style={styles.siweTos}>{parsedMessage?.statement}</Text>
+      <InfoRow label={strings('confirm.siwe_message.url')}>
+        <DisplayURL url={uri} />
+      </InfoRow>
+      <InfoRow label={strings('confirm.siwe_message.network')}>
+        <Network chainId={numberToHex(parseInt(chainId))} />
+      </InfoRow>
+      <InfoRow label={strings('confirm.siwe_message.account')}>
+        <Address address={address} chainId={chainId} />
+      </InfoRow>
+      <InfoRow label={strings('confirm.siwe_message.version')}>
+        {version}
+      </InfoRow>
+      <InfoRow label={strings('confirm.siwe_message.chain_id')}>
+        {chainId.toString()}
+      </InfoRow>
+      <InfoRow label={strings('confirm.siwe_message.nonce')}>{nonce}</InfoRow>
+      <InfoRow label={strings('confirm.siwe_message.issued')}>
+        <InfoDate
+          unixTimestamp={Math.floor(new Date(issuedAt).getTime() / 1000)}
+        />
+      </InfoRow>
+    </View>
+  );
 };
 
 const Message = () => {
   const signatureRequest = useSignatureRequest();
   const { styles } = useStyles(styleSheet, {});
 
-  const messageCollapsed = useMemo(() => {
-    if (!signatureRequest?.messageParams?.data) {
-      return '';
-    }
-    const { isSIWEMessage, parsedMessage } = getSIWEDetails(signatureRequest);
-    if (isSIWEMessage) {
-      return parsedMessage?.statement ?? '';
-    }
-    return sanitizeString(
-      hexToText(signatureRequest?.messageParams?.data as string),
-    );
-  }, [signatureRequest]);
+  const { isSIWEMessage, parsedMessage } = useMemo(
+    () => getSIWEDetails(signatureRequest),
+    [signatureRequest],
+  );
 
-  const messageExpanded = useMemo(() => {
+  const completeMessage = useMemo(() => {
     if (!signatureRequest?.messageParams?.data) {
       return '';
     }
-    // const { isSIWEMessage, parsedMessage } = getSIWEDetails(signatureRequest);
-    // if (isSIWEMessage) {
-    //   return parsedMessage?.statement ?? '';
-    // }
     return sanitizeString(
       hexToText(signatureRequest?.messageParams?.data as string),
     );
-  }, [signatureRequest]);
+  }, [signatureRequest?.messageParams?.data]);
 
   return (
     <SignatureMessageSection
-      messageCollapsed={messageCollapsed}
-      messageExpanded={
-        <Text style={styles.messageExpanded}>{messageExpanded}</Text>
+      messageCollapsed={
+        isSIWEMessage ? parsedMessage?.statement : completeMessage
       }
-      copyMessageText={messageExpanded}
+      messageExpanded={
+        isSIWEMessage ? (
+          <DetailedSIWEMessage parsedMessage={parsedMessage} styles={styles} />
+        ) : (
+          <Text style={styles.messageExpanded}>{completeMessage}</Text>
+        )
+      }
+      copyMessageText={completeMessage}
       collapsedSectionAllowMultiline
     />
   );

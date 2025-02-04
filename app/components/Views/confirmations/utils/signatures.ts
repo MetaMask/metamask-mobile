@@ -52,19 +52,21 @@ export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
   return { sanitizedMessage, primaryType, domain };
 };
 
+export interface SIWEMessage {
+  address: string;
+  chainId: string;
+  domain: string;
+  issuedAt: string;
+  nonce: string;
+  statement: string;
+  uri: string;
+  version: string;
+}
+
 type MessageParamsSIWE = MessageParamsPersonal & {
   siwe: {
     isSIWEMessage: boolean;
-    parsedMessage: {
-      address: string;
-      chainId: string;
-      domain: string;
-      issuedAt: string;
-      nonce: string;
-      statement: string;
-      uri: string;
-      version: string;
-    };
+    parsedMessage: SIWEMessage;
   };
 };
 
