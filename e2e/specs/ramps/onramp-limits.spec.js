@@ -1,25 +1,14 @@
 'use strict';
 import { loginToApp } from '../../viewHelper';
-
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
-
 import TestHelpers from '../../helpers';
-import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import { SmokeRamps } from '../../tags';
-
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../utils/Assertions';
-import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
-import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import { PopularNetworksList } from '../../resources/networks.e2e';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import SelectRegionView from '../../pages/Ramps/SelectRegionView';
-import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 
 describe(SmokeRamps('On-Ramp Limits'), () => {
   beforeAll(async () => {
