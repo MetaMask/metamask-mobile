@@ -57,7 +57,6 @@ describe('RemoteFeatureFlagController utils', () => {
         state: undefined,
         messenger,
         disabled: false,
-        getMetaMetricsId: () => uuidv4(),
         fetchInterval,
       });
 
