@@ -106,6 +106,12 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
+import {
+  selectNativeCurrencyByChainId,
+  selectProviderTypeByChainId,
+} from '../../../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
+import { isNativeToken } from '../../utils/generic';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -615,7 +621,8 @@ class Amount extends PureComponent {
 
   hasExchangeRate = () => {
     const { selectedAsset, conversionRate, contractExchangeRates } = this.props;
-    if (selectedAsset.isETH) {
+
+    if (isNativeToken(selectedAsset)) {
       return !!conversionRate;
     }
     const exchangeRate =
@@ -778,7 +785,7 @@ class Amount extends PureComponent {
       transactionObject.data = collectibleTransferTransactionProperties.data;
       transactionObject.to = collectibleTransferTransactionProperties.to;
       transactionObject.value = collectibleTransferTransactionProperties.value;
-    } else if (!selectedAsset.isETH) {
+    } else if (!isNativeToken(selectedAsset)) {
       const tokenAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
       transactionObject.data = generateTransferData('transfer', {
         toAddress: transactionTo,
@@ -792,7 +799,7 @@ class Amount extends PureComponent {
       transactionObject.readableValue = value;
     }
 
-    if (selectedAsset.isETH) {
+    if (isNativeToken(selectedAsset)) {
       transactionObject.data = PREFIX_HEX_STRING;
       transactionObject.to = transactionTo;
     }
@@ -807,8 +814,8 @@ class Amount extends PureComponent {
       transactionState: { transaction, transactionTo },
     } = this.props;
 
-    if (selectedAsset.isETH) {
-      transaction.data = undefined;
+    if (isNativeToken(selectedAsset)) {
+      transaction.data = '0x';
       transaction.to = transactionTo;
       transaction.value = BNToHex(toWei(value));
     } else if (selectedAsset.tokenId) {
@@ -860,7 +867,7 @@ class Amount extends PureComponent {
       }
 
       if (!amountError) {
-        if (selectedAsset.isETH) {
+        if (isNativeToken(selectedAsset)) {
           weiBalance = hexToBN(accounts[selectedAddress].balance);
           weiInput = weiValue.add(estimatedTotalGas);
         } else {
@@ -915,7 +922,7 @@ class Amount extends PureComponent {
     const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
     const tokenBalance = contractBalances[selectedAsset.address] || '0x0';
     let input;
-    if (selectedAsset.isETH) {
+    if (isNativeToken(selectedAsset)) {
       const balanceBN = hexToBN(accounts[selectedAddress].balance);
       const realMaxValue = balanceBN.sub(estimatedTotalGas);
       const maxValue =
@@ -976,7 +983,7 @@ class Amount extends PureComponent {
       ? handleWeiNumber(inputValue)
       : '0';
     selectedAsset = selectedAsset || this.props.selectedAsset;
-    if (selectedAsset.isETH) {
+    if (isNativeToken(selectedAsset)) {
       // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
       let weiValue = 0;
 
@@ -1049,22 +1056,22 @@ class Amount extends PureComponent {
   };
 
   handleSelectedAssetBalance = (
-    { address, decimals, symbol, isETH, isNative },
+    selectedAsset,
     renderableBalance,
   ) => {
     const { accounts, selectedAddress, contractBalances } = this.props;
     let currentBalance;
     if (renderableBalance) {
-      currentBalance = `${renderableBalance} ${symbol}`;
-    } else if (isETH || isNative) {
+      currentBalance = `${renderableBalance} ${selectedAsset.symbol}`;
+    } else if (isNativeToken(selectedAsset)) {
       currentBalance = `${renderFromWei(
         accounts[selectedAddress].balance,
-      )} ${symbol}`;
+      )} ${selectedAsset.symbol}`;
     } else {
       currentBalance = `${renderFromTokenMinimalUnit(
-        contractBalances[address],
-        decimals,
-      )} ${symbol}`;
+        contractBalances[selectedAsset.address],
+        selectedAsset.decimals,
+      )} ${selectedAsset.symbol}`;
     }
     this.setState({ currentBalance });
   };
@@ -1107,7 +1114,7 @@ class Amount extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (token.isETH) {
+    if (isNativeToken(token)) {
       balance = renderFromWei(accounts[selectedAddress].balance);
       balanceFiat = weiToFiat(
         hexToBN(accounts[selectedAddress].balance),
@@ -1135,7 +1142,7 @@ class Amount extends PureComponent {
         onPress={() => this.pickSelectedAsset(token)}
       >
         <View style={styles.assetElement}>
-          {token.isETH ? (
+          {isNativeToken(token) ? (
             <NetworkMainAssetLogo big />
           ) : (
             <TokenImage
@@ -1297,7 +1304,7 @@ class Amount extends PureComponent {
     };
 
     const isSwappable =
-      !selectedAsset.isETH &&
+      !isNativeToken(selectedAsset) &&
       AppConstants.SWAPS.ACTIVE &&
       swapsIsLive &&
       isSwapsAllowed(chainId) &&
@@ -1315,7 +1322,10 @@ class Amount extends PureComponent {
             .build(),
         );
         navigateToSwap();
-      } else if (isNetworkBuyNativeTokenSupported && selectedAsset.isETH) {
+      } else if (
+        isNetworkBuyNativeTokenSupported &&
+        isNativeToken(selectedAsset)
+      ) {
         this.props.metrics.trackEvent(
           this.props.metrics
             .createEventBuilder(MetaMetricsEvents.LINK_CLICKED)
@@ -1394,7 +1404,8 @@ class Amount extends PureComponent {
               onPress={navigateToBuyOrSwaps}
               style={styles.errorBuyWrapper}
             >
-              {isNetworkBuyNativeTokenSupported && selectedAsset.isETH ? (
+              {isNetworkBuyNativeTokenSupported &&
+              isNativeToken(selectedAsset) ? (
                 <Text style={[styles.error]}>
                   {strings('transaction.more_to_continue', {
                     ticker: getTicker(ticker),
