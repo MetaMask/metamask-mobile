@@ -101,12 +101,7 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
 import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
-import {
-  isNonEvmAddress,
-  isNonEvmChainId,
-  lastSelectedAccountAddressByNonEvmNetworkChainId,
-} from '../../../core/Multichain/utils';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { SolScopes } from '@metamask/keyring-api';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
@@ -151,9 +146,7 @@ const NetworkSelector = () => {
     selectEvmNetworkConfigurationsByChainId,
   );
   const isNonEvmNetworkSelected = useSelector(selectNonEvmSelected);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+
   const route =
     useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
 
@@ -255,9 +248,9 @@ const NetworkSelector = () => {
       if (!isSolanaEnabled()) {
         await NetworkController.setActiveNetwork(clientId);
       } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork(
-          clientId,
-        );
+        await Engine.context.MultichainNetworkController.setActiveNetwork({
+          evmClientId: clientId,
+        });
       }
 
       // Redirect to wallet page
@@ -288,8 +281,7 @@ const NetworkSelector = () => {
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
-    const { NetworkController, SelectedNetworkController, AccountsController } =
-      Engine.context;
+    const { NetworkController, SelectedNetworkController } = Engine.context;
 
     if (networkConfiguration) {
       const {
@@ -318,22 +310,9 @@ const NetworkSelector = () => {
           if (!isSolanaEnabled()) {
             await NetworkController.setActiveNetwork(networkClientId);
           } else {
-            await Engine.context.MultichainNetworkController.setActiveNetwork(
-              networkClientId,
-            );
-
-            // Only trigger the change of selected address if is changing from a non evm network to an evm network
-            // This is temporary and should be revisited when multichain network controller listens accounts controller selected account
-            if (selectedAddress && isNonEvmAddress(selectedAddress)) {
-              const lastMultiChainAccount =
-                AccountsController.getSelectedMultichainAccount(
-                  `eip155:${getDecimalChainId(chainId)}`,
-                );
-              if (lastMultiChainAccount) {
-                //TODO: Verify if the last account Address still exist in the account list if not set the first account as selected
-                Engine.setSelectedAddress(lastMultiChainAccount.address);
-              }
-            }
+            await Engine.context.MultichainNetworkController.setActiveNetwork({
+              evmClientId: networkClientId,
+            });
           }
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
@@ -453,7 +432,6 @@ const NetworkSelector = () => {
       NetworkController,
       AccountTrackerController,
       SelectedNetworkController,
-      AccountsController,
     } = Engine.context;
 
     if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
@@ -471,24 +449,9 @@ const NetworkSelector = () => {
       if (!isSolanaEnabled()) {
         await NetworkController.setActiveNetwork(clientId);
       } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork(
-          clientId,
-        );
-        // Only trigger the change of selected address if is changing from a non evm network to an evm network
-        // This is temporary and should be revisited when multichain network controller listens accounts controller selected account
-        if (selectedAddress && isNonEvmAddress(selectedAddress)) {
-          const lastMultiChainAccount =
-            AccountsController.getSelectedMultichainAccount(
-              `eip155:${getDecimalChainId(BUILT_IN_NETWORKS[type].chainId)}`,
-            );
-
-          console.log('lastMultiChainAccount', lastMultiChainAccount);
-
-          if (lastMultiChainAccount) {
-            //TODO: Verify if the last account Address still exist in the account list if not set the first account as selected
-            Engine.setSelectedAddress(lastMultiChainAccount.address);
-          }
-        }
+        await Engine.context.MultichainNetworkController.setActiveNetwork({
+          evmClientId: clientId,
+        });
       }
       closeRpcModal();
       AccountTrackerController.refresh();
@@ -867,14 +830,9 @@ const NetworkSelector = () => {
   };
 
   const onNonEvmNetworkChange = async (chainId: CaipChainId) => {
-    const lastSelectedAccountAddress =
-      lastSelectedAccountAddressByNonEvmNetworkChainId(chainId);
-    // TODO: [SOLANA] - we can remove set selected address with the latest changes of multichain network controller
-    Engine.setSelectedAddress(lastSelectedAccountAddress);
-    await Engine.context.MultichainNetworkController.setActiveNetwork(
-      '',
-      chainId,
-    );
+    await Engine.context.MultichainNetworkController.setActiveNetwork({
+      nonEvmChainId: chainId,
+    });
     sheetRef.current?.dismissModal();
   };
 

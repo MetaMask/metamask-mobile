@@ -152,7 +152,9 @@ function NetworkSwitcher() {
         const { NetworkController } = Engine.context;
         await NetworkController.setActiveNetwork(type);
       } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork(type);
+        await Engine.context.MultichainNetworkController.setActiveNetwork({
+          evmClientId: type,
+        });
       }
 
       navigateToGetStarted();
@@ -175,9 +177,9 @@ function NetworkSwitcher() {
         if (!isSolanaEnabled()) {
           await NetworkController.setActiveNetwork(networkClientId);
         } else {
-          await Engine.context.MultichainNetworkController.setActiveNetwork(
-            networkClientId,
-          );
+          await Engine.context.MultichainNetworkController.setActiveNetwork({
+            evmClientId: networkClientId,
+          });
         }
         navigateToGetStarted();
       }

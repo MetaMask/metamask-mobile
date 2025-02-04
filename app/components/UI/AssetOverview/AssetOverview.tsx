@@ -198,9 +198,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         if (!isSolanaEnabled()) {
           await NetworkController.setActiveNetwork(networkClientId as string);
         } else {
-          await Engine.context.MultichainNetworkController.setActiveNetwork(
-            networkClientId as string,
-          );
+          await Engine.context.MultichainNetworkController.setActiveNetwork({
+            evmClientId: networkClientId,
+          });
         }
       }
     }
@@ -241,9 +241,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             },
           );
         } else {
-          Engine.context.MultichainNetworkController.setActiveNetwork(
-            networkClientId as string,
-          ).then(() => {
+          Engine.context.MultichainNetworkController.setActiveNetwork({
+            evmClientId: networkClientId,
+          }).then(() => {
             setTimeout(() => {
               handleSwapNavigation();
             }, 500);

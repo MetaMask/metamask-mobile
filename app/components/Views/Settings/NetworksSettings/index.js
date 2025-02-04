@@ -236,7 +236,9 @@ class NetworksSettings extends PureComponent {
       if (!isSolanaEnabled()) {
         NetworkController.setActiveNetwork('mainnet');
       } else {
-        Engine.context.MultichainNetworkController.setActiveNetwork('mainnet');
+        Engine.context.MultichainNetworkController.setActiveNetwork({
+          evmClientId: 'mainnet',
+        });
       }
     }
 

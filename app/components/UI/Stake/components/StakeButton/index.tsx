@@ -51,9 +51,9 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
         const { NetworkController } = Engine.context;
         await NetworkController.setActiveNetwork('mainnet');
       } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork(
-          'mainnet',
-        );
+        await Engine.context.MultichainNetworkController.setActiveNetwork({
+          evmClientId: 'mainnet',
+        });
       }
     }
     if (isEligible) {

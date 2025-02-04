@@ -86,28 +86,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       sheetRef.current?.onCloseBottomSheet();
       onSelectAccount?.(address);
 
-      if (isSolanaEnabled()) {
-        if (isNonEvmAddress(address) && !isNonEvmNetworkSelected) {
-          const nonEvmNetworkChainId =
-            nonEvmNetworkChainIdByAccountAddress(address);
-          // Switch between selected non evm network
-          // TODO: [SOLANA] Revisit this before shipping, maybe this if else is not needed and we can just call setActiveNetwork
-          if (nonEvmNetworkChainId !== selectedNonEvmNetworkChainId) {
-            await Engine.context.MultichainNetworkController.setActiveNetwork(
-              '',
-              nonEvmNetworkChainId,
-            );
-          } else {
-            // Switch to selected non evm network
-            Engine.context.MultichainNetworkController.setNonEvmSelected();
-          }
-        }
-        // TODO: [SOLANA] Revisit this before shipping, this should be handled by the controllers
-        if (isNonEvmNetworkSelected && !isNonEvmAddress(address)) {
-          Engine.context.MultichainNetworkController.setEvmSelected();
-        }
-      }
-
       // Track Event: "Switched Account"
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)

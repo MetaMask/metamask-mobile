@@ -365,8 +365,11 @@ export class Engine {
         name: 'AccountsController',
         allowedEvents: [
           'SnapController:stateChange',
-          'KeyringController:accountRemoved',
           'KeyringController:stateChange',
+          'MultichainNetworkController:setActiveNetwork',
+          'SnapKeyring:accountAssetListUpdated',
+          'SnapKeyring:accountBalancesUpdated',
+          'SnapKeyring:accountTransactionsUpdated',
         ],
         allowedActions: [
           'KeyringController:getAccounts',
@@ -839,8 +842,11 @@ export class Engine {
     const multichainNetworkController = new MultichainNetworkController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'MultichainNetworkController',
-        allowedActions: ['NetworkController:setActiveNetwork'],
-        allowedEvents: [],
+        allowedActions: [
+          'NetworkController:setActiveNetwork',
+          'NetworkController:getState',
+        ],
+        allowedEvents: ['AccountsController:selectedAccountChange'],
       }),
       state: initialState.MultichainNetworkController ?? {
         multichainNetworkConfigurationsByChainId: {
@@ -850,6 +856,8 @@ export class Engine {
             nativeCurrency:
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:skynetDj29GH6o6bAqoixCpDuYtWqi1rm8ZNx1hB3vq',
             blockExplorerUrls: ['https://explorer.solana.com/'],
+            defaultBlockExplorerUrlIndex: 0,
+            isEvm: false,
           },
         },
         multichainNetworksMetadata: {

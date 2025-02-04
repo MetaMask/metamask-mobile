@@ -17,6 +17,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import { selectNetworkName } from '../../../selectors/networkInfos';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -76,6 +77,10 @@ class NavbarTitle extends PureComponent {
      * Selected multichain chainId
      */
     chainId: PropTypes.string,
+    /**
+     * Selected network name
+     */
+    selectedNetworkName: PropTypes.string,
   };
 
   static defaultProps = {
@@ -116,14 +121,15 @@ class NavbarTitle extends PureComponent {
       showSelectedNetwork,
       children,
       networkName,
+      selectedNetworkName,
     } = this.props;
     let name = null;
 
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (networkName) {
-      name = networkName;
+    if (selectedNetworkName || networkName) {
+      name = selectedNetworkName || networkName;
       // TODO: [SOLANA] Revisit this before shipping, some screens do not pass a network name as a prop, consider using the selector instead
     } else if (providerConfig.nickname) {
       name = providerConfig.nickname;
@@ -171,6 +177,7 @@ NavbarTitle.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   chainId: selectChainId(state),
+  selectedNetworkName: selectNetworkName(state),
 });
 
 export default withNavigation(

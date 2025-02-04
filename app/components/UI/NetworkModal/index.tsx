@@ -277,9 +277,9 @@ const NetworkModals = (props: NetworkProps) => {
       if (!isSolanaEnabled()) {
         await NetworkController.setActiveNetwork(networkClientId);
       } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork(
-          networkClientId,
-        );
+        await Engine.context.MultichainNetworkController.setActiveNetwork({
+          evmClientId: networkClientId,
+        });
       }
     }
 
@@ -309,9 +309,9 @@ const NetworkModals = (props: NetworkProps) => {
     if (!isSolanaEnabled()) {
       await NetworkController.setActiveNetwork(networkClientId);
     } else {
-      await Engine.context.MultichainNetworkController.setActiveNetwork(
-        networkClientId,
-      );
+      await Engine.context.MultichainNetworkController.setActiveNetwork({
+        evmClientId: networkClientId,
+      });
     }
   };
 
@@ -384,21 +384,9 @@ const NetworkModals = (props: NetworkProps) => {
       if (!isSolanaEnabled()) {
         NetworkController.setActiveNetwork(networkClientId);
       } else {
-        Engine.context.MultichainNetworkController.setActiveNetwork(
-          networkClientId,
-        );
-        // Only trigger the change of selected address if is changing from a non evm network to an evm network
-        // This is temporary and should be revisited when multichain network controller listens accounts controller selected account
-        if (selectedAddress && isNonEvmAddress(selectedAddress)) {
-          const lastMultiChainAccount =
-            AccountsController.getSelectedMultichainAccount(
-              `eip155:${getDecimalChainId(chainId)}`,
-            );
-          if (lastMultiChainAccount) {
-            //TODO: Verify if the last account Address still exist in the account list if not set the first account as selected
-            Engine.setSelectedAddress(lastMultiChainAccount.address);
-          }
-        }
+        Engine.context.MultichainNetworkController.setActiveNetwork({
+          evmClientId: networkClientId,
+        });
       }
     }
     onClose();

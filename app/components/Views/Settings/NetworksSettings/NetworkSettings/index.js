@@ -1540,9 +1540,9 @@ export class NetworkSettings extends PureComponent {
     if (!isSolanaEnabled()) {
       NetworkController.setActiveNetwork(networkClientId);
     } else {
-      Engine.context.MultichainNetworkController.setActiveNetwork(
-        networkClientId,
-      );
+      Engine.context.MultichainNetworkController.setActiveNetwork({
+        evmClientId: networkClientId,
+      });
     }
 
     setTimeout(async () => {

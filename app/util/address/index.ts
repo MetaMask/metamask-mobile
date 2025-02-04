@@ -174,15 +174,6 @@ export async function importAccountFromPrivateKey(
     );
   const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
   Engine.setSelectedAddress(checksummedAddress);
-  // TODO: [SOLANA] Revisit this before shipping, maybe this if else is not needed and we can just call setActiveNetwork
-  if (
-    isSolanaEnabled() &&
-    !isNonEvmAddress(checksummedAddress) &&
-    isNonEvmSelected
-  ) {
-    Engine.context.MultichainNetworkController.setEvmSelected();
-  }
-  //TODO: Switch network to non evm if imported a non evm account
 }
 
 /**

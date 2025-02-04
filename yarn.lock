@@ -4442,16 +4442,14 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^21.0.0":
-  version "21.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-21.0.0.tgz#d4ef858cd9ec126423fe4a287edada1b9aa9d45a"
-  integrity sha512-Jt5knLn6n9DQ3IUsfjmtx6NjOTSZrUxHWdvU+SHtQxqkrtNlldqv1C+hQv4DxCTmk6MfSttuEdWObCaxpB2sMA==
+"@metamask/accounts-controller@file:../core/packages/accounts-controller":
+  version "21.0.2"
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@metamask/base-controller" "^7.1.1"
-    "@metamask/eth-snap-keyring" "^8.0.0"
-    "@metamask/keyring-api" "^13.0.0"
-    "@metamask/keyring-internal-api" "^2.0.0"
+    "@metamask/eth-snap-keyring" "^9.0.0"
+    "@metamask/keyring-api" "^15.0.0"
+    "@metamask/keyring-internal-api" "^3.0.0"
     "@metamask/snaps-sdk" "^6.7.0"
     "@metamask/snaps-utils" "^8.3.0"
     "@metamask/utils" "^11.0.1"
@@ -4748,25 +4746,22 @@
     uuid "^9.0.1"
     webextension-polyfill "^0.12.0"
 
-"@metamask/eth-snap-keyring@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-8.0.0.tgz#60f6bdf3ed80b096172ebd983773fdc095a94c28"
-  integrity sha512-NLJmEcJYA+EAnX40N18aVlUZkXARHLDsJT7YoAtVBppRXZRNl9o5FGMe7xh5NrMdcy/Yss1TbQOnqyD0Ox2boA==
+"@metamask/eth-snap-keyring@^9.0.0":
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-9.1.1.tgz#b7813e2a17f41cc2867e0b112f91efb1f5e50ed9"
+  integrity sha512-UXvQ6n+ushL6J3vxvt1ju/BaGUebHiB8c18VMZGyGPCYrUkCeqy5i51sJdUE5WgR6wX/0NcwYI8DBJbTJ1Hq1A==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
+    "@metamask/base-controller" "^7.1.1"
     "@metamask/eth-sig-util" "^8.1.2"
-    "@metamask/keyring-api" "^13.0.0"
-    "@metamask/keyring-internal-api" "^2.0.0"
-    "@metamask/keyring-internal-snap-client" "^2.0.0"
-    "@metamask/keyring-utils" "^1.0.0"
-    "@metamask/snaps-controllers" "^9.10.0"
-    "@metamask/snaps-sdk" "^6.7.0"
-    "@metamask/snaps-utils" "^8.3.0"
+    "@metamask/keyring-api" "^16.1.0"
+    "@metamask/keyring-internal-api" "^4.0.1"
+    "@metamask/keyring-internal-snap-client" "^3.0.3"
+    "@metamask/keyring-utils" "^2.0.0"
     "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.0.1"
+    "@metamask/utils" "^11.1.0"
     "@types/uuid" "^9.0.8"
     uuid "^9.0.1"
-    webextension-polyfill "^0.12.0"
 
 "@metamask/etherscan-link@^2.0.0":
   version "2.1.0"
@@ -4932,6 +4927,26 @@
     "@metamask/utils" "^11.0.1"
     bech32 "^2.0.0"
 
+"@metamask/keyring-api@^15.0.0":
+  version "15.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-15.0.0.tgz#eb017cd54cb9662a76289003463316aec77ac029"
+  integrity sha512-6VsGbaI3wwkG8Cxbj86RJ4sj0CXIFIGwa3ZrCyNo8BRuIcY0a8UgEXcsSnG8Y/wBOZpTIZz7eJZrUS19lkATYg==
+  dependencies:
+    "@metamask/keyring-utils" "^1.3.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.0.1"
+    bech32 "^2.0.0"
+
+"@metamask/keyring-api@^16.1.0":
+  version "16.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-16.1.0.tgz#e13958af5c1e408a374bc79e5d39f5ebf4ee7800"
+  integrity sha512-3xauYqerAP+LdAncijAO964xmU4Fw4QzknmNMu5ka99SLKZRGVA7cWA6OyR17Ek7264NvpggjzZ4XmqdFfSpRw==
+  dependencies:
+    "@metamask/keyring-utils" "^2.0.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+    bech32 "^2.0.0"
+
 "@metamask/keyring-controller@^19.0.1":
   version "19.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-19.0.1.tgz#6fee40a46a780a720f4c864ea779673569be06a7"
@@ -4971,6 +4986,26 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
+"@metamask/keyring-internal-api@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-3.0.0.tgz#011f6b4db959c97e273429d695628f250e421c85"
+  integrity sha512-g12DIz/DDQVqNPnX3FK2MqsEZlk1YLwqvvCQibuEfAR6rpyU0hGhw2JIGSDUYNqjp3xx0Cd4M0IrTovLCiTa4A==
+  dependencies:
+    "@metamask/keyring-api" "^15.0.0"
+    "@metamask/keyring-utils" "^1.3.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.0.1"
+
+"@metamask/keyring-internal-api@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-4.0.1.tgz#50fb3cd52abcc6539da886eb3a093b039cbda75b"
+  integrity sha512-wS3AJYsEvKl2iduVblviCnWnqOf3oFCgL0xdU8EtlWuX+qU60Hu9oO+VvLlKYtf3ukvMqI3YECs9HxARQBaVqA==
+  dependencies:
+    "@metamask/keyring-api" "^16.1.0"
+    "@metamask/keyring-utils" "^2.0.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+
 "@metamask/keyring-internal-snap-client@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-snap-client/-/keyring-internal-snap-client-1.1.0.tgz#8e6bf842502f314fecb777c31a389f779c22bb62"
@@ -4984,18 +5019,15 @@
     "@metamask/snaps-utils" "^8.3.0"
     webextension-polyfill "^0.12.0"
 
-"@metamask/keyring-internal-snap-client@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-snap-client/-/keyring-internal-snap-client-2.0.0.tgz#c44194af6d880c7b39fe583f4500e740a157fd8b"
-  integrity sha512-jfJkpsEgaUfbvT6gvqinZB72EnqZF1PkVByalAe2M9RGIvDkSkg6VNilgkEWXtzhz0xttaYD1wET6zJdmdaNFg==
+"@metamask/keyring-internal-snap-client@^3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-snap-client/-/keyring-internal-snap-client-3.0.3.tgz#b75bf4f3d56494550f87289916bee61fbcc3f622"
+  integrity sha512-5QRyhkImeS21zeDPn4MuJnDDKzkQgtBHsI5uPXws9A3f32fZH1dKzYLvzeTN7Gx8Byi7PQAmx+3C6544yfdJxQ==
   dependencies:
-    "@metamask/keyring-api" "^13.0.0"
-    "@metamask/keyring-snap-client" "^2.0.0"
-    "@metamask/keyring-utils" "^1.0.0"
-    "@metamask/snaps-controllers" "^9.10.0"
-    "@metamask/snaps-sdk" "^6.7.0"
-    "@metamask/snaps-utils" "^8.3.0"
-    webextension-polyfill "^0.12.0"
+    "@metamask/base-controller" "^7.1.1"
+    "@metamask/keyring-api" "^16.1.0"
+    "@metamask/keyring-snap-client" "^3.0.3"
+    "@metamask/keyring-utils" "^2.0.0"
 
 "@metamask/keyring-snap-client@^1.1.0":
   version "1.1.0"
@@ -5021,6 +5053,18 @@
     uuid "^9.0.1"
     webextension-polyfill "^0.12.0"
 
+"@metamask/keyring-snap-client@^3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-snap-client/-/keyring-snap-client-3.0.3.tgz#2b603d2dcefd44c0552e55c368ec0d8f4c81700a"
+  integrity sha512-VK68hLo8gYGKcb0lYQdTlyU52Ghudg8dTPdjY0sXS5MuTCfSk6szkhOuTwn0Z2UdfWmCYNP+v1ew0GV/muxV2w==
+  dependencies:
+    "@metamask/keyring-api" "^16.1.0"
+    "@metamask/keyring-utils" "^2.0.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@types/uuid" "^9.0.8"
+    uuid "^9.0.1"
+    webextension-polyfill "^0.12.0"
+
 "@metamask/keyring-utils@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-1.0.0.tgz#06a5df63c57304811ec56ac6e250c4628da435b8"
@@ -5028,6 +5072,24 @@
   dependencies:
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^9.3.0"
+
+"@metamask/keyring-utils@^1.3.0":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-1.3.1.tgz#49e09cbf006a2e5edc419b9ccb73f6f418ef1e95"
+  integrity sha512-dT1ObVphm+It9+yUhBuRG+RyJS0q3pyMIxgy7HkdROJdHGqmzabuL2ILfrbvhQ9HNmz6rmLDz25KeTaGFohyFg==
+  dependencies:
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+    bitcoin-address-validation "^2.2.3"
+
+"@metamask/keyring-utils@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-2.0.0.tgz#578265302666cdc80f74ddb199c0af2e520a5e58"
+  integrity sha512-fH2V/gRG1yVx9Ifg6L3WV8gxwV+BECdXzGH3XJg9mooOB5BeBn3NOGkUNRb4gSXjGNgyLtaWe7qm63lPL7CARg==
+  dependencies:
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+    bitcoin-address-validation "^2.2.3"
 
 "@metamask/logging-controller@^6.0.1":
   version "6.0.1"
@@ -5075,10 +5137,12 @@
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
 "@metamask/multichain-network-controller@file:../core/packages/multichain-network-controller":
-  version "0.0.1"
+  version "0.0.0"
   dependencies:
     "@metamask/base-controller" "^7.1.1"
+    "@metamask/keyring-api" "^15.0.0"
     "@metamask/utils" "^11.0.1"
+    "@solana/addresses" "^2.0.0"
 
 "@metamask/network-controller@^22.1.0":
   version "22.1.0"
@@ -5608,7 +5672,7 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/utils@^10.0.0", "@metamask/utils@^10.0.1", "@metamask/utils@^11.0.1", "@metamask/utils@^8.2.0", "@metamask/utils@^8.3.0", "@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1", "@metamask/utils@^9.3.0":
+"@metamask/utils@^10.0.0", "@metamask/utils@^10.0.1", "@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^8.2.0", "@metamask/utils@^8.3.0", "@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1", "@metamask/utils@^9.3.0":
   version "11.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.0.1.tgz#16c4135489204fefe128b5e6c2b92c014453e1d5"
   integrity sha512-tZlBvEJ6VhhfEiMV+Ad8rWRMjHKpbMogG01YU22JlsIeJptgIdZX1G8jJzhZH0Gxrixa2BeARh7m9lZWQo6rMg==
@@ -7265,7 +7329,7 @@
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.0.tgz#96116f2a912e0c02817345b3c10751069920d553"
   integrity sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==
 
-"@solana/addresses@2.0.0":
+"@solana/addresses@2.0.0", "@solana/addresses@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@solana/addresses/-/addresses-2.0.0.tgz#d1b01a38e0b48d7e4fea223821655a0c2b903c28"
   integrity sha512-8n3c/mUlH1/z+pM8e7OJ6uDSXw26Be0dgYiokiqblO66DGQ0d+7pqFUFZ5pEGjJ9PU2lDTSfY8rHf4cemOqwzQ==

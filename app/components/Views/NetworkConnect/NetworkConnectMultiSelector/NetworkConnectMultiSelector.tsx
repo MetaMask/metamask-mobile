@@ -127,9 +127,9 @@ const NetworkConnectMultiSelector = ({
               networkClientId,
             );
           } else {
-            await Engine.context.MultichainNetworkController.setActiveNetwork(
-              networkClientId,
-            );
+            await Engine.context.MultichainNetworkController.setActiveNetwork({
+              evmClientId: networkClientId,
+            });
           }
         }
       }
