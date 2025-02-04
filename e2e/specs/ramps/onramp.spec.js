@@ -68,6 +68,8 @@ describe(SmokeRamps('Buy Crypto'), () => {
   });
 
   it('should change parameters and select a quote', async () => {
+    const paymentMethod = device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
+
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
     await BuildQuoteView.tapCurrencySelector();
@@ -77,13 +79,13 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await BuildQuoteView.tapRegionSelector();
     await SelectRegionView.tapRegionOption('France');
     await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');
-    await SelectPaymentMethodView.tapPaymentMethodOption('Binance P2P');
+    await SelectPaymentMethodView.tapPaymentMethodOption(paymentMethod);
     await Assertions.checkIfTextIsDisplayed('€0');
     await Assertions.checkIfTextIsNotDisplayed('$0');
     await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
     await Assertions.checkIfTextIsNotDisplayed('Ethereum');
-    await Assertions.checkIfTextIsDisplayed('Binance P2P');
     await Assertions.checkIfTextIsNotDisplayed('Debit or Credit');
+    await Assertions.checkIfTextIsDisplayed(paymentMethod);
     await Assertions.checkIfTextIsNotDisplayed('🇺🇸');
     await Assertions.checkIfTextIsDisplayed('🇫🇷');
     await BuildQuoteView.enterFiatAmount('100');
