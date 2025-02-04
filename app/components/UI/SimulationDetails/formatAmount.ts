@@ -29,7 +29,6 @@ export function formatAmountMaxPrecision(
     : formattedIntegerPart;
 }
 
-
 /**
  * Formats the a token amount with variable precision and significant
  * digits.

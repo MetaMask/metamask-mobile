@@ -189,7 +189,10 @@ class Send extends PureComponent {
    */
   async reset() {
     const { globalNetworkClientId, transaction } = this.props;
-    const { gas, gasPrice } = await estimateGas(transaction, globalNetworkClientId);
+    const { gas, gasPrice } = await estimateGas(
+      transaction,
+      globalNetworkClientId,
+    );
     this.props.setTransactionObject({
       gas: hexToBN(gas),
       gasPrice: hexToBN(gasPrice),
@@ -320,11 +323,7 @@ class Send extends PureComponent {
   /**
    * Handle txMeta object, setting neccesary state to make a transaction
    */
-  handleNewTxMeta = async ({
-    target_address,
-    action,
-    parameters = null,
-  }) => {
+  handleNewTxMeta = async ({ target_address, action, parameters = null }) => {
     const { addressBook, globalChainId, internalAccounts, selectedAddress } =
       this.props;
 
@@ -612,7 +611,8 @@ class Send extends PureComponent {
         }
       }
       const existingContact =
-        addressBook[globalChainId] && addressBook[globalChainId][checksummedAddress];
+        addressBook[globalChainId] &&
+        addressBook[globalChainId][checksummedAddress];
       if (!existingContact) {
         AddressBookController.set(checksummedAddress, '', globalChainId);
       }
@@ -822,7 +822,7 @@ const mapStateToProps = (state) => {
     tokenList: selectTokenList(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),

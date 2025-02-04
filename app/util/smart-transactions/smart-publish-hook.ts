@@ -188,9 +188,12 @@ class SmartTransactionHook {
         return useRegularTransactionSubmit;
       }
 
-      const batchStatusPollingInterval = this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+      const batchStatusPollingInterval =
+        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
       if (batchStatusPollingInterval) {
-        this.#smartTransactionsController.setStatusRefreshInterval(batchStatusPollingInterval);
+        this.#smartTransactionsController.setStatusRefreshInterval(
+          batchStatusPollingInterval,
+        );
       }
 
       const submitTransactionResponse = await this.#signAndSubmitTransactions({

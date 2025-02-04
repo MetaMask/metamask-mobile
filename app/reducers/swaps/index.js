@@ -261,7 +261,7 @@ export const swapsTokensObjectSelector = createSelector(
       result[token.address] = undefined;
     }
     return result;
-  }
+  },
 );
 
 /**

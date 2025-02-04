@@ -65,7 +65,7 @@ import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useProfileSyncing } from '../../../util/identity/hooks/useProfileSyncing';
-import {MetricsEventBuilder} from '../../../core/Analytics/MetricsEventBuilder';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 

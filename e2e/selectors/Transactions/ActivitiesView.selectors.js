@@ -19,9 +19,8 @@ export const ActivitiesViewSelectorsText = {
   SWAP: enContent.swaps.transaction_label.swap,
   APPROVE: enContent.swaps.transaction_label.approve,
   TITLE: enContent.transactions_view.title,
-
 };
 
 export const sentMessageTokenIDs = {
-  eth: ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(enContent.unit.eth)
+  eth: ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(enContent.unit.eth),
 };

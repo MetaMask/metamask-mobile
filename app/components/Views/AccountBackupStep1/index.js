@@ -130,9 +130,9 @@ const AccountBackupStep1 = (props) => {
   const styles = createStyles(colors);
 
   const track = (event, properties) => {
-      const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
-      eventBuilder.addProperties(properties);
-      trackOnboarding(eventBuilder.build());
+    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    eventBuilder.addProperties(properties);
+    trackOnboarding(eventBuilder.build());
   };
 
   useEffect(() => {

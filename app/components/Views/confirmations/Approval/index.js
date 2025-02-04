@@ -379,8 +379,8 @@ class Approval extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     };
 
     try {
@@ -767,7 +767,7 @@ const mapStateToProps = (state) => {
     transactionMetricsById: selectTransactionMetrics(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),

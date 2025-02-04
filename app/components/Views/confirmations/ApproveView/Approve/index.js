@@ -47,7 +47,7 @@ import {
   selectNativeCurrencyByChainId,
   selectNetworkConfigurations,
   selectProviderTypeByChainId,
-  selectRpcUrlByChainId
+  selectRpcUrlByChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectConversionRateByChainId,
@@ -979,7 +979,7 @@ const mapStateToProps = (state) => {
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

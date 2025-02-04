@@ -2,10 +2,9 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import {
   AmountViewSelectorsIDs,
-  AmountViewSelectorsText
+  AmountViewSelectorsText,
 } from '../../selectors/SendFlow/AmountView.selectors';
 import TestHelpers from '../../helpers';
-
 
 class AmountView {
   get currencySwitch() {
@@ -45,7 +44,6 @@ class AmountView {
       ? await Gestures.typeTextAndHideKeyboard(this.amountInputField, amount)
       : await Gestures.replaceTextInField(this.amountInputField, amount);
     await TestHelpers.delay(1000);
-
   }
 
   async tapCurrencySwitch() {

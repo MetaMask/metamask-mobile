@@ -26,7 +26,7 @@ const styleSheet = (params: {
 }) => {
   const {
     theme: { colors },
-    vars: { isDisabled, isPressed }
+    vars: { isDisabled, isPressed },
   } = params;
 
   return StyleSheet.create({

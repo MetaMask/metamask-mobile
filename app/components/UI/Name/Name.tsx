@@ -34,7 +34,10 @@ const NameLabel: React.FC<{
   );
 };
 
-const UnknownEthereumAddress: React.FC<{ address: string, style?: ViewStyle }> = ({ address, style }) => {
+const UnknownEthereumAddress: React.FC<{
+  address: string;
+  style?: ViewStyle;
+}> = ({ address, style }) => {
   const displayNameVariant = DisplayNameVariant.Unknown;
   const { styles } = useStyles(styleSheet, { displayNameVariant });
 

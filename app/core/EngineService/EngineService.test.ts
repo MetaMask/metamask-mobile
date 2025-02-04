@@ -137,7 +137,6 @@ describe('EngineService', () => {
         },
       );
     });
-
   });
 
   it('should log Engine initialization with empty state', async () => {

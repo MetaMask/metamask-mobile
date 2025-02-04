@@ -83,7 +83,11 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders loading state when fetching token details', async () => {
-    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
+    (
+      useGetTokenStandardAndDetails as jest.MockedFn<
+        typeof useGetTokenStandardAndDetails
+      >
+    ).mockReturnValue({
       details: { decimalsNumber: undefined },
       isPending: true,
     });
@@ -102,7 +106,11 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders "Unlimited" for large values when canDisplayValueAsUnlimited is true', async () => {
-    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
+    (
+      useGetTokenStandardAndDetails as jest.MockedFn<
+        typeof useGetTokenStandardAndDetails
+      >
+    ).mockReturnValue({
       details: {
         symbol: 'TST',
         decimals: '4',

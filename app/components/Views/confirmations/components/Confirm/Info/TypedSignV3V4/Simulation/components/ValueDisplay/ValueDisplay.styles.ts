@@ -1,6 +1,9 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
-import { fontStyles, colors as importedColors } from '../../../../../../../../../../styles/common';
+import {
+  fontStyles,
+  colors as importedColors,
+} from '../../../../../../../../../../styles/common';
 
 const styleSheet = (colors: Theme['colors']) =>
   StyleSheet.create({

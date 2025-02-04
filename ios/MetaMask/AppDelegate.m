@@ -6,15 +6,15 @@
 #import <React/RCTPushNotificationManager.h>
 #import <RNBranch/RNBranch.h>
 #if DEBUG
-#ifdef FB_SONARKIT_ENABLED
-#import <FlipperKit/FlipperClient.h>
-#import <FlipperKitLayoutPlugin/FlipperKitLayoutPlugin.h>
-#import <FlipperKitLayoutPlugin/SKDescriptorMapper.h>
-#import <FlipperKitNetworkPlugin/FlipperKitNetworkPlugin.h>
-#import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
-#import <FlipperKitUserDefaultsPlugin/FKUserDefaultsPlugin.h>
-#import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
-#endif
+// #ifdef FB_SONARKIT_ENABLED
+// #import <FlipperKit/FlipperClient.h>
+// #import <FlipperKitLayoutPlugin/FlipperKitLayoutPlugin.h>
+// #import <FlipperKitLayoutPlugin/SKDescriptorMapper.h>
+// #import <FlipperKitNetworkPlugin/FlipperKitNetworkPlugin.h>
+// #import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
+// #import <FlipperKitUserDefaultsPlugin/FKUserDefaultsPlugin.h>
+// #import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
+// #endif
 #endif
 
 #if DEBUG
@@ -75,15 +75,15 @@
 
 - (void) initializeFlipper:(UIApplication *)application {
   #if DEBUG
-  #ifdef FB_SONARKIT_ENABLED
-    FlipperClient *client = [FlipperClient sharedClient];
-    SKDescriptorMapper *layoutDescriptorMapper = [[SKDescriptorMapper alloc] initWithDefaults];
-    [client addPlugin: [[FlipperKitLayoutPlugin alloc] initWithRootNode: application withDescriptorMapper: layoutDescriptorMapper]];
-    [client addPlugin: [[FKUserDefaultsPlugin alloc] initWithSuiteName:nil]];
-    [client addPlugin: [FlipperKitReactPlugin new]];
-    [client addPlugin: [[FlipperKitNetworkPlugin alloc] initWithNetworkAdapter:[SKIOSNetworkAdapter new]]];
-    [client start];
-  #endif
+  // #ifdef FB_SONARKIT_ENABLED
+  //   FlipperClient *client = [FlipperClient sharedClient];
+  //   SKDescriptorMapper *layoutDescriptorMapper = [[SKDescriptorMapper alloc] initWithDefaults];
+  //   [client addPlugin: [[FlipperKitLayoutPlugin alloc] initWithRootNode: application withDescriptorMapper: layoutDescriptorMapper]];
+  //   [client addPlugin: [[FKUserDefaultsPlugin alloc] initWithSuiteName:nil]];
+  //   [client addPlugin: [FlipperKitReactPlugin new]];
+  //   [client addPlugin: [[FlipperKitNetworkPlugin alloc] initWithNetworkAdapter:[SKIOSNetworkAdapter new]]];
+  //   [client start];
+  // #endif
   #endif
 }
 

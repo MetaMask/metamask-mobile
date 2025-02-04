@@ -46,7 +46,7 @@ import {
   // eslint-disable-next-line no-restricted-syntax
   selectChainId,
   selectNativeCurrencyByChainId,
-  selectProviderTypeByChainId
+  selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
@@ -389,8 +389,8 @@ class SendFlow extends PureComponent {
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
       : matchingAccount
-        ? matchingAccount.metadata.name
-        : null;
+      ? matchingAccount.metadata.name
+      : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
@@ -705,7 +705,7 @@ const mapStateToProps = (state) => {
     ),
     ambiguousAddressEntries: state.user.ambiguousAddressEntries,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setRecipient: (

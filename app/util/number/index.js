@@ -390,7 +390,9 @@ export function isNumber(str) {
  * @returns {boolean} - True if the value is a valid number
  */
 export function isNumberValue(value) {
-  if (value === null || value === undefined) { return false; }
+  if (value === null || value === undefined) {
+    return false;
+  }
 
   if (typeof value === 'number') {
     return !Number.isNaN(value) && Number.isFinite(value);

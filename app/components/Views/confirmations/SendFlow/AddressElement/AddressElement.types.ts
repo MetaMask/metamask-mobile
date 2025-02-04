@@ -29,5 +29,5 @@ export interface AddressElementProps extends TouchableOpacityProps {
   /**
    * ID of the chain
    */
-  chainId: Hex,
+  chainId: Hex;
 }

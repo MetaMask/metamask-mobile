@@ -2,7 +2,7 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import {
   TokenOverviewSelectorsIDs,
-  TokenOverviewSelectorsText
+  TokenOverviewSelectorsText,
 } from '../../selectors/wallet/TokenOverview.selectors';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors.js';
 class TokenOverview {
@@ -19,7 +19,9 @@ class TokenOverview {
   }
 
   get actionSheetSendButton() {
-    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
+    );
   }
 
   get swapButton() {

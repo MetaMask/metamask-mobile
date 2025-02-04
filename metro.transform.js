@@ -42,9 +42,9 @@ function getBuildTypeFeatures() {
     case 'flask':
       return flaskFeatureSet;
     default:
-      throw new Error(
-        `Invalid METAMASK_BUILD_TYPE of ${buildType} was passed to metro transform`,
-      );
+      // throw new Error(
+      //   `Invalid METAMASK_BUILD_TYPE of ${buildType} was passed to metro transform`,
+      // );
   }
 }
 

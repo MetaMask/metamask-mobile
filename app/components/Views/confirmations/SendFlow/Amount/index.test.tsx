@@ -868,8 +868,8 @@ describe('Amount', () => {
       },
       settings: {
         ...initialState.settings,
-        primaryCurrency: 'Fiat'
-      }
+        primaryCurrency: 'Fiat',
+      },
     });
 
     const textInput = getByTestId(

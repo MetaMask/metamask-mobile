@@ -31,17 +31,20 @@ export const useGetTokenStandardAndDetails = (
 
       isPendingRef.current = true;
 
-      const result = await memoizedGetTokenStandardAndDetails({
+      const result = (await memoizedGetTokenStandardAndDetails({
         tokenAddress,
         networkClientId,
-      }) as TokenDetailsERC20;
+      })) as TokenDetailsERC20;
       isPendingRef.current = false;
 
       return result;
     }, [tokenAddress]);
 
   if (!details) {
-    return { details: { decimalsNumber: undefined }, isPending: isPendingRef.current };
+    return {
+      details: { decimalsNumber: undefined },
+      isPending: isPendingRef.current,
+    };
   }
 
   const { decimals, standard } = details || {};

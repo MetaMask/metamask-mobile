@@ -79,36 +79,40 @@ describe('AppStateEventListener', () => {
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED)
-            .addProperties({
-              attributionId: 'test123',
-              utm_source: 'source',
-              utm_medium: 'medium',
-              utm_campaign: 'campaign',
-            })
-            .build();
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.APP_OPENED,
+    )
+      .addProperties({
+        attributionId: 'test123',
+        utm_source: 'source',
+        utm_medium: 'medium',
+        utm_campaign: 'campaign',
+      })
+      .build();
 
     expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('tracks event when app becomes active without attribution data', () => {
     jest
-        .spyOn(ReduxService, 'store', 'get')
-        .mockReturnValue({} as unknown as ReduxStore);
+      .spyOn(ReduxService, 'store', 'get')
+      .mockReturnValue({} as unknown as ReduxStore);
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
     expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED).build()
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.APP_OPENED,
+      ).build(),
     );
   });
 
   it('identifies user when app becomes active', () => {
     jest
-        .spyOn(ReduxService, 'store', 'get')
-        .mockReturnValue({} as unknown as ReduxStore);
+      .spyOn(ReduxService, 'store', 'get')
+      .mockReturnValue({} as unknown as ReduxStore);
 
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
@@ -118,21 +122,21 @@ describe('AppStateEventListener', () => {
       'Batch account balance requests': 'OFF',
       'Enable OpenSea API': 'OFF',
       'NFT Autodetection': 'OFF',
-      'Theme': undefined,
-      'applicationVersion': expect.any(Promise),
-      'currentBuildNumber': expect.any(Promise),
-      'deviceBrand': 'Apple',
-      'operatingSystemVersion': 'ios',
-      'platform': 'ios',
-      'security_providers': '',
-      'token_detection_enable': 'OFF',
+      Theme: undefined,
+      applicationVersion: expect.any(Promise),
+      currentBuildNumber: expect.any(Promise),
+      deviceBrand: 'Apple',
+      operatingSystemVersion: 'ios',
+      platform: 'ios',
+      security_providers: '',
+      token_detection_enable: 'OFF',
     });
   });
 
   it('logs error when identifying user fails', () => {
     jest
-        .spyOn(ReduxService, 'store', 'get')
-        .mockReturnValue({} as unknown as ReduxStore);
+      .spyOn(ReduxService, 'store', 'get')
+      .mockReturnValue({} as unknown as ReduxStore);
     const testError = new Error('Test error');
     mockMetrics.addTraitsToUser.mockImplementation(() => {
       throw testError;
@@ -142,8 +146,8 @@ describe('AppStateEventListener', () => {
     jest.advanceTimersByTime(2000);
 
     expect(Logger.error).toHaveBeenCalledWith(
-        testError,
-        'AppStateManager: Error processing app state change'
+      testError,
+      'AppStateManager: Error processing app state change',
     );
     expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
   });

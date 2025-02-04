@@ -6,16 +6,17 @@ import InfoRow from '../../../../../UI/InfoRow';
 import InfoSection from '../../../../../UI/InfoRow/InfoSection';
 import Loader from '../../../../../../../../../component-library/components-temp/Loader';
 
-const styleSheet = () => StyleSheet.create({
-  base: {
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
-  loaderContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-});
+const styleSheet = () =>
+  StyleSheet.create({
+    base: {
+      display: 'flex',
+      justifyContent: 'space-between',
+    },
+    loaderContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+    },
+  });
 
 const StaticSimulation: React.FC<{
   title: string;
@@ -34,7 +35,7 @@ const StaticSimulation: React.FC<{
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  return(
+  return (
     <View style={isCollapsed ? styles.base : {}}>
       <InfoSection>
         <InfoRow label={title} tooltip={titleTooltip}>
@@ -46,8 +47,8 @@ const StaticSimulation: React.FC<{
           </View>
         ) : (
           simulationElements
-          )}
-        </InfoSection>
+        )}
+      </InfoSection>
     </View>
   );
 };

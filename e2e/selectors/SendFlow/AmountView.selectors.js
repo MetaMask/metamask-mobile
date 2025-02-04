@@ -9,10 +9,9 @@ export const AmountViewSelectorsIDs = {
   FIAT_CONVERSION_WARNING_TEXT: 'amount-screen-fiat-conversion-warning-text',
   TRANSACTION_AMOUNT_INPUT: 'txn-amount-input',
   TRANSACTION_AMOUNT_CONVERSION_VALUE: 'txn-amount-conversion-value',
-  SEND_BACK_BUTTON: 'send-back-button'
+  SEND_BACK_BUTTON: 'send-back-button',
 };
 
 export const AmountViewSelectorsText = {
   SCREEN_TITLE: enContent.transaction.amount,
 };
-

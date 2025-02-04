@@ -6,10 +6,11 @@ import AnimatedPulse from './AnimatedPulse';
 
 describe('AnimatedPulse', () => {
   it('should render correctly', () => {
-    const {queryByText} = render(
-    <AnimatedPulse>
-      <Text>Test</Text>
-    </AnimatedPulse>);
+    const { queryByText } = render(
+      <AnimatedPulse>
+        <Text>Test</Text>
+      </AnimatedPulse>,
+    );
 
     expect(queryByText('Test')).toBeTruthy();
   });

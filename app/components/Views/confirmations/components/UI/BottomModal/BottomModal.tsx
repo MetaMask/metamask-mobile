@@ -22,7 +22,7 @@ const BottomModal = ({
   canCloseOnBackdropClick = true,
   children,
   hideBackground,
-  onClose
+  onClose,
 }: BottomModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});

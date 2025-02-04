@@ -43,10 +43,13 @@ export function toggleUseSafeChainsListValidation(value: boolean): void {
  */
 export const fetchEstimatedMultiLayerL1Fee = async (
   _: unknown,
-  { txParams, networkClientId }: {
-    txParams: TransactionParams,
-    networkClientId: NetworkClientId,
-  }
+  {
+    txParams,
+    networkClientId,
+  }: {
+    txParams: TransactionParams;
+    networkClientId: NetworkClientId;
+  },
 ) => {
   const layer1GasFee =
     await Engine.context.TransactionController.getLayer1GasFee({

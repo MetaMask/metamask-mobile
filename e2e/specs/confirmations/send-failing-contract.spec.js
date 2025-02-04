@@ -25,12 +25,9 @@ describe(SmokeConfirmations('Failing contracts'), () => {
   });
 
   it('sends a failing contract transaction', async () => {
-
-    const testSpecificMock  = {
-        GET: [
-          mockEvents.GET.suggestedGasFeesApiGanache
-        ],
-      };
+    const testSpecificMock = {
+      GET: [mockEvents.GET.suggestedGasFeesApiGanache],
+    };
     await withFixtures(
       {
         dapp: true,
@@ -54,7 +51,7 @@ describe(SmokeConfirmations('Failing contracts'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: failingAddress,
         });
-        
+
         // Send a failing transaction
         await TestDApp.tapSendFailingTransactionButton();
         await TestHelpers.delay(3000);
@@ -66,10 +63,10 @@ describe(SmokeConfirmations('Failing contracts'), () => {
 
         // Assert the failed transaction is displayed
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION
+          ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION,
         );
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.FAILED_TEXT
+          ActivitiesViewSelectorsText.FAILED_TEXT,
         );
       },
     );

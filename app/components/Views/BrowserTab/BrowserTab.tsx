@@ -5,7 +5,14 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { View, Alert, BackHandler, ImageSourcePropType, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Alert,
+  BackHandler,
+  ImageSourcePropType,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
@@ -1359,7 +1366,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                     style={styles.webview}
                     onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
                     onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
-                    onLoadProgress={handleWebviewNavigationChange(OnLoadProgress)}
+                    onLoadProgress={handleWebviewNavigationChange(
+                      OnLoadProgress,
+                    )}
                     onNavigationStateChange={handleOnNavigationStateChange}
                     onMessage={onMessage}
                     onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}

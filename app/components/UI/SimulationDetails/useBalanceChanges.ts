@@ -187,7 +187,9 @@ export default function useBalanceChanges({
   chainId: Hex;
   simulationData?: SimulationData;
 }): { pending: boolean; value: BalanceChange[] } {
-  const nativeFiatRate = useSelector((state: RootState) => selectConversionRateByChainId(state, chainId)) as number;
+  const nativeFiatRate = useSelector((state: RootState) =>
+    selectConversionRateByChainId(state, chainId),
+  ) as number;
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   const { nativeBalanceChange, tokenBalanceChanges = [] } =

@@ -174,9 +174,9 @@ class ManualBackupStep3 extends PureComponent {
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
     trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
-        ).build(),
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
+      ).build(),
     );
   };
 

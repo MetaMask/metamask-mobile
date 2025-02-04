@@ -335,7 +335,7 @@ const RootRPCMethodsUI = (props) => {
               transactionId: transactionMeta.id,
               deviceId,
               // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => { },
+              onConfirmationComplete: () => {},
               type: 'signTransaction',
             }),
           );
@@ -405,7 +405,8 @@ const RootRPCMethodsUI = (props) => {
           data &&
           data !== '0x' &&
           to &&
-          (await getMethodData(data, networkClientId)).name === TOKEN_METHOD_TRANSFER
+          (await getMethodData(data, networkClientId)).name ===
+            TOKEN_METHOD_TRANSFER
         ) {
           let asset = props.tokens.find(({ address }) =>
             toLowerCaseEquals(address, to),

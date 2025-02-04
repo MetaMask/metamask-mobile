@@ -8,4 +8,3 @@ export function isSignatureRequest(requestType: string) {
     ApprovalTypes.ETH_SIGN_TYPED_DATA,
   ].includes(requestType as ApprovalTypes);
 }
-
