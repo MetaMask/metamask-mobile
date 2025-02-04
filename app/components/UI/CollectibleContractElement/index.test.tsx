@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import CollectibleContractElement from '.';
@@ -113,5 +113,38 @@ describe('CollectibleContractElement Snapshot', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render collectible', () => {
+    // Provide the props that are required by the component.
+    const onPressMock = jest.fn();
+    const removeFavoriteMock = jest.fn();
+
+    const props = {
+      asset: { favorites: false, name: 'AssetName', logo: 'asset-logo.png' },
+      contractCollectibles: [
+        { address: '0xdef', tokenId: '1', name: 'Collectible1' },
+        { address: '0xdef', tokenId: '2', name: 'Collectible2' },
+        { address: '0xdef', tokenId: '3', name: 'Collectible3' },
+        { address: '0xdef', tokenId: '4', name: 'Collectible4' },
+      ],
+      collectiblesVisible: true,
+      onPress: onPressMock,
+      removeFavoriteCollectible: removeFavoriteMock,
+    };
+
+    const { getAllByTestId } = render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <CollectibleContractElement {...props} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+
+    expect(getAllByTestId('collectible-Collectible1-1')).toBeTruthy();
+
+    fireEvent.press(getAllByTestId('collectible-Collectible1-1')[0]);
+
+    expect(onPressMock).toHaveBeenCalled();
   });
 });
