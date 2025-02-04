@@ -4,6 +4,7 @@ import {
   isTypedSignV3V4Request,
   parseTypedDataMessageFromSignatureRequest,
   isRecognizedOrder,
+  parseSanitizeTypedDataMessage,
 } from './signature';
 import {
   PRIMARY_TYPES_ORDER,
@@ -14,11 +15,39 @@ import {
   SignatureRequestType,
 } from '@metamask/signature-controller';
 import {
+  mockTypedSignV3Message,
   personalSignSignatureRequest,
   typedSignV1SignatureRequest,
   typedSignV3SignatureRequest,
   typedSignV4SignatureRequest,
 } from '../../../../util/test/confirm-data-helpers';
+
+const mockExpectedSanitizedTypedSignV3Message = {
+  value: {
+    from: {
+      value: {
+        name: { value: 'Cow', type: 'string' },
+        wallet: {
+          value: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+          type: 'address',
+        },
+      },
+      type: 'Person',
+    },
+    to: {
+      value: {
+        name: { value: 'Bob', type: 'string' },
+        wallet: {
+          value: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+          type: 'address',
+        },
+      },
+      type: 'Person',
+    },
+    contents: { value: 'Hello, Bob!', type: 'string' },
+  },
+  type: 'Mail',
+};
 
 describe('Signature Utils', () => {
   describe('parseTypedDataMessage', () => {
@@ -133,7 +162,7 @@ describe('Signature Utils', () => {
 
   describe('isTypedSignV3V4Request', () => {
     it('return true for typed sign V3, V4 messages', () => {
-      expect(isTypedSignV3V4Request(typedSignV3SignatureRequest)).toBe(true);
+    expect(isTypedSignV3V4Request(typedSignV3SignatureRequest)).toBe(true);
       expect(isTypedSignV3V4Request(typedSignV4SignatureRequest)).toBe(true);
     });
     it('return false for typed sign V1 message', () => {
@@ -162,6 +191,22 @@ describe('Signature Utils', () => {
       expect(
         parseTypedDataMessageFromSignatureRequest(personalSignSignatureRequest),
       ).toBe(undefined);
+    });
+  });
+
+  describe('parseSanitizeTypedDataMessage', () => {
+    it('should return parsed and sanitized types signature message', () => {
+      const { sanitizedMessage, primaryType, domain } =
+        parseSanitizeTypedDataMessage(JSON.stringify(mockTypedSignV3Message));
+
+      expect(primaryType).toBe('Mail');
+      expect(sanitizedMessage).toEqual(mockExpectedSanitizedTypedSignV3Message);
+      expect(domain).toEqual(mockTypedSignV3Message.domain);
+    });
+
+    it('return empty object if no data is passed', () => {
+      const result = parseSanitizeTypedDataMessage('');
+      expect(result).toMatchObject({});
     });
   });
 });

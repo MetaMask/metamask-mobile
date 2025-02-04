@@ -10,6 +10,7 @@ import {
   PRIMARY_TYPES_PERMIT,
   PrimaryType,
 } from '../constants/signatures';
+import { sanitizeMessage } from '../../../../util/string';
 
 /**
  * The contents of this file have been taken verbatim from
@@ -110,3 +111,17 @@ export const isRecognizedPermit = (request?: SignatureRequest) =>
  */
 export const isRecognizedOrder = (request?: SignatureRequest) =>
   isRecognizedOfType(request, PRIMARY_TYPES_ORDER);
+
+export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
+  if (!dataToParse) { return {}; }
+
+  const {
+    domain,
+    message,
+    primaryType,
+    types,
+  } = parseTypedDataMessage(dataToParse);
+
+  const sanitizedMessage = sanitizeMessage(message, primaryType, types);
+  return { sanitizedMessage, primaryType, domain };
+};
