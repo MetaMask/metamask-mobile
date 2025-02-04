@@ -1,3 +1,4 @@
+import { TokenI } from '../../../UI/Tokens/types';
 import { getHostFromUrl, isNativeToken } from './generic';
 
 describe('generic utils', () => {
@@ -9,9 +10,9 @@ describe('generic utils', () => {
   });
   describe('isNativeToken', () => {
     it('should return correct value', async () => {
-      expect(isNativeToken(true, false)).toBe(true);
-      expect(isNativeToken(false, true)).toBe(true);
-      expect(isNativeToken(false, false)).toBe(false);
+      expect(isNativeToken({ isNative: true, isETH: false } as TokenI)).toBe(true);
+      expect(isNativeToken({ isNative: false, isETH: true } as TokenI)).toBe(true);
+      expect(isNativeToken({ isNative: false, isETH: false } as TokenI)).toBe(false);
     });
   });
 });
