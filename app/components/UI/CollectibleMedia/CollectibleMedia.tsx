@@ -48,6 +48,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   const fallback = useCallback(() => setSourceUri(null), []);
 
   useEffect(() => {
+    console.log('collectible .............', collectible);
     const { image, imageOriginal, imagePreview, address } = collectible;
     if (address) {
       if (small && imagePreview && imagePreview !== '')
@@ -57,6 +58,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   }, [collectible, small, big, setSourceUri]);
 
   const formatTokenId = (tokenId: number) => {
+    console.log('tokenId .............', tokenId);
     if (tokenId.toString().length > 9) {
       return tokenId.toString().replace(/^(..).*?(.{4})$/, '$1...$2');
     }
@@ -64,6 +66,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   };
 
   const pressNft = useCallback(() => {
+    console.log('pressNft .............');
     if (cover) {
       if (sourceUri && !isIPFSUri(sourceUri)) {
         navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

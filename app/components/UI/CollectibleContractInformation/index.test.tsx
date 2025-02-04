@@ -5,7 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockTheme, ThemeContext } from '../../../util/theme';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 
 jest.mock('react-native', () => ({
