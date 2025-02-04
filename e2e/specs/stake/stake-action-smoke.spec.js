@@ -1,41 +1,37 @@
 'use strict';
 import { ethers } from 'ethers';
-import { loginToApp } from '../../viewHelper.js';
-import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
-import FixtureBuilder from '../../fixtures/fixture-builder.js';
-import TokenOverview from '../../pages/wallet/TokenOverview.js';
-import WalletView from '../../pages/wallet/WalletView.js';
+import { loginToApp } from '../../viewHelper';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import TokenOverview from '../../pages/wallet/TokenOverview';
+import WalletView from '../../pages/wallet/WalletView';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper.js';
-import { CustomNetworks, PopularNetworksList } from '../../resources/networks.e2e.js';
-import TestHelpers from '../../helpers.js';
-import FixtureServer from '../../fixtures/fixture-server.js';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
-import { SmokeStake } from '../../tags.js';
-import Assertions from '../../utils/Assertions.js';
-import StakeView from '../../pages/Stake/StakeView.js';
-import StakeConfirmView from '../../pages/Stake/StakeConfirmView.js';
-import SendView from '../../pages/Send/SendView.js';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
-import AmountView from '../../pages/Send/AmountView.js';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView.js';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
-import NetworkListModal from '../../pages/Network/NetworkListModal.js';
+} from '../../fixtures/fixture-helper';
+import { CustomNetworks, PopularNetworksList } from '../../resources/networks.e2e';
+import TestHelpers from '../../helpers';
+import FixtureServer from '../../fixtures/fixture-server';
+import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
+import { SmokeStake } from '../../tags';
+import Assertions from '../../utils/Assertions';
+import StakeView from '../../pages/Stake/StakeView';
+import StakeConfirmView from '../../pages/Stake/StakeConfirmView';
+import SendView from '../../pages/Send/SendView';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import AmountView from '../../pages/Send/AmountView';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 import axios from 'axios';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-
-import {
-  startMockServer,
-  stopMockServer,
-} from '../../api-mocking/mock-server.js';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 
 const fixtureServer = new FixtureServer();
 
