@@ -523,10 +523,7 @@ class Asset extends PureComponent {
       asset.address?.toLowerCase() in this.props.swapsTokens;
 
     const displaySwapsButton =
-      isSwapsFeatureLive &&
-      isNetworkAllowed &&
-      isAssetAllowed &&
-      AppConstants.SWAPS.ACTIVE;
+      isNetworkAllowed && isAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
@@ -543,6 +540,7 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
+                  swapsIsLive={isSwapsFeatureLive}
                 />
                 <ActivityHeader asset={asset} />
               </>

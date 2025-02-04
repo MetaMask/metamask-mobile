@@ -30,7 +30,10 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
 } from '../../../selectors/networkController';
-import { selectShowTestNetworks } from '../../../selectors/preferencesController';
+import {
+  selectShowTestNetworks,
+  selectTokenNetworkFilter,
+} from '../../../selectors/preferencesController';
 import Networks, {
   getAllNetworks,
   getDecimalChainId,
@@ -38,6 +41,8 @@ import Networks, {
   getNetworkImageSource,
   isMainNet,
   isSolanaEnabled,
+  isPortfolioViewEnabled,
+  isMultichainV1Enabled,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
@@ -87,7 +92,6 @@ import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import Logger from '../../../util/Logger';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
@@ -104,6 +108,7 @@ import { selectNonEvmSelected } from '../../../selectors/multichainNetworkContro
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { SolScopes } from '@metamask/keyring-api';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import Logger from '../../../util/Logger';
 
 interface infuraNetwork {
   name: string;
@@ -140,6 +145,7 @@ const NetworkSelector = () => {
   const sheetRef = useRef<ReusableModalRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const isAllNetwork = useSelector(selectIsAllNetworks);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
 
   const networkConfigurations = useSelector(
@@ -202,7 +208,6 @@ const NetworkSelector = () => {
         chainId === CHAIN_IDS.MAINNET ||
         chainId === CHAIN_IDS.LINEA_MAINNET ||
         PopularList.some((network) => network.chainId === chainId);
-
       const { PreferencesController } = Engine.context;
       if (!isAllNetwork && isPopularNetwork) {
         PreferencesController.setTokenNetworkFilter({
@@ -211,57 +216,6 @@ const NetworkSelector = () => {
       }
     },
     [isAllNetwork],
-  );
-
-  const onRpcSelect = useCallback(
-    async (clientId: string, chainId: `0x${string}`) => {
-      const { NetworkController } = Engine.context;
-
-      const existingNetwork = networkConfigurations[chainId];
-      if (!existingNetwork) {
-        Logger.error(
-          new Error(`No existing network found for chainId: ${chainId}`),
-        );
-        return;
-      }
-
-      const indexOfRpc = existingNetwork.rpcEndpoints.findIndex(
-        ({ networkClientId }) => clientId === networkClientId,
-      );
-
-      if (indexOfRpc === -1) {
-        Logger.error(
-          new Error(
-            `RPC endpoint with clientId: ${clientId} not found for chainId: ${chainId}`,
-          ),
-        );
-        return;
-      }
-
-      // Proceed to update the network with the correct index
-      await NetworkController.updateNetwork(existingNetwork.chainId, {
-        ...existingNetwork,
-        defaultRpcEndpointIndex: indexOfRpc,
-      });
-
-      // Set the active network
-      if (!isSolanaEnabled()) {
-        await NetworkController.setActiveNetwork(clientId);
-      } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork({
-          evmClientId: clientId,
-        });
-      }
-
-      // Redirect to wallet page
-      navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-    },
-    [networkConfigurations, navigate],
   );
 
   const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] = useState<{
@@ -294,7 +248,7 @@ const NetworkSelector = () => {
       const networkConfigurationId =
         rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
 
-      if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
+      if (domainIsConnectedDapp && isMultichainV1Enabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,
@@ -317,21 +271,21 @@ const NetworkSelector = () => {
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
-
-        setTokenNetworkFilter(chainId);
-        sheetRef.current?.dismissModal();
-        endTrace({ name: TraceName.SwitchCustomNetwork });
-        endTrace({ name: TraceName.NetworkSwitch });
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
-            .addProperties({
-              chain_id: getDecimalChainId(chainId),
-              from_network: selectedNetworkName,
-              to_network: nickname,
-            })
-            .build(),
-        );
       }
+
+      setTokenNetworkFilter(chainId);
+      if (!(domainIsConnectedDapp && isMultichainV1Enabled())) sheetRef.current?.dismissModal();
+      endTrace({ name: TraceName.SwitchCustomNetwork });
+      endTrace({ name: TraceName.NetworkSwitch });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+          .addProperties({
+            chain_id: getDecimalChainId(chainId),
+            from_network: selectedNetworkName,
+            to_network: nickname,
+          })
+          .build(),
+      );
     }
   };
 
@@ -433,8 +387,7 @@ const NetworkSelector = () => {
       AccountTrackerController,
       SelectedNetworkController,
     } = Engine.context;
-
-    if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
+    if (domainIsConnectedDapp && isMultichainV1Enabled()) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
     } else {
       const networkConfiguration =
@@ -968,6 +921,25 @@ const NetworkSelector = () => {
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(chainId);
 
+      // set tokenNetworkFilter
+      if (isPortfolioViewEnabled()) {
+        const { PreferencesController } = Engine.context;
+        if (!isAllNetwork) {
+          PreferencesController.setTokenNetworkFilter({
+            [chainId]: true,
+          });
+        } else {
+          // Remove the chainId from the tokenNetworkFilter
+          const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
+          PreferencesController.setTokenNetworkFilter({
+            // TODO fix type of preferences controller level
+            // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ...(newTokenNetworkFilter as any),
+          });
+        }
+      }
+
       setShowConfirmDeleteModal({
         isVisible: false,
         networkName: '',
@@ -1100,7 +1072,6 @@ const NetworkSelector = () => {
         <RpcSelectionModal
           showMultiRpcSelectModal={showMultiRpcSelectModal}
           closeRpcModal={closeRpcModal}
-          onRpcSelect={onRpcSelect}
           rpcMenuSheetRef={rpcMenuSheetRef}
           networkConfigurations={networkConfigurations}
           styles={styles}

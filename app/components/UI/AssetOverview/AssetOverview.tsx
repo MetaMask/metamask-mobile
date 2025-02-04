@@ -75,12 +75,14 @@ interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
+  swapsIsLive?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
   displaySwapsButton,
+  swapsIsLive,
 }: AssetOverviewProps) => {
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
@@ -450,6 +452,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
+            swapsIsLive={swapsIsLive}
             goToBridge={goToBridge}
             goToSwaps={goToSwaps}
             onBuy={onBuy}

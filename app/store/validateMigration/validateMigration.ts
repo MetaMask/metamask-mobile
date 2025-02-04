@@ -18,6 +18,7 @@ const checks: ValidationCheck[] = [
  * This makes sure your app keeps running even if some data is unexpected.
  */
 export function validatePostMigrationState(state: RootState): void {
+  Logger.log('Migration validation started');
   const allErrors = checks.flatMap((check) => check(state));
 
   // If there are any errors, log them
