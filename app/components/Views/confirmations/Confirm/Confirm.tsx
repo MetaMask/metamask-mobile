@@ -20,7 +20,7 @@ const FLAT_CONFIRMATIONS: TransactionType[] = [
   // To be filled with flat confirmations
 ];
 
-const ConfirmationLayout = ({ children }: { children: React.ReactNode }) => {
+const ConfirmationLayout = () => {
   const { approvalRequest } = useApprovalRequest();
   const isFlatConfirmation = FLAT_CONFIRMATIONS.includes(
     approvalRequest?.type as TransactionType,
@@ -33,13 +33,17 @@ const ConfirmationLayout = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (isFlatConfirmation) {
-    return <SafeAreaView style={styles.mainContainer}>{children}</SafeAreaView>;
+    return (
+      <SafeAreaView style={styles.mainContainer}>
+        <Confirm />
+      </SafeAreaView>
+    );
   }
 
   return (
     <BottomModal canCloseOnBackdropClick={false}>
       <View style={styles.container}>
-        {children}
+        <Confirm />
       </View>
     </BottomModal>
   );
@@ -53,7 +57,7 @@ const Confirm = () => {
   const ContentDisplay = isFlatConfirmation ? ScrollView : View;
 
   return (
-    <ConfirmationLayout>
+    <>
       <ContentDisplay>
         <Title />
         <SignatureBlockaidBanner />
@@ -61,8 +65,8 @@ const Confirm = () => {
         <Info />
       </ContentDisplay>
       <Footer />
-    </ConfirmationLayout>
+    </>
   );
 };
 
-export default Confirm;
+export default ConfirmationLayout;
