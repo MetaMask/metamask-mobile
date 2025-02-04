@@ -69,7 +69,9 @@ type MessageParamsSIWE = MessageParamsPersonal & {
 };
 
 export const isSIWESignatureRequest = (signatureRequest?: SignatureRequest) =>
-  (signatureRequest?.messageParams as MessageParamsSIWE)?.siwe?.isSIWEMessage;
+  Boolean(
+    (signatureRequest?.messageParams as MessageParamsSIWE)?.siwe?.isSIWEMessage,
+  );
 
 export const getSIWEDetails = (signatureRequest?: SignatureRequest) =>
-  (signatureRequest?.messageParams as MessageParamsSIWE)?.siwe;
+  (signatureRequest?.messageParams as MessageParamsSIWE)?.siwe ?? {};

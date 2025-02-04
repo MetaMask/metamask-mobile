@@ -102,7 +102,20 @@ export const siweSignSignatureRequest = {
       analytics: { request_source: 'In-App-Browser' },
     },
     origin: 'metamask.github.io',
-    siwe: { isSIWEMessage: false, parsedMessage: null },
+    siwe: {
+      isSIWEMessage: true,
+      parsedMessage: {
+        domain: 'metamask.github.io',
+        address: '0x8eeee1781fd885ff5ddef7789486676961873d12',
+        statement:
+          'I accept the MetaMask Terms of Service: https://community.metamask.io/tos',
+        uri: 'https://metamask.github.io',
+        version: '1',
+        chainId: 1,
+        nonce: '32891757',
+        issuedAt: '2021-09-30T16:25:24.000Z',
+      },
+    },
     metamaskId: '72424260-e22f-11ef-8e59-bf627a5d8354',
   },
   networkClientId: 'mainnet',
@@ -133,7 +146,20 @@ export const siweSignatureConfirmationState = {
                 analytics: { request_source: 'In-App-Browser' },
               },
               origin: 'metamask.github.io',
-              siwe: { isSIWEMessage: false, parsedMessage: null },
+              siwe: {
+                isSIWEMessage: true,
+                parsedMessage: {
+                  domain: 'metamask.github.io',
+                  address: '0x8eeee1781fd885ff5ddef7789486676961873d12',
+                  statement:
+                    'I accept the MetaMask Terms of Service: https://community.metamask.io/tos',
+                  uri: 'https://metamask.github.io',
+                  version: '1',
+                  chainId: 1,
+                  nonce: '32891757',
+                  issuedAt: '2021-09-30T16:25:24.000Z',
+                },
+              },
               metamaskId: '72424260-e22f-11ef-8e59-bf627a5d8354',
             },
             requestState: null,
