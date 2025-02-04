@@ -51,7 +51,7 @@ const mockExpectedSanitizedTypedSignV3Message = {
 
 describe('Signature Utils', () => {
   describe('parseTypedDataMessage', () => {
-    it('should parse typed data message correctly', () => {
+    it('parses a typed data message correctly', () => {
       const data = JSON.stringify({
         message: {
           value: '123',
@@ -72,7 +72,7 @@ describe('Signature Utils', () => {
       expect(result.message.value).toBe('3000123');
     });
 
-    it('should handle large message values. This prevents native JS number coercion when the value is greater than Number.MAX_SAFE_INTEGER.', () => {
+    it('handles large message values. This prevents native JS number coercion when the value is greater than Number.MAX_SAFE_INTEGER.', () => {
       const largeValue = '123456789012345678901234567890';
       const data = JSON.stringify({
         message: {
@@ -83,7 +83,7 @@ describe('Signature Utils', () => {
       expect(result.message.value).toBe(largeValue);
     });
 
-    it('throw error for invalid typedDataMessage', () => {
+    it('throws an error for invalid typedDataMessage', () => {
       expect(() => {
         parseTypedDataMessage('');
       }).toThrow(new Error('Unexpected end of JSON input'));
@@ -91,7 +91,7 @@ describe('Signature Utils', () => {
   });
 
   describe('isRecognizedPermit', () => {
-    it('should return true for recognized permit types', () => {
+    it('returns true for recognized permit types', () => {
       const mockRequest: SignatureRequest = {
         messageParams: {
           data: JSON.stringify({
@@ -105,7 +105,7 @@ describe('Signature Utils', () => {
       expect(isRecognizedPermit(mockRequest)).toBe(true);
     });
 
-    it('should return false for unrecognized permit types', () => {
+    it('returns false for unrecognized permit types', () => {
       const mockRequest: SignatureRequest = {
         messageParams: {
           data: JSON.stringify({
@@ -119,14 +119,14 @@ describe('Signature Utils', () => {
       expect(isRecognizedPermit(mockRequest)).toBe(false);
     });
 
-    it('should return false for typed sign V1 request', () => {
+    it('returns false for typed sign V1 request', () => {
       expect(isRecognizedPermit(typedSignV1SignatureRequest)).toBe(false);
       expect(isRecognizedPermit(personalSignSignatureRequest)).toBe(false);
     });
   });
 
   describe('isRecognizedOrder', () => {
-    it('should return true for recognized order types', () => {
+    it('returns true for recognized order types', () => {
       const mockRequest: SignatureRequest = {
         messageParams: {
           data: JSON.stringify({
@@ -140,7 +140,7 @@ describe('Signature Utils', () => {
       expect(isRecognizedOrder(mockRequest)).toBe(true);
     });
 
-    it('should return false for unrecognized order types', () => {
+    it('returns false for unrecognized order types', () => {
       const mockRequest: SignatureRequest = {
         messageParams: {
           data: JSON.stringify({
@@ -154,7 +154,7 @@ describe('Signature Utils', () => {
       expect(isRecognizedOrder(mockRequest)).toBe(false);
     });
 
-    it('should return false for typed sign V1 request', () => {
+    it('returns false for typed sign V1 request', () => {
       expect(isRecognizedOrder(typedSignV1SignatureRequest)).toBe(false);
       expect(isRecognizedOrder(personalSignSignatureRequest)).toBe(false);
     });
@@ -195,7 +195,7 @@ describe('Signature Utils', () => {
   });
 
   describe('parseSanitizeTypedDataMessage', () => {
-    it('should return parsed and sanitized types signature message', () => {
+    it('returns parsed and sanitized types signature message', () => {
       const { sanitizedMessage, primaryType, domain } =
         parseSanitizeTypedDataMessage(JSON.stringify(mockTypedSignV3Message));
 
@@ -204,7 +204,7 @@ describe('Signature Utils', () => {
       expect(domain).toEqual(mockTypedSignV3Message.domain);
     });
 
-    it('return empty object if no data is passed', () => {
+    it('returns an empty object if no data is passed', () => {
       const result = parseSanitizeTypedDataMessage('');
       expect(result).toMatchObject({});
     });
