@@ -79,15 +79,19 @@ export const isTypedSignV3V4Request = (signatureRequest?: SignatureRequest) => {
   );
 };
 
+export const parseTypedDataMessageFromSignatureRequest = (signatureRequest?: SignatureRequest) => {
+  if (!signatureRequest || !isTypedSignV3V4Request(signatureRequest)) { return; }
+
+  const data = signatureRequest.messageParams?.data as string;
+  return parseTypedDataMessage(data);
+};
+
+
 const isRecognizedOfType = (
   request: SignatureRequest | undefined,
   types: PrimaryType[],
 ) => {
-  if (!isTypedSignV3V4Request(request)) { return false; }
-
-  const data = (request as SignatureRequest).messageParams?.data as string;
-
-  const { primaryType } = parseTypedDataMessage(data);
+  const { primaryType } = parseTypedDataMessageFromSignatureRequest(request) || {};
   return types.includes(primaryType);
 };
 
@@ -115,10 +119,7 @@ export const isRecognizedOrder = (request?: SignatureRequest) =>
 export const getSignatureRequestPrimaryType = (
   signatureRequest: SignatureRequest,
 ) => {
-  if (!isTypedSignV3V4Request(signatureRequest)) {
-    return;
-  }
-  const data = signatureRequest.messageParams?.data as string;
-  const { primaryType } = parseTypedDataMessage(data);
+  const { primaryType } = parseTypedDataMessageFromSignatureRequest(signatureRequest) || {};
   return primaryType;
 };
+
