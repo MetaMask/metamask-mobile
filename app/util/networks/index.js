@@ -488,8 +488,6 @@ export const getBlockExplorerTxUrl = (
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
 
-export const isMultichainVersion1Enabled = true;
-
 export const isChainPermissionsFeatureEnabled = true;
 
 export const isPermissionsSettingsV1Enabled =
