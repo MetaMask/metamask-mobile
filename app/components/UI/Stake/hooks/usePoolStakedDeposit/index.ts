@@ -43,7 +43,7 @@ export const getIsStablecoinApproveOrLendTransaction = (
   );
 };
 
-const amount = '50000000';
+const amount = '5000000';
 
 export const attemptDepositTransaction = async () => {
   try {
