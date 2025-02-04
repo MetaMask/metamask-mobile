@@ -14,7 +14,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'baseline',
     },
     collectibleMediaWrapper: {
-      borderWidth: 1,
       paddingTop: 16,
       paddingBottom: 40,
       flex: 1,
