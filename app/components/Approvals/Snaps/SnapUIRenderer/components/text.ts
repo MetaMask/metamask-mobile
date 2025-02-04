@@ -1,4 +1,4 @@
-import { JSXElement, TextElement } from '@metamask/snaps-sdk/jsx';
+import { JSXElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
 import { mapTextToTemplate } from '../utils';
@@ -9,7 +9,24 @@ import {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text/Text.types';
 
-function getTextColor(color: TextElement['props']['color']) {
+type TextProps = JSXElement & {
+  type: 'Text';
+  props: {
+    children: string | JSXElement[];
+    color?:
+      | 'default'
+      | 'alternative'
+      | 'muted'
+      | 'error'
+      | 'success'
+      | 'warning';
+    fontWeight?: 'bold' | 'medium' | 'regular';
+    size?: 'sm' | 'md';
+    alignment?: string;
+  };
+};
+
+function getTextColor(color: TextProps['props']['color']) {
   switch (color) {
     case 'default':
       return TextColor.Default;
@@ -28,7 +45,7 @@ function getTextColor(color: TextElement['props']['color']) {
   }
 }
 
-function getFontWeight(color: TextElement['props']['fontWeight']) {
+function getFontWeight(color: TextProps['props']['fontWeight']) {
   switch (color) {
     case 'bold':
       return FontWeight.Bold;
@@ -40,10 +57,7 @@ function getFontWeight(color: TextElement['props']['fontWeight']) {
   }
 }
 
-export const text: UIComponentFactory<TextElement> = ({
-  element,
-  ...params
-}) => {
+export const text: UIComponentFactory<TextProps> = ({ element, ...params }) => {
   return {
     element: 'Text',
     children: mapTextToTemplate(

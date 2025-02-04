@@ -69,4 +69,8 @@ export interface TextProps extends RNTextProps {
    * Temporary prop to enable brand evolution fonts
    */
   isBrandEvolution?: boolean;
+  /**
+   * Optional font weight for the text
+   */
+  fontWeight?: FontWeight;
 }
