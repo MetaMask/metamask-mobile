@@ -2,14 +2,6 @@ import { ButtonElement, FooterElement } from '@metamask/snaps-sdk/jsx';
 import { footer, DEFAULT_FOOTER } from '../components/footer';
 import { ButtonVariant } from '@metamask/snaps-sdk';
 
-jest.mock('@metamask/snaps-utils', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getJsxChildren: (e: any) => {
-    const children = e.props.children;
-    return Array.isArray(children) ? children : [children].filter(Boolean);
-  },
-}));
-
 describe('footer', () => {
   const mockT = (value: string) => `translated_${value}`;
   const mockOnCancel = jest.fn();
@@ -59,10 +51,19 @@ describe('footer', () => {
           element: 'SnapUIFooterButton',
           key: 'snap-footer-button-0',
           props: {
-            children: ['Button'],
+            disabled: undefined,
+            form: undefined,
             isSnapAction: true,
+            label: ['Button'],
+            loading: false,
+            name: undefined,
+            onCancel: undefined,
+            onConfirm: undefined,
+            textVariant: 'sBodyMD',
+            type: 'Button',
             variant: 'primary',
           },
+          children: ['Button'],
         },
       ],
     });
@@ -81,16 +82,15 @@ describe('footer', () => {
     });
 
     expect(Array.isArray(result.children)).toBe(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[0]).toEqual({
-      element: 'SnapUIFooterButton',
+      element: 'BottomSheetFooter',
       key: 'default-button',
       props: {
-        onCancel: mockOnCancel,
-        variant: ButtonVariant.Secondary,
         isSnapAction: false,
+        label: 'translated_template_confirmation.cancel',
+        onCancel: mockOnCancel,
+        variant: 'secondary',
       },
-      children: 'translated_cancel',
     });
   });
 
