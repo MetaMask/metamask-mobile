@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   View,
   Alert,
@@ -222,6 +228,29 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     useNftDetection,
   ]);
 
+  const renderItem = useCallback(
+    ({ item }: { item: Nft }) => (
+      <NftGridItem
+        nft={item}
+        navigation={navigation}
+        privacyMode={privacyMode}
+        actionSheetRef={actionSheetRef}
+        longPressedCollectible={longPressedCollectible}
+      />
+    ),
+    [navigation, privacyMode],
+  );
+
+  const keyExtractor = useCallback(
+    (_: unknown, index: number) => index.toString(),
+    [],
+  );
+
+  const refreshColors = useMemo(
+    () => [colors.primary.default],
+    [colors.primary.default],
+  );
+
   return (
     <View testID="collectible-contracts">
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
@@ -245,21 +274,13 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
         <FlatList
           numColumns={3}
           data={collectibles}
-          renderItem={({ item }: { item: Nft }) => (
-            <NftGridItem
-              nft={item}
-              navigation={navigation}
-              privacyMode={privacyMode}
-              actionSheetRef={actionSheetRef}
-              longPressedCollectible={longPressedCollectible}
-            />
-          )}
-          keyExtractor={(_, index) => index.toString()}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
           testID={RefreshTestId}
           refreshControl={
             <RefreshControl
               testID={RefreshTestId}
-              colors={[colors.primary.default]}
+              colors={refreshColors}
               tintColor={colors.icon.default}
               refreshing={refreshing}
               onRefresh={onRefresh}

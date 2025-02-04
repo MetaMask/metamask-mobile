@@ -38,29 +38,22 @@ function NftGridItem({
   const { colors } = useTheme();
   const styles = styleSheet(colors);
 
-  const onLongPressCollectible = useCallback(
-    (collectible) => {
-      actionSheetRef?.current?.show();
-      longPressedCollectible.current = collectible;
-    },
-    [actionSheetRef, longPressedCollectible],
-  );
+  const onLongPressCollectible = useCallback(() => {
+    actionSheetRef?.current?.show();
+    longPressedCollectible.current = nft;
+  }, [actionSheetRef, longPressedCollectible, nft]);
 
-  const onItemPress = useCallback(
-    (nftItem) => {
-      debouncedNavigation(navigation, nftItem);
-    },
-    [navigation],
-  );
+  const onItemPress = useCallback(() => {
+    debouncedNavigation(navigation, nft);
+  }, [navigation, nft]);
 
   if (!nft) return null;
 
   return (
     <TouchableOpacity
-      key={nft.address}
       style={styles.collectibleCard}
-      onPress={() => onItemPress(nft)}
-      onLongPress={() => onLongPressCollectible(nft)}
+      onPress={onItemPress}
+      onLongPress={onLongPressCollectible}
       testID={nft.name as string}
     >
       <CollectibleMedia
@@ -79,4 +72,4 @@ function NftGridItem({
   );
 }
 
-export default NftGridItem;
+export default React.memo(NftGridItem);
