@@ -32,12 +32,11 @@ function useQuotes(amount: number | string) {
         sortOrderByPrice.map((id, index) => [id, index]),
       );
 
-      return data?.quotes.sort((a, b) => {
-        return (
+      return data?.quotes.sort(
+        (a, b) =>
           (sortOrderMap.get(a.provider.id) ?? 0) -
-          (sortOrderMap.get(b.provider.id) ?? 0)
-        );
-      });
+          (sortOrderMap.get(b.provider.id) ?? 0),
+      );
     }
 
     return data?.quotes;
