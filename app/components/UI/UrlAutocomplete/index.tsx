@@ -96,10 +96,10 @@ const UrlAutocomplete = forwardRef<
       setTokenResults([
         {
           type: 'tokens',
-          name: 'USDC',
-          symbol: 'USDC',
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          chainId: '0x1',
+          name: 'DEGEN',
+          symbol: 'DEGEN',
+          address: '0x4ed4e862860bed51a9570b96d89af5e1b0efefed',
+          chainId: '0x2105',
         }
       ]);
       return;

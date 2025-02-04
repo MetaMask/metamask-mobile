@@ -5,8 +5,7 @@ import { selectSearchedToken } from '../../../selectors/tokensController';
 import { RootState } from '../../../reducers';
 import { ActivityIndicator, Text, View } from 'react-native';
 import Engine from '../../../core/Engine/Engine';
-import Asset from '../Asset';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 
 export interface AssetLoaderProps {
@@ -27,11 +26,12 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { add
         if (!tokenResult) {
             Engine.context.TokensController.addSearchedToken(address, chainId);
         } else if (tokenResult.found) {
-            navigation.goBack();
-            navigation.navigate(Routes.BROWSER.ASSET_VIEW, {
-                ...tokenResult.token,
-                chainId
-            });
+            navigation.dispatch(
+                StackActions.replace(Routes.BROWSER.ASSET_VIEW, {
+                    ...tokenResult.token,
+                    chainId
+                })
+            );
         }
     }, [tokenResult, address, chainId, navigation]);
 
@@ -51,7 +51,5 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { add
         );
     }
 
-    return (
-        <View />
-    );
+    return null;
 }
