@@ -106,11 +106,6 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
-import {
-  selectNativeCurrencyByChainId,
-  selectProviderTypeByChainId,
-} from '../../../../../selectors/networkController';
-import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { isNativeToken } from '../../utils/generic';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
@@ -1055,18 +1050,15 @@ class Amount extends PureComponent {
     this.setState({ assetsModalVisible: !assetsModalVisible });
   };
 
-  handleSelectedAssetBalance = (
-    selectedAsset,
-    renderableBalance,
-  ) => {
+  handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
     const { accounts, selectedAddress, contractBalances } = this.props;
     let currentBalance;
     if (renderableBalance) {
       currentBalance = `${renderableBalance} ${selectedAsset.symbol}`;
     } else if (isNativeToken(selectedAsset)) {
-      currentBalance = `${renderFromWei(
-        accounts[selectedAddress].balance,
-      )} ${selectedAsset.symbol}`;
+      currentBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${
+        selectedAsset.symbol
+      }`;
     } else {
       currentBalance = `${renderFromTokenMinimalUnit(
         contractBalances[selectedAsset.address],
