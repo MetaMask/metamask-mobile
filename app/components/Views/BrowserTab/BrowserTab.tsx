@@ -1307,10 +1307,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     <ErrorBoundary navigation={navigation} view="BrowserTab">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.wrapper}
+        style={[styles.wrapper, !isTabActive && styles.hide]}
       >
         <View
-          style={[styles.wrapper, !isTabActive && styles.hide]}
+          style={styles.wrapper}
           {...(Device.isAndroid() ? { collapsable: false } : {})}
         >
           <BrowserUrlBar
