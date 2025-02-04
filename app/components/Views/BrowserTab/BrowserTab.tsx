@@ -101,7 +101,7 @@ import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
-import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
+import UrlAutocomplete, { AutocompleteSearchResult, UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 
 /**
@@ -1174,10 +1174,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Handle autocomplete selection
    */
-  const onSelect = (url: string) => {
+  const onSelect = (item: AutocompleteSearchResult) => {
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.hide();
-    onSubmitEditing(url);
+
+    if (item.type === 'tokens') {
+      navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
+        chainId: item.chainId,
+        address: item.address,
+      });
+    } else {
+      onSubmitEditing(item.url);
+    }
   };
 
   /**

@@ -88,6 +88,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import { AssetLoader } from '../../Views/AssetLoader';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -197,7 +198,8 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
-const BrowserFlow = () => (
+/* eslint-disable react/prop-types */
+const BrowserFlow = (props) => (
   <Stack.Navigator
     initialRouteName={Routes.BROWSER.VIEW}
     mode={'modal'}
@@ -209,6 +211,16 @@ const BrowserFlow = () => (
       name={Routes.BROWSER.VIEW}
       component={Browser}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.BROWSER.ASSET_LOADER}
+      component={AssetLoader}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.BROWSER.ASSET_VIEW}
+      component={Asset}
+      initialParams={props.route.params}
     />
   </Stack.Navigator>
 );

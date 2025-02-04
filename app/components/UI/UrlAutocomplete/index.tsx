@@ -21,6 +21,8 @@ import { useStyles } from '../../../component-library/hooks';
 import {
   UrlAutocompleteComponentProps,
   FuseSearchResult,
+  TokenSearchResult,
+  AutocompleteSearchResult,
   UrlAutocompleteRef,
 } from './types';
 import { debounce } from 'lodash';
@@ -31,7 +33,7 @@ import { Result } from './Result';
 
 export * from './types';
 
-const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'}));
+const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'} as const));
 
 /**
  * Autocomplete list that appears when the browser url bar is focused
@@ -40,8 +42,35 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
-  const [resultsByCategory, setResultsByCategory] = useState<{category: string, data: FuseSearchResult[]}[]>([]);
-  const hasResults = resultsByCategory.length > 0;
+  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([]);
+  const [tokenResults, setTokenResults] = useState<TokenSearchResult[]>([]);
+  const hasResults = fuseResults.length > 0 || tokenResults.length > 0;
+
+  const resultsByCategory: {category: string, data: AutocompleteSearchResult[]}[] = useMemo(() => (
+    ORDERED_CATEGORIES.flatMap((category) => {
+      if (category === 'tokens') {
+        return {
+          category,
+          data: tokenResults,
+        };
+      }
+
+      let data = fuseResults.filter((result, index, self) =>
+        result.type === category &&
+        index === self.findIndex(r => r.url === result.url && r.type === result.type)
+      );
+      if (data.length === 0) {
+        return [];
+      }
+      if (category === 'recents') {
+        data = data.slice(0, MAX_RECENTS);
+      }
+      return {
+        category,
+        data,
+      };
+    })
+  ), [fuseResults, tokenResults]);
 
   const browserHistory = useSelector(selectBrowserHistoryWithType);
   const bookmarks = useSelector(selectBrowserBookmarksWithType);
@@ -56,44 +85,32 @@ const UrlAutocomplete = forwardRef<
     resultsRef.current?.setNativeProps({ style: { display: 'flex' } });
   };
 
-  const updateResults = useCallback((results: FuseSearchResult[]) => {
-    const newResultsByCategory = ORDERED_CATEGORIES.flatMap((category) => {
-      let data = results.filter((result, index, self) =>
-        result.type === category &&
-        index === self.findIndex(r => r.url === result.url && r.type === result.type)
-      );
-      if (data.length === 0) {
-        return [];
-      }
-      if (category === 'recents') {
-        data = data.slice(0, MAX_RECENTS);
-      }
-      return {
-        category,
-        data,
-      };
-    });
-
-    setResultsByCategory(newResultsByCategory);
-  }, []);
-
   const latestSearchTerm = useRef<string | null>(null);
   const search = useCallback((text: string) => {
     latestSearchTerm.current = text;
     if (!text) {
-      updateResults([
+      setFuseResults([
         ...browserHistory,
         ...bookmarks,
+      ]);
+      setTokenResults([
+        {
+          type: 'tokens',
+          name: 'USDC',
+          symbol: 'USDC',
+          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          chainId: '0x1',
+        }
       ]);
       return;
     }
     const fuseSearchResult = fuseRef.current?.search(text);
     if (Array.isArray(fuseSearchResult)) {
-      updateResults([...fuseSearchResult]);
+      setFuseResults(fuseSearchResult);
     } else {
-      updateResults([]);
+      setFuseResults([]);
     }
-  }, [updateResults, browserHistory, bookmarks]);
+  }, [browserHistory, bookmarks]);
 
   /**
    * Debounce the search function
@@ -107,7 +124,8 @@ const UrlAutocomplete = forwardRef<
     // Cancel the search
     debouncedSearch.cancel();
     resultsRef.current?.setNativeProps({ style: { display: 'none' } });
-    setResultsByCategory([]);
+    setFuseResults([]);
+    setTokenResults([]);
   }, [debouncedSearch]);
 
   const dismissAutocomplete = () => {
@@ -157,7 +175,7 @@ const UrlAutocomplete = forwardRef<
       result={item}
       onPress={() => {
         hide();
-        onSelect(item.url);
+        onSelect(item);
       }}
     />
   ), [hide, onSelect]);
@@ -177,7 +195,7 @@ const UrlAutocomplete = forwardRef<
       <SectionList
         contentContainerStyle={styles.contentContainer}
         sections={resultsByCategory}
-        keyExtractor={(item) => `${item.type}-${item.url}`}
+        keyExtractor={(item) => `${item.type}-${item.type === 'tokens' ? `${item.chainId}-${item.address}` : item.url}`}
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"

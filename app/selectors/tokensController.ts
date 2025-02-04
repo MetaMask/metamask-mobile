@@ -199,3 +199,12 @@ export const selectTransformedTokens = createSelector(
     return flatList;
   },
 );
+
+export const selectSearchedToken = createSelector(
+  selectTokensControllerState,
+  (_state: RootState, chainId: Hex) => chainId,
+  (_state: RootState, _chainId: Hex, address: string) => address,
+  (tokensControllerState: TokensControllerState, chainId: Hex, address: string) => (
+    tokensControllerState.allSearchedTokens.find((token) => token.chainId === chainId && token.address === address)
+  ),
+);
