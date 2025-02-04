@@ -231,6 +231,7 @@ import {
   SnapControllerStateChangeEvent,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
+import { EarnController } from '@metamask/earn-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1546,6 +1547,20 @@ export class Engine {
       MultichainBalancesController: multichainBalancesController,
       RatesController: multichainRatesController,
       ///: END:ONLY_INCLUDE_IF
+      EarnController: new EarnController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'EarnController',
+          allowedEvents: [
+            'AccountsController:selectedAccountChange',
+            'NetworkController:stateChange',
+          ],
+          allowedActions: [
+            'NetworkController:getNetworkClientById',
+            'NetworkController:getState',
+            'AccountsController:getSelectedAccount',
+          ],
+        }),
+      }),
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2170,6 +2185,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       ///: END:ONLY_INCLUDE_IF
+      EarnController,
     } = instance.datamodel.state;
 
     return {
@@ -2209,6 +2225,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       ///: END:ONLY_INCLUDE_IF
+      EarnController,
     };
   },
 
