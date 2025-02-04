@@ -162,7 +162,7 @@ describe('Signature Utils', () => {
 
   describe('isTypedSignV3V4Request', () => {
     it('return true for typed sign V3, V4 messages', () => {
-    expect(isTypedSignV3V4Request(typedSignV3SignatureRequest)).toBe(true);
+      expect(isTypedSignV3V4Request(typedSignV3SignatureRequest)).toBe(true);
       expect(isTypedSignV3V4Request(typedSignV4SignatureRequest)).toBe(true);
     });
     it('return false for typed sign V1 message', () => {
