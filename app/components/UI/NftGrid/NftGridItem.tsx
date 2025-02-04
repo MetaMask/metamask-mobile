@@ -1,5 +1,5 @@
 import React, { MutableRefObject, RefObject, useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import CollectibleMedia from '../CollectibleMedia';
 import Text from '../../../component-library/components/Texts/Text';
 import { Nft } from '@metamask/assets-controllers';
@@ -56,12 +56,14 @@ function NftGridItem({
       onLongPress={onLongPressCollectible}
       testID={nft.name as string}
     >
-      <CollectibleMedia
-        style={styles.collectibleIcon}
-        collectible={nft}
-        isTokenImage
-        privacyMode={privacyMode}
-      />
+      <View style={styles.collectibleIconContainer}>
+        <CollectibleMedia
+          style={styles.collectibleIcon}
+          collectible={nft}
+          isTokenImage
+          privacyMode={privacyMode}
+        />
+      </View>
       <Text numberOfLines={1} ellipsizeMode="tail">
         {nft.name}
       </Text>

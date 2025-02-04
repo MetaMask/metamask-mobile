@@ -14,6 +14,11 @@ const styleSheet = (colors: Colors) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    collectibleIconContainer: {
+      width: '100%',
+      aspectRatio: 1,
+      marginBottom: 10,
+    },
     footer: {
       alignItems: 'center',
     },

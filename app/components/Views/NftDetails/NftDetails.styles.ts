@@ -14,6 +14,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'baseline',
     },
     collectibleMediaWrapper: {
+      borderWidth: 1,
       paddingTop: 16,
       paddingBottom: 40,
       flex: 1,
@@ -22,9 +23,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     collectibleMediaStyle: {
       alignItems: 'center',
-      flexGrow: 0,
-      flexShrink: 0,
-      flexBasis: 97,
+      aspectRatio: 1,
       width: 180,
       height: 180,
     },

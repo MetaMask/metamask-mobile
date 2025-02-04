@@ -74,6 +74,12 @@ const RemoteImage = (props) => {
       ? ''
       : source.uri);
 
+  const isSVG =
+    source &&
+    source.uri &&
+    source.uri.match('.svg') &&
+    (isImageUrl || resolvedIpfsUrl);
+
   const onError = ({ nativeEvent: { error } }) => setError(error);
 
   const [dimensions, setDimensions] = useState(null);
@@ -97,6 +103,10 @@ const RemoteImage = (props) => {
   }, [props.source.uri, ipfsGateway]);
 
   useEffect(() => {
+    if (isSVG) {
+      return;
+    }
+
     const calculateImageDimensions = (imageWidth, imageHeight) => {
       const deviceWidth = Dimensions.get('window').width;
       const maxWidth = deviceWidth - 32;
@@ -128,7 +138,7 @@ const RemoteImage = (props) => {
         Logger.log('Failed to get image dimensions', error);
       },
     );
-  }, [uri]);
+  }, [uri, isSVG]);
 
   const NetworkBadgeSource = () => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -139,11 +149,6 @@ const RemoteImage = (props) => {
 
     return ticker ? images[ticker] : undefined;
   };
-  const isSVG =
-    source &&
-    source.uri &&
-    source.uri.match('.svg') &&
-    (isImageUrl || resolvedIpfsUrl);
 
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
@@ -166,15 +171,7 @@ const RemoteImage = (props) => {
         componentLabel="RemoteImage-SVG"
       >
         <View style={{ ...style, ...styles.svgContainer }}>
-          {dimensions && (
-            <SvgUri
-              {...props}
-              uri={uri}
-              width={'100%'}
-              height={'100%'}
-              viewBox={`0 0 ${dimensions.width} ${dimensions.height}`}
-            />
-          )}
+          <SvgUri {...props} uri={uri} width={'100%'} height={'100%'} />
         </View>
       </ComponentErrorBoundary>
     );
