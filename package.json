@@ -459,7 +459,7 @@
     "browserstack-local": "^1.5.1",
     "chromedriver": "^123.0.1",
     "depcheck": "^1.4.7",
-    "detox": "^20.27.5",
+    "detox": "20.32.0",
     "dotenv": "^16.0.3",
     "dpdm": "^3.14.0",
     "enzyme": "3.9.0",
