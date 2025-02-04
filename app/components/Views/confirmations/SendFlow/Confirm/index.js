@@ -600,9 +600,10 @@ class Confirm extends PureComponent {
       this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET;
     const haveGasFeeMaxNativeChanged = isEIP1559Transaction
       ? EIP1559GasTransaction.gasFeeMaxNative !==
-        prevState.EIP1559GasTransaction.gasFeeMaxNative
+      prevState.EIP1559GasTransaction.gasFeeMaxNative
       : legacyGasTransaction.gasFeeMaxNative !==
-        prevState.legacyGasTransaction.gasFeeMaxNative;
+      prevState.legacyGasTransaction.gasFeeMaxNative;
+    const isControllerTransactionAdded = Boolean(!prevState.transactionMeta?.id && transactionId);
 
     const haveGasPropertiesChanged =
       (this.props.gasFeeEstimates &&
@@ -625,32 +626,33 @@ class Confirm extends PureComponent {
       this.scrollView.scrollToEnd({ animated: true });
     }
 
+    if (
+      transactionId &&
+      maxValueMode &&
+      selectedAsset.isETH &&
+      !isEmpty(gasFeeEstimates) &&
+      (haveGasFeeMaxNativeChanged || isControllerTransactionAdded)
+    ) {
+      updateTransactionToMaxValue({
+        transactionId,
+        isEIP1559Transaction,
+        EIP1559GasTransaction,
+        legacyGasTransaction,
+        accountBalance: accounts[from].balance,
+        setTransactionValue: this.props.setTransactionValue,
+      });
+
+      // In order to prevent race condition do not remove this early return.
+      // Another update will be triggered by `updateEditableParams` and validateAmount will be called next update.
+      return;
+    }
+
     if (haveGasPropertiesChanged) {
       const gasEstimateTypeChanged =
         prevProps.gasEstimateType !== this.props.gasEstimateType;
       const gasSelected = gasEstimateTypeChanged
         ? AppConstants.GAS_OPTIONS.MEDIUM
         : this.state.gasSelected;
-
-      if (
-        maxValueMode &&
-        selectedAsset.isETH &&
-        !isEmpty(gasFeeEstimates) &&
-        haveGasFeeMaxNativeChanged
-      ) {
-        updateTransactionToMaxValue({
-          transactionId,
-          isEIP1559Transaction,
-          EIP1559GasTransaction,
-          legacyGasTransaction,
-          accountBalance: accounts[from].balance,
-          setTransactionValue: this.props.setTransactionValue,
-        });
-
-        // In order to prevent race condition do not remove this early return.
-        // Another update will be triggered by `updateEditableParams` and validateAmount will be called next update.
-        return;
-      }
 
       if (
         (!this.state.stopUpdateGas && !this.state.advancedGasInserted) ||
@@ -1621,6 +1623,7 @@ const mapStateToProps = (state) => {
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+    maxValueMode: state.transaction.maxValueMode,
   };
 };
 
