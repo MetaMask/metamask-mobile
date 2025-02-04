@@ -125,8 +125,6 @@ html-report/
 app/util/termsOfUse/termsOfUseContent.ts
 docs/assets/termsOfUse.html
 
-/app/images/branding
-
 # build metadata
 android/app/src/main/assets/modules.json
 
