@@ -15,12 +15,13 @@ export const personalSignSignatureRequest = {
     data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
     from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
     meta: {
+      url: 'https://metamask.github.io/test-dapp/',
       title: 'E2E Test Dapp',
       icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
       analytics: { request_source: 'In-App-Browser' },
     },
-    metamaskId: '57c0f1c0-e248-11ef-b445-876e3ee5414f',
     origin: 'metamask.github.io',
+    metamaskId: '76b33b40-7b5c-11ef-bc0a-25bce29dbc09',
   },
   networkClientId: '1',
   status: SignatureRequestStatus.Unapproved,
@@ -41,7 +42,6 @@ export const personalSignatureConfirmationState = {
             requestData: {
               data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
               from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-              requestId: 2634081647,
               meta: {
                 url: 'https://metamask.github.io/test-dapp/',
                 title: 'E2E Test Dapp',
@@ -49,6 +49,7 @@ export const personalSignatureConfirmationState = {
                 analytics: { request_source: 'In-App-Browser' },
               },
               origin: 'metamask.github.io',
+              metamaskId: '76b33b40-7b5c-11ef-bc0a-25bce29dbc09',
             },
             requestState: null,
             expectsResult: true,
