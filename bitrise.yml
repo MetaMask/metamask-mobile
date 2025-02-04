@@ -674,6 +674,9 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeMonetization.*'
     after_run:
       - android_e2e_test
+  run_ios_api_specs:
+    after_run:
+      - ios_api_specs
   run_tag_smoke_core_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
