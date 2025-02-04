@@ -756,7 +756,6 @@ export function getOptinMetricsNavbarOptions(themeColors) {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
-      height: 100,
     },
     metamaskName: {
       width: 70,
@@ -764,13 +763,9 @@ export function getOptinMetricsNavbarOptions(themeColors) {
       tintColor: themeColors.text.default,
     },
   });
-
   return {
-    headerStyle: innerStyles.headerStyle,
-    title: null,
-    headerLeft: () => <View />, // Empty view on left
     headerTitle: () => (
-      <View style={innerStyles.centerContainer}>
+      <View style={styles.metamaskNameTransparentWrapper}>
         <Image
           source={metamask_name}
           style={innerStyles.metamaskName}
@@ -778,6 +773,9 @@ export function getOptinMetricsNavbarOptions(themeColors) {
         />
       </View>
     ),
+    headerBackTitle: strings('navigation.back'),
+    headerRight: () => <View />,
+    headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };
 }
