@@ -8,12 +8,12 @@ import { strings } from '../../locales/i18n';
 import {
   selectProviderConfig,
   selectNetworkClientId,
-  selectNetworkConfigurations,
   selectSelectedNetworkClientId,
-  selectChainId as selectProviderChainId,
+  selectEvmChainId as selectProviderChainId,
   selectRpcUrl as selectProviderRpcUrl,
   ProviderConfig,
-  selectChainId,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from './networkController';
 import { isNonEvmChainId } from '../core/Multichain/utils';
 
@@ -39,9 +39,9 @@ export const makeSelectDomainNetworkClientId = () =>
 const selectProviderNetworkName = createSelector(
   [
     selectProviderConfig,
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
     selectSelectedNetworkClientId,
-    selectChainId,
+    selectEvmChainId,
   ],
   (
     providerConfig: ProviderConfig,
@@ -85,11 +85,11 @@ const selectProviderNetworkImageSource = createSelector(
 export const makeSelectNetworkName = () =>
   createSelector(
     [
-      selectNetworkConfigurations,
+      selectEvmNetworkConfigurationsByChainId,
       selectProviderNetworkName,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
-      selectChainId,
+      selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
     ],
     (
@@ -118,11 +118,11 @@ export const makeSelectNetworkName = () =>
 export const makeSelectNetworkImageSource = () =>
   createSelector(
     [
-      selectNetworkConfigurations,
+      selectEvmNetworkConfigurationsByChainId,
       selectProviderNetworkImageSource,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
-      selectChainId,
+      selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
     ],
     (
@@ -158,7 +158,7 @@ export const makeSelectChainId = () =>
       selectProviderChainId,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
-      selectChainId,
+      selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
     ],
     (
@@ -173,6 +173,7 @@ export const makeSelectChainId = () =>
       }
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
+
       return (
         chainId ||
         // @ts-expect-error The utils/network file is still JS
@@ -185,11 +186,11 @@ export const makeSelectChainId = () =>
 export const makeSelectRpcUrl = () =>
   createSelector(
     [
-      selectNetworkConfigurations,
+      selectEvmNetworkConfigurationsByChainId,
       selectProviderRpcUrl,
       makeSelectDomainNetworkClientId(),
       selectNetworkClientId,
-      selectChainId,
+      selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
     ],
     (

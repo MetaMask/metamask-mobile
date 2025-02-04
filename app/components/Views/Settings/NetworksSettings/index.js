@@ -70,6 +70,9 @@ const createStyles = (colors) =>
       paddingVertical: 12,
       alignItems: 'center',
     },
+    networkDisabled: {
+      opacity: 0.5,
+    },
     networkWrapper: {
       flex: 0,
       flexDirection: 'row',
@@ -454,7 +457,7 @@ class NetworksSettings extends PureComponent {
     return (
       <View style={styles.mainnetHeader}>
         <TouchableOpacity
-          style={styles.network}
+          style={{ ...styles.network, ...styles.networkDisabled }}
           key={`network-${solanaMainnetName}`}
           onPress={() => null}
           disabled

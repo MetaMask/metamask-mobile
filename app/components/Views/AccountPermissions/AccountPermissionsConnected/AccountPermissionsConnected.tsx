@@ -27,6 +27,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectProviderConfig,
   ProviderConfig,
+  selectEvmChainId,
 } from '../../../../selectors/networkController';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
@@ -66,6 +67,7 @@ const AccountPermissionsConnected = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectEvmChainId);
 
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
@@ -124,11 +126,11 @@ const AccountPermissionsConnected = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
         .addProperties({
-          chain_id: getDecimalChainId(providerConfig.chainId),
+          chain_id: getDecimalChainId(chainId),
         })
         .build(),
     );
-  }, [providerConfig.chainId, navigate, trackEvent, createEventBuilder]);
+  }, [chainId, navigate, trackEvent, createEventBuilder]);
 
   const renderSheetAction = useCallback(
     () => (

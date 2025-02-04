@@ -83,6 +83,10 @@ export interface UseAccounts {
    */
   accounts: Account[];
   /**
+   * List of EVM account information.
+   */
+  evmAccounts: Account[];
+  /**
    * Mapping of ENS names by account address.
    */
   ensByAccountAddress: EnsByAccountAddress;

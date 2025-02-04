@@ -38,7 +38,7 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -90,7 +90,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
-      Object.keys(selectNetworkConfigurations(state)).length + 1,
+      Object.keys(selectEvmNetworkConfigurationsByChainId(state)).length + 1,
   );
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
@@ -118,7 +118,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const [networkAvatars, setNetworkAvatars] = useState<
     ({ name: string; imageSource: string } | null)[]
   >([]);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
@@ -127,7 +129,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ? AccountPermissionsScreens.PermissionsSummary
         : initialScreen,
     );
-  const { accounts, ensByAccountAddress } = useAccounts({
+  const { evmAccounts: accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
   const previousPermittedAccounts = useRef<string[]>();
@@ -141,6 +143,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const { chainId } = useNetworkInfo(hostname);
+
+  console.log(
+    'ENTER CHAIN ID ACCOUNT PERMISSIONS IS HEREEE ETHE ISSUE',
+    chainId,
+  );
 
   useEffect(() => {
     let currentlyPermittedChains: string[] = [];

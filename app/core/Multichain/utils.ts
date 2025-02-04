@@ -120,10 +120,16 @@ export function nonEvmNetworkChainIdByAccountAddress(address: string): string {
 
 export function lastSelectedAccountAddressByNonEvmNetworkChainId(
   chainId: CaipChainId,
-): string {
+): string | undefined {
   const { AccountsController } = Engine.context;
   // TODO: Add teh logic if there is none last selected account what to do
-  return AccountsController.getSelectedMultichainAccount(chainId).address;
+  return AccountsController.getSelectedMultichainAccount(chainId)?.address;
+}
+
+export function lastSelectedAccountAddressInEvmNetwork(): string | undefined {
+  const { AccountsController } = Engine.context;
+  // TODO: Add teh logic if there is none last selected account what to do
+  return AccountsController.getSelectedAccount()?.address;
 }
 
 /**

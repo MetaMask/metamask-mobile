@@ -81,9 +81,10 @@ import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
+import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -105,8 +106,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   const selectedWalletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+
+  const nonEvmSelected = useSelector(selectNonEvmSelected);
+
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
-    selectedWalletAddress ? [selectedWalletAddress] : [],
+    selectedWalletAddress && !nonEvmSelected ? [selectedWalletAddress] : [],
   );
   const [confirmedAddresses, setConfirmedAddresses] =
     useState<string[]>(selectedAddresses);
@@ -115,7 +119,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
   );
-  const { accounts, ensByAccountAddress } = useAccounts({
+  const { evmAccounts: accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
   const previousIdentitiesListSize = useRef<number>();
@@ -138,7 +142,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;

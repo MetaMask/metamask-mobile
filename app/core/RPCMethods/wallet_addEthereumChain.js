@@ -6,7 +6,7 @@ import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import {
   selectChainId,
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../selectors/networkController';
 import { store } from '../../store';
 import checkSafeNetwork from './networkChecker.util';
@@ -71,7 +71,9 @@ const wallet_addEthereumChain = async ({
     throw rpcErrors.invalidParams(`May not specify default MetaMask chain.`);
   }
   // TODO: [SOLANA] - This do not support non evm networks
-  const networkConfigurations = selectNetworkConfigurations(store.getState());
+  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
   const existingEntry = Object.entries(networkConfigurations)
     .filter(
       ([_, networkConfiguration]) =>

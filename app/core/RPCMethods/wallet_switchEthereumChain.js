@@ -9,7 +9,6 @@ import {
   findExistingNetwork,
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
-import { isNonEvmChainId } from '../Multichain/utils';
 
 const wallet_switchEthereumChain = async ({
   req,

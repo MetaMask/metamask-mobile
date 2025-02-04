@@ -20,7 +20,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectProviderConfig,
   ProviderConfig,
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
+  selectEvmChainId,
 } from '../../../../selectors/networkController';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
@@ -55,7 +56,6 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
-import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 const AccountPermissionsConnected = ({
   onSetPermissionsScreen,
@@ -69,6 +69,7 @@ const AccountPermissionsConnected = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectEvmChainId);
 
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
@@ -83,13 +84,15 @@ const AccountPermissionsConnected = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
         .addProperties({
-          chain_id: getDecimalChainId(providerConfig.chainId),
+          chain_id: getDecimalChainId(chainId),
         })
         .build(),
     );
-  }, [providerConfig.chainId, navigate, trackEvent, createEventBuilder]);
+  }, [chainId, navigate, trackEvent, createEventBuilder]);
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   // Get permitted chain IDs
   const getPermittedChainIds = () => {
@@ -108,17 +111,14 @@ const AccountPermissionsConnected = ({
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
     // If no permitted chains found, default to current chain
-    return providerConfig?.chainId ? [providerConfig.chainId] : [];
+    return chainId ? [chainId] : [];
   };
 
   const permittedChainIds = getPermittedChainIds();
 
   // Filter networks to only show permitted ones, excluding the active network
   const networks = Object.entries(networkConfigurations)
-    .filter(
-      ([key, network]) =>
-        permittedChainIds.includes(key) && !isNonEvmChainId(network.chainId),
-    )
+    .filter(([key]) => permittedChainIds.includes(key))
     .map(([key, network]) => ({
       id: key,
       name: network.name,

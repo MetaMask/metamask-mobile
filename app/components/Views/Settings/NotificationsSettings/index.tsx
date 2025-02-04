@@ -106,7 +106,7 @@ const MainNotificationSettings = ({
   );
 };
 const NotificationsSettings = ({ navigation, route }: Props) => {
-  const { accounts } = useAccounts();
+  const { evmAccounts: accounts } = useAccounts();
   const { trackEvent, createEventBuilder } = useMetrics();
   const theme = useTheme();
 

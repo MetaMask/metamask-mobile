@@ -11,6 +11,20 @@ import {
 } from './multichainNetworkController';
 import { getNonEvmNetworkImageSourceByChainId } from '../util/networks/customNetworks';
 
+export const selectEvmNetworkName = createSelector(
+  selectProviderConfig,
+  (providerConfig: ProviderConfig) =>
+    getNetworkNameFromProviderConfig(providerConfig),
+);
+
+export const selectEvmNetworkImageSource = createSelector(
+  selectProviderConfig,
+  (providerConfig: ProviderConfig) =>
+    getNetworkImageSource({
+      networkType: providerConfig?.type,
+      chainId: providerConfig.chainId,
+    }),
+);
 export const selectNetworkName = createSelector(
   selectProviderConfig,
   selectNonEvmSelected,

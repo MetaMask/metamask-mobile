@@ -5,7 +5,14 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { View, Alert, BackHandler, ImageSourcePropType, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Alert,
+  BackHandler,
+  ImageSourcePropType,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
@@ -60,7 +67,7 @@ import {
   MM_MIXPANEL_TOKEN,
 } from './constants';
 import { regex } from '../../../../app/util/regex';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
@@ -1359,7 +1366,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                     style={styles.webview}
                     onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
                     onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
-                    onLoadProgress={handleWebviewNavigationChange(OnLoadProgress)}
+                    onLoadProgress={handleWebviewNavigationChange(
+                      OnLoadProgress,
+                    )}
                     onNavigationStateChange={handleOnNavigationStateChange}
                     onMessage={onMessage}
                     onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
@@ -1426,7 +1435,7 @@ const mapStateToProps = (state: RootState) => ({
     selectSelectedInternalAccountFormattedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   wizardStep: state.wizard.step,
-  activeChainId: selectChainId(state),
+  activeChainId: selectEvmChainId(state),
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

@@ -21,8 +21,8 @@ import Engine from '../../../core/Engine';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import Cell, {
@@ -45,8 +45,10 @@ const MultiRpcModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const chainId = useSelector(selectChainId);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const chainId = useSelector(selectEvmChainId);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
 

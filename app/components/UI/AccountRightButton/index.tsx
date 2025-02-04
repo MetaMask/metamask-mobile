@@ -29,7 +29,7 @@ import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/A
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import UrlParser from 'url-parse';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -55,7 +55,6 @@ const AccountRightButton = ({
   selectedAddress,
   onPress,
   isNetworkVisible,
-  disableNonEvm = false,
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
@@ -73,7 +72,7 @@ const AccountRightButton = ({
   /**
    * Current network
    */
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
 
   const handleKeyboardVisibility = useCallback(
     (visibility: boolean) => () => {
@@ -119,7 +118,7 @@ const AccountRightButton = ({
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
         params: {
-          disableNonEvm,
+          evmChainId: chainId,
         },
       });
       trackEvent(
@@ -136,11 +135,11 @@ const AccountRightButton = ({
     dismissKeyboard,
     selectedAddress,
     isNetworkVisible,
-    onPress,
     navigate,
-    chainId,
     trackEvent,
     createEventBuilder,
+    chainId,
+    onPress,
   ]);
 
   const route = useRoute<RouteProp<Record<string, { url: string }>, string>>();

@@ -14,7 +14,7 @@ import {
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonVariants,
@@ -254,7 +254,7 @@ const SmartTransactionStatus = ({
   onConfirm,
 }: Props) => {
   const { status, creationTime, uuid } = smartTransaction;
-  const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectEvmChainId);
   const isNonEvmSelected = useSelector(selectNonEvmSelected);
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -315,7 +315,7 @@ const SmartTransactionStatus = ({
 
   // Set block explorer link and show explorer on click
   // TODO: [SOLANA] Smart transactions will support solana? Flagging this revisit this before shipping.
-  const txUrl = getPortfolioStxLink(providerConfig.chainId, uuid);
+  const txUrl = getPortfolioStxLink(chainId, uuid);
 
   const onViewTransaction = () => {
     navigation.navigate('Webview', {

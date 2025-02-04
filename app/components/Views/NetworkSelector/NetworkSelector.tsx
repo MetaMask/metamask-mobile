@@ -27,8 +27,8 @@ import BottomSheet, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
+  selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
-  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
@@ -123,7 +123,7 @@ interface ShowConfirmDeleteModalState {
 }
 
 interface NetworkSelectorRouteParams {
-  disableNonEvm?: boolean;
+  evmChainId?: Hex;
   hostInfo?: {
     metadata?: {
       origin?: string;
@@ -147,7 +147,9 @@ const NetworkSelector = () => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const safeAreaInsets = useSafeAreaInsets();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const isNonEvmNetworkSelected = useSelector(selectNonEvmSelected);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -157,7 +159,7 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
-  const disableNonEvm = route.params?.disableNonEvm || false;
+  const browserEvmChainId = route.params?.evmChainId || null;
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -336,7 +338,6 @@ const NetworkSelector = () => {
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
-        console.log('ENTER SWITCH TO CUSTOM NETWORK');
 
         setTokenNetworkFilter(chainId);
         sheetRef.current?.dismissModal();
@@ -539,6 +540,14 @@ const NetworkSelector = () => {
     return !networkIdenfier.includes(searchString);
   };
 
+  const isNetworkSelected = (chainId: Hex | CaipChainId) => {
+    if (browserEvmChainId) {
+      return chainId === browserEvmChainId;
+    }
+
+    return isNonEvmNetworkSelected ? false : chainId === selectedChainId;
+  };
+
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
     const rpcUrl =
@@ -566,9 +575,7 @@ const NetworkSelector = () => {
             imageSource: images.ETHEREUM,
             size: AvatarSize.Sm,
           }}
-          isSelected={
-            isNonEvmNetworkSelected ? false : chainId === selectedChainId
-          }
+          isSelected={isNetworkSelected(chainId)}
           onPress={() => onNetworkChange(MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
@@ -600,9 +607,7 @@ const NetworkSelector = () => {
           imageSource: images.ETHEREUM,
           size: avatarSize,
         }}
-        isSelected={
-          isNonEvmNetworkSelected ? false : chainId === selectedChainId
-        }
+        isSelected={isNetworkSelected(chainId)}
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
       />
@@ -632,9 +637,7 @@ const NetworkSelector = () => {
             imageSource: images['LINEA-MAINNET'],
             size: AvatarSize.Sm,
           }}
-          isSelected={
-            isNonEvmNetworkSelected ? false : chainId === selectedChainId
-          }
+          isSelected={isNetworkSelected(chainId)}
           onPress={() => onNetworkChange(LINEA_MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
@@ -671,9 +674,7 @@ const NetworkSelector = () => {
           imageSource: images['LINEA-MAINNET'],
           size: avatarSize,
         }}
-        isSelected={
-          isNonEvmNetworkSelected ? false : chainId === selectedChainId
-        }
+        isSelected={isNetworkSelected(chainId)}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
@@ -815,9 +816,7 @@ const NetworkSelector = () => {
               imageSource,
               size: AvatarSize.Sm,
             }}
-            isSelected={
-              isNonEvmNetworkSelected ? false : chainId === selectedChainId
-            }
+            isSelected={isNetworkSelected(chainId)}
             onPress={() => onNetworkChange(networkType)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
@@ -850,9 +849,7 @@ const NetworkSelector = () => {
             imageSource,
             size: avatarSize,
           }}
-          isSelected={
-            isNonEvmNetworkSelected ? false : chainId === selectedChainId
-          }
+          isSelected={isNetworkSelected(chainId)}
           onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
         />
@@ -872,7 +869,7 @@ const NetworkSelector = () => {
   const onNonEvmNetworkChange = async (chainId: CaipChainId) => {
     const lastSelectedAccountAddress =
       lastSelectedAccountAddressByNonEvmNetworkChainId(chainId);
-
+    // TODO: [SOLANA] - we can remove set selected address with the latest changes of multichain network controller
     Engine.setSelectedAddress(lastSelectedAccountAddress);
     await Engine.context.MultichainNetworkController.setActiveNetwork(
       '',
@@ -881,8 +878,8 @@ const NetworkSelector = () => {
     sheetRef.current?.dismissModal();
   };
 
-  const renderNonEvmNetworks = () => {
-    return NON_EVM_NETWORKS.map((network) => (
+  const renderNonEvmNetworks = () =>
+    NON_EVM_NETWORKS.map((network) => (
       <Cell
         key={network.chainId}
         variant={CellVariant.Select}
@@ -893,13 +890,14 @@ const NetworkSelector = () => {
           imageSource: images.SOLANA,
           size: avatarSize,
         }}
-        isSelected={isNonEvmNetworkSelected}
+        isSelected={isNonEvmNetworkSelected && !browserEvmChainId}
         onPress={() => onNonEvmNetworkChange(SolScopes.Mainnet)}
-        style={styles.networkCell}
-        disabled={disableNonEvm}
+        style={
+          browserEvmChainId ? styles.networkCellDisabled : styles.networkCell
+        }
+        disabled={!!browserEvmChainId}
       />
     ));
-  };
 
   const renderTestNetworksSwitch = () => (
     <View style={styles.switchContainer}>
