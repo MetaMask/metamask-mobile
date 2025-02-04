@@ -472,7 +472,7 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
                 </Text>
               }
               isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
-              onPress={!isNonEvmSelected ? showFilterControls : () => {}}
+              onPress={!isNonEvmSelected ? showFilterControls : () => null}
               endIconName={!isNonEvmSelected ? IconName.ArrowDown : undefined}
               style={
                 isTestNet(currentChainId) || !isPopularNetwork

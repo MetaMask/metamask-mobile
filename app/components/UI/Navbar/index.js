@@ -1012,7 +1012,7 @@ export function getWalletNavbarOptions(
   }
 
   const renderNetworkPicker = () => {
-    let networkPicker = (
+    const networkPicker = (
       <PickerNetwork
         label={networkName}
         imageSource={networkImageSource}

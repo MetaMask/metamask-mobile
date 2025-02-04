@@ -144,11 +144,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const { chainId } = useNetworkInfo(hostname);
 
-  console.log(
-    'ENTER CHAIN ID ACCOUNT PERMISSIONS IS HEREEE ETHE ISSUE',
-    chainId,
-  );
-
   useEffect(() => {
     let currentlyPermittedChains: string[] = [];
     try {

@@ -46,7 +46,6 @@ import {
   isNonEvmAddress,
   nonEvmNetworkChainIdByAccountAddress,
 } from '../../../core/Multichain/utils';
-import { selectNetworkClientId } from '../../../selectors/networkController';
 import { isSolanaEnabled } from '../../../util/networks';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
@@ -119,7 +118,15 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           .build(),
       );
     },
-    [Engine, accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
+    [
+      Engine,
+      accounts?.length,
+      onSelectAccount,
+      trackEvent,
+      createEventBuilder,
+      isNonEvmNetworkSelected,
+      selectedNonEvmNetworkChainId,
+    ],
   );
 
   const onRemoveImportedAccount = useCallback(

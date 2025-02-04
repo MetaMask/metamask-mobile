@@ -188,21 +188,21 @@ const AccountPermissionsConnected = ({
       <View style={styles.networkSelectorListContainer}>
         <NetworkSelectorList
           networks={networks}
-          onSelectNetwork={(chainId) => {
-            if (chainId === providerConfig?.chainId) {
+          onSelectNetwork={(onSelectChainId) => {
+            if (onSelectChainId === chainId) {
               onDismissSheet();
               return;
             }
 
             const theNetworkName = handleNetworkSwitch(
-              getDecimalChainId(chainId),
+              getDecimalChainId(onSelectChainId),
             );
 
             if (theNetworkName) {
               trackEvent(
                 createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
                   .addProperties({
-                    chain_id: getDecimalChainId(chainId),
+                    chain_id: getDecimalChainId(onSelectChainId),
                     from_network: providerConfig?.nickname || theNetworkName,
                     to_network: theNetworkName,
                   })
