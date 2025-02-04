@@ -27,7 +27,7 @@ const Message = () => {
   const signatureRequest = useSignatureRequest();
   const { styles } = useStyles(styleSheet, {});
 
-  const message = useMemo(() => {
+  const messageCollapsed = useMemo(() => {
     if (!signatureRequest?.messageParams?.data) {
       return '';
     }
@@ -40,11 +40,26 @@ const Message = () => {
     );
   }, [signatureRequest]);
 
+  const messageExpanded = useMemo(() => {
+    if (!signatureRequest?.messageParams?.data) {
+      return '';
+    }
+    // const { isSIWEMessage, parsedMessage } = getSIWEDetails(signatureRequest);
+    // if (isSIWEMessage) {
+    //   return parsedMessage?.statement ?? '';
+    // }
+    return sanitizeString(
+      hexToText(signatureRequest?.messageParams?.data as string),
+    );
+  }, [signatureRequest]);
+
   return (
     <SignatureMessageSection
-      messageCollapsed={message}
-      messageExpanded={<Text style={styles.messageExpanded}>{message}</Text>}
-      copyMessageText={message}
+      messageCollapsed={messageCollapsed}
+      messageExpanded={
+        <Text style={styles.messageExpanded}>{messageExpanded}</Text>
+      }
+      copyMessageText={messageExpanded}
       collapsedSectionAllowMultiline
     />
   );
