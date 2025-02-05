@@ -59,7 +59,7 @@ const mockQRState = {
 };
 
 describe('QRInfo', () => {
-  it('should contained required text', () => {
+  it('renders "Scan with your hardware wallet"', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       QRState: mockQRState,
     } as unknown as QRHardwareHook.QRHardwareContextType);
