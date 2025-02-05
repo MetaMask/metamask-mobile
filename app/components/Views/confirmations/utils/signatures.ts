@@ -61,6 +61,8 @@ export interface SIWEMessage {
   statement: string;
   uri: string;
   version: string;
+  requestId?: string;
+  resources?: string[];
 }
 
 type MessageParamsSIWE = MessageParamsPersonal & {

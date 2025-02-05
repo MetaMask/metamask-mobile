@@ -49,5 +49,11 @@ describe('PersonalSign', () => {
     expect(getByText('32891757')).toBeDefined();
     expect(getByText('Issued')).toBeDefined();
     expect(getByText('30 September 2021, 16:25')).toBeDefined();
+    expect(getByText('Request ID')).toBeDefined();
+    expect(getByText('12345')).toBeDefined();
+    expect(getByText('Resources')).toBeDefined();
+    expect(getByText('resource-1')).toBeDefined();
+    expect(getByText('resource-2')).toBeDefined();
+    expect(getByText('resource-3')).toBeDefined();
   });
 });

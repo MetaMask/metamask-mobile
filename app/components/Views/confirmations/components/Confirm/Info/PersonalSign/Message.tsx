@@ -45,7 +45,16 @@ const DetailedSIWEMessage = ({
   parsedMessage: SIWEMessage;
   styles: { siweTos: StyleProp<TextStyle> };
 }) => {
-  const { uri, chainId, address, version, nonce, issuedAt } = parsedMessage;
+  const {
+    uri,
+    chainId,
+    address,
+    version,
+    nonce,
+    issuedAt,
+    requestId,
+    resources,
+  } = parsedMessage;
   return (
     <View>
       <Text style={styles.siweTos}>{parsedMessage?.statement}</Text>
@@ -70,6 +79,18 @@ const DetailedSIWEMessage = ({
           unixTimestamp={Math.floor(new Date(issuedAt).getTime() / 1000)}
         />
       </InfoRow>
+      {requestId && (
+        <InfoRow label={strings('confirm.siwe_message.requestId')}>
+          {requestId}
+        </InfoRow>
+      )}
+      {resources && (
+        <InfoRow label={strings('confirm.siwe_message.resources')}>
+          {resources.map((resource, index) => (
+            <Text key={`resource-${index}`}>{resource}</Text>
+          ))}
+        </InfoRow>
+      )}
     </View>
   );
 };
