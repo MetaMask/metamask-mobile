@@ -35,6 +35,7 @@ import images from 'images/image-icons';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 
 import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
+import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../util/Logger';
 
@@ -74,12 +75,6 @@ const RemoteImage = (props) => {
       ? ''
       : source.uri);
 
-  const isSVG =
-    source &&
-    source.uri &&
-    source.uri.match('.svg') &&
-    (isImageUrl || resolvedIpfsUrl);
-
   const onError = ({ nativeEvent: { error } }) => setError(error);
 
   const [dimensions, setDimensions] = useState(null);
@@ -103,10 +98,6 @@ const RemoteImage = (props) => {
   }, [props.source.uri, ipfsGateway]);
 
   useEffect(() => {
-    if (isSVG) {
-      return;
-    }
-
     const calculateImageDimensions = (imageWidth, imageHeight) => {
       const deviceWidth = Dimensions.get('window').width;
       const maxWidth = deviceWidth - 32;
@@ -134,11 +125,11 @@ const RemoteImage = (props) => {
           calculateImageDimensions(width, height);
         setDimensions({ width: calculatedWidth, height: calculatedHeight });
       },
-      (error) => {
-        Logger.log('Failed to get image dimensions', error);
+      () => {
+        Logger.log('Failed to get image dimensions');
       },
     );
-  }, [uri, isSVG]);
+  }, [uri]);
 
   const NetworkBadgeSource = () => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -149,6 +140,13 @@ const RemoteImage = (props) => {
 
     return ticker ? images[ticker] : undefined;
   };
+  const isSVG =
+    source &&
+    source.uri &&
+    source.uri.match('.svg') &&
+    (isImageUrl || resolvedIpfsUrl);
+
+  const viewbox = useSvgUriViewBox(uri, isSVG);
 
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
@@ -171,7 +169,13 @@ const RemoteImage = (props) => {
         componentLabel="RemoteImage-SVG"
       >
         <View style={{ ...style, ...styles.svgContainer }}>
-          <SvgUri {...props} uri={uri} width={'100%'} height={'100%'} />
+          <SvgUri
+            {...props}
+            uri={uri}
+            width={'100%'}
+            height={'100%'}
+            viewBox={viewbox}
+          />
         </View>
       </ComponentErrorBoundary>
     );
