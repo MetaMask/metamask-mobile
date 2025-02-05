@@ -250,6 +250,13 @@ workflows:
         inputs:
           - content:  |-
               echo "This is a test"
+
+              if [ -z "$IS_SDK_E2E" ] || [ "$IS_SDK_E2E" = "true" ]; then
+                  IS_TEST="true"
+                else
+                  IS_TEST="false"
+                fi
+                echo "IS_TEST is set to: $IS_TEST"
   # Code Setups
   setup:
     steps:
