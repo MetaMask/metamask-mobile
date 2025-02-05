@@ -9,6 +9,7 @@ import {
 import Logger from '../../../../util/Logger';
 
 import { RemoteFeatureFlagInitParamTypes } from './types';
+import AppConstants from '../../../AppConstants';
 
 const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
@@ -36,6 +37,7 @@ export const createRemoteFeatureFlagController = ({
   messenger,
   disabled,
   getMetaMetricsId,
+  fetchInterval = AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
 }: RemoteFeatureFlagInitParamTypes) => {
   const remoteFeatureFlagController = new RemoteFeatureFlagController({
     messenger,
@@ -50,6 +52,7 @@ export const createRemoteFeatureFlagController = ({
         distribution: getFeatureFlagAppDistribution(),
       },
     }),
+    fetchInterval,
   });
 
   if (disabled) {
