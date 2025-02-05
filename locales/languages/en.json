@@ -3644,7 +3644,9 @@
       "version" : "Version",
       "chain_id" : "Chain ID",
       "nonce" : "Nonce",
-      "issued" : "Issued"
+      "issued" : "Issued",
+      "requestId": "Request ID",
+      "resources": "Resources"
     },
     "simulation": {
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
