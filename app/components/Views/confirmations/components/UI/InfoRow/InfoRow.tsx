@@ -17,10 +17,12 @@ const InfoRow = ({ label, children, tooltip, style = {} }: InfoRowProps) => {
 
   return (
     <View style={{ ...styles.container, ...style }}>
-      <View style={styles.labelContainer}>
-        <Text style={styles.label}>{label}</Text>
-        {tooltip && <Tooltip content={tooltip} />}
-      </View>
+      {label && (
+        <View style={styles.labelContainer}>
+          <Text style={styles.label}>{label}</Text>
+          {tooltip && <Tooltip content={tooltip} />}
+        </View>
+      )}
       {typeof children === 'string' ? (
         <Text style={styles.value}>{children}</Text>
       ) : (

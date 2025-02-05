@@ -19,7 +19,7 @@ const styleSheet = (params: { theme: Theme }) => {
     labelContainer: {
       display: 'flex',
       flexDirection: 'row',
-      alignSelf: 'center',
+      alignSelf: 'flex-start',
       alignItems: 'center',
       minHeight: 38,
       paddingEnd: 4,
