@@ -55,11 +55,11 @@ import {
   isTestNet,
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
-  fetchEstimatedMultiLayerL1Fee,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
   getDecimalChainId,
 } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import Text from '../../../../Base/Text';
 import { removeFavoriteCollectible } from '../../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -138,6 +138,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { updateTransactionToMaxValue } from './utils';
+import { isNativeToken } from '../../utils/generic';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -427,7 +428,7 @@ class Confirm extends PureComponent {
      * Ref.: https://github.com/MetaMask/metamask-mobile/pull/3989#issuecomment-1367558394
      */
     if (
-      selectedAsset.isETH ||
+      isNativeToken(selectedAsset) ||
       selectedAsset.tokenId ||
       !selectedAsset.address
     ) {
@@ -634,7 +635,7 @@ class Confirm extends PureComponent {
 
       if (
         maxValueMode &&
-        selectedAsset.isETH &&
+        isNativeToken(selectedAsset) &&
         !isEmpty(gasFeeEstimates) &&
         haveGasFeeMaxNativeChanged
       ) {
@@ -746,7 +747,7 @@ class Confirm extends PureComponent {
     const symbol = ticker ?? selectedAsset?.symbol;
     const parsedTicker = getTicker(symbol);
 
-    if (selectedAsset.isETH) {
+    if (isNativeToken(selectedAsset)) {
       transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
       transactionValueFiat = weiToFiat(
         valueBN,
@@ -892,7 +893,10 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (selectedAsset.isETH || selectedAsset.tokenId) {
+    if (
+      isNativeToken(selectedAsset) ||
+      selectedAsset.tokenId
+    ) {
       return insufficientBalanceMessage;
     }
 
