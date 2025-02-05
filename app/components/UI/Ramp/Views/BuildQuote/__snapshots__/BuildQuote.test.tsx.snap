@@ -8406,6 +8406,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   accessibilityRole="button"
                                   accessible={true}
                                   onPress={[Function]}
+                                  testID="region-dropdown"
                                 >
                                   <View
                                     style={
@@ -8925,6 +8926,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             }
                                           }
                                           onPress={[Function]}
+                                          testID="select-currency"
                                         >
                                           <View>
                                             <Text
@@ -9070,6 +9072,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "lineHeight": 20,
                                     }
                                   }
+                                  testID="min-limit-error"
                                 >
                                   Minimum deposit is
                                    
@@ -11979,6 +11982,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                             }
                                           }
                                           onPress={[Function]}
+                                          testID="amount-input"
                                         >
                                           <Text
                                             accessibilityRole="text"
@@ -12027,6 +12031,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "lineHeight": 20,
                                     }
                                   }
+                                  testID="min-limit-error"
                                 >
                                   Enter a larger amount to continue
                                 </Text>
