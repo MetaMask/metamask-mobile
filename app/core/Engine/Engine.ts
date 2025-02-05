@@ -1741,9 +1741,11 @@ export class Engine {
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling([chainId]);
 
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     this.context.MultichainBalancesController.start();
     this.context.MultichainBalancesController.updateBalances();
     this.context.RatesController.start();
+    ///: END:ONLY_INCLUDE_IF
   }
 
   configureControllersOnNetworkChange() {
