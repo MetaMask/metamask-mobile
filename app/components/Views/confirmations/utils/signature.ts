@@ -10,6 +10,7 @@ import {
   PRIMARY_TYPES_PERMIT,
   PrimaryType,
 } from '../constants/signatures';
+import { sanitizeMessage } from '../../../../util/string';
 
 /**
  * The contents of this file have been taken verbatim from
@@ -65,7 +66,9 @@ interface TypedSignatureRequest {
  *
  * @param signatureRequest - The signature request to check
  */
-export const isTypedSignV3V4Request = (signatureRequest: SignatureRequest) => {
+export const isTypedSignV3V4Request = (signatureRequest?: SignatureRequest) => {
+  if (!signatureRequest) { return false; }
+
   const {
     type,
     messageParams: { version },
@@ -77,21 +80,19 @@ export const isTypedSignV3V4Request = (signatureRequest: SignatureRequest) => {
   );
 };
 
+export const parseTypedDataMessageFromSignatureRequest = (signatureRequest?: SignatureRequest) => {
+  if (!signatureRequest || !isTypedSignV3V4Request(signatureRequest)) { return; }
+
+  const data = signatureRequest.messageParams?.data as string;
+  return parseTypedDataMessage(data);
+};
+
+
 const isRecognizedOfType = (
   request: SignatureRequest | undefined,
   types: PrimaryType[],
 ) => {
-  if (
-    !request ||
-    request.type !== SignatureRequestType.TypedSign ||
-    !isTypedSignV3V4Request(request)
-  ) {
-    return false;
-  }
-
-  const data = (request as SignatureRequest).messageParams?.data as string;
-
-  const { primaryType } = parseTypedDataMessage(data);
+  const { primaryType } = parseTypedDataMessageFromSignatureRequest(request) || {};
   return types.includes(primaryType);
 };
 
@@ -111,18 +112,16 @@ export const isRecognizedPermit = (request?: SignatureRequest) =>
 export const isRecognizedOrder = (request?: SignatureRequest) =>
   isRecognizedOfType(request, PRIMARY_TYPES_ORDER);
 
-/**
- * Returns primary type of typed signature request
- *
- * @param signatureRequest - The signature request get primary type from
- */
-export const getSignatureRequestPrimaryType = (
-  signatureRequest: SignatureRequest,
-) => {
-  if (!isTypedSignV3V4Request(signatureRequest)) {
-    return;
-  }
-  const data = signatureRequest.messageParams?.data as string;
-  const { primaryType } = parseTypedDataMessage(data);
-  return primaryType;
+export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
+  if (!dataToParse) { return {}; }
+
+  const {
+    domain,
+    message,
+    primaryType,
+    types,
+  } = parseTypedDataMessage(dataToParse);
+
+  const sanitizedMessage = sanitizeMessage(message, primaryType, types);
+  return { sanitizedMessage, primaryType, domain };
 };
