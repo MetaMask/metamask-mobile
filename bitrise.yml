@@ -249,7 +249,7 @@ workflows:
         title: Testing Demo Testing
         inputs:
           - content:  |-
-              echo "This is a test"
+              echo "This is a test $IS_SDK_E2E"
 
               if [ -z "$IS_SDK_E2E" ] || [ "$IS_SDK_E2E" = "true" ]; then
                   IS_TEST="true"
