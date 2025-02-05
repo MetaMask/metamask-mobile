@@ -3621,10 +3621,14 @@
     "reject": "Reject",
     "confirm": "Confirm",
     "title": {
-      "signature": "Signature request"
+      "signature": "Signature request",
+      "permit": "Spending cap request",
+      "permit_NFTs": "Withdrawal request"
     },
     "sub_title": {
-      "signature": "Review request details before you confirm."
+      "signature": "Review request details before you confirm.",
+      "permit": "This site wants permission to spend your tokens.",
+      "permit_NFTs": "This site wants permission to withdraw your NFTs."
     },
     "request_from": "Request from",
     "message": "Message",

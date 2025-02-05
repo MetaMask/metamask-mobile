@@ -325,6 +325,72 @@ export const typedSignV4ConfirmationState = {
   },
 };
 
+export const typedSignV4NFTSignatureRequest = {
+  id: 'c5067710-87cf-11ef-916c-71f266571322',
+  chainId: '0x1' as Hex,
+  type: SignatureRequestType.TypedSign,
+  messageParams: {
+    data: '{"domain":{"name":"Uniswap V3 Positions NFT-V1","version":"1","chainId":1,"verifyingContract":"0xC36442b4a4522E871399CD717aBDD847Ab11FE88"},"types":{"Permit":[{"name":"spender","type":"address"},{"name":"tokenId","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"primaryType":"Permit","message":{"spender":"0x00000000Ede6d8D217c60f93191C060747324bca","tokenId":"3606393","nonce":"0","deadline":"1734995006"}}',
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    version: 'V4',
+    requestId: 14,
+    signatureMethod: 'eth_signTypedData_v4',
+    origin: 'https://metamask.github.io',
+    metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+    meta: {
+      url: 'https://metamask.github.io/test-dapp/',
+      title: 'E2E Test Dapp',
+      icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+      analytics: { request_source: 'In-App-Browser' },
+    },
+  },
+  networkClientId: '1',
+  status: SignatureRequestStatus.Unapproved,
+  time: 1733143817088,
+} as SignatureRequest;
+
+export const typedSignV4NFTConfirmationState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      ApprovalController: {
+        pendingApprovals: {
+          'c5067710-87cf-11ef-916c-71f266571322': {
+            id: 'c5067710-87cf-11ef-916c-71f266571322',
+            origin: 'metamask.github.io',
+            type: SignatureRequestType.TypedSign,
+            time: 1733143817088,
+            requestData: {
+              data: '{"domain":{"name":"Uniswap V3 Positions NFT-V1","version":"1","chainId":1,"verifyingContract":"0xC36442b4a4522E871399CD717aBDD847Ab11FE88"},"types":{"Permit":[{"name":"spender","type":"address"},{"name":"tokenId","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"primaryType":"Permit","message":{"spender":"0x00000000Ede6d8D217c60f93191C060747324bca","tokenId":"3606393","nonce":"0","deadline":"1734995006"}}',
+              from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              version: 'V4',
+              requestId: 2874791875,
+              signatureMethod: 'eth_signTypedData_v4',
+              origin: 'https://metamask.github.io',
+              metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+              meta: {
+                url: 'https://metamask.github.io/test-dapp/',
+                title: 'E2E Test Dapp',
+                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+                analytics: { request_source: 'In-App-Browser' },
+              },
+            },
+            requestState: null,
+            expectsResult: true,
+          },
+        },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+      SignatureController: {
+        signatureRequests: {
+          'c5067710-87cf-11ef-916c-71f266571322': typedSignV4NFTSignatureRequest,
+        },
+      },
+    },
+  },
+};
+
 export const securityAlertResponse = {
   block: 21572398,
   result_type: 'Malicious',
