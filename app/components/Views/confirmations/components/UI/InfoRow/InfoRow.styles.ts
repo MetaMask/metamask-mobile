@@ -22,6 +22,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignSelf: 'center',
       alignItems: 'center',
       minHeight: 38,
+      paddingEnd: 4,
     },
     label: {
       color: theme.colors.text.default,
