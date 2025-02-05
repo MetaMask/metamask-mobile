@@ -20,6 +20,11 @@ const SIGNATURE_LIST = [
     specName: 'Personal Sign',
     testDappBtn: TestDApp.tapPersonalSignButton.bind(TestDApp),
     requestType: RequestTypes.PersonalSignRequest,
+    additionAssertions: async () => {
+      await Assertions.checkIfVisible(
+        PageSections.SiweSigningAccountInfoSection,
+      );
+    },
   },
   {
     specName: 'SIWE Sign',
@@ -51,7 +56,8 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
 
   // using for loop here to ensure synchronous execution
   for (let index = 0; index < SIGNATURE_LIST.length; index++) {
-    const { specName, testDappBtn, requestType } = SIGNATURE_LIST[index];
+    const { specName, testDappBtn, requestType, additionAssertions } =
+      SIGNATURE_LIST[index];
     it(`should sign ${specName} message`, async () => {
       await withFixtures(
         {
@@ -86,6 +92,10 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           // confirm request
           await FooterActions.tapConfirmButton();
           await Assertions.checkIfNotVisible(requestType);
+
+          if (additionAssertions) {
+            await additionAssertions();
+          }
         },
       );
     });
