@@ -1762,6 +1762,9 @@ app:
       MM_CHAIN_PERMISSIONS: true
     - opts:
         is_expand: false
+      MM_PER_DAPP_SELECTED_NETWORK: true
+    - opts:
+        is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
