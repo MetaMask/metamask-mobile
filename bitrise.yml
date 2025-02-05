@@ -1856,3 +1856,4 @@ trigger_map:
     pipeline: release_e2e_pipeline
   - push_branch: detox/address-regression-tests-slowdown
     pipeline: multichain_permissions_e2e_pipeline
+    
