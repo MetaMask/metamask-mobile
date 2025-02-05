@@ -1573,7 +1573,7 @@ workflows:
                 #!/usr/bin/env bash
                 node -v
                 echo "IS_TEST: $IS_SDK_E2E"
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' IS_TEST='true' yarn build:ios:pre-qa
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' IS_TEST='${IS_SDK_E2E}' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
@@ -1829,7 +1829,7 @@ app:
       COREPACK_VERSION: 0.28.0
     - opts:
         is_expand: false
-      IS_SDK_E2E: 'true'
+      IS_SDK_E2E: true
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
