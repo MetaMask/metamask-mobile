@@ -3620,6 +3620,9 @@
   "confirm": {
     "reject": "Reject",
     "confirm": "Confirm",
+    "label": {
+      "spender": "Spender"
+    },
     "title": {
       "signature": "Signature request",
       "permit": "Spending cap request",

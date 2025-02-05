@@ -1,12 +1,12 @@
 import React from 'react';
-import InfoRowOrigin from '../Shared/InfoRowOrigin';
+import { InfoSectionAddressAndOrigin } from './InfoSectionAddressAndOrigin';
 import Message from './Message';
 import TypedSignV3V4Simulation from './Simulation';
 
 const TypedSignV3V4 = () => (
     <>
       <TypedSignV3V4Simulation />
-      <InfoRowOrigin />
+      <InfoSectionAddressAndOrigin />
       <Message />
     </>
   );
