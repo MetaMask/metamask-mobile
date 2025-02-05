@@ -79,6 +79,7 @@ export const setupBridge = ({
         },
         toggleUrlModal: () => null,
         injectHomePageScripts: () => null,
+        disableOriginThrottling: true,
       });
     },
     isMainFrame: true,

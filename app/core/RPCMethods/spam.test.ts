@@ -34,6 +34,17 @@ const mockStore = configureMockStore();
 describe('utils', () => {
   describe('validateOriginThrottling', () => {
     describe('allows request', () => {
+      it('when disableOriginThrottling is true', () => {
+        const store = mockStore(mockInitialState);
+        expect(() =>
+          validateOriginThrottling({
+            req: NOT_BLOCKABLE_RPC_REQUEST_MOCK,
+            store,
+            disableOriginThrottling: true,
+          }),
+        ).not.toThrow();
+      });
+
       it('when RPC request method is not blockable', () => {
         const store = mockStore(mockInitialState);
         expect(() =>
@@ -131,6 +142,19 @@ describe('utils', () => {
 
   describe('processOriginThrottlingRejection', () => {
     describe('does nothing', () => {
+      it('when disableOriginThrottling is true', () => {
+        const store = mockStore(mockInitialState);
+        expect(() =>
+          processOriginThrottlingRejection({
+            req: RPC_REQUEST_MOCK,
+            error: new Error('Some error'),
+            store,
+            navigation: {} as { navigate: jest.Mock },
+            disableOriginThrottling: true,
+          }),
+        ).not.toThrow();
+      });
+
       it('when RPC request method is not blockable', () => {
         const store = mockStore(mockInitialState);
         expect(() =>

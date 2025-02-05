@@ -31,14 +31,16 @@ export const SPAM_FILTER_ACTIVATED = providerErrors.unauthorized(
 );
 
 export function validateOriginThrottling({
+  disableOriginThrottling,
   req,
   store,
 }: {
+  disableOriginThrottling?: boolean;
   req: ExtendedJSONRPCRequest;
   store: Store;
 }) {
   const isBlockableRPCMethod = BLOCKABLE_SPAM_RPC_METHODS.has(req.method);
-  if (!isBlockableRPCMethod) {
+  if (!isBlockableRPCMethod || disableOriginThrottling) {
     return;
   }
 
@@ -54,24 +56,26 @@ export function validateOriginThrottling({
 }
 
 export function processOriginThrottlingRejection({
-  req,
+  disableOriginThrottling,
   error,
-  store,
   navigation,
+  req,
+  store,
 }: {
-  req: ExtendedJSONRPCRequest;
+  disableOriginThrottling?: boolean;
   error: {
     message: string;
     code?: number;
   };
-  store: Store;
   navigation: {
     navigate: (route: string, params: Record<string, unknown>) => void;
   };
+  req: ExtendedJSONRPCRequest;
+  store: Store;
 }) {
   const isBlockableRPCMethod = BLOCKABLE_SPAM_RPC_METHODS.has(req.method);
 
-  if (!isBlockableRPCMethod) {
+  if (!isBlockableRPCMethod || disableOriginThrottling) {
     return;
   }
 
