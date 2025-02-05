@@ -7,7 +7,6 @@ import {
   SignatureRequestType,
 } from '@metamask/signature-controller';
 
-import { SIWEMessage } from '../../components/Views/confirmations/utils/signatures';
 import { backgroundState } from './initial-root-state';
 
 export const personalSignSignatureRequest = {
@@ -138,9 +137,7 @@ export const siweSignatureConfirmationState = {
               },
               origin: 'metamask.github.io',
               siwe: (
-                siweSignSignatureRequest.messageParams as MessageParamsPersonal & {
-                  siwe: SIWEMessage;
-                }
+                siweSignSignatureRequest.messageParams as MessageParamsPersonal
               ).siwe,
               metamaskId: '72424260-e22f-11ef-8e59-bf627a5d8354',
             },
