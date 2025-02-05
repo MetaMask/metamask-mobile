@@ -105,6 +105,7 @@ export interface RPCMethodsMiddleParameters {
   isMMSDK: boolean;
   injectHomePageScripts: (bookmarks?: []) => void;
   analytics: { [key: string]: string | boolean };
+  disableOriginThrottling?: boolean;
 }
 
 // Also used by WalletConnect.js.
@@ -315,6 +316,7 @@ export const getRpcMethodMiddleware = ({
   injectHomePageScripts,
   // For analytics
   analytics,
+  disableOriginThrottling = false,
 }: RPCMethodsMiddleParameters) => {
   // Make sure to always have the correct origin
   hostname = hostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
@@ -913,7 +915,7 @@ export const getRpcMethodMiddleware = ({
       return next();
     }
 
-    validateOriginThrottling({ req, store });
+    validateOriginThrottling({ disableOriginThrottling, req, store });
 
     const isWhiteListedMethod = isWhitelistedRPC(req.method);
 
@@ -926,13 +928,14 @@ export const getRpcMethodMiddleware = ({
         store.dispatch(setEventStage(req.method, RPCStageTypes.COMPLETE));
     } catch (error: unknown) {
       processOriginThrottlingRejection({
-        req,
+        disableOriginThrottling,
         error: error as {
           message: string;
           code?: number;
         },
-        store,
         navigation,
+        req,
+        store,
       });
       isWhiteListedMethod &&
         store.dispatch(setEventStageError(req.method, error));
