@@ -89,13 +89,14 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           await Assertions.checkIfVisible(PageSections.OriginInfoSection);
           await Assertions.checkIfVisible(PageSections.MessageSection);
 
-          // confirm request
-          await FooterActions.tapConfirmButton();
-          await Assertions.checkIfNotVisible(requestType);
-
+          // any signature specific additional assertions
           if (additionAssertions) {
             await additionAssertions();
           }
+
+          // confirm request
+          await FooterActions.tapConfirmButton();
+          await Assertions.checkIfNotVisible(requestType);
         },
       );
     });
