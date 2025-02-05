@@ -91,4 +91,3 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
     });
   }
 });
-//
