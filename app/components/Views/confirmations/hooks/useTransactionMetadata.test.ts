@@ -33,7 +33,10 @@ function renderHook({
         backgroundState: {
           ApprovalController: {
             pendingApprovals: {
-              [ID_MOCK]: APPROVAL_REQUEST_MOCK,
+              [ID_MOCK]: {
+                ...APPROVAL_REQUEST_MOCK,
+                type: approvalType ?? ApprovalType.Transaction,
+              },
             },
           },
           TransactionController: {

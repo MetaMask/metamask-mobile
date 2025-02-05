@@ -27,7 +27,7 @@ const ConfirmWrapped = () => (
     <ScrollView>
       <Title />
       <SignatureBlockaidBanner />
-      {/* <AccountNetworkInfo /> */}
+      <AccountNetworkInfo />
       <Info />
     </ScrollView>
     <Footer />
