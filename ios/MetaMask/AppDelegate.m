@@ -5,136 +5,104 @@
 #import <React/RCTRootView.h>
 #import <React/RCTPushNotificationManager.h>
 #import <RNBranch/RNBranch.h>
-#if DEBUG
-#ifdef FB_SONARKIT_ENABLED
-#import <FlipperKit/FlipperClient.h>
-#import <FlipperKitLayoutPlugin/FlipperKitLayoutPlugin.h>
-#import <FlipperKitLayoutPlugin/SKDescriptorMapper.h>
-#import <FlipperKitNetworkPlugin/FlipperKitNetworkPlugin.h>
-#import <FlipperKitReactPlugin/FlipperKitReactPlugin.h>
-#import <FlipperKitUserDefaultsPlugin/FKUserDefaultsPlugin.h>
-#import <SKIOSNetworkPlugin/SKIOSNetworkAdapter.h>
-#endif
-#endif
+#import <UserNotifications/UserNotifications.h>
 
 #if DEBUG
 #include <EXDevLauncher/EXDevLauncherController.h>
 #endif
 
+#import <Expo/Expo.h> // Required for `EXReactDelegateWrapper`
+
+@interface AppDelegate ()
+
+@property (nonatomic, strong) EXReactDelegateWrapper *reactDelegate;
+
+@end
+
 @implementation AppDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
   self.moduleName = @"MetaMask";
 
-  [FIRApp configure];
-  NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
-
-  NSString *foxCode;
-
-  if(foxCodeFromBundle != nil){
-    foxCode = foxCodeFromBundle;
-  } else {
-    foxCode = @"debug";
+  // Initialize Firebase
+  if ([FIRApp defaultApp] == nil) {
+    [FIRApp configure];
   }
 
-  // Uncomment this line to use the test key instead of the live one.
-  // [RNBranch useTestInstance];
+
+  // Initialize Branch.io
   [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
-  NSURL *jsCodeLocation;
 
-  RCTBridge *bridge = [self.reactDelegate createBridgeWithDelegate:self launchOptions:launchOptions];
-  RCTRootView *rootView = [self.reactDelegate createRootViewWithBridge:bridge
-                                                   moduleName:@"MetaMask"
-                                            initialProperties:@{@"foxCode": foxCode}];
+  NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
+  NSString *foxCode = foxCodeFromBundle ? foxCodeFromBundle : @"debug";
 
-  self.initialProps = @{@"foxCode": foxCode};
-
-  rootView.backgroundColor = [UIColor colorNamed:@"ThemeColors"];
-
+  // Create RootViewController
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-  UIViewController *rootViewController = [self.reactDelegate createRootViewController];
-  rootViewController.view = rootView;
+  UIViewController *rootViewController = [self createRootViewController];
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
 
-  //Keep splash screen while loading the bundle
-  UIView* launchScreenView = [[[NSBundle mainBundle] loadNibNamed:@"LaunchScreen" owner:self options:nil] objectAtIndex:0];
-  launchScreenView.frame = self.window.bounds;
-  rootView.loadingView = launchScreenView;
+  self.initialProps = @{@"foxCode": foxCode};
 
-  [self initializeFlipper:application];
+  // Register for Push Notifications
+  UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+  center.delegate = self;
+  [center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge)
+                        completionHandler:^(BOOL granted, NSError * _Nullable error) {
+                          if (!error) {
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                              [application registerForRemoteNotifications];
+                            });
+                          }
+                        }];
 
-  //Uncomment the following line to enable the splashscreen on ios
-  //[RNSplashScreen show];
-
-  [super application:application didFinishLaunchingWithOptions:launchOptions];
-
-  return YES;
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
-- (void) initializeFlipper:(UIApplication *)application {
-  #if DEBUG
-  #ifdef FB_SONARKIT_ENABLED
-    FlipperClient *client = [FlipperClient sharedClient];
-    SKDescriptorMapper *layoutDescriptorMapper = [[SKDescriptorMapper alloc] initWithDefaults];
-    [client addPlugin: [[FlipperKitLayoutPlugin alloc] initWithRootNode: application withDescriptorMapper: layoutDescriptorMapper]];
-    [client addPlugin: [[FKUserDefaultsPlugin alloc] initWithSuiteName:nil]];
-    [client addPlugin: [FlipperKitReactPlugin new]];
-    [client addPlugin: [[FlipperKitNetworkPlugin alloc] initWithNetworkAdapter:[SKIOSNetworkAdapter new]]];
-    [client start];
-  #endif
-  #endif
+
+// Push Notification Registration
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+  [RCTPushNotificationManager didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
 
-- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
-{
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
+  [RCTPushNotificationManager didFailToRegisterForRemoteNotificationsWithError:error];
+}
+
+// Handle Push Notifications
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+  fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
+  [RCTPushNotificationManager didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
+}
+
+// Handle Deep Links (Branch.io)
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
   #if DEBUG
   if ([EXDevLauncherController.sharedInstance onDeepLink:url options:options]) {
-    return true;
+    return YES;
   }
   #endif
   return [RNBranch application:app openURL:url options:options];
 }
 
+// Handle Universal Links
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
   return [RNBranch continueUserActivity:userActivity];
 }
 
-// Required to register for notifications
-- (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings
-{
-  [RCTPushNotificationManager didRegisterUserNotificationSettings:notificationSettings];
-}
-// Required for the register event.
-- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
-{
-  [RCTPushNotificationManager didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
-}
-// Required for the notification event. You must call the completion handler after handling the remote notification.
-- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
-fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
-{
-  [RCTPushNotificationManager didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
-}
-// Required for the registrationError event.
-- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
-{
-  [RCTPushNotificationManager didFailToRegisterForRemoteNotificationsWithError:error];
-}
-// Required for the localNotification event.
-- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
-{
-  [RCTPushNotificationManager didReceiveLocalNotification:notification];
+// Get Bundle URL for React Native
+- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
+  #if DEBUG
+    return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@".expo/.virtual-metro-entry"];
+  #else
+    return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+  #endif
 }
 
-- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
-{
-#if DEBUG
-  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@".expo/.virtual-metro-entry"];
-#else
-  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
-#endif
+// ✅ This method is inherited from EXAppDelegateWrapper
+- (UIViewController *)createRootViewController {
+  return [super createRootViewController];
 }
 
 @end
