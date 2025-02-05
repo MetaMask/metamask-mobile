@@ -248,19 +248,22 @@ workflows:
     - script@1:
         title: Testing Demo Testing
         inputs:
-          - content:  |-
+          - content: |-
               echo "This is a test $IS_SDK_E2E"
+              
               if [ -z "$IS_SDK_E2E" ]; then
-                  echo "It is empty"
-                else
-                  echo "It is not empty and there is a value"
-
+                echo "It is empty"
+              else
+                echo "It is not empty and there is a value"
+              fi
+              
               if [ -z "$IS_SDK_E2E" ] || [ "$IS_SDK_E2E" = "true" ]; then
-                  IS_TEST="true"
-                else
-                  IS_TEST="false"
-                fi
-                echo "IS_TEST is set to: $IS_TEST"
+                IS_TEST="true"
+              else
+                IS_TEST="false"
+              fi
+              
+              echo "IS_TEST is set to: $IS_TEST"
   # Code Setups
   setup:
     steps:
