@@ -3412,7 +3412,7 @@ exports[`Amount should display correct balance 1`] = `
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#0376c9",
+                                          "color": "#6a737d",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -6145,7 +6145,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -6153,7 +6153,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#6a737d",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 12,
                                         "fontWeight": "400",
