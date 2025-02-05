@@ -239,7 +239,7 @@ export default function RemoteImageExpo(props: Props) {
                 imageSource={networkBadgeProps.badgeSource}
                 name={networkBadgeProps.networkName}
                 isScaled={false}
-                size={AvatarSize.Md}
+                size={AvatarSize.Xs}
               />
             }
           >
