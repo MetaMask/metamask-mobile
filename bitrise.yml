@@ -160,8 +160,6 @@ stages:
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_tag_smoke_ramps_android: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
@@ -182,7 +180,6 @@ stages:
       - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
@@ -534,9 +531,9 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://6b59d556df4a5a0448ff161cbfcab16d92607b72' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.38.0
-      - PRODUCTION_BUILD_NUMBER: 1528
+      - PRODUCTION_APP_URL: 'bs://46f0542276828b691f56adec25ac81065b5abf73' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.30.0
+      - PRODUCTION_BUILD_NUMBER: 1410
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -652,12 +649,6 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
     after_run:
       - android_e2e_test
-  run_tag_smoke_confirmations_redesigned_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations-redesigned/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmationsRedesigned.*'
-    after_run:
-      - ios_e2e_test
   run_tag_smoke_swaps_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
@@ -1301,7 +1292,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' IS_TEST=${IS_TEST} yarn build:android:pre-release:bundle:qa
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
@@ -1581,7 +1572,8 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
+                echo "IS_TEST: $IS_TEST"
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' IS_TEST=${IS_TEST} yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
@@ -1801,16 +1793,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.38.1
+      VERSION_NAME: 7.39.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1533
+      VERSION_NUMBER: 1539
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.38.1
+      FLASK_VERSION_NAME: 7.39.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1533
+      FLASK_VERSION_NUMBER: 1539
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1835,6 +1827,9 @@ app:
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0
+    - opts:
+        is_expand: false
+      IS_TEST: 'false'
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
@@ -1852,3 +1847,7 @@ trigger_map:
     pipeline: release_e2e_pipeline
   - push_branch: detox/address-regression-tests-slowdown
     pipeline: multichain_permissions_e2e_pipeline
+
+    # TEST PIPELINE BITRISE
+  - push_branch: chris/sejgnsegjin
+    workflow: build_ios_qa
