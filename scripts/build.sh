@@ -226,7 +226,7 @@ buildAndroidRun(){
 	remapEnvVariableLocal
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --mode=prodDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --mode 'prodDebug' --device
+	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
 }
 
 buildAndroidDevBuild(){

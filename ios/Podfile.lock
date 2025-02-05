@@ -12,18 +12,18 @@ PODS:
   - EXJSONUtils (0.14.0)
   - EXManifests (0.15.5):
     - ExpoModulesCore
-  - Expo (52.0.25):
+  - Expo (52.0.27):
     - ExpoModulesCore
-  - expo-dev-client (5.0.9):
+  - expo-dev-client (5.0.10):
     - EXManifests
     - expo-dev-launcher
     - expo-dev-menu
     - expo-dev-menu-interface
     - EXUpdatesInterface
-  - expo-dev-launcher (5.0.23):
+  - expo-dev-launcher (5.0.25):
     - DoubleConversion
     - EXManifests
-    - expo-dev-launcher/Main (= 5.0.23)
+    - expo-dev-launcher/Main (= 5.0.25)
     - expo-dev-menu
     - expo-dev-menu-interface
     - ExpoModulesCore
@@ -49,7 +49,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - expo-dev-launcher/Main (5.0.23):
+  - expo-dev-launcher/Main (5.0.25):
     - DoubleConversion
     - EXManifests
     - expo-dev-launcher/Unsafe
@@ -78,7 +78,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - expo-dev-launcher/Unsafe (5.0.23):
+  - expo-dev-launcher/Unsafe (5.0.25):
     - DoubleConversion
     - EXManifests
     - expo-dev-menu
@@ -106,10 +106,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - expo-dev-menu (6.0.16):
+  - expo-dev-menu (6.0.18):
     - DoubleConversion
-    - expo-dev-menu/Main (= 6.0.16)
-    - expo-dev-menu/ReactNativeCompatibles (= 6.0.16)
+    - expo-dev-menu/Main (= 6.0.18)
+    - expo-dev-menu/ReactNativeCompatibles (= 6.0.18)
     - glog
     - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
@@ -129,8 +129,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - expo-dev-menu-interface (1.9.2)
-  - expo-dev-menu/Main (6.0.16):
+  - expo-dev-menu-interface (1.9.3)
+  - expo-dev-menu/Main (6.0.18):
     - DoubleConversion
     - EXManifests
     - expo-dev-menu-interface
@@ -156,7 +156,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - expo-dev-menu/ReactNativeCompatibles (6.0.16):
+  - expo-dev-menu/ReactNativeCompatibles (6.0.18):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.01.01.00)
@@ -177,7 +177,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - expo-dev-menu/SafeAreaView (6.0.16):
+  - expo-dev-menu/SafeAreaView (6.0.18):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -199,7 +199,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - expo-dev-menu/Vendored (6.0.16):
+  - expo-dev-menu/Vendored (6.0.18):
     - DoubleConversion
     - expo-dev-menu/SafeAreaView
     - glog
@@ -229,7 +229,7 @@ PODS:
     - ExpoModulesCore
   - ExpoKeepAwake (14.0.2):
     - ExpoModulesCore
-  - ExpoModulesCore (2.1.3):
+  - ExpoModulesCore (2.1.4):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.01.01.00)
@@ -3020,16 +3020,16 @@ SPEC CHECKSUMS:
   EXConstants: 6b8c5653492349b3c3fe6b905c556bc45b360405
   EXJSONUtils: 01fc7492b66c234e395dcffdd5f53439c5c29c93
   EXManifests: 15142dee1be3ea1cd0039feddef3888c3f0bb057
-  Expo: 63db23579a7a878567185fa0524b8294b4f93b28
-  expo-dev-client: 1d6bb1e706bf9843c9e37f9162ebe2629334f9e4
-  expo-dev-launcher: 66b7e227bcf60b98ef852be7dc1260db9496918f
-  expo-dev-menu: dd41f580108233db1963158dcc249fb64411e1f1
-  expo-dev-menu-interface: 4baf2f8b3b79ce37cf4b900e4b3ba6df3384f0a1
+  Expo: 296cbea8d4469eb60d61f09dbd4925f86d2b85da
+  expo-dev-client: 6166140e8a75696f3c965fe225a9542d39eeb652
+  expo-dev-launcher: 9a4f81a69ef07a83b4e9a882c7d0332e89349273
+  expo-dev-menu: 11ec83ae571ab00683ddf3ccb0bd13a598469291
+  expo-dev-menu-interface: 00dc42302a72722fdecec3fa048de84a9133bcc4
   ExpoAsset: d2d2cbc6a4efadf51a3da27d85d589935abd0b98
   ExpoFileSystem: 818e82dbb71175414d1ca310e926c48ff0d07348
   ExpoFont: 38656978c2a4022fb7e0c43e4968d66340f5e2f3
   ExpoKeepAwake: 62ff49bbc3bff90d8ee28329190f9ba371bf88e7
-  ExpoModulesCore: e1e2de31ae609c173f438f06af31e2eb766385de
+  ExpoModulesCore: 100ddcab324cc0629d61058e16410851d415a241
   EXUpdatesInterface: 7c977640bdd8b85833c19e3959ba46145c5719db
   FBLazyVector: be509404b5de73a64a74284edcaf73a5d1e128b1
   Firebase: cec914dab6fd7b1bd8ab56ea07ce4e03dd251c2d
