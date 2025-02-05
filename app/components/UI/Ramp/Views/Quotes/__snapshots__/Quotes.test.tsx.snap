@@ -3499,6 +3499,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                               collapsable={false}
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
+                              testID="quotes"
                             >
                               <View>
                                 <View
