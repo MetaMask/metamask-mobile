@@ -1856,7 +1856,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={false}
+                                  disabled={true}
                                   onPress={[Function]}
                                   style={{}}
                                 >
