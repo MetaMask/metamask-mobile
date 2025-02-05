@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import Text from '../../Base/Text';
 import { isIPFSUri } from '../../../util/general';
@@ -27,6 +26,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
 import { useTheme } from '../../../util/theme';
+import RemoteImageExpo from '../../Base/RemoteImage/RemoteImageExpo';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,
@@ -94,7 +94,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     (isImageSourcePossiblyAvailable: boolean) =>
       isImageSourcePossiblyAvailable ? (
         <View>
-          <RemoteImage
+          <RemoteImageExpo
             source={NftFallbackImage}
             style={[
               styles.textContainer,
@@ -206,10 +206,10 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
          * the tiny boolean is used to indicate when the image is the NFT source icon
          */
         return (
-          <RemoteImage
-            fadeIn
-            resizeMode={'contain'}
+          <RemoteImageExpo
+            testID="nft-image"
             source={{ uri: sourceUri }}
+            errorCallback={fallback}
             style={[
               styles.image,
               tiny && styles.tinyImage,
@@ -218,10 +218,8 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
               cover && styles.cover,
               style,
             ]}
-            onError={fallback}
-            testID="nft-image"
-            isTokenImage={isTokenImage}
-            isFullRatio={isFullRatio}
+            fadeIn
+            showNetworkBadge={isTokenImage}
           />
         );
       }
