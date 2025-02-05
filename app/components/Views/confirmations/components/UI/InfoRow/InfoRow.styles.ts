@@ -11,8 +11,9 @@ const styleSheet = (params: { theme: Theme }) => {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'baseline',
+      alignItems: 'center',
       flexWrap: 'wrap',
+      gap: 4,
       paddingBottom: 8,
       paddingHorizontal: 8,
     },
@@ -35,7 +36,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 8,
     },
     valueComponent: {
-      alignSelf: 'flex-end',
+      marginLeft: 'auto',
     },
   });
 };
