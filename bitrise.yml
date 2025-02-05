@@ -1829,7 +1829,7 @@ app:
       COREPACK_VERSION: 0.28.0
     - opts:
         is_expand: false
-      IS_SDK_E2E: 'false'
+      IS_SDK_E2E: 'true'
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
