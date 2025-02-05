@@ -43,7 +43,7 @@ describe('Footer', () => {
     expect(mockRejectSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('render confirm button text "Get Signature" if QR signing is in progress', () => {
+  it('renders confirm button text "Get Signature" if QR signing is in progress', () => {
     jest
       .spyOn(QRHardwareHook, 'useQRHardwareContext')
       .mockReturnValue({
