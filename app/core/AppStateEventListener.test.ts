@@ -16,6 +16,16 @@ jest.mock('./processAttribution', () => ({
   processAttribution: jest.fn(),
 }));
 
+jest.mock(
+    '../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
+    () => jest.fn().mockReturnValue({ userProp: 'User value' }),
+);
+
+jest.mock(
+    '../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+    () => jest.fn().mockReturnValue({ deviceProp: 'Device value' }),
+);
+
 jest.mock('./Analytics/MetaMetrics');
 
 const mockMetrics = {
@@ -115,17 +125,8 @@ describe('AppStateEventListener', () => {
 
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledTimes(1);
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
-      'Batch account balance requests': 'OFF',
-      'Enable OpenSea API': 'OFF',
-      'NFT Autodetection': 'OFF',
-      'Theme': undefined,
-      'applicationVersion': expect.any(Promise),
-      'currentBuildNumber': expect.any(Promise),
-      'deviceBrand': 'Apple',
-      'operatingSystemVersion': 'ios',
-      'platform': 'ios',
-      'security_providers': '',
-      'token_detection_enable': 'OFF',
+      deviceProp: 'Device value',
+      userProp: 'User value',
     });
   });
 
