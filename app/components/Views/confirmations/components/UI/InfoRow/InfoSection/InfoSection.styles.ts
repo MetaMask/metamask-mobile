@@ -9,7 +9,8 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       backgroundColor: theme.colors.background.default,
       borderRadius: 8,
-      padding: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 8,
       marginBottom: 8,
     },
   });
