@@ -20,6 +20,26 @@ const FLAT_CONFIRMATIONS: TransactionType[] = [
   // To be filled with flat confirmations
 ];
 
+const Confirm = () => {
+  const { approvalRequest } = useApprovalRequest();
+  const isFlatConfirmation = FLAT_CONFIRMATIONS.includes(
+    approvalRequest?.type as TransactionType,
+  );
+  const ContentDisplay = isFlatConfirmation ? ScrollView : View;
+
+  return (
+    <>
+      <ContentDisplay>
+        <Title />
+        <SignatureBlockaidBanner />
+        <AccountNetworkInfo />
+        <Info />
+      </ContentDisplay>
+      <Footer />
+    </>
+  );
+};
+
 const ConfirmationLayout = () => {
   const { approvalRequest } = useApprovalRequest();
   const isFlatConfirmation = FLAT_CONFIRMATIONS.includes(
@@ -46,26 +66,6 @@ const ConfirmationLayout = () => {
         <Confirm />
       </View>
     </BottomModal>
-  );
-};
-
-const Confirm = () => {
-  const { approvalRequest } = useApprovalRequest();
-  const isFlatConfirmation = FLAT_CONFIRMATIONS.includes(
-    approvalRequest?.type as TransactionType,
-  );
-  const ContentDisplay = isFlatConfirmation ? ScrollView : View;
-
-  return (
-    <>
-      <ContentDisplay>
-        <Title />
-        <SignatureBlockaidBanner />
-        <AccountNetworkInfo />
-        <Info />
-      </ContentDisplay>
-      <Footer />
-    </>
   );
 };
 
