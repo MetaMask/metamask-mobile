@@ -1581,7 +1581,6 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                echo "IS_TEST: $IS_SDK_E2E"
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' IS_TEST='${IS_SDK_E2E}' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
