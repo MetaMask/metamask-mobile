@@ -1856,7 +1856,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                 }
                               >
                                 <TouchableOpacity
-                                  disabled={true}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={{}}
                                 >
@@ -3412,7 +3412,7 @@ exports[`Amount should display correct balance 1`] = `
                                       numberOfLines={1}
                                       style={
                                         {
-                                          "color": "#6a737d",
+                                          "color": "#0376c9",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
