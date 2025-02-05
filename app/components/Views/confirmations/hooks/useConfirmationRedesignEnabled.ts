@@ -46,7 +46,6 @@ function isRedesignedSignature({
 
 function isRedesignedStaking({
   approvalRequestType,
-  confirmation_redesign,
   transactionMetadata,
 }: RedesignRequest) {
   if (
@@ -57,7 +56,7 @@ function isRedesignedStaking({
   }
 
   return (
-    confirmation_redesign?.stakingDeposit &&
+    // confirmation_redesign?.stakingDeposit &&
     REDESIGNED_TRANSACTION_TYPES.includes(
       transactionMetadata.type as TransactionType,
     )
