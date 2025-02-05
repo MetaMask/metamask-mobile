@@ -1292,7 +1292,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' IS_TEST=${IS_TEST} yarn build:android:pre-release:bundle:qa
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
@@ -1572,7 +1572,8 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
+                echo "IS_TEST: $IS_TEST"
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' IS_TEST=${IS_TEST} yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
@@ -1826,6 +1827,9 @@ app:
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0
+    - opts:
+        is_expand: false
+      IS_TEST: 'false'
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
@@ -1843,3 +1847,7 @@ trigger_map:
     pipeline: release_e2e_pipeline
   - push_branch: detox/address-regression-tests-slowdown
     pipeline: multichain_permissions_e2e_pipeline
+
+    # TEST PIPELINE BITRISE
+  - push_branch: chris/sejgnsegjin
+    workflow: build_ios_qa

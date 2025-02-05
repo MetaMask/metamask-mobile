@@ -75,6 +75,8 @@ class ReadOnlyNetworkStore {
   }
 
   async _init() {
+    // List of URLs to check for Fixture Server availability.
+    // Browserstack requires that the HOST is bs-local.com instead of localhost.
     const urls = [
       FIXTURE_SERVER_URL,
       FIXTURE_SERVER_URL.replace(FIXTURE_SERVER_HOST, BROWSERSTACK_LOCAL_HOST)
