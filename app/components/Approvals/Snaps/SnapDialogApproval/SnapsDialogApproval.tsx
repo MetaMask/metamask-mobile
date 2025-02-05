@@ -1,10 +1,10 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps)
 import React, { useState } from 'react';
+import { View } from 'react-native';
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import stylesheet from './SnapDialogApproval.styles';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
-import { View } from 'react-native-animatable';
 import ApprovalModal from '../../ApprovalModal';
 import BottomSheetFooter, {
   ButtonsAlignment,
@@ -16,13 +16,7 @@ import {
 import Engine from '../../../../core/Engine';
 import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
 import { Json, SnapId } from '@metamask/snaps-sdk';
-
-enum SnapDialogTypes {
-  ALERT = 'snap_dialog:alert',
-  CONFIRM = 'snap_dialog:confirmation',
-  PROMPT = 'snap_dialog:prompt',
-  CUSTOM = 'snap_dialog',
-}
+import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
 
 export enum TemplateConfirmation {
   Ok = 'template_confirmation.ok',
@@ -79,16 +73,16 @@ const SnapDialogApproval = () => {
   };
 
   if (
-    approvalRequest?.type !== SnapDialogTypes.ALERT &&
-    approvalRequest?.type !== SnapDialogTypes.CONFIRM &&
-    approvalRequest?.type !== SnapDialogTypes.PROMPT &&
-    approvalRequest?.type !== SnapDialogTypes.CUSTOM
+    approvalRequest?.type !== DIALOG_APPROVAL_TYPES.alert &&
+    approvalRequest?.type !== DIALOG_APPROVAL_TYPES.confirmation &&
+    approvalRequest?.type !== DIALOG_APPROVAL_TYPES.prompt &&
+    approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default
   )
     return null;
 
-  const getDialogButtons = (type: SnapDialogTypes | undefined) => {
+  const getDialogButtons = (type: string | undefined) => {
     switch (type) {
-      case SnapDialogTypes.ALERT:
+      case DIALOG_APPROVAL_TYPES.alert:
         return [
           {
             variant: ButtonVariants.Primary,
@@ -98,8 +92,8 @@ const SnapDialogApproval = () => {
           },
         ];
 
-      case SnapDialogTypes.CONFIRM:
-      case SnapDialogTypes.PROMPT:
+      case DIALOG_APPROVAL_TYPES.confirmation:
+      case DIALOG_APPROVAL_TYPES.prompt:
         return [
           {
             variant: ButtonVariants.Secondary,
@@ -126,10 +120,10 @@ const SnapDialogApproval = () => {
   return (
     <ApprovalModal
       isVisible={
-        approvalRequest?.type === SnapDialogTypes.ALERT ||
-        approvalRequest?.type === SnapDialogTypes.CONFIRM ||
-        approvalRequest?.type === SnapDialogTypes.PROMPT ||
-        approvalRequest?.type === SnapDialogTypes.CUSTOM
+        approvalRequest?.type === DIALOG_APPROVAL_TYPES.alert ||
+        approvalRequest?.type === DIALOG_APPROVAL_TYPES.confirmation ||
+        approvalRequest?.type === DIALOG_APPROVAL_TYPES.prompt ||
+        approvalRequest?.type === DIALOG_APPROVAL_TYPES.default
       }
       onCancel={onCancel}
     >
@@ -141,7 +135,7 @@ const SnapDialogApproval = () => {
           onCancel={onCancel}
           onConfirm={onConfirmInput}
         />
-        {approvalRequest?.type !== SnapDialogTypes.CUSTOM && (
+        {approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default && (
           <View style={styles.actionContainer}>
             <BottomSheetFooter
               buttonsAlignment={ButtonsAlignment.Horizontal}
