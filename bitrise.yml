@@ -250,7 +250,7 @@ workflows:
         inputs:
           - content:  |-
               echo "This is a test $IS_SDK_E2E"
-              if [ -z "$IS_SDK_E2E" ] 
+              if [ -z "$IS_SDK_E2E" ]; then
                   echo "It is empty"
                 else
                   echo "It is not empty and there is a value"
