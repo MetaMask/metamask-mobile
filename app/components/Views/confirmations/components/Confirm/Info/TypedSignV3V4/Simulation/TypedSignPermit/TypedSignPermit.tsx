@@ -87,24 +87,26 @@ const PermitSimulation = () => {
 
       <InfoRow label={labelChangeType}>
         {Array.isArray(tokenDetails) ? (
-          <View style={styles.permitValues}>
+          <>
             {tokenDetails.map(
               (
                 { token, amount }: { token: string; amount: string },
                 i: number,
               ) => (
-                <PermitSimulationValueDisplay
-                  key={`${token}-${i}`}
-                  labelChangeType={labelChangeType}
-                  networkClientId={networkClientId}
-                  primaryType={primaryType}
-                  tokenContract={safeToChecksumAddress(token)}
-                  value={amount}
-                  chainId={chainId}
-                />
+                <View style={styles.permitValues}>
+                  <PermitSimulationValueDisplay
+                    key={`${token}-${i}`}
+                    labelChangeType={labelChangeType}
+                    networkClientId={networkClientId}
+                    primaryType={primaryType}
+                    tokenContract={safeToChecksumAddress(token)}
+                    value={amount}
+                    chainId={chainId}
+                  />
+                </View>
               ),
             )}
-          </View>
+          </>
         ) : (
           <PermitSimulationValueDisplay
             labelChangeType={labelChangeType}
