@@ -74,7 +74,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
           pointerEvents="box-none"
           style={
             {
-              "height": 100,
+              "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
               "opacity": undefined,
@@ -106,29 +106,20 @@ exports[`OptinMetrics render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View />
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
             >
-              <View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
                 <Image
                   resizeMethod="auto"
                   source={1}
@@ -141,6 +132,23 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                   }
                 />
               </View>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
             </View>
           </View>
         </View>
@@ -343,7 +351,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             style={
                               {
                                 "marginHorizontal": 20,
-                                "marginTop": 20,
+                                "marginTop": 10,
                               }
                             }
                           >
