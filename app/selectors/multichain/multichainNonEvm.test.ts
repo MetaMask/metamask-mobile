@@ -168,16 +168,16 @@ describe('MultichainNonEvm Selectors', () => {
     jest.resetAllMocks();
   });
   describe('Multichain Support Flags', () => {
-    it('should return bitcoin support enabled state', () => {
+    it('returns bitcoin support enabled state', () => {
       const mockState = getEvmState();
       expect(selectIsBitcoinSupportEnabled(mockState)).toBe(true);
     });
 
-    it('should return bitcoin testnet support enabled state', () => {
+    it('returns bitcoin testnet support enabled state', () => {
       const mockState = getEvmState();
       expect(selectIsBitcoinTestnetSupportEnabled(mockState)).toBe(false);
     });
-    it('should return Solana support enabled state', () => {
+    it('returns Solana support enabled state', () => {
       const mockState = getEvmState();
       expect(selectIsSolanaSupportEnabled(mockState)).toBe(true);
     });

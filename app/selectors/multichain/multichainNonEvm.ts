@@ -18,7 +18,10 @@ import { createDeepEqualSelector } from '../util';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
-import { NETWORK_ASSETS_MAP } from '@metamask/assets-controllers';
+import {
+  MultichainNetworks,
+  NETWORK_ASSETS_MAP,
+} from '@metamask/assets-controllers';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
 
@@ -150,7 +153,7 @@ export const selectMultichainCurrentNetwork = createDeepEqualSelector(
  */
 export const selectMultichainProviderConfig = createDeepEqualSelector(
   selectMultichainCurrentNetwork,
-  (multichainCurrerntNetwork) => multichainCurrerntNetwork.network,
+  (multichainCurrentNetwork) => multichainCurrentNetwork.network,
 );
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
@@ -168,7 +171,10 @@ export const selectMultichainDefaultToken = createDeepEqualSelector(
 export const selectMultichainIsBitcoin = createDeepEqualSelector(
   selectMultichainIsEvm,
   selectMultichainDefaultToken,
-  (isEvm, token) => !isEvm && token.symbol === 'BTC',
+  (isEvm, token) =>
+    !isEvm &&
+    token.symbol ===
+      MULTICHAIN_PROVIDER_CONFIGS[MultichainNetworks.Bitcoin].ticker,
 );
 
 export const selectMultichainIsMainnet = createDeepEqualSelector(
@@ -212,12 +218,12 @@ export const selectMultichainShouldShowFiat = createDeepEqualSelector(
   selectMultichainIsEvm,
   selectShowFiatInTestnets,
   (multichainIsMainnet, isEvm, shouldShowFiatOnTestnets) => {
-    const isTestNet = !multichainIsMainnet;
+    const isTestnet = !multichainIsMainnet;
     if (isEvm) {
-      return isTestNet ? shouldShowFiatOnTestnets : true; // Is it safe to assume that we default show fiat for mainnet?
+      return isTestnet ? shouldShowFiatOnTestnets : true; // Is it safe to assume that we default show fiat for mainnet?
     }
     return (
-      multichainIsMainnet || (isTestNet && Boolean(shouldShowFiatOnTestnets))
+      multichainIsMainnet || (isTestnet && Boolean(shouldShowFiatOnTestnets))
     );
   },
 );

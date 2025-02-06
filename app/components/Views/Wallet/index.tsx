@@ -605,15 +605,13 @@ const Wallet = ({
           tabLabel={strings('wallet.tokens')}
           key={'tokens-tab'}
           navigation={navigation}
-          // TODO - Consolidate into the correct type.
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
+          // @ts-expect-error - TODO: Consolidate into the correct type.
           tokens={assets}
         />
         <CollectibleContracts
-          // TODO - Extend component to support injected tabLabel prop.
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
+          // @ts-expect-error - TODO: Consolidate into the correct type.
           tabLabel={strings('wallet.collectibles')}
           key={'nfts-tab'}
           navigation={navigation}
