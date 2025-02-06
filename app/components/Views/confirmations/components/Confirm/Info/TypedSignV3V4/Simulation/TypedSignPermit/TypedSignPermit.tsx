@@ -71,7 +71,8 @@ const PermitSimulation = () => {
 
   const tokenDetails = extractTokenDetailsByPrimaryType(message, primaryType);
 
-  const isNFT = tokenId !== undefined;
+  const isNFT = tokenId !== undefined && tokenId !== '0';
+
   const labelChangeType = isNFT
     ? strings('confirm.simulation.label_change_type_permit_nft')
     : strings('confirm.simulation.label_change_type_permit');
