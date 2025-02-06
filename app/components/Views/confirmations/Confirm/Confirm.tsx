@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TransactionType } from '@metamask/transaction-controller';
 
@@ -22,14 +22,23 @@ const FLAT_CONFIRMATIONS: TransactionType[] = [
   // To be filled with flat confirmations
 ];
 
-const ConfirmWrapped = () => (
+const ConfirmWrapped = ({
+  styles,
+}: {
+  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+}) => (
   <QRHardwareContextProvider>
-    <ScrollView>
-      <Title />
-      <SignatureBlockaidBanner />
-      <AccountNetworkInfo />
-      <Info />
-    </ScrollView>
+    <Title />
+    <View style={styles.scrollWrapper}>
+      <ScrollView
+        style={styles.scrollable}
+        contentContainerStyle={styles.scrollableSection}
+      >
+        <SignatureBlockaidBanner />
+        <AccountNetworkInfo />
+        <Info />
+      </ScrollView>
+    </View>
     <Footer />
   </QRHardwareContextProvider>
 );
@@ -37,28 +46,29 @@ const ConfirmWrapped = () => (
 const Confirm = () => {
   const { approvalRequest } = useApprovalRequest();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
-  const { styles } = useStyles(styleSheet, {});
-
-  if (!isRedesignedEnabled) {
-    return null;
-  }
 
   const isFlatConfirmation = FLAT_CONFIRMATIONS.includes(
     approvalRequest?.type as TransactionType,
   );
 
+  const { styles } = useStyles(styleSheet, { isFlatConfirmation });
+
+  if (!isRedesignedEnabled) {
+    return null;
+  }
+
   if (isFlatConfirmation) {
     return (
-      <SafeAreaView style={styles.mainContainer}>
-        <ConfirmWrapped />
+      <SafeAreaView style={styles.flatContainer}>
+        <ConfirmWrapped styles={styles} />
       </SafeAreaView>
     );
   }
 
   return (
     <BottomModal canCloseOnBackdropClick={false}>
-      <View style={styles.container} testID={approvalRequest?.type}>
-        <ConfirmWrapped />
+      <View style={styles.modalContainer} testID={approvalRequest?.type}>
+        <ConfirmWrapped styles={styles} />
       </View>
     </BottomModal>
   );
