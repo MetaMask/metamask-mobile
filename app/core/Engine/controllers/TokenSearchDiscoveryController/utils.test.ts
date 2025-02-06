@@ -16,7 +16,12 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 jest.mock('@metamask/token-search-discovery-controller', () => ({
-  TokenSearchApiService: jest.fn(),
+  TokenSearchApiService: jest.fn().mockImplementation(function () {
+    return {};
+  }),
+  TokenDiscoveryApiService: jest.fn().mockImplementation(function () {
+    return {};
+  }),
   TokenSearchDiscoveryController: jest
     .fn()
     .mockImplementation(function (
