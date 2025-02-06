@@ -10,7 +10,7 @@ import { RootState } from '../../reducers';
 import {
   selectNetworkConfigurations,
   selectChainId as selectEvmChainId,
-  selectProviderConfig,
+  selectProviderConfig as selectEvmProviderConfig,
   ProviderConfig,
 } from '../networkController';
 import { selectSelectedInternalAccount } from '../accountsController';
@@ -81,7 +81,7 @@ export const selectMultichainCurrentNetwork = createDeepEqualSelector(
   [
     selectMultichainIsEvm,
     selectEvmChainId,
-    selectProviderConfig,
+    selectEvmProviderConfig,
     selectNetworkConfigurations,
     selectSelectedInternalAccount,
   ],
@@ -161,12 +161,12 @@ export const selectMultichainProviderConfig = createDeepEqualSelector(
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectMultichainIsEvm,
-  selectProviderConfig,
+  selectEvmProviderConfig,
   selectMultichainProviderConfig,
-  (isEvm, providerConfig, multichainProviderConfig) => {
+  (isEvm, evmProviderConfig, multichainProviderConfig) => {
     const symbol = isEvm
-      ? providerConfig?.ticker ?? 'ETH'
-      : multichainProviderConfig?.ticker;
+      ? evmProviderConfig.ticker
+      : multichainProviderConfig.ticker;
     return { symbol };
   },
 );
