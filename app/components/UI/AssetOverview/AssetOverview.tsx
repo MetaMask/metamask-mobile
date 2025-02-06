@@ -95,7 +95,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
-  const goToBridge = useGoToBridge('TokenDetails');
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -175,6 +174,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       },
     });
   }, [navigation, asset.address, asset.chainId]);
+
+  const handleBridgeNavigation = useCallback(() => {
+    navigation.navigate('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: asset.address,
+        sourcePage: 'MainView',
+        chainId: asset.chainId,
+      },
+    });
+  }, [navigation, asset.address, asset.chainId]);
+
+  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true' 
+    ? handleBridgeNavigation
+    : useGoToBridge('TokenDetails');
 
   const onSend = async () => {
     if (isPortfolioViewEnabled()) {
