@@ -1,4 +1,3 @@
-import { TransactionType } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 
 import { useTransactionMetadata } from './useTransactionMetadata';
