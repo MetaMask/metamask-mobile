@@ -2,20 +2,20 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
-import Device from '../../../../../../util/device';
-import { useTheme } from '../../../../../../util/theme';
+import Device from '../../../../../util/device';
+import { useTheme } from '../../../../../util/theme';
 
 import {
   IconName,
   IconColor,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import BottomModal from '../../UI/BottomModal';
-import { useAlerts } from '../../../context/Alerts';
-import Checkbox from '../../../../../../component-library/components/Checkbox';
-import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../../../../component-library/components/Buttons/Button';
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import BottomModal from '../../components/UI/BottomModal';
+import { useAlerts } from '../context';
+import Checkbox from '../../../../../component-library/components/Checkbox';
+import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../../../component-library/components/Buttons/Button';
 
 const getStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -73,7 +73,7 @@ const AlertModal = () => {
         <View style={styles.wrapper}>
           <Text>{currentAlert.title}</Text>
           <Text>{currentAlert.message}</Text>
-          {currentAlert.component}
+          {currentAlert.content}
         </View>
         <View style={styles.wrapper}>
           <Checkbox

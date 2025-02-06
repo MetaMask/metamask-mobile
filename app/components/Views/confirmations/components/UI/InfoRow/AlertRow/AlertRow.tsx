@@ -1,7 +1,7 @@
 import React from 'react';
 import InfoRow, { InfoRowProps } from '../InfoRow';
-import { useAlerts } from '../../../../context/Alerts';
-import InlineAlert from '../../../Confirm/InlineAlert/InlineAlert';
+import { useAlerts } from '../../../../AlertSystem/context';
+import InlineAlert from '../../../../AlertSystem/InlineAlert/InlineAlert';
 
 
 export interface AlertRowProps extends InfoRowProps {
@@ -26,8 +26,7 @@ const AlertRow = ({ alertKey, ownerId, isShownWithAlertsOnly, ...props }: AlertR
     const inlineAlert = alertSelected ? (
           <InlineAlert
             onClick={handleInlineAlertClick}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            severity={alertSelected.severity as any}
+            severity={alertSelected.severity}
           />
       ) : null;
 

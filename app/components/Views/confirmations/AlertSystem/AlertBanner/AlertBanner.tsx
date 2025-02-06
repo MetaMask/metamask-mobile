@@ -2,8 +2,8 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
-import { useTheme } from '../../../../../../util/theme';
-import { useAlerts } from '../../../context/Alerts';
+import { useTheme } from '../../../../../util/theme';
+import { useAlerts } from '../context';
 
 const getStyles = (colors: ThemeColors) =>
   StyleSheet.create({

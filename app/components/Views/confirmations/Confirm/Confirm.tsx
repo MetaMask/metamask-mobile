@@ -11,9 +11,9 @@ import Title from '../components/Confirm/Title';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import styleSheet from './Confirm.styles';
-import AlertModal from '../components/Confirm/AlertModal';
-import { AlertsContextProvider } from '../context/Alerts';
-import AlertBanner from '../components/Confirm/AlertBanner';
+import AlertModal from '../AlertSystem/AlertModal';
+import { AlertsContextProvider } from '../AlertSystem/context';
+import AlertBanner from '../AlertSystem/AlertBanner';
 
 const Confirm = () => {
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();

@@ -13,7 +13,7 @@ import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
-import { useAlerts } from '../../../context/Alerts';
+import { useAlerts } from '../../../AlertSystem/context';
 
 const Footer = () => {
   const { alerts, showAlertModal } = useAlerts();
