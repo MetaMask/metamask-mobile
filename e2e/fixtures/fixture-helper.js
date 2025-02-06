@@ -171,7 +171,6 @@ export async function withFixtures(options, testSuite) {
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
     if (restartDevice) {
       await TestHelpers.launchApp({
-        newInstance: true,
         delete: true,
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
