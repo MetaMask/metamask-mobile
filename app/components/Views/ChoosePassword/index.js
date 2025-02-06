@@ -72,6 +72,7 @@ const createStyles = (colors) =>
     wrapper: {
       flex: 1,
       marginBottom: 10,
+      marginTop: 15,
     },
     scrollableWrapper: {
       flex: 1,

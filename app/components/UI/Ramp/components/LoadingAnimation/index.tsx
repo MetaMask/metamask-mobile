@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Device from '../../../../../util/device';
 import BaseTitle from '../../../../Base/Title';
+import ShapesBackgroundAnimation from '../../../Swaps/components/LoadingAnimation/ShapesBackgroundAnimation';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import foxImage from '../../../../../images/branding/fox.png';
@@ -62,12 +63,25 @@ const createStyles = (
       width: STAGE_SIZE,
       height: STAGE_SIZE,
       alignSelf: 'center',
-      justifyContent: 'center',
+    },
+    foxWrapper: {
+      position: 'relative',
+      width: STAGE_SIZE,
+      height: STAGE_SIZE,
       alignItems: 'center',
+      justifyContent: 'center',
     },
     foxImage: {
       width: 100,
       height: 100,
+      zIndex: 2,
+    },
+    backgroundShapes: {
+      ...StyleSheet.absoluteFillObject,
+      zIndex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      transform: [{ translateX: -20 }, { translateY: -10 }],
     },
   });
 
@@ -149,11 +163,19 @@ function LoadingAnimation({
           <Animated.View style={[styles.progressBar, progressStyle]} />
         </View>
         <View style={styles.foxContainer} pointerEvents="none">
-          <Image
-            source={foxImage}
-            style={styles.foxImage}
-            resizeMethod={'auto'}
-          />
+          <View style={styles.foxWrapper}>
+            <Image
+              source={foxImage}
+              style={styles.foxImage}
+              resizeMethod={'auto'}
+            />
+            <View style={styles.backgroundShapes} pointerEvents="none">
+              <ShapesBackgroundAnimation
+                width={STAGE_SIZE * 0.8}
+                height={STAGE_SIZE * 0.8}
+              />
+            </View>
+          </View>
         </View>
       </View>
     </View>

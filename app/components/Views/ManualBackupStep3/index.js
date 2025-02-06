@@ -28,6 +28,7 @@ const createStyles = (colors) =>
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+      marginTop: 15,
     },
     actionView: {
       paddingTop: 40,
