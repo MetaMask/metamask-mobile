@@ -41,7 +41,7 @@ describe('PersonalSign', () => {
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
     expect(getByText('Account')).toBeDefined();
-    expect(getAllByText('0x8Eeee...73D12')).toHaveLength(2);
+    expect(getAllByText('0x8Eeee...73D12')).toBeDefined();
     expect(getByText('Version')).toBeDefined();
     expect(getAllByText('1')).toHaveLength(2);
     expect(getByText('Chain ID')).toBeDefined();

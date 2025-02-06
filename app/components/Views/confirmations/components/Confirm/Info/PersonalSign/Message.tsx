@@ -8,7 +8,7 @@ import { Theme } from '../../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../../styles/common';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { sanitizeString } from '../../../../../../../util/string';
-import { getSIWEDetails, SIWEMessage } from '../../../../utils/signatures';
+import { getSIWEDetails, SIWEMessage } from '../../../../utils/signature';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import Address from '../../../UI/InfoRow/InfoValue/Address';
 import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
