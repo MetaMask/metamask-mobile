@@ -56,8 +56,9 @@ function Loading() {
   );
 }
 
-export function NotificationsListItem(props: NotificationsListItemProps) {
-  const { styles } = useStyles();
+export function useNotificationOnClick(
+  props: Pick<NotificationsListItemProps, 'navigation'>,
+) {
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const { trackEvent, createEventBuilder } = useMetrics();
   const onNotificationClick = useCallback(
@@ -96,6 +97,13 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
     },
     [markNotificationAsRead, props.navigation, trackEvent, createEventBuilder],
   );
+
+  return onNotificationClick;
+}
+
+export function NotificationsListItem(props: NotificationsListItemProps) {
+  const { styles } = useStyles();
+  const onNotificationClick = useNotificationOnClick(props);
 
   const menuItemState = useMemo(() => {
     const notificationState =
