@@ -3,10 +3,10 @@ import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import Engine from '../../../core/Engine';
 import { selectRecentTokenSearches } from '../../../selectors/tokenSearchDiscoveryController';
-import type {
-  TokenSearchParams,
+import {
   TokenSearchResponseItem,
-} from '@metamask/token-search-discovery-controller/dist/types.d.cts';
+  TokenSearchParams,
+} from '@metamask/token-search-discovery-controller';
 
 const SEARCH_DEBOUNCE_DELAY = 300;
 
