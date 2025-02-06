@@ -32,23 +32,23 @@ describe('Confirm Title', () => {
     ).toBeTruthy();
   });
 
-  it('renders correct title and subtitle for personal sign request', async () => {
+  it('renders correct title and subtitle for personal sign request', () => {
     const { getByText } = renderWithProvider(<Title />, {
       state: personalSignatureConfirmationState,
     });
-    expect(getByText('Signature request')).toBeDefined();
+    expect(getByText('Signature request')).toBeTruthy();
     expect(
       getByText('Review request details before you confirm.'),
-    ).toBeDefined();
+    ).toBeTruthy();
   });
 
-  it('should render correct title and subtitle for personal siwe request', async () => {
+  it('should render correct title and subtitle for personal siwe request', () => {
     const { getByText } = renderWithProvider(<Title />, {
       state: siweSignatureConfirmationState,
     });
-    expect(getByText('Sign-in request')).toBeDefined();
+    expect(getByText('Sign-in request')).toBeTruthy();
     expect(
       getByText('A site wants you to sign in to prove you own this account.'),
-    ).toBeDefined();
+    ).toBeTruthy();
   });
 });
