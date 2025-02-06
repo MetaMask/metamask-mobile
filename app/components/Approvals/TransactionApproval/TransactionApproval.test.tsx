@@ -7,7 +7,14 @@ import {
   TransactionApproval,
   TransactionModalType,
 } from './TransactionApproval';
+import { useConfirmationRedesignEnabled } from '../../Views/confirmations/hooks/useConfirmationRedesignEnabled';
 
+jest.mock(
+  '../../Views/confirmations/hooks/useConfirmationRedesignEnabled',
+  () => ({
+    useConfirmationRedesignEnabled: jest.fn(),
+  }),
+);
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 
 jest.mock('../../UI/QRHardware/withQRHardwareAwareness', () =>
@@ -30,6 +37,13 @@ const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
 describe('TransactionApproval', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    (
+      useConfirmationRedesignEnabled as jest.MockedFn<
+        typeof useConfirmationRedesignEnabled
+      >
+    ).mockReturnValue({
+      isRedesignedEnabled: false,
+    });
   });
 
   it('renders approval component if transaction type is dapp', () => {
