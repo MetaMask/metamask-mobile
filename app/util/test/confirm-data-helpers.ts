@@ -14,7 +14,7 @@ export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
     confirmation_redesign: {
       signatures: true,
-      stakingDeposit: true,
+      staking_transactions: true,
     },
   },
 };
