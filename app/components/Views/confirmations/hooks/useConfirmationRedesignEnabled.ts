@@ -7,8 +7,10 @@ import {
 import { ApprovalType } from '@metamask/controller-utils';
 
 import { isHardwareAccount } from '../../../../util/address';
-import { selectConfirmationRedesignFlags } from '../../../../selectors/featureFlagController';
-import type { ConfirmationRedesignRemoteFlags } from '../../../../selectors/featureFlagController';
+import {
+  type ConfirmationRedesignRemoteFlags,
+  selectConfirmationRedesignFlags,
+} from '../../../../selectors/featureFlagController';
 import { useTransactionMetadata } from './useTransactionMetadata';
 import useApprovalRequest from './useApprovalRequest';
 
