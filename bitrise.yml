@@ -1581,7 +1581,19 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' IS_TEST='${IS_SDK_E2E}' yarn build:ios:pre-qa
+                if [ -z "$IS_SDK_E2E" ]; then
+                  echo "It is empty"
+                else
+                  echo "It is not empty and there is a value"
+                fi
+                
+                if [ -z "$IS_SDK_E2E" ] || [ "$IS_SDK_E2E" = "true" ]; then
+                  IS_TEST="true"
+                else
+                  IS_TEST="false"
+                fi
+
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
@@ -1835,9 +1847,6 @@ app:
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0
-    - opts:
-        is_expand: false
-      IS_SDK_E2E: false
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
