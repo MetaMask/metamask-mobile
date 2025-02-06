@@ -188,7 +188,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           "marginLeft": 20,
         }
       }
-      testID="staked-ethereum"
+      testID="staked-ethereum-label"
     >
       Staked Ethereum
     </Text>
@@ -657,7 +657,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           "marginLeft": 20,
         }
       }
-      testID="staked-ethereum"
+      testID="staked-ethereum-label"
     >
       Staked Ethereum
     </Text>
