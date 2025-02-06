@@ -197,13 +197,13 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
         </View>
         <View>
           {/**
-            TODO - add fiat shorten prop after tooltip logic has been updated
-            {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
+            TODO - support fiat shorten prop
+            {@see {@link https://github.com/MetaMask/metamask-mobile/issues/13385}
           */}
-        {fiatValue && (
-          <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />
-        )}
-      </View>
+          {fiatValue && (
+            <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />
+          )}
+        </View>
       {hasValueModalOpen && (
         /**
          * TODO replace BottomModal instances with BottomSheet
