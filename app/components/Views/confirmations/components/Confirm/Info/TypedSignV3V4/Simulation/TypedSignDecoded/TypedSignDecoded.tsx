@@ -103,7 +103,7 @@ const StateChangeRow = ({
   const { assetType, changeType, amount, contractAddress, tokenID } =
     stateChange;
   const nftTransactionType = getStateChangeType(stateChangeList, stateChange);
-  const tooltip = getStateChangeToolip(nftTransactionType);
+  const tooltip = shouldDisplayLabel ? getStateChangeToolip(nftTransactionType) : undefined;
 
   const canDisplayValueAsUnlimited =
     assetType === TokenStandard.ERC20 &&
