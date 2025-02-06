@@ -66,7 +66,7 @@ describe('QRInfo', () => {
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
-    expect(getByText('Scan with your hardware wallet')).toBeDefined();
+    expect(getByText('Scan with your hardware wallet')).toBeTruthy();
   });
 
   it('should display camera error if present', () => {
@@ -77,7 +77,7 @@ describe('QRInfo', () => {
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
-    expect(getByText('some camera error text')).toBeDefined();
+    expect(getByText('some camera error text')).toBeTruthy();
   });
 
   it('should contain correct text is scanner is visible', () => {
@@ -89,7 +89,7 @@ describe('QRInfo', () => {
     });
     expect(
       getByText('Scan your hardware wallet to confirm the transaction'),
-    ).toBeDefined();
+    ).toBeTruthy();
   });
 
   it('invoke setScannerVisible when hideModal is called on scanner', () => {
@@ -121,11 +121,9 @@ describe('QRInfo', () => {
   });
 
   it('submits request when onScanSuccess is called by scanner', () => {
-    jest
-      .spyOn(ETHSignature, 'fromCBOR')
-      .mockReturnValue({
-        getRequestId: () => undefined,
-      } as unknown as ETHSignature);
+    jest.spyOn(ETHSignature, 'fromCBOR').mockReturnValue({
+      getRequestId: () => undefined,
+    } as unknown as ETHSignature);
     const mockSetScannerVisible = jest.fn();
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       scannerVisible: true,

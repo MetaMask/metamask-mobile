@@ -141,7 +141,7 @@ describe('QRHardwareContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    expect(getByText('Scan with your hardware wallet')).toBeDefined();
+    expect(getByText('Scan with your hardware wallet')).toBeTruthy();
   });
 
   it('should pass correct value of scannerVisible to child components', () => {
@@ -167,7 +167,7 @@ describe('QRHardwareContext', () => {
     fireEvent.press(getByText('Get Signature'));
     expect(
       getByText('Scan your hardware wallet to confirm the transaction'),
-    ).toBeDefined();
+    ).toBeTruthy();
   });
 });
 

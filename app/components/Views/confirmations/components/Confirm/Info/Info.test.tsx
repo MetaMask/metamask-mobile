@@ -20,14 +20,12 @@ describe('Info', () => {
   });
 
   it('renders QRInfo if user is signing using QR hardware', () => {
-    jest
-      .spyOn(QRHardwareHook, 'useQRHardwareContext')
-      .mockReturnValue({
-        isSigningQRObject: true,
-      } as unknown as QRHardwareHook.QRHardwareContextType);
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      isSigningQRObject: true,
+    } as unknown as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Info />, {
       state: personalSignatureConfirmationState,
     });
-    expect(getByText('QR Scanning Component')).toBeDefined();
+    expect(getByText('QR Scanning Component')).toBeTruthy();
   });
 });
