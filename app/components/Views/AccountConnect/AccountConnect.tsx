@@ -1,6 +1,5 @@
 // Third party dependencies.
 import { useNavigation } from '@react-navigation/native';
-import { isEqual } from 'lodash';
 import React, {
   useCallback,
   useContext,
@@ -41,7 +40,6 @@ import {
   getUrlObj,
   prefixUrlWithProtocol,
 } from '../../../util/browser';
-import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
