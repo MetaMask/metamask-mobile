@@ -2,9 +2,11 @@ import React from 'react';
 import InfoRowOrigin from '../Shared/InfoRowOrigin';
 import Message from './Message';
 import TypedSignV3V4Simulation from './Simulation';
+import AccountNetworkInfo from '../../AccountNetworkInfo';
 
 const TypedSignV3V4 = () => (
     <>
+      <AccountNetworkInfo />
       <TypedSignV3V4Simulation />
       <InfoRowOrigin />
       <Message />

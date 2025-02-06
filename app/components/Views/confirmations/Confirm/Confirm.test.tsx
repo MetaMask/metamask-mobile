@@ -5,6 +5,7 @@ import {
   personalSignatureConfirmationState,
   securityAlertResponse,
   typedSignV1ConfirmationState,
+  stakingDepositConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 import Confirm from './index';
 
@@ -33,6 +34,20 @@ jest.mock('react-native-gzip', () => ({
 }));
 
 describe('Confirm', () => {
+  it('should render flat confirmation', async () => {
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(getByTestId('flat-confirmation-container')).toBeDefined();
+  });
+
+  it('should render modal confirmation', async () => {
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: typedSignV1ConfirmationState,
+    });
+    expect(getByTestId('modal-confirmation-container')).toBeDefined();
+  });
+
   it('should render correct information for personal sign', async () => {
     const { getAllByRole, getByText } = renderWithProvider(<Confirm />, {
       state: personalSignatureConfirmationState,

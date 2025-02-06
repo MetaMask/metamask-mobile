@@ -3,6 +3,7 @@ import React from 'react';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoRowOrigin from '../Shared/InfoRowOrigin';
 import Message from './Message';
+import AccountNetworkInfo from '../../AccountNetworkInfo';
 
 const PersonalSign = () => {
   const { approvalRequest } = useApprovalRequest();
@@ -13,6 +14,7 @@ const PersonalSign = () => {
 
   return (
     <>
+      <AccountNetworkInfo />
       <InfoRowOrigin />
       <Message />
     </>

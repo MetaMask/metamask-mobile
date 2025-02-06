@@ -5,7 +5,6 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 
 import { useStyles } from '../../../../component-library/hooks';
-import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
 import BottomModal from '../components/UI/BottomModal';
 import Footer from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
@@ -17,7 +16,6 @@ import { useTransactionMetadata } from '../hooks/useTransactionMetadata';
 import styleSheet from './Confirm.styles';
 
 // todo: if possible derive way to dynamically check if confirmation should be rendered flat
-// todo: unit test coverage to be added once we have flat confirmations in place
 const FLAT_CONFIRMATIONS: (TransactionType | ApprovalType)[] = [
   TransactionType.stakingDeposit,
 ];
@@ -27,7 +25,6 @@ const ConfirmWrapped = () => (
     <ScrollView>
       <Title />
       <SignatureBlockaidBanner />
-      <AccountNetworkInfo />
       <Info />
     </ScrollView>
     <Footer />
@@ -53,14 +50,14 @@ const Confirm = () => {
 
   if (isFlatConfirmation) {
     return (
-      <SafeAreaView style={styles.mainContainer}>
+      <SafeAreaView style={styles.mainContainer} testID="flat-confirmation-container">
         <ConfirmWrapped />
       </SafeAreaView>
     );
   }
 
   return (
-    <BottomModal canCloseOnBackdropClick={false}>
+    <BottomModal canCloseOnBackdropClick={false} testID="modal-confirmation-container">
       <View style={styles.container} testID={approvalRequest?.type}>
         <ConfirmWrapped />
       </View>
