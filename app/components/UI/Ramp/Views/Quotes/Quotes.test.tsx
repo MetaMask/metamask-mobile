@@ -159,7 +159,7 @@ describe('Quotes', () => {
     mockUseQuotesValues = {
       ...mockUseQuotesInitialValues,
       isFetching: true,
-      data: null,
+      data: undefined,
     };
     render(Quotes);
     expect(mockSetOptions).toBeCalledTimes(1);
@@ -200,7 +200,7 @@ describe('Quotes', () => {
     mockUseQuotesValues = {
       ...mockUseQuotesInitialValues,
       isFetching: true,
-      data: null,
+      data: undefined,
     };
     render(Quotes);
     const fetchingQuotesText = screen.getByText('Fetching quotes');
