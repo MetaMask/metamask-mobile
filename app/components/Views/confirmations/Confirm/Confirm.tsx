@@ -56,7 +56,7 @@ const Confirm = () => {
 
   return (
     <BottomModal canCloseOnBackdropClick={false}>
-      <View style={styles.container}>
+      <View style={styles.container} testID={approvalRequest?.type}>
         <ConfirmWrapped />
       </View>
     </BottomModal>
