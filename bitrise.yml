@@ -1593,7 +1593,7 @@ workflows:
                   IS_TEST="false"
                 fi
                 
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' IS_TEST='${IS_TEST}' yarn build:ios:pre-qa
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' IS_TEST=$IS_TEST yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
