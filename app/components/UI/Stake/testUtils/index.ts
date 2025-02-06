@@ -69,18 +69,21 @@ export const getCreateMockTokenOptions = (
       name: 'USDC',
       symbol: 'USDC',
       ticker: 'USDC',
+      isStaked: false,
       decimals: 6,
     },
     USDT: {
       name: 'Tether USD',
       symbol: 'USDT',
       ticker: 'USDT',
+      isStaked: false,
       decimals: 6,
     },
     DAI: {
       name: 'Dai Stablecoin',
       symbol: 'DAI',
       ticker: 'DAI',
+      isStaked: false,
       decimals: 18,
     },
   };
