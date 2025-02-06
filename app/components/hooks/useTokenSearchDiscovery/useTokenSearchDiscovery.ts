@@ -37,7 +37,7 @@ export const useTokenSearchDiscovery = () => {
         }
       }
     }, SEARCH_DEBOUNCE_DELAY),
-    [],
+    [setResults, setError, setIsLoading, latestRequestId],
   );
 
   const searchTokens = useCallback(
