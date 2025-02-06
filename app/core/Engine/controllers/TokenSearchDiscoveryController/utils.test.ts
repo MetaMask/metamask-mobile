@@ -16,25 +16,19 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 jest.mock('@metamask/token-search-discovery-controller', () => ({
-  TokenSearchApiService: jest.fn().mockImplementation(function () {
-    return {};
-  }),
-  TokenDiscoveryApiService: jest.fn().mockImplementation(function () {
-    return {};
-  }),
+  TokenSearchApiService: jest.fn().mockImplementation(() => ({})),
+  TokenDiscoveryApiService: jest.fn().mockImplementation(() => ({})),
   TokenSearchDiscoveryController: jest
     .fn()
-    .mockImplementation(function (
-      this: { state: TokenSearchDiscoveryControllerState },
-      params: { state?: TokenSearchDiscoveryControllerState },
-    ) {
-      this.state = {
-        lastSearchTimestamp: null,
-        recentSearches: [],
-        ...params.state,
-      };
-      return this;
-    }),
+    .mockImplementation(
+      (params: { state?: TokenSearchDiscoveryControllerState }) => ({
+        state: {
+          lastSearchTimestamp: null,
+          recentSearches: [],
+          ...params.state,
+        },
+      }),
+    ),
 }));
 
 describe('TokenSearchDiscoveryController utils', () => {
