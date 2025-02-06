@@ -218,6 +218,8 @@ export const switchToSepoliaNetwork = async () => {
 };
 
 export const loginToApp = async () => {
+  await device.disableSynchronization();
+  await TestHelpers.delay(3000);
   const PASSWORD = '123123123';
   await Assertions.checkIfVisible(LoginView.container);
   await LoginView.enterPassword(PASSWORD);

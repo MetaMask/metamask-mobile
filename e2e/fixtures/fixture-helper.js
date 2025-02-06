@@ -170,8 +170,8 @@ export async function withFixtures(options, testSuite) {
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
     if (restartDevice) {
-      await device.disableSynchronization();
       await TestHelpers.launchApp({
+        newInstance: true,
         delete: true,
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
