@@ -93,9 +93,8 @@ const PermitSimulation = () => {
                 { token, amount }: { token: string; amount: string },
                 i: number,
               ) => (
-                <View style={styles.permitValues}>
+                <View style={styles.permitValues} key={`${token}-${i}`}>
                   <PermitSimulationValueDisplay
-                    key={`${token}-${i}`}
                     labelChangeType={labelChangeType}
                     networkClientId={networkClientId}
                     primaryType={primaryType}
