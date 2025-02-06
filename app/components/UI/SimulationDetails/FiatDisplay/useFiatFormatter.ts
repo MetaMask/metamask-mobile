@@ -21,10 +21,13 @@ const useFiatFormatter = (): FiatFormatter => {
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   return (fiatAmount: BigNumber) => {
+    const hasDecimals = !fiatAmount.isInteger();
+
     try {
       return new Intl.NumberFormat(I18n.locale, {
         style: 'currency',
         currency: fiatCurrency,
+        minimumFractionDigits: hasDecimals ? 2 : 0,
         // string is valid parameter for format function
         // for some reason it gives TS issue
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/format#number
