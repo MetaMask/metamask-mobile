@@ -16,7 +16,7 @@ import {
 } from '../../../../util/notifications/notification-states';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { Notification } from '../../../../util/notifications';
+import { INotification } from '../../../../util/notifications';
 import {
   useListNotifications,
   useMarkNotificationAsRead,
@@ -28,19 +28,19 @@ import useStyles from './useStyles';
 
 interface NotificationsListProps {
   navigation: NavigationProp<ParamListBase>;
-  allNotifications: Notification[];
-  walletNotifications: Notification[];
-  web3Notifications: Notification[];
+  allNotifications: INotification[];
+  walletNotifications: INotification[];
+  web3Notifications: INotification[];
   loading: boolean;
 }
 
 interface NotificationsListItemProps {
   navigation: NavigationProp<ParamListBase>;
-  notification: Notification;
+  notification: INotification;
 }
 interface NotificationsListItemProps {
   navigation: NavigationProp<ParamListBase>;
-  notification: Notification;
+  notification: INotification;
 }
 
 function Loading() {
@@ -61,7 +61,7 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const { trackEvent, createEventBuilder } = useMetrics();
   const onNotificationClick = useCallback(
-    (item: Notification) => {
+    (item: INotification) => {
       markNotificationAsRead([
         {
           id: item.id,
@@ -133,9 +133,9 @@ function useNotificationListProps(props: {
   const { styles } = useStyles();
   const { listNotifications, isLoading } = useListNotifications();
   const getListProps = useCallback(
-    (data: Notification[], tabLabel?: string) => {
-      const listProps: FlatListProps<Notification> = {
-        keyExtractor: (item: Notification) => item.id,
+    (data: INotification[], tabLabel?: string) => {
+      const listProps: FlatListProps<INotification> = {
+        keyExtractor: (item: INotification) => item.id,
         data,
         ListEmptyComponent: (
           <Empty
@@ -143,7 +143,7 @@ function useNotificationListProps(props: {
           />
         ),
         contentContainerStyle: styles.list,
-        renderItem: ({ item }: { item: Notification }) => (
+        renderItem: ({ item }: { item: INotification }) => (
           <NotificationsListItem
             notification={item}
             navigation={props.navigation}

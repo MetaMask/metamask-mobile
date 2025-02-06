@@ -12,6 +12,7 @@ import {
   OnChainRawNotification,
   OnChainRawNotificationsWithNetworkFields,
   TRIGGER_TYPES,
+  INotification,
 } from '@metamask/notification-services-controller/notification-services';
 import {
   NOTIFICATION_CHAINS_ID,
@@ -23,7 +24,6 @@ import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
-import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -335,8 +335,8 @@ export function shortenString(
 }
 
 export const sortNotifications = (
-  notifications: Notification[],
-): Notification[] => {
+  notifications: INotification[],
+): INotification[] => {
   if (!notifications) {
     return [];
   }

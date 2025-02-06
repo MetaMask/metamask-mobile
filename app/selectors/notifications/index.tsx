@@ -3,9 +3,9 @@ import {
   NotificationServicesControllerState,
   TRIGGER_TYPES,
   defaultState,
+  INotification,
 } from '@metamask/notification-services-controller/notification-services';
 
-import { Notification } from '../../util/notifications';
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
 
@@ -66,14 +66,14 @@ export const getMetamaskNotificationsUnreadCount = createSelector(
   (notificationServicesControllerState: NotificationServicesState) =>
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification: Notification) => !notification.isRead).length,
+    ).filter((notification: INotification) => !notification.isRead).length,
 );
 export const getMetamaskNotificationsReadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification: Notification) => notification.isRead).length,
+    ).filter((notification: INotification) => notification.isRead).length,
 );
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
@@ -81,7 +81,7 @@ export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
     ).filter(
-      (notification: Notification) =>
+      (notification: INotification) =>
         !notification.isRead &&
         notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
     ).length,

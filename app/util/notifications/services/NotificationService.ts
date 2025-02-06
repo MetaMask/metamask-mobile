@@ -6,7 +6,12 @@ import notifee, {
   AndroidChannel,
 } from '@notifee/react-native';
 
-import { HandleNotificationCallback, LAUNCH_ACTIVITY, Notification, PressActionId } from '../types';
+import {
+  HandleNotificationCallback,
+  LAUNCH_ACTIVITY,
+  INotification,
+  PressActionId,
+} from '../types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
 import {
@@ -184,7 +189,7 @@ class NotificationsService {
     callback,
   }: {
     detail: EventDetail;
-    callback?: (notification: Notification) => void;
+    callback?: (notification: INotification) => void;
   }) => {
     this.decrementBadgeCount(1);
     if (detail?.notification?.id) {
@@ -192,7 +197,7 @@ class NotificationsService {
     }
 
     if (detail?.notification?.data) {
-      callback?.(detail.notification as Notification);
+      callback?.(detail.notification as INotification);
     }
   };
 
@@ -201,7 +206,7 @@ class NotificationsService {
     detail,
     callback,
   }: NotifeeEvent & {
-    callback?: (notification: Notification) => void;
+    callback?: (notification: INotification) => void;
   }) => {
     switch (type as unknown as EventType) {
       case EventType.DELIVERED:
@@ -222,11 +227,11 @@ class NotificationsService {
   };
 
   getInitialNotification = async (
-    callback: HandleNotificationCallback
+    callback: HandleNotificationCallback,
   ): Promise<void> => {
-    const event = await notifee.getInitialNotification()
+    const event = await notifee.getInitialNotification();
     if (event) {
-      callback(event.notification.data as Notification['data'])
+      callback(event.notification.data as INotification['data']);
     }
   };
 
@@ -241,17 +246,17 @@ class NotificationsService {
     channelId,
     title,
     body,
-    data
+    data,
   }: {
-    channelId: ChannelId
-    title: string
-    body?: string
-    data?: Notification['data']
+    channelId: ChannelId;
+    title: string;
+    body?: string;
+    data?: INotification['data'];
   }): Promise<void> => {
     await notifee.displayNotification({
       title,
       body,
-      data: data as unknown as Notification['data'],
+      data: data as unknown as INotification['data'],
       android: {
         smallIcon: 'ic_notification_small',
         largeIcon: 'ic_notification',
@@ -259,7 +264,7 @@ class NotificationsService {
         pressAction: {
           id: PressActionId.OPEN_NOTIFICATIONS_VIEW,
           launchActivity: LAUNCH_ACTIVITY,
-        }
+        },
       },
       ios: {
         launchImageName: 'Default',
