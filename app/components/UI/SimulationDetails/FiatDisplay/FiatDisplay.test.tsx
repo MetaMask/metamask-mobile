@@ -1,14 +1,14 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import BigNumber from 'bignumber.js';
 import { merge } from 'lodash';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { IndividualFiatDisplay, TotalFiatDisplay } from './FiatDisplay';
 import { mockNetworkState } from '../../../../util/test/network';
-import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import BigNumber from 'bignumber.js';
+import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
