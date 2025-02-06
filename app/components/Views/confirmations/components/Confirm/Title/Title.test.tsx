@@ -2,6 +2,7 @@ import React from 'react';
 
 import {
   personalSignatureConfirmationState,
+  siweSignatureConfirmationState,
   typedSignV4ConfirmationState,
   typedSignV4NFTConfirmationState,
 } from '../../../../../../util/test/confirm-data-helpers';
@@ -38,6 +39,16 @@ describe('Confirm Title', () => {
     expect(getByText('Signature request')).toBeDefined();
     expect(
       getByText('Review request details before you confirm.'),
+    ).toBeDefined();
+  });
+
+  it('should render correct title and subtitle for personal siwe request', async () => {
+    const { getByText } = renderWithProvider(<Title />, {
+      state: siweSignatureConfirmationState,
+    });
+    expect(getByText('Sign-in request')).toBeDefined();
+    expect(
+      getByText('A site wants you to sign in to prove you own this account.'),
     ).toBeDefined();
   });
 });

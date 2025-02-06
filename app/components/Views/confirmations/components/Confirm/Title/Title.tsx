@@ -1,25 +1,32 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { ApprovalRequest } from '@metamask/approval-controller';
-import { TransactionType } from '@metamask/transaction-controller';
 import { SignatureRequest } from '@metamask/signature-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
-import styleSheet from './Title.styles';
-import { isRecognizedPermit, parseTypedDataMessageFromSignatureRequest } from '../../../utils/signature';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
+import { isSIWESignatureRequest , isRecognizedPermit, parseTypedDataMessageFromSignatureRequest } from '../../../utils/signature';
+import styleSheet from './Title.styles';
 
 const getTitleAndSubTitle = (approvalRequest?: ApprovalRequest<{ data: string }>, signatureRequest?: SignatureRequest) => {
   const type = approvalRequest?.type;
 
   switch (type) {
-    case TransactionType.personalSign:
+    case TransactionType.personalSign: {
+      if (isSIWESignatureRequest(signatureRequest)) {
+        return {
+          title: strings('confirm.title.signature_siwe'),
+          subTitle: strings('confirm.sub_title.signature_siwe'),
+        };
+      }
       return {
         title: strings('confirm.title.signature'),
         subTitle: strings('confirm.sub_title.signature'),
       };
+    }
     case TransactionType.signTypedData: {
       const isPermit = isRecognizedPermit(signatureRequest);
 

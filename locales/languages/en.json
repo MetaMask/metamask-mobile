@@ -3627,14 +3627,17 @@
     "title": {
       "signature": "Signature request",
       "permit": "Spending cap request",
-      "permit_NFTs": "Withdrawal request"
+      "permit_NFTs": "Withdrawal request",
+      "signature_siwe": "Sign-in request"
     },
     "sub_title": {
-      "signature": "Review request details before you confirm.",
       "permit": "This site wants permission to spend your tokens.",
-      "permit_NFTs": "This site wants permission to withdraw your NFTs."
+      "permit_NFTs": "This site wants permission to withdraw your NFTs.",
+      "signature": "Review request details before you confirm.",
+      "signature_siwe": "A site wants you to sign in to prove you own this account."
     },
     "request_from": "Request from",
+    "signing_in_with": "Signing in with",
     "message": "Message",
     "primary_type": "Primary type",
     "personal_sign_tooltip": "This site is asking for your signature",
@@ -3642,6 +3645,17 @@
     "account": "Account",
     "balance": "Balance",
     "network": "Network",
+    "siwe_message": {
+      "url": "URL",
+      "network" : "Network",
+      "account" : "Account",
+      "version" : "Version",
+      "chain_id" : "Chain ID",
+      "nonce" : "Nonce",
+      "issued" : "Issued",
+      "requestId": "Request ID",
+      "resources": "Resources"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft":  "Expect changes only if someone buys your NFTs.",
