@@ -107,7 +107,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
           </View>
         </View>
       </View>
-      <View style={styles.fiatDisplay}>
+      <View>
         {/**
           TODO - add fiat shorten prop after tooltip logic has been updated
           {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
