@@ -1,2 +1,2 @@
-export * from './multichainEvm';
-export * from './multichainNonEvm';
+export * from './evm';
+export * from './multichain';

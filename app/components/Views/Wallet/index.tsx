@@ -105,7 +105,7 @@ import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainIsEvm } from '../../../selectors/multichain/multichainNonEvm';
+import { selectMultichainIsEvm } from '../../../selectors/multichain';
 import NonEvmTokens from '../../UI/NonEvmTokens';
 ///: END:ONLY_INCLUDE_IF
 

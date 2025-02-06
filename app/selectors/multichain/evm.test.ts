@@ -2,7 +2,7 @@ import { RootState } from '../../reducers';
 import {
   selectedAccountNativeTokenCachedBalanceByChainId,
   selectAccountTokensAcrossChains,
-} from './multichainEvm';
+} from './evm';
 
 describe('Multichain Selectors', () => {
   const mockState: RootState = {

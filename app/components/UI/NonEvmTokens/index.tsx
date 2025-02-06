@@ -6,7 +6,7 @@ import {
   selectMultichainConversionRate,
   selectMultichainCurrentNetwork,
   selectMultichainShouldShowFiat,
-} from '../../../selectors/multichain/multichainNonEvm';
+} from '../../../selectors/multichain';
 import { TokenList } from '../Tokens/TokenList';
 import { TokenI } from '../Tokens/types';
 import { renderFiat } from '../../../util/number';
