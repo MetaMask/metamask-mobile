@@ -5579,13 +5579,13 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-8.9.0.tgz#bac680e8f0007b3a11440f7e311674d6457d37ed"
   integrity sha512-N/WfmdrzJm+xbpuqJsfMrlrAhiNDsllIpwt9gDDeEKDlQAfJnMtT9xvOvBJbXY7zgMdtGZuD+KY64jNKabbuVQ==
 
-"@metamask/token-search-discovery-controller@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/token-search-discovery-controller/-/token-search-discovery-controller-1.0.0.tgz#f36a9db5d3003ad75374fa515c193acfba122512"
-  integrity sha512-Cbu8i1mEZViFsy/OyeOfOvDGOUUgIRxecU8PCO/IXW04gBj7vwQ9EZPLuW+/z8zqTeiwupd7JMx1rgZMMdma7Q==
+"@metamask/token-search-discovery-controller@^2.0.0":
+  version "2.0.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/token-search-discovery-controller/-/token-search-discovery-controller-2.0.0.tgz#f0f87bde6675371e52e6b2874f8540b8703d0cd4"
+  integrity sha512-YYb1gNFPh/07DMKH7kU2+XRKjDrr1CTGa+Sxk29qM7r46eDOv7lAIuZW4FsYX1M8rT4tKrCsYFX5nCHER54Ogw==
   dependencies:
     "@metamask/base-controller" "^7.1.1"
-    "@metamask/utils" "^11.0.1"
+    "@metamask/utils" "^11.1.0"
 
 "@metamask/transaction-controller@^43.0.0":
   version "43.0.0"
@@ -5612,7 +5612,7 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/utils@^10.0.0", "@metamask/utils@^10.0.1", "@metamask/utils@^11.0.1", "@metamask/utils@^8.2.0", "@metamask/utils@^8.3.0", "@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1", "@metamask/utils@^9.3.0":
+"@metamask/utils@^10.0.0", "@metamask/utils@^10.0.1", "@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^8.2.0", "@metamask/utils@^8.3.0", "@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1", "@metamask/utils@^9.3.0":
   version "11.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.0.1.tgz#16c4135489204fefe128b5e6c2b92c014453e1d5"
   integrity sha512-tZlBvEJ6VhhfEiMV+Ad8rWRMjHKpbMogG01YU22JlsIeJptgIdZX1G8jJzhZH0Gxrixa2BeARh7m9lZWQo6rMg==

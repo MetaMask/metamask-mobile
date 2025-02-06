@@ -210,7 +210,7 @@
     "@metamask/stake-sdk": "^1.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^12.0.0",
-    "@metamask/token-search-discovery-controller": "^1.0.0",
+    "@metamask/token-search-discovery-controller": "^2.0.0",
     "@metamask/transaction-controller": "^43.0.0",
     "@metamask/utils": "^11.0.1",
     "@ngraveio/bc-ur": "^1.1.6",
@@ -607,8 +607,7 @@
       "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
       "appium": false,
       "appium>@appium/support>sharp": false,
-      "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false,
-      "@storybook/builder-webpack5>@storybook/core-common>esbuild": false
+      "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false
     }
   },
   "packageManager": "yarn@1.22.22"
