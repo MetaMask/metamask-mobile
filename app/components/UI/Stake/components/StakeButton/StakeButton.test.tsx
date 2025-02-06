@@ -4,7 +4,7 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import StakeButton from './index';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MOCK_ETH_ASSET } from '../../__mocks__/mockData';
+import { MOCK_ETH_MAINNET_ASSET } from '../../__mocks__/mockData';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';
@@ -89,7 +89,7 @@ const STATE_MOCK = {
 };
 
 const renderComponent = (state = STATE_MOCK) =>
-  renderWithProvider(<StakeButton asset={MOCK_ETH_ASSET} />, {
+  renderWithProvider(<StakeButton asset={MOCK_ETH_MAINNET_ASSET} />, {
     state,
   });
 
@@ -142,7 +142,7 @@ describe('StakeButton', () => {
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
         screen: Routes.STAKING.STAKE,
         params: {
-          token: MOCK_ETH_ASSET,
+          token: MOCK_ETH_MAINNET_ASSET,
           action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
         },
       });
@@ -167,7 +167,7 @@ describe('StakeButton', () => {
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
         screen: Routes.STAKING.STAKE,
         params: {
-          token: MOCK_ETH_ASSET,
+          token: MOCK_ETH_MAINNET_ASSET,
           action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
         },
       });

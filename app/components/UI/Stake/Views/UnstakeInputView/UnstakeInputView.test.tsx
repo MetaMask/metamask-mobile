@@ -7,7 +7,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
-  MOCK_STAKED_ETH_ASSET,
+  MOCK_STAKED_ETH_MAINNET_ASSET,
 } from '../../__mocks__/mockData';
 
 jest.mock('../../../../../selectors/multichain', () => ({
@@ -97,7 +97,7 @@ jest.mock('../../hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
     stakedBalanceWei: mockPooledStakeData.assets,
-    stakedBalanceFiat: MOCK_STAKED_ETH_ASSET.balanceFiat,
+    stakedBalanceFiat: MOCK_STAKED_ETH_MAINNET_ASSET.balanceFiat,
     formattedStakedBalanceETH: '5.79133 ETH',
   }),
 }));

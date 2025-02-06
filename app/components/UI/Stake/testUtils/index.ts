@@ -11,6 +11,7 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
     chainId,
     name,
     symbol,
+    address = '0xabc',
     decimals = 0,
     isStaked = false,
     ticker = '',
@@ -26,7 +27,7 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
   const isNative = nativeChainIds.includes(chainId) && isETH;
 
   return {
-    address: '0xabc',
+    address,
     aggregators: [],
     balance: '',
     balanceFiat: '',
@@ -83,6 +84,20 @@ export const getCreateMockTokenOptions = (
       name: 'Dai Stablecoin',
       symbol: 'DAI',
       ticker: 'DAI',
+      isStaked: false,
+      decimals: 18,
+    },
+    LINK: {
+      name: 'Chainlink Token',
+      symbol: 'LINK',
+      ticker: 'LINK',
+      isStaked: false,
+      decimals: 18,
+    },
+    MATIC: {
+      name: 'Matic Network Token',
+      symbol: 'MATIC',
+      ticker: 'MATIC',
       isStaked: false,
       decimals: 18,
     },

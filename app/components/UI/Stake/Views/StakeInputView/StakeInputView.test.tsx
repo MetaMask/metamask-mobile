@@ -7,7 +7,7 @@ import { Stake } from '../../sdk/stakeSdkProvider';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
 import {
-  MOCK_ETH_ASSET,
+  MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_VAULT_RESPONSE,
 } from '../../__mocks__/mockData';
 import { toWei } from '../../../../../util/number';
@@ -141,7 +141,7 @@ describe('StakeInputView', () => {
     route: {
       params: {
         action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
-        token: MOCK_ETH_ASSET,
+        token: MOCK_ETH_MAINNET_ASSET,
       },
       key: Routes.STAKING.STAKE,
       name: 'params',

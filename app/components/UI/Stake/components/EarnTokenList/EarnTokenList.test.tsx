@@ -6,10 +6,15 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/account
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import { MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE } from '../../__mocks__/mockData';
+import {
+  MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
+  MOCK_USDC_BASE_MAINNET_ASSET,
+} from '../../__mocks__/mockData';
 import Engine from '../../../../../core/Engine';
 import * as tokenUtils from '../../utils/token';
 import * as useStakingEligibilityHook from '../../hooks/useStakingEligibility';
+import * as stakeConstants from '../../constants';
+import * as portfolioNetworkUtils from '../../../../../util/networks';
 import { act, fireEvent } from '@testing-library/react-native';
 
 jest.mock('../../utils/network', () => ({
@@ -121,8 +126,8 @@ describe('EarnTokenList', () => {
 
     // Token List
     // Ethereum
-    expect(getAllByText('Ethereum').length).toBe(2);
-    expect(getAllByText('2.3% APR').length).toBe(2);
+    expect(getAllByText('Ethereum').length).toBe(1);
+    expect(getAllByText('2.3% APR').length).toBe(1);
 
     // DAI
     expect(getByText('Dai Stablecoin')).toBeDefined();
@@ -134,14 +139,30 @@ describe('EarnTokenList', () => {
 
     // USDC
     expect(getByText('USDC')).toBeDefined();
-    expect(getByText('USD Coin')).toBeDefined();
-    expect(getAllByText('4.5% APR').length).toBe(2);
+    expect(getAllByText('4.5% APR').length).toBe(1);
 
     expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
     expect(filterEligibleTokensSpy).toHaveBeenCalled();
   });
 
+  it('does not render the EarnTokenList when required feature flags are disabled', () => {
+    jest
+      .spyOn(stakeConstants, 'isStablecoinLendingFeatureEnabled')
+      .mockReturnValueOnce(false);
+    jest
+      .spyOn(portfolioNetworkUtils, 'isPortfolioViewEnabled')
+      .mockReturnValueOnce(false);
+
+    const { toJSON } = renderWithProvider(<EarnTokenList />);
+
+    expect(toJSON()).toBeNull();
+  });
+
   it('changes active network if selected token is on a different network', async () => {
+    getSupportedEarnTokensSpy = jest
+      .spyOn(tokenUtils, 'getSupportedEarnTokens')
+      .mockReturnValue([MOCK_USDC_BASE_MAINNET_ASSET]);
+
     const { getByText } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <EarnTokenList />
@@ -151,7 +172,7 @@ describe('EarnTokenList', () => {
       },
     );
 
-    const baseUsdc = getByText('USD Coin');
+    const baseUsdc = getByText('USDC');
 
     await act(() => {
       fireEvent.press(baseUsdc);
@@ -160,29 +181,6 @@ describe('EarnTokenList', () => {
     expect(
       Engine.context.NetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');
-
-    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-      params: {
-        action: 'LEND',
-        token: {
-          address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-          aggregators: expect.any(Array),
-          balanceFiat: 'tokenBalanceLoading',
-          chainId: '0x2105',
-          decimals: 6,
-          image:
-            'https://static.cx.metamask.io/api/v1/tokenIcons/8453/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
-          isETH: false,
-          isNative: false,
-          isStaked: false,
-          name: 'USD Coin',
-          symbol: 'USDC',
-          token: 'USD Coin',
-          tokenBalanceFormatted: 'tokenBalanceLoading',
-        },
-      },
-      screen: 'Stake',
-    });
 
     expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
     expect(filterEligibleTokensSpy).toHaveBeenCalled();
@@ -213,7 +211,6 @@ describe('EarnTokenList', () => {
     expect(getByText('Dai Stablecoin')).toBeDefined();
     expect(getByText('USDC')).toBeDefined();
     expect(getByText('Tether USD')).toBeDefined();
-    expect(getByText('USD Coin')).toBeDefined();
 
     expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
 
@@ -240,7 +237,7 @@ describe('EarnTokenList', () => {
       },
     );
 
-    expect(getAllByText('Ethereum').length).toBe(2);
+    expect(getAllByText('Ethereum').length).toBe(1);
     expect(queryByText('Staked Ethereum')).toBeDefined();
 
     expect(queryByText('Dai Stablecoin')).toBeNull();
@@ -250,5 +247,87 @@ describe('EarnTokenList', () => {
 
     expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
     expect(filterEligibleTokensSpy).toHaveBeenCalled();
+  });
+
+  it('redirects to StakeInputView with pooled staking navigation params for staking token', async () => {
+    const { getByText } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    const ethButton = getByText('Ethereum');
+
+    await act(() => {
+      fireEvent.press(ethButton);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+      params: {
+        action: 'STAKE',
+        token: {
+          address: '0xabc',
+          aggregators: [],
+          balance: '',
+          balanceFiat: '',
+          chainId: '0x1',
+          decimals: 18,
+          image: '',
+          isETH: true,
+          isNative: true,
+          isStaked: false,
+          logo: '',
+          name: 'Ethereum',
+          symbol: 'Ethereum',
+          ticker: 'ETH',
+          tokenBalanceFormatted: ' ETH',
+        },
+      },
+      screen: 'Stake',
+    });
+  });
+
+  it('redirect to StakeInputView with stablecoin lending navigation params for lending token', async () => {
+    const { getByText } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    const usdcButton = getByText('USDC');
+
+    await act(() => {
+      fireEvent.press(usdcButton);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+      params: {
+        action: 'LEND',
+        token: {
+          address: '0xabc',
+          aggregators: [],
+          balance: '',
+          balanceFiat: 'tokenBalanceLoading',
+          chainId: '0x1',
+          decimals: 6,
+          image: '',
+          isETH: false,
+          isNative: false,
+          isStaked: false,
+          logo: '',
+          name: 'USDC',
+          symbol: 'USDC',
+          ticker: 'USDC',
+          tokenBalanceFormatted: 'tokenBalanceLoading',
+        },
+      },
+      screen: 'Stake',
+    });
   });
 });

@@ -1,5 +1,5 @@
 import {
-  MOCK_ETH_ASSET,
+  MOCK_ETH_MAINNET_ASSET,
   MOCK_SUPPORTED_EARN_TOKENS_WITH_FIAT_BALANCE,
 } from '../../__mocks__/mockData';
 import {
@@ -11,7 +11,7 @@ import { getStakeInputViewTitle } from './utils';
 describe('StakeInputView Utils', () => {
   describe('getStakeInputViewTitle', () => {
     it('returns ETH staking title', () => {
-      const { symbol, isETH } = MOCK_ETH_ASSET;
+      const { symbol, isETH } = MOCK_ETH_MAINNET_ASSET;
       const action =
         STAKE_INPUT_ACTION_TO_LABEL_MAP[STAKE_INPUT_VIEW_ACTIONS.STAKE];
 

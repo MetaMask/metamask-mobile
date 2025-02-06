@@ -1,6 +1,5 @@
 import {
   ChainId,
-  StakingApiService,
   StakingType,
   type PooledStakes,
   type VaultData,
@@ -8,38 +7,9 @@ import {
 import { TokenI } from '../../Tokens/types';
 import { Contract } from 'ethers';
 import { Stake } from '../sdk/stakeSdkProvider';
-import { createMockToken, getCreateMockTokenOptions } from '../testUtils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { createMockToken, getCreateMockTokenOptions } from '../testUtils';
 import { TOKENS_WITH_DEFAULT_OPTIONS } from '../testUtils/testUtils.types';
-
-export const MOCK_ETH_ASSET = createMockToken(
-  getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.ETH),
-);
-
-export const MOCK_STAKED_ETH_ASSET = createMockToken(
-  getCreateMockTokenOptions(
-    CHAIN_IDS.MAINNET,
-    TOKENS_WITH_DEFAULT_OPTIONS.STAKED_ETH,
-  ),
-);
-
-export const MOCK_USDC_ASSET = createMockToken(
-  getCreateMockTokenOptions(
-    CHAIN_IDS.MAINNET,
-    TOKENS_WITH_DEFAULT_OPTIONS.USDC,
-  ),
-);
-
-const MOCK_USDT_ASSET = createMockToken(
-  getCreateMockTokenOptions(
-    CHAIN_IDS.MAINNET,
-    TOKENS_WITH_DEFAULT_OPTIONS.USDT,
-  ),
-);
-
-const MOCK_DAI_ASSET = createMockToken(
-  getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.DAI),
-);
 
 export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   accounts: [
@@ -114,16 +84,6 @@ export const MOCK_GET_VAULT_RESPONSE: VaultData = {
   vaultAddress: '0x0a1b2c3d4e5f6a7b8c9dabecfd0123456789abcd',
 };
 
-export const MOCK_STAKING_API_SERVICE: Partial<StakingApiService> = {
-  fetchFromApi: jest.fn(),
-  getPooledStakes: jest.fn(),
-  getVaultData: jest.fn(),
-  getPooledStakingEligibility: jest.fn(),
-  getVaultDailyApys: jest.fn(),
-  getVaultApyAverages: jest.fn(),
-  baseUrl: 'https://staking.api.com',
-};
-
 const MOCK_POOLED_STAKING_CONTRACT_SERVICE = {
   chainId: ChainId.ETHEREUM,
   connectSignerOrProvider: jest.fn(),
@@ -146,483 +106,94 @@ export const MOCK_POOL_STAKING_SDK: Stake = {
   setSdkType: jest.fn(),
 };
 
+export const MOCK_ETH_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.ETH),
+);
+
+export const MOCK_STAKED_ETH_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.STAKED_ETH,
+  ),
+);
+
+export const MOCK_USDC_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.USDC,
+  ),
+);
+
+const MOCK_USDT_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.USDT,
+  ),
+);
+
+const MOCK_DAI_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.DAI),
+);
+
+const MOCK_LINK_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.LINK,
+  ),
+);
+
+const MOCK_MATIC_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.MATIC,
+  ),
+);
+
+const MOCK_ETH_BASE_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.BASE, TOKENS_WITH_DEFAULT_OPTIONS.ETH),
+);
+
+export const MOCK_USDC_BASE_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.BASE, TOKENS_WITH_DEFAULT_OPTIONS.USDC),
+);
+
 export const MOCK_ACCOUNT_MULTI_CHAIN_TOKENS = [
-  MOCK_ETH_ASSET,
-  MOCK_STAKED_ETH_ASSET,
-  {
-    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x514910771af9ca656af840dff83e8264ecf986ca.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Chainlink Token',
-    symbol: 'LINK',
-    token: 'Chainlink Token',
-  },
-  MOCK_DAI_ASSET,
-  {
-    address: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Matic Network Token',
-    symbol: 'MATIC',
-    token: 'Matic Network Token',
-  },
-  {
-    address: '0x9ee91F9f426fA633d227f7a9b000E28b9dfd8599',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x9ee91f9f426fa633d227f7a9b000e28b9dfd8599.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Liquid staked MATIC',
-    symbol: 'STMATIC',
-    token: 'Liquid staked MATIC',
-  },
-  MOCK_USDC_ASSET,
-  {
-    address: '0xae78736Cd615f374D3085123A210448E74Fc6393',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xae78736cd615f374d3085123a210448e74fc6393.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Rocket Pool ETH',
-    symbol: 'RETH',
-    token: 'Rocket Pool ETH',
-  },
-  {
-    address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Liquid staked Ether 2.0',
-    symbol: 'STETH',
-    token: 'Liquid staked Ether 2.0',
-  },
-  {
-    address: '0xf03A7Eb46d01d9EcAA104558C732Cf82f6B6B645',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xf03a7eb46d01d9ecaa104558c732cf82f6b6b645.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Stader MaticX',
-    symbol: 'MATICX',
-    token: 'Stader MaticX',
-  },
-  {
-    address: '0x4d5F47FA6A74757f35C14fD3a6Ef8E3C9BC514E8',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x4d5f47fa6a74757f35c14fd3a6ef8e3c9bc514e8.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Aave Ethereum WETH',
-    symbol: 'AETHWETH',
-    token: 'Aave Ethereum WETH',
-  },
-  {
-    address: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Aave v3 USDC',
-    symbol: 'AETHUSDC',
-    token: 'Aave v3 USDC',
-  },
-  {
-    address: '0xA2b4C0Af19cC16a6CfAcCe81F192B024d625817D',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 9,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa2b4c0af19cc16a6cfacce81f192b024d625817d.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Kishu Inu',
-    symbol: 'KISHU',
-    token: 'Kishu Inu',
-  },
-  MOCK_USDT_ASSET,
-  {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '59.94304',
-    balanceFiat: '$184317.64',
-    chainId: '0xaa36a7',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: false,
-    logo: '../images/eth-logo-new.png',
-    name: 'Ethereum',
-    stakedBalance: '0x0',
-    symbol: 'Ethereum',
-    ticker: 'SepoliaETH',
-  },
-  {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '0',
-    balanceFiat: '$0.00',
-    chainId: '0xe705',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: false,
-    logo: '../images/eth-logo-new.png',
-    name: 'Ethereum',
-    stakedBalance: '0x0',
-    symbol: 'Ethereum',
-    ticker: 'LineaETH',
-  },
-  {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '0.01905',
-    balanceFiat: '$58.74',
-    chainId: '0xe708',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: false,
-    logo: '../images/eth-logo-new.png',
-    name: 'Ethereum',
-    stakedBalance: '0x0',
-    symbol: 'Ethereum',
-    ticker: 'ETH',
-  },
-  {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '390.76791',
-    balanceFiat: '$1205257.19',
-    chainId: '0x4268',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: false,
-    logo: '../images/eth-logo-new.png',
-    name: 'Ethereum',
-    stakedBalance: '0x9bc4a3d5fc4c16e3',
-    symbol: 'Ethereum',
-    ticker: 'ETH',
-  },
-  {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '11.22428',
-    balanceFiat: '$34619.37',
-    chainId: '0x4268',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: true,
-    logo: '../images/eth-logo-new.png',
-    name: 'Staked Ethereum',
-    nativeAsset: {
-      address: '0x0000000000000000000000000000000000000000',
-      aggregators: [Array],
-      balance: '390.76791',
-      balanceFiat: '$1205257.19',
-      chainId: '0x4268',
-      decimals: 18,
-      image: '',
-      isETH: true,
-      isNative: true,
-      isStaked: false,
-      logo: '../images/eth-logo-new.png',
-      name: 'Ethereum',
-      stakedBalance: '0x9bc4a3d5fc4c16e3',
-      symbol: 'Ethereum',
-      ticker: 'ETH',
-    },
-    stakedBalance: '0x9bc4a3d5fc4c16e3',
-    symbol: 'Ethereum',
-    ticker: 'ETH',
-  },
-  {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '0.06099',
-    balanceFiat: '$188.12',
-    chainId: '0x2105',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: false,
-    logo: '../images/eth-logo-new.png',
-    name: 'Ethereum',
-    stakedBalance: '0x0',
-    symbol: 'Ethereum',
-    ticker: 'ETH',
-  },
-  {
-    address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x2105',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/8453/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'USD Coin',
-    symbol: 'USDC',
-    token: 'USD Coin',
-  },
-  {
-    address: '0xD4a0e0b9149BCee3C920d2E00b5dE09138fd8bb7',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x2105',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/8453/0xd4a0e0b9149bcee3c920d2e00b5de09138fd8bb7.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Aave Base WETH',
-    symbol: 'ABASWETH',
-    token: 'Aave Base WETH',
-  },
-  {
-    address: '0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x2105',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/8453/0x04c0599ae5a44757c0af6f9ec3b93da8976c150a.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Wrapped eETH',
-    symbol: 'WEETH',
-    token: 'Wrapped eETH',
-  },
-  {
-    address: '0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x2105',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/8453/0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Coinbase Wrapped Staked ETH',
-    symbol: 'CBETH',
-    token: 'Coinbase Wrapped Staked ETH',
-  },
-  {
-    address: '0x4200000000000000000000000000000000000006',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x2105',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/8453/0x4200000000000000000000000000000000000006.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Wrapped Ether',
-    symbol: 'WETH',
-    token: 'Wrapped Ether',
-  },
-  {
-    address: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x2105',
-    decimals: 8,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/8453/0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Coinbase Wrapped BTC',
-    symbol: 'CBBTC',
-    token: 'Coinbase Wrapped BTC',
-  },
+  MOCK_ETH_MAINNET_ASSET,
+  MOCK_STAKED_ETH_MAINNET_ASSET,
+  MOCK_LINK_MAINNET_ASSET,
+  MOCK_DAI_MAINNET_ASSET,
+  MOCK_MATIC_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
+  MOCK_USDT_MAINNET_ASSET,
 ] as unknown as TokenI[];
 
 export const MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE = [
-  MOCK_ETH_ASSET,
-  MOCK_DAI_ASSET,
-  MOCK_USDC_ASSET,
-  MOCK_USDT_ASSET,
-  {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '390.76791',
-    balanceFiat: '$1205257.19',
-    chainId: '0x4268',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: false,
-    logo: '../images/eth-logo-new.png',
-    name: 'Ethereum',
-    stakedBalance: '0x9bc4a3d5fc4c16e3',
-    symbol: 'Ethereum',
-    ticker: 'ETH',
-  },
-  {
-    address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x2105',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/8453/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'USD Coin',
-    symbol: 'USDC',
-    token: 'USD Coin',
-  },
+  MOCK_ETH_MAINNET_ASSET,
+  MOCK_DAI_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
+  MOCK_USDT_MAINNET_ASSET,
 ] as unknown as TokenI[];
 
 export const MOCK_SUPPORTED_EARN_TOKENS_WITH_FIAT_BALANCE = [
   {
-    ...MOCK_ETH_ASSET,
+    ...MOCK_ETH_MAINNET_ASSET,
     tokenBalanceFormatted: '0.29166 ETH',
   },
+  { ...MOCK_DAI_MAINNET_ASSET, tokenBalanceFormatted: '108.06408 DAI' },
   {
-    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-    aggregators: [],
-    balanceFiat: '$107.72',
-    chainId: '0x1',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Dai Stablecoin',
-    symbol: 'DAI',
-    token: 'Dai Stablecoin',
-    tokenBalanceFormatted: '108.06408 DAI',
-  },
-  {
-    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    aggregators: [],
-    balanceFiat: '$6.82',
-    chainId: '0x1',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'USDC',
-    symbol: 'USDC',
-    token: 'USDC',
+    ...MOCK_USDC_MAINNET_ASSET,
     tokenBalanceFormatted: '6.84314 USDC',
   },
   {
-    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    aggregators: [],
-    balanceFiat: '$0.00',
-    chainId: '0x1',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
-    isERC721: false,
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Tether USD',
-    symbol: 'USDT',
-    token: 'Tether USD',
+    ...MOCK_USDT_MAINNET_ASSET,
     tokenBalanceFormatted: '0 USDT',
   },
   {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '390.76791',
-    balanceFiat: '$1201470.65',
-    chainId: '0x4268',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: false,
-    logo: '../images/eth-logo-new.png',
-    name: 'Ethereum',
-    stakedBalance: '0x9bc4a3d5fc4c16e3',
-    symbol: 'Ethereum',
-    ticker: 'ETH',
+    ...MOCK_ETH_BASE_MAINNET_ASSET,
     tokenBalanceFormatted: '390.76791 ETH',
   },
   {
-    address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-    aggregators: [],
-    balanceFiat: '$33.28',
-    chainId: '0x2105',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/8453/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'USD Coin',
-    symbol: 'USDC',
-    token: 'USD Coin',
+    ...MOCK_USDC_BASE_MAINNET_ASSET,
     tokenBalanceFormatted: '33.39041 USDC',
   },
 ];
