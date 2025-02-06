@@ -128,7 +128,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 
   const fiatValue =
     isValidTokenAmount && exchangeRate && !tokenId
-      ? tokenAmount.multipliedBy(exchangeRate).toNumber()
+      ? tokenAmount.multipliedBy(exchangeRate).toFixed()
       : undefined;
 
   const tokenValue = isValidTokenAmount
@@ -195,7 +195,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
             </View>
           </View>
         </View>
-        <View style={styles.fiatDisplay}>
+        <View>
           {/**
             TODO - add fiat shorten prop after tooltip logic has been updated
             {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}

@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { StyleSheet, ViewProps } from 'react-native';
+import { BigNumber } from 'bignumber.js';
 import { useStyles } from '../../../hooks/useStyles';
 import Text, {
   TextColor,
@@ -33,10 +34,10 @@ const FiatNotAvailableDisplay: React.FC = () => {
   );
 };
 
-export function calculateTotalFiat(fiatAmounts: FiatAmount[]): number {
+export function calculateTotalFiat(fiatAmounts: FiatAmount[]): BigNumber {
   return fiatAmounts.reduce(
-    (total: number, fiat) => total + (fiat === FIAT_UNAVAILABLE ? 0 : fiat),
-    0,
+    (total: BigNumber, fiat) => total.plus(fiat === FIAT_UNAVAILABLE ? new BigNumber(0) : new BigNumber(fiat)),
+    new BigNumber(0)
   );
 }
 
@@ -65,7 +66,7 @@ export const IndividualFiatDisplay: React.FC<IndividualFiatDisplayProps> = ({
   if (fiatAmount === FIAT_UNAVAILABLE) {
     return <FiatNotAvailableDisplay />;
   }
-  const absFiat = Math.abs(fiatAmount);
+  const absFiat = new BigNumber(fiatAmount).abs();
 
   return (
     <Text {...sharedTextProps} style={styles.base}>
@@ -92,12 +93,12 @@ export const TotalFiatDisplay: React.FC<{
     return null;
   }
 
-  return totalFiat === 0 ? (
+  return totalFiat.eq(0) ? (
     <FiatNotAvailableDisplay />
   ) : (
     <Text {...sharedTextProps} style={styles.base}>
       {strings('simulation_details.total_fiat', {
-        currency: fiatFormatter(Math.abs(totalFiat)),
+        currency: fiatFormatter(totalFiat.abs()),
       })}
     </Text>
   );

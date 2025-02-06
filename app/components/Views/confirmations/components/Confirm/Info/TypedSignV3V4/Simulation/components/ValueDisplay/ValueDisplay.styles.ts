@@ -12,14 +12,11 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
-    fiatDisplay: {
-      paddingEnd: 8,
-    },
     flexRowTokenValueAndAddress: {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'flex-end',
-      alignItems: 'center',
+      alignItems: 'flex-end',
       borderColor: importedColors.transparent,
       borderWidth: 0,
       padding: 0,
