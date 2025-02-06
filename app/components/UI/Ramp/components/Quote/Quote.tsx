@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  View,
-  TouchableOpacity,
-  LayoutChangeEvent,
   ActivityIndicator,
+  LayoutChangeEvent,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Animated, {
@@ -27,7 +27,9 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../Base/RemoteImage';
-import TagColored from '../../../../../component-library/components-temp/TagColored';
+import TagColored, {
+  TagColor,
+} from '../../../../../component-library/components-temp/TagColored';
 import styleSheet from './Quote.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import { isBuyQuote } from '../../utils';
@@ -126,11 +128,19 @@ const Quote: React.FC<Props> = ({
           topAccessoryGap={8}
           topAccessory={
             <>
-              {previouslyUsedProvider ? (
-                <TagColored>
-                  {strings('fiat_on_ramp_aggregator.previously_used')}
-                </TagColored>
-              ) : null}
+              <View style={styles.tags}>
+                {previouslyUsedProvider ? (
+                  <TagColored>
+                    {strings('fiat_on_ramp_aggregator.previously_used')}
+                  </TagColored>
+                ) : null}
+
+                {quote.tags.isBestRate ? (
+                  <TagColored color={TagColor.Success}>
+                    {strings('fiat_on_ramp_aggregator.best_rate')}
+                  </TagColored>
+                ) : null}
+              </View>
 
               <TouchableOpacity
                 onPress={highlighted ? showInfo : undefined}
