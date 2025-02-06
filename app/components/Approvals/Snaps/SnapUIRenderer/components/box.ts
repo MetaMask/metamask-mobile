@@ -44,7 +44,7 @@ export const box: UIComponentFactory<BoxElement> = ({
         ? FlexDirection.Row
         : FlexDirection.Column,
     justifyContent: generateJustifyContent(element.props.alignment),
-    alignItems: element.props.center || AlignItems.center,
+    alignItems: element.props.center && AlignItems.center,
     color: TextColor.Default,
   },
 });
