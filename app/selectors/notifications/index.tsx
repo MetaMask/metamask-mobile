@@ -1,17 +1,19 @@
 import { createSelector } from 'reselect';
+import {
+  NotificationServicesControllerState,
+  TRIGGER_TYPES,
+  defaultState,
+} from '@metamask/notification-services-controller/notification-services';
 
-import { TRIGGER_TYPES, Notification } from '../../util/notifications';
-
+import { Notification } from '../../util/notifications';
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
 
-type NotificationServicesState =
-  NotificationServicesController.NotificationServicesControllerState;
+type NotificationServicesState = NotificationServicesControllerState;
 
 const selectNotificationServicesControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NotificationServicesController ??
-  NotificationServicesController.defaultState;
+  defaultState;
 
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   selectNotificationServicesControllerState,

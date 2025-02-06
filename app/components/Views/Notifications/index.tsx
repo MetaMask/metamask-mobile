@@ -1,11 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
+
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/wallet/NotificationsView.selectors';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
-import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
+import { sortNotifications } from '../../../util/notifications';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
 import Button, {
@@ -34,10 +36,6 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
-const TRIGGER_TYPES_VALS: ReadonlySet<string> = new Set<string>(
-  Object.values(TRIGGER_TYPES),
-);
-
 const NotificationsView = ({
   navigation,
 }: {
@@ -54,7 +52,11 @@ const NotificationsView = ({
   const handleMarkAllAsRead = useCallback(() => {
     markNotificationAsRead(notifications);
     NotificationsService.setBadgeCount(0);
-    trackEvent(createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ).build());
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ,
+      ).build(),
+    );
   }, [markNotificationAsRead, notifications, trackEvent, createEventBuilder]);
 
   const allNotifications = useMemo(() => {
@@ -71,14 +73,24 @@ const NotificationsView = ({
     return sortedNotifications;
   }, [notifications]);
 
-  // Wallet notifications = On-Chain + Feature Announcements
+  // Wallet notifications
   const walletNotifications = useMemo(
-    () => allNotifications.filter((n) => TRIGGER_TYPES_VALS.has(n.type)),
+    () =>
+      (allNotifications ?? []).filter(
+        (n) =>
+          n.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT &&
+          n.type !== TRIGGER_TYPES.SNAP,
+      ),
     [allNotifications],
   );
 
-  // NOTE - We currently do not support web3 notifications
-  const announcementNotifications = useMemo(() => [], []);
+  const announcementNotifications = useMemo(
+    () =>
+      (allNotifications ?? []).filter(
+        (n) => n.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
+      ),
+    [allNotifications],
+  );
 
   const unreadCount = useMemo(
     () => allNotifications.filter((n) => !n.isRead).length,

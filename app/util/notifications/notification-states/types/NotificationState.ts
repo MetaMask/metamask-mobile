@@ -1,7 +1,7 @@
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import { strings } from '../../../../../locales/i18n';
 import { NotificationMenuItem } from './NotificationMenuItem';
 import { NotificationModalDetails } from './NotificationModalDetails';
-import { TRIGGER_TYPES } from '../../constants';
 import { ExtractedNotification } from '../node-guard';
 import { Notification } from '../../../../util/notifications';
 

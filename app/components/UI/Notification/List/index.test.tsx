@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import { INotification, TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
 import NotificationsList, { NotificationsListItem } from './';
@@ -16,7 +16,7 @@ import { Notification } from '../../../../util/notifications/types';
 // eslint-disable-next-line import/no-namespace
 import * as Actions from '../../../../actions/notification/helpers';
 import { NotificationState } from '../../../../util/notifications/notification-states/types/NotificationState';
-import { TRIGGER_TYPES } from '../../../../util/notifications/constants';
+
 const mockNavigation = createNavigationProps({});
 
 const mockTrackEvent = jest.fn();
@@ -174,7 +174,7 @@ describe('NotificationsList', () => {
         createdAt: MOCK_NOTIFICATIONS[2].createdAt,
         isRead: MOCK_NOTIFICATIONS[2].isRead,
       }),
-      guardFn: (n): n is NotificationServicesController.Types.INotification => true,
+      guardFn: (n): n is INotification => true,
     };
 
     renderWithProvider(

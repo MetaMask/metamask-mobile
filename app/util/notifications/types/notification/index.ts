@@ -1,6 +1,8 @@
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import {
+  INotification,
+  TRIGGER_TYPES,
+} from '@metamask/notification-services-controller/notification-services';
 import type { FC } from 'react';
-import { TRIGGER_TYPES } from '../../constants';
 
 /**
  * The shape of a "generic" notification.
@@ -8,15 +10,15 @@ import { TRIGGER_TYPES } from '../../constants';
  * - `type` field (declared in the Raw shapes)
  * - `data` field (declared in the Raw shapes)
  */
-export type Notification = NotificationServicesController.Types.INotification;
+export type Notification = INotification;
 
 export type HandleNotificationCallback = (
-  data: Notification['data'] | undefined
-) => void
+  data: Notification['data'] | undefined,
+) => void;
 
 export enum PressActionId {
   OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
-  OPEN_TRANSACTIONS_VIEW = 'open-transactions-view-press-action-id'
+  OPEN_TRANSACTIONS_VIEW = 'open-transactions-view-press-action-id',
 }
 
 export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
@@ -123,10 +125,10 @@ export interface MarketingNotificationData {
 }
 
 export const STAKING_PROVIDER_MAP: Record<
-NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_STAKE_COMPLETED
-| NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
-| NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
-| NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED,
+  | TRIGGER_TYPES.LIDO_STAKE_COMPLETED
+  | TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
+  | TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
+  | TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED,
   string
 > = {
   [TRIGGER_TYPES.LIDO_STAKE_COMPLETED]: 'Lido-staked ETH',
