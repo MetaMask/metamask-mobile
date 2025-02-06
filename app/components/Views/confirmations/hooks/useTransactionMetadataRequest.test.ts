@@ -8,7 +8,7 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 
 describe('useTransactionMetadataRequest', () => {
-  it('returns transaction metadata when approval type is Transaction', () => {
+  it('returns transaction metadata', () => {
     const { result } = renderHookWithProvider(useTransactionMetadataRequest, {
       state: stakingDepositConfirmationState,
     });
