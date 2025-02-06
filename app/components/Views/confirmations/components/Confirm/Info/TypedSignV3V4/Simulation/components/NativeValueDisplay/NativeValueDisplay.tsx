@@ -37,8 +37,8 @@ interface PermitSimulationValueDisplayParams {
   /** ID of the associated chain. */
   chainId: Hex;
 
-  /** Change type to be displayed in value tooltip */
-  labelChangeType: string;
+  /** Modal header text to be displayed in the value modal */
+  modalHeaderText: string;
 
   /** The token amount */
   value: number | string;
@@ -54,7 +54,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
   chainId,
   credit,
   debit,
-  labelChangeType,
+  modalHeaderText,
   value,
 }) => {
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
@@ -136,7 +136,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
                     iconName={IconName.ArrowLeft}
                   />
                   <Text style={styles.valueModalHeaderText}>
-                    {labelChangeType}
+                    {modalHeaderText}
                   </Text>
                 </View>
                 <Text style={styles.valueModalText}>
