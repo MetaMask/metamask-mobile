@@ -24,15 +24,13 @@ const FLAT_CONFIRMATIONS: TransactionType[] = [
 
 const ConfirmWrapped = () => (
   <QRHardwareContextProvider>
-    <>
-      <ScrollView>
-        <Title />
-        <SignatureBlockaidBanner />
-        <AccountNetworkInfo />
-        <Info />
-      </ScrollView>
-      <Footer />
-    </>
+    <ScrollView>
+      <Title />
+      <SignatureBlockaidBanner />
+      <AccountNetworkInfo />
+      <Info />
+    </ScrollView>
+    <Footer />
   </QRHardwareContextProvider>
 );
 
