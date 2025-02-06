@@ -201,10 +201,10 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
       </View>
       <View>
         {/**
-            TODO - support fiat shorten prop
+            TODO - support fiat shorten prop and uncomment !shouldShowUnlimitedValue
             {@see {@link https://github.com/MetaMask/metamask-mobile/issues/13385}
           */}
-        {fiatValue && (
+        {!shouldShowUnlimitedValue && fiatValue && (
           <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />
         )}
       </View>
