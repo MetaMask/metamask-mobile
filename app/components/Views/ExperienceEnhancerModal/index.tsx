@@ -25,6 +25,9 @@ import {
 } from '../../../components/hooks/useMetrics';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ExperienceEnhancerModal.selectors.js';
+import {
+  UserProfileProperty
+} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
@@ -40,14 +43,14 @@ const ExperienceEnhancerModal = () => {
       dispatch(setDataCollectionForMarketing(false));
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      const traits = {
-        has_marketing_consent: false,
-      };
-      addTraitsToUser(traits);
+      addTraitsToUser({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.OFF,
+      });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
           .addProperties({
-            ...traits,
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
+            updated_after_onboarding: true,
             location: 'marketing_consent_modal',
           })
           .build(),
@@ -64,12 +67,14 @@ const ExperienceEnhancerModal = () => {
       dispatch(setDataCollectionForMarketing(true));
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      const traits = { has_marketing_consent: true };
-      addTraitsToUser(traits);
+      addTraitsToUser({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+      });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
           .addProperties({
-            ...traits,
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+            updated_after_onboarding: true,
             location: 'marketing_consent_modal',
           })
           .build(),
