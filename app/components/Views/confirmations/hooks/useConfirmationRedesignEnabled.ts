@@ -11,17 +11,10 @@ import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagContr
 import { useTransactionMetadata } from './useTransactionMetadata';
 import useApprovalRequest from './useApprovalRequest';
 
-type RedesignRequest = {
-  confirmation_redesign: ConfirmationRedesignRemoteFlags;
-  approvalRequestType?: ApprovalType;
-  fromAddress: string;
-  transactionMetadata?: TransactionMeta;
-};
-
-type ConfirmationRedesignRemoteFlags = {
+interface ConfirmationRedesignRemoteFlags {
   signatures: boolean;
   stakingDeposit: boolean;
-};
+}
 
 const REDESIGNED_SIGNATURE_TYPES = [
   ApprovalType.EthSignTypedData,
@@ -31,10 +24,14 @@ const REDESIGNED_SIGNATURE_TYPES = [
 const REDESIGNED_TRANSACTION_TYPES = [TransactionType.stakingDeposit];
 
 function isRedesignedSignature({
+  approvalRequestType,
   confirmation_redesign,
   fromAddress,
-  approvalRequestType,
-}: RedesignRequest) {
+}: {
+  approvalRequestType: ApprovalType;
+  confirmation_redesign: ConfirmationRedesignRemoteFlags;
+  fromAddress: string;
+}) {
   return (
     confirmation_redesign?.signatures &&
     // following condition will ensure that user is redirected to old designs for hardware wallets
@@ -44,47 +41,58 @@ function isRedesignedSignature({
   );
 }
 
-function isRedesignedStaking({
+function isRedesignedTransaction({
   approvalRequestType,
-  transactionMetadata,
   confirmation_redesign,
-}: RedesignRequest) {
+  transactionMetadata,
+}: {
+  approvalRequestType: ApprovalType;
+  confirmation_redesign: ConfirmationRedesignRemoteFlags;
+  transactionMetadata?: TransactionMeta;
+}) {
+  const isTransactionTypeRedesigned = REDESIGNED_TRANSACTION_TYPES.includes(
+    transactionMetadata?.type as TransactionType,
+  );
+
   if (
-    !transactionMetadata ||
-    approvalRequestType !== ApprovalType.Transaction
+    !isTransactionTypeRedesigned ||
+    approvalRequestType !== ApprovalType.Transaction ||
+    !transactionMetadata
   ) {
     return false;
   }
 
-  return (
-    confirmation_redesign?.stakingDeposit &&
-    REDESIGNED_TRANSACTION_TYPES.includes(
-      transactionMetadata.type as TransactionType,
-    )
-  );
+  if (transactionMetadata.type === TransactionType.stakingDeposit) {
+    return confirmation_redesign?.stakingDeposit;
+  }
+
+  return false;
 }
 
 export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadata();
-  const { confirmation_redesign } = useSelector(selectRemoteFeatureFlags) as {
+  const { confirmation_redesign } = useSelector(
+    selectRemoteFeatureFlags,
+  ) as unknown as {
     confirmation_redesign: ConfirmationRedesignRemoteFlags;
   };
 
   const approvalRequestType = approvalRequest?.type as ApprovalType;
   const fromAddress = approvalRequest?.requestData?.from;
 
-  const redesignRequest: RedesignRequest = {
-    approvalRequestType,
-    confirmation_redesign,
-    fromAddress,
-    transactionMetadata,
-  };
-
   const isRedesignedEnabled = useMemo(
     () =>
-      isRedesignedSignature(redesignRequest) ||
-      isRedesignedStaking(redesignRequest),
+      isRedesignedSignature({
+        approvalRequestType,
+        confirmation_redesign,
+        fromAddress,
+      }) ||
+      isRedesignedTransaction({
+        approvalRequestType,
+        confirmation_redesign,
+        transactionMetadata,
+      }),
     [
       approvalRequestType,
       confirmation_redesign,

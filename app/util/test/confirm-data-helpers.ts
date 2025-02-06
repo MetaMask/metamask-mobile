@@ -4,8 +4,18 @@ import {
   SignatureRequestStatus,
   SignatureRequestType,
 } from '@metamask/signature-controller';
+import { TransactionControllerState } from '@metamask/transaction-controller';
 import { backgroundState } from './initial-root-state';
+
 import { Hex } from '@metamask/utils';
+export const confirmationRedesignRemoteFlagsState = {
+  remoteFeatureFlags: {
+    confirmation_redesign: {
+      signatures: true,
+      stakingDeposit: true,
+    },
+  },
+};
 
 export const personalSignSignatureRequest = {
   chainId: '0x1',
@@ -59,11 +69,7 @@ export const personalSignatureConfirmationState = {
         approvalFlows: [],
       },
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          confirmation_redesign: {
-            signatures: true,
-          },
-        },
+        ...confirmationRedesignRemoteFlagsState,
       },
       SignatureController: {
         signatureRequests: {
@@ -150,11 +156,7 @@ export const typedSignV1ConfirmationState = {
         },
       },
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          confirmation_redesign: {
-            signatures: true,
-          },
-        },
+        ...confirmationRedesignRemoteFlagsState,
       },
     },
   },
@@ -250,9 +252,7 @@ export const typedSignV3ConfirmationState = {
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          confirmation_redesign: {
-            signatures: true,
-          },
+          ...confirmationRedesignRemoteFlagsState,
         },
       },
     },
@@ -355,4 +355,70 @@ export const securityAlertResponse = {
     version: 'V4',
   },
   chainId: '0x1',
+};
+
+export const stakingDepositConfirmationState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      ApprovalController: {
+        pendingApprovals: {
+          '699ca2f0-e459-11ef-b6f6-d182277cf5e1': {
+            expectsResult: true,
+            id: '699ca2f0-e459-11ef-b6f6-d182277cf5e1',
+            origin: 'metamask',
+            requestData: { txId: '699ca2f0-e459-11ef-b6f6-d182277cf5e1' },
+            requestState: null,
+            time: 1738825814816,
+            type: 'transaction',
+          },
+        },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+      TransactionController: {
+        transactions: [
+          {
+            actionId: undefined,
+            chainId: '0x1',
+            dappSuggestedGasFees: undefined,
+            defaultGasEstimates: {
+              estimateType: 'medium',
+              gas: '0x1a5bd',
+              gasPrice: undefined,
+              maxFeePerGas: '0x74594b20',
+              maxPriorityFeePerGas: '0x1dcd6500',
+            },
+            deviceConfirmedOn: 'metamask_mobile',
+            gasLimitNoBuffer: '0x11929',
+            id: '699ca2f0-e459-11ef-b6f6-d182277cf5e1',
+            isFirstTimeInteraction: undefined,
+            networkClientId: 'mainnet',
+            origin: 'metamask',
+            originalGasEstimate: '0x1a5bd',
+            securityAlertResponse: undefined,
+            simulationFails: undefined,
+            status: 'unapproved',
+            time: 1738825814687,
+            txParams: {
+              data: '0xf9609f08000000000000000000000000dc47789de4ceff0e8fe9d15d728af7f17550c1640000000000000000000000000000000000000000000000000000000000000000',
+              from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+              gas: '0x1a5bd',
+              maxFeePerGas: '0x74594b20',
+              maxPriorityFeePerGas: '0x1dcd6500',
+              to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+              value: '0x5af3107a4000',
+            },
+            type: 'stakingDeposit',
+            userEditedGasLimit: false,
+            userFeeLevel: 'medium',
+            verifiedOnBlockchain: false,
+          },
+        ],
+      } as unknown as TransactionControllerState,
+      RemoteFeatureFlagController: {
+        ...confirmationRedesignRemoteFlagsState,
+      },
+    },
+  },
 };

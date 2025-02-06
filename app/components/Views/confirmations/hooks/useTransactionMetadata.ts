@@ -7,8 +7,6 @@ import { selectTransactionMetadataById } from '../../../../selectors/transaction
 import { RootState } from '../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useApprovalRequest from './useApprovalRequest';
 
-const APPROVAL_TRANSACTION_TYPES = [ApprovalType.Transaction];
-
 export function useTransactionMetadata() {
   const { approvalRequest } = useApprovalRequest();
 
@@ -17,9 +15,7 @@ export function useTransactionMetadata() {
   );
 
   if (
-    !APPROVAL_TRANSACTION_TYPES.includes(
-      approvalRequest?.type as ApprovalType,
-    ) ||
+    approvalRequest?.type === ApprovalType.Transaction &&
     !transactionMetadata
   ) {
     return undefined;

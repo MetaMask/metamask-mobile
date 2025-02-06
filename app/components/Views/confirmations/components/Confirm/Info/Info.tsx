@@ -9,10 +9,10 @@ import TypedSignV1 from './TypedSignV1';
 import TypedSignV3V4 from './TypedSignV3V4';
 import StakingDeposit from './StakingDeposit';
 
-type ConfirmationInfoComponentRequest = {
+interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
   transactionType?: TransactionType;
-};
+}
 
 const ConfirmationInfoComponentMap = {
   [TransactionType.personalSign]: () => PersonalSign,
@@ -45,13 +45,9 @@ const Info = () => {
   const signatureRequestVersion = requestData?.version;
   const transactionType = transactionMetadata?.type;
 
-  const InfoComponent: React.FC | null = ConfirmationInfoComponentMap[
+  const InfoComponent = ConfirmationInfoComponentMap[
     approvalRequest?.type as keyof typeof ConfirmationInfoComponentMap
-  ]({ signatureRequestVersion, transactionType });
-
-  if (!InfoComponent) {
-    return null;
-  }
+  ]({ signatureRequestVersion, transactionType }) as React.FC;
 
   return <InfoComponent />;
 };
