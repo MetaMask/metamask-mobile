@@ -100,7 +100,7 @@ describe('EarnTokenList', () => {
     filterEligibleTokensSpy = jest.spyOn(tokenUtils, 'filterEligibleTokens');
   });
 
-  it('render matches screenshot', () => {
+  it('render matches snapshot', () => {
     const { toJSON, getByText, getAllByText } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <EarnTokenList />

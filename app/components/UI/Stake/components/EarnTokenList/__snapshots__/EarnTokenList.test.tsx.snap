@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EarnTokenList render matches screenshot 1`] = `
+exports[`EarnTokenList render matches snapshot 1`] = `
 <RNCSafeAreaProvider
   onInsetsChange={[Function]}
   style={
@@ -488,7 +488,7 @@ exports[`EarnTokenList render matches screenshot 1`] = `
                         }
                       }
                     >
-                      0.29166 ETH
+                       ETH
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -547,7 +547,7 @@ exports[`EarnTokenList render matches screenshot 1`] = `
                             resizeMode="contain"
                             source={
                               {
-                                "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png",
+                                "uri": "",
                               }
                             }
                             style={
@@ -751,7 +751,7 @@ exports[`EarnTokenList render matches screenshot 1`] = `
                             resizeMode="contain"
                             source={
                               {
-                                "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png",
+                                "uri": "",
                               }
                             }
                             style={
@@ -955,7 +955,7 @@ exports[`EarnTokenList render matches screenshot 1`] = `
                             resizeMode="contain"
                             source={
                               {
-                                "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/1/0xdac17f958d2ee523a2206206994597c13d831ec7.png",
+                                "uri": "",
                               }
                             }
                             style={

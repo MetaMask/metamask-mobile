@@ -82,7 +82,9 @@ describe('StakingEarningsHistory', () => {
 
   it('renders correctly with earnings history', () => {
     const { getByText } = renderWithProvider(
-      <StakingEarningsHistory asset={MOCK_STAKED_ETH_ASSET} />,
+      <StakingEarningsHistory
+        asset={{ ...MOCK_STAKED_ETH_ASSET, ticker: 'ETH' }}
+      />,
       {
         state: mockInitialState,
       },

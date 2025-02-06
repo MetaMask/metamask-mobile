@@ -9,49 +9,69 @@ import {
   MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
 } from '../../__mocks__/mockData';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { createMainnetMockToken, createMockToken } from '../../testUtils';
+import { createMockToken, getCreateMockTokenOptions } from '../../testUtils';
+import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../testUtils/testUtils.types';
 
 describe('tokenUtils', () => {
   describe('getSupportedEarnTokens', () => {
-    const MOCK_ETH_TOKEN = createMainnetMockToken('Ethereum', 'Ethereum');
-
-    const MOCK_STAKED_ETH_TOKEN = createMainnetMockToken(
-      'Ethereum',
-      'Ethereum',
-      true,
+    const MOCK_ETH_TOKEN = createMockToken(
+      getCreateMockTokenOptions(
+        CHAIN_IDS.MAINNET,
+        TOKENS_WITH_DEFAULT_OPTIONS.ETH,
+      ),
     );
 
-    const MOCK_MAINNET_DAI = createMainnetMockToken('Dai Stablecoin', 'DAI');
+    const MOCK_STAKED_ETH_TOKEN = createMockToken(
+      getCreateMockTokenOptions(
+        CHAIN_IDS.MAINNET,
+        TOKENS_WITH_DEFAULT_OPTIONS.STAKED_ETH,
+      ),
+    );
 
-    const MOCK_MAINNET_USDC = {
-      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      aggregators: [],
-      balanceFiat: '',
-      chainId: '0x1',
-      decimals: 6,
-      image:
-        'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-      isETH: false,
-      isNative: false,
-      isStaked: false,
-      name: 'USDC',
+    const MOCK_MAINNET_DAI = createMockToken(
+      getCreateMockTokenOptions(
+        CHAIN_IDS.MAINNET,
+        TOKENS_WITH_DEFAULT_OPTIONS.DAI,
+      ),
+    );
+
+    const MOCK_MAINNET_USDC = createMockToken(
+      getCreateMockTokenOptions(
+        CHAIN_IDS.MAINNET,
+        TOKENS_WITH_DEFAULT_OPTIONS.USDC,
+      ),
+    );
+
+    const MOCK_MAINNET_USDT_NO_BALANCE = createMockToken(
+      getCreateMockTokenOptions(
+        CHAIN_IDS.MAINNET,
+        TOKENS_WITH_DEFAULT_OPTIONS.USDT,
+      ),
+    );
+
+    const MOCK_BASE_USDC = createMockToken({
+      chainId: CHAIN_IDS.BASE,
+      name: 'USD Coin',
       symbol: 'USDC',
-      token: 'USDC',
-    };
+      ticker: 'USDC',
+      decimals: 6,
+    });
 
-    const MOCK_MAINNET_USDT_NO_BALANCE = createMainnetMockToken(
-      'Tether USD',
-      'USDT',
-    );
+    const MOCK_BSC_USDC = createMockToken({
+      chainId: CHAIN_IDS.BSC,
+      name: 'USD Coin',
+      symbol: 'USDC',
+      ticker: 'USDC',
+      decimals: 6,
+    });
 
-    const MOCK_BASE_USDC = createMockToken(CHAIN_IDS.BASE)('USD Coin', 'USDC');
-
-    const MOCK_BSC_USDC = createMockToken(CHAIN_IDS.BSC)('USD Coin', 'USDC');
-
-    const MOCK_SEPOLIA_USDC = createMockToken(CHAIN_IDS.SEPOLIA)(
-      'USD Coin',
-      'USDC',
-    );
+    const MOCK_SEPOLIA_USDC = createMockToken({
+      chainId: CHAIN_IDS.SEPOLIA,
+      name: 'USD Coin',
+      symbol: 'USDC',
+      ticker: 'USDC',
+      decimals: 6,
+    });
 
     it('extracts supported stable coins from owned tokens', () => {
       const result = getSupportedEarnTokens(MOCK_ACCOUNT_MULTI_CHAIN_TOKENS);

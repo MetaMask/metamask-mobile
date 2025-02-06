@@ -8,41 +8,38 @@ import {
 import { TokenI } from '../../Tokens/types';
 import { Contract } from 'ethers';
 import { Stake } from '../sdk/stakeSdkProvider';
+import { createMockToken, getCreateMockTokenOptions } from '../testUtils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { TOKENS_WITH_DEFAULT_OPTIONS } from '../testUtils/testUtils.types';
 
-export const MOCK_ETH_ASSET = {
-  chainId: '0x1',
-  balance: '2.555 ETH',
-  balanceFiat: '$8,073.18',
-  name: 'Ethereum',
-  symbol: 'ETH',
-  isETH: true,
-  isStaked: false,
-} as TokenI;
+export const MOCK_ETH_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.ETH),
+);
 
-export const MOCK_STAKED_ETH_ASSET = {
-  decimals: 18,
-  address: '0x0000000000000000000000000000000000000000',
-  chainId: '0x1',
-  balance: '4.9999 ETH',
-  balanceFiat: '$13,292.20',
-  name: 'Staked Ethereum',
-  symbol: 'Ethereum',
-  ticker: 'ETH',
-  isETH: true,
-  isStaked: true,
-} as TokenI;
+export const MOCK_STAKED_ETH_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.STAKED_ETH,
+  ),
+);
 
-export const MOCK_USDC_ASSET = {
-  decimals: 6,
-  address: '0xUSDC000000000000000000000000000000000000',
-  chainId: '0x1',
-  balance: '200.9999 USDC',
-  balanceFiat: '$200.98',
-  name: 'USD Coin',
-  symbol: 'USD Coin',
-  ticker: 'USDC',
-  isETH: false,
-} as TokenI;
+export const MOCK_USDC_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.USDC,
+  ),
+);
+
+const MOCK_USDT_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.USDT,
+  ),
+);
+
+const MOCK_DAI_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.DAI),
+);
 
 export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   accounts: [
@@ -117,25 +114,6 @@ export const MOCK_GET_VAULT_RESPONSE: VaultData = {
   vaultAddress: '0x0a1b2c3d4e5f6a7b8c9dabecfd0123456789abcd',
 };
 
-export const MOCK_STAKING_EARNINGS_DATA = {
-  ANNUAL_EARNING_RATE: '2.6%',
-  LIFETIME_REWARDS: {
-    FIAT: '$2',
-    ETH: '0.02151 ETH',
-  },
-  EST_ANNUAL_EARNINGS: {
-    FIAT: '$15.93',
-    ETH: '0.0131 ETH',
-  },
-};
-
-export const MOCK_REWARD_DATA = {
-  REWARDS: {
-    ETH: '0.13 ETH',
-    FIAT: '$334.93',
-  },
-};
-
 export const MOCK_STAKING_API_SERVICE: Partial<StakingApiService> = {
   fetchFromApi: jest.fn(),
   getPooledStakes: jest.fn(),
@@ -169,57 +147,8 @@ export const MOCK_POOL_STAKING_SDK: Stake = {
 };
 
 export const MOCK_ACCOUNT_MULTI_CHAIN_TOKENS = [
-  {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '0.29166',
-    balanceFiat: '$899.57',
-    chainId: '0x1',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: false,
-    logo: '../images/eth-logo-new.png',
-    name: 'Ethereum',
-    stakedBalance: '0x3eb29d5ab40826',
-    symbol: 'Ethereum',
-    ticker: 'ETH',
-  },
-  {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '0.01765',
-    balanceFiat: '$54.43',
-    chainId: '0x1',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: true,
-    logo: '../images/eth-logo-new.png',
-    name: 'Staked Ethereum',
-    nativeAsset: {
-      address: '0x0000000000000000000000000000000000000000',
-      aggregators: [],
-      balance: '0.29166',
-      balanceFiat: '$899.57',
-      chainId: '0x1',
-      decimals: 18,
-      image: '',
-      isETH: true,
-      isNative: true,
-      isStaked: false,
-      logo: '../images/eth-logo-new.png',
-      name: 'Ethereum',
-      stakedBalance: '0x3eb29d5ab40826',
-      symbol: 'Ethereum',
-      ticker: 'ETH',
-    },
-    stakedBalance: '0x3eb29d5ab40826',
-    symbol: 'Ethereum',
-    ticker: 'ETH',
-  },
+  MOCK_ETH_ASSET,
+  MOCK_STAKED_ETH_ASSET,
   {
     address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
     aggregators: [],
@@ -235,21 +164,7 @@ export const MOCK_ACCOUNT_MULTI_CHAIN_TOKENS = [
     symbol: 'LINK',
     token: 'Chainlink Token',
   },
-  {
-    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Dai Stablecoin',
-    symbol: 'DAI',
-    token: 'Dai Stablecoin',
-  },
+  MOCK_DAI_ASSET,
   {
     address: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0',
     aggregators: [],
@@ -280,21 +195,7 @@ export const MOCK_ACCOUNT_MULTI_CHAIN_TOKENS = [
     symbol: 'STMATIC',
     token: 'Liquid staked MATIC',
   },
-  {
-    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'USDC',
-    symbol: 'USDC',
-    token: 'USDC',
-  },
+  MOCK_USDC_ASSET,
   {
     address: '0xae78736Cd615f374D3085123A210448E74Fc6393',
     aggregators: [],
@@ -385,22 +286,7 @@ export const MOCK_ACCOUNT_MULTI_CHAIN_TOKENS = [
     symbol: 'KISHU',
     token: 'Kishu Inu',
   },
-  {
-    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
-    isERC721: false,
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Tether USD',
-    symbol: 'USDT',
-    token: 'Tether USD',
-  },
+  MOCK_USDT_ASSET,
   {
     address: '0x0000000000000000000000000000000000000000',
     aggregators: [],
@@ -613,69 +499,10 @@ export const MOCK_ACCOUNT_MULTI_CHAIN_TOKENS = [
 ] as unknown as TokenI[];
 
 export const MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE = [
-  {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '0.29166',
-    balanceFiat: '$899.57',
-    chainId: '0x1',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: false,
-    logo: '../images/eth-logo-new.png',
-    name: 'Ethereum',
-    stakedBalance: '0x3eb29d5ab40826',
-    symbol: 'Ethereum',
-    ticker: 'ETH',
-  },
-  {
-    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 18,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Dai Stablecoin',
-    symbol: 'DAI',
-    token: 'Dai Stablecoin',
-  },
-  {
-    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'USDC',
-    symbol: 'USDC',
-    token: 'USDC',
-  },
-  {
-    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    aggregators: [],
-    balanceFiat: '',
-    chainId: '0x1',
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
-    isERC721: false,
-    isETH: false,
-    isNative: false,
-    isStaked: false,
-    name: 'Tether USD',
-    symbol: 'USDT',
-    token: 'Tether USD',
-  },
+  MOCK_ETH_ASSET,
+  MOCK_DAI_ASSET,
+  MOCK_USDC_ASSET,
+  MOCK_USDT_ASSET,
   {
     address: '0x0000000000000000000000000000000000000000',
     aggregators: [],
@@ -712,21 +539,7 @@ export const MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE = [
 
 export const MOCK_SUPPORTED_EARN_TOKENS_WITH_FIAT_BALANCE = [
   {
-    address: '0x0000000000000000000000000000000000000000',
-    aggregators: [],
-    balance: '0.29166',
-    balanceFiat: '$896.75',
-    chainId: '0x1',
-    decimals: 18,
-    image: '',
-    isETH: true,
-    isNative: true,
-    isStaked: false,
-    logo: '../images/eth-logo-new.png',
-    name: 'Ethereum',
-    stakedBalance: '0x3eb29d5ab40826',
-    symbol: 'Ethereum',
-    ticker: 'ETH',
+    ...MOCK_ETH_ASSET,
     tokenBalanceFormatted: '0.29166 ETH',
   },
   {
