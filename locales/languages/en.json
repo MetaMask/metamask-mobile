@@ -425,6 +425,10 @@
     "cashout": {
       "title": "Cash out with MetaMask",
       "subtitle": "Sell your crypto for cash"
+    },
+    "aggregated": {
+      "title": "Your balance is aggregated",
+      "subtitle": "Control your balance view in settings"
     }
   },
   "wallet": {

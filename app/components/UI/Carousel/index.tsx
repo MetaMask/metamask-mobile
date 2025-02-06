@@ -22,15 +22,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { dismissBanner } from '../../../actions/banners/index';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import useGoToBridge from '../Bridge/utils/useGoToBridge';
 
 // Import banner images
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const BannerImages: Record<SlideId, ImageSourcePropType> = {
-  bridge: require('../../../images/banners/banner_image_bridge.png'),
   card: require('../../../images/banners/banner_image_card.png'),
   fund: require('../../../images/banners/banner_image_fund.png'),
   cashout: require('../../../images/banners/banner_image_cashout.png'),
+  aggregated: require('../../../images/banners/banner_image_aggregated.png'),
 };
 /* eslint-enable @typescript-eslint/no-require-imports, import/no-commonjs */
 
@@ -42,7 +41,7 @@ const IMAGE_WIDTH = 60;
 const IMAGE_HEIGHT = 59;
 const PEEK_WIDTH = 5;
 
-type SlideId = 'bridge' | 'card' | 'fund' | 'cashout';
+type SlideId = 'card' | 'fund' | 'cashout' | 'aggregated';
 
 interface Slide {
   id: SlideId;
@@ -53,13 +52,6 @@ interface Slide {
 }
 
 const PREDEFINED_SLIDES: Slide[] = [
-  {
-    id: 'bridge',
-    title: strings('banner.bridge.title'),
-    description: strings('banner.bridge.subtitle'),
-    undismissable: false,
-    href: undefined,
-  },
   {
     id: 'card',
     title: strings('banner.card.title'),
@@ -80,6 +72,13 @@ const PREDEFINED_SLIDES: Slide[] = [
     description: strings('banner.cashout.subtitle'),
     undismissable: false,
     href: 'https://portfolio.metamask.io/sell',
+  },
+  {
+    id: 'aggregated',
+    title: strings('banner.aggregated.title'),
+    description: strings('banner.aggregated.subtitle'),
+    undismissable: false,
+    href: 'metamask://settings/general',
   },
 ];
 
@@ -188,7 +187,6 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
   const styles = createStyles(colors);
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const goToBridge = useGoToBridge('Carousel');
   const dismissedBanners = useSelector(
     (state: RootState) => state.banners.dismissedBanners,
   );
@@ -240,11 +238,6 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
         },
       }).build(),
     );
-
-    if (slideId === 'bridge') {
-      goToBridge();
-      return;
-    }
 
     if (href) {
       Linking.openURL(href).catch(() => {
