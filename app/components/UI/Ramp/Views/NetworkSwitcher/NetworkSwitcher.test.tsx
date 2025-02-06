@@ -121,10 +121,10 @@ jest.mock('../../../../../core/Engine', () => ({
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
   },
-  /*   MultichainNetworkController: {
-    setActiveNetwork: jest.fn(),
-  }, */
 }));
 
 const mockSetOptions = jest.fn();

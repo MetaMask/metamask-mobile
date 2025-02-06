@@ -20,7 +20,6 @@ import {
 import {
   isMainnetByChainId,
   findBlockExplorerForRpc,
-  isSolanaEnabled,
 } from '../../util/networks';
 import { RPC } from '../../constants/network';
 import { collectConfusables } from '../../util/confusables';
@@ -45,7 +44,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
-import { isNonEvmAddress } from '../../core/Multichain/utils';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -156,10 +154,7 @@ export function renderAccountName(
  * @returns {Promise} - Returns a promise
  */
 
-export async function importAccountFromPrivateKey(
-  private_key: string,
-  isNonEvmSelected?: boolean,
-) {
+export async function importAccountFromPrivateKey(private_key: string) {
   const { KeyringController } = Engine.context;
   // Import private key
   let pkey = private_key;

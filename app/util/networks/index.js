@@ -26,7 +26,6 @@ import {
   PopularList,
   UnpopularNetworkList,
   CustomNetworkImgMapping,
-  NON_EVM_NETWORKS,
 } from './customNetworks';
 import { strings } from '../../../locales/i18n';
 import {
@@ -44,6 +43,8 @@ import {
 } from '../../constants/urls';
 import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { SolScopes } from '@metamask/keyring-api';
+import { store } from '../../store';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../selectors/multichainNetworkController';
 
 /**
  * List of the supported networks
@@ -318,10 +319,13 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
  * @returns {string} - Block explorer url
  */
 export function findBlockExplorerForNonEvmChainId(chainId) {
-  const network = NON_EVM_NETWORKS.find(
+  const nonEvmNetworks = selectNonEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
+  const network = Object.values(nonEvmNetworks).find(
     (network) => network.chainId === chainId,
   );
-  return network?.blockExplorerUrls[0];
+  return network?.blockExplorers?.urls[network?.blockExplorers?.defaultIndex];
 }
 
 /**
@@ -522,5 +526,4 @@ export const isPermissionsSettingsV1Enabled =
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
 
-export const isSolanaEnabled = () => true; //process.env.SOLANA_ENABLED === 'true';
 export const isMultichainV1Enabled = () => process.env.MULTICHAIN_V1 === 'true';

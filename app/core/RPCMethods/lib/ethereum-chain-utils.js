@@ -206,8 +206,11 @@ export async function switchToNetwork({
   origin,
   isAddNetworkFlow = false,
 }) {
-  const { NetworkController, PermissionController, SelectedNetworkController } =
-    controllers;
+  const {
+    MultichainNetworkController,
+    PermissionController,
+    SelectedNetworkController,
+  } = controllers;
   const getCaveat = ({ target, caveatType }) => {
     try {
       return PermissionController.getCaveat(origin, target, caveatType);
@@ -296,10 +299,10 @@ export async function switchToNetwork({
       networkConfigurationId || networkConfiguration.networkType,
     );
   } else {
-    //TODO: Add non evm support for dapp interaction
-    NetworkController.setActiveNetwork(
-      networkConfigurationId || networkConfiguration.networkType,
-    );
+    //TODO: [SOLANA] Add non evm support for dapp interaction
+    await MultichainNetworkController.setActiveNetwork({
+      evmClientId: networkConfigurationId || networkConfiguration.networkType,
+    });
   }
 
   return analyticsParams;

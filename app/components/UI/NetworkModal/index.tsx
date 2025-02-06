@@ -6,7 +6,7 @@ import Text from '../../Base/Text';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
-import { isPrivateConnection, isSolanaEnabled } from '../../../util/networks';
+import { isPrivateConnection } from '../../../util/networks';
 import { toggleUseSafeChainsListValidation } from '../../../util/networks/engineNetworkUtils';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
@@ -38,19 +38,14 @@ import { toHex } from '@metamask/controller-utils';
 import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
 import {
-  selectNetworkConfigurations,
   selectIsAllNetworks,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import {
   NetworkConfiguration,
   RpcEndpointType,
   AddNetworkFields,
 } from '@metamask/network-controller';
-import {
-  isNonEvmAddress,
-  isNonEvmChainId,
-} from '../../../core/Multichain/utils';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 
 export interface SafeChain {
   chainId: string;
@@ -93,9 +88,7 @@ const NetworkModals = (props: NetworkProps) => {
     safeChains,
   } = props;
   const { trackEvent, createEventBuilder } = useMetrics();
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -206,7 +199,7 @@ const NetworkModals = (props: NetworkProps) => {
   );
 
   const networkConfigurationByChainId = useSelector(
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
   );
 
   const checkNetwork = useCallback(async () => {
@@ -234,53 +227,50 @@ const NetworkModals = (props: NetworkProps) => {
     const existingNetwork = networkConfigurationByChainId[chainId];
     let networkClientId;
     // TODO: [SOLANA]
-    if (!isNonEvmChainId(chainId)) {
-      if (existingNetwork) {
-        const updatedNetwork = await NetworkController.updateNetwork(
-          existingNetwork.chainId,
-          existingNetwork,
-          existingNetwork.chainId === chainId
-            ? {
-                replacementSelectedRpcEndpointIndex:
-                  existingNetwork.defaultRpcEndpointIndex,
-              }
-            : undefined,
-        );
 
-        networkClientId =
-          updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex]
-            ?.networkClientId;
-      } else {
-        const addedNetwork = await NetworkController.addNetwork({
-          chainId,
-          blockExplorerUrls: [blockExplorerUrl],
-          defaultRpcEndpointIndex: 0,
-          defaultBlockExplorerUrlIndex: 0,
-          name: nickname,
-          nativeCurrency: ticker,
-          rpcEndpoints: [
-            {
-              url: rpcUrl,
-              name: nickname,
-              type: RpcEndpointType.Custom,
-            },
-          ],
-        });
+    if (existingNetwork) {
+      const updatedNetwork = await NetworkController.updateNetwork(
+        existingNetwork.chainId,
+        existingNetwork,
+        existingNetwork.chainId === chainId
+          ? {
+              replacementSelectedRpcEndpointIndex:
+                existingNetwork.defaultRpcEndpointIndex,
+            }
+          : undefined,
+      );
 
-        networkClientId =
-          addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
-            ?.networkClientId;
-      }
+      networkClientId =
+        updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex]
+          ?.networkClientId;
+    } else {
+      const addedNetwork = await NetworkController.addNetwork({
+        chainId,
+        blockExplorerUrls: [blockExplorerUrl],
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        name: nickname,
+        nativeCurrency: ticker,
+        rpcEndpoints: [
+          {
+            url: rpcUrl,
+            name: nickname,
+            type: RpcEndpointType.Custom,
+          },
+        ],
+      });
+
+      networkClientId =
+        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
+          ?.networkClientId;
     }
+
     if (networkClientId) {
       onUpdateNetworkFilter();
-      if (!isSolanaEnabled()) {
-        await NetworkController.setActiveNetwork(networkClientId);
-      } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork({
-          evmClientId: networkClientId,
-        });
-      }
+
+      await Engine.context.MultichainNetworkController.setActiveNetwork({
+        evmClientId: networkClientId,
+      });
     }
 
     onClose();
@@ -290,7 +280,7 @@ const NetworkModals = (props: NetworkProps) => {
     existingNetwork: NetworkConfiguration,
     networkId: string,
   ) => {
-    const { NetworkController } = Engine.context;
+    const { NetworkController, MultichainNetworkController } = Engine.context;
     const updatedNetwork = await NetworkController.updateNetwork(
       existingNetwork.chainId,
       existingNetwork,
@@ -306,13 +296,10 @@ const NetworkModals = (props: NetworkProps) => {
       updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
       {};
     onUpdateNetworkFilter();
-    if (!isSolanaEnabled()) {
-      await NetworkController.setActiveNetwork(networkClientId);
-    } else {
-      await Engine.context.MultichainNetworkController.setActiveNetwork({
-        evmClientId: networkClientId,
-      });
-    }
+
+    await MultichainNetworkController.setActiveNetwork({
+      evmClientId: networkClientId,
+    });
   };
 
   const handleNewNetwork = async (
@@ -358,7 +345,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const switchNetwork = async () => {
-    const { NetworkController, AccountsController } = Engine.context;
+    const { MultichainNetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     const existingNetwork = networkConfigurationByChainId[chainId];
 
@@ -381,13 +368,10 @@ const NetworkModals = (props: NetworkProps) => {
         {};
 
       onUpdateNetworkFilter();
-      if (!isSolanaEnabled()) {
-        NetworkController.setActiveNetwork(networkClientId);
-      } else {
-        Engine.context.MultichainNetworkController.setActiveNetwork({
-          evmClientId: networkClientId,
-        });
-      }
+
+      MultichainNetworkController.setActiveNetwork({
+        evmClientId: networkClientId,
+      });
     }
     onClose();
 

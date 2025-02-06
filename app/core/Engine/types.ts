@@ -152,14 +152,6 @@ import {
   NotificationServicesPushController,
   NotificationServicesController,
 } from '@metamask/notification-services-controller';
-import {
-  MultichainNetworkController,
-  MultichainNetworkControllerState,
-} from '@metamask/multichain-network-controller';
-import {
-  MultichainNetworkControllerEvents,
-  MultichainNetworkStateControllerActions,
-} from '@metamask/multichain-network-controller/dist/MultichainNetworkController.cjs';
 
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -179,6 +171,15 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+
+import {
+  MultichainNetworkController,
+  MultichainNetworkControllerState,
+} from '@metamask/multichain-network-controller';
+import {
+  MultichainNetworkControllerEvents,
+  MultichainNetworkControllerActions,
+} from '@metamask/multichain-network-controller/dist/MultichainNetworkController.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -236,7 +237,6 @@ type GlobalActions =
   | UserStorageController.Actions
   | NotificationServicesController.Actions
   | NotificationServicesPushController.Actions
-  | MultichainNetworkStateControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -249,7 +249,8 @@ type GlobalActions =
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
-  | RemoteFeatureFlagControllerActions;
+  | RemoteFeatureFlagControllerActions
+  | MultichainNetworkControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -269,7 +270,6 @@ type GlobalEvents =
   | UserStorageController.Events
   | NotificationServicesController.Events
   | NotificationServicesPushController.Events
-  | MultichainNetworkControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -284,7 +284,8 @@ type GlobalEvents =
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
-  | RemoteFeatureFlagControllerEvents;
+  | RemoteFeatureFlagControllerEvents
+  | MultichainNetworkControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -388,7 +389,6 @@ export type EngineState = {
   UserStorageController: UserStorageController.UserStorageControllerState;
   NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
   NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
-  MultichainNetworkController: MultichainNetworkControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
@@ -397,4 +397,5 @@ export type EngineState = {
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
+  MultichainNetworkController: MultichainNetworkControllerState;
 };

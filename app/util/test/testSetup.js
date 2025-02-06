@@ -113,10 +113,15 @@ jest.mock('../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
+let mockState = {};
+
 jest.mock('../../store', () => ({
   store: {
-    getState: jest.fn(),
+    getState: jest.fn().mockImplementation(() => mockState),
     dispatch: jest.fn(),
+  },
+  _updateMockState: (state) => {
+    mockState = state;
   },
 }));
 

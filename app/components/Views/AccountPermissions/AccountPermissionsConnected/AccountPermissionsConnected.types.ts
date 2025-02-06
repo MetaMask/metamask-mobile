@@ -10,7 +10,8 @@ import { AvatarAccountType } from '../../../../component-library/components/Avat
 /**
  * AccountPermissionsConnected props.
  */
-export interface AccountPermissionsConnectedProps extends UseAccounts {
+export interface AccountPermissionsConnectedProps
+  extends Omit<UseAccounts, 'evmAccounts'> {
   isLoading?: boolean;
   selectedAddresses: string[];
   onSetSelectedAddresses: (addresses: string[]) => void;

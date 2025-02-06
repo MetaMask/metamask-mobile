@@ -30,11 +30,13 @@ const StakingButtons = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const chainId = useSelector(selectChainId);
   const { isStakingSupportedChain } = useStakingChain();
-  const { NetworkController } = Engine.context;
+  const { MultichainNetworkController } = Engine.context;
 
   const handleIsStakingSupportedChain = async () => {
     if (!isStakingSupportedChain) {
-      await NetworkController.setActiveNetwork('mainnet');
+      await MultichainNetworkController.setActiveNetwork({
+        evmClientId: 'mainnet',
+      });
     }
   };
 

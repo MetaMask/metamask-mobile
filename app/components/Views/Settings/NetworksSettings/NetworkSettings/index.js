@@ -21,7 +21,6 @@ import Networks, {
   isPrivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
-  isSolanaEnabled,
   isPortfolioViewEnabled,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
@@ -1565,21 +1564,18 @@ export class NetworkSettings extends PureComponent {
     this.setState({ showMultiBlockExplorerAddModal: { isVisible: false } });
   };
 
-  switchToMainnet = () => {
-    const { NetworkController } = Engine.context;
+  switchToMainnet = async () => {
+    const { MultichainNetworkController } = Engine.context;
     const { networkConfigurations } = this.props;
 
     const { networkClientId } =
       networkConfigurations?.rpcEndpoints?.[
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
-    if (!isSolanaEnabled()) {
-      NetworkController.setActiveNetwork(networkClientId);
-    } else {
-      Engine.context.MultichainNetworkController.setActiveNetwork({
-        evmClientId: networkClientId,
-      });
-    }
+
+    await MultichainNetworkController.setActiveNetwork({
+      evmClientId: networkClientId,
+    });
 
     setTimeout(async () => {
       await updateIncomingTransactions([CHAIN_IDS.MAINNET]);

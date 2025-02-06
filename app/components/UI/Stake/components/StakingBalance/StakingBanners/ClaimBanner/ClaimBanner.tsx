@@ -38,7 +38,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isSubmittingClaimTransaction, setIsSubmittingClaimTransaction] =
     useState(false);
-  const { NetworkController } = Engine.context;
+  const { MultichainNetworkController } = Engine.context;
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const [shouldAttemptClaim, setShouldAttemptClaim] = useState(false);
   const { attemptPoolStakedClaimTransaction } = usePoolStakedClaim();
@@ -124,7 +124,9 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const onClaimPress = async () => {
     setShouldAttemptClaim(true);
     if (!isStakingSupportedChain) {
-      await NetworkController.setActiveNetwork('mainnet');
+      await MultichainNetworkController.setActiveNetwork({
+        evmClientId: 'mainnet',
+      });
     }
   };
 

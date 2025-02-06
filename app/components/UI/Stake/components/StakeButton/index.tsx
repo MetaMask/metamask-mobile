@@ -5,10 +5,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import AppConstants from '../../../../../core/AppConstants';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import {
-  getDecimalChainId,
-  isSolanaEnabled,
-} from '../../../../../util/networks';
+import { getDecimalChainId } from '../../../../../util/networks';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { Pressable } from 'react-native';
 import Text, {
@@ -47,14 +44,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const onStakeButtonPress = async () => {
     if (!isStakingSupportedChain) {
-      if (!isSolanaEnabled()) {
-        const { NetworkController } = Engine.context;
-        await NetworkController.setActiveNetwork('mainnet');
-      } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork({
-          evmClientId: 'mainnet',
-        });
-      }
+      const { MultichainNetworkController } = Engine.context;
+
+      await MultichainNetworkController.setActiveNetwork({
+        evmClientId: 'mainnet',
+      });
     }
     if (isEligible) {
       navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });

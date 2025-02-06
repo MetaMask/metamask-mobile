@@ -19,6 +19,9 @@ jest.mock('../../../core/Engine', () => ({
       addNetwork: jest.fn(),
       setActiveNetwork: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 

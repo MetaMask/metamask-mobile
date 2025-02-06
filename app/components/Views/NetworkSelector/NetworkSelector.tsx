@@ -40,7 +40,6 @@ import Networks, {
   isTestNet,
   getNetworkImageSource,
   isMainNet,
-  isSolanaEnabled,
   isPortfolioViewEnabled,
   isMultichainV1Enabled,
 } from '../../../util/networks';
@@ -235,7 +234,8 @@ const NetworkSelector = () => {
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
-    const { NetworkController, SelectedNetworkController } = Engine.context;
+    const { MultichainNetworkController, SelectedNetworkController } =
+      Engine.context;
 
     if (networkConfiguration) {
       const {
@@ -261,20 +261,17 @@ const NetworkSelector = () => {
         });
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          if (!isSolanaEnabled()) {
-            await NetworkController.setActiveNetwork(networkClientId);
-          } else {
-            await Engine.context.MultichainNetworkController.setActiveNetwork({
-              evmClientId: networkClientId,
-            });
-          }
+          await MultichainNetworkController.setActiveNetwork({
+            evmClientId: networkClientId,
+          });
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
       }
 
       setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isMultichainV1Enabled())) sheetRef.current?.dismissModal();
+      if (!(domainIsConnectedDapp && isMultichainV1Enabled()))
+        sheetRef.current?.dismissModal();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
@@ -383,7 +380,7 @@ const NetworkSelector = () => {
       op: TraceOperation.SwitchBuiltInNetwork,
     });
     const {
-      NetworkController,
+      MultichainNetworkController,
       AccountTrackerController,
       SelectedNetworkController,
     } = Engine.context;
@@ -399,13 +396,11 @@ const NetworkSelector = () => {
         ].networkClientId ?? type;
 
       setTokenNetworkFilter(networkConfiguration.chainId);
-      if (!isSolanaEnabled()) {
-        await NetworkController.setActiveNetwork(clientId);
-      } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork({
-          evmClientId: clientId,
-        });
-      }
+
+      await MultichainNetworkController.setActiveNetwork({
+        evmClientId: clientId,
+      });
+
       closeRpcModal();
       AccountTrackerController.refresh();
 
@@ -969,7 +964,7 @@ const NetworkSelector = () => {
       {renderMainnet()}
       {renderLineaMainnet()}
       {renderRpcNetworks()}
-      {isSolanaEnabled() && renderNonEvmNetworks()}
+      {renderNonEvmNetworks()}
       {isNetworkUiRedesignEnabled() &&
         searchString.length === 0 &&
         renderPopularNetworksTitle()}

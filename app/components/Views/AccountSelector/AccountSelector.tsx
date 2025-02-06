@@ -38,15 +38,6 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
-import {
-  selectNonEvmSelected,
-  selectSelectedNonEvmNetworkChainId,
-} from '../../../selectors/multichainNetworkController';
-import {
-  isNonEvmAddress,
-  nonEvmNetworkChainIdByAccountAddress,
-} from '../../../core/Multichain/utils';
-import { isSolanaEnabled } from '../../../util/networks';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
@@ -59,10 +50,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
   const privacyMode = useSelector(selectPrivacyMode);
-  const isNonEvmNetworkSelected = useSelector(selectNonEvmSelected);
-  const selectedNonEvmNetworkChainId = useSelector(
-    selectSelectedNonEvmNetworkChainId,
-  );
   const sheetRef = useRef<BottomSheetRef>(null);
   const { accounts, ensByAccountAddress } = useAccounts({
     checkBalanceError,
@@ -96,15 +83,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           .build(),
       );
     },
-    [
-      Engine,
-      accounts?.length,
-      onSelectAccount,
-      trackEvent,
-      createEventBuilder,
-      isNonEvmNetworkSelected,
-      selectedNonEvmNetworkChainId,
-    ],
+    [Engine, accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
 
   const onRemoveImportedAccount = useCallback(

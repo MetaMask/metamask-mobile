@@ -36,15 +36,12 @@ import { isNetworkRampSupported } from '../../utils';
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
 import { PopularList } from '../../../../../util/networks/customNetworks';
-import {
-  getDecimalChainId,
-  isSolanaEnabled,
-} from '../../../../../util/networks';
+import { getDecimalChainId } from '../../../../../util/networks';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 function NetworkSwitcher() {
@@ -65,7 +62,9 @@ function NetworkSwitcher() {
   const [isCurrentNetworkRampSupported] = useRampNetwork();
   const { selectedChainId, isBuy, intent, setIntent } = useRampSDK();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const [networkToBeAdded, setNetworkToBeAdded] = useState<Network>();
 
   const isLoading = isLoadingNetworks || isLoadingNetworksDetail;
@@ -148,14 +147,11 @@ function NetworkSwitcher() {
 
   const switchToMainnet = useCallback(
     async (type: 'mainnet' | 'linea-mainnet') => {
-      if (!isSolanaEnabled()) {
-        const { NetworkController } = Engine.context;
-        await NetworkController.setActiveNetwork(type);
-      } else {
-        await Engine.context.MultichainNetworkController.setActiveNetwork({
-          evmClientId: type,
-        });
-      }
+      const { MultichainNetworkController } = Engine.context;
+
+      await MultichainNetworkController.setActiveNetwork({
+        evmClientId: type,
+      });
 
       navigateToGetStarted();
     },
@@ -164,7 +160,7 @@ function NetworkSwitcher() {
 
   const switchNetwork = useCallback(
     async (networkConfiguration) => {
-      const { NetworkController } = Engine.context;
+      const { MultichainNetworkController } = Engine.context;
       const config = Object.values(networkConfigurations).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
       );
@@ -174,13 +170,11 @@ function NetworkSwitcher() {
 
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
-        if (!isSolanaEnabled()) {
-          await NetworkController.setActiveNetwork(networkClientId);
-        } else {
-          await Engine.context.MultichainNetworkController.setActiveNetwork({
-            evmClientId: networkClientId,
-          });
-        }
+
+        await MultichainNetworkController.setActiveNetwork({
+          evmClientId: networkClientId,
+        });
+
         navigateToGetStarted();
       }
     },

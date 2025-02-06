@@ -18,7 +18,8 @@ import { USER_INTENT } from '../../../../constants/permissions';
 /**
  * AccountConnectMultiSelector props.
  */
-export interface AccountConnectMultiSelectorProps extends UseAccounts {
+export interface AccountConnectMultiSelectorProps
+  extends Omit<UseAccounts, 'evmAccounts'> {
   selectedAddresses: string[];
   onSelectAddress: (addresses: string[]) => void;
   isLoading?: boolean;

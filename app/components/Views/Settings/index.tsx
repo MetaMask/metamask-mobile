@@ -22,6 +22,7 @@ import {
   isMultichainVersion1Enabled,
   isPermissionsSettingsV1Enabled,
 } from '../../../util/networks';
+import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -45,6 +46,8 @@ const Settings = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
+
+  const isNonEvmSelected = useSelector(selectNonEvmSelected);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -234,12 +237,14 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.PERMISSIONS}
         />
       )}
-      <SettingsDrawer
-        description={strings('app_settings.contacts_desc')}
-        onPress={onPressContacts}
-        title={strings('app_settings.contacts_title')}
-        testID={SettingsViewSelectorsIDs.CONTACTS}
-      />
+      {!isNonEvmSelected && (
+        <SettingsDrawer
+          description={strings('app_settings.contacts_desc')}
+          onPress={onPressContacts}
+          title={strings('app_settings.contacts_title')}
+          testID={SettingsViewSelectorsIDs.CONTACTS}
+        />
+      )}
       <SettingsDrawer
         title={strings('app_settings.networks_title')}
         description={strings('app_settings.networks_desc')}

@@ -70,7 +70,6 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
-import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
@@ -217,6 +216,7 @@ import {
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { SolScopes } from '@metamask/keyring-api';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -341,6 +341,40 @@ export class Engine {
     const networkController = new NetworkController(networkControllerOpts);
 
     networkController.initializeProvider();
+
+    const multichainNetworkController = new MultichainNetworkController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'MultichainNetworkController',
+        allowedActions: [
+          'NetworkController:setActiveNetwork',
+          'NetworkController:getState',
+        ],
+        allowedEvents: ['AccountsController:selectedAccountChange'],
+      }),
+      state: initialState.MultichainNetworkController ?? {
+        multichainNetworkConfigurationsByChainId: {
+          [SolScopes.Mainnet]: {
+            chainId: SolScopes.Mainnet,
+            name: 'Solana',
+            nativeCurrency:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:skynetDj29GH6o6bAqoixCpDuYtWqi1rm8ZNx1hB3vq',
+            blockExplorers: {
+              urls: ['https://explorer.solana.com/'],
+              defaultIndex: 0,
+            },
+            isEvm: false,
+          },
+        },
+        multichainNetworksMetadata: {
+          [SolScopes.Mainnet]: {
+            features: [],
+            status: NetworkStatus.Available,
+          },
+        },
+        nonEvmSelected: false,
+        selectedMultichainNetworkChainId: SolScopes.Mainnet,
+      },
+    });
 
     const assetsContractController = new AssetsContractController({
       messenger: this.controllerMessenger.getRestricted({
@@ -839,37 +873,7 @@ export class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    const multichainNetworkController = new MultichainNetworkController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'MultichainNetworkController',
-        allowedActions: [
-          'NetworkController:setActiveNetwork',
-          'NetworkController:getState',
-        ],
-        allowedEvents: ['AccountsController:selectedAccountChange'],
-      }),
-      state: initialState.MultichainNetworkController ?? {
-        multichainNetworkConfigurationsByChainId: {
-          [SolScopes.Mainnet]: {
-            chainId: SolScopes.Mainnet,
-            name: 'Solana',
-            nativeCurrency:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:skynetDj29GH6o6bAqoixCpDuYtWqi1rm8ZNx1hB3vq',
-            blockExplorerUrls: ['https://explorer.solana.com/'],
-            defaultBlockExplorerUrlIndex: 0,
-            isEvm: false,
-          },
-        },
-        multichainNetworksMetadata: {
-          [SolScopes.Mainnet]: {
-            features: [],
-            status: NetworkStatus.Available,
-          },
-        },
-        nonEvmSelected: false,
-        selectedMultichainNetworkChainId: SolScopes.Mainnet,
-      },
-    });
+
     this.subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',

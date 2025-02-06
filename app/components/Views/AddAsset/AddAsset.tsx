@@ -15,10 +15,10 @@ import {
 } from '../../UI/Navbar';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import { selectNetworkName } from '../../../selectors/networkInfos';
+import { selectEvmNetworkName } from '../../../selectors/networkInfos';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import {
@@ -47,13 +47,13 @@ const AddAsset = () => {
   } = useStyles(styleSheet, {});
 
   const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
 
   const isTokenDetectionSupported =
     isTokenDetectionSupportedForNetwork(chainId);
 
-  const networkName = useSelector(selectNetworkName);
+  const networkName = useSelector(selectEvmNetworkName);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(

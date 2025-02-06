@@ -64,7 +64,6 @@ import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain
 
 ///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
-import { isSolanaEnabled } from '../../../util/networks';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -920,11 +919,12 @@ export function getWalletNavbarOptions(
 
   let formattedAddress = toChecksumHexAddress(selectedInternalAccount.address);
 
-  if (isSolanaEnabled()) {
-    formattedAddress = getFormattedAddressFromInternalAccount(
-      selectedInternalAccount,
-    );
-  }
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  formattedAddress = getFormattedAddressFromInternalAccount(
+    selectedInternalAccount,
+  );
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
   const onScanSuccess = (data, content) => {
     if (data.private_key) {
       Alert.alert(

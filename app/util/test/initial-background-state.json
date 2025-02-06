@@ -327,5 +327,11 @@
     "isAccountSyncingReadyToBeDispatched": false,
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
+  },
+  "MultichainNetworkController": {
+    "nonEvmSelected": false,
+    "selectedMultichainNetworkChainId": "solana:mainnet",
+    "multichainNetworksMetadata": {},
+    "multichainNetworkConfigurationsByChainId": {}
   }
 }

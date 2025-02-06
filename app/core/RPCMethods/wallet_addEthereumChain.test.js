@@ -29,6 +29,9 @@ jest.mock('../Engine', () => ({
       addNetwork: jest.fn(),
       updateNetwork: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },

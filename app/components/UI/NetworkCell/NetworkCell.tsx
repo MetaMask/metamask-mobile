@@ -14,7 +14,10 @@ interface NetworkCellProps {
   imageSource: ImageSourcePropType;
   secondaryText?: string;
   showIncomingTransactionsNetworks: Record<string, boolean>;
-  toggleEnableIncomingTransactions: (chainId: Hex, value: boolean) => void;
+  toggleEnableIncomingTransactions: (
+    chainId: Hex | CaipChainId,
+    value: boolean,
+  ) => void;
   testID?: string;
 }
 

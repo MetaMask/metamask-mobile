@@ -10,11 +10,11 @@ import { useTheme } from '../../../../../util/theme';
 import { TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
 import {
-  selectChainId,
   selectProviderConfig,
   selectTicker,
   selectNetworkConfigurations,
   selectNetworkConfigurationByChainId,
+  selectEvmChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectContractExchangeRates,
@@ -89,7 +89,7 @@ export const TokenListItem = React.memo(
     const { data: selectedChainTokenBalance } = useTokenBalancesController();
 
     const { type } = useSelector(selectProviderConfig);
-    const selectedChainId = useSelector(selectChainId);
+    const selectedChainId = useSelector(selectEvmChainId);
     const chainId = isPortfolioViewEnabled()
       ? (asset.chainId as Hex)
       : selectedChainId;

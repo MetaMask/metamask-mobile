@@ -100,6 +100,9 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const initialState = {
+  user: {
+    userLoggedIn: true,
+  },
   navigation: { currentBottomNavRoute: 'Wallet' },
   settings: {
     primaryCurrency: 'usd',
@@ -325,11 +328,9 @@ describe('Network Selector', () => {
 
     fireEvent.press(polygonCell);
 
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
-
-    /*  expect(
+    expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled(); */
+    ).toBeCalled();
   });
 
   it('toggles the test networks switch correctly', () => {
@@ -347,6 +348,9 @@ describe('Network Selector', () => {
   it('toggle test network is disabled and is on when a testnet is selected', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByTestId } = renderComponent({
+      user: {
+        userLoggedIn: true,
+      },
       navigation: { currentBottomNavRoute: 'Wallet' },
       settings: {
         primaryCurrency: 'usd',
@@ -407,15 +411,16 @@ describe('Network Selector', () => {
     const gnosisCell = getByText('Gnosis Chain');
 
     fireEvent.press(gnosisCell);
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
-
-    /*   expect(
+    expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled(); */
+    ).toBeCalled();
   });
 
   it('changes to test network when another network cell is pressed', async () => {
     const { getByText } = renderComponent({
+      user: {
+        userLoggedIn: true,
+      },
       navigation: { currentBottomNavRoute: 'Wallet' },
       settings: {
         primaryCurrency: 'usd',
@@ -479,11 +484,9 @@ describe('Network Selector', () => {
 
     fireEvent.press(sepoliaCell);
 
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
-    /* 
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled(); */
+    ).toBeCalled();
   });
 
   it('renders correctly with no network configurations', async () => {

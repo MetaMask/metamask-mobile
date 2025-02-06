@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScopes } from '@metamask/keyring-api';
@@ -103,17 +103,20 @@ export const PopularList = [
 // TODO: [SOLANA] - Replace this by constants of multichain network controller
 export const NON_EVM_NETWORKS = [
   {
-    chainId: SolScopes.Mainnet,
+    chainId: SolScopes.Mainnet as CaipChainId,
     nickname: 'Solana',
     ticker: 'SOL',
     imageSource: require('../../images/solana-logo.png'),
-    blockExplorerUrls: ['https://explorer.solana.com'],
+    blockExplorers: {
+      urls: ['https://explorer.solana.com'],
+      defaultIndex: 0,
+    },
   },
 ];
 
-export const getNonEvmNetworkImageSourceByChainId = (chainId: string) => {
+export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
   const network = NON_EVM_NETWORKS.find(
-    (network) => network.chainId === chainId,
+    (nonEvmNetwork) => nonEvmNetwork.chainId === chainId,
   );
   return network?.imageSource;
 };

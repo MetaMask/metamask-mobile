@@ -15,8 +15,8 @@ import Icon, {
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 import {
   createProviderConfig,
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
@@ -34,7 +34,6 @@ import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
 import { Hex } from '../../../util/smart-transactions/smart-publish-hook';
 import { appendURLParams } from '../../../util/browser';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
 interface Option {
   label: string;
   onPress: () => void;
@@ -64,9 +63,11 @@ const AssetOptions = (props: Props) => {
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
   const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const tokenList = useSelector(selectTokenList);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -76,13 +77,12 @@ const AssetOptions = (props: Props) => {
   // Memoize the provider config for the token explorer
   const { providerConfigTokenExplorer } = useMemo(() => {
     const tokenNetworkConfig = networkConfigurations[networkId as Hex];
-    const tokenRpcEndpoint = !isNonEvmChainId(networkId)
-      ? networkConfigurations[networkId as Hex]?.rpcEndpoints?.[
-          networkConfigurations[networkId as Hex]?.defaultRpcEndpointIndex
-        ]
-      : null;
+    const tokenRpcEndpoint =
+      networkConfigurations[networkId as Hex]?.rpcEndpoints?.[
+        networkConfigurations[networkId as Hex]?.defaultRpcEndpointIndex
+      ];
     let providerConfigToken;
-    if (isPortfolioViewEnabled() && tokenRpcEndpoint) {
+    if (isPortfolioViewEnabled()) {
       providerConfigToken = createProviderConfig(
         tokenNetworkConfig,
         tokenRpcEndpoint,

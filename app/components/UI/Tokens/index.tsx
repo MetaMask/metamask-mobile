@@ -14,6 +14,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkConfigurations,
@@ -106,6 +107,11 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
   );
+
+  const evmNetworkConfigurationsByChainId = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+
   const hideZeroBalanceTokens = useSelector(
     (state: RootState) => state.settings.hideZeroBalanceTokens,
   );
@@ -348,6 +354,9 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
 
   const onRefresh = async () => {
     requestAnimationFrame(async () => {
+      if (isNonEvmSelected) {
+        return;
+      }
       setRefreshing(true);
 
       const {
@@ -357,24 +366,24 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
         TokenRatesController,
         TokenBalancesController,
       } = Engine.context;
-      // TODO: [SOLANA] - Token detection must work with non-evm chains
+      // TODO: [SOLANA] - Refresh must work with non-evm chains, replace evmNetworkConfigurationsByChainId with networkConfigurationsByChainId
       const actions = [
         TokenDetectionController.detectTokens({
           chainIds: isPortfolioViewEnabled()
-            ? (Object.keys(networkConfigurationsByChainId) as Hex[])
-            : [currentChainId],
+            ? (Object.keys(evmNetworkConfigurationsByChainId) as Hex[])
+            : [currentChainId as Hex],
         }),
 
         TokenBalancesController.updateBalances({
           chainIds: isPortfolioViewEnabled()
-            ? (Object.keys(networkConfigurationsByChainId) as Hex[])
-            : [currentChainId],
+            ? (Object.keys(evmNetworkConfigurationsByChainId) as Hex[])
+            : [currentChainId as Hex],
         }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
         ...(isPortfolioViewEnabled()
-          ? Object.values(networkConfigurationsByChainId)
-          : [networkConfigurationsByChainId[currentChainId]]
+          ? Object.values(evmNetworkConfigurationsByChainId)
+          : [evmNetworkConfigurationsByChainId[currentChainId as Hex]]
         ).map((network) =>
           TokenRatesController.updateExchangeRatesByChainId({
             chainId: network.chainId,

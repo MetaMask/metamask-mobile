@@ -1,5 +1,5 @@
 import { toHex } from '@metamask/controller-utils';
-import { NetworkController } from '@metamask/network-controller';
+import { NetworkConfiguration } from '@metamask/network-controller';
 import Engine from '../../core/Engine';
 import {
   selectChainId,
@@ -22,28 +22,41 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     return;
   }
 
-  const networkController = Engine.context
-    .NetworkController as NetworkController;
   const chainId = selectChainId(store.getState());
   const networkConfigurations = selectNetworkConfigurations(store.getState());
 
   // If current network is the same as the one we want to switch to, do nothing
-  if (chainId === toHex(switchToChainId)) {
-    return;
+  if (!isNonEvmChainId(switchToChainId)) {
+    if (chainId === toHex(switchToChainId)) {
+      return;
+    }
   }
-
   const entry = Object.entries(networkConfigurations).find(
     ([, { chainId: configChainId }]) =>
       configChainId === toHex(switchToChainId),
   );
-  // TODO: [SOLANA] - This do not support non evm networks, need to revisit this handleNetworkSwtich function
+
   if (entry && !isNonEvmChainId(entry[1].chainId)) {
-    const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] = entry;
+    const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] =
+      entry as unknown as [string, NetworkConfiguration];
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-    // TODO: [SOLANA] - This needs to use multichain network controller instead
-    networkController.setActiveNetwork(networkClientId);
+    Engine.context.MultichainNetworkController.setActiveNetwork({
+      evmClientId: networkClientId,
+    });
 
+    return nickname;
+  }
+  // If is already in the same non evm network, do nothing
+  if (chainId === switchToChainId) {
+    return;
+  }
+
+  if (entry && isNonEvmChainId(entry[1].chainId)) {
+    const [, { name: nickname }] = entry;
+    Engine.context.MultichainNetworkController.setActiveNetwork({
+      nonEvmChainId: entry[1].chainId,
+    });
     return nickname;
   }
 };

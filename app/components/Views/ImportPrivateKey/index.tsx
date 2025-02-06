@@ -22,8 +22,6 @@ import { createStyles } from './styles';
 import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
-import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
-import { useSelector } from 'react-redux';
 
 /**
  * View that's displayed the first time a user receives funds
@@ -38,7 +36,6 @@ const ImportPrivateKey = () => {
   const mounted = useRef<boolean>(false);
   const { colors, themeAppearance } = useAppTheme();
   const styles = createStyles(colors);
-  const isNonEvmSelected = useSelector(selectNonEvmSelected);
   useEffect(() => {
     mounted.current = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
@@ -81,7 +78,7 @@ const ImportPrivateKey = () => {
     setLoading(true);
     // Import private key
     try {
-      await importAccountFromPrivateKey(privateKeyToProcess, isNonEvmSelected);
+      await importAccountFromPrivateKey(privateKeyToProcess);
       navigation.navigate('ImportPrivateKeyView', {
         screen: 'ImportPrivateKeySuccess',
       });

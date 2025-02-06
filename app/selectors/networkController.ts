@@ -20,7 +20,6 @@ import {
   selectNonEvmSelected,
   selectSelectedNonEvmNetworkChainId,
 } from './multichainNetworkController';
-import { isSolanaEnabled } from '../util/networks';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
 interface InfuraRpcEndpoint {
@@ -143,16 +142,8 @@ export const selectChainId = createSelector(
   selectSelectedNonEvmNetworkChainId,
   selectEvmChainId,
   selectNonEvmSelected,
-  (
-    selectedNonEvmChainId: string,
-    selectedEvmChainId: Hex,
-    isNonEvmSelected: boolean,
-  ) =>
-    isSolanaEnabled()
-      ? isNonEvmSelected
-        ? selectedNonEvmChainId
-        : selectedEvmChainId
-      : selectedEvmChainId,
+  (selectedNonEvmChainId, selectedEvmChainId: Hex, isNonEvmSelected: boolean) =>
+    isNonEvmSelected ? selectedNonEvmChainId : selectedEvmChainId,
 );
 
 export const selectProviderType = createSelector(
@@ -186,15 +177,9 @@ export const selectNetworkConfigurations = createSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectNonEvmNetworkConfigurationsByChainId,
   (
-    evmNetworkConfigurationsByChainId: Record<
-      `0x${string}`,
-      NetworkConfiguration
-    >,
-    nonEvmNetworkConfigurationsByChainId: Record<
-      string,
-      MultichainNetworkConfiguration
-    >,
-  ) => {
+    evmNetworkConfigurationsByChainId,
+    nonEvmNetworkConfigurationsByChainId,
+  ): Record<string, MultichainNetworkConfiguration> => {
     const networkConfigurationsByChainId = {
       ...evmNetworkConfigurationsByChainId,
       ...nonEvmNetworkConfigurationsByChainId,
@@ -219,8 +204,8 @@ export const selectIsEIP1559Network = createSelector(
 
 // Selector to get the popular network configurations, this filter also testnet networks
 export const selectAllPopularNetworkConfigurations = createSelector(
-  selectNetworkConfigurations,
-  (networkConfigurations: Record<Hex, NetworkConfiguration>) => {
+  selectEvmNetworkConfigurationsByChainId,
+  (networkConfigurations) => {
     const popularNetworksChainIds = PopularList.map(
       (popular) => popular.chainId,
     );
@@ -232,8 +217,8 @@ export const selectAllPopularNetworkConfigurations = createSelector(
           chainId === CHAIN_IDS.MAINNET ||
           chainId === CHAIN_IDS.LINEA_MAINNET,
       )
-      .reduce((acc: Record<Hex, NetworkConfiguration>, chainId) => {
-        acc[chainId as Hex] = networkConfigurations[chainId as Hex];
+      .reduce<Record<string, NetworkConfiguration>>((acc, chainId) => {
+        acc[chainId] = networkConfigurations[chainId as Hex];
         return acc;
       }, {});
   },
@@ -262,21 +247,24 @@ export const selectIsAllNetworks = createSelector(
 );
 
 export const selectNetworkConfigurationByChainId = createSelector(
-  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  [selectNetworkConfigurations, (_state: RootState, chainId) => chainId],
   (networkConfigurations, chainId) => networkConfigurations?.[chainId] || null,
 );
 
 export const selectNativeCurrencyByChainId = createSelector(
-  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  [
+    selectEvmNetworkConfigurationsByChainId,
+    (_state: RootState, chainId) => chainId,
+  ],
   (networkConfigurations, chainId) =>
     networkConfigurations?.[chainId]?.nativeCurrency,
 );
 
 export const selectDefaultEndpointByChainId = createSelector(
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
   (_: RootState, chainId: Hex) => chainId,
   (networkConfigurations, chainId) => {
-    const networkConfiguration = networkConfigurations[chainId as Hex];
+    const networkConfiguration = networkConfigurations[chainId];
     return networkConfiguration?.rpcEndpoints?.[
       networkConfiguration.defaultRpcEndpointIndex
     ];

@@ -220,6 +220,9 @@ const initialState = {
   security: {
     dataCollectionForMarketing: true,
   },
+  user: {
+    userLoggedIn: true,
+  },
 };
 
 const mockNavigate = jest.fn();
@@ -343,6 +346,9 @@ describe('Tokens', () => {
 
   it('should display unable to find conversion rate', async () => {
     const state = {
+      user: {
+        userLoggedIn: true,
+      },
       engine: {
         backgroundState: {
           ...backgroundState,

@@ -43,6 +43,7 @@ import {
 } from '../../../util/networks';
 import {
   selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkClientId,
@@ -105,7 +106,6 @@ import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
 import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -176,6 +176,9 @@ const Wallet = ({
   const { colors } = theme;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   /**
    * Object containing the balance of the current selected account
@@ -318,8 +321,7 @@ const Wallet = ({
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
   const name = useSelector(selectNetworkName);
   const isNonEvmSelected = useSelector(selectNonEvmSelected);
-  // TODO: [SOLANA] Consider adding the non evm chain ids to the network configurations selector
-  // This logic is also most likely not needed, why it's needed and the network name derived from the selector is not enough?
+
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
@@ -337,7 +339,6 @@ const Wallet = ({
     isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
       ? allDetectedTokens
       : detectedTokens;
-  const allNetworks = useSelector(selectNetworkConfigurations);
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
   /**
@@ -426,13 +427,11 @@ const Wallet = ({
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
 
-        Object.values(networkConfigurations).forEach(
-          ({ defaultRpcEndpointIndex, rpcEndpoints, chainId }) => {
-            if (!isNonEvmChainId(chainId)) {
-              AccountTrackerController.refresh(
-                rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-              );
-            }
+        Object.values(evmNetworkConfigurations).forEach(
+          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
+            AccountTrackerController.refresh(
+              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
+            );
           },
         );
       });
@@ -440,7 +439,7 @@ const Wallet = ({
     /* eslint-disable-next-line */
     // TODO: The need of usage of this chainId as a dependency is not clear, we shouldn't need to refresh the native balances when the chainId changes. Since the pooling is always working in the back. Check with assets team.
     // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-    [navigation, chainId],
+    [navigation, chainId, evmNetworkConfigurations],
   );
 
   useEffect(() => {
@@ -506,7 +505,7 @@ const Wallet = ({
           // Process grouped tokens in parallel
           const importPromises = Object.entries(tokensByChainId).map(
             async ([networkId, allTokens]) => {
-              const chainConfig = allNetworks[networkId as Hex];
+              const chainConfig = evmNetworkConfigurations[networkId as Hex];
               const { defaultRpcEndpointIndex } = chainConfig;
               const { networkClientId: networkInstanceId } =
                 chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
@@ -541,7 +540,7 @@ const Wallet = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isTokenDetectionEnabled,
-    allNetworks,
+    evmNetworkConfigurations,
     chainId,
     currentDetectedTokens,
     selectedNetworkClientId,

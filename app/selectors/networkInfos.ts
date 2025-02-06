@@ -10,6 +10,7 @@ import {
   selectSelectedNonEvmNetworkName,
 } from './multichainNetworkController';
 import { getNonEvmNetworkImageSourceByChainId } from '../util/networks/customNetworks';
+import { CaipChainId } from '@metamask/utils';
 
 export const selectEvmNetworkName = createSelector(
   selectProviderConfig,
@@ -46,7 +47,7 @@ export const selectNetworkImageSource = createSelector(
   (
     providerConfig: ProviderConfig,
     isNonEvmNetworkSelected: boolean,
-    nonEvmNetworkChainId: string,
+    nonEvmNetworkChainId: CaipChainId,
   ) =>
     isNonEvmNetworkSelected
       ? getNonEvmNetworkImageSourceByChainId(nonEvmNetworkChainId)

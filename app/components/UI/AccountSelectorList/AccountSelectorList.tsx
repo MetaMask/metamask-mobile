@@ -113,7 +113,17 @@ const AccountSelectorList = ({
   );
 
   const onLongPress = useCallback(
-    ({ address, imported }: { address: string; imported: boolean }) => {
+    ({
+      address,
+      imported,
+      isSelected,
+      index,
+    }: {
+      address: string;
+      imported: boolean;
+      isSelected: boolean;
+      index: number;
+    }) => {
       if (!imported || !isRemoveAccountEnabled) return;
       Alert.alert(
         strings('accounts.remove_account_title'),
@@ -127,9 +137,25 @@ const AccountSelectorList = ({
           {
             text: strings('accounts.yes_remove_it'),
             onPress: async () => {
+              // TODO: Refactor account deletion logic to make more robust.
+              const selectedAddressOverride = selectedAddresses?.[0];
+              const account = accounts?.find(
+                ({ isSelected: isAccountSelected, address: accountAddress }) =>
+                  selectedAddressOverride
+                    ? safeToChecksumAddress(selectedAddressOverride) ===
+                      safeToChecksumAddress(accountAddress)
+                    : isAccountSelected,
+              ) as Account;
+              let nextActiveAddress = account?.address;
+              if (isSelected) {
+                const nextActiveIndex = index === 0 ? 1 : index - 1;
+                nextActiveAddress = accounts?.[nextActiveIndex]?.address;
+              }
+              // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
+              // If needed, place Engine.setSelectedAddress in onRemoveImportedAccount callback.
               onRemoveImportedAccount?.({
                 removedAddress: address,
-                nextActiveAddress: accounts[0]?.address,
+                nextActiveAddress,
               });
               await Engine.context.KeyringController.removeAccount(address);
               // Revocation of accounts from PermissionController is needed whenever accounts are removed.
@@ -174,7 +200,7 @@ const AccountSelectorList = ({
     }) => {
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
-      const ensName = ensByAccountAddress[address];
+      const ensName = ensByAccountAddress?.[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
@@ -251,7 +277,7 @@ const AccountSelectorList = ({
 
   const onContentSizeChanged = useCallback(() => {
     // Handle auto scroll to account
-    if (!accounts.length || !isAutoScrollEnabled) return;
+    if (!accounts?.length || !isAutoScrollEnabled) return;
     if (accountsLengthRef.current !== accounts.length) {
       const selectedAddressOverride = selectedAddresses?.[0];
       const account = accounts.find(({ isSelected, address }) =>

@@ -108,12 +108,9 @@ describe('useHandleNetworkSwitch', () => {
     expect(
       mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).not.toBeCalled();
-    /*  expect(
-      mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).not.toBeCalled(); */
 
     expect(
-      mockEngine.context.NetworkController.setActiveNetwork,
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toBeCalled();
     expect(
       mockEngine.context.NetworkController.setProviderType,
@@ -129,11 +126,9 @@ describe('useHandleNetworkSwitch', () => {
     expect(
       mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).not.toBeCalled();
-    /*   expect(
-      mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).not.toBeCalled(); */
+
     expect(
-      mockEngine.context.NetworkController.setActiveNetwork,
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toBeCalled();
     expect(
       mockEngine.context.NetworkController.setProviderType,
@@ -146,11 +141,8 @@ describe('useHandleNetworkSwitch', () => {
 
     const nickname = handleNetworkSwitch('1338');
 
-    /*   expect(
-      mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalledWith('networkId1'); */
     expect(
-      mockEngine.context.NetworkController.setActiveNetwork,
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).toBeCalledWith('networkId1');
     expect(
       mockEngine.context.NetworkController.setProviderType,
@@ -166,10 +158,10 @@ describe('useHandleNetworkSwitch', () => {
     expect(
       mockEngine.context.NetworkController.setProviderType,
     ).not.toBeCalledWith();
-    /*   expect(
+
+    expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled(); */
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+    ).toBeCalled();
     expect(networkType).toBe(SEPOLIA);
   });
 });

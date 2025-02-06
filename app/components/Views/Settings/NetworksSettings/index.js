@@ -19,7 +19,6 @@ import Networks, {
   isDefaultMainnet,
   isLineaMainnet,
   isMainNet,
-  isSolanaEnabled,
   isTestNet,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
@@ -201,7 +200,7 @@ class NetworksSettings extends PureComponent {
     }, 1000);
   };
 
-  removeNetwork = () => {
+  removeNetwork = async () => {
     // Check if it's the selected network and then switch to mainnet first
     const { providerConfig } = this.props;
     if (
@@ -210,7 +209,7 @@ class NetworksSettings extends PureComponent {
     ) {
       this.switchToMainnet();
     }
-    const { NetworkController } = Engine.context;
+    const { NetworkController, MultichainNetworkController } = Engine.context;
 
     const { networkConfigurations } = this.props;
     const entry = Object.entries(networkConfigurations).find(
@@ -233,13 +232,9 @@ class NetworksSettings extends PureComponent {
 
     if (this.networkToRemove === selectedNetworkClientId) {
       // if we delete selected network, switch to mainnet before removing the selected network
-      if (!isSolanaEnabled()) {
-        NetworkController.setActiveNetwork('mainnet');
-      } else {
-        Engine.context.MultichainNetworkController.setActiveNetwork({
-          evmClientId: 'mainnet',
-        });
-      }
+      await MultichainNetworkController.setActiveNetwork({
+        evmClientId: 'mainnet',
+      });
     }
 
     NetworkController.removeNetwork(chainId);
@@ -449,6 +444,9 @@ class NetworksSettings extends PureComponent {
   }
 
   renderSolanaMainnet() {
+    if (!NON_EVM_NETWORKS.length) {
+      return null;
+    }
     // TODO: [SOLANA] - Please revisit this since it's supported on a constant array in mobile and should come from multichain network controller
     const { nickname: solanaMainnetName } = NON_EVM_NETWORKS.find(
       (network) => network.chainId === SolScopes.Mainnet,

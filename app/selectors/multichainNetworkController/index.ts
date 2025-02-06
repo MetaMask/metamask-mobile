@@ -1,7 +1,7 @@
 import { MultichainNetworkControllerState } from '@metamask/multichain-network-controller';
 import { RootState } from '../../reducers';
 import { createSelector } from 'reselect';
-import { isSolanaEnabled } from '../../util/networks';
+import { CaipChainId } from '@metamask/utils';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -9,15 +9,13 @@ export const selectMultichainNetworkControllerState = (state: RootState) =>
 export const selectNonEvmSelected = createSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
-    isSolanaEnabled() ? multichainNetworkControllerState.nonEvmSelected : false,
+    multichainNetworkControllerState.nonEvmSelected,
 );
 
 export const selectSelectedNonEvmNetworkChainId = createSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
-    isSolanaEnabled()
-      ? multichainNetworkControllerState.selectedMultichainNetworkChainId
-      : '',
+    multichainNetworkControllerState.selectedMultichainNetworkChainId,
 );
 
 export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
@@ -33,7 +31,6 @@ export const selectSelectedNonEvmNetworkName = createSelector(
     nonEvmNetworkConfigurationsByChainId,
     selectedMultichainNetworkChainId: string,
   ) => {
-    if (!isSolanaEnabled()) return '';
     const network =
       nonEvmNetworkConfigurationsByChainId[selectedMultichainNetworkChainId];
     return network?.name;
@@ -45,11 +42,10 @@ export const selectNonEvmBlockExplorerUrl = createSelector(
   selectSelectedNonEvmNetworkChainId,
   (
     nonEvmNetworkConfigurationsByChainId,
-    selectedMultichainNetworkChainId: string,
+    selectedMultichainNetworkChainId: CaipChainId,
   ) => {
     const network =
       nonEvmNetworkConfigurationsByChainId[selectedMultichainNetworkChainId];
-    // TODO: [SOLANA] Revisit this before shipping,show we return the first block explorer url?
-    return network?.blockExplorerUrls[0];
+    return network?.blockExplorers.urls[network?.blockExplorers.defaultIndex];
   },
 );
