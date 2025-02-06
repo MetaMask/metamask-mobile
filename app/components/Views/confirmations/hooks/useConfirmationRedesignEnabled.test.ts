@@ -4,11 +4,11 @@ import { merge, cloneDeep } from 'lodash';
 // eslint-disable-next-line import/no-namespace
 import { isHardwareAccount } from '../../../../util/address';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled';
 import {
   personalSignatureConfirmationState,
   stakingDepositConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
+import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled';
 
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
