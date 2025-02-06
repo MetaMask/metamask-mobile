@@ -2,7 +2,6 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TransactionType } from '@metamask/transaction-controller';
-import { ApprovalType } from '@metamask/controller-utils';
 
 import { useStyles } from '../../../../component-library/hooks';
 import BottomModal from '../components/UI/BottomModal';
