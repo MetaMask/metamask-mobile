@@ -5581,7 +5581,7 @@
 
 "@metamask/token-search-discovery-controller@^2.0.0":
   version "2.0.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/token-search-discovery-controller/-/token-search-discovery-controller-2.0.0.tgz#f0f87bde6675371e52e6b2874f8540b8703d0cd4"
+  resolved "https://registry.yarnpkg.com/@metamask/token-search-discovery-controller/-/token-search-discovery-controller-2.0.0.tgz#f0f87bde6675371e52e6b2874f8540b8703d0cd4"
   integrity sha512-YYb1gNFPh/07DMKH7kU2+XRKjDrr1CTGa+Sxk29qM7r46eDOv7lAIuZW4FsYX1M8rT4tKrCsYFX5nCHER54Ogw==
   dependencies:
     "@metamask/base-controller" "^7.1.1"
