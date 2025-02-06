@@ -94,7 +94,7 @@ describe('TokenSearchDiscoveryController utils', () => {
       expect(controller.state).toStrictEqual(initialState);
     });
 
-    it('controller keeps initial extra data in its state', () => {
+    it('keeps initial extra data in controller state', () => {
       const initialState = {
         extraData: true,
       };

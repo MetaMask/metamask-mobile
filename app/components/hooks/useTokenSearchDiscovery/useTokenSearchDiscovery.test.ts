@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../core/Engine';
 import useTokenSearchDiscovery from './useTokenSearchDiscovery';
-import { TokenSearchParams } from '@metamask/token-search-discovery-controller/dist/types.cjs';
+import { TokenSearchParams } from '@metamask/token-search-discovery-controller';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -26,10 +26,10 @@ describe('useTokenSearchDiscovery', () => {
     jest.useRealTimers();
   });
 
-  it('should update states correctly when searching tokens', async () => {
+  it('updates states correctly when searching tokens', async () => {
     const mockSearchParams: TokenSearchParams = {
       chains: ['0x1'],
-      name: 'DAI',
+      query: 'DAI',
       limit: '10',
     };
     const mockSearchResult = [{ name: 'DAI', address: '0x123' }];
@@ -61,7 +61,7 @@ describe('useTokenSearchDiscovery', () => {
     ).toHaveBeenCalledWith(mockSearchParams);
   });
 
-  it('should handle search errors', async () => {
+  it('returns error and empty results if search failed', async () => {
     const mockError = new Error('Search failed');
     (
       Engine.context.TokenSearchDiscoveryController.searchTokens as jest.Mock
