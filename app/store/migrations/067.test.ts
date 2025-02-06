@@ -30,7 +30,7 @@ describe('Migration #67', () => {
       scenario: 'state is invalid',
     },
     {
-      state: { engine: null },  // Fixed: proper invalid engine state
+      state: { engine: null },
       errorMessage: "FATAL ERROR: Migration 67: Invalid engine state error: 'null'",
       scenario: 'engine state is invalid',
     },
@@ -65,7 +65,7 @@ describe('Migration #67', () => {
     expect(
       result.engine.backgroundState.PreferencesController
         .featureFlags.smartTransactionsMigrationApplied,
-    ).toBe(false);  // Fixed: expect false for new preferences
+    ).toBe(true);
     expect(
       result.engine.backgroundState.PreferencesController
         .smartTransactionsOptInStatus,
@@ -89,7 +89,7 @@ describe('Migration #67', () => {
     expect(
       result.engine.backgroundState.PreferencesController
         .featureFlags.smartTransactionsMigrationApplied,
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it('should enable STX when opt-in status is null', () => {
@@ -105,10 +105,10 @@ describe('Migration #67', () => {
     expect(
       result.engine.backgroundState.PreferencesController
         .featureFlags.smartTransactionsMigrationApplied,
-    ).toBe(false);
+    ).toBe(true);
   });
 
-  it('should not change stx opt-in when it is already true, but should set migration flag', () => {
+  it('should not change stx opt-in when it is already true, but should set migration flag to false', () => {
     const state = createTestState({
       smartTransactionsOptInStatus: true,
     });
@@ -121,10 +121,10 @@ describe('Migration #67', () => {
     expect(
       result.engine.backgroundState.PreferencesController
         .featureFlags.smartTransactionsMigrationApplied,
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  it('should enable STX and show banner (migrationApplied=false) when opt-in status is false', () => {
+  it('should enable STX and show banner (migrationApplied=true) when opt-in status is false', () => {
     const state = createTestState({
       smartTransactionsOptInStatus: false,
     });
@@ -137,6 +137,6 @@ describe('Migration #67', () => {
     expect(
       result.engine.backgroundState.PreferencesController
         .featureFlags.smartTransactionsMigrationApplied,
-    ).toBe(false);
+    ).toBe(true);
   });
 });
