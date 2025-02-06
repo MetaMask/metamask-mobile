@@ -38,7 +38,7 @@ export const QRHardwareContext = createContext<QRHardwareContextType>({
 });
 
 export const QRHardwareContextProvider: React.FC<{
-  children: ReactElement;
+  children: ReactElement[];
 }> = ({ children }) => {
   const navigation = useNavigation();
   const { isQRSigningInProgress, isSigningQRObject, QRState } =
