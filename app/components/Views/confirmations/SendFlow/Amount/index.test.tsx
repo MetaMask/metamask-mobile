@@ -112,7 +112,7 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        selectedNetworkClientId: 'mainnet',
+        selectedNetworkClientId: 'sepolia',
         networksMetadata: {
           mainnet: {
             status: 'available',
@@ -274,7 +274,6 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -348,7 +347,6 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -461,7 +459,6 @@ describe('Amount', () => {
           name: 'Avalanche',
           symbol: 'AVAX',
         },
-        chainId: '0xa86a',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -544,7 +541,6 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -628,7 +624,6 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -707,7 +702,6 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -779,7 +773,6 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -858,7 +851,6 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -933,7 +925,6 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -1008,7 +999,6 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -1074,7 +1064,6 @@ describe('Amount', () => {
           standard: 'ERC721',
           tokenId: '1850',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
