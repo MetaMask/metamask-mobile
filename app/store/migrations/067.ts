@@ -24,7 +24,6 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
-
   if (!isObject(state.engine)) {
     captureException(
       new Error(
@@ -33,7 +32,6 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
-
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
@@ -42,7 +40,6 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
-
   if (!isObject(state.engine.backgroundState.PreferencesController)) {
     captureException(
       new Error(
@@ -68,16 +65,15 @@ export default function migrate(state: unknown) {
   const currentOptInStatus = preferences.smartTransactionsOptInStatus;
 
   if (currentOptInStatus === true) {
-    // User previously opted in - preserve their preference, don't show banner
+    // User already had it on - no migration change made
     preferences.smartTransactionsOptInStatus = true;
-    preferences.featureFlags.smartTransactionsMigrationApplied = true;
+    preferences.featureFlags.smartTransactionsMigrationApplied = false;  // Changed to false
   } else {
-    // Either false or no previous preference - set to true and show banner
+    // We're changing their setting - mark as migrated
     preferences.smartTransactionsOptInStatus = true;
-    preferences.featureFlags.smartTransactionsMigrationApplied = false;
+    preferences.featureFlags.smartTransactionsMigrationApplied = true;  // Changed to true
   }
 
   preferences.featureFlags.smartTransactionsBannerDismissed = false;
-
   return newState;
 }
