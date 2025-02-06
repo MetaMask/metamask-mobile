@@ -117,18 +117,21 @@ export const selectMultichainCurrentNetwork = createDeepEqualSelector(
     }
 
     // Non-EVM networks:
-    // For non-EVM, we know we have a selected account, since the logic `isEvm` is based
-    // on having a non-EVM account being selected!
+    if (!selectedAccount) {
+      throw new Error(
+        'Selected account is required for non-EVM networks. This should never happen.',
+      );
+    }
+
     const nonEvmNetworks = selectMultichainNetworkProviders();
-    const nonEvmNetwork = selectedAccount
-      ? nonEvmNetworks.find((provider) =>
-          provider.isAddressCompatible(selectedAccount.address),
-        )
-      : undefined;
+    const nonEvmNetwork = nonEvmNetworks.find((provider) =>
+      provider.isAddressCompatible(selectedAccount.address),
+    );
 
     if (!nonEvmNetwork) {
       throw new Error(
-        'Could not find non-EVM provider for the current configuration. This should never happen.',
+        'Could not find non-EVM provider compatible with address: ' +
+          selectedAccount.address,
       );
     }
 
@@ -188,7 +191,6 @@ export const selectMultichainIsMainnet = createDeepEqualSelector(
     }
 
     if (!selectedAccount) {
-      console.warn('Could not find selected internal account');
       return false;
     }
 
@@ -234,33 +236,13 @@ const selectNonEvmCachedBalance = createDeepEqualSelector(
   selectMultichainCurrentNetwork,
   (selectedInternalAccount, multichainBalances, multichainCurrentNetwork) => {
     if (!selectedInternalAccount) {
-      console.warn('Could not find selected internal account');
       return undefined;
     }
     // We assume that there's at least one asset type in and that is the native
     // token for that network.
     const asset = NETWORK_ASSETS_MAP[multichainCurrentNetwork.chainId]?.[0];
-
-    if (!asset) {
-      console.warn(
-        'Could not find asset type for network:',
-        multichainCurrentNetwork,
-      );
-    }
-
     const balancesForAccount = multichainBalances?.[selectedInternalAccount.id];
-    if (!balancesForAccount) {
-      console.warn(
-        'Could not find balances for account:',
-        selectedInternalAccount,
-      );
-    }
-
     const balanceOfAsset = balancesForAccount?.[asset];
-    if (!balanceOfAsset) {
-      console.warn('Could not find balance for asset:', asset);
-    }
-
     return balanceOfAsset?.amount ?? 0;
   },
 );
