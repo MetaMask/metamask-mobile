@@ -16,7 +16,7 @@ import { useTransactionMetadata } from '../hooks/useTransactionMetadata';
 import styleSheet from './Confirm.styles';
 
 // todo: if possible derive way to dynamically check if confirmation should be rendered flat
-const FLAT_CONFIRMATIONS: (TransactionType | ApprovalType)[] = [
+const FLAT_TRANSACTION_CONFIRMATIONS: TransactionType[] = [
   TransactionType.stakingDeposit,
 ];
 
@@ -41,23 +41,26 @@ const Confirm = () => {
     return null;
   }
 
-  const isFlatConfirmation = FLAT_CONFIRMATIONS.includes(
-    // order is important here, as transactionMetadata.type is more specific
-    (transactionMetadata?.type || approvalRequest?.type) as
-      | TransactionType
-      | ApprovalType,
+  const isFlatConfirmation = FLAT_TRANSACTION_CONFIRMATIONS.includes(
+    transactionMetadata?.type as TransactionType,
   );
 
   if (isFlatConfirmation) {
     return (
-      <SafeAreaView style={styles.mainContainer} testID="flat-confirmation-container">
+      <SafeAreaView
+        style={styles.mainContainer}
+        testID="flat-confirmation-container"
+      >
         <ConfirmWrapped />
       </SafeAreaView>
     );
   }
 
   return (
-    <BottomModal canCloseOnBackdropClick={false} testID="modal-confirmation-container">
+    <BottomModal
+      canCloseOnBackdropClick={false}
+      testID="modal-confirmation-container"
+    >
       <View style={styles.container} testID={approvalRequest?.type}>
         <ConfirmWrapped />
       </View>
