@@ -13,6 +13,7 @@ import { useSignatureRequest } from '../../../../../hooks/useSignatureRequest';
 import useApprovalRequest from '../../../../../hooks/useApprovalRequest';
 import { View } from 'react-native';
 import styleSheet from './InfoSectionAddressAndOrigin.styles';
+import { isValidAddress } from 'ethereumjs-util';
 
 export const InfoSectionAddressAndOrigin = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -26,6 +27,7 @@ export const InfoSectionAddressAndOrigin = () => {
   const isPermit = isRecognizedPermit(signatureRequest);
 
   const {
+    domain: { verifyingContract } = {},
     message: { spender } = {},
   } = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
 
@@ -55,6 +57,14 @@ export const InfoSectionAddressAndOrigin = () => {
       >
         <DisplayURL url={origin} />
       </InfoRow>
+      {isValidAddress(verifyingContract) && (
+          <InfoRow label={strings('confirm.label.interacting_with')}>
+            <InfoRowAddress
+              address={verifyingContract}
+              chainId={chainId}
+            />
+          </InfoRow>
+        )}
     </InfoSection>
   );
 };

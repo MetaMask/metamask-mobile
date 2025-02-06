@@ -17,12 +17,21 @@ describe('InfoSectionAddressAndOrigin', () => {
     expect(getByText('metamask.github.io')).toBeTruthy();
   });
 
+  it('renders "Interacting with" if associated with a valid verifying contract', () => {
+    const { getByText } = renderWithProvider(<InfoSectionAddressAndOrigin />, {
+      state: typedSignV4ConfirmationState,
+    });
+
+    expect(getByText('Request from')).toBeTruthy();
+  });
+
   it('renders Spender if it is a Permit', () => {
     const { getByText } = renderWithProvider(<InfoSectionAddressAndOrigin />, {
       state: typedSignV4ConfirmationState,
     });
 
-    expect(getByText('Spender')).toBeTruthy();
+    expect(getByText('Interacting with')).toBeTruthy();
+    expect(getByText('0xCcCCc...ccccC')).toBeTruthy();
   });
 
   it('does not render Spender if it is not a Permit', () => {

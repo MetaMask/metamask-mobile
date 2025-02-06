@@ -3621,6 +3621,7 @@
     "reject": "Reject",
     "confirm": "Confirm",
     "label": {
+      "interacting_with": "Interacting with",
       "spender": "Spender"
     },
     "title": {
