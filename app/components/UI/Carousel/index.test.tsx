@@ -76,9 +76,6 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 // Mock image requires
-jest.mock('../../../images/banners/banner_image_bridge.png', () => ({
-  uri: 'bridge-image',
-}));
 jest.mock('../../../images/banners/banner_image_card.png', () => ({
   uri: 'card-image',
 }));
@@ -87,6 +84,9 @@ jest.mock('../../../images/banners/banner_image_fund.png', () => ({
 }));
 jest.mock('../../../images/banners/banner_image_cashout.png', () => ({
   uri: 'cashout-image',
+}));
+jest.mock('../../../images/banners/banner_image_aggregated.png', () => ({
+  uri: 'aggregated-image',
 }));
 
 const mockDispatch = jest.fn();
@@ -111,7 +111,7 @@ describe('Carousel', () => {
     (useSelector as jest.Mock).mockImplementation((selector) =>
       selector({
         banners: {
-          dismissedBanners: ['bridge', 'card', 'fund', 'cashout'],
+          dismissedBanners: ['card', 'fund', 'cashout', 'aggregated'],
         },
         browser: {
           tabs: [],
@@ -143,5 +143,9 @@ describe('Carousel', () => {
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://portfolio.metamask.io/sell',
     );
+
+    // Test aggregated banner
+    fireEvent.press(getByText('banner.aggregated.title').parent);
+    expect(Linking.openURL).toHaveBeenCalledWith('metamask://settings/general');
   });
 });
