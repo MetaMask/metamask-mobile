@@ -187,7 +187,7 @@ describe('useQuotes', () => {
     expect(result.current.quotes).toEqual([{ id: 'quote-2' }]);
   });
 
-  it('sorts quotes by price correctly', () => {
+  it('sorts quotes by price', () => {
     const mockQuery = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
