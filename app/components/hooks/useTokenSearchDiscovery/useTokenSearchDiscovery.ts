@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import Engine from '../../../core/Engine';
@@ -17,9 +17,13 @@ export const useTokenSearchDiscovery = () => {
   const [results, setResults] = useState<TokenSearchResponseItem[]>([]);
   const latestRequestId = useRef<number>(0);
 
-  const debouncedSearch = useMemo(
+  const searchTokens = useMemo(
     () =>
-      debounce(async (params: TokenSearchParams, requestId: number) => {
+      debounce(async (params: TokenSearchParams) => {
+        setIsLoading(true);
+        setError(null);
+        const requestId = ++latestRequestId.current;
+
         try {
           const { TokenSearchDiscoveryController } = Engine.context;
           const result = await TokenSearchDiscoveryController.searchTokens(
@@ -38,17 +42,7 @@ export const useTokenSearchDiscovery = () => {
           }
         }
       }, SEARCH_DEBOUNCE_DELAY),
-    [setResults, setError, setIsLoading, latestRequestId],
-  );
-
-  const searchTokens = useCallback(
-    (params: TokenSearchParams) => {
-      setIsLoading(true);
-      setError(null);
-      latestRequestId.current += 1;
-      debouncedSearch(params, latestRequestId.current);
-    },
-    [debouncedSearch],
+    [],
   );
 
   return {
