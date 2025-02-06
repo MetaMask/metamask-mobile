@@ -6,7 +6,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
-import { isSIWESignatureRequest } from '../../../utils/signatures';
+import { isSIWESignatureRequest } from '../../../utils/signature';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
 import styleSheet from './Title.styles';
 

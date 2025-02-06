@@ -4,7 +4,7 @@ import { Hex } from '@metamask/utils';
 import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../../../hooks/useApprovalRequest';
-import { getSIWEDetails } from '../../../../../utils/signatures';
+import { getSIWEDetails } from '../../../../../utils/signature';
 import { useSignatureRequest } from '../../../../../hooks/useSignatureRequest';
 import Address from '../../../../UI/InfoRow/InfoValue/Address';
 import DisplayURL from '../../../../UI/InfoRow/InfoValue/DisplayURL';
