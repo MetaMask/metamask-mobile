@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import Engine from '../../../core/Engine';
@@ -15,27 +15,40 @@ export const useTokenSearchDiscovery = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [results, setResults] = useState<TokenSearchResponseItem[]>([]);
+  const latestRequestId = useRef<number>(0);
 
-  const searchTokens = useCallback((params: TokenSearchParams) => {
-    setIsLoading(true);
-    setError(null);
-
-    const debouncedSearch = debounce(async () => {
+  const debouncedSearch = useCallback(
+    debounce(async (params: TokenSearchParams, requestId: number) => {
       try {
         const { TokenSearchDiscoveryController } = Engine.context;
         const result = await TokenSearchDiscoveryController.searchTokens(
           params,
         );
-        setResults(result);
+        if (requestId === latestRequestId.current) {
+          setResults(result);
+        }
       } catch (err) {
-        setError(err as Error);
+        if (requestId === latestRequestId.current) {
+          setError(err as Error);
+        }
       } finally {
-        setIsLoading(false);
+        if (requestId === latestRequestId.current) {
+          setIsLoading(false);
+        }
       }
-    }, SEARCH_DEBOUNCE_DELAY);
+    }, SEARCH_DEBOUNCE_DELAY),
+    [],
+  );
 
-    debouncedSearch();
-  }, []);
+  const searchTokens = useCallback(
+    (params: TokenSearchParams) => {
+      setIsLoading(true);
+      setError(null);
+      latestRequestId.current += 1;
+      debouncedSearch(params, latestRequestId.current);
+    },
+    [debouncedSearch],
+  );
 
   return {
     searchTokens,
