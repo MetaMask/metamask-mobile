@@ -1,11 +1,12 @@
 import { createTokenSearchDiscoveryController } from './utils';
 import { ControllerMessenger } from '@metamask/base-controller';
-import {
-  TokenSearchDiscoveryControllerMessenger,
-  TokenSearchDiscoveryControllerState,
-} from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
 import Logger from '../../../../util/Logger';
-import { TokenSearchApiService } from '@metamask/token-search-discovery-controller';
+
+import {
+  TokenSearchApiService,
+  TokenSearchDiscoveryControllerState,
+} from '@metamask/token-search-discovery-controller';
+import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
 
 const mockError = new Error('Controller creation failed');
 
