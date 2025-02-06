@@ -55,7 +55,7 @@ export const container: UIComponentFactory<BoxElement> = ({
         },
         children: t('close'),
       },
-      element: '',
+      element: 'Box',
     });
   }
 
