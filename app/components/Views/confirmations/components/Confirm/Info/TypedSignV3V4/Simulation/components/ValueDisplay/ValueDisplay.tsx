@@ -92,9 +92,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 }) => {
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
-    const { colors } = useTheme();
+  const { colors } = useTheme();
 
-    const styles = styleSheet(colors);
+  const styles = styleSheet(colors);
 
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId),
@@ -105,11 +105,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
       ? contractExchangeRates[tokenContract as `0x${string}`]?.price
       : undefined;
 
-    const {
-      details: tokenDetails,
-      isPending: isPendingTokenDetails,
-    } = useGetTokenStandardAndDetails(tokenContract, networkClientId);
-    const { decimalsNumber: tokenDecimals } = tokenDetails;
+  const { details: tokenDetails, isPending: isPendingTokenDetails } =
+    useGetTokenStandardAndDetails(tokenContract, networkClientId);
+  const { decimalsNumber: tokenDecimals } = tokenDetails;
 
   useTrackERC20WithoutDecimalInformation(
     chainId,
@@ -156,22 +154,28 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     setHasValueModalOpen(true);
   }
 
-    return (
-      <View style={styles.wrapper}>
-        <View style={styles.flexRowTokenValueAndAddress}>
-          <View style={styles.valueAndAddress}>
-            {
-              <AnimatedPulse isPulsing={isPendingTokenDetails} testID="simulation-value-display-loader">
-                <ButtonPill
-                  isDisabled={!!tokenId || tokenId === '0'}
-                  onPress={handlePressTokenValue}
-                  onPressIn={handlePressTokenValue}
-                  onPressOut={handlePressTokenValue}
-                  style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
-                >
-                  {isPendingTokenDetails ?
-                    <View style={styles.loaderButtonPillEmptyContent} />
-                  :
+  return (
+    <View style={styles.wrapper}>
+      <View style={styles.flexRowTokenValueAndAddress}>
+        <View style={styles.valueAndAddress}>
+          {
+            <AnimatedPulse
+              isPulsing={isPendingTokenDetails}
+              testID="simulation-value-display-loader"
+            >
+              <ButtonPill
+                isDisabled={!!tokenId || tokenId === '0'}
+                onPress={handlePressTokenValue}
+                onPressIn={handlePressTokenValue}
+                onPressOut={handlePressTokenValue}
+                style={[
+                  credit && styles.valueIsCredit,
+                  debit && styles.valueIsDebit,
+                ]}
+              >
+                {isPendingTokenDetails ? (
+                  <View style={styles.loaderButtonPillEmptyContent} />
+                ) : (
                   <Text>
                     {credit && '+ '}
                     {debit && '- '}
@@ -179,31 +183,31 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                       ? strings('confirm.unlimited')
                       : tokenValue !== null &&
                         shortenString(tokenValue || '', {
-                        truncatedCharLimit: 15,
-                        truncatedStartChars: 15,
-                        truncatedEndChars: 0,
-                        skipCharacterInEnd: true,
-                      })}
-                      {tokenId && `#${tokenId}`}
-                    </Text>
-                  }
-                </ButtonPill>
-              </AnimatedPulse>
-            }
-            <View style={styles.marginStart4}>
-              <Address address={tokenContract} chainId={chainId} />
-            </View>
+                          truncatedCharLimit: 15,
+                          truncatedStartChars: 15,
+                          truncatedEndChars: 0,
+                          skipCharacterInEnd: true,
+                        })}
+                    {tokenId && `#${tokenId}`}
+                  </Text>
+                )}
+              </ButtonPill>
+            </AnimatedPulse>
+          }
+          <View style={styles.marginStart4}>
+            <Address address={tokenContract} chainId={chainId} />
           </View>
         </View>
-        <View>
-          {/**
+      </View>
+      <View>
+        {/**
             TODO - support fiat shorten prop
             {@see {@link https://github.com/MetaMask/metamask-mobile/issues/13385}
           */}
-          {fiatValue && (
-            <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />
-          )}
-        </View>
+        {fiatValue && (
+          <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />
+        )}
+      </View>
       {hasValueModalOpen && (
         /**
          * TODO replace BottomModal instances with BottomSheet
