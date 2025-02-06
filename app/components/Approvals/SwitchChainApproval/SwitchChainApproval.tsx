@@ -58,7 +58,6 @@ const SwitchChainApproval = () => {
         onConfirm={onConfirm}
         currentPageInformation={pageMeta}
         customNetworkInformation={approvalRequest?.requestData}
-        type={approvalRequest?.requestData?.type}
       />
     </ApprovalModal>
   );
