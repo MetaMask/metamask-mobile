@@ -7,7 +7,7 @@ import { selectTransactionMetadataById } from '../../../../selectors/transaction
 import { RootState } from '../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useApprovalRequest from './useApprovalRequest';
 
-export function useTransactionMetadata() {
+export function useTransactionMetadataRequest() {
   const { approvalRequest } = useApprovalRequest();
 
   const transactionMetadata = useSelector((state: RootState) =>

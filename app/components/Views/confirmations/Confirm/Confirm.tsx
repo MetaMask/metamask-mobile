@@ -11,7 +11,7 @@ import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBann
 import Title from '../components/Confirm/Title';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
-import { useTransactionMetadata } from '../hooks/useTransactionMetadata';
+import { useTransactionMetadataRequest } from '../hooks/useTransactionMetadataRequest';
 import styleSheet from './Confirm.styles';
 
 // todo: if possible derive way to dynamically check if confirmation should be rendered flat
@@ -32,7 +32,7 @@ const ConfirmWrapped = () => (
 
 const Confirm = () => {
   const { approvalRequest } = useApprovalRequest();
-  const transactionMetadata = useTransactionMetadata();
+  const transactionMetadata = useTransactionMetadataRequest();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const { styles } = useStyles(styleSheet, {});
 

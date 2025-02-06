@@ -3,7 +3,7 @@ import { ApprovalType } from '@metamask/controller-utils';
 import React from 'react';
 
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
-import { useTransactionMetadata } from '../../../hooks/useTransactionMetadata';
+import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import PersonalSign from './PersonalSign';
 import TypedSignV1 from './TypedSignV1';
 import TypedSignV3V4 from './TypedSignV3V4';
@@ -33,7 +33,7 @@ const ConfirmationInfoComponentMap = {
 
 const Info = () => {
   const { approvalRequest } = useApprovalRequest();
-  const transactionMetadata = useTransactionMetadata();
+  const transactionMetadata = useTransactionMetadataRequest();
 
   if (!approvalRequest?.type) {
     return null;

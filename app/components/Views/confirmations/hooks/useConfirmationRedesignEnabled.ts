@@ -11,7 +11,7 @@ import {
   type ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../selectors/featureFlagController';
-import { useTransactionMetadata } from './useTransactionMetadata';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import useApprovalRequest from './useApprovalRequest';
 
 const REDESIGNED_SIGNATURE_TYPES = [
@@ -69,7 +69,7 @@ function isRedesignedTransaction({
 
 export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
-  const transactionMetadata = useTransactionMetadata();
+  const transactionMetadata = useTransactionMetadataRequest();
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );

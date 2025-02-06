@@ -1,15 +1,15 @@
 import { merge } from 'lodash';
 
-import { useTransactionMetadata } from './useTransactionMetadata';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
   stakingDepositConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 
-describe('useTransactionMetadata', () => {
+describe('useTransactionMetadataRequest', () => {
   it('returns transaction metadata when approval type is Transaction', () => {
-    const { result } = renderHookWithProvider(useTransactionMetadata, {
+    const { result } = renderHookWithProvider(useTransactionMetadataRequest, {
       state: stakingDepositConfirmationState,
     });
 
@@ -20,7 +20,7 @@ describe('useTransactionMetadata', () => {
   });
 
   it('returns undefined when approval type is not Transaction', () => {
-    const { result } = renderHookWithProvider(useTransactionMetadata, {
+    const { result } = renderHookWithProvider(useTransactionMetadataRequest, {
       state: personalSignatureConfirmationState,
     });
 
@@ -38,7 +38,7 @@ describe('useTransactionMetadata', () => {
       },
     });
 
-    const { result } = renderHookWithProvider(useTransactionMetadata, {
+    const { result } = renderHookWithProvider(useTransactionMetadataRequest, {
       state,
     });
 
