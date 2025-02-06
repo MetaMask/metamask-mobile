@@ -2185,8 +2185,7 @@ export default {
     keyringState: KeyringControllerState | null = null,
     metaMetricsId?: string,
   ) {
-    instance =
-      Engine.instance || new Engine(state, keyringState, metaMetricsId);
+    instance = Engine.instance || new Engine(state, keyringState, metaMetricsId);
     Object.freeze(instance);
     return instance;
   },
