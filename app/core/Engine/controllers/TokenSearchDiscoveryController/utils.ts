@@ -2,6 +2,7 @@ import Logger from '../../../../util/Logger';
 import {
   TokenSearchApiService,
   TokenSearchDiscoveryController,
+  TokenDiscoveryApiService,
 } from '@metamask/token-search-discovery-controller';
 import { TokenSearchDiscoveryControllerParams } from './types';
 import { PORTFOLIO_API_URL } from './constants';
@@ -24,10 +25,12 @@ export const createTokenSearchDiscoveryController = ({
   messenger,
 }: TokenSearchDiscoveryControllerParams) => {
   try {
+    const baseUrl = getPortfolioApiBaseUrl();
     const controller = new TokenSearchDiscoveryController({
       state,
       messenger,
-      tokenSearchService: new TokenSearchApiService(getPortfolioApiBaseUrl()),
+      tokenSearchService: new TokenSearchApiService(baseUrl),
+      tokenDiscoveryService: new TokenDiscoveryApiService(baseUrl),
     });
     return controller;
   } catch (error) {
