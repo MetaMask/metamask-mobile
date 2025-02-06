@@ -6,6 +6,9 @@ import {
   securityAlertResponse,
   typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
+// eslint-disable-next-line import/no-namespace
+import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
+
 import Confirm from './index';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -80,5 +83,18 @@ describe('Confirm', () => {
     });
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
+  });
+
+  it('should render null if re-design is not enabled for confirmation', () => {
+    jest
+      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+      .mockReturnValue({ isRedesignedEnabled: false });
+    const { queryByText } = renderWithProvider(<Confirm />, {
+      state: {
+        ...typedSignV1ConfirmationState,
+        signatureRequest: { securityAlertResponse },
+      },
+    });
+    expect(queryByText('Signature request')).toBeNull();
   });
 });
