@@ -135,7 +135,7 @@ const Quote: React.FC<Props> = ({
                   </TagColored>
                 ) : null}
 
-                {quote.tags.isBestRate ? (
+                {quote?.tags?.isBestRate ? (
                   <TagColored color={TagColor.Success}>
                     {strings('fiat_on_ramp_aggregator.best_rate')}
                   </TagColored>
