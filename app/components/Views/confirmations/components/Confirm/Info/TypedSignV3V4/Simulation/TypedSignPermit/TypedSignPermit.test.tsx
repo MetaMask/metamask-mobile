@@ -19,16 +19,16 @@ describe('PermitSimulation', () => {
       state: typedSignV4ConfirmationState,
     });
 
-    expect(getByText('Estimated changes')).toBeDefined();
+    expect(getByText('Estimated changes')).toBeTruthy();
     expect(
       getByText(
         "You're giving the spender permission to spend this many tokens from your account.",
       ),
-    ).toBeDefined();
-    expect(getByText('Spending cap')).toBeDefined();
-    expect(getByText('0xCcCCc...ccccC')).toBeDefined();
+    ).toBeTruthy();
+    expect(getByText('Spending cap')).toBeTruthy();
+    expect(getByText('0xCcCCc...ccccC')).toBeTruthy();
 
-    await waitFor(() => expect(getByText('3,000')).toBeDefined());
+    await waitFor(() => expect(getByText('3,000')).toBeTruthy());
   });
 
   it('should render correctly for Permit NFTs', async () => {
@@ -36,15 +36,15 @@ describe('PermitSimulation', () => {
       state: typedSignV4NFTConfirmationState,
     });
 
-    expect(getByText('Estimated changes')).toBeDefined();
+    expect(getByText('Estimated changes')).toBeTruthy();
     expect(
       getByText(
         "You're giving the spender permission to spend this many tokens from your account.",
       ),
-    ).toBeDefined();
-    expect(getByText('Withdraw')).toBeDefined();
-    expect(getByText('0xC3644...1FE88')).toBeDefined();
+    ).toBeTruthy();
+    expect(getByText('Withdraw')).toBeTruthy();
+    expect(getByText('0xC3644...1FE88')).toBeTruthy();
 
-    await waitFor(() => expect(getByText('#3606393')).toBeDefined());
+    await waitFor(() => expect(getByText('#3606393')).toBeTruthy());
   });
 });
