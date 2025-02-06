@@ -1037,7 +1037,7 @@ exports[`Wallet should render correctly 1`] = `
                                 }
                               >
                                 View: Wallet
-TypeError: Cannot read properties of undefined (reading 'tabs')
+TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                               </Text>
                             </View>
                           </RCTScrollView>
