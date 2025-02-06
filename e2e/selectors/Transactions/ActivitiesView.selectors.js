@@ -9,6 +9,7 @@ export const ActivitiesViewSelectorsIDs = {
 };
 
 export const ActivitiesViewSelectorsText = {
+  SUBMITTED_TEXT: enContent.transaction.submitted,
   CONFIRM_TEXT: enContent.transaction.confirmed,
   FAILED_TEXT: enContent.transaction.failed,
   SMART_CONTRACT_INTERACTION: enContent.transactions.smart_contract_interaction,
@@ -19,6 +20,9 @@ export const ActivitiesViewSelectorsText = {
   SWAP: enContent.swaps.transaction_label.swap,
   APPROVE: enContent.swaps.transaction_label.approve,
   TITLE: enContent.transactions_view.title,
+  STAKE_DEPOSIT: enContent.transactions.tx_review_staking_deposit,
+  UNSTAKE: enContent.transactions.tx_review_staking_unstake,
+  STAKING_CLAIM: enContent.transactions.tx_review_staking_claim,
 
 };
 
