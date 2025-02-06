@@ -595,7 +595,23 @@ const Wallet = ({
   }, [navigation]);
 
   function renderTokensContent(assets: Token[]) {
-    const evmTokenContent = (
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (!isEvm) {
+      return (
+        <ScrollableTabView
+          renderTabBar={renderTabBar}
+          onChangeTab={onChangeTab}
+        >
+          <NonEvmTokens
+            tabLabel={strings('wallet.tokens')}
+            key={'tokens-tab'}
+          />
+        </ScrollableTabView>
+      );
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    return (
       <ScrollableTabView
         renderTabBar={renderTabBar}
         // eslint-disable-next-line react/jsx-no-bind
@@ -618,19 +634,6 @@ const Wallet = ({
         />
       </ScrollableTabView>
     );
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    return isEvm ? (
-      evmTokenContent
-    ) : (
-      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
-        <NonEvmTokens tabLabel={strings('wallet.tokens')} key={'tokens-tab'} />
-      </ScrollableTabView>
-    );
-    ///: END:ONLY_INCLUDE_IF
-
-    // Note: This code marked as unreachable however when the above block gets removed after code fencing this return becomes necessary
-    return evmTokenContent;
   }
 
   const renderContent = useCallback(() => {
