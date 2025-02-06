@@ -3520,7 +3520,7 @@
     "select_a_token": "Select a token",
     "you_could_earn": "You could earn",
     "per_year_on_your_tokens": "per year on your tokens",
-    "deposit": "Deposit"
+    "deposit": "Deposit",
     "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than {{percentOverDeposit}}% of your deposit.",
     "view_earnings_history": "View earnings history",
     "earnings_history_title": "{{ticker}} earnings",

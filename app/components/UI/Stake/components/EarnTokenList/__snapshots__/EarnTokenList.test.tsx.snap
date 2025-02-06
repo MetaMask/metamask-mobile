@@ -188,7 +188,7 @@ exports[`EarnTokenList render matches screenshot 1`] = `
           style={
             {
               "gap": 12,
-              "height": 552,
+              "maxHeight": 552,
               "paddingHorizontal": 16,
             }
           }
