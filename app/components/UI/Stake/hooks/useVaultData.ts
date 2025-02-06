@@ -2,17 +2,16 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useCallback, useState } from 'react';
 import { selectChainId } from '../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
-import { useStakeContext } from './useStakeContext';
 import {
   selectVaultData,
   setVaultData,
 } from '../../../../core/redux/slices/staking';
+import { stakingApiService } from '../sdk/stakeSdkProvider';
 
 const useVaultData = () => {
   const dispatch = useDispatch();
   const chainId = useSelector(selectChainId);
   const { vaultData } = useSelector(selectVaultData);
-  const { stakingApiService } = useStakeContext();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +33,7 @@ const useVaultData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [chainId, stakingApiService, dispatch]);
+  }, [chainId, dispatch]);
 
   useEffect(() => {
     fetchVaultData();

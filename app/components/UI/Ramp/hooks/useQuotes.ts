@@ -21,7 +21,7 @@ function useQuotes(amount: number | string) {
   );
 
   return {
-    data,
+    data: data?.quotes,
     isFetching,
     error,
     query,
