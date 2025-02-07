@@ -18,7 +18,6 @@
     ".*clients3.google.com/generate_204.*",
     ".*pulse.walletconnect.org/batch.*",
     ".*accounts.api.cx.metamask.io/v2/accounts/.*",
-    ".*exp.host/--/api/v2/development-sessions/.*",
-    ".*sdk.api.cx.metamask.io/.*"
+    ".*exp.host/--/api/v2/development-sessions/.*"
   ]
 }
