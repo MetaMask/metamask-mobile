@@ -21,6 +21,6 @@ describe('InfoRowOrigin', () => {
       state: siweSignatureConfirmationState,
     });
     expect(getByText('Signing in with')).toBeDefined();
-    expect(getByText('0x8Eeee...73D12')).toBeDefined();
+    expect(getByText('0x935E7...05477')).toBeDefined();
   });
 });

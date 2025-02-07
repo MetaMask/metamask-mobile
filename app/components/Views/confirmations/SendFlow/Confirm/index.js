@@ -138,6 +138,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { updateTransactionToMaxValue } from './utils';
+import { isNativeToken } from '../../utils/generic';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -333,9 +334,9 @@ class Confirm extends PureComponent {
   );
 
   setNetworkNonce = async () => {
-    const { networkClientId, setNonce, setProposedNonce, transaction } =
+    const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
+    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -427,7 +428,7 @@ class Confirm extends PureComponent {
      * Ref.: https://github.com/MetaMask/metamask-mobile/pull/3989#issuecomment-1367558394
      */
     if (
-      selectedAsset.isETH ||
+      isNativeToken(selectedAsset) ||
       selectedAsset.tokenId ||
       !selectedAsset.address
     ) {
@@ -634,7 +635,7 @@ class Confirm extends PureComponent {
 
       if (
         maxValueMode &&
-        selectedAsset.isETH &&
+        isNativeToken(selectedAsset) &&
         !isEmpty(gasFeeEstimates) &&
         haveGasFeeMaxNativeChanged
       ) {
@@ -746,7 +747,7 @@ class Confirm extends PureComponent {
     const symbol = ticker ?? selectedAsset?.symbol;
     const parsedTicker = getTicker(symbol);
 
-    if (selectedAsset.isETH) {
+    if (isNativeToken(selectedAsset)) {
       transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
       transactionValueFiat = weiToFiat(
         valueBN,
@@ -892,7 +893,10 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (selectedAsset.isETH || selectedAsset.tokenId) {
+    if (
+      isNativeToken(selectedAsset) ||
+      selectedAsset.tokenId
+    ) {
       return insufficientBalanceMessage;
     }
 
