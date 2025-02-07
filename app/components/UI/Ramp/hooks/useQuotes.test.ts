@@ -2,6 +2,7 @@ import { RampSDK } from '../sdk';
 import useSDKMethod from './useSDKMethod';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useQuotes from './useQuotes';
+import { QuoteSortBy } from '@consensys/on-ramp-sdk/dist/IOnRampSdk';
 
 type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
@@ -184,5 +185,42 @@ describe('useQuotes', () => {
     ]);
     rerender(() => useQuotes(200));
     expect(result.current.quotes).toEqual([{ id: 'quote-2' }]);
+  });
+
+  it('sorts quotes by price', () => {
+    const mockQuery = jest.fn();
+    (useSDKMethod as jest.Mock).mockReturnValue([
+      {
+        data: {
+          quotes: [
+            { id: 'quote-2', provider: { id: 'provider-id-2' } },
+            { id: 'quote-4', provider: { id: 'provider-id-4' } },
+            { id: 'quote-1', provider: { id: 'provider-id-1' } },
+            { id: 'quote-3', provider: { id: 'provider-id-3' } },
+          ],
+          sorted: [
+            {
+              sortBy: QuoteSortBy.price,
+              ids: [
+                'provider-id-1',
+                'provider-id-2',
+                'provider-id-3',
+                'provider-id-4',
+              ],
+            },
+          ],
+        },
+        error: null,
+        isFetching: false,
+      },
+      mockQuery,
+    ]);
+    const { result } = renderHookWithProvider(() => useQuotes(100));
+    expect(result.current.quotes).toEqual([
+      { id: 'quote-1', provider: { id: 'provider-id-1' } },
+      { id: 'quote-2', provider: { id: 'provider-id-2' } },
+      { id: 'quote-3', provider: { id: 'provider-id-3' } },
+      { id: 'quote-4', provider: { id: 'provider-id-4' } },
+    ]);
   });
 });
