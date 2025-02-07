@@ -6,7 +6,7 @@ const styleSheet = (params: { theme: Theme; vars: { style?: ViewStyle } }) =>
     banner: {
       marginTop: 16,
       marginBottom: 16,
-      // ...params.vars.style,
+      ...params.vars.style,
     },
     textContainer: {
       flexWrap: 'wrap',

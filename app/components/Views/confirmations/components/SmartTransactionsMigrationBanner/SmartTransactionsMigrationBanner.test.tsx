@@ -110,22 +110,23 @@ describe('SmartTransactionsMigrationBanner', () => {
  });
 
  describe('banner styling', () => {
-   it('accepts and applies custom styles', () => {
-     const store = mockStore({});
-     const customStyle = { marginTop: 20 };
+  it('accepts and applies custom styles', () => {
+    const store = mockStore({});
+    const customStyle = { marginTop: 20 };
 
-     const { getByTestId } = render(
-       <Provider store={store}>
-         <SmartTransactionsMigrationBanner style={customStyle} />
-       </Provider>
-     );
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <SmartTransactionsMigrationBanner style={customStyle} />
+      </Provider>
+    );
 
-     const banner = getByTestId('smart-transactions-migration-banner');
-     expect(banner.props.style).toEqual(expect.objectContaining({
-       ...banner.props.style,
-       marginTop: 16,
-       marginBottom: 16,
-     }));
-   });
+    const banner = getByTestId('smart-transactions-migration-banner');
+    expect(banner.props.style).toEqual(
+      expect.objectContaining({
+        marginTop: 20,  // Should match the custom style
+        marginBottom: 16,
+      })
+    );
+  });
  });
 });
