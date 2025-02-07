@@ -1,3 +1,4 @@
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import {
   selectIsMetamaskNotificationsEnabled,
   selectIsMetamaskNotificationsFeatureSeen,
@@ -14,7 +15,6 @@ import {
 } from './index';
 import { RootState } from '../../reducers';
 import { MOCK_NOTIFICATION_SERVICES_CONTROLLER } from './testUtils';
-import { TRIGGER_TYPES } from '../../util/notifications';
 
 describe('Notification Selectors', () => {
   const mockState = {
