@@ -22,7 +22,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { NotificationDetailStyles } from '../styles';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
-import { type Notification } from '../../../../../util/notifications';
+import { type INotification } from '../../../../../util/notifications';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
@@ -30,7 +30,7 @@ import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
 export const NETWORK_FEE_FIELD_TESTID = 'network-fee-field';
 
 type NetworkFeeFieldProps = ModalFieldNetworkFee & {
-  notification: Notification;
+  notification: INotification;
   isCollapsed: boolean;
   setIsCollapsed: (newVal: boolean) => void;
 };
