@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-
 import { useNavigation } from '@react-navigation/native';
-
 import {
   newAssetTransaction,
   setSelectedAsset,
 } from '../../../../../actions/transaction';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { doENSReverseLookup } from '../../../../../util/ENSUtils';
 import { renderFromWei, hexToBN } from '../../../../../util/number';
@@ -27,11 +25,11 @@ const SendFlowAddressFrom = ({
 }: SFAddressFromProps) => {
   const navigation = useNavigation();
 
-  const accounts = useSelector(selectAccounts);
-
   const ticker = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, chainId as Hex),
   );
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const accounts = accountsByChainId[chainId];
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const checksummedSelectedAddress = selectedInternalAccount

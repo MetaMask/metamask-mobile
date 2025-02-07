@@ -1,31 +1,31 @@
 'use strict';
 import { ethers } from 'ethers';
-import { loginToApp } from '../../viewHelper';
-import QuoteView from '../../pages/swaps/QuoteView';
-import SwapView from '../../pages/swaps/SwapView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp } from '../../viewHelper.js';
+import QuoteView from '../../pages/swaps/QuoteView.js';
+import SwapView from '../../pages/swaps/SwapView.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import WalletView from '../../pages/wallet/WalletView';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import Tenderly from '../../tenderly';
+import WalletView from '../../pages/wallet/WalletView.js';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
+import FixtureBuilder from '../../fixtures/fixture-builder.js';
+import Tenderly from '../../tenderly.js';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import { CustomNetworks } from '../../resources/networks.e2e';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import TestHelpers from '../../helpers';
-import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeSwaps } from '../../tags';
-import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
-import Assertions from '../../utils/Assertions';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+} from '../../fixtures/fixture-helper.js';
+import { CustomNetworks } from '../../resources/networks.e2e.js';
+import NetworkListModal from '../../pages/Network/NetworkListModal.js';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js';
+import TestHelpers from '../../helpers.js';
+import FixtureServer from '../../fixtures/fixture-server.js';
+import { getFixturesServerPort } from '../../fixtures/utils.js';
+import { SmokeSwaps } from '../../tags.js';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
+import Assertions from '../../utils/Assertions.js';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
@@ -169,7 +169,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         //await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
       }
 
-      // TODO: The following hack is needed to update the token balance until bug is fixed
+      // TODO: The following hack is needed to update the token balance until bug 13187 is fixed
       await TabBarComponent.tapWallet();
       await WalletView.tapNetworksButtonOnNavBar();
       await NetworkListModal.changeNetworkTo('Localhost', false);

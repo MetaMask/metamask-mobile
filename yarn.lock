@@ -1429,10 +1429,10 @@
   dependencies:
     expo-build-properties "~0.12.1"
 
-"@consensys/on-ramp-sdk@1.28.8":
-  version "1.28.8"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.28.8.tgz#e39d833974d9d49653a2ec107ffbebadb49580d1"
-  integrity sha512-snm1hGjIaFMHvB7seLoaBgUQXH1n8/iXPMSm96d5QItFKVw4GZyqsKRnuT2u/CwIeXtYOKf59q7+Lp0UMg+mFQ==
+"@consensys/on-ramp-sdk@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.0.4.tgz#5068e1059510428bedff42e101bfc3a9060b1756"
+  integrity sha512-T8HsVlUe3hlC1c6umAT7nF4QG7oL7l0xgKTs7vob3bsVTNnnIo4uMsEYTbCI9El8gAnKiC9xHlXAZT9cXouFlA==
   dependencies:
     async "^3.2.3"
     axios "^0.28.0"
@@ -5367,15 +5367,15 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/selected-network-controller@^19.0.0":
-  version "19.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-19.0.0.tgz#7c950e051d6848ac5cdcf980f90196a0772425ef"
-  integrity sha512-ijCFHwZN+73VskJU+X0AoSlCTycgLveEjwUoycUeajmUuZyLV5KLLVYPKTk0Pd/aQAaO2tL9yZi0/geazNGV7A==
+"@metamask/selected-network-controller@^21.0.0":
+  version "21.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-21.0.0.tgz#d1972a2af8a241497c490c32efb1dabd39e75c52"
+  integrity sha512-U+o+R8vtKKtFSWGxY/YSBU1AOq229OsER4l7HKWv1mcGQJoWUprenqiuQZtH30KZ0iRRjP+FCG2oLRHk/FWhUg==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/json-rpc-engine" "^10.0.0"
-    "@metamask/swappable-obj-proxy" "^2.2.0"
-    "@metamask/utils" "^10.0.0"
+    "@metamask/base-controller" "^7.1.1"
+    "@metamask/json-rpc-engine" "^10.0.2"
+    "@metamask/swappable-obj-proxy" "^2.3.0"
+    "@metamask/utils" "^11.0.1"
 
 "@metamask/signature-controller@^23.1.0":
   version "23.1.0"
@@ -5543,20 +5543,20 @@
   resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.2.0.tgz#7d0db28a58cbd728306427144039d28f56f6d477"
   integrity sha512-XG1NzrJu2Xvo6PKr5f3Ij6ojEBNGh1H/2WJCcCMSoKZUEl8UG5i8rmZ+SVcZJ0Jhr88sbredNXlAzqGESz2VBA==
 
-"@metamask/stake-sdk@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-0.6.0.tgz#f147debfc0179de4ff3814a406bcbc0144f432fa"
-  integrity sha512-y8NUie7yrMTqTOk4QStV2RJnRKJQ/B2I7wj/eSuH5naIivFuknunyiRKyUs5U4kPlTwCiNXaY+JytISjIxC+7w==
+"@metamask/stake-sdk@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-1.0.0.tgz#44f599a0b9a785a03c5c40a2dffd9f463045de0e"
+  integrity sha512-AjpQq2fstCpqcgMuIAW1VLaKdUmmdR5zQCJz1KgaXVkp9MFCa3GWfrgfZynN2S+h+39hst/2KNHHOeJrGWYGGw==
 
 "@metamask/superstruct@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/superstruct/-/superstruct-3.1.0.tgz#148f786a674fba3ac885c1093ab718515bf7f648"
   integrity sha512-N08M56HdOgBfRKkrgCMZvQppkZGcArEop3kixNEtVbJKm6P9Cfg0YkI6X0s1g78sNrj2fWUwvJADdZuzJgFttA==
 
-"@metamask/swappable-obj-proxy@^2.1.0", "@metamask/swappable-obj-proxy@^2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.2.0.tgz#31b8e0ce57e28bf9847b3b24b214996f7748cc99"
-  integrity sha512-0OjVwQtrrPFRGipw64yDUQA0CUXCK161LWCv2KlTTDZD8BKeWSNb0gbnpDI7HvhsJ0gki5gScZj1hF3ShDnBzA==
+"@metamask/swappable-obj-proxy@^2.1.0", "@metamask/swappable-obj-proxy@^2.2.0", "@metamask/swappable-obj-proxy@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.3.0.tgz#276819d24f1b411c768441efb6098c1743d6f67a"
+  integrity sha512-+VFE6wVWve86SLiUI3jyhJjizUezpOnwvRyem7EP79Mml+oSm48gQ4W8QqeQqTugbrlCsxtFI4QNEPotQsll6Q==
 
 "@metamask/swaps-controller@^12.0.0":
   version "12.0.0"
@@ -6479,10 +6479,10 @@
   resolved "https://registry.yarnpkg.com/@react-native-clipboard/clipboard/-/clipboard-1.8.4.tgz#4bc1fb00643688e489d8220cd635844ab5c066f9"
   integrity sha512-poFq3RvXzkbXcqoQNssbZ+aNbCRzBFAWkR9QL7u9xNMgsyWZtk7d16JQoaBo8D2E+kKi+/9JOiVQzA5w+9N67w==
 
-"@react-native-community/blur@^4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@react-native-community/blur/-/blur-4.4.0.tgz#b2440dab17d94e480fbc4470e03155573b5b7375"
-  integrity sha512-P+xdT2LIq1ewOsF3zx7C0nu4dj7nxl2NVTsMXEzRDjM3bWMdrrEbTRA7uwPV5ngn7/BXIommBPlT/JW4SAedrw==
+"@react-native-community/blur@^4.4.1":
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@react-native-community/blur/-/blur-4.4.1.tgz#72cbc0be5a84022c33091683ec6888925ebcca6e"
+  integrity sha512-XBSsRiYxE/MOEln2ayunShfJtWztHwUxLFcSL20o+HNNRnuUDv+GXkF6FmM2zE8ZUfrnhQ/zeTqvnuDPGw6O8A==
 
 "@react-native-community/checkbox@^0.5.17":
   version "0.5.17"

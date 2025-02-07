@@ -48,12 +48,6 @@ const styleSheet = (params: {
     image: {
       borderRadius: 12,
     },
-    imageHidden: {
-      borderRadius: 12,
-      backgroundColor: colors.background.alternative,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
     textContainer: {
       alignItems: 'center',
       justifyContent: 'flex-start',
