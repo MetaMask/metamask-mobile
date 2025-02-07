@@ -1,7 +1,10 @@
 import React from 'react';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
+import {
+  personalSignatureConfirmationState,
+  stakingDepositConfirmationState,
+} from '../../../../../../util/test/confirm-data-helpers';
 import Info from './Info';
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -26,5 +29,14 @@ describe('Info', () => {
     });
     expect(getByText('Message')).toBeDefined();
     expect(getByText('Example `personal_sign` message')).toBeDefined();
+  });
+
+  describe('Staking Deposit', () => {
+    it('should render correctly', async () => {
+      const { getByText } = renderWithProvider(<Info />, {
+        state: stakingDepositConfirmationState,
+      });
+      expect(getByText('Stake')).toBeDefined();
+    });
   });
 });

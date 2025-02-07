@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { useStyles } from '../../../../component-library/hooks';
@@ -46,12 +45,12 @@ const Confirm = () => {
 
   if (isFlatConfirmation) {
     return (
-      <SafeAreaView
+      <View
         style={styles.mainContainer}
         testID="flat-confirmation-container"
       >
         <ConfirmWrapped />
-      </SafeAreaView>
+      </View>
     );
   }
 
