@@ -6,6 +6,9 @@ import {
   securityAlertResponse,
   typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
+// eslint-disable-next-line import/no-namespace
+import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
+
 import Confirm from './index';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -32,8 +35,17 @@ jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    addListener: jest.fn(),
+    dispatch: jest.fn(),
+  }),
+}));
+
 describe('Confirm', () => {
-  it('should render correct information for personal sign', async () => {
+  it('should render correct information for personal sign', () => {
     const { getAllByRole, getByText } = renderWithProvider(<Confirm />, {
       state: personalSignatureConfirmationState,
     });
@@ -48,7 +60,7 @@ describe('Confirm', () => {
     expect(getAllByRole('button')).toHaveLength(2);
   });
 
-  it('should render correct information for typed sign v1', async () => {
+  it('should render correct information for typed sign v1', () => {
     const { getAllByRole, getAllByText, getByText, queryByText } =
       renderWithProvider(<Confirm />, {
         state: typedSignV1ConfirmationState,
@@ -62,7 +74,7 @@ describe('Confirm', () => {
     expect(queryByText('This is a deceptive request')).toBeNull();
   });
 
-  it('should render blockaid banner if confirmation has blockaid error response', async () => {
+  it('should render blockaid banner if confirmation has blockaid error response', () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: {
         ...typedSignV1ConfirmationState,
@@ -71,5 +83,18 @@ describe('Confirm', () => {
     });
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
+  });
+
+  it('returns null if re-design is not enabled for confirmation', () => {
+    jest
+      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+      .mockReturnValue({ isRedesignedEnabled: false });
+    const { queryByText } = renderWithProvider(<Confirm />, {
+      state: {
+        ...typedSignV1ConfirmationState,
+        signatureRequest: { securityAlertResponse },
+      },
+    });
+    expect(queryByText('Signature request')).toBeNull();
   });
 });
