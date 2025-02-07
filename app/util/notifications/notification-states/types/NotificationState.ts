@@ -1,12 +1,14 @@
+import {
+  TRIGGER_TYPES,
+  INotification,
+} from '@metamask/notification-services-controller/notification-services';
 import { strings } from '../../../../../locales/i18n';
 import { NotificationMenuItem } from './NotificationMenuItem';
 import { NotificationModalDetails } from './NotificationModalDetails';
-import { TRIGGER_TYPES } from '../../constants';
 import { ExtractedNotification } from '../node-guard';
-import { Notification } from '../../../../util/notifications';
 
-export interface NotificationState<T extends Notification = Notification> {
-  guardFn: (n: Notification) => n is T;
+export interface NotificationState<T extends INotification = INotification> {
+  guardFn: (n: INotification) => n is T;
   createMenuItem: (n: T) => NotificationMenuItem;
   createModalDetails?: (n: T) => NotificationModalDetails;
 }
@@ -25,7 +27,7 @@ type NativeSentReceiveNotification = ExtractedNotification<
   TRIGGER_TYPES.ETH_RECEIVED | TRIGGER_TYPES.ETH_SENT
 >;
 
-type INotification =
+type SentReceivedNotification =
   | ERC20Notification
   | ERC721Notification
   | ERC1155Notification
@@ -42,12 +44,12 @@ const isSent = (
   n.type === TRIGGER_TYPES.ERC721_SENT ||
   n.type === TRIGGER_TYPES.ERC1155_SENT;
 
-export const label_address_from = (n: INotification): string =>
+export const label_address_from = (n: SentReceivedNotification): string =>
   isSent(n)
     ? strings('notifications.modal.label_address_from_you')
     : strings('notifications.modal.label_address_from');
 
-export const label_address_to = (n: INotification): string =>
+export const label_address_to = (n: SentReceivedNotification): string =>
   isSent(n)
     ? strings('notifications.modal.label_address_to')
     : strings('notifications.modal.label_address_to_you');

@@ -502,7 +502,7 @@ class Approval extends PureComponent {
       transactions,
       chainId,
       shouldUseSmartTransaction,
-      simulationData: { isUpdatedAfterSecurityCheck },
+      simulationData: { isUpdatedAfterSecurityCheck } = {},
       navigation,
     } = this.props;
     let { transaction } = this.props;
@@ -560,7 +560,10 @@ class Approval extends PureComponent {
                 assetType: transaction.assetType,
               });
             } else {
-              throw transactionMeta.error;
+              Logger.error(
+                transactionMeta.error,
+                'error while trying to finish a transaction (Approval)',
+              );
             }
           },
           (transactionMeta) => transactionMeta.id === transaction.id,

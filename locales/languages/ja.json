@@ -48,7 +48,10 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "URLを検索または入力してください"
+    "placeholder": "サイトまたはアドレスで検索",
+    "recents": "最近",
+    "favorites": "お気に入り",
+    "sites": "サイト"
   },
   "navigation": {
     "back": "戻る",
@@ -449,6 +452,7 @@
     "next": "次へ",
     "buy_asset": "{{asset}}を購入",
     "no_tokens": "トークンがありません！",
+    "show_tokens_without_balance": "残高なしでトークンを表示",
     "no_nfts_yet": "まだNFTがありません",
     "nfts_autodetection_title": "NFTの検出",
     "nfts_autodetection_desc": "MetaMaskによるウォレット内のNFTの自動検出と表示を許可します。",
@@ -470,7 +474,7 @@
     "learn_more": "詳細",
     "add_collectibles": "NFTをインポート",
     "no_transactions": "トランザクションがありません！",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "トランザクションを表示するにはネットワークを切り替えてください",
     "send_button": "送信",
     "deposit_button": "入金",
     "copy_address": "コピー",
@@ -722,6 +726,7 @@
     "connected_and_active": "接続済みかつ有効です。",
     "now_active": "有効になりました。",
     "network_added": "が追加されました",
+    "network_removed": "が削除されました",
     "network_deleted": "が削除されました",
     "network_permissions_updated": "ネットワークのアクセス許可が更新されました",
     "revoked": "取り消されました。",
@@ -1264,16 +1269,19 @@
     "sell_button": "売却",
     "receive_button": "受取",
     "portfolio_button": "Portfolio",
+    "earn_button": "獲得",
     "add_collectible_button": "追加",
     "info": "情報",
     "swap": "スワップ",
     "bridge": "ブリッジ",
+    "earn": "獲得",
     "disabled_button": {
       "buy": "このアカウントでは購入はサポートされていません",
       "sell": "このアカウントでは売却はサポートされていません",
       "swap": "このアカウントではスワップはサポートされていません",
       "bridge": "このアカウントではブリッジはサポートされていません",
       "send": "このアカウントでは送金はサポートされていません",
+      "earn": "このアカウントでは獲得はサポートされていません",
       "action": "このアカウントではこの操作はサポートされていません"
     },
     "description": "説明",
@@ -1290,6 +1298,7 @@
     "bridge_description": "ネットワーク間でトークンを転送します",
     "send_description": "仮想通貨を任意のアカウントに送金します",
     "receive_description": "仮想通貨を受け取ります",
+    "earn_description": "トークンに対してリワードを獲得します",
     "chart_time_period": {
       "1d": "今日",
       "7d": "過去7日間",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "チェーンID",
     "network_rpc_url": "ネットワークURL",
     "network_rpc_url_label": "ネットワークRPC URL",
+    "network_rpc_url_warning_punycode": "攻撃者はサイトのアドレスを若干変更してサイトを模倣することがあります。続行する前に、意図したネットワークURLとやり取りしていることを確認してください。Punycodeバージョン:",
     "new_default_network_url": "新しいデフォルトのネットワークURL",
     "current_label": "現在",
     "new_label": "新",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "ハードウェアウォレットを追加",
     "import_account": "アカウントをインポート",
     "add_bitcoin_account_testnet": "新しいビットコインアカウントを追加 (テストネット)",
-    "add_bitcoin_account_mainnet": "新しいビットコインアカウントを追加 (ベータ)"
+    "add_bitcoin_account_mainnet": "新しいビットコインアカウントを追加 (ベータ)",
+    "add_solana_account": "新しいSolanaアカウントを追加 (ベータ)"
   },
   "show_nft": {
     "show_nft_title": "NFTを表示",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "署名要求"
     },
+    "sub_title": {
+      "signature": "確定する前にリクエストの詳細を確認してください。"
+    },
     "request_from": "要求元",
     "message": "メッセージ",
+    "primary_type": "プライマリタイプ",
     "personal_sign_tooltip": "このサイトが署名を求めています",
     "details": "詳細",
     "account": "アカウント",
     "balance": "残高",
     "network": "ネットワーク",
     "simulation": {
+      "decoded_tooltip_bid_nft": "NFTは、入札が受け入れられるとウォレットに反映されます。",
+      "decoded_tooltip_list_nft": "誰かがNFTを購入した場合にのみ変化します。",
+      "info_permit": "アカウントからこの量のトークンを使用する、使用者権限を付与しようとしています。",
+      "label_change_type_bidding": "入札する",
+      "label_change_type_listing": "出品する",
+      "label_change_type_nft_listing": "出品価格",
+      "label_change_type_permit": "使用上限",
+      "label_change_type_permit_nft": "出金",
+      "label_change_type_receive": "受け取る",
+      "label_change_type_revoke": "取り消す",
+      "label_change_type_transfer": "送る",
+      "personal_sign_info": "サイトにサインインしようとしていて、アカウントの変更は予想されていません。",
       "title": "予測される増減額",
-      "personal_sign_info": "サイトにサインインしようとしていて、予想されるアカウントの変更はありません。",
-      "tooltip": "予測される増減額は、このトランザクションを実行すると発生する可能性がある増減額です。これは単に予測に過ぎず、保証されたものではありません。"
-    }
+      "tooltip": "予測される増減額は、このトランザクションを実行すると発生する可能性がある増減額です。これは単に予測に過ぎず、保証されたものではありません。",
+      "unavailable": "利用不可"
+    },
+    "unlimited": "無制限",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",
