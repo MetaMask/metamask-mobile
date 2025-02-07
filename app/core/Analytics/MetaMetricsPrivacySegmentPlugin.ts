@@ -6,7 +6,6 @@ import {
   SegmentEvent,
 } from '@segment/analytics-react-native';
 import METAMETRICS_ANONYMOUS_ID from './MetaMetrics.constants';
-import {TrackEventType} from '@segment/analytics-react-native/src/types';
 
 /**
  * Plugin to replace the user id with anonymous id for anonymous events
