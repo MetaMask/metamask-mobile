@@ -49,8 +49,8 @@ export const QRHardwareContextProvider: React.FC<{
 
   const KeyringController = Engine.context.KeyringController;
 
-  useEffect(() => {
-    navigation.addListener('beforeRemove', (e) => {
+  const cancelRequest = useCallback(
+    (e) => {
       if (isRequestCompleted) {
         return;
       }
@@ -58,8 +58,14 @@ export const QRHardwareContextProvider: React.FC<{
       KeyringController.cancelQRSignRequest().then(() => {
         navigation.dispatch(e.data.action);
       });
-    });
-  }, [KeyringController, isRequestCompleted, navigation]);
+    },
+    [KeyringController, isRequestCompleted, navigation],
+  );
+
+  useEffect(() => {
+    navigation.addListener('beforeRemove', cancelRequest);
+    return () => navigation.removeListener('beforeRemove', cancelRequest);
+  }, [cancelRequest, navigation]);
 
   const cancelQRScanRequestIfPresent = useCallback(async () => {
     if (!isQRSigningInProgress) {

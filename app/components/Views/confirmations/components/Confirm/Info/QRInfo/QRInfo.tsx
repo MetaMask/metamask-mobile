@@ -30,7 +30,7 @@ const QRInfo = () => {
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [shouldPause, setShouldPause] = useState(false);
 
-  const KeyringController = Engine.context.KeyringController;
+  const submitQRSignature = Engine.context.KeyringController.submitQRSignature;
 
   useEffect(() => {
     if (scannerVisible) {
@@ -46,7 +46,7 @@ const QRInfo = () => {
       if (buffer) {
         const requestId = uuidStringify(buffer);
         if (QRState?.sign?.request?.requestId === requestId) {
-          KeyringController.submitQRSignature(
+          submitQRSignature(
             QRState.sign.request?.requestId as string,
             ur.cbor.toString('hex'),
           );
@@ -65,19 +65,19 @@ const QRInfo = () => {
       setErrorMessage(strings('transaction.mismatched_qr_request_id'));
     },
     [
-      KeyringController,
       QRState?.sign?.request?.requestId,
       createEventBuilder,
       setRequestCompleted,
       setScannerVisible,
+      submitQRSignature,
       trackEvent,
     ],
   );
 
   const onScanError = useCallback(
-    (_errorMessage: string) => {
+    (errorMsg: string) => {
       setScannerVisible(false);
-      setErrorMessage(_errorMessage);
+      setErrorMessage(errorMsg);
     },
     [setScannerVisible],
   );
