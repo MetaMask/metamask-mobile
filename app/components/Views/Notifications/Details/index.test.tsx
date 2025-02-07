@@ -7,7 +7,8 @@ import configureMockStore from 'redux-mock-store';
 import NotificationsDetails from './index';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import MOCK_NOTIFICATIONS from '../../../../components/UI/Notification/__mocks__/mock_notifications';
-import { NotificationComponentState } from '../../../../util/notifications/notification-states';
+// eslint-disable-next-line import/no-namespace
+import * as NotificationStatesModule from '../../../../util/notifications/notification-states';
 
 const mockInitialState = {
   settings: {
@@ -66,18 +67,10 @@ describe('NotificationsDetails', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('derives state correctly based on notification type', () => {
-    const notificationType = MOCK_NOTIFICATIONS[1].type as keyof typeof NotificationComponentState;
-
-    (NotificationComponentState[notificationType] as unknown) = {
-      createModalDetails: jest.fn().mockReturnValue({
-        title: 'Test Title',
-        createdAt: new Date().toISOString(),
-        header: 'Test Header',
-        fields: [],
-        footer: 'Test Footer',
-      }),
-    };
+  it('returns null if unable to create modal state', () => {
+    jest
+      .spyOn(NotificationStatesModule, 'hasNotificationComponents')
+      .mockReturnValue(false);
 
     const result = render(
       <Provider store={store}>
@@ -91,6 +84,6 @@ describe('NotificationsDetails', () => {
         />
       </Provider>,
     );
-    expect(result).toBeTruthy();
+    expect(result.toJSON()).toBe(null);
   });
 });

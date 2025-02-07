@@ -220,6 +220,7 @@ export const switchToSepoliaNetwork = async () => {
 export const loginToApp = async () => {
   const PASSWORD = '123123123';
   await Assertions.checkIfVisible(LoginView.container);
+  await Assertions.checkIfVisible(LoginView.passwordInput);
   await LoginView.enterPassword(PASSWORD);
 };
 
