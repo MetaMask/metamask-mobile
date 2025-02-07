@@ -40,9 +40,9 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('BridgeView', () => {
   it('renders', async () => {
-    const { getByTestId } = renderWithProvider(<BridgeView />, {
+    const { getByText } = renderWithProvider(<BridgeView />, {
       state: mockInitialState,
     });
-    // expect(getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN)).toBeDefined();
+    expect(getByText('Bridge')).toBeDefined();
   });
 });
