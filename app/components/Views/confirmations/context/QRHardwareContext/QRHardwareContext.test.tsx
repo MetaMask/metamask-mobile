@@ -124,7 +124,7 @@ describe('QRHardwareContext', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  it('should pass correct value of QRState components', () => {
+  it('passes correct value of QRState components', () => {
     jest
       .spyOn(Camera, 'useCamera')
       .mockReturnValue({ cameraError: undefined, hasCameraPermission: false });
