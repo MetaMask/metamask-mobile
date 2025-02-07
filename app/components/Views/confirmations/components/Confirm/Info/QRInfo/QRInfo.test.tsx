@@ -80,7 +80,7 @@ describe('QRInfo', () => {
     expect(getByText('some camera error text')).toBeTruthy();
   });
 
-  it('should contain correct text is scanner is visible', () => {
+  it('contains correct text is scanner is visible', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       scannerVisible: true,
     } as unknown as QRHardwareHook.QRHardwareContextType);
