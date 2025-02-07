@@ -36,10 +36,10 @@ const StakeInputView = () => {
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
-  const activeAccount = useSelector(selectSelectedInternalAccount);
-
   const isStakingDepositRedesignedEnabled =
     confirmationRedesignFlags?.staking_transactions;
+  const activeAccount = useSelector(selectSelectedInternalAccount);
+
 
   const {
     isEth,

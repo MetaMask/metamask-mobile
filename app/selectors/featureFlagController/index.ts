@@ -9,7 +9,7 @@ export interface ConfirmationRedesignRemoteFlags {
 
 function getFeatureFlagValue(
   envValue: string | undefined,
-  defaultValue: boolean,
+  remoteValue: boolean,
 ): boolean {
   if (envValue === 'true') {
     return true;
@@ -17,7 +17,7 @@ function getFeatureFlagValue(
   if (envValue === 'false') {
     return false;
   }
-  return defaultValue;
+  return remoteValue;
 }
 
 export const selectRemoteFeatureFlagControllerState = (

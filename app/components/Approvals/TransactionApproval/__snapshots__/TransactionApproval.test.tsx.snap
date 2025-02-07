@@ -28,6 +28,8 @@ exports[`TransactionApproval renders approve component if transaction type is tr
 />
 `;
 
+exports[`TransactionApproval renders null if redesign is enabled 1`] = `""`;
+
 exports[`TransactionApproval returns null if incorrect approval request type 1`] = `""`;
 
 exports[`TransactionApproval returns null if incorrect transaction type 1`] = `""`;

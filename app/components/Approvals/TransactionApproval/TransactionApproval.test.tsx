@@ -121,4 +121,26 @@ describe('TransactionApproval', () => {
 
     expect(wrapper).toMatchSnapshot();
   });
+
+  it('returns null if redesign is enabled', () => {
+    mockApprovalRequest({
+      type: ApprovalTypes.TRANSACTION,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    (
+      useConfirmationRedesignEnabled as jest.MockedFn<
+        typeof useConfirmationRedesignEnabled
+      >
+    ).mockReturnValue({
+      isRedesignedEnabled: true,
+    });
+
+    const wrapper = shallow(
+      <TransactionApproval transactionType={TransactionModalType.Transaction} />,
+    );
+
+    expect(wrapper).toMatchSnapshot();
+  });
 });

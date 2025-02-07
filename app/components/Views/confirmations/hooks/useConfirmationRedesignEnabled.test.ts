@@ -37,7 +37,7 @@ describe('useConfirmationRedesignEnabled', () => {
       (isHardwareAccount as jest.Mock).mockReturnValue(true);
     });
 
-    it('return true for personal sign request', async () => {
+    it('returns true for personal sign request', async () => {
       (isHardwareAccount as jest.Mock).mockReturnValue(false);
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
@@ -49,7 +49,7 @@ describe('useConfirmationRedesignEnabled', () => {
       expect(result.current.isRedesignedEnabled).toBe(true);
     });
 
-    it('return false for external accounts', async () => {
+    it('returns false for external accounts', async () => {
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
         {
@@ -60,7 +60,7 @@ describe('useConfirmationRedesignEnabled', () => {
       expect(result.current.isRedesignedEnabled).toBe(false);
     });
 
-    it('return false when remote flag is disabled', async () => {
+    it('returns false when remote flag is disabled', async () => {
       const state = merge(personalSignatureConfirmationState, {
         engine: {
           backgroundState: {
@@ -89,7 +89,7 @@ describe('useConfirmationRedesignEnabled', () => {
   describe('transaction redesigned confirmations', () => {
     describe('staking confirmations', () => {
       describe('staking deposit', () => {
-        it('return true when enabled', async () => {
+        it('returns true when enabled', async () => {
           const { result } = renderHookWithProvider(
             useConfirmationRedesignEnabled,
             {
@@ -100,7 +100,7 @@ describe('useConfirmationRedesignEnabled', () => {
           expect(result.current.isRedesignedEnabled).toBe(true);
         });
 
-        it('return false when remote flag is disabled', async () => {
+        it('returns false when remote flag is disabled', async () => {
           const withDisabledFlag = cloneDeep(stakingDepositConfirmationState);
           withDisabledFlag.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.confirmation_redesign.staking_transactions =
             false;
@@ -114,7 +114,7 @@ describe('useConfirmationRedesignEnabled', () => {
           expect(result.current.isRedesignedEnabled).toBe(false);
         });
 
-        it('return false when transactionMeta is not present', async () => {
+        it('returns false when transactionMeta is not present', async () => {
           const withoutTransactions = cloneDeep(
             stakingDepositConfirmationState,
           );
@@ -131,7 +131,7 @@ describe('useConfirmationRedesignEnabled', () => {
           expect(result.current.isRedesignedEnabled).toBe(false);
         });
 
-        it('return false when approval type is not transaction', async () => {
+        it('returns false when approval type is not transaction', async () => {
           const approvalId =
             stakingDepositConfirmationState.engine.backgroundState
               .TransactionController.transactions[0].id;

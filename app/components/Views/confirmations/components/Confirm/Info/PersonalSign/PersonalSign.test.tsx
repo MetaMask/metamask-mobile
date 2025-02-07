@@ -54,7 +54,7 @@ describe('PersonalSign', () => {
     expect(getByText('URL')).toBeDefined();
     expect(getAllByText('metamask.github.io')).toHaveLength(2);
     expect(getByText('Network')).toBeDefined();
-    expect(getAllByText('Ethereum Mainnet')).toBeDefined();
+    expect(getAllByText('Ethereum Mainnet')).toHaveLength(2);
     expect(getByText('Account')).toBeDefined();
     expect(getAllByText('0x8Eeee...73D12')).toBeDefined();
     expect(getByText('Version')).toBeDefined();
