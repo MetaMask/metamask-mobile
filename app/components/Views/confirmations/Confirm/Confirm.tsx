@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TransactionType } from '@metamask/transaction-controller';
 
@@ -8,6 +8,7 @@ import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
 import BottomModal from '../components/UI/BottomModal';
 import Footer from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
+import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
 import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
 import useApprovalRequest from '../hooks/useApprovalRequest';
@@ -21,43 +22,53 @@ const FLAT_CONFIRMATIONS: TransactionType[] = [
   // To be filled with flat confirmations
 ];
 
-const ConfirmWrapped = () => (
-  <>
-    <ScrollView>
-      <Title />
-      <SignatureBlockaidBanner />
-      <AccountNetworkInfo />
-      <Info />
-    </ScrollView>
+const ConfirmWrapped = ({
+  styles,
+}: {
+  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+}) => (
+  <QRHardwareContextProvider>
+    <Title />
+    <View style={styles.scrollWrapper}>
+      <ScrollView
+        style={styles.scrollable}
+        contentContainerStyle={styles.scrollableSection}
+      >
+        <SignatureBlockaidBanner />
+        <AccountNetworkInfo />
+        <Info />
+      </ScrollView>
+    </View>
     <Footer />
-  </>
+  </QRHardwareContextProvider>
 );
 
 const Confirm = () => {
   const { approvalRequest } = useApprovalRequest();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
-  const { styles } = useStyles(styleSheet, {});
-
-  if (!isRedesignedEnabled) {
-    return null;
-  }
 
   const isFlatConfirmation = FLAT_CONFIRMATIONS.includes(
     approvalRequest?.type as TransactionType,
   );
 
+  const { styles } = useStyles(styleSheet, { isFlatConfirmation });
+
+  if (!isRedesignedEnabled) {
+    return null;
+  }
+
   if (isFlatConfirmation) {
     return (
-      <SafeAreaView style={styles.mainContainer}>
-        <ConfirmWrapped />
+      <SafeAreaView style={styles.flatContainer}>
+        <ConfirmWrapped styles={styles} />
       </SafeAreaView>
     );
   }
 
   return (
     <BottomModal canCloseOnBackdropClick={false}>
-      <View style={styles.container} testID={approvalRequest?.type}>
-        <ConfirmWrapped />
+      <View style={styles.modalContainer} testID={approvalRequest?.type}>
+        <ConfirmWrapped styles={styles} />
       </View>
     </BottomModal>
   );
