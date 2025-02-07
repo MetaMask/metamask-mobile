@@ -8,8 +8,8 @@ export default (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       backgroundColor: theme.colors.background.default,
-      borderRadius: 12,
-      minHeight: 48,
+      borderRadius: 8,
+      minHeight: 56,
       borderWidth: 1,
       borderColor: theme.colors.border.default,
     },
@@ -20,10 +20,17 @@ export default (params: { theme: Theme }) => {
     },
     endAccessoryContainer: {
       alignItems: 'flex-end',
-      marginRight: 8,
     },
     aprText: {
+      color: theme.colors.success.default,
       marginBottom: 2,
+    },
+    tokenText: {
+      marginLeft: 8,
+    },
+    networkAvatar: {
+      width: 24,
+      height: 24,
     },
   });
 };
