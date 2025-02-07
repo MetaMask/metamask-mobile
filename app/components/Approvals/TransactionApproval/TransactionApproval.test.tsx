@@ -137,10 +137,11 @@ describe('TransactionApproval', () => {
       isRedesignedEnabled: true,
     });
 
-    const wrapper = shallow(
+    const { toJSON } = renderWithProvider(
       <TransactionApproval transactionType={TransactionModalType.Dapp} />,
+      {},
     );
-
-    expect(wrapper).toMatchSnapshot();
+    
+    expect(toJSON()).toMatchInlineSnapshot('');
   });
 });
