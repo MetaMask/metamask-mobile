@@ -1,4 +1,9 @@
-import { BaseControllerMessenger, Controllers } from './types';
+import type { BaseControllerMessenger, Controllers } from './types';
+import type {
+  ActionConstraint,
+  EventConstraint,
+  RestrictedControllerMessenger,
+} from '@metamask/base-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 
 export type Controller = Controllers[keyof Controllers];
@@ -11,11 +16,31 @@ export type ControllerByName = {
   [name in ControllerName]: Controllers[name];
 };
 
+export type BaseRestrictedControllerMessenger = RestrictedControllerMessenger<
+  string,
+  ActionConstraint,
+  EventConstraint,
+  string,
+  string
+>;
+
+/**
+ * Specify controllers to initialize.
+ */
+export type ControllersToInitialize = 'AccountsController';
+
+/**
+ * Callback that returns a controller messenger for a specific controller.
+ */
+type ControllerMessengerCallback = (
+  baseControllerMessenger: BaseControllerMessenger,
+) => BaseRestrictedControllerMessenger;
+
 /**
  * Persisted state for all controllers.
  * e.g. `{ TransactionController: { transactions: [] } }`.
  */
-export type ControllerPersistedState = Partial<{
+type ControllerPersistedState = Partial<{
   [Name in Exclude<
     ControllerName,
     (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
@@ -23,16 +48,26 @@ export type ControllerPersistedState = Partial<{
 }>;
 
 /**
+ * Map of controller messengers by controller name.
+ */
+export type ControllerMessengerByControllerName = {
+  [key in ControllersToInitialize]: {
+    getMessenger: ControllerMessengerCallback;
+  };
+};
+
+/**
  * Request to initialize and return a controller instance.
  * Includes standard data and methods not coupled to any specific controller.
  */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type ControllerInitRequest = {
+export type ControllerInitRequest<
+  ControllerMessengerType extends BaseRestrictedControllerMessenger,
+> = {
   /**
-   * Base controller messenger for the client.
-   * Used to generate controller and init messengers for each controller.
+   * Controller messenger for the client.
+   * Used to generate controller for each controller.
    */
-  baseControllerMessenger: BaseControllerMessenger;
+  controllerMessenger: ControllerMessengerType;
 
   /**
    * Retrieve a controller instance by name.
@@ -53,18 +88,33 @@ export type ControllerInitRequest = {
 };
 
 /**
- * Result of initializing a controller instance.
- */
-export interface ControllerInitResult<ControllerType extends Controller> {
-  /**
-   * The initialized controller instance.
-   */
-  controller: ControllerType;
-}
-
-/**
  * Function to initialize a controller instance and return associated data.
  */
-export type ControllerInitFunction<ControllerType extends Controller> = (
-  request: ControllerInitRequest,
-) => ControllerInitResult<ControllerType>;
+export type ControllerInitFunction<
+  ControllerType extends Controller,
+  ControllerMessengerType extends BaseRestrictedControllerMessenger,
+> = (request: ControllerInitRequest<ControllerMessengerType>) => {
+  controller: ControllerType;
+};
+
+/**
+ * Map of controller init functions by controller name.
+ */
+type ControllerInitFunctionByControllerName = {
+  [Name in ControllersToInitialize]: ControllerInitFunction<
+    ControllerByName[Name],
+    ReturnType<ControllerMessengerByControllerName[Name]['getMessenger']>
+  >;
+};
+
+/**
+ * Function to initialize the controllers in the engine.
+ */
+export type InitModularizedControllersFunction = (request: {
+  controllerInitFunctions: ControllerInitFunctionByControllerName;
+  persistedState: ControllerPersistedState;
+  existingControllersByName?: Partial<ControllerByName>;
+  baseControllerMessenger: BaseControllerMessenger;
+}) => {
+  controllersByName: ControllerByName;
+};
