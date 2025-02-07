@@ -1800,7 +1800,6 @@ function SwapsQuotesView({
           </View>
         )}
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
-          <>
           <View style={styles.alertBar}>
             <Alert small type={AlertType.Info}>
               <Text reset bold>
@@ -1822,7 +1821,6 @@ function SwapsQuotesView({
                 )}
             </Alert>
           </View>
-          </>
         )}
         {!!selectedQuote &&
           hasEnoughTokenBalance &&
