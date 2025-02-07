@@ -198,9 +198,8 @@ import {
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
-import { initControllers } from './utils';
+import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
-import { Controller, ControllerInitFunction } from './modular-controller.types';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -343,11 +342,13 @@ export class Engine {
       chainId: getGlobalChainId(networkController),
     });
 
-    // Modular controller initialization
-    const controllerInitFunctions = [accountsControllerInit];
-    const { controllersByName } = this.#initControllers({
-      initFunctions: controllerInitFunctions,
-      initState: initialState as EngineState,
+    const { controllersByName } = initModularizedControllers({
+      controllerInitFunctions: {
+        AccountsController: accountsControllerInit,
+      },
+      persistedState: initialState as EngineState,
+      existingControllersByName: {},
+      baseControllerMessenger: this.controllerMessenger,
     });
 
     const accountsController = controllersByName.AccountsController;
@@ -1542,24 +1543,6 @@ export class Engine {
     this._addTransactionControllerListeners();
 
     Engine.instance = this;
-  }
-
-  #initControllers({
-    initFunctions,
-    initState,
-  }: {
-    initFunctions: ControllerInitFunction<Controller>[];
-    initState: EngineState;
-  }) {
-    const initRequest = {
-      baseControllerMessenger: this.controllerMessenger,
-      persistedState: initState,
-    };
-
-    return initControllers({
-      initFunctions,
-      initRequest,
-    });
   }
 
   // Logs the "Transaction Finalized" event after a transaction was either confirmed, dropped or failed.
