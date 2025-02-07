@@ -9,9 +9,12 @@ export const TokenOverviewSelectorsIDs = {
   SWAP_BUTTON: 'token-swap-button',
   BRIDGE_BUTTON: 'token-bridge-button',
   ADD_BUTTON: 'token-add-button',
+  CLAIM_BUTTON: 'claim-banner-claim-eth-button',
+  UNSTAKING_BANNER: 'unstaking-banner',
 };
 
 export const TokenOverviewSelectorsText = {
+  STAKED_BALANCE: enContent.stake.staked_balance,
   NO_CHART_DATA: enContent.asset_overview.no_chart_data.title,
   '1d': enContent.asset_overview.chart_time_period_navigation['1d'],
   '1w': enContent.asset_overview.chart_time_period_navigation['1w'],
