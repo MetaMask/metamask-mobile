@@ -161,7 +161,7 @@ describe('useConfirmationRedesignEnabled', () => {
           expect(result.current.isRedesignedEnabled).toBe(false);
         });
 
-        it('returns false when approval type is transaction but transaction type is not staking deposit', async () => {
+        it('only redesign if transactions is staking deposit', async () => {
           const withBridgeTransaction = cloneDeep(
             stakingDepositConfirmationState,
           );
