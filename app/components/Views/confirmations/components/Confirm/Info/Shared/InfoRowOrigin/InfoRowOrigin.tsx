@@ -33,7 +33,12 @@ const InfoRowOrigin = () => {
         <DisplayURL url={approvalRequest.origin} />
       </InfoRow>
       {isSIWEMessage && (
-        <InfoRow label={strings('confirm.signing_in_with')}>
+        <InfoRow
+          label={strings('confirm.signing_in_with')}
+          testID={
+            ConfirmationPageSectionsSelectorIDs.SIWE_SIGNING_ACCOUNT_INFO_SECTION
+          }
+        >
           <Address address={fromAddress} chainId={chainId} />
         </InfoRow>
       )}

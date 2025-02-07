@@ -6,7 +6,7 @@ import notifee, {
   AndroidChannel,
 } from '@notifee/react-native';
 
-import { HandleNotificationCallback, LAUNCH_ACTIVITY, Notification, PressActionId } from '../types';
+import { HandleNotificationCallback, LAUNCH_ACTIVITY, INotification as Notification, PressActionId } from '../types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
 import {
