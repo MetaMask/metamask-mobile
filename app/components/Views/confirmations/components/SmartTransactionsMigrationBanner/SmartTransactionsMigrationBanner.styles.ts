@@ -4,8 +4,7 @@ import { Theme } from '../../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme; vars: { style?: ViewStyle } }) =>
   StyleSheet.create({
     banner: {
-      marginTop: 16,
-      marginBottom: 16,
+      marginVertical: 16,
       ...params.vars.style,
     },
     textContainer: {
