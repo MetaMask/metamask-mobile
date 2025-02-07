@@ -61,7 +61,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   it('should sign typed message', async () => {
     const testSpecificMock = {
       GET: [
-        mockEvents.GET.securityAlertApiSupportedChains,
         mockEvents.GET.remoteFeatureFlags,
       ],
       POST: [
@@ -87,7 +86,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   it('should show security alert for malicious request', async () => {
     const testSpecificMock = {
       GET: [
-        mockEvents.GET.securityAlertApiSupportedChains,
         mockEvents.GET.remoteFeatureFlags,
       ],
       POST: [
@@ -113,7 +111,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   it('should show security alert for error when validating request fails', async () => {
     const testSpecificMock = {
       GET: [
-        mockEvents.GET.securityAlertApiSupportedChains,
         mockEvents.GET.remoteFeatureFlags,
         {
           urlEndpoint:
