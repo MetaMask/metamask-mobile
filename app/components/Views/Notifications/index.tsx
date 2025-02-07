@@ -1,11 +1,16 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import {
+  TRIGGER_TYPES,
+  INotification,
+} from '@metamask/notification-services-controller/notification-services';
+
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/wallet/NotificationsView.selectors';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
-import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
+import { sortNotifications } from '../../../util/notifications';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
 import Button, {
@@ -34,28 +39,33 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
-const TRIGGER_TYPES_VALS: ReadonlySet<string> = new Set<string>(
-  Object.values(TRIGGER_TYPES),
-);
-
-const NotificationsView = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => {
+export function useMarkAsReadCallback(props: {
+  notifications: INotification[];
+}) {
+  const { notifications } = props;
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { isLoading } = useListNotifications();
-  const isNotificationEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
   const { markNotificationAsRead, loading } = useMarkNotificationAsRead();
-  const notifications = useSelector(getNotificationsList);
 
   const handleMarkAllAsRead = useCallback(() => {
     markNotificationAsRead(notifications);
     NotificationsService.setBadgeCount(0);
-    trackEvent(createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ).build());
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ,
+      ).build(),
+    );
   }, [markNotificationAsRead, notifications, trackEvent, createEventBuilder]);
+
+  return {
+    handleMarkAllAsRead,
+    loading,
+  };
+}
+
+export function useNotificationFilters(props: {
+  notifications: INotification[];
+}) {
+  const { notifications } = props;
 
   const allNotifications = useMemo(() => {
     // All unique notifications
@@ -71,14 +81,49 @@ const NotificationsView = ({
     return sortedNotifications;
   }, [notifications]);
 
-  // Wallet notifications = On-Chain + Feature Announcements
+  // Wallet notifications
   const walletNotifications = useMemo(
-    () => allNotifications.filter((n) => TRIGGER_TYPES_VALS.has(n.type)),
+    () =>
+      (allNotifications ?? []).filter(
+        (n) =>
+          n.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT &&
+          n.type !== TRIGGER_TYPES.SNAP,
+      ),
     [allNotifications],
   );
 
-  // NOTE - We currently do not support web3 notifications
-  const announcementNotifications = useMemo(() => [], []);
+  const announcementNotifications = useMemo(
+    () =>
+      (allNotifications ?? []).filter(
+        (n) => n.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
+      ),
+    [allNotifications],
+  );
+
+  return {
+    allNotifications,
+    walletNotifications,
+    announcementNotifications,
+  };
+}
+
+const NotificationsView = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}) => {
+  const { isLoading } = useListNotifications();
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+  const notifications = useSelector(getNotificationsList);
+
+  const { handleMarkAllAsRead, loading } = useMarkAsReadCallback({
+    notifications,
+  });
+
+  const { allNotifications, walletNotifications, announcementNotifications } =
+    useNotificationFilters({ notifications });
 
   const unreadCount = useMemo(
     () => allNotifications.filter((n) => !n.isRead).length,

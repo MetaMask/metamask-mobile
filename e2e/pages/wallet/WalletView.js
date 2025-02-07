@@ -15,6 +15,19 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.PORTFOLIO_BUTTON);
   }
 
+  get earnButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
+  }
+
+  get stakedEthereumLabel() {
+    return Matchers.getElementByText(WalletViewSelectorsText.STAKED_ETHEREUM);
+  }
+
+  get stakeMoreButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
+  }
+
+
   get tokenDetectionLinkButton() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
@@ -139,9 +152,10 @@ class WalletView {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
 
-  async tapOnToken(token) {
+  async tapOnToken(token, index = 0) {
     const element = Matchers.getElementByText(
       token || WalletViewSelectorsText.DEFAULT_TOKEN,
+      index,
     );
     await Gestures.waitAndTap(element);
   }
@@ -239,6 +253,18 @@ class WalletView {
 
   async tapTokenNetworkFilterCurrent() {
     await Gestures.waitAndTap(this.tokenNetworkFilterCurrent);
+  }
+
+  async tapOnEarnButton() {
+    await Gestures.waitAndTap(this.earnButton);
+  }
+
+  async tapOnStakedEthereum() {
+    await Gestures.waitAndTap(this.stakedEthereumLabel);
+  }
+
+  async tapOnStakeMore() {
+    await Gestures.waitAndTap(this.stakeMoreButton);
   }
 
   async tapCancelButton() {
