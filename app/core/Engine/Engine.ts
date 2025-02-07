@@ -211,7 +211,6 @@ import {
   SnapControllerGetSnapAction,
   SnapControllerGetSnapStateAction,
   SnapControllerHandleRequestAction,
-  SnapControllerStateChangeEvent,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
 
