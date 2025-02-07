@@ -1,11 +1,11 @@
 import { useCallback, useEffect } from 'react';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import {
+  INotification,
+  TRIGGER_TYPES,
+} from '@metamask/notification-services-controller/notification-services';
 
 import { useSelector } from 'react-redux';
-import {
-  isNotificationsFeatureEnabled,
-  Notification,
-} from '../../../util/notifications';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
 import FCMService from '../services/FCMService';
 import NotificationsService from '../services/NotificationService';
@@ -13,8 +13,6 @@ import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notific
 import { Linking } from 'react-native';
 import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-
-const { TRIGGER_TYPES } = NotificationServicesController.Constants;
 
 const useNotificationHandler = (navigation: NavigationContainerRef) => {
   /**
@@ -27,7 +25,7 @@ const useNotificationHandler = (navigation: NavigationContainerRef) => {
   );
 
   const handleNotificationCallback = useCallback(
-    async (notification: Notification) => {
+    async (notification: INotification) => {
       if (!notification) {
         return;
       }
@@ -43,7 +41,8 @@ const useNotificationHandler = (navigation: NavigationContainerRef) => {
     [navigation],
   );
 
-  const notificationEnabled = isNotificationsFeatureEnabled() && isNotificationEnabled;
+  const notificationEnabled =
+    isNotificationsFeatureEnabled() && isNotificationEnabled;
 
   useEffect(() => {
     if (!notificationEnabled) return;
