@@ -1,9 +1,10 @@
 import { createSelector } from 'reselect';
 import { StateWithPartialEngine } from './types';
-import { isRemoteFeatureFlagOverrideActivated } from '../../core/Engine/controllers/RemoteFeatureFlagController/utils';
+import { isRemoteFeatureFlagOverrideActivated } from '../../core/Engine/controllers/remote-feature-flag-controller';
 
-export const selectRemoteFeatureFlagControllerState = (state: StateWithPartialEngine) =>
-  state.engine.backgroundState.RemoteFeatureFlagController;
+export const selectRemoteFeatureFlagControllerState = (
+  state: StateWithPartialEngine,
+) => state.engine.backgroundState.RemoteFeatureFlagController;
 
 export const selectRemoteFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
@@ -12,4 +13,5 @@ export const selectRemoteFeatureFlags = createSelector(
       return {};
     }
     return remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {};
-  });
+  },
+);
