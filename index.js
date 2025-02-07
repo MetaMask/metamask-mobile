@@ -17,7 +17,7 @@ setupSentry();
 import { AppRegistry, LogBox, ErrorUtils } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.config.js';
-import { isE2E } from './app/util/test/utils.js';
+import { isTest } from './app/util/test/utils.js';
 
 import { Performance } from './app/core/Performance';
 import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
@@ -90,7 +90,7 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
  */
 AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
-  isE2E ? Root : Sentry.wrap(Root),
+  isTest ? Root : Sentry.wrap(Root),
 );
 
 function setupGlobalErrorHandler() {

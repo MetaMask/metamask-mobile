@@ -9,6 +9,8 @@ export const testConfig = {};
  * TODO: Update this condition once we change E2E builds to use release instead of debug
  */
 export const isTest = process.env.METAMASK_ENVIRONMENT !== 'production';
-export const isE2E = process.env.IS_E2E === 'true';
 export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FIXTURE_SERVER_PORT;
+
+// TODO: we will keep this only for Detox to be detected in postinit.ts
+export const isDetox = !!(global.device && global.device.getPlatform);

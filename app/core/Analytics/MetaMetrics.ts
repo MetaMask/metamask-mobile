@@ -35,7 +35,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
-import { isE2E } from '../../util/test/utils';
+import { isTest } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 
 /**
@@ -518,7 +518,7 @@ class MetaMetrics implements IMetaMetrics {
           )}`,
         );
 
-      const segmentClient = isE2E ? undefined : createClient(config);
+      const segmentClient = isTest ? undefined : createClient(config);
       segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin() });
 
       this.instance = new MetaMetrics(segmentClient as SegmentClient);

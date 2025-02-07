@@ -4,7 +4,7 @@ import RPCQueueManager from '../RPCQueueManager';
 import { SDKConnect } from '../SDKConnect';
 import DevLogger from './DevLogger';
 import { Connection } from '../Connection';
-import { isE2E } from '../../../util/test/utils';
+import { isDetox } from '../../../util/test/utils';
 import { store } from '../../../../app/store/index';
 
 export const MAX_QUEUE_LOOP = Infinity;
@@ -113,7 +113,7 @@ export const waitForKeychainUnlocked = async ({
   waitTime?: number;
 }) => {
   // Disable during e2e tests otherwise Detox fails
-  if (isE2E) {
+  if (isDetox) {
     return true;
   }
 
@@ -150,7 +150,7 @@ export const waitForUserLoggedIn = async ({
   let i = 1;
 
   // Disable during e2e tests otherwise Detox fails
-  if (isE2E) {
+  if (isDetox) {
     return true;
   }
 
