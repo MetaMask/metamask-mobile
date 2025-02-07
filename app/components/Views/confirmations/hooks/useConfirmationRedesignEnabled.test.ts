@@ -1,4 +1,5 @@
 import { ApprovalType } from '@metamask/controller-utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { merge, cloneDeep } from 'lodash';
 
 // eslint-disable-next-line import/no-namespace
@@ -154,6 +155,23 @@ describe('useConfirmationRedesignEnabled', () => {
             useConfirmationRedesignEnabled,
             {
               state,
+            },
+          );
+
+          expect(result.current.isRedesignedEnabled).toBe(false);
+        });
+
+        it('returns false when approval type is transaction but transaction type is not staking deposit', async () => {
+          const withBridgeTransaction = cloneDeep(
+            stakingDepositConfirmationState,
+          );
+          withBridgeTransaction.engine.backgroundState.TransactionController.transactions[0].type =
+            TransactionType.bridge;
+
+          const { result } = renderHookWithProvider(
+            useConfirmationRedesignEnabled,
+            {
+              state: withBridgeTransaction,
             },
           );
 
