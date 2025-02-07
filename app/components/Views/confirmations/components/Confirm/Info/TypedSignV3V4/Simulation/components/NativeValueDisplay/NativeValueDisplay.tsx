@@ -70,7 +70,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
   const isValidTokenAmount = tokenAmount !== null && tokenAmount !== undefined && tokenAmount instanceof BigNumber;
 
   const fiatValue = isValidTokenAmount && conversionRate
-    ? tokenAmount.times(String(conversionRate)).toNumber()
+    ? tokenAmount.times(String(conversionRate))
     : undefined;
 
   const tokenValue = isValidTokenAmount ? formatAmount('en-US', tokenAmount) : null;

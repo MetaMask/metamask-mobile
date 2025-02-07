@@ -126,7 +126,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 
   const fiatValue =
     isValidTokenAmount && exchangeRate && !tokenId
-      ? tokenAmount.multipliedBy(exchangeRate).toFixed()
+      ? tokenAmount.multipliedBy(exchangeRate)
       : undefined;
 
   const tokenValue = isValidTokenAmount
@@ -200,12 +200,8 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
         </View>
       </View>
       <View>
-        {/**
-            TODO - support fiat shorten prop and uncomment !shouldShowUnlimitedValue
-            {@see {@link https://github.com/MetaMask/metamask-mobile/issues/13385}
-          */}
-        {!shouldShowUnlimitedValue && fiatValue && (
-          <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />
+        {fiatValue && (
+          <IndividualFiatDisplay fiatAmount={fiatValue} />
         )}
       </View>
       {hasValueModalOpen && (

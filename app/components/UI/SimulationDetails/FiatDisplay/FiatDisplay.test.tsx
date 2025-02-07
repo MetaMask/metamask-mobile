@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import { merge } from 'lodash';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -7,23 +6,18 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { IndividualFiatDisplay, TotalFiatDisplay } from './FiatDisplay';
 import { mockNetworkState } from '../../../../util/test/network';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
-
-const mockInitialState = {
+const mockStateWithTestnet = merge({}, {
   engine: {
     backgroundState,
   },
-};
-
-const mockStateWithTestnet = merge({}, mockInitialState, {
+}, {
   engine: {
     backgroundState: {
+      CurrencyRateController: {
+        currentCurrency: 'USD',
+      },
       NetworkController: {
         ...mockNetworkState({
           chainId: CHAIN_IDS.SEPOLIA,
@@ -34,54 +28,37 @@ const mockStateWithTestnet = merge({}, mockInitialState, {
       },
     },
   },
+  settings: {
+    showFiatOnTestnets: true,
+  }
 });
 
-const mockStateWithShowingFiatOnTestnets = merge({}, mockStateWithTestnet, {
-  engine: {
-    backgroundState: {
-      PreferencesController: {
-        showFiatInTestnets: true,
-      },
-    },
-  },
-});
-
-const mockStateWithHidingFiatOnTestnets = merge({}, mockStateWithTestnet, {
-  engine: {
-    backgroundState: {
-      PreferencesController: {
-        showFiatInTestnets: false,
-      },
-    },
-  },
+const mockStateWithHideFiatOnTestnets = merge({}, mockStateWithTestnet, {
+  settings: {
+    showFiatOnTestnets: false,
+  }
 });
 
 describe('FiatDisplay', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-    (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectCurrentCurrency) return 'USD';
-    });
-  });
-
   describe('IndividualFiatDisplay', () => {
     it.each([
       [FIAT_UNAVAILABLE, 'Not Available'],
       [new BigNumber(100), '$100'],
       [new BigNumber(-100), '$100'],
       [new BigNumber(-100.5), '$100.50'],
-    ])('when fiatAmount is %s it renders %s', (fiatAmount, expected) => {
-      const { queryByText } = renderWithProvider(
-        <IndividualFiatDisplay fiatAmount={fiatAmount as FiatAmount} />,
-        { state: mockStateWithShowingFiatOnTestnets },
+      [new BigNumber('987543219876543219876.54321'), '$987,543,219,87...'],
+    ])('when fiatAmount is %s it renders %s', async (fiatAmount, expected) => {
+      const { findByText } = renderWithProvider(
+        <IndividualFiatDisplay fiatAmount={fiatAmount as BigNumber} />,
+        { state: mockStateWithTestnet },
       );
-      expect(queryByText(expected)).toBeTruthy();
+      expect(await findByText(expected)).toBeTruthy();
     });
 
     it('does not render anything if hideFiatForTestnet is true', () => {
       const { queryByText } = renderWithProvider(
         <IndividualFiatDisplay fiatAmount={100} />,
-        { state: mockStateWithHidingFiatOnTestnets },
+        { state: mockStateWithHideFiatOnTestnets },
       );
       expect(queryByText('100')).toBe(null);
     });
@@ -93,13 +70,14 @@ describe('FiatDisplay', () => {
       [[], 'Not Available'],
       [[new BigNumber(100), new BigNumber(200), FIAT_UNAVAILABLE, new BigNumber(300)], 'Total = $600'],
       [[new BigNumber(-100), new BigNumber(-200), FIAT_UNAVAILABLE, new BigNumber(-300.2)], 'Total = $600.20'],
-    ])('when fiatAmounts is %s it renders %s', (fiatAmounts, expected) => {
-      const { queryByText } = renderWithProvider(
+      [[new BigNumber(new BigNumber('987543219876543219876.54321')), new BigNumber(-200), FIAT_UNAVAILABLE, new BigNumber(-300.2)], 'Total = $987,543,219,876,543,219,376.34'],
+    ])('when fiatAmounts is %s it renders %s', async (fiatAmounts, expected) => {
+      const { findByText } = renderWithProvider(
         <TotalFiatDisplay fiatAmounts={fiatAmounts as FiatAmount[]} />,
-        { state: mockStateWithShowingFiatOnTestnets },
+        { state: mockStateWithTestnet },
       );
 
-      expect(queryByText(expected)).toBeTruthy();
+      expect(await findByText(expected)).toBeTruthy();
     });
 
     it('does not render anything if hideFiatForTestnet is true', () => {
@@ -110,7 +88,7 @@ describe('FiatDisplay', () => {
 
       const { queryByText } = renderWithProvider(
         <TotalFiatDisplay fiatAmounts={mockFiatAmounts} />,
-        { state: mockStateWithHidingFiatOnTestnets },
+        { state: mockStateWithHideFiatOnTestnets },
       );
       expect(queryByText('600')).toBe(null);
     });

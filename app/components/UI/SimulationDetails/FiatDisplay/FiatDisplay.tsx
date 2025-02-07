@@ -11,6 +11,7 @@ import { strings } from '../../../../../locales/i18n';
 import useFiatFormatter from './useFiatFormatter';
 import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
 import useHideFiatForTestnet from '../../../hooks/useHideFiatForTestnet';
+import { shortenString } from '../../../../util/notifications';
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -49,11 +50,13 @@ export function calculateTotalFiat(fiatAmounts: FiatAmount[]): BigNumber {
  */
 
 interface IndividualFiatDisplayProps extends ViewProps {
-  fiatAmount: FiatAmount;
+  fiatAmount: BigNumber | FiatAmount;
+  shorten?: boolean;
 }
 
 export const IndividualFiatDisplay: React.FC<IndividualFiatDisplayProps> = ({
   fiatAmount,
+  shorten = true,
 }) => {
   const hideFiatForTestnet = useHideFiatForTestnet();
   const { styles } = useStyles(styleSheet, {});
@@ -68,9 +71,18 @@ export const IndividualFiatDisplay: React.FC<IndividualFiatDisplayProps> = ({
   }
   const absFiat = new BigNumber(fiatAmount).abs();
 
+  const absFiatFormatted = shorten
+    ? shortenString(fiatFormatter(absFiat), {
+        truncatedCharLimit: 15,
+        truncatedStartChars: 15,
+        truncatedEndChars: 0,
+        skipCharacterInEnd: true,
+      })
+    : fiatFormatter(absFiat);
+
   return (
     <Text {...sharedTextProps} style={styles.base}>
-      {fiatFormatter(absFiat)}
+      {absFiatFormatted}
     </Text>
   );
 };
