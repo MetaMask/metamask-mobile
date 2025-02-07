@@ -8,6 +8,7 @@ import {
   TransactionModalType,
 } from './TransactionApproval';
 import { useConfirmationRedesignEnabled } from '../../Views/confirmations/hooks/useConfirmationRedesignEnabled';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 jest.mock(
   '../../Views/confirmations/hooks/useConfirmationRedesignEnabled',
@@ -93,9 +94,9 @@ describe('TransactionApproval', () => {
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<TransactionApproval />);
+    const { toJSON } = renderWithProvider(<TransactionApproval />, {});
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchInlineSnapshot(`null`);
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -105,9 +106,9 @@ describe('TransactionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<TransactionApproval />);
+    const { toJSON } = renderWithProvider(<TransactionApproval />, {});
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchInlineSnapshot(`null`);
   });
 
   it('returns null if incorrect transaction type', () => {
@@ -117,9 +118,12 @@ describe('TransactionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const wrapper = shallow(<TransactionApproval transactionType="invalid" />);
+    const { toJSON } = renderWithProvider(
+      <TransactionApproval transactionType="invalid" />,
+      {},
+    );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchInlineSnapshot(`null`);
   });
 
   it('returns null if redesign is enabled', () => {
@@ -141,7 +145,7 @@ describe('TransactionApproval', () => {
       <TransactionApproval transactionType={TransactionModalType.Dapp} />,
       {},
     );
-    
-    expect(toJSON()).toMatchInlineSnapshot('');
+
+    expect(toJSON()).toMatchInlineSnapshot(`null`);
   });
 });
