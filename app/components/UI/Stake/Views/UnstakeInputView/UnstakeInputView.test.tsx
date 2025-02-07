@@ -72,16 +72,6 @@ jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
 const mockVaultData = MOCK_GET_VAULT_RESPONSE;
 const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
 
-jest.mock('../../hooks/useStakingEligibility', () => ({
-  __esModule: true,
-  default: () => ({
-    isEligible: true,
-    loading: false,
-    error: null,
-    refreshPooledStakingEligibility: jest.fn(),
-  }),
-}));
-
 jest.mock('../../hooks/useVaultData', () => ({
   __esModule: true,
   default: () => ({

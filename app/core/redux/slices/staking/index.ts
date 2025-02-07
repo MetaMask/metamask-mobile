@@ -14,7 +14,6 @@ interface PooledStakingState {
   vaultData: VaultData;
   vaultApys: VaultDailyApy[];
   vaultApyAverages: VaultApyAverages;
-  isEligible: boolean;
 }
 
 export const initialState: PooledStakingState = {
@@ -23,7 +22,6 @@ export const initialState: PooledStakingState = {
   vaultData: {} as VaultData,
   vaultApys: [],
   vaultApyAverages: {} as VaultApyAverages,
-  isEligible: false,
 };
 
 export const name = 'staking';

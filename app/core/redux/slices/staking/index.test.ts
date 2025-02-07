@@ -39,7 +39,6 @@ describe('PooledStaking', () => {
       pooledStakes: MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0],
       exchangeRate: MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate,
       vaultData: MOCK_GET_VAULT_RESPONSE,
-      isEligible: true,
       vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
       vaultApys: MOCK_VAULT_APYS_ONE_YEAR,
     },

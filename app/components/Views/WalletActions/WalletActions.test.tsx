@@ -61,6 +61,11 @@ const mockInitialState: DeepPartial<RootState> = {
         }),
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      EarnController: {
+        pooled_staking: {
+          isEligible: true,
+        },
+      },
     },
   },
 };
@@ -133,6 +138,35 @@ describe('WalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
+  });
+
+  it('should not render Earn button if user is not eligible for pooled staking', () => {
+    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
+
+    const mockStateWithoutStakingEligibility: DeepPartial<RootState> = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine?.backgroundState,
+          EarnController: {
+            pooled_staking: {
+              isEligible: false,
+            },
+          },
+        },
+      },
+    };
+
+    const { queryByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockStateWithoutStakingEligibility,
+    });
+
+    const earnButton = queryByTestId(
+      WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
+    );
+
+    expect(earnButton).toBeNull();
   });
 
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
@@ -262,6 +296,7 @@ describe('WalletActions', () => {
     ).toHaveBeenCalledWith('mainnet');
   });
   it('disables action buttons when the account cannot sign transactions', () => {
+    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
     const mockStateWithoutSigning: DeepPartial<RootState> = {
       ...mockInitialState,
       engine: {

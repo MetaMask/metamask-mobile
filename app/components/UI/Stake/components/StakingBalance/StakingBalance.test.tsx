@@ -29,6 +29,11 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      EarnController: {
+        pooled_staking: {
+          isEligible: true,
+        },
+      },
     },
   },
 };
@@ -72,16 +77,6 @@ jest.mock('../../hooks/usePooledStakes', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useStakingEligibility', () => ({
-  __esModule: true,
-  default: () => ({
-    isEligible: true,
-    loading: false,
-    error: null,
-    refreshPooledStakingEligibility: jest.fn(),
-  }),
-}));
-
 jest.mock('../../hooks/useVaultData', () => ({
   __esModule: true,
   default: () => ({
@@ -116,10 +111,6 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
-
-afterEach(() => {
-  jest.clearAllMocks();
-});
 
 describe('StakingBalance', () => {
   beforeEach(() => {

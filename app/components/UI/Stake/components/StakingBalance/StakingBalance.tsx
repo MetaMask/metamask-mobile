@@ -34,7 +34,6 @@ import {
 } from '../../utils/value';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 import StakingCta from './StakingCta/StakingCta';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
 import usePooledStakes from '../../hooks/usePooledStakes';
 import useVaultData from '../../hooks/useVaultData';
@@ -49,6 +48,7 @@ import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import { isPortfolioViewEnabled } from '../../../../../util/networks';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
+import { selectPooledStakingEligibility } from '../../../../../selectors/earnController';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -66,7 +66,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
-  const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
+  const isEligibleForPooledStaking = useSelector(
+    selectPooledStakingEligibility,
+  );
 
   const { isStakingSupportedChain } = useStakingChainByChainId(
     asset.chainId as Hex,

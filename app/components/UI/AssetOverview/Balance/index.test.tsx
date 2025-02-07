@@ -113,16 +113,16 @@ jest.mock('../../Stake/hooks/useVaultData', () => ({
   }),
 }));
 
-jest.mock('../../Stake/hooks/useStakingEligibility', () => ({
-  __esModule: true,
-  default: () => ({
-    isEligible: true,
-  }),
-}));
-
 const mockInitialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      EarnController: {
+        pooled_staking: {
+          isEligible: true,
+        },
+      },
+    },
   },
 };
 

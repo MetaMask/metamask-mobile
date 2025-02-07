@@ -9,7 +9,6 @@ import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';
 import AppConstants from '../../../../../core/AppConstants';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
 
 const mockNavigate = jest.fn();
 
@@ -56,18 +55,6 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../hooks/useStakingEligibility', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    isEligible: true,
-    isLoadingEligibility: false,
-    refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
-      isEligible: true,
-    }),
-    error: false,
-  })),
-}));
-
 jest.mock('../../hooks/useStakingChain', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -82,6 +69,11 @@ const STATE_MOCK = {
         ...mockNetworkState({
           chainId: '0x1',
         }),
+      },
+      EarnController: {
+        pooled_staking: {
+          isEligible: true,
+        },
       },
     },
   },
@@ -103,15 +95,24 @@ describe('StakeButton', () => {
   });
 
   it('navigates to Web view when stake button is pressed and user is not eligible', async () => {
-    (useStakingEligibility as jest.Mock).mockReturnValue({
-      isEligible: false,
-      isLoadingEligibility: false,
-      refreshPooledStakingEligibility: jest
-        .fn()
-        .mockResolvedValue({ isEligible: false }),
-      error: false,
-    });
-    const { getByTestId } = renderComponent();
+    const POOLED_STAKING_INELIGIBLE_STATE = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: '0x1',
+            }),
+          },
+          EarnController: {
+            pooled_staking: {
+              isEligible: false,
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderComponent(POOLED_STAKING_INELIGIBLE_STATE);
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
     await waitFor(() => {
@@ -126,14 +127,6 @@ describe('StakeButton', () => {
   });
 
   it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
-    (useStakingEligibility as jest.Mock).mockReturnValue({
-      isEligible: true,
-      isLoadingEligibility: false,
-      refreshPooledStakingEligibility: jest
-        .fn()
-        .mockResolvedValue({ isEligible: true }),
-      error: false,
-    });
     const { getByTestId } = renderComponent();
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
@@ -152,6 +145,11 @@ describe('StakeButton', () => {
             ...mockNetworkState({
               chainId: '0x89', // Polygon
             }),
+          },
+          EarnController: {
+            pooled_staking: {
+              isEligible: true,
+            },
           },
         },
       },

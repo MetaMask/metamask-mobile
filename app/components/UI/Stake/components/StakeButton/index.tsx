@@ -22,15 +22,16 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { RootState } from '../../../../../reducers';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
+import { selectPooledStakingEligibility } from '../../../../../selectors/earnController';
 
 interface StakeButtonProps {
   asset: TokenI;
 }
+
 const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -39,15 +40,18 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectChainId);
-  const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
+
+  const isEligibleForPooledStaking = useSelector(
+    selectPooledStakingEligibility,
+  );
 
   const onStakeButtonPress = async () => {
     if (!isStakingSupportedChain) {
       const { NetworkController } = Engine.context;
       await NetworkController.setActiveNetwork('mainnet');
     }
-    if (isEligible) {
+    if (isEligibleForPooledStaking) {
       navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
     } else {
       const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
