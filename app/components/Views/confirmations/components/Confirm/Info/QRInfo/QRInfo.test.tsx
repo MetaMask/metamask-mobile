@@ -69,7 +69,7 @@ describe('QRInfo', () => {
     expect(getByText('Scan with your hardware wallet')).toBeTruthy();
   });
 
-  it('should display camera error if present', () => {
+  it('displays camera error if present', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       QRState: mockQRState,
       cameraError: 'some camera error text',
