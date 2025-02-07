@@ -22,7 +22,7 @@ const mockAnalytics = new MockSegmentClient() as unknown as SegmentClient;
 
 describe('MetaMetricsPrivacySegmentPlugin', () => {
   it('is an enrichment plugin', () => {
-    const plugin = new MetaMetricsPrivacySegmentPlugin();
+    const plugin = new MetaMetricsPrivacySegmentPlugin('test');
     expect(plugin.type).toBe(PluginType.enrichment);
   });
 
@@ -35,13 +35,13 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
       type: EventType.IdentifyEvent,
     };
 
-    const plugin = new MetaMetricsPrivacySegmentPlugin();
+    const plugin = new MetaMetricsPrivacySegmentPlugin('test');
     plugin.configure(mockAnalytics);
 
     await plugin.execute(trackEvent);
     await plugin.execute(identifyEvent);
 
-    expect(mockAnalytics.userInfo.set).toHaveBeenCalledTimes(2);
+    expect(mockAnalytics.userInfo.set).toHaveBeenCalledTimes(1);
     expect(mockAnalytics.userInfo.set).toHaveBeenCalledWith({
       anonymousId: METAMETRICS_ANONYMOUS_ID,
     });
@@ -54,7 +54,7 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
       properties: { anonymous: true },
     };
 
-    const plugin = new MetaMetricsPrivacySegmentPlugin();
+    const plugin = new MetaMetricsPrivacySegmentPlugin('test');
     plugin.configure(mockAnalytics);
 
     const result = await plugin.execute(event);
@@ -73,7 +73,7 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
       properties: { anonymous: false },
     };
 
-    const plugin = new MetaMetricsPrivacySegmentPlugin();
+    const plugin = new MetaMetricsPrivacySegmentPlugin('test');
     plugin.configure(mockAnalytics);
 
     const result = await plugin.execute(event);
@@ -91,7 +91,7 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
       userId: expectedUserId,
     };
 
-    const plugin = new MetaMetricsPrivacySegmentPlugin();
+    const plugin = new MetaMetricsPrivacySegmentPlugin('test');
     plugin.configure(mockAnalytics);
 
     const result = await plugin.execute(identifyEvent);

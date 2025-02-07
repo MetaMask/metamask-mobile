@@ -6,6 +6,7 @@ import {
   SegmentEvent,
 } from '@segment/analytics-react-native';
 import METAMETRICS_ANONYMOUS_ID from './MetaMetrics.constants';
+import {TrackEventType} from '@segment/analytics-react-native/src/types';
 
 /**
  * Plugin to replace the user id with anonymous id for anonymous events
@@ -18,6 +19,12 @@ import METAMETRICS_ANONYMOUS_ID from './MetaMetrics.constants';
  */
 class MetaMetricsPrivacySegmentPlugin extends Plugin {
   type = PluginType.enrichment;
+  userId: string;
+
+  constructor(userId: string) {
+    super();
+    this.userId = userId;
+  }
 
   configure(analytics: SegmentClient) {
     super.configure(analytics);
@@ -38,19 +45,31 @@ class MetaMetricsPrivacySegmentPlugin extends Plugin {
     // - ours is used to have an identical id for all users when we want events to be anonymous
     // - segment's is used to identify a user when they are not logged in and allows to merge events when they log in
     // We need to set it to our own anonymous value to make sure Segment SDK never uses it's own random UUID.
-    this.analytics?.userInfo.set({ anonymousId: METAMETRICS_ANONYMOUS_ID });
 
     // We only update user id in track events, otherwise return event as is.
     if (event.type !== EventType.TrackEvent) {
       return event;
     }
 
-    if (event.properties?.anonymous) {
-      event.userId = METAMETRICS_ANONYMOUS_ID;
+    if(event.userId === undefined) {
+      event.userId = this.userId;
     }
+
+    if(event.anonymousId !== METAMETRICS_ANONYMOUS_ID) {
+      await this.analytics?.userInfo.set({anonymousId: METAMETRICS_ANONYMOUS_ID});
+      event.anonymousId = METAMETRICS_ANONYMOUS_ID;
+    }
+
+    if (event.properties?.anonymous && event.userId !== METAMETRICS_ANONYMOUS_ID) {
+      await this.analytics?.userInfo.set({anonymousId: METAMETRICS_ANONYMOUS_ID, userId: METAMETRICS_ANONYMOUS_ID});
+      event.userId = METAMETRICS_ANONYMOUS_ID;
+      event.anonymousId = METAMETRICS_ANONYMOUS_ID;
+    }
+
     // We remove the anonymous property from the event properties once we have read it
     // so that it is not sent to Segment
     delete event.properties?.anonymous;
+
     return event;
   }
 }
