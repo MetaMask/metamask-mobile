@@ -10,6 +10,21 @@ import { Text } from 'react-native';
 const MockText = Text;
 jest.mock('./QRInfo', () => () => <MockText>QR Scanning Component</MockText>);
 
+jest.mock('../../../../../../core/Engine', () => ({
+  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+      getOrAddQRKeyring: jest.fn(),
+    },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
+  },
+}));
+
 describe('Info', () => {
   it('renders correctly for personal sign', () => {
     const { getByText } = renderWithProvider(<Info />, {
