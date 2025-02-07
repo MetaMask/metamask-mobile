@@ -688,7 +688,7 @@ const Wallet = ({
               navigation={navigation}
               // TODO - Consolidate into the correct type.
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignor
+              // @ts-ignore
               tokens={assets}
             />
             <CollectibleContracts
