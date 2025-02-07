@@ -60,6 +60,9 @@ const WalletActions = () => {
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
 
+  const isPooledStakingEligible =
+    Engine.context.EarnController.state.pooled_staking.isEligible;
+
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
       sheetRef.current?.onCloseBottomSheet(navigateFunc);
@@ -291,7 +294,7 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
-        {isStablecoinLendingFeatureEnabled() && (
+        {isStablecoinLendingFeatureEnabled() && isPooledStakingEligible && (
           <WalletAction
             actionType={WalletActionType.Earn}
             iconName={IconName.Plant}
