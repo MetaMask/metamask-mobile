@@ -22,7 +22,7 @@ jest.mock('../../../../hooks/useTokenDecimalsInTypedSignRequest', () => ({
 }));
 
 describe('TypedSignV3V4', () => {
-  it('should contained required text', () => {
+it('contains required text', () => {
     const { getByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV3ConfirmationState,
     });
