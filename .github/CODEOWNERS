@@ -26,6 +26,7 @@ ios/Podfile.lock                                            @MetaMask/mobile-pla
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/core/Engine/messengers/                                 @MetaMask/mobile-platform
 
+
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
@@ -48,8 +49,9 @@ app/reducers/sdk   @MetaMask/sdk-devs
 app/util/walletconnect.js   @MetaMask/sdk-devs
 
 # Accounts Team
-app/core/Encryptor/   @MetaMask/accounts-engineers
-app/core/Engine/controllers/accounts-controller   @MetaMask/accounts-engineers
+app/core/Encryptor/                                         @MetaMask/accounts-engineers
+app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
+app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers
