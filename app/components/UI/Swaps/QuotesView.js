@@ -1794,9 +1794,11 @@ function SwapsQuotesView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.topBar}>
-        <View style={styles.smartTransactionsMigrationBanner}>
-          <SmartTransactionsMigrationBanner />
-        </View>
+        {shouldUseSmartTransaction && (
+          <View style={styles.smartTransactionsMigrationBanner}>
+            <SmartTransactionsMigrationBanner />
+          </View>
+        )}
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
           <>
           <View style={styles.alertBar}>

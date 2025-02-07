@@ -10,7 +10,6 @@ import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import styleSheet from './SmartTransactionsMigrationBanner.styles';
 import { SmartTransactionsMigrationBannerProps } from './SmartTransactionsMigrationBanner.types';
 import {
-  selectSmartTransactionsEnabled,
   selectShouldUseSmartTransaction,
 } from '../../../../../selectors/smartTransactionsController';
 import Engine from '../../../../../core/Engine';
@@ -18,32 +17,25 @@ import Logger from '../../../../../util/Logger';
 import {
   selectSmartTransactionsMigrationApplied,
   selectSmartTransactionsBannerDismissed,
-  selectSmartTransactionsOptInStatus
 } from '../../../../../selectors/preferencesController';
 
 const SmartTransactionsMigrationBanner = ({
   style,
 }: SmartTransactionsMigrationBannerProps) => {
   const { styles } = useStyles(styleSheet, { style });
-  const isEnabled = useSelector(selectSmartTransactionsOptInStatus);
   const isMigrationApplied = useSelector(selectSmartTransactionsMigrationApplied);
   const isBannerDismissed = useSelector(selectSmartTransactionsBannerDismissed);
 
-  const isSmartTransactionsEnabled = useSelector(selectSmartTransactionsEnabled);
   const shouldUseSmartTransaction = useSelector(selectShouldUseSmartTransaction);
 
 const shouldShowBanner = useMemo(
   () =>
-    isEnabled &&
     isMigrationApplied &&
     !isBannerDismissed &&
-    isSmartTransactionsEnabled &&
     shouldUseSmartTransaction,
   [
-    isEnabled,
     isMigrationApplied,
     isBannerDismissed,
-    isSmartTransactionsEnabled,
     shouldUseSmartTransaction,
   ]
 );

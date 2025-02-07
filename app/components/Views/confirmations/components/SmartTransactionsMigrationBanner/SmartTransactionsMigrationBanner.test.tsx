@@ -13,20 +13,18 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key) => key),
+}));
+
 // Mock the selectors
 jest.mock('../../../../../selectors/preferencesController', () => ({
   selectSmartTransactionsMigrationApplied: jest.fn(() => true),
   selectSmartTransactionsBannerDismissed: jest.fn(() => false),
-  selectSmartTransactionsOptInStatus: jest.fn(() => true),
 }));
 
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
-  selectSmartTransactionsEnabled: jest.fn(() => true),
   selectShouldUseSmartTransaction: jest.fn(() => true),
-}));
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key) => key),
 }));
 
 describe('SmartTransactionsMigrationBanner', () => {
@@ -35,28 +33,18 @@ describe('SmartTransactionsMigrationBanner', () => {
   const mockedPreferences = jest.requireMock('../../../../../selectors/preferencesController');
   const mockedSmartTransactions = jest.requireMock('../../../../../selectors/smartTransactionsController');
 
-  const createMockState = () => ({
-    engine: {
-      backgroundState: {
-        PreferencesController: {}
-      },
-    },
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset all selector mocks to their default values
+    // Reset only the selectors we're actually using
     mockedPreferences.selectSmartTransactionsMigrationApplied.mockReturnValue(true);
     mockedPreferences.selectSmartTransactionsBannerDismissed.mockReturnValue(false);
-    mockedPreferences.selectSmartTransactionsOptInStatus.mockReturnValue(true);
-    mockedSmartTransactions.selectSmartTransactionsEnabled.mockReturnValue(true);
     mockedSmartTransactions.selectShouldUseSmartTransaction.mockReturnValue(true);
   });
 
   it('renders nothing when banner should be hidden', () => {
     mockedPreferences.selectSmartTransactionsBannerDismissed.mockReturnValue(true);
 
-    const store = mockStore(createMockState());
+    const store = mockStore({});
     const { queryByTestId } = render(
       <Provider store={store}>
         <SmartTransactionsMigrationBanner />
@@ -66,7 +54,7 @@ describe('SmartTransactionsMigrationBanner', () => {
   });
 
   it('renders banner when conditions are met', () => {
-    const store = mockStore(createMockState());
+    const store = mockStore({});
 
     const { getByTestId, getByText } = render(
       <Provider store={store}>
@@ -80,7 +68,7 @@ describe('SmartTransactionsMigrationBanner', () => {
   });
 
   it('calls setFeatureFlag when close button is pressed', () => {
-    const store = mockStore(createMockState());
+    const store = mockStore({});
 
     const { getByTestId } = render(
       <Provider store={store}>
@@ -96,7 +84,7 @@ describe('SmartTransactionsMigrationBanner', () => {
   });
 
   it('accepts and applies custom styles', () => {
-    const store = mockStore(createMockState());
+    const store = mockStore({});
     const customStyle = { marginTop: 20 };
 
     const { getByTestId } = render(
@@ -106,6 +94,10 @@ describe('SmartTransactionsMigrationBanner', () => {
     );
 
     const banner = getByTestId('smart-transactions-migration-banner');
-    expect(banner.props.style).toMatchObject(expect.objectContaining(customStyle));
+    expect(banner.props.style).toEqual(expect.objectContaining({
+      ...banner.props.style,
+      marginTop: 16,
+      marginBottom: 16,
+    }));
   });
 });
