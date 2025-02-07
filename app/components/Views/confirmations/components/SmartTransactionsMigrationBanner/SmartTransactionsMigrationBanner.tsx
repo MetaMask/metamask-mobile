@@ -28,17 +28,21 @@ const SmartTransactionsMigrationBanner = ({
 
   const shouldUseSmartTransaction = useSelector(selectShouldUseSmartTransaction);
 
-const shouldShowBanner = useMemo(
-  () =>
-    isMigrationApplied &&
-    !isBannerDismissed &&
-    shouldUseSmartTransaction,
-  [
-    isMigrationApplied,
-    isBannerDismissed,
-    shouldUseSmartTransaction,
-  ]
-);
+  const shouldShowBanner = useMemo(
+    () =>
+      isMigrationApplied &&
+      !isBannerDismissed &&
+      shouldUseSmartTransaction,
+    [
+      isMigrationApplied,
+      isBannerDismissed,
+      shouldUseSmartTransaction,
+    ]
+  );
+
+  if (!shouldShowBanner) {
+    return null;
+  }
 
   const dismissBanner = useCallback(async () => {
     try {
@@ -48,10 +52,6 @@ const shouldShowBanner = useMemo(
       Logger.error(error as Error, 'Failed to dismiss banner:');
     }
   }, []);
-
-  if (!shouldShowBanner) {
-    return null;
-  }
 
   const handleLearnMore = () => {
     Linking.openURL(AppConstants.URLS.SMART_TXS);
