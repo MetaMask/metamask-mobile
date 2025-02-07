@@ -19,5 +19,6 @@ export const ConfirmationFooterSelectorIDs = {
 export const ConfirmationPageSectionsSelectorIDs = {
   ACCOUNT_NETWORK_SECTION: 'account-network-section',
   ORIGIN_INFO_SECTION: 'origin-info-section',
+  SIWE_SIGNING_ACCOUNT_INFO_SECTION: 'siwe-signing-account-info-section',
   MESSAGE_SECTION: 'message-section',
 };
