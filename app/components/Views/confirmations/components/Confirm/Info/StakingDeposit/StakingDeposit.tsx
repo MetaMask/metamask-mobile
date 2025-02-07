@@ -1,5 +1,4 @@
 import React from 'react';
-import { Text } from 'react-native';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
