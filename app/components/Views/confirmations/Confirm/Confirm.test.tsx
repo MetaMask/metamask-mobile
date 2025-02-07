@@ -85,7 +85,7 @@ describe('Confirm', () => {
     expect(getByText('This is a deceptive request')).toBeDefined();
   });
 
-  it('should render null if re-design is not enabled for confirmation', () => {
+  it('returns null if re-design is not enabled for confirmation', () => {
     jest
       .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: false });

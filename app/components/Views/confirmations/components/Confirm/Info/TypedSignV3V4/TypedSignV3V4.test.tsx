@@ -22,7 +22,7 @@ jest.mock('../../../../hooks/useTokenDecimalsInTypedSignRequest', () => ({
 }));
 
 describe('TypedSignV3V4', () => {
-  it('should contained required text', () => {
+it('contains required text', () => {
     const { getByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV3ConfirmationState,
     });
@@ -44,7 +44,7 @@ describe('TypedSignV3V4', () => {
     expect(queryByText('Mail')).toBeNull();
   });
 
-  it('should show detailed message when message section is clicked', () => {
+it('shows detailed message when message section is clicked', () => {
     const { getByText, getAllByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV4ConfirmationState,
     });
