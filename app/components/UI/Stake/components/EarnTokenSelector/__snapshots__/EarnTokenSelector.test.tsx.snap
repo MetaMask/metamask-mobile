@@ -1,0 +1,183 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EarnTokenSelector renders correctly 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  activeOpacity={1}
+  onPress={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#848c96",
+      "borderRadius": 12,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "minHeight": 48,
+      "opacity": 1,
+      "paddingHorizontal": 16,
+      "paddingVertical": 12,
+    }
+  }
+  testID="earn-token-selector"
+>
+  <View
+    accessibilityRole="none"
+    accessible={true}
+    style={
+      {
+        "flex": 1,
+        "marginRight": 8,
+        "padding": 0,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": -1,
+          }
+        }
+        testID="listitemcolumn"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "marginRight": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderRadius": 16,
+                "height": 32,
+                "overflow": "hidden",
+                "width": 32,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={
+                {
+                  "uri": undefined,
+                }
+              }
+              style={
+                {
+                  "flex": 1,
+                  "height": undefined,
+                  "width": undefined,
+                }
+              }
+              testID="token-avatar-image"
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        accessible={false}
+        style={
+          {
+            "width": 8,
+          }
+        }
+        testID="listitem-gap"
+      />
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+        testID="listitemcolumn"
+      />
+      <View
+        accessible={false}
+        style={
+          {
+            "width": 8,
+          }
+        }
+        testID="listitem-gap"
+      />
+      <View
+        style={
+          {
+            "flex": -1,
+          }
+        }
+        testID="listitemcolumn"
+      >
+        <View
+          style={
+            {
+              "alignItems": "flex-end",
+              "marginRight": 8,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#1c8234",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginBottom": 2,
+              }
+            }
+          >
+            4.5% APR
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            10,100.00 USD Coin
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View>
+    <SvgMock
+      color="#141618"
+      height={16}
+      name="ArrowDown"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
+</TouchableOpacity>
+`;
