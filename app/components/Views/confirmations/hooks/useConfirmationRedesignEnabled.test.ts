@@ -3,7 +3,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { merge, cloneDeep } from 'lodash';
 
 // eslint-disable-next-line import/no-namespace
-import { isHardwareAccount } from '../../../../util/address';
+import { isExternalHardwareAccount } from '../../../../util/address';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
@@ -13,7 +13,7 @@ import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled
 
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
-  isHardwareAccount: jest.fn(),
+  isExternalHardwareAccount: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -35,11 +35,11 @@ describe('useConfirmationRedesignEnabled', () => {
   describe('signature confirmations', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      (isHardwareAccount as jest.Mock).mockReturnValue(true);
+      (isExternalHardwareAccount as jest.Mock).mockReturnValue(true);
     });
 
     it('returns true for personal sign request', async () => {
-      (isHardwareAccount as jest.Mock).mockReturnValue(false);
+      (isExternalHardwareAccount as jest.Mock).mockReturnValue(false);
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
         {

@@ -7,6 +7,9 @@ import {
   typedSignV1ConfirmationState,
   stakingDepositConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
+// eslint-disable-next-line import/no-namespace
+import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
+
 import Confirm from './index';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -31,6 +34,15 @@ jest.mock('../../../../util/address', () => ({
 
 jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    addListener: jest.fn(),
+    dispatch: jest.fn(),
+  }),
 }));
 
 describe('Confirm', () => {
@@ -86,5 +98,18 @@ describe('Confirm', () => {
     });
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
+  });
+
+  it('returns null if re-design is not enabled for confirmation', () => {
+    jest
+      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+      .mockReturnValue({ isRedesignedEnabled: false });
+    const { queryByText } = renderWithProvider(<Confirm />, {
+      state: {
+        ...typedSignV1ConfirmationState,
+        signatureRequest: { securityAlertResponse },
+      },
+    });
+    expect(queryByText('Signature request')).toBeNull();
   });
 });
