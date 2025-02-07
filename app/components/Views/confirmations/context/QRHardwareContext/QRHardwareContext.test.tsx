@@ -5,6 +5,7 @@ import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/C
 import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
+import { IQRState } from '../../../../UI/QRHardware/types';
 import Footer from '../../components/Confirm/Footer';
 import QRInfo from '../../components/Confirm/Info/QRInfo';
 // eslint-disable-next-line import/no-namespace
@@ -35,6 +36,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: jest.fn(),
     addListener: jest.fn(),
+    removeListener: jest.fn(),
     dispatch: jest.fn(),
   }),
 }));
@@ -56,11 +58,26 @@ const mockQRState = {
 };
 
 describe('QRHardwareContext', () => {
-  it('should pass correct value of needsCameraPermission to child components', () => {
+  const createCameraSpy = (mockedValues: {
+    cameraError: string | undefined;
+    hasCameraPermission: boolean;
+  }) => {
+    jest.spyOn(Camera, 'useCamera').mockReturnValue(mockedValues);
+  };
+
+  const createQRHardwareAwarenessSpy = (mockedValues: {
+    isQRSigningInProgress: boolean;
+    isSigningQRObject: boolean;
+    QRState: IQRState;
+  }) => {
     jest
-      .spyOn(Camera, 'useCamera')
-      .mockReturnValue({ cameraError: undefined, hasCameraPermission: false });
-    jest.spyOn(QRHardwareAwareness, 'useQRHardwareAwareness').mockReturnValue({
+      .spyOn(QRHardwareAwareness, 'useQRHardwareAwareness')
+      .mockReturnValue(mockedValues);
+  };
+
+  it('should pass correct value of needsCameraPermission to child components', () => {
+    createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
+    createQRHardwareAwarenessSpy({
       isQRSigningInProgress: true,
       isSigningQRObject: true,
       QRState: mockQRState,
@@ -79,10 +96,8 @@ describe('QRHardwareContext', () => {
   });
 
   it('does not invokes KeyringController.cancelQRSignRequest when request is cancelled id QR signing is not in progress', () => {
-    jest
-      .spyOn(Camera, 'useCamera')
-      .mockReturnValue({ cameraError: undefined, hasCameraPermission: false });
-    jest.spyOn(QRHardwareAwareness, 'useQRHardwareAwareness').mockReturnValue({
+    createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
+    createQRHardwareAwarenessSpy({
       isQRSigningInProgress: false,
       isSigningQRObject: true,
       QRState: mockQRState,
@@ -102,10 +117,8 @@ describe('QRHardwareContext', () => {
   });
 
   it('invokes KeyringController.cancelQRSignRequest when request is cancelled', () => {
-    jest
-      .spyOn(Camera, 'useCamera')
-      .mockReturnValue({ cameraError: undefined, hasCameraPermission: false });
-    jest.spyOn(QRHardwareAwareness, 'useQRHardwareAwareness').mockReturnValue({
+    createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
+    createQRHardwareAwarenessSpy({
       isQRSigningInProgress: true,
       isSigningQRObject: true,
       QRState: mockQRState,
@@ -125,10 +138,8 @@ describe('QRHardwareContext', () => {
   });
 
   it('passes correct value of QRState components', () => {
-    jest
-      .spyOn(Camera, 'useCamera')
-      .mockReturnValue({ cameraError: undefined, hasCameraPermission: false });
-    jest.spyOn(QRHardwareAwareness, 'useQRHardwareAwareness').mockReturnValue({
+    createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
+    createQRHardwareAwarenessSpy({
       isQRSigningInProgress: true,
       isSigningQRObject: true,
       QRState: mockQRState,
@@ -144,11 +155,9 @@ describe('QRHardwareContext', () => {
     expect(getByText('Scan with your hardware wallet')).toBeTruthy();
   });
 
-it('passes correct value of scannerVisible to child components', () => {
-    jest
-      .spyOn(Camera, 'useCamera')
-      .mockReturnValue({ cameraError: undefined, hasCameraPermission: true });
-    jest.spyOn(QRHardwareAwareness, 'useQRHardwareAwareness').mockReturnValue({
+  it('passes correct value of scannerVisible to child components', () => {
+    createCameraSpy({ cameraError: undefined, hasCameraPermission: true });
+    createQRHardwareAwarenessSpy({
       isQRSigningInProgress: true,
       isSigningQRObject: true,
       QRState: mockQRState,

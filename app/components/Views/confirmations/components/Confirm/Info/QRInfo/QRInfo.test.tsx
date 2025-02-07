@@ -59,10 +59,15 @@ const mockQRState = {
 };
 
 describe('QRInfo', () => {
-  it('renders "Scan with your hardware wallet"', () => {
+  const createQRHardwareHookSpy = (mockedValues = {}) => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       QRState: mockQRState,
+      ...mockedValues,
     } as unknown as QRHardwareHook.QRHardwareContextType);
+  };
+
+  it('renders "Scan with your hardware wallet"', () => {
+    createQRHardwareHookSpy();
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
@@ -70,10 +75,7 @@ describe('QRInfo', () => {
   });
 
   it('displays camera error if present', () => {
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      QRState: mockQRState,
-      cameraError: 'some camera error text',
-    } as unknown as QRHardwareHook.QRHardwareContextType);
+    createQRHardwareHookSpy({ cameraError: 'some camera error text' });
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
@@ -81,9 +83,7 @@ describe('QRInfo', () => {
   });
 
   it('contains correct text is scanner is visible', () => {
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      scannerVisible: true,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
+    createQRHardwareHookSpy({ scannerVisible: true });
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
@@ -94,10 +94,10 @@ describe('QRInfo', () => {
 
   it('invoke setScannerVisible when hideModal is called on scanner', () => {
     const mockSetScannerVisible = jest.fn();
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+    createQRHardwareHookSpy({
       scannerVisible: true,
       setScannerVisible: mockSetScannerVisible,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
+    });
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
@@ -108,10 +108,10 @@ describe('QRInfo', () => {
 
   it('invoke setScannerVisible when onScanError is called by scanner', () => {
     const mockSetScannerVisible = jest.fn();
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+    createQRHardwareHookSpy({
       scannerVisible: true,
       setScannerVisible: mockSetScannerVisible,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
+    });
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
@@ -125,10 +125,10 @@ describe('QRInfo', () => {
       getRequestId: () => undefined,
     } as unknown as ETHSignature);
     const mockSetScannerVisible = jest.fn();
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+    createQRHardwareHookSpy({
       scannerVisible: true,
       setScannerVisible: mockSetScannerVisible,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
+    });
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
