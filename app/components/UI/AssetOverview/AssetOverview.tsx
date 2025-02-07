@@ -14,6 +14,7 @@ import {
   selectNativeCurrencyByChainId,
   selectSelectedNetworkClientId,
   selectTicker,
+  selectNativeCurrencyByChainId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,

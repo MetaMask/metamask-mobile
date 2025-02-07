@@ -154,6 +154,16 @@ describe('AssetOverview', () => {
     expect(container).toMatchSnapshot();
   });
 
+  it('should render correctly when portfolio view is enabled', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+
+    const container = renderWithProvider(
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+      { state: mockInitialState },
+    );
+    expect(container).toMatchSnapshot();
+  });
+
   it('should handle buy button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
