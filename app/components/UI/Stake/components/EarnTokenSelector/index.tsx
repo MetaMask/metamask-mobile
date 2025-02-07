@@ -15,6 +15,14 @@ import SelectButton, {
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import NetworkAssetLogo from '../../../NetworkAssetLogo';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+import { useSelector } from 'react-redux';
+import { selectNetworkName } from '../../../../../selectors/networkInfos';
+import { getNetworkImageSource } from '../../../../../util/networks';
 
 interface EarnTokenSelectorProps {
   token: TokenI;
@@ -25,6 +33,7 @@ interface EarnTokenSelectorProps {
 const EarnTokenSelector = ({ token, apr, balance }: EarnTokenSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const networkName = useSelector(selectNetworkName);
 
   const handlePress = () => {
     navigation.navigate('StakeModals', {
@@ -32,28 +41,57 @@ const EarnTokenSelector = ({ token, apr, balance }: EarnTokenSelectorProps) => {
     });
   };
 
-  const renderStartAccessory = () => (
-    <View style={styles.startAccessoryContainer}>
+  const renderTokenAvatar = () => {
+    if (token.isNative) {
+      return (
+        <NetworkAssetLogo
+          chainId={token.chainId ?? ''}
+          ticker={token.ticker ?? ''}
+          big={false}
+          biggest={false}
+          testID={`earn-token-selector-${token.symbol}-${token.chainId}`}
+          style={styles.networkAvatar}
+        />
+      );
+    }
+
+    return (
       <AvatarToken
-        size={AvatarSize.Md}
         name={token.symbol}
         imageSource={{ uri: token.image }}
+        size={AvatarSize.Md}
       />
+    );
+  };
+
+  const renderStartAccessory = () => (
+    <View style={styles.startAccessoryContainer}>
+      <BadgeWrapper
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            name={networkName}
+            // @ts-expect-error The utils/network file is still JS and this function expects a networkType that should be optional
+            imageSource={getNetworkImageSource({ chainId: token.chainId })}
+          />
+        }
+      >
+        {renderTokenAvatar()}
+      </BadgeWrapper>
+      <Text variant={TextVariant.BodyMD} style={styles.tokenText}>
+        {token.name}
+      </Text>
     </View>
   );
 
   const renderEndAccessory = () => (
     <View style={styles.endAccessoryContainer}>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Success}
-        style={styles.aprText}
-      >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
         {`${apr} APR`}
       </Text>
       {balance && (
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {`${balance} ${token.symbol}`}
+          {balance}
         </Text>
       )}
     </View>
