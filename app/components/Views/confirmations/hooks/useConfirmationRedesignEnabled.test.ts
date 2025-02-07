@@ -21,7 +21,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 describe('useConfirmationRedesignEnabled', () => {
-  it('return true for personal sign request', async () => {
+  it('return true for personal sign request', () => {
     const { result } = renderHookWithProvider(
       () => useConfirmationRedesignEnabled(),
       {
@@ -31,8 +31,8 @@ describe('useConfirmationRedesignEnabled', () => {
     expect(result?.current.isRedesignedEnabled).toBeTruthy();
   });
 
-  it('return false for external accounts', async () => {
-    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
+  it('return false for external accounts', () => {
+    jest.spyOn(AddressUtils, 'isExternalHardwareAccount').mockReturnValue(true);
     const { result } = renderHookWithProvider(
       () => useConfirmationRedesignEnabled(),
       {
