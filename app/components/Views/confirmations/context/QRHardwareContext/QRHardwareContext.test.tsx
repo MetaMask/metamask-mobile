@@ -144,7 +144,7 @@ describe('QRHardwareContext', () => {
     expect(getByText('Scan with your hardware wallet')).toBeTruthy();
   });
 
-  it('should pass correct value of scannerVisible to child components', () => {
+it('passes correct value of scannerVisible to child components', () => {
     jest
       .spyOn(Camera, 'useCamera')
       .mockReturnValue({ cameraError: undefined, hasCameraPermission: true });
