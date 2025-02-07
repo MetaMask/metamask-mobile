@@ -44,7 +44,7 @@ describe('TypedSignV3V4', () => {
     expect(queryByText('Mail')).toBeNull();
   });
 
-  it('should show detailed message when message section is clicked', () => {
+it('shows detailed message when message section is clicked', () => {
     const { getByText, getAllByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV4ConfirmationState,
     });
