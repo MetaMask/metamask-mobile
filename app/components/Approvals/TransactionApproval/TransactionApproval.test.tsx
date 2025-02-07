@@ -138,7 +138,7 @@ describe('TransactionApproval', () => {
     });
 
     const wrapper = shallow(
-      <TransactionApproval transactionType={TransactionModalType.Transaction} />,
+      <TransactionApproval transactionType={TransactionModalType.Dapp} />,
     );
 
     expect(wrapper).toMatchSnapshot();
