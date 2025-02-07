@@ -48,7 +48,10 @@
     "connector": "saat"
   },
   "autocomplete": {
-    "placeholder": "Ara veya URL Gir"
+    "placeholder": "Siteye veya adrese göre ara",
+    "recents": "Son Ziyaret Edilenler",
+    "favorites": "Favoriler",
+    "sites": "Siteler"
   },
   "navigation": {
     "back": "Geri",
@@ -449,6 +452,7 @@
     "next": "Sonraki",
     "buy_asset": "{{asset}} satın alın",
     "no_tokens": "Tokeniniz yok!",
+    "show_tokens_without_balance": "Bakiyesi olmayan token'leri göster",
     "no_nfts_yet": "Henüz NFT yok",
     "nfts_autodetection_title": "NFT algılama",
     "nfts_autodetection_desc": "MetaMask'in otomatik olarak cüzdanınızdaki NFT'leri algılayıp göstermesine izin verin.",
@@ -470,7 +474,7 @@
     "learn_more": "Daha fazlasını öğren",
     "add_collectibles": "NFT'leri içe aktar",
     "no_transactions": "Hiç işleminiz yok!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "İşlemleri görüntülemek için lütfen ağ değiştirin",
     "send_button": "Gönder",
     "deposit_button": "Para Yatır",
     "copy_address": "Hata",
@@ -722,6 +726,7 @@
     "connected_and_active": "bağlandı ve aktif.",
     "now_active": "şimdi aktif.",
     "network_added": "başarılı bir şekilde eklendi",
+    "network_removed": "başarılı bir şekilde kaldırıldı",
     "network_deleted": "başarılı bir şekilde silindi",
     "network_permissions_updated": "Ağ izinleri güncellendi",
     "revoked": "iptal edildi.",
@@ -1264,16 +1269,19 @@
     "sell_button": "Sat",
     "receive_button": "Al",
     "portfolio_button": "Portföy",
+    "earn_button": "Kazan",
     "add_collectible_button": "Ekle",
     "info": "Bilgi",
     "swap": "Kaydır",
     "bridge": "Köprü",
+    "earn": "Kazan",
     "disabled_button": {
       "buy": "Bu hesap için satın alma desteklenmiyor",
       "sell": "Bu hesap için satma desteklenmiyor",
       "swap": "Bu hesap için swap desteklenmiyor",
       "bridge": "Bu hesap için köprü desteklenmiyor",
       "send": "Bu hesap için gönderme desteklenmiyor",
+      "earn": "Kazanma bu hesap için desteklenmiyor",
       "action": "Bu hesap için bu işlem desteklenmiyor"
     },
     "description": "Açıklama",
@@ -1290,6 +1298,7 @@
     "bridge_description": "Farklı ağlar arasında token transfer et",
     "send_description": "Dilediğin hesaba kripto gönderin",
     "receive_description": "Kripto alın",
+    "earn_description": "Token'lerinizden ödül kazanın",
     "chart_time_period": {
       "1d": "Bugün",
       "7d": "Son 7 gün",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "Zincir Kimliği",
     "network_rpc_url": "Ağ URL adresi",
     "network_rpc_url_label": "Ağ RPC URL adresi",
+    "network_rpc_url_warning_punycode": "Saldırganlar bazen site adresinde küçük değişiklikler yaparak siteleri taklit edebilir. Devam etmeden önce istenilen Ağ URL adresi ile etkileşim kurduğunuzdan emin olun. Punycode sürümü:",
     "new_default_network_url": "Yeni varsayılan ağ URL adresi",
     "current_label": "Mevcut",
     "new_label": "Yeni",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "Donanım cüzdanı ekleyin",
     "import_account": "Hesabı içe aktar",
     "add_bitcoin_account_testnet": "Yeni bir Bitcoin Hesabı ekle (Test Ağı)",
-    "add_bitcoin_account_mainnet": "Yeni bir Bitcoin Hesabı Ekle (Beta)"
+    "add_bitcoin_account_mainnet": "Yeni bir Bitcoin Hesabı Ekle (Beta)",
+    "add_solana_account": "Yeni bir Solana Hesabı ekle (Beta)"
   },
   "show_nft": {
     "show_nft_title": "NFT'yi göster",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "İmza talebi"
     },
+    "sub_title": {
+      "signature": "Onaylamadan önce talep bilgilerini inceleyin."
+    },
     "request_from": "Talebi gönderen",
     "message": "Mesaj",
+    "primary_type": "Birincil tür",
     "personal_sign_tooltip": "Bu site imzanızı istiyor",
     "details": "Ayrıntılar",
     "account": "Hesap",
     "balance": "Bakiye",
     "network": "Ağ",
     "simulation": {
+      "decoded_tooltip_bid_nft": "Teklif kabul edildiğinde NFT cüzdanınıza yansıyacak.",
+      "decoded_tooltip_list_nft": "Sadece biri NFT'lerinizi satın alırsa değişiklik olmasını bekleyin.",
+      "info_permit": "Harcama yapan tarafa hesabınızdan bu kadar token harcama izni veriyorsunuz.",
+      "label_change_type_bidding": "Teklifiniz",
+      "label_change_type_listing": "Listelediğiniz",
+      "label_change_type_nft_listing": "Liste fiyatı",
+      "label_change_type_permit": "Harcama üst limiti",
+      "label_change_type_permit_nft": "Çek",
+      "label_change_type_receive": "Aldığınız",
+      "label_change_type_revoke": "İptal et",
+      "label_change_type_transfer": "Gönderdiğiniz",
+      "personal_sign_info": "Bir siteye giriş yapıyorsunuz ve hesabınız için öngörülen herhangi bir değişiklik yok.",
       "title": "Tahmini değişiklikler",
-      "personal_sign_info": "Bir siteye giriş yapıyorsunuz ve hesabınızda öngörülen herhangi bir değişiklik yok.",
-      "tooltip": "Tahmini değişiklikler bu işlemi gerçekleştirirseniz meydana gelebilecek değişikliklerdir. Bu bir garanti değil, sadece bir tahmindir."
-    }
+      "tooltip": "Tahmini değişiklikler bu işlemi gerçekleştirirseniz meydana gelebilecek değişikliklerdir. Bu bir garanti değil, sadece bir tahmindir.",
+      "unavailable": "Mevcut değil"
+    },
+    "unlimited": "Sınırsız",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",

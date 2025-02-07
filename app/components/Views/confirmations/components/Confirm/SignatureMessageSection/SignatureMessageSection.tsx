@@ -10,15 +10,17 @@ import { IconVerticalPosition } from '../../UI/ExpandableSection/ExpandableSecti
 import styleSheet from './SignatureMessageSection.styles';
 
 interface SignatureMessageSectionProps {
-  messageCollapsed: ReactNode | string;
+  messageCollapsed?: ReactNode | string;
   messageExpanded: ReactNode;
   copyMessageText: string;
+  collapsedSectionAllowMultiline?: boolean;
 }
 
 const SignatureMessageSection = ({
   messageCollapsed,
   messageExpanded,
   copyMessageText,
+  collapsedSectionAllowMultiline = false,
 }: SignatureMessageSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -27,15 +29,20 @@ const SignatureMessageSection = ({
       collapsedContent={
         <View style={styles.container}>
           <Text style={styles.title}>{strings('confirm.message')}</Text>
-          <View style={styles.message}>
-            {typeof messageCollapsed === 'string' ? (
-              <Text style={styles.description} numberOfLines={1}>
-                {messageCollapsed}
-              </Text>
-            ) : (
-              messageCollapsed
-            )}
-          </View>
+          {messageCollapsed && (
+            <View style={styles.message}>
+              {typeof messageCollapsed === 'string' ? (
+                <Text
+                  style={styles.description}
+                  numberOfLines={collapsedSectionAllowMultiline ? undefined : 1}
+                >
+                  {messageCollapsed}
+                </Text>
+              ) : (
+                messageCollapsed
+              )}
+            </View>
+          )}
         </View>
       }
       expandedContent={

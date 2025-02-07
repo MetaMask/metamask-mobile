@@ -25,7 +25,7 @@ import TransactionBackgroundBottom from '../../../images/transaction-background-
 import LoopingScrollAnimation from './LoopingScrollAnimation';
 import { hexToDecimal } from '../../../util/conversions';
 import useRemainingTime from './useRemainingTime';
-import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import { ThemeColors } from '@metamask/design-tokens';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);

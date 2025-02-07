@@ -40,6 +40,9 @@ import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
+import {
+    UserProfileProperty
+} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -338,27 +341,7 @@ class OptinMetrics extends PureComponent {
       setDataCollectionForMarketing,
     } = this.props;
 
-    // Set marketing consent trait based on user selection
-    const dataCollectionForMarketingTraits = {
-      has_marketing_consent: Boolean(
-        this.props.isDataCollectionForMarketingEnabled,
-      ),
-    };
-
     await metrics.enable();
-
-    // Track the analytics preference event first
-    metrics.trackEvent(
-      metrics
-        .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-        .addProperties({
-          ...dataCollectionForMarketingTraits,
-          is_metrics_opted_in: true,
-          location: 'onboarding_metametrics',
-          updated_after_onboarding: false,
-        })
-        .build(),
-    );
 
     // Handle null case for marketing consent
     if (
@@ -368,36 +351,44 @@ class OptinMetrics extends PureComponent {
       setDataCollectionForMarketing(false);
     }
 
-    InteractionManager.runAfterInteractions(async () => {
-      // consolidate device and user settings traits
-      const consolidatedTraits = {
-        ...dataCollectionForMarketingTraits,
-        is_metrics_opted_in: true,
+    // Track the analytics preference event first
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+        .addProperties({
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean( isDataCollectionForMarketingEnabled ),
+            is_metrics_opted_in: true,
+            location: 'onboarding_metametrics',
+            updated_after_onboarding: false,
+        })
+        .build(),
+    );
+
+    await metrics.addTraitsToUser({
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
-      };
-      await metrics.addTraitsToUser(consolidatedTraits);
-
-      // track onboarding events that were stored before user opted in
-      // only if the user eventually opts in.
-      if (events && events.length) {
-        let delay = 0; // Initialize delay
-        const eventTrackingDelay = 200; // ms delay between each event
-        events.forEach((eventArgs) => {
-          // delay each event to prevent them from
-          // being tracked with the same timestamp
-          // which would cause them to be grouped together
-          // by sentAt time in the Segment dashboard
-          // as precision is only to the milisecond
-          // and loop seems to runs faster than that
-          setTimeout(() => {
-            metrics.trackEvent(...eventArgs);
-          }, delay);
-          delay += eventTrackingDelay;
-        });
-      }
-      this.props.clearOnboardingEvents();
     });
+
+    // track onboarding events that were stored before user opted in
+    // only if the user eventually opts in.
+    if (events && events.length) {
+      let delay = 0; // Initialize delay
+      const eventTrackingDelay = 200; // ms delay between each event
+      events.forEach((eventArgs) => {
+        // delay each event to prevent them from
+        // being tracked with the same timestamp
+        // which would cause them to be grouped together
+        // by sentAt time in the Segment dashboard
+        // as precision is only to the milisecond
+        // and loop seems to runs faster than that
+        setTimeout(() => {
+          metrics.trackEvent(...eventArgs);
+        }, delay);
+        delay += eventTrackingDelay;
+      });
+    }
+    this.props.clearOnboardingEvents();
+
     this.continue();
   };
 
