@@ -1,20 +1,24 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PermittedNetworksInfoSheet from './PermittedNetworksInfoSheet';
 import { strings } from '../../../../../locales/i18n';
 import { PermittedNetworksInfoSheetTestIds } from './PermittedNetworksInfoSheet.constants';
 
-const mockOnCloseBottomSheet = jest.fn();
+const mockHandleClose = jest.fn() as jest.Mock<void, []>;
 
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const MockBottomSheet = ({ children, ref }: any) => {
-      // Assign mock function to ref
+    const MockBottomSheet = ({
+      children,
+      ref,
+    }: {
+      children: React.ReactNode;
+      ref: { current: { onCloseBottomSheet: () => void } | null };
+    }) => {
       if (ref) {
         ref.current = {
-          onCloseBottomSheet: mockOnCloseBottomSheet,
+          onCloseBottomSheet: mockHandleClose,
         };
       }
       return <>{children}</>;

@@ -1,10 +1,8 @@
 import React from 'react';
 import { NavigationProp } from '@react-navigation/native';
-import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PermissionsManager from './PermissionsManager';
 import { strings } from '../../../../../locales/i18n';
-import { PermissionSource } from './PermissionItem/PermissionItem.types';
 import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -15,7 +13,9 @@ const mockSetOptions = jest.fn();
 const mockNavigation = {
   navigate: mockNavigate,
   setOptions: mockSetOptions,
-} as unknown as NavigationProp<any>;
+} as unknown as NavigationProp<{
+  [key: string]: object | undefined;
+}>;
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };

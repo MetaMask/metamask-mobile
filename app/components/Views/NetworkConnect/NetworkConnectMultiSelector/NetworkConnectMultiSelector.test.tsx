@@ -1,11 +1,9 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import NetworkConnectMultiSelector from './NetworkConnectMultiSelector';
 import Engine from '../../../../core/Engine';
-import { strings } from '../../../../../locales/i18n';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import {
