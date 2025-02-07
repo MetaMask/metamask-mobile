@@ -8,35 +8,39 @@ import { IndividualFiatDisplay, TotalFiatDisplay } from './FiatDisplay';
 import { mockNetworkState } from '../../../../util/test/network';
 import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
 
-const mockStateWithTestnet = merge({}, {
-  engine: {
-    backgroundState,
-  },
-}, {
-  engine: {
-    backgroundState: {
-      CurrencyRateController: {
-        currentCurrency: 'USD',
-      },
-      NetworkController: {
-        ...mockNetworkState({
-          chainId: CHAIN_IDS.SEPOLIA,
-          id: 'sepolia',
-          nickname: 'Sepolia',
-          ticker: 'ETH',
-        }),
-      },
+const mockStateWithTestnet = merge(
+  {},
+  {
+    engine: {
+      backgroundState,
     },
   },
-  settings: {
-    showFiatOnTestnets: true,
-  }
-});
+  {
+    engine: {
+      backgroundState: {
+        CurrencyRateController: {
+          currentCurrency: 'USD',
+        },
+        NetworkController: {
+          ...mockNetworkState({
+            chainId: CHAIN_IDS.SEPOLIA,
+            id: 'sepolia',
+            nickname: 'Sepolia',
+            ticker: 'ETH',
+          }),
+        },
+      },
+    },
+    settings: {
+      showFiatOnTestnets: true,
+    },
+  },
+);
 
 const mockStateWithHideFiatOnTestnets = merge({}, mockStateWithTestnet, {
   settings: {
     showFiatOnTestnets: false,
-  }
+  },
 });
 
 describe('FiatDisplay', () => {
@@ -68,23 +72,51 @@ describe('FiatDisplay', () => {
     it.each([
       [[FIAT_UNAVAILABLE, FIAT_UNAVAILABLE], 'Not Available'],
       [[], 'Not Available'],
-      [[new BigNumber(100), new BigNumber(200), FIAT_UNAVAILABLE, new BigNumber(300)], 'Total = $600'],
-      [[new BigNumber(-100), new BigNumber(-200), FIAT_UNAVAILABLE, new BigNumber(-300.2)], 'Total = $600.20'],
-      [[new BigNumber(new BigNumber('987543219876543219876.54321')), new BigNumber(-200), FIAT_UNAVAILABLE, new BigNumber(-300.2)], 'Total = $987,543,219,876,543,219,376.34'],
-    ])('when fiatAmounts is %s it renders %s', async (fiatAmounts, expected) => {
-      const { findByText } = renderWithProvider(
-        <TotalFiatDisplay fiatAmounts={fiatAmounts as FiatAmount[]} />,
-        { state: mockStateWithTestnet },
-      );
+      [
+        [
+          new BigNumber(100),
+          new BigNumber(200),
+          FIAT_UNAVAILABLE,
+          new BigNumber(300),
+        ],
+        'Total = $600',
+      ],
+      [
+        [
+          new BigNumber(-100),
+          new BigNumber(-200),
+          FIAT_UNAVAILABLE,
+          new BigNumber(-300.2),
+        ],
+        'Total = $600.20',
+      ],
+      [
+        [
+          new BigNumber(new BigNumber('987543219876543219876.54321')),
+          new BigNumber(-200),
+          FIAT_UNAVAILABLE,
+          new BigNumber(-300.2),
+        ],
+        'Total = $987,543,219,876,543,219,376.34',
+      ],
+    ])(
+      'when fiatAmounts is %s it renders %s',
+      async (fiatAmounts, expected) => {
+        const { findByText } = renderWithProvider(
+          <TotalFiatDisplay fiatAmounts={fiatAmounts as FiatAmount[]} />,
+          { state: mockStateWithTestnet },
+        );
 
-      expect(await findByText(expected)).toBeTruthy();
-    });
+        expect(await findByText(expected)).toBeTruthy();
+      },
+    );
 
     it('does not render anything if hideFiatForTestnet is true', () => {
       const mockFiatAmounts = [
         new BigNumber(100),
         new BigNumber(200),
-        new BigNumber(300)] as unknown as FiatAmount[];
+        new BigNumber(300),
+      ] as unknown as FiatAmount[];
 
       const { queryByText } = renderWithProvider(
         <TotalFiatDisplay fiatAmounts={mockFiatAmounts} />,
