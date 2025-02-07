@@ -1,4 +1,7 @@
-import { AccountsController } from '@metamask/accounts-controller';
+import {
+  AccountsController,
+  type AccountsControllerMessenger,
+} from '@metamask/accounts-controller';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { accountsControllerInit } from './init';
 import { defaultAccountsControllerState } from './constants';
@@ -18,7 +21,9 @@ jest.mock('@metamask/accounts-controller');
 
 describe('accounts controller init', () => {
   const accountsControllerClassMock = jest.mocked(AccountsController);
-  let initRequestMock: jest.Mocked<ControllerInitRequest>;
+  let initRequestMock: jest.Mocked<
+    ControllerInitRequest<AccountsControllerMessenger>
+  >;
 
   beforeEach(() => {
     jest.resetAllMocks();

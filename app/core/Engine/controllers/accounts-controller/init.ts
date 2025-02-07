@@ -1,9 +1,9 @@
 import {
   AccountsController,
-  AccountsControllerState,
+  type AccountsControllerMessenger,
+  type AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { ControllerInitFunction } from '../../modular-controller.types';
-import { getAccountsControllerMessenger } from '../../messengers/accounts-controller-messenger';
 import { logAccountsControllerCreation } from './utils';
 import { defaultAccountsControllerState } from './constants';
 /**
@@ -13,16 +13,13 @@ import { defaultAccountsControllerState } from './constants';
  * @returns The AccountsController.
  */
 export const accountsControllerInit: ControllerInitFunction<
-  AccountsController
+  AccountsController,
+  AccountsControllerMessenger
 > = (request) => {
-  const { baseControllerMessenger, persistedState } = request;
+  const { controllerMessenger, persistedState } = request;
 
   const accountControllerState = (persistedState.AccountsController ??
     defaultAccountsControllerState) as AccountsControllerState;
-
-  const controllerMessenger = getAccountsControllerMessenger(
-    baseControllerMessenger,
-  );
 
   logAccountsControllerCreation(accountControllerState);
 
