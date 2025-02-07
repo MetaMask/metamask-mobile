@@ -26,7 +26,6 @@ ios/Podfile.lock                                            @MetaMask/mobile-pla
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/core/Engine/messengers/                                 @MetaMask/mobile-platform
 
-
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
