@@ -188,6 +188,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           "marginLeft": 20,
         }
       }
+      testID="staked-ethereum-label"
     >
       Staked Ethereum
     </Text>
@@ -263,6 +264,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               "lineHeight": 22,
             }
           }
+          testID="unstaking-banner"
         >
           Unstaking 0.0010 ETH in progress. Come back in a few days to claim it.
         </Text>
@@ -404,6 +406,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="unstake-button"
       >
         <Text
           accessibilityRole="text"
@@ -443,6 +446,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="stake-more-button"
       >
         <Text
           accessibilityRole="text"
@@ -653,6 +657,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           "marginLeft": 20,
         }
       }
+      testID="staked-ethereum-label"
     >
       Staked Ethereum
     </Text>
@@ -728,6 +733,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
               "lineHeight": 22,
             }
           }
+          testID="unstaking-banner"
         >
           Unstaking 0.0010 ETH in progress. Come back in a few days to claim it.
         </Text>
@@ -869,6 +875,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             "paddingHorizontal": 16,
           }
         }
+        testID="unstake-button"
       >
         <Text
           accessibilityRole="text"
@@ -908,6 +915,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             "paddingHorizontal": 16,
           }
         }
+        testID="stake-more-button"
       >
         <Text
           accessibilityRole="text"

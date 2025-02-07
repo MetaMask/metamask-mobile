@@ -2,15 +2,14 @@ import { getErrorMessage } from '@metamask/utils';
 
 import { notificationsErrors } from '../constants';
 import Engine from '../../../core/Engine';
-import {
-  Notification,
-  mmStorage,
-  getAllUUIDs,
-} from '../../../util/notifications';
-import type { UserStorage } from '@metamask/notification-services-controller/notification-services';
+import { mmStorage, getAllUUIDs } from '../../../util/notifications';
+import type {
+  UserStorage,
+  INotification,
+} from '@metamask/notification-services-controller/notification-services';
 
 export type MarkAsReadNotificationsParam = Pick<
-  Notification,
+  INotification,
   'id' | 'type' | 'isRead'
 >[];
 

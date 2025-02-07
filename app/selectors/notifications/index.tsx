@@ -1,17 +1,19 @@
 import { createSelector } from 'reselect';
-
-import { TRIGGER_TYPES, Notification } from '../../util/notifications';
+import {
+  NotificationServicesControllerState,
+  TRIGGER_TYPES,
+  defaultState,
+  INotification,
+} from '@metamask/notification-services-controller/notification-services';
 
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
 
-type NotificationServicesState =
-  NotificationServicesController.NotificationServicesControllerState;
+type NotificationServicesState = NotificationServicesControllerState;
 
 const selectNotificationServicesControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NotificationServicesController ??
-  NotificationServicesController.defaultState;
+  defaultState;
 
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   selectNotificationServicesControllerState,
@@ -64,14 +66,14 @@ export const getMetamaskNotificationsUnreadCount = createSelector(
   (notificationServicesControllerState: NotificationServicesState) =>
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification: Notification) => !notification.isRead).length,
+    ).filter((notification: INotification) => !notification.isRead).length,
 );
 export const getMetamaskNotificationsReadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification: Notification) => notification.isRead).length,
+    ).filter((notification: INotification) => notification.isRead).length,
 );
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
@@ -79,7 +81,7 @@ export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
     ).filter(
-      (notification: Notification) =>
+      (notification: INotification) =>
         !notification.isRead &&
         notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
     ).length,
