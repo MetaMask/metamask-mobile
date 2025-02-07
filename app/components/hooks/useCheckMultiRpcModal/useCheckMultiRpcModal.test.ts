@@ -6,7 +6,7 @@ import { setMultiRpcMigrationModalOpen } from '../../../actions/security';
 import Routes from '../../../constants/navigation/Routes';
 import { isObject } from '@metamask/utils';
 import { selectShowMultiRpcModal } from '../../../selectors/preferencesController';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 // Mock the necessary modules
 jest.mock('react-redux', () => ({
@@ -27,7 +27,7 @@ jest.mock('../../../selectors/preferencesController', () => ({
 }));
 
 jest.mock('../../../selectors/networkController', () => ({
-  selectNetworkConfigurations: jest.fn(),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
 }));
 
 describe('useCheckMultiRpcModal', () => {
@@ -41,7 +41,7 @@ describe('useCheckMultiRpcModal', () => {
       switch (selector) {
         case selectShowMultiRpcModal:
           return true;
-        case selectNetworkConfigurations:
+        case selectEvmNetworkConfigurationsByChainId:
           return {
             network1: { rpcEndpoints: ['https://rpc1', 'https://rpc2'] },
             network2: { rpcEndpoints: ['https://rpc3'] },
@@ -75,7 +75,7 @@ describe('useCheckMultiRpcModal', () => {
       switch (selector) {
         case selectShowMultiRpcModal:
           return false;
-        case selectNetworkConfigurations:
+        case selectEvmNetworkConfigurationsByChainId:
           return {
             network1: { rpcEndpoints: ['https://rpc1'] },
             network2: { rpcEndpoints: ['https://rpc3'] },

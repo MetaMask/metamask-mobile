@@ -55,6 +55,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "LoggingController": {
         "logs": {},
       },
+      "MultichainNetworkController": {
+        "multichainNetworkConfigurationsByChainId": {},
+        "multichainNetworksMetadata": {},
+        "nonEvmSelected": false,
+        "selectedMultichainNetworkChainId": "solana:mainnet",
+      },
       "NetworkController": {
         "networkConfigurationsByChainId": {
           "0x1": {

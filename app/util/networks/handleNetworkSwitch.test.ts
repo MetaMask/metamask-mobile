@@ -33,6 +33,12 @@ function setupGetStateMock() {
       ({
         engine: {
           backgroundState: {
+            MultichainNetworkController: {
+              nonEvmSelected: false,
+              selectedMultichainNetworkChainId: 'solana:mainnet',
+              multichainNetworksMetadata: {},
+              multichainNetworkConfigurationsByChainId: {},
+            },
             NetworkController: {
               selectedNetworkClientId: 'networkId1',
               networkConfigurationsByChainId: {
@@ -143,7 +149,7 @@ describe('useHandleNetworkSwitch', () => {
 
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalledWith('networkId1');
+    ).toBeCalledWith({ evmClientId: 'networkId1' });
     expect(
       mockEngine.context.NetworkController.setProviderType,
     ).not.toBeCalled();

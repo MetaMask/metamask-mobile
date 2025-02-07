@@ -17,6 +17,12 @@ describe('useCurrencyRatePolling', () => {
     const state = {
       engine: {
         backgroundState: {
+          MultichainNetworkController: {
+            nonEvmSelected: false,
+            selectedMultichainNetworkChainId: 'solana:mainnet',
+            multichainNetworksMetadata: {},
+            multichainNetworkConfigurationsByChainId: {},
+          },
           NetworkController: {
             selectedNetworkClientId: 'selectedNetworkClientId',
             networkConfigurationsByChainId: {
@@ -61,6 +67,12 @@ describe('useCurrencyRatePolling', () => {
     const state = {
       engine: {
         backgroundState: {
+          MultichainNetworkController: {
+            nonEvmSelected: false,
+            selectedMultichainNetworkChainId: 'solana:mainnet',
+            multichainNetworksMetadata: {},
+            multichainNetworkConfigurationsByChainId: {},
+          },
           NetworkController: {
             selectedNetworkClientId: 'selectedNetworkClientId',
             networkConfigurationsByChainId: {

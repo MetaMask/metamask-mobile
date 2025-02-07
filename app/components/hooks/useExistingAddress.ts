@@ -1,6 +1,5 @@
 import { toChecksumAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
 
 import { selectInternalAccounts } from '../../selectors/accountsController';
 import { toLowerCaseEquals } from '../../util/general';

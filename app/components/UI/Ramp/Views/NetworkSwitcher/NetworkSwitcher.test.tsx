@@ -285,53 +285,35 @@ describe('NetworkSwitcher View', () => {
     fireEvent.press(lineaNetworkText);
 
     expect(
-      (Engine.context.NetworkController.setActiveNetwork as jest.Mock).mock
-        .calls,
-    ).toMatchInlineSnapshot(`
-      [
-        [
-          "linea-mainnet",
-        ],
-      ]
-    `);
-    /*  expect(
       (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
         .mock.calls,
     ).toMatchInlineSnapshot(`
       [
         [
-          "linea-mainnet",
+          {
+            "evmClientId": "linea-mainnet",
+          },
         ],
       ]
-    `); */
+    `);
 
     jest.clearAllMocks();
     render(NetworkSwitcher);
     const polygonNetworkTest = screen.getByText('Polygon Mainnet');
     fireEvent.press(polygonNetworkTest);
-    expect(
-      (Engine.context.NetworkController.setActiveNetwork as jest.Mock).mock
-        .calls,
-    ).toMatchInlineSnapshot(`
-      [
-        [
-          "networkId1",
-        ],
-      ]
-    `);
 
-    /*
-     expect(
+    expect(
       (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
         .mock.calls,
     ).toMatchInlineSnapshot(`
       [
         [
-          "networkId1",
+          {
+            "evmClientId": "networkId1"
+          },
         ],
       ]
     `);
-    */
   });
 
   it('renders correctly with errors', async () => {

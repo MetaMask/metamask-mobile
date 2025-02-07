@@ -107,8 +107,8 @@ describe('ClaimBanner', () => {
     fireEvent.press(claimButton);
 
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
-    ).toHaveBeenCalledWith('mainnet');
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).toHaveBeenCalledWith({ evmClientId: 'mainnet' });
   });
 
   it('claim button is disabled on subsequent presses', async () => {
@@ -123,7 +123,7 @@ describe('ClaimBanner', () => {
 
     expect(claimButton.props.disabled).toBe(true);
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();
     expect(mockAttemptPoolStakedClaimTransaction).toHaveBeenCalledTimes(1);
   });

@@ -30,6 +30,7 @@ import {
   selectSelectedInternalAccountFormattedAddress,
 } from './accountsController';
 import { selectChainId } from './networkController';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 const MOCK_CHAIN_ID = '0x1';
 const MOCK_CHAIN_ID_2 = '0x2';
@@ -107,6 +108,12 @@ jest.mock('../core/Engine', () => ({
         },
       },
     } as Partial<NetworkController['state']>,
+    MultichainNetworkController: {
+      nonEvmSelected: false,
+      selectedMultichainNetworkChainId: 'solana:mainnet',
+      multichainNetworksMetadata: {},
+      multichainNetworkConfigurationsByChainId: {},
+    } as Partial<MultichainNetworkController['state']>,
     AccountsController: {
       internalAccounts: {
         accounts: {
@@ -232,6 +239,12 @@ describe('selectAccountBalanceByChainId', () => {
               },
             },
           } as Partial<NetworkController['state']>,
+          MultichainNetworkController: {
+            nonEvmSelected: false,
+            selectedMultichainNetworkChainId: 'solana:mainnet',
+            multichainNetworksMetadata: {},
+            multichainNetworkConfigurationsByChainId: {},
+          } as Partial<MultichainNetworkController['state']>,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           AccountTrackerController: {
             accountsByChainId: {

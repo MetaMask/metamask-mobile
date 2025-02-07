@@ -422,7 +422,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       });
 
     const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.NetworkController,
+      Engine.context.MultichainNetworkController,
       'setActiveNetwork',
     );
     const spyOnUpdateExchangeRate = jest.spyOn(
@@ -457,7 +457,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     );
 
     const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.NetworkController,
+      Engine.context.MultichainNetworkController,
       'setActiveNetwork',
     );
     const spyOnUpdateExchangeRate = jest.spyOn(

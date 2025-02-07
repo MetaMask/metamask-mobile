@@ -592,6 +592,80 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View>
+                            <TouchableOpacity
+                              disabled={true}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "opacity": 0.5,
+                                  "paddingVertical": 12,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 0,
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <Image
+                                  source={1}
+                                  style={
+                                    {
+                                      "borderRadius": 10,
+                                      "height": 20,
+                                      "marginRight": 16,
+                                      "marginTop": 2,
+                                      "width": 20,
+                                    }
+                                  }
+                                />
+                                <View>
+                                  <Text
+                                    style={
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                      }
+                                    }
+                                  >
+                                    Solana
+                                  </Text>
+                                </View>
+                              </View>
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  [
+                                    {
+                                      "color": "#141618",
+                                      "fontSize": 20,
+                                    },
+                                    {
+                                      "marginLeft": 8,
+                                    },
+                                    {
+                                      "fontFamily": "FontAwesome",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
                           <Text
                             style={
                               {

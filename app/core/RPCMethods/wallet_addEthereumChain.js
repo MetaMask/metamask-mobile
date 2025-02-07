@@ -5,7 +5,7 @@ import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
 } from '../../selectors/networkController';
 import { store } from '../../store';
@@ -52,6 +52,7 @@ const wallet_addEthereumChain = async ({
     ApprovalController,
     PermissionController,
     SelectedNetworkController,
+    MultichainNetworkController,
   } = Engine.context;
 
   const { origin } = req;
@@ -84,7 +85,7 @@ const wallet_addEthereumChain = async ({
     );
   if (existingEntry) {
     const [chainId, networkConfiguration] = existingEntry;
-    const currentChainId = selectChainId(store.getState());
+    const currentChainId = selectEvmChainId(store.getState());
 
     // A network for this chain id already exists.
     // Update it with any new information.
@@ -146,6 +147,7 @@ const wallet_addEthereumChain = async ({
         NetworkController,
         PermissionController,
         SelectedNetworkController,
+        MultichainNetworkController,
       },
       requestUserApproval,
       analytics,
@@ -259,6 +261,7 @@ const wallet_addEthereumChain = async ({
         NetworkController,
         PermissionController,
         SelectedNetworkController,
+        MultichainNetworkController,
       },
       requestUserApproval,
       analytics,

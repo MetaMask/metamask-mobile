@@ -4,6 +4,7 @@ import AssetPill from './AssetPill';
 import { AssetType, AssetIdentifier } from '../types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockNetworkState } from '../../../../util/test/network';
+import { RootState } from '../../../../reducers';
 
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork',
@@ -24,9 +25,15 @@ const STATE_MOCK = {
           chainId: CHAIN_ID_MOCK,
         }),
       },
+      MultichainNetworkController: {
+        nonEvmSelected: false,
+        selectedMultichainNetworkChainId: 'solana:mainnet',
+        multichainNetworksMetadata: {},
+        multichainNetworkConfigurationsByChainId: {},
+      },
     },
   },
-};
+} as unknown as RootState;
 
 describe('AssetPill', () => {
   it('renders correctly for native assets', () => {

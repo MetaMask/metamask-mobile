@@ -51,6 +51,12 @@ const initialState = {
           chainId: '1',
         },
       },
+      MultichainNetworkController: {
+        nonEvmSelected: false,
+        selectedMultichainNetworkChainId: 'solana:mainnet',
+        multichainNetworksMetadata: {},
+        multichainNetworkConfigurationsByChainId: {},
+      },
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
         internalAccounts: {

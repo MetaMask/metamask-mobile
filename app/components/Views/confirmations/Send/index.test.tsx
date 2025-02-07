@@ -120,6 +120,12 @@ const initialState: DeepPartial<RootState> = {
         estimatedGasFeeTimeBounds: {},
         gasEstimateType: 'none',
       },
+      MultichainNetworkController: {
+        nonEvmSelected: false,
+        selectedMultichainNetworkChainId: 'solana:mainnet',
+        multichainNetworksMetadata: {},
+        multichainNetworkConfigurationsByChainId: {},
+      },
     },
   },
 };

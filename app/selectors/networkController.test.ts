@@ -53,6 +53,12 @@ describe('networkSelectors', () => {
             'custom-network': { status: 'active' },
           },
         },
+        MultichainNetworkController: {
+          nonEvmSelected: false,
+          selectedMultichainNetworkChainId: 'solana:mainnet',
+          multichainNetworksMetadata: {},
+          multichainNetworkConfigurationsByChainId: {},
+        },
       },
     },
   } as unknown as RootState;

@@ -26,6 +26,12 @@ describe('useTokenBalancesPolling', () => {
         TokenBalancesController: {
           tokenBalances: {},
         },
+        MultichainNetworkController: {
+          nonEvmSelected: false,
+          selectedMultichainNetworkChainId: 'solana:mainnet',
+          multichainNetworksMetadata: {},
+          multichainNetworkConfigurationsByChainId: {},
+        },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
           networkConfigurationsByChainId: {
@@ -168,6 +174,12 @@ describe('useTokenBalancesPolling', () => {
                     ],
                   },
                 },
+              },
+              MultichainNetworkController: {
+                nonEvmSelected: false,
+                selectedMultichainNetworkChainId: 'solana:mainnet',
+                multichainNetworksMetadata: {},
+                multichainNetworkConfigurationsByChainId: {},
               },
             },
           },

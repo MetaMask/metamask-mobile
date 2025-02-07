@@ -46,6 +46,12 @@ const mockInitialState = {
         selectedAddress: MOCK_ADDRESS_1,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      MultichainNetworkController: {
+        nonEvmSelected: false,
+        selectedMultichainNetworkChainId: 'solana:mainnet',
+        multichainNetworksMetadata: {},
+        multichainNetworkConfigurationsByChainId: {},
+      },
     },
   },
 };
