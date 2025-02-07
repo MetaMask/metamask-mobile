@@ -5,7 +5,14 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { View, Alert, BackHandler, ImageSourcePropType, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Alert,
+  BackHandler,
+  ImageSourcePropType,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
@@ -71,7 +78,6 @@ import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
-import { isMultichainVersion1Enabled } from '../../../util/networks';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
@@ -602,14 +608,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
 
   const checkTabPermissions = useCallback(() => {
-    if (
-      !(
-        isMultichainVersion1Enabled &&
-        isFocused &&
-        !isInTabsView &&
-        isTabActive
-      )
-    ) {
+    if (!(isFocused && !isInTabsView && isTabActive)) {
       return;
     }
     if (!resolvedUrlRef.current) return;
@@ -1307,10 +1306,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     <ErrorBoundary navigation={navigation} view="BrowserTab">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.wrapper}
+        style={[styles.wrapper, !isTabActive && styles.hide]}
       >
         <View
-          style={[styles.wrapper, !isTabActive && styles.hide]}
+          style={styles.wrapper}
           {...(Device.isAndroid() ? { collapsable: false } : {})}
         >
           <BrowserUrlBar
@@ -1359,7 +1358,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                     style={styles.webview}
                     onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
                     onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
-                    onLoadProgress={handleWebviewNavigationChange(OnLoadProgress)}
+                    onLoadProgress={handleWebviewNavigationChange(
+                      OnLoadProgress,
+                    )}
                     onNavigationStateChange={handleOnNavigationStateChange}
                     onMessage={onMessage}
                     onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}

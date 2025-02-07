@@ -1,29 +1,36 @@
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
   securityAlertResponse,
   typedSignV1ConfirmationState,
+  stakingDepositConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
-import Confirm from './index';
+// eslint-disable-next-line import/no-namespace
+import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
 
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
+import Confirm from './index';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
+    navigate: jest.fn(),
+    addListener: jest.fn(),
+    dispatch: jest.fn(),
+    goBack: jest.fn(),
   }),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
+jest.doMock('react-native-safe-area-context', () => {
+  const actual = jest.requireActual('react-native-safe-area-context');
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { width: 0, height: 0, x: 0, y: 0 };
+  
   return {
+    ...actual,
     SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
     SafeAreaConsumer: jest
       .fn()
@@ -58,12 +65,26 @@ jest.mock('react-native-gzip', () => ({
 }));
 
 describe('Confirm', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
-    mockGoBack.mockClear();
+  it.only('renders flat confirmation', async () => {
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(getByTestId('flat-confirmation-container')).toBeDefined();
   });
 
-  it('should render correct information for personal sign', async () => {
+  it('renders modal confirmation', async () => {
+    const { getByTestId } = renderWithProvider(
+      <SafeAreaProvider>
+        <Confirm />
+      </SafeAreaProvider>,
+      {
+        state: typedSignV1ConfirmationState,
+      },
+    );
+    expect(getByTestId('modal-confirmation-container')).toBeDefined();
+  });
+
+  it('renders correct information for personal sign', async () => {
     const { getAllByRole, getByText } = renderWithProvider(
       <SafeAreaProvider>
         <Confirm />
@@ -84,12 +105,15 @@ describe('Confirm', () => {
   });
 
   it('should render correct information for typed sign v1', async () => {
-    const { getAllByRole, getAllByText, getByText, queryByText } = renderWithProvider(
-      <SafeAreaProvider>
-        <Confirm />
-      </SafeAreaProvider>, {
-        state: typedSignV1ConfirmationState,
-      });
+    const { getAllByRole, getAllByText, getByText, queryByText } =
+      renderWithProvider(
+        <SafeAreaProvider>
+          <Confirm />
+        </SafeAreaProvider>,
+        {
+          state: typedSignV1ConfirmationState,
+        },
+      );
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('Request from')).toBeDefined();
     expect(getByText('metamask.github.io')).toBeDefined();
@@ -99,17 +123,32 @@ describe('Confirm', () => {
     expect(queryByText('This is a deceptive request')).toBeNull();
   });
 
-  it('should render blockaid banner if confirmation has blockaid error response', async () => {
+  it('renders blockaid banner if confirmation has blockaid error responsee', async () => {
     const { getByText } = renderWithProvider(
       <SafeAreaProvider>
-          <Confirm />
-        </SafeAreaProvider>, {
+        <Confirm />
+      </SafeAreaProvider>,
+      {
         state: {
           ...typedSignV1ConfirmationState,
           signatureRequest: { securityAlertResponse },
         },
-      });
+      },
+    );
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
+  });
+
+  it('returns null if re-design is not enabled for confirmation', () => {
+    jest
+      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+      .mockReturnValue({ isRedesignedEnabled: false });
+    const { queryByText } = renderWithProvider(<Confirm />, {
+      state: {
+        ...typedSignV1ConfirmationState,
+        signatureRequest: { securityAlertResponse },
+      },
+    });
+    expect(queryByText('Signature request')).toBeNull();
   });
 });

@@ -14,6 +14,12 @@ class PageSections {
     );
   }
 
+  get SiweSigningAccountInfoSection() {
+    return Matchers.getElementByID(
+      ConfirmationPageSectionsSelectorIDs.SIWE_SIGNING_ACCOUNT_INFO_SECTION,
+    );
+  }
+
   get MessageSection() {
     return Matchers.getElementByID(
       ConfirmationPageSectionsSelectorIDs.MESSAGE_SECTION,

@@ -9,13 +9,16 @@ import {
 import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { ResultType } from '../../../constants/signatures';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
+import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
+import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
 
-const Footer = () => {
+export const Footer = () => {
   const { onConfirm, onReject } = useConfirmActions();
+  const { isQRSigningInProgress, needsCameraPermission } =
+    useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
 
   const { styles } = useStyles(styleSheet, {});
@@ -31,7 +34,10 @@ const Footer = () => {
     {
       variant: ButtonVariants.Primary,
       isDanger: securityAlertResponse?.result_type === ResultType.Malicious,
-      label: strings('confirm.confirm'),
+      isDisabled: needsCameraPermission,
+      label: isQRSigningInProgress
+        ? strings('confirm.qr_get_sign')
+        : strings('confirm.confirm'),
       size: ButtonSize.Lg,
       onPress: onConfirm,
       testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
@@ -48,4 +54,3 @@ const Footer = () => {
   );
 };
 
-export default Footer;
