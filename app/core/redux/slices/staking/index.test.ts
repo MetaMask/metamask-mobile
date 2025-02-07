@@ -1,10 +1,8 @@
 import reducer, {
   setPooledStakes,
   setVaultData,
-  setStakingEligibility,
   selectPooledStakesData,
   selectVaultData,
-  selectStakingEligibility,
   setVaultApys,
   setVaultApyAverages,
   selectVaultApys,
@@ -91,25 +89,6 @@ describe('PooledStaking', () => {
     });
   });
 
-  describe('when setting staking eligibility', () => {
-    it('updates eligibility to true', () => {
-      const state = reducer(initialState, setStakingEligibility(true));
-
-      expect(state.isEligible).toEqual(true);
-    });
-
-    it('updates eligibility to false', () => {
-      const stateWithEligibility = {
-        ...initialState,
-        isEligible: true,
-      };
-
-      const state = reducer(stateWithEligibility, setStakingEligibility(false));
-
-      expect(state.isEligible).toEqual(false);
-    });
-  });
-
   describe('when setting vault apys', () => {
     it('updates vaultApys', () => {
       const state = reducer(
@@ -150,16 +129,6 @@ describe('PooledStaking', () => {
 
         expect(result).toEqual({
           vaultData: MOCK_GET_VAULT_RESPONSE,
-        });
-      });
-    });
-
-    describe('when selecting staking eligibility', () => {
-      it('returns eligibility status', () => {
-        const result = selectStakingEligibility(mockRootState as RootState);
-
-        expect(result).toEqual({
-          isEligible: true,
         });
       });
     });

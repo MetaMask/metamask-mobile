@@ -51,9 +51,6 @@ const slice = createSlice({
     setVaultApyAverages: (state, action: PayloadAction<VaultApyAverages>) => {
       state.vaultApyAverages = action.payload;
     },
-    setStakingEligibility: (state, action: PayloadAction<boolean>) => {
-      state.isEligible = action.payload;
-    },
   },
 });
 
@@ -64,7 +61,6 @@ export const {
   setVaultData,
   setVaultApys,
   setVaultApyAverages,
-  setStakingEligibility,
 } = actions;
 
 // Selectors
@@ -96,12 +92,5 @@ export const selectVaultApyAverages = createSelector(
   selectPooledStakingState,
   (stakingState) => ({
     vaultApyAverages: stakingState.vaultApyAverages,
-  }),
-);
-
-export const selectStakingEligibility = createSelector(
-  selectPooledStakingState,
-  (stakingState) => ({
-    isEligible: stakingState.isEligible,
   }),
 );
