@@ -176,19 +176,6 @@ const initialState = {
           },
         },
       },
-      TokensController: {
-        allTokens: {
-          '0x1': {
-            [CURRENT_ACCOUNT]: [
-              {
-                address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
-                symbol: 'LINK',
-                decimals: 18,
-              },
-            ],
-          },
-        },
-      },
     },
   },
   settings: {
