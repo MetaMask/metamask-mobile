@@ -14,6 +14,7 @@ import {
   defaultGanacheOptions,
 } from '../../../fixtures/fixture-helper.js';
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 
 const SIGNATURE_LIST = [
   {
@@ -49,6 +50,10 @@ const SIGNATURE_LIST = [
 ];
 
 describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
+  const testSpecificMock = {
+    GET: [mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations],
+  };
+
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -68,6 +73,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
             .build(),
           restartDevice: true,
           ganacheOptions: defaultGanacheOptions,
+          testSpecificMock,
         },
         async () => {
           await loginToApp();
