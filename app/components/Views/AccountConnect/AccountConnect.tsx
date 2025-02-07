@@ -45,7 +45,6 @@ import { Account, useAccounts } from '../../hooks/useAccounts';
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
 import { ImageURISource, ImageSourcePropType, StyleSheet } from 'react-native';
-import URLParse from 'url-parse';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
@@ -132,8 +131,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { toastRef } = useContext(ToastContext);
 
-  // get origin from rpc call
-  const inappBrowserOrigin = hostInfo.metadata.origin;
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
@@ -178,7 +175,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       dappHostname = title;
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
-      dappHostname = inappBrowserOrigin;
+      dappHostname = channelIdOrHostname;
     } else {
       title = strings('sdk.unknown');
       setIsSdkUrlUnknown(true);
@@ -187,7 +184,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     return { domainTitle: title, hostname: dappHostname };
   }, [
     isOriginWalletConnect,
-    inappBrowserOrigin,
     isOriginMMSDKRemoteConn,
     isChannelId,
     dappUrl,
@@ -199,7 +195,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? prefixUrlWithProtocol(getHost(hostname))
       : domainTitle;
 
-  const { chainId } = useNetworkInfo(hostname);
+  const { chainId } = useNetworkInfo(urlWithProtocol);
 
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>(() => {
     // Get all enabled network chain IDs from networkConfigurations
@@ -242,7 +238,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     try {
       hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-        new URL(hostname).hostname,
+        new URL(urlWithProtocol).hostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );
@@ -252,7 +248,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     if (hasPermittedChains) {
       Engine.context.PermissionController.updateCaveat(
-        new URL(hostname).hostname,
+        new URL(urlWithProtocol).hostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
         chainsToPermit,
@@ -260,7 +256,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     } else {
       Engine.context.PermissionController.grantPermissionsIncremental({
         subject: {
-          origin: new URL(hostname).hostname,
+          origin: new URL(urlWithProtocol).hostname,
         },
         approvedPermissions: {
           [PermissionKeys.permittedChains]: {
@@ -274,7 +270,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         },
       });
     }
-  }, [selectedChainIds, chainId, hostname]);
+  }, [selectedChainIds, chainId, urlWithProtocol]);
 
   const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
@@ -300,7 +296,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
-    inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
+    channelIdOrHostname || (!isChannelId ? channelIdOrHostname : ''),
   );
 
   const actualIcon = useMemo(() => {
@@ -324,10 +320,10 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(hostname) as URLParse<string>).protocol === 'https:'
+      (getUrlObj(new URL(urlWithProtocol).hostname)).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
-    [hostname],
+    [urlWithProtocol],
   );
 
   const eventSource = useOriginSource({ origin: channelIdOrHostname });
@@ -424,8 +420,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   const triggerDappViewedEvent = useCallback(
     (numberOfConnectedAccounts: number) =>
       // Track dapp viewed event
-      trackDappViewedEvent({ hostname, numberOfConnectedAccounts }),
-    [hostname],
+      trackDappViewedEvent({ hostname: new URL(urlWithProtocol).hostname, numberOfConnectedAccounts }),
+    [urlWithProtocol],
   );
 
   const handleConnect = useCallback(async () => {
@@ -637,12 +633,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     const ensName = ensByAccountAddress[selectedAddress];
     const defaultSelectedAccount: Account | undefined = selectedAccount
       ? {
-          ...selectedAccount,
-          name:
-            isDefaultAccountName(selectedAccount.name) && ensName
-              ? ensName
-              : selectedAccount.name,
-        }
+        ...selectedAccount,
+        name:
+          isDefaultAccountName(selectedAccount.name) && ensName
+            ? ensName
+            : selectedAccount.name,
+      }
       : undefined;
     return (
       <AccountConnectSingle
@@ -739,7 +735,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           setScreen(AccountConnectScreens.SingleConnect);
         }}
         connection={sdkConnection}
-        hostname={hostname}
+        hostname={new URL(urlWithProtocol).hostname}
         onPrimaryActionButtonPress={() => {
           setConfirmedAddresses(selectedAddresses);
           setScreen(AccountConnectScreens.SingleConnect);
@@ -757,7 +753,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       secureIcon,
       urlWithProtocol,
       sdkConnection,
-      hostname,
     ],
   );
 
