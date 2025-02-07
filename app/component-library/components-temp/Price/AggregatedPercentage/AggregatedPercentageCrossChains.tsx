@@ -17,13 +17,7 @@ import {
   TokensWithBalances,
 } from '../../../../components/hooks/useGetFormattedTokensPerChain';
 import { getFormattedAmountChange, getPercentageTextColor } from './utils';
-
-export interface AggregatedPercentageProps {
-  ethFiat: number;
-  tokenFiat: number;
-  tokenFiat1dAgo: number;
-  ethFiat1dAgo: number;
-}
+import { AggregatedPercentageCrossChainsProps } from './AggregatedPercentageCrossChains.types';
 
 export const getCalculatedTokenAmount1dAgo = (
   tokenFiatBalance: number,
@@ -40,16 +34,7 @@ const AggregatedPercentageCrossChains = ({
   privacyMode = false,
   totalFiatCrossChains,
   tokenFiatBalancesCrossChains,
-}: {
-  privacyMode?: boolean;
-  totalFiatCrossChains: number;
-  tokenFiatBalancesCrossChains: {
-    chainId: string;
-    nativeFiatValue: number;
-    tokenFiatBalances: number[];
-    tokensWithBalances: TokensWithBalances[];
-  }[];
-}) => {
+}: AggregatedPercentageCrossChainsProps) => {
   const crossChainMarketData: MarketDataMapping = useSelector(
     selectTokenMarketData,
   );
