@@ -247,7 +247,7 @@ const WalletActions = () => {
 
   const goToPortfolioBridge = useGoToBridge('TabBar');
 
-  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true' 
+  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true'
     ? handleBridgeNavigation
     : goToPortfolioBridge;
 

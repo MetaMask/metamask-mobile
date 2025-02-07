@@ -188,7 +188,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const goToPortfolioBridge = useGoToBridge('TokenDetails');
 
-  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true' 
+  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true'
     ? handleBridgeNavigation
     : goToPortfolioBridge;
 

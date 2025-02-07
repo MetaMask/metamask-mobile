@@ -31,6 +31,6 @@ const BridgeView = () => {
       </View>
     </ScreenView>
   );
-}
+};
 
 export default BridgeView;
