@@ -3,7 +3,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import Device from '../../../util/device';
 import ScreenView from '../../Base/ScreenView';
 import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text';

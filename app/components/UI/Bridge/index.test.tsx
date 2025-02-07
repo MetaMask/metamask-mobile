@@ -4,7 +4,6 @@ import renderWithProvider, {
 } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
 import BridgeView from './';
 
 jest.mock('@react-navigation/native', () => {

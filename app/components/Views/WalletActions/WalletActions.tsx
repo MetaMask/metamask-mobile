@@ -216,36 +216,40 @@ const WalletActions = () => {
     createEventBuilder,
   ]);
 
+  const handleBridgeNavigation = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourcePage: 'MainView',
+        },
+      });
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Bridge',
+          tokenSymbol: '',
+          location: 'TabBar',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    chainId,
+    createEventBuilder,
+  ]);
+
+  const goToPortfolioBridge = useGoToBridge('TabBar');
+
   const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true' 
-    ? useCallback(() => {
-        closeBottomSheetAndNavigate(() => {
-          navigate('Bridge', {
-            screen: 'BridgeView',
-            params: {
-              sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-              sourcePage: 'MainView',
-            },
-          });
-        });
-    
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-            .addProperties({
-              text: 'Bridge',
-              tokenSymbol: '',
-              location: 'TabBar',
-              chain_id: getDecimalChainId(chainId),
-            })
-            .build(),
-        );
-      }, [
-        closeBottomSheetAndNavigate,
-        navigate,
-        trackEvent,
-        chainId,
-        createEventBuilder,
-      ])
-    : useGoToBridge('TabBar');
+    ? handleBridgeNavigation
+    : goToPortfolioBridge;
 
   const sendIconStyle = useMemo(
     () => ({

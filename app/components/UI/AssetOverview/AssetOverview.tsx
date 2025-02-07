@@ -186,9 +186,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     });
   }, [navigation, asset.address, asset.chainId]);
 
+  const goToPortfolioBridge = useGoToBridge('TokenDetails');
+
   const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true' 
     ? handleBridgeNavigation
-    : useGoToBridge('TokenDetails');
+    : goToPortfolioBridge;
 
   const onSend = async () => {
     if (isPortfolioViewEnabled()) {
