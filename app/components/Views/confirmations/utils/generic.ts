@@ -1,4 +1,5 @@
 import Logger from '../../../../util/Logger';
+import { TokenI } from '../../../UI/Tokens/types';
 
 export const getHostFromUrl = (url: string) => {
   if (!url) {
@@ -11,3 +12,5 @@ export const getHostFromUrl = (url: string) => {
   }
   return;
 };
+
+export const isNativeToken = (selectedAsset: TokenI) => selectedAsset.isNative || selectedAsset.isETH;
