@@ -1,7 +1,9 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import StakeInputView from './StakeInputView';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
@@ -18,6 +20,9 @@ import {
   STAKE_INPUT_VIEW_ACTIONS,
   StakeInputViewProps,
 } from './StakeInputView.types';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../../../reducers';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -136,6 +141,16 @@ jest.mock('../../hooks/useVaultData', () => ({
   }),
 }));
 
+const mockInitialState: DeepPartial<RootState> = {
+  settings: {},
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
+  },
+};
+
 describe('StakeInputView', () => {
   const baseProps: StakeInputViewProps = {
     route: {
@@ -148,16 +163,19 @@ describe('StakeInputView', () => {
     },
   };
 
+  const renderComponent = () =>
+    renderWithProvider(<StakeInputView {...baseProps} />, {
+      state: mockInitialState,
+    });
+
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(<StakeInputView {...baseProps} />);
+    const { toJSON } = renderComponent();
     expect(toJSON()).toMatchSnapshot();
   });
 
   describe('when values are entered in the keypad', () => {
     it('updates ETH and fiat values', () => {
-      const { toJSON, getByText } = renderWithProvider(
-        <StakeInputView {...baseProps} />,
-      );
+      const { toJSON, getByText } = renderComponent();
 
       expect(toJSON()).toMatchSnapshot();
 
@@ -169,9 +187,7 @@ describe('StakeInputView', () => {
 
   describe('currency toggle functionality', () => {
     it('switches between ETH and fiat correctly', () => {
-      const { getByText } = renderWithProvider(
-        <StakeInputView {...baseProps} />,
-      );
+      const { getByText } = renderComponent();
 
       expect(getByText('ETH')).toBeTruthy();
       fireEvent.press(getByText('0 USD'));
@@ -182,9 +198,7 @@ describe('StakeInputView', () => {
 
   describe('when calculating rewards', () => {
     it('calculates estimated annual rewards based on input', () => {
-      const { getByText } = renderWithProvider(
-        <StakeInputView {...baseProps} />,
-      );
+      const { getByText } = renderComponent();
 
       fireEvent.press(getByText('2'));
 
@@ -194,9 +208,7 @@ describe('StakeInputView', () => {
 
   describe('quick amount buttons', () => {
     it('handles 25% quick amount button press correctly', () => {
-      const { getByText } = renderWithProvider(
-        <StakeInputView {...baseProps} />,
-      );
+      const { getByText } = renderComponent();
 
       fireEvent.press(getByText('25%'));
 
@@ -206,35 +218,27 @@ describe('StakeInputView', () => {
 
   describe('stake button states', () => {
     it('displays `Enter amount` if input is 0', () => {
-      const { getByText } = renderWithProvider(
-        <StakeInputView {...baseProps} />,
-      );
+      const { getByText } = renderComponent();
 
       expect(getByText('Enter amount')).toBeTruthy();
     });
 
     it('displays `Review` on stake button if input is valid', () => {
-      const { getByText } = renderWithProvider(
-        <StakeInputView {...baseProps} />,
-      );
+      const { getByText } = renderComponent();
 
       fireEvent.press(getByText('1'));
       expect(getByText('Review')).toBeTruthy();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
-      const { getByText, queryAllByText } = renderWithProvider(
-        <StakeInputView {...baseProps} />,
-      );
+      const { getByText, queryAllByText } = renderComponent();
 
       fireEvent.press(getByText('4'));
       expect(queryAllByText('Not enough ETH')).toHaveLength(2);
     });
 
     it('navigates to Learn more modal when learn icon is pressed', () => {
-      const { getByLabelText } = renderWithProvider(
-        <StakeInputView {...baseProps} />,
-      );
+      const { getByLabelText } = renderComponent();
       fireEvent.press(getByLabelText('Learn More'));
       expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
@@ -249,9 +253,7 @@ describe('StakeInputView', () => {
         refreshGasValues: jest.fn(),
       });
 
-      const { getByText } = renderWithProvider(
-        <StakeInputView {...baseProps} />,
-      );
+      const { getByText } = renderComponent();
 
       fireEvent.press(getByText('25%'));
 

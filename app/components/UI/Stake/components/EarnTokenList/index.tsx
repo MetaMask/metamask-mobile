@@ -43,7 +43,6 @@ import {
 import EarnTokenListItem from '../EarnTokenListItem';
 import Engine from '../../../../../core/Engine';
 import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
-import { getNetworkClientIdByChainId } from '../../utils/network';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
@@ -176,7 +175,11 @@ const EarnTokenList = () => {
   }, [getTokenBalance, isEligibleToStake, isLoadingStakingEligibility, tokens]);
 
   const handleRedirectToInputScreen = async (token: TokenI) => {
-    const networkClientId = getNetworkClientIdByChainId(token.chainId as Hex);
+    const { NetworkController } = Engine.context;
+
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      token.chainId as Hex,
+    );
 
     if (!networkClientId) {
       console.error(
@@ -200,7 +203,7 @@ const EarnTokenList = () => {
       createEventBuilder(MetaMetricsEvents.EARN_TOKEN_LIST_ITEM_CLICKED)
         .addProperties({
           provider: EVENT_PROVIDERS.CONSENSYS,
-          location: EVENT_LOCATIONS.TAB_BAR,
+          location: EVENT_LOCATIONS.WALLET_ACTIONS_BOTTOM_SHEET,
           token_name: token.name,
           token_symbol: token.symbol,
           token_chain_id: getDecimalChainId(token.chainId),

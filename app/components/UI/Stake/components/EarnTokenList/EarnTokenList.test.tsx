@@ -17,10 +17,6 @@ import * as stakeConstants from '../../constants';
 import * as portfolioNetworkUtils from '../../../../../util/networks';
 import { act, fireEvent } from '@testing-library/react-native';
 
-jest.mock('../../utils/network', () => ({
-  getNetworkClientIdByChainId: () => 'mainnet',
-}));
-
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
