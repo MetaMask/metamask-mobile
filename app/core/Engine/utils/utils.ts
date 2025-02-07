@@ -4,7 +4,7 @@ import type {
   ControllerName,
   ControllersToInitialize,
   InitModularizedControllersFunction,
-} from '../modular-controller.types';
+} from '../types';
 import { CONTROLLER_MESSENGERS } from '../messengers';
 
 const log = createProjectLogger('controller-init');

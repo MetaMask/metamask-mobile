@@ -2,11 +2,11 @@ import {
   AccountsController,
   type AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
+import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { accountsControllerInit } from './init';
 import { defaultAccountsControllerState } from './constants';
 import { logAccountsControllerCreation } from './utils';
-import { ControllerInitRequest } from '../../modular-controller.types';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 jest.mock('./utils', () => ({

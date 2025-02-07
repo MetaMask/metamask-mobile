@@ -3,7 +3,7 @@ import {
   type AccountsControllerMessenger,
   type AccountsControllerState,
 } from '@metamask/accounts-controller';
-import { ControllerInitFunction } from '../../modular-controller.types';
+import type { ControllerInitFunction } from '../../types';
 import { logAccountsControllerCreation } from './utils';
 import { defaultAccountsControllerState } from './constants';
 /**

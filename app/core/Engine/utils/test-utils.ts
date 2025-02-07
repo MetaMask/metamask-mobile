@@ -1,8 +1,8 @@
 import {
   BaseRestrictedControllerMessenger,
   ControllerInitRequest,
-} from '../modular-controller.types';
-import { BaseControllerMessenger } from '../types';
+  BaseControllerMessenger,
+} from '../types';
 
 /**
  * Build a mock for the ControllerInitRequest.
@@ -15,6 +15,7 @@ export function buildControllerInitRequestMock(
   return {
     getController: jest.fn(),
     persistedState: {},
-    controllerMessenger: controllerMessenger as any,
+    controllerMessenger:
+      controllerMessenger as unknown as BaseRestrictedControllerMessenger,
   };
 }

@@ -1,5 +1,5 @@
 import { getAccountsControllerMessenger } from './accounts-controller-messenger';
-import type { ControllerMessengerByControllerName } from '../modular-controller.types';
+import type { ControllerMessengerByControllerName } from '../types';
 
 /**
  * The messengers for the controllers that have been.
