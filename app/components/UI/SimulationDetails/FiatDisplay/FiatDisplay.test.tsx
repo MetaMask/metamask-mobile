@@ -9,7 +9,6 @@ import { mockNetworkState } from '../../../../util/test/network';
 import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
 
 const mockStateWithTestnet = merge(
-  {},
   {
     engine: {
       backgroundState,
