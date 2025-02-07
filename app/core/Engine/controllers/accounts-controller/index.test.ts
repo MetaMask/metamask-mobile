@@ -4,7 +4,7 @@ import {
 } from '@metamask/accounts-controller';
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { accountsControllerInit } from './init';
+import { accountsControllerInit } from '.';
 import { defaultAccountsControllerState } from './constants';
 import { logAccountsControllerCreation } from './utils';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
