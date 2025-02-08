@@ -14,23 +14,27 @@ import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEn
 
 import Confirm from './index';
 
+const mockNavigate = jest.fn();
+const mockAddListener = jest.fn();
+const mockDispatch = jest.fn();
+const mockGoBack = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: jest.fn(),
-    addListener: jest.fn(),
-    dispatch: jest.fn(),
-    goBack: jest.fn(),
+    navigate: mockNavigate,
+    addListener: mockAddListener,
+    dispatch: mockDispatch,
+    goBack: mockGoBack,
   }),
 }));
 
-jest.doMock('react-native-safe-area-context', () => {
-  const actual = jest.requireActual('react-native-safe-area-context');
+jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { width: 0, height: 0, x: 0, y: 0 };
   
   return {
-    ...actual,
+    ...jest.requireActual('react-native-safe-area-context'),
     SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
     SafeAreaConsumer: jest
       .fn()
@@ -65,7 +69,11 @@ jest.mock('react-native-gzip', () => ({
 }));
 
 describe('Confirm', () => {
-  it.only('renders flat confirmation', async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders flat confirmation', async () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
     });

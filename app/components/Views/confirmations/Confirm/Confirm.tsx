@@ -5,7 +5,6 @@ import { TransactionType } from '@metamask/transaction-controller';
 
 import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
-import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
 import { Footer } from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
 import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
@@ -31,7 +30,6 @@ const ConfirmWrapped = ({
     <ScrollView style={styles.scrollView}>
       {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
       <SignatureBlockaidBanner />
-      <AccountNetworkInfo />
       <Info />
     </ScrollView>
     <Footer />
