@@ -1,13 +1,12 @@
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View } from 'react-native';
 
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
   securityAlertResponse,
-  typedSignV1ConfirmationState,
   stakingDepositConfirmationState,
+  typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
@@ -57,11 +56,6 @@ jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     subscribe: jest.fn(),
   },
-}));
-
-jest.mock('../../../../util/address', () => ({
-  ...jest.requireActual('../../../../util/address'),
-  getAddressAccountType: (str: string) => str,
 }));
 
 jest.mock('react-native-gzip', () => ({
