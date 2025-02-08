@@ -1,5 +1,6 @@
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { act } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
@@ -126,7 +127,7 @@ describe('Confirm', () => {
     expect(queryByText('This is a deceptive request')).toBeNull();
   });
 
-  it('renders a blockaid banner if the confirmation has blockaid error response', () => {
+  it('renders a blockaid banner if the confirmation has blockaid error response', async () => {
     const { getByText } = renderWithProvider(
       <SafeAreaProvider>
         <Confirm />
@@ -138,6 +139,9 @@ describe('Confirm', () => {
         },
       },
     );
+
+    await act(async () => {});
+
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
   });
