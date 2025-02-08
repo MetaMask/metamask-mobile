@@ -73,14 +73,14 @@ describe('Confirm', () => {
     jest.clearAllMocks();
   });
 
-  it('renders flat confirmation', async () => {
+  it('renders a flat confirmation for specified type(s): staking deposit', () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
     });
     expect(getByTestId('flat-confirmation-container')).toBeDefined();
   });
 
-  it('renders modal confirmation', async () => {
+  it('renders a modal confirmation', () => {
     const { getByTestId } = renderWithProvider(
       <SafeAreaProvider>
         <Confirm />
@@ -92,7 +92,7 @@ describe('Confirm', () => {
     expect(getByTestId('modal-confirmation-container')).toBeDefined();
   });
 
-  it('renders correct information for personal sign', async () => {
+  it('renders correct information for personal sign', () => {
     const { getAllByRole, getByText } = renderWithProvider(
       <SafeAreaProvider>
         <Confirm />
@@ -112,7 +112,7 @@ describe('Confirm', () => {
     expect(getAllByRole('button')).toHaveLength(2);
   });
 
-  it('should render correct information for typed sign v1', async () => {
+  it('renders correct information for typed sign v1', () => {
     const { getAllByRole, getAllByText, getByText, queryByText } =
       renderWithProvider(
         <SafeAreaProvider>
@@ -131,7 +131,7 @@ describe('Confirm', () => {
     expect(queryByText('This is a deceptive request')).toBeNull();
   });
 
-  it('renders blockaid banner if confirmation has blockaid error responsee', async () => {
+  it('renders a blockaid banner if the confirmation has blockaid error response', () => {
     const { getByText } = renderWithProvider(
       <SafeAreaProvider>
         <Confirm />
@@ -147,7 +147,7 @@ describe('Confirm', () => {
     expect(getByText('This is a deceptive request')).toBeDefined();
   });
 
-  it('returns null if re-design is not enabled for confirmation', () => {
+  it('returns null if confirmation redesign is not enabled', () => {
     jest
       .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: false });
