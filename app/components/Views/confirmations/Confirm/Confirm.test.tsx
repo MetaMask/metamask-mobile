@@ -63,10 +63,6 @@ jest.mock('react-native-gzip', () => ({
 }));
 
 describe('Confirm', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('renders a flat confirmation for specified type(s): staking deposit', () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
