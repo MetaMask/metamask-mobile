@@ -13,19 +13,23 @@ import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEn
 
 import Confirm from './index';
 
-const mockNavigate = jest.fn();
-const mockAddListener = jest.fn();
-const mockDispatch = jest.fn();
-const mockGoBack = jest.fn();
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: mockNavigate,
-    addListener: mockAddListener,
-    dispatch: mockDispatch,
-    goBack: mockGoBack,
+    addListener: jest.fn(),
+    dispatch: jest.fn(),
+    goBack: jest.fn(),
+    navigate: jest.fn(),
+    removeListener: jest.fn(), 
   }),
+}));
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
 }));
 
 jest.mock('react-native-safe-area-context', () => {
@@ -55,6 +59,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
   controllerMessenger: {
     subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
