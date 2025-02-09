@@ -135,7 +135,7 @@ function Quotes() {
   });
 
   const {
-    data: quotes,
+    quotes,
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,

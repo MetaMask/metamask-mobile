@@ -51,6 +51,8 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('NotificationServicesController');
     expect(engine.context).toHaveProperty('SelectedNetworkController');
     expect(engine.context).toHaveProperty('SnapInterfaceController');
+    expect(engine.context).toHaveProperty('MultichainBalancesController');
+    expect(engine.context).toHaveProperty('RatesController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {

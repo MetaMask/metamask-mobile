@@ -79,6 +79,8 @@ jest.mock('../Engine', () => {
           SelectedNetworkController: { subscribe: jest.fn() },
           SnapInterfaceController: { subscribe: jest.fn() },
           SignatureController: { subscribe: jest.fn() },
+          MultichainBalancesController: { subscribe: jest.fn() },
+          RatesController: { subscribe: jest.fn() },
         },
       };
       return instance;
