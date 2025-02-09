@@ -7,7 +7,7 @@ import {
   JustifyContent,
   AlignItems,
   TextAlign,
-} from '../../Approvals/Snaps/SnapUIRenderer/utils';
+} from '../../Snaps/SnapUIRenderer/utils';
 import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';

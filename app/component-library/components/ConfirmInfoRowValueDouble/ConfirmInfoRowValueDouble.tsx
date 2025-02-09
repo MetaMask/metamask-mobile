@@ -1,10 +1,10 @@
 import React, { ReactNode } from 'react';
-import { AlignItems } from '../../../components/Approvals/Snaps/SnapUIRenderer/utils';
-import { FlexDirection } from '../../../components/Approvals/Snaps/SnapUIRenderer/utils';
 import { TextColor } from '../Texts/Text/Text.types';
 import Text from '../Texts/Text';
 import { Box } from '../../../components/UI/Box';
-import { RowVariant } from '../../../components/Approvals/Snaps/SnapUIRenderer/components/row';
+import { RowVariant } from '../../../components/Snaps/SnapUIRenderer/components/row';
+import { AlignItems } from '../../../components/Snaps/SnapUIRenderer/components/box.types';
+import { FlexDirection } from '../../../components/Snaps/SnapUIRenderer/components/box.types';
 
 export type ConfirmInfoRowValueDoubleProps = {
   left: ReactNode;

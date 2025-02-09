@@ -16,22 +16,21 @@ export const selectSnapsMetadata = createDeepEqualSelector(
   selectSnaps,
   (snaps) =>
     Object.values(snaps).reduce<
-      Record<string, { name: string; description: string, iconUrl?: string }>
+      Record<string, { name: string; description: string; iconUrl?: string }>
     >((snapsMetadata, snap) => {
       const snapId = snap.id;
       const manifest = snap.localizationFiles
         ? getLocalizedSnapManifest(
-          snap.manifest,
-          // TODO: Use actual locale here.
-          'en',
-          snap.localizationFiles,
-        )
+            snap.manifest,
+            // TODO: Use actual locale here.
+            'en',
+            snap.localizationFiles,
+          )
         : snap.manifest;
 
       snapsMetadata[snapId] = {
         name: manifest.proposedName,
         description: manifest.description,
-        iconUrl: manifest.source.location.npm.iconPath,
       };
       return snapsMetadata;
     }, {}),

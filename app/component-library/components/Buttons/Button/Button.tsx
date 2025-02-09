@@ -12,10 +12,7 @@ import { ButtonProps, ButtonVariants } from './Button.types';
 const Button = (buttonProps: ButtonProps) => {
   const { variant, ...restProps } = buttonProps;
 
-  // Capitalize first letter of variant. Snaps sends the variant in lowercase.
-  const capitalizedVariant = variant.charAt(0).toUpperCase() + variant.slice(1);
-
-  switch (capitalizedVariant) {
+  switch (variant) {
     case ButtonVariants.Link:
       return <ButtonLink {...restProps} />;
     case ButtonVariants.Primary:

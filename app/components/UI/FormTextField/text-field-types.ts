@@ -1,6 +1,6 @@
 import { InputProps } from '@metamask/snaps-sdk/jsx';
 import { TextInputComponent } from 'react-native';
-import { StyleUtilityProps } from '../../Approvals/Snaps/SnapUIRenderer/components/box.types';
+import { StyleUtilityProps } from '../../Snaps/SnapUIRenderer/components/box.types';
 
 export enum TextFieldSize {
   Sm = 'sm',

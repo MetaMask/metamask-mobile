@@ -92,15 +92,16 @@ const AvatarFavicon = ({
       />
     ) : null;
 
-  const renderImage = () => (
-    <Image
-      testID={AVATARFAVICON_IMAGE_TESTID}
-      source={imageSource}
-      style={styles.image}
-      resizeMode={'contain'}
-      onError={onError}
-    />
-  );
+  const renderImage = () =>
+    imageSource && (
+      <Image
+        testID={AVATARFAVICON_IMAGE_TESTID}
+        source={imageSource}
+        style={styles.image}
+        resizeMode={'contain'}
+        onError={onError}
+      />
+    );
 
   const renderFavicon = () => (svgSource ? renderSvg() : renderImage());
 

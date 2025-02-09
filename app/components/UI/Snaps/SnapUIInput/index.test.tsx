@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { SnapUIInput } from './Index';
-import { useSnapInterfaceContext } from '../../../Approvals/Snaps/SnapUIRenderer/SnapInterfaceContext';
+import { SnapUIInput } from './SnapUIInput';
+import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
 
 jest.mock(
   '../../../Approvals/Snaps/SnapUIRenderer/SnapInterfaceContext',
