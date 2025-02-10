@@ -71,6 +71,8 @@ interface TokenListItemProps {
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
+  showPercentageChange?: boolean;
+  showNetworkBadge?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -80,6 +82,8 @@ export const TokenListItem = React.memo(
     showRemoveMenu,
     setShowScamWarningModal,
     privacyMode,
+    showPercentageChange = true,
+    showNetworkBadge = true,
   }: TokenListItemProps) => {
     const navigation = useNavigation();
     const { colors } = useTheme();
@@ -324,18 +328,21 @@ export const TokenListItem = React.memo(
         mainBalance={mainBalance}
         privacyMode={privacyMode}
       >
-        <BadgeWrapper
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeSource(chainId)}
-              name={networkConfigurationByChainId?.name}
-            />
-          }
-        >
-          {renderNetworkAvatar()}
-        </BadgeWrapper>
-
+        {showNetworkBadge ? (
+          <BadgeWrapper
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={networkBadgeSource(chainId)}
+                name={networkConfigurationByChainId?.name}
+              />
+            }
+          >
+            {renderNetworkAvatar()}
+          </BadgeWrapper>
+        ) : (
+          renderNetworkAvatar()
+        )}
         <View style={styles.balances}>
           {/*
            * The name of the token must callback to the symbol
@@ -351,7 +358,7 @@ export const TokenListItem = React.memo(
               <StakeButton asset={asset} />
             )}
           </View>
-          {!isTestNet(chainId) ? (
+          {!isTestNet(chainId) && showPercentageChange ? (
             <PercentageChange value={pricePercentChange1d} />
           ) : null}
         </View>
