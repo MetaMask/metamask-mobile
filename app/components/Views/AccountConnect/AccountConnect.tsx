@@ -238,7 +238,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     try {
       hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-        new URL(urlWithProtocol).hostname,
+        getUrlObj(urlWithProtocol).hostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );
@@ -248,7 +248,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     if (hasPermittedChains) {
       Engine.context.PermissionController.updateCaveat(
-        new URL(urlWithProtocol).hostname,
+        getUrlObj(urlWithProtocol).hostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
         chainsToPermit,
@@ -256,7 +256,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     } else {
       Engine.context.PermissionController.grantPermissionsIncremental({
         subject: {
-          origin: new URL(urlWithProtocol).hostname,
+          origin: getUrlObj(urlWithProtocol).hostname,
         },
         approvedPermissions: {
           [PermissionKeys.permittedChains]: {
@@ -320,7 +320,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(new URL(urlWithProtocol).hostname)).protocol === 'https:'
+      getUrlObj(urlWithProtocol).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
     [urlWithProtocol],
@@ -420,7 +420,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const triggerDappViewedEvent = useCallback(
     (numberOfConnectedAccounts: number) =>
       // Track dapp viewed event
-      trackDappViewedEvent({ hostname: new URL(urlWithProtocol).hostname, numberOfConnectedAccounts }),
+      trackDappViewedEvent({ hostname: getUrlObj(urlWithProtocol).hostname, numberOfConnectedAccounts }),
     [urlWithProtocol],
   );
 
@@ -735,7 +735,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           setScreen(AccountConnectScreens.SingleConnect);
         }}
         connection={sdkConnection}
-        hostname={new URL(urlWithProtocol).hostname}
+        hostname={getUrlObj(urlWithProtocol).hostname}
         onPrimaryActionButtonPress={() => {
           setConfirmedAddresses(selectedAddresses);
           setScreen(AccountConnectScreens.SingleConnect);
@@ -763,7 +763,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         isLoading={isLoading}
         onUserAction={setUserIntent}
         urlWithProtocol={urlWithProtocol}
-        hostname={new URL(urlWithProtocol).hostname}
+        hostname={getUrlObj(urlWithProtocol).hostname}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         onNetworksSelected={handleNetworksSelected}
         initialChainId={chainId}
