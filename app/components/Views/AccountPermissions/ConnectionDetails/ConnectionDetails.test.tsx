@@ -1,4 +1,4 @@
-import React, { ReactNode, forwardRef, useImperativeHandle } from 'react';
+import React, { ReactNode } from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import ConnectionDetails from './ConnectionDetails';
@@ -8,13 +8,23 @@ const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
-  () =>
-    forwardRef(({ children }: { children: ReactNode }, ref) => {
-      useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: mockOnCloseBottomSheet,
-      }));
-      return <>{children}</>;
-    }),
+  () => {
+    const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+    interface MockBottomSheetRef {
+      onCloseBottomSheet: () => void;
+    }
+    return forwardRef(
+      (
+        { children }: { children: ReactNode },
+        ref: React.Ref<MockBottomSheetRef>,
+      ) => {
+        useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+        }));
+        return <>{children}</>;
+      },
+    );
+  },
 );
 
 describe('ConnectionDetails', () => {
