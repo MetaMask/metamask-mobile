@@ -146,7 +146,7 @@
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
-    "@consensys/on-ramp-sdk": "1.28.8",
+    "@consensys/on-ramp-sdk": "^2.0.5",
     "@keystonehq/bc-ur-registry-eth": "^0.19.1",
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",
     "@keystonehq/ur-decoder": "^0.12.2",
@@ -198,7 +198,7 @@
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.29.0-wallet",
-    "@metamask/selected-network-controller": "^19.0.0",
+    "@metamask/selected-network-controller": "^21.0.0",
     "@metamask/signature-controller": "^23.1.0",
     "@metamask/slip44": "^4.1.0",
     "@metamask/smart-transactions-controller": "^16.0.1",
