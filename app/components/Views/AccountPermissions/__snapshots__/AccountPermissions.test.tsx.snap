@@ -249,9 +249,9 @@ exports[`AccountPermissions renders correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -299,13 +299,7 @@ exports[`AccountPermissions renders correctly 1`] = `
               <Image
                 onError={[Function]}
                 resizeMode="contain"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 16,
@@ -410,9 +404,9 @@ exports[`AccountPermissions renders correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }

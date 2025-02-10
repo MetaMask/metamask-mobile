@@ -1,7 +1,6 @@
 import React from 'react';
 import { TokenI, BrowserTab } from '../../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
-import { isPooledStakingFeatureEnabled } from '../../constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import AppConstants from '../../../../../core/AppConstants';
@@ -25,6 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { RootState } from '../../../../../reducers';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
+import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
 
@@ -74,7 +74,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
         .addProperties({
           chain_id: getDecimalChainId(chainId),
-          location: 'Home Screen',
+          location: EVENT_LOCATIONS.HOME_SCREEN,
           text: 'Stake',
           token_symbol: asset.symbol,
           url: AppConstants.STAKE.URL,
@@ -92,9 +92,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       <Text variant={TextVariant.BodyLGMedium}>
         {' • '}
         <Text color={TextColor.Primary} variant={TextVariant.BodyLGMedium}>
-          {isPooledStakingFeatureEnabled()
-            ? `${strings('stake.earn')} `
-            : `${strings('stake.stake')} `}
+          {`${strings('stake.earn')} `}
         </Text>
       </Text>
       <Icon

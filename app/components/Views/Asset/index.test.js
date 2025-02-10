@@ -1,4 +1,5 @@
 import React from 'react';
+import { TransactionType } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller/';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -6,6 +7,20 @@ import Asset from './';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
+  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: '1',
+        chainName: 'Ethereum Mainnet',
+        nativeTokenSupported: true,
+      },
+    ],
+  },
+  inpageProvider: {
+    networkId: '0x1',
+  },
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -17,9 +32,57 @@ const mockInitialState = {
           },
         },
       },
+      NetworkController: {
+        selectedNetworkClientId: 'selectedNetworkClientId',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+            rpcEndpoints: [
+              {
+                networkClientId: 'selectedNetworkClientId',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            defaultBlockExplorerUrl: 0,
+            blockExplorerUrls: ['https://block.com'],
+          },
+          '0x89': {
+            chainId: '0x89',
+            rpcEndpoints: [
+              {
+                networkClientId: 'otherNetworkClientId',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
+      },
+      TransactionController: {
+        transactions: [
+          {
+            txParams: {
+              from: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+              to: '0x0000000000000000000000000000000000000000',
+            },
+            hash: '0x3148',
+            status: 'confirmed',
+            chainId: '0x1',
+            networkID: '0x1',
+            type: TransactionType.simpleSend,
+          },
+        ],
+      },
     },
   },
 };
+
+jest.mock('../../../store', () => ({
+  store: {
+    getState: () => mockInitialState,
+  },
+}));
+
+jest.unmock('react-native/Libraries/Interaction/InteractionManager');
 
 jest.mock('../../../core/Engine', () => {
   const {

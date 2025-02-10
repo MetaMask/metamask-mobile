@@ -37,7 +37,7 @@ describe(Regression('Change Account Name'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       ganacheOptions: defaultGanacheOptions,
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -52,9 +52,7 @@ describe(Regression('Change Account Name'), () => {
     // Open account actions and edit account name
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
-    await AccountListBottomSheet.tapEditAccountActionsAtIndex(
-      MAIN_ACCOUNT_INDEX,
-    );
+    await AccountListBottomSheet.tapEditAccountActionsAtIndex(MAIN_ACCOUNT_INDEX);
     await AccountActionsBottomSheet.tapEditAccount();
     await Gestures.clearField(EditAccountNameView.accountNameInput);
     await TestHelpers.typeTextAndHideKeyboard(
@@ -94,9 +92,7 @@ describe(Regression('Change Account Name'), () => {
 
     // Edit imported account name
     await WalletView.tapIdenticon();
-    await AccountListBottomSheet.tapEditAccountActionsAtIndex(
-      IMPORTED_ACCOUNT_INDEX,
-    );
+    await AccountListBottomSheet.tapEditAccountActionsAtIndex(IMPORTED_ACCOUNT_INDEX);
     await AccountActionsBottomSheet.tapEditAccount();
     await Gestures.clearField(EditAccountNameView.accountNameInput);
     await TestHelpers.typeTextAndHideKeyboard(

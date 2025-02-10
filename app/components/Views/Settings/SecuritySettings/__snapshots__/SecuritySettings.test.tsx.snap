@@ -132,9 +132,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#0376c9",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
-                "fontWeight": "400",
+                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
@@ -229,9 +229,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
-                "fontWeight": "400",
+                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
@@ -309,9 +309,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#0376c9",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
-                "fontWeight": "400",
+                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
@@ -625,9 +625,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
-                "fontWeight": "400",
+                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
@@ -947,9 +947,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -1029,15 +1029,16 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
+            testID="clear-privacy-data-button"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -1152,9 +1153,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -1239,9 +1240,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -1554,11 +1555,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <TouchableOpacity
             avatarProps={
               {
-                "imageSource": {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                },
+                "imageSource": 1,
                 "name": "Ethereum Mainnet",
                 "variant": "Network",
               }
@@ -1600,13 +1597,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "default": {
-                        "uri": "MockImage",
-                      },
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 32,
@@ -1683,11 +1674,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <TouchableOpacity
             avatarProps={
               {
-                "imageSource": {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                },
+                "imageSource": 1,
                 "name": "Linea",
                 "variant": "Network",
               }
@@ -1729,13 +1716,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "default": {
-                        "uri": "MockImage",
-                      },
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 32,
@@ -1946,9 +1927,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -2499,9 +2480,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -2674,9 +2655,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -2742,9 +2723,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -2790,9 +2771,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -2907,9 +2888,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
-                  "fontWeight": "400",
+                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }

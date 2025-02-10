@@ -5,10 +5,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { TokenI } from '../../../Tokens/types';
 
-jest.mock('../../constants', () => ({
-  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
-}));
-
 const mockNavigate = jest.fn();
 
 const STATE_MOCK = {

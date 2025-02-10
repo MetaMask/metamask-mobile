@@ -116,11 +116,15 @@ type WithRequestOptions = {
 type WithRequestCallback<ReturnValue> = ({
   request,
   controllerMessenger,
+  getFeesSpy,
+  submitSignedTransactionsSpy,
+  smartTransactionsController,
 }: {
   request: SubmitSmartTransactionRequestMocked;
   controllerMessenger: SubmitSmartTransactionRequestMocked['controllerMessenger'];
   getFeesSpy: jest.SpyInstance;
   submitSignedTransactionsSpy: jest.SpyInstance;
+  smartTransactionsController: SmartTransactionsController;
 }) => ReturnValue;
 
 type WithRequestArgs<ReturnValue> =
@@ -197,6 +201,7 @@ function withRequest<ReturnValue>(
         expectedDeadline: 45,
         maxDeadline: 150,
         mobileReturnTxHashAsap: false,
+        batchStatusPollingInterval: 1000,
       },
       mobile_active: true,
       extension_active: true,
@@ -211,6 +216,7 @@ function withRequest<ReturnValue>(
     request,
     getFeesSpy,
     submitSignedTransactionsSpy,
+    smartTransactionsController,
   });
 }
 
@@ -658,6 +664,35 @@ describe('submitSmartTransactionHook', () => {
           });
         },
       );
+    });
+  });
+  it('sets the status refresh interval if provided in feature flags', async () => {
+    withRequest(async ({ request, smartTransactionsController }) => {
+      const setStatusRefreshIntervalSpy = jest.spyOn(
+        smartTransactionsController,
+        'setStatusRefreshInterval',
+      );
+
+      request.featureFlags.smartTransactions.batchStatusPollingInterval = 2000;
+
+      await submitSmartTransactionHook(request);
+
+      expect(setStatusRefreshIntervalSpy).toHaveBeenCalledWith(2000);
+    });
+  });
+
+  it('does not set the status refresh interval if not provided in feature flags', async () => {
+    withRequest(async ({ request, smartTransactionsController }) => {
+      const setStatusRefreshIntervalSpy = jest.spyOn(
+        smartTransactionsController,
+        'setStatusRefreshInterval',
+      );
+
+      request.featureFlags.smartTransactions.batchStatusPollingInterval = 0;
+
+      await submitSmartTransactionHook(request);
+
+      expect(setStatusRefreshIntervalSpy).not.toHaveBeenCalled();
     });
   });
 });

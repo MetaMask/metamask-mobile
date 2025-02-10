@@ -5,7 +5,9 @@ import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 const DEVELOPMENT = 'development';
 const PORTFOLIO_URL =
   process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
-const SECURITY_ALERTS_API_URL = process.env.SECURITY_ALERTS_API_URL ?? 'https://security-alerts.api.cx.metamask.io';
+const SECURITY_ALERTS_API_URL =
+  process.env.SECURITY_ALERTS_API_URL ??
+  'https://security-alerts.api.cx.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -137,6 +139,9 @@ export default {
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
   },
+  DECODING_API_URL:
+    process.env.DECODING_API_URL ||
+    'https://signature-insights.api.cx.metamask.io/v1',
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',
@@ -221,5 +226,6 @@ export default {
   FEATURE_FLAGS_API: {
     BASE_URL: 'https://client-config.api.cx.metamask.io',
     VERSION: 'v1',
+    DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
   },
 } as const;

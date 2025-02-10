@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Hex } from '@metamask/utils';
 import Badge, {
   BadgeVariant,
@@ -45,6 +45,8 @@ import useBalance from '../../hooks/useBalance';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { selectChainId } from '../../../../../selectors/networkController';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -52,6 +54,12 @@ export interface StakingBalanceProps {
 
 const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
+
+  const [
+    hasSentViewingStakingRewardsMetric,
+    setHasSentViewingStakingRewardsMetric,
+  ] = useState(false);
+
   const chainId = useSelector(selectChainId);
   const networkName = useSelector(selectNetworkName);
 
@@ -60,6 +68,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const { isStakingSupportedChain } = useStakingChainByChainId(
     asset.chainId as Hex,
   );
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const {
     pooledStakesData,
@@ -94,6 +104,28 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   );
 
   const hasClaimableEth = !!Number(claimableEth);
+
+  useEffect(() => {
+    if (hasStakedPositions && !hasSentViewingStakingRewardsMetric) {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS,
+        )
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.STAKING_BALANCE,
+          })
+          .build(),
+      );
+
+      setHasSentViewingStakingRewardsMetric(true);
+    }
+  }, [
+    createEventBuilder,
+    hasSentViewingStakingRewardsMetric,
+    hasStakedPositions,
+    trackEvent,
+  ]);
 
   if (!isStakingSupportedChain) {
     return <></>;
@@ -172,7 +204,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   return (
     <View testID="staking-balance-container">
-      {hasEthToUnstake && (
+      {hasEthToUnstake && !isLoadingPooledStakesData && (
         <AssetElement
           asset={asset}
           mainBalance={stakedBalanceETH}

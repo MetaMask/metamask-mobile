@@ -62,20 +62,19 @@ pipelines:
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
   #App launch times pipeline. Runs on browserstack
-  app_launch_times_pipeline:
+  app_launch_times_and_expo_pipeline:
     stages:
-      - create_build_qa: {}
+      - create_build_qa_and_expo: {}
       - app_launch_times_test_stage: {}
-
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
       - create_build_qa_android: {}
       - app_upgrade_test_stage: {}
-  multichain_e2e_pipeline:
+  multichain_permissions_e2e_pipeline:
     stages:
-      - build_multichain_e2e_ios_android_stage: {}
-      - run_multichain_e2e_ios_android_stage: {}
+      - build_multichain_permissions_e2e_ios_android_stage: {}
+      - run_multichain_permissions_e2e_ios_android_stage: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
@@ -114,6 +113,12 @@ stages:
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
+  create_build_qa_and_expo:
+    workflows:
+      - build_android_devbuild: {}
+      - build_android_qa: {}
+      - build_ios_devbuild: {}
+      - build_ios_qa: {}
   create_build_qa:
     workflows:
       - build_android_qa: {}
@@ -135,15 +140,15 @@ stages:
     workflows:
       - ios_e2e_build: {}
       - android_e2e_build: {}
-  build_multichain_e2e_ios_android_stage:
+  build_multichain_permissions_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
-      - build_ios_multichain_e2e: {}
-      - build_android_multichain_e2e: {}
-  run_multichain_e2e_ios_android_stage:
+      - build_ios_multichain_permissions_e2e: {}
+      - build_android_multichain_permissions_e2e: {}
+  run_multichain_permissions_e2e_ios_android_stage:
     workflows:
-      - run_tag_multichain_ios: {}
-      - run_tag_multichain_android: {}
+      - run_tag_multichain_permissions_ios: {}
+      - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
@@ -155,12 +160,12 @@ stages:
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
-      # - run_tag_smoke_swaps_ios: {}
-      # - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
-      - run_tag_multichain_ios: {}
-      - run_tag_multichain_android: {}
+      - run_tag_multichain_permissions_ios: {}
+      - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -177,6 +182,7 @@ stages:
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_ramps_android: {}
       # - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
@@ -534,11 +540,11 @@ workflows:
       - TEST_TYPE: 'upgrade'
     after_run:
       - wdio_android_e2e_test
-  build_ios_multichain_e2e:
+  build_ios_multichain_permissions_e2e:
     after_run:
       - ios_e2e_build
       # - android_e2e_build
-  build_android_multichain_e2e:
+  build_android_multichain_permissions_e2e:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -678,20 +684,30 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
-  run_tag_multichain_ios:
+  run_tag_multichain_permissions_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
-      - TEST_SUITE_TAG: '.*SmokeMultiChain.*'
+      - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
       - ios_e2e_test
-  run_tag_multichain_android:
+  run_tag_multichain_permissions_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
-      - TEST_SUITE_TAG: '.*SmokeMultiChain.*'
+      - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_ramps_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/ramps/*'
+      - TEST_SUITE_TAG: '.*SmokeRamps.*'
     after_run:
       - android_e2e_test
   android_e2e_build:
@@ -965,7 +981,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
+                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
                 ln -s $(which ccache) /usr/local/bin/cc
@@ -1199,6 +1215,56 @@ workflows:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
       - build_android_release
+  build_android_devbuild:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - change-android-versioncode-and-versionname@1:
+          inputs:
+            - new_version_name: $VERSION_NAME
+            - new_version_code: $VERSION_NUMBER
+            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
+      - restore-gradle-cache@2: {}
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:android:devbuild
+          title: Build Android Dev Build
+          is_always_run: false
+      - save-gradle-cache@1: {}
+      - script:
+          title: Copy and Rename APK
+          inputs:
+            - content: |-
+                # Define the source path of the generated APK
+                SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-prod-debug.apk"
+
+                # Define the destination path with the new name
+                DEST_APK_PATH="$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
+
+                # Copy and rename the APK
+                cp "$SOURCE_APK_PATH" "$DEST_APK_PATH"
+
+                # Optionally, print the new path for verification
+                echo "APK has been copied and renamed to: $DEST_APK_PATH"
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: '$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk'
+          title: Bitrise Deploy APK
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_qa:
     before_run:
       - code_setup
@@ -1444,6 +1510,48 @@ workflows:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
       - build_ios_release
+  build_ios_devbuild:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - build_version: $VERSION_NUMBER
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:ios:devbuild
+          title: iOS Sourcemaps & Build
+          is_always_run: false
+      - script:
+          title: Copy and Rename IPA
+          inputs:
+            - content: |-
+                # Define the source path of the generated IPA
+                SOURCE_IPA_PATH="ios/build/output/MetaMask.ipa"
+
+                # Define the destination path with the new name
+                DEST_IPA_PATH="$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
+
+                # Copy and rename the IPA
+                cp "$SOURCE_IPA_PATH" "$DEST_IPA_PATH"
+
+                # Optionally, print the new path for verification
+                echo "IPA has been copied and renamed to: $DEST_IPA_PATH"
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: '$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa'
+          title: Deploy iOS IPA
   build_ios_qa:
     envs:
       - NO_FLIPPER: '1'
@@ -1648,10 +1756,10 @@ app:
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_POOLED_STAKING_UI_ENABLED: true
+      MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
-      MM_SECURITY_ALERTS_API_ENABLED: true
+      MM_STABLECOIN_LENDING_UI_ENABLED: false
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -1684,16 +1792,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.38.1
+      VERSION_NAME: 7.39.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1533
+      VERSION_NUMBER: 1544
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.38.1
+      FLASK_VERSION_NAME: 7.39.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1533
+      FLASK_VERSION_NUMBER: 1544
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1726,7 +1834,7 @@ trigger_map:
   - push_branch: release/*
     pipeline: pr_regression_e2e_pipeline
   - push_branch: main
-    pipeline: app_launch_times_pipeline
+    pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
@@ -1734,4 +1842,4 @@ trigger_map:
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
   - push_branch: detox/address-regression-tests-slowdown
-    pipeline: multichain_e2e_pipeline
+    pipeline: multichain_permissions_e2e_pipeline

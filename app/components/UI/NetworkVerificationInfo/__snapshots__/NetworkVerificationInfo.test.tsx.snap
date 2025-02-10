@@ -7,7 +7,6 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
   <View
     style={
       {
-        "alignItems": "center",
         "backgroundColor": "#ffffff",
         "flexDirection": "row",
         "padding": 16,
@@ -111,13 +110,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={
-                {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                }
-              }
+              source={1}
               style={
                 {
                   "height": 16,
@@ -499,9 +492,9 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -539,9 +532,9 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }

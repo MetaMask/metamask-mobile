@@ -128,7 +128,27 @@ describe('AssetOverview', () => {
 
   it('should render correctly', async () => {
     const container = renderWithProvider(
-      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      { state: mockInitialState },
+    );
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should render correctly when portfolio view is enabled', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+
+    const container = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
       { state: mockInitialState },
     );
     expect(container).toMatchSnapshot();
@@ -146,7 +166,12 @@ describe('AssetOverview', () => {
 
   it('should handle buy button press', async () => {
     const { getByTestId } = renderWithProvider(
-      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
       { state: mockInitialState },
     );
 
@@ -163,7 +188,12 @@ describe('AssetOverview', () => {
 
   it('should handle send button press', async () => {
     const { getByTestId } = renderWithProvider(
-      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
       { state: mockInitialState },
     );
 
@@ -175,7 +205,12 @@ describe('AssetOverview', () => {
 
   it('should handle swap button press', async () => {
     const { getByTestId } = renderWithProvider(
-      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
       { state: mockInitialState },
     );
 
@@ -232,6 +267,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton={false}
         displaySwapsButton
+        swapsIsLive
       />,
       { state: mockInitialState },
     );
