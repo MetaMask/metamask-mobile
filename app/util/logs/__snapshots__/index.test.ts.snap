@@ -330,6 +330,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "TokenRatesController": {
         "marketData": {},
       },
+      "TokenSearchDiscoveryController": {
+        "lastSearchTimestamp": null,
+        "recentSearches": [],
+      },
       "TransactionController": {
         "lastFetchedBlockNumbers": {},
         "methodData": {},
