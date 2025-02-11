@@ -2,28 +2,21 @@ import { createSelector } from 'reselect';
 import { StateWithPartialEngine } from './types';
 import { isRemoteFeatureFlagOverrideActivated } from '../../core/Engine/controllers/RemoteFeatureFlagController/utils';
 
-export interface ConfirmationRedesignRemoteFlags {
-  signatures: boolean;
-  staking_transactions: boolean;
-}
-
-function getFeatureFlagValue(
-  envValue: string | undefined,
-  remoteValue: boolean,
-): boolean {
-  if (envValue === 'true') {
-    return true;
-  }
-  if (envValue === 'false') {
-    return false;
-  }
-  return remoteValue;
-}
-
+/*
+ * RemoteFeatureFlagController state selector
+ *
+ * Selects the controller state out of redux store
+ */
 export const selectRemoteFeatureFlagControllerState = (
   state: StateWithPartialEngine,
 ) => state.engine.backgroundState.RemoteFeatureFlagController;
 
+/*
+ * Remote feature flags root selector serves specific domain selectors
+ * with all feature flag values.
+ *
+ * When feature flag override is activated, an empty object is returned
+ */
 export const selectRemoteFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
   (remoteFeatureFlagControllerState) => {
@@ -34,27 +27,4 @@ export const selectRemoteFeatureFlags = createSelector(
   },
 );
 
-export const selectConfirmationRedesignFlags = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const confirmationRedesignFlags =
-      (remoteFeatureFlags?.confirmation_redesign as unknown as ConfirmationRedesignRemoteFlags) ??
-      {};
-
-    const isStakingTransactionsEnabled = getFeatureFlagValue(
-      process.env.FEATURE_FLAG_REDESIGNED_STAKING_TRANSACTIONS,
-      confirmationRedesignFlags.staking_transactions,
-    );
-
-    const isSignaturesEnabled = getFeatureFlagValue(
-      process.env.FEATURE_FLAG_REDESIGNED_SIGNATURES,
-      confirmationRedesignFlags.signatures,
-    );
-
-    return {
-      ...confirmationRedesignFlags,
-      staking_transactions: isStakingTransactionsEnabled,
-      signatures: isSignaturesEnabled,
-    };
-  },
-);
+// DOMAIN SPECIFIC FEATURE FLAGS GO IN THEIR OWN SUBDIRECTORY.

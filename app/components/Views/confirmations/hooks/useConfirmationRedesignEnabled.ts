@@ -8,9 +8,9 @@ import { ApprovalType } from '@metamask/controller-utils';
 
 import { isExternalHardwareAccount } from '../../../../util/address';
 import {
-  type ConfirmationRedesignRemoteFlags,
+  ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
-} from '../../../../selectors/featureFlagController';
+} from '../../../../selectors/featureFlagController/confirmationRedesign';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import useApprovalRequest from './useApprovalRequest';
 

@@ -24,7 +24,7 @@ import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { formatEther } from 'ethers/lib/utils';
 import { EVENT_PROVIDERS, EVENT_LOCATIONS } from '../../constants/events';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmationRedesign';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 
 const StakeInputView = () => {
