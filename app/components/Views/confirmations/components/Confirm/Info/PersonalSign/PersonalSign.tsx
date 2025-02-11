@@ -1,7 +1,7 @@
 import React from 'react';
 
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
-import NoChangeSimulation from '../../NoChangeSimulation';
+import AccountNetworkInfo from '../../AccountNetworkInfo';
 import InfoRowOrigin from '../Shared/InfoRowOrigin';
 import Message from './Message';
 
@@ -14,7 +14,7 @@ const PersonalSign = () => {
 
   return (
     <>
-      <NoChangeSimulation />
+      <AccountNetworkInfo />
       <InfoRowOrigin />
       <Message />
     </>

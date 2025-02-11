@@ -1,23 +1,16 @@
 import React from 'react';
-
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
+import AccountNetworkInfo from '../../AccountNetworkInfo';
 import InfoRowOrigin from '../Shared/InfoRowOrigin';
 import Message from './Message';
+import TypedSignV3V4Simulation from './Simulation';
 
-const TypedSignV3V4 = () => {
-  const { approvalRequest } = useApprovalRequest();
-
-  if (!approvalRequest) {
-    return null;
-  }
-
-  return (
+const TypedSignV3V4 = () => (
     <>
-      {/* SIMULATION TO BE ADDED */}
+      <AccountNetworkInfo />
+      <TypedSignV3V4Simulation />
       <InfoRowOrigin />
       <Message />
     </>
   );
-};
 
 export default TypedSignV3V4;

@@ -116,6 +116,7 @@ class CollectibleView extends PureComponent {
               onPress={this.onSend}
               containerStyle={styles.button}
               childGroupStyle={styles.flexRow}
+              testID="send-button"
             >
               <Text style={styles.buttonText}>
                 {strings('asset_overview.send_button').toUpperCase()}

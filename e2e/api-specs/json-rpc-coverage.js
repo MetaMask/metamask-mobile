@@ -22,6 +22,7 @@ import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
 import { createDriverTransport } from './helpers';
 import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.selectors';
 import { getGanachePort } from '../fixtures/utils';
+import { mockEvents } from '../api-mocking/mock-config/mock-events';
 
 const port = getGanachePort(8545, process.pid);
 const chainId = 1337;
@@ -156,6 +157,10 @@ const main = async () => {
   const server = mockServer(port, openrpcDocument);
   server.start();
 
+  const testSpecificMock = {
+    GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+  };
+
   await withFixtures(
     {
       dapp: true,
@@ -163,6 +168,7 @@ const main = async () => {
       ganacheOptions: defaultGanacheOptions,
       disableGanache: true,
       restartDevice: true,
+      testSpecificMock,
     },
     async () => {
       await loginToApp();

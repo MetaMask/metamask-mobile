@@ -71,6 +71,7 @@ import { PROVIDER_LINKS, ScreenLocation } from '../../types';
 import Logger from '../../../../../util/Logger';
 import { isBuyQuote } from '../../utils';
 import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
+import { QuoteSelectors } from '../../../../../../e2e/selectors/Ramps/Quotes.selectors';
 
 const HIGHLIGHTED_QUOTES_COUNT = 2;
 export interface QuotesParams {
@@ -135,7 +136,7 @@ function Quotes() {
   });
 
   const {
-    data: quotes,
+    quotes,
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,
@@ -762,7 +763,7 @@ function Quotes() {
           />
         )}
         <ScreenLayout.Content style={styles.withoutTopPadding}>
-          <ScrollView>
+          <ScrollView testID={QuoteSelectors.QUOTES}>
             {isFetchingQuotes && isInPolling ? (
               <LoadingQuotes count={2} />
             ) : (

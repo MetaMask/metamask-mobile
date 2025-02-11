@@ -48,7 +48,10 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search or Type URL"
+    "placeholder": "Search by site or address",
+    "recents": "Recents",
+    "favorites": "Favorites",
+    "sites": "Sites"
   },
   "navigation": {
     "back": "Back",
@@ -449,6 +452,7 @@
     "next": "Next",
     "buy_asset": "Buy {{asset}}",
     "no_tokens": "You don't have any tokens!",
+    "show_tokens_without_balance": "Show tokens without balance",
     "no_nfts_yet": "No NFTs yet",
     "nfts_autodetection_title": "NFT detection",
     "nfts_autodetection_desc": "Let MetaMask automatically detect and display NFTs in your wallet.",
@@ -589,7 +593,7 @@
     "description_content_1": "We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.",
     "description_content_2": "When we gather metrics, it will always be...",
     "description_content_3": "Learn how we protect your privacy while collecting usage data for your profile.",
-    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).",
+    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
     "action_description_1_prefix": "Private:",
     "action_description_2_prefix": "General:",
     "action_description_3_prefix": "Optional:",
@@ -745,6 +749,7 @@
     "connected_and_active": "connected and active.",
     "now_active": "now active.",
     "network_added": "was successfully added",
+    "network_removed": "was successfully removed",
     "network_deleted": "was successfully deleted",
     "network_permissions_updated": "Network permissions updated",
     "revoked": "revoked.",
@@ -1287,16 +1292,19 @@
     "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
+    "earn_button": "Earn",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
     "bridge": "Bridge",
+    "earn": "Earn",
     "disabled_button": {
       "buy": "Buying not supported for this account",
       "sell": "Selling not supported for this account",
       "swap": "Swapping not supported for this account",
       "bridge": "Bridging not supported for this account",
       "send": "Sending not supported for this account",
+      "earn": "Earning not supported for this account",
       "action": "This action is not supported for this account"
     },
     "description": "Description",
@@ -1313,6 +1321,7 @@
     "bridge_description": "Transfer tokens between networks",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
+    "earn_description": "Earn rewards on your tokens",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",
@@ -1814,6 +1823,7 @@
     "network_chain_id": "Chain ID",
     "network_rpc_url": "Network URL",
     "network_rpc_url_label": "Network RPC URL",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "New default network URL",
     "current_label": "Current",
     "new_label": "New",
@@ -3376,7 +3386,8 @@
     "add_hardware_wallet": "Add hardware wallet",
     "import_account": "Import account",
     "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)",
-    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)"
+    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)",
+    "add_solana_account": "Add a new Solana Account (Beta)"
   },
   "show_nft": {
     "show_nft_title": "Show NFT",
@@ -3445,11 +3456,11 @@
     "not_enough_eth": "Not enough ETH",
     "balance":"Balance",
     "stake_eth_and_earn":"Stake ETH and earn",
-    "stake_any_amount_of_eth":"Stake any amount of ETH",
+    "stake_any_amount_of_eth":"Stake any amount of ETH.",
     "no_minimum_required":"No minimum required.",
-    "earn_eth_rewards":"Earn ETH rewards",
+    "earn_eth_rewards":"Earn ETH rewards.",
     "earn_eth_rewards_description":"Start earning as soon as you stake. Rewards compound automatically.",
-    "flexible_unstaking":"Flexible unstaking",
+    "flexible_unstaking":"Flexible unstaking.",
     "flexible_unstaking_description":"Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
     "disclaimer":"Staking does not guarantee rewards, and involves risks including a loss of funds.",
     "learn_more":"Learn more",
@@ -3508,7 +3519,25 @@
     "estimated_unstaking_time": "1 to 11 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
-    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit."
+    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than {{percentOverDeposit}}% of your deposit.",
+    "view_earnings_history": "View earnings history",
+    "earnings_history_title": "{{ticker}} earnings",
+    "earnings_history_list_title": "Payout history",
+    "apr": "APR",
+    "interactive_chart": {
+        "timespan_buttons": {
+            "7D": "7D",
+            "1M": "1M",
+            "3M": "3M",
+            "6M": "6M"
+        }
+    },
+    "today": "Today",
+    "one_week_average": "1 week average",
+    "one_month_average": "1 month average",
+    "three_month_average": "3 month average",
+    "six_month_average": "6 month average",
+    "one_year_average": "1 year average"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3593,21 +3622,54 @@
     "reject": "Reject",
     "confirm": "Confirm",
     "title": {
-      "signature": "Signature request"
+      "signature": "Signature request",
+      "signature_siwe": "Sign-in request"
+    },
+    "sub_title": {
+      "signature": "Review request details before you confirm.",
+      "signature_siwe": "A site wants you to sign in to prove you own this account."
     },
     "request_from": "Request from",
+    "signing_in_with": "Signing in with",
     "message": "Message",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "This site is asking for your signature",
     "details": "Details",
     "account": "Account",
     "balance": "Balance",
     "network": "Network",
-    "rpc_url": "RPC URL",
+    "qr_get_sign": "Get Signature",
+    "qr_scan_text": "Scan with your hardware wallet",
+    "siwe_message": {
+      "url": "URL",
+      "network" : "Network",
+      "account" : "Account",
+      "version" : "Version",
+      "chain_id" : "Chain ID",
+      "nonce" : "Nonce",
+      "issued" : "Issued",
+      "requestId": "Request ID",
+      "resources": "Resources"
+    },
     "simulation": {
+      "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
+      "decoded_tooltip_list_nft":  "Expect changes only if someone buys your NFTs.",
+      "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
+      "label_change_type_bidding": "You bid",
+      "label_change_type_listing": "You list",
+      "label_change_type_nft_listing": "Listing price",
+      "label_change_type_permit": "Spending cap",
+      "label_change_type_permit_nft": "Withdraw",
+      "label_change_type_receive": "You receive",
+      "label_change_type_revoke": "Revoke",
+      "label_change_type_transfer": "You send",
+      "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
       "title": "Estimated changes",
-      "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",
-      "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee."
-    }
+      "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
+      "unavailable": "Unavailable"
+    },
+    "unlimited": "Unlimited",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",

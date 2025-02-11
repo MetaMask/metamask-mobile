@@ -40,8 +40,6 @@ describe('useNetworkInfo', () => {
       },
     );
     expect(result?.current?.networkName).toEqual('Ethereum Mainnet');
-    expect(result?.current?.networkImage).toEqual({
-      default: { uri: 'MockImage' },
-    });
+    expect(result?.current?.networkImage).toEqual(1);
   });
 });

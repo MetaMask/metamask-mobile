@@ -1,9 +1,9 @@
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
   ModalHeaderType,
-  TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import {

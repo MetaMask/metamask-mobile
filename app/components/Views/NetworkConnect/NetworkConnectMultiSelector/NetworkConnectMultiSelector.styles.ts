@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import Device from '../../../../util/device';
 
 const styleSheet = (params: {
@@ -15,7 +14,7 @@ const styleSheet = (params: {
       paddingBottom: 4,
     },
     buttonsContainer: {
-      marginTop: isMultichainVersion1Enabled ? 0 : 24,
+      marginTop: 0,
       marginBottom: vars.isRenderedAsBottomSheet ? 0 : 16,
     },
     updateButtonContainer: { flexDirection: 'row' },

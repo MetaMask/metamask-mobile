@@ -163,7 +163,11 @@ class CollectibleContractInformation extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.titleWrapper}>
-          <Text style={styles.title} onPress={this.closeModal}>
+          <Text
+            testID="collectible-contract-information-title"
+            style={styles.title}
+            onPress={this.closeModal}
+          >
             {name}
           </Text>
         </View>
@@ -197,7 +201,10 @@ class CollectibleContractInformation extends PureComponent {
                 onPress={this.goToOpenSea}
               >
                 <View style={styles.creditsElements}>
-                  <Text style={styles.opensea}>
+                  <Text
+                    style={styles.opensea}
+                    testID="collectible-contract-information-opensea"
+                  >
                     {strings('collectible.powered_by_opensea')}
                   </Text>
                   <Image source={openSeaLogo} style={styles.openSeaLogo} />

@@ -14,6 +14,19 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.PORTFOLIO_BUTTON);
   }
 
+  get earnButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
+  }
+
+  get stakedEthereumLabel() {
+    return Matchers.getElementByText(WalletViewSelectorsText.STAKED_ETHEREUM);
+  }
+
+  get stakeMoreButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
+  }
+
+
   get tokenDetectionLinkButton() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
@@ -86,13 +99,38 @@ class WalletView {
     );
   }
 
+  get tokenNetworkFilter() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  }
+
+  get sortBy() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BY);
+  }
+
+  get tokenNetworkFilterAll() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
+    );
+  }
+
+  get tokenNetworkFilterCurrent() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
+    );
+  }
+
+  get cancelButton() {
+    return Matchers.getElementByText('Cancel');
+  }
+
   async tapCurrentMainWalletAccountActions() {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
 
-  async tapOnToken(token) {
+  async tapOnToken(token, index = 0) {
     const element = Matchers.getElementByText(
       token || WalletViewSelectorsText.DEFAULT_TOKEN,
+      index,
     );
     await Gestures.waitAndTap(element);
   }
@@ -154,6 +192,16 @@ class WalletView {
     return Matchers.getElementByText(tokenName);
   }
 
+  async getTokensInWallet() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
+    );
+  }
+
+  async nftIDInWallet(nftId) {
+    return Matchers.getElementByID(nftId);
+  }
+
   async nftInWallet(nftName) {
     return Matchers.getElementByText(nftName);
   }
@@ -164,6 +212,38 @@ class WalletView {
 
   async tapPortfolio() {
     await Gestures.waitAndTap(this.portfolioButton);
+  }
+
+  async tapTokenNetworkFilter() {
+    await Gestures.waitAndTap(this.tokenNetworkFilter);
+  }
+
+  async tapSortBy() {
+    await Gestures.waitAndTap(this.sortBy);
+  }
+
+  async tapTokenNetworkFilterAll() {
+    await Gestures.waitAndTap(this.tokenNetworkFilterAll);
+  }
+
+  async tapTokenNetworkFilterCurrent() {
+    await Gestures.waitAndTap(this.tokenNetworkFilterCurrent);
+  }
+
+  async tapOnEarnButton() {
+    await Gestures.waitAndTap(this.earnButton);
+  }
+
+  async tapOnStakedEthereum() {
+    await Gestures.waitAndTap(this.stakedEthereumLabel);
+  }
+
+  async tapOnStakeMore() {
+    await Gestures.waitAndTap(this.stakeMoreButton);
+  }
+
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 

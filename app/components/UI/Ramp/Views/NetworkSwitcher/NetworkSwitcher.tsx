@@ -59,7 +59,7 @@ function NetworkSwitcher() {
   } = useRampNetworksDetail();
   const supportedNetworks = useSelector(getRampNetworks);
   const [isCurrentNetworkRampSupported] = useRampNetwork();
-  const { selectedChainId, isBuy, intent } = useRampSDK();
+  const { selectedChainId, isBuy, intent, setIntent } = useRampSDK();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [networkToBeAdded, setNetworkToBeAdded] = useState<Network>();
@@ -145,7 +145,7 @@ function NetworkSwitcher() {
   const switchToMainnet = useCallback(
     (type: 'mainnet' | 'linea-mainnet') => {
       const { NetworkController } = Engine.context;
-      NetworkController.setProviderType(type);
+      NetworkController.setActiveNetwork(type);
       navigateToGetStarted();
     },
     [navigateToGetStarted],
@@ -173,13 +173,23 @@ function NetworkSwitcher() {
 
   const handleNetworkPress = useCallback(
     (networkConfiguration) => {
+      setIntent((prevIntent) => ({
+        ...prevIntent,
+        chainId: networkConfiguration.chainId,
+      }));
+
+      const networkConfigurationWithHexChainId = {
+        ...networkConfiguration,
+        chainId: toHex(networkConfiguration.chainId),
+      };
+
       if (networkConfiguration.isAdded) {
-        switchNetwork(networkConfiguration);
+        switchNetwork(networkConfigurationWithHexChainId);
       } else {
-        setNetworkToBeAdded(networkConfiguration);
+        setNetworkToBeAdded(networkConfigurationWithHexChainId);
       }
     },
-    [switchNetwork],
+    [setIntent, switchNetwork],
   );
 
   const handleIntentChainId = useCallback(
@@ -199,7 +209,8 @@ function NetworkSwitcher() {
         (networkConfiguration) => {
           const isAdded = Object.values(networkConfigurations).some(
             (savedNetwork) =>
-              savedNetwork.chainId === networkConfiguration.chainId,
+              toHex(savedNetwork.chainId) ===
+              toHex(networkConfiguration.chainId),
           );
           return {
             ...networkConfiguration,
