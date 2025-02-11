@@ -187,11 +187,6 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
-  // logg everying coming from useNetworkInfo
-  console.log(
-    '>>> from NetworkSelector, the useNetworkInfo is',
-    useNetworkInfo(origin),
-  );
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
     ? 'networks.additional_network_information_title'
