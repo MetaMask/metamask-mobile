@@ -150,7 +150,19 @@ describe('Approve', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should navigate on confirm to the change in simulation modal when the transaction marked with isUpdatedAfterSecurityCheck as true', async () => {
+  it('renders transaction approval details', async () => {
+    const { findByText, findByTestId } = renderComponent({ store });
+
+    await act(async () => {
+      fireEvent.press(await findByTestId('view-transaction-details'));
+    });
+
+    expect(await findByText('Transaction Details')).toBeTruthy();
+    expect(await findByText('Approve asset:')).toBeTruthy();
+    expect(await findByText('undefined (#1110)')).toBeTruthy();
+  });
+
+  it('navigates on confirm to the change in simulation modal when the transaction marked with isUpdatedAfterSecurityCheck as true', async () => {
     const storeWithUpdatedTransaction = mockStore(merge({}, store.getState(), {
       engine: {
         backgroundState: {
