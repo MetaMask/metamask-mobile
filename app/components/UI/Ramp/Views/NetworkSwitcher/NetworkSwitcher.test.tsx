@@ -309,7 +309,7 @@ describe('NetworkSwitcher View', () => {
       [
         [
           {
-            "evmClientId": "networkId1"
+            "evmClientId": "networkId1",
           },
         ],
       ]
