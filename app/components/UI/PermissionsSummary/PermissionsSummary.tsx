@@ -90,8 +90,6 @@ const PermissionsSummary = ({
   );
   const networkInfo = useNetworkInfo(hostname);
 
-  console.log('>>> PermissionsSummary hostname', hostname);
-  console.log('>>> PermissionsSummary networkInfo', networkInfo);
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
   let chainImage: ImageSourcePropType;

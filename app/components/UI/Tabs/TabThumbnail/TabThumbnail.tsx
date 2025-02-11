@@ -60,9 +60,6 @@ const TabThumbnail = ({
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
 
-  console.log('>>> TabThumbnail hostname', tabTitle);
-  console.log('>>> TabThumbnail networkName', networkName);
-  console.log('>>> TabThumbnail networkImageSource', networkImageSource);
   const faviconSource = useFavicon(tab.url);
 
   return (

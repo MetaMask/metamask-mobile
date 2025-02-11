@@ -174,7 +174,6 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
-  console.log('>>> from NetworkSelector, the origin is', origin);
 
   const browserEvmChainId = route.params?.evmChainId || null;
   const parentSpan = trace({
