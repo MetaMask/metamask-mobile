@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
 import ButtonIcon, {
@@ -22,14 +22,14 @@ const FlatNavHeader = ({ title, onLeftPress }: FlatNavHeaderProps) => {
   const { onReject } = useConfirmActions();
   const { styles } = useStyles(styleSheet, {});
 
-  const handleLeftPress = () => {
+  const handleLeftPress = useCallback(() => {
     if (onLeftPress) {
       onLeftPress();
       return;
     }
 
     onReject();
-  };
+  }, [onLeftPress, onReject]);
 
   return (
     <View style={styles.container}>
