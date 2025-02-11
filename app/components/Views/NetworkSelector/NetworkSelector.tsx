@@ -174,6 +174,8 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
+  console.log('>>> from NetworkSelector, the origin is', origin);
+
   const browserEvmChainId = route.params?.evmChainId || null;
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
@@ -186,7 +188,11 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
-
+  // logg everying coming from useNetworkInfo
+  console.log(
+    '>>> from NetworkSelector, the useNetworkInfo is',
+    useNetworkInfo(origin),
+  );
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
     ? 'networks.additional_network_information_title'
@@ -278,7 +284,7 @@ const NetworkSelector = () => {
         try {
           await MultichainNetworkController.setActiveNetwork(networkClientId);
         } catch (error) {
-          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
+          Logger.error(new Error(`Error i setActiveNetwork: ${error}`));
         }
       }
 

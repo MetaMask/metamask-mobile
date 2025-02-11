@@ -73,6 +73,10 @@ const PermissionsSummary = ({
   onAddNetwork = () => undefined,
   onChooseFromPermittedNetworks = () => undefined,
 }: PermissionsSummaryProps) => {
+  console.log(
+    '>>> PermissinSummary process.env.MM_PER_DAPP_SELECTED_NETWORK',
+    process.env.MM_PER_DAPP_SELECTED_NETWORK,
+  );
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
@@ -86,6 +90,8 @@ const PermissionsSummary = ({
   );
   const networkInfo = useNetworkInfo(hostname);
 
+  console.log('>>> PermissionsSummary hostname', hostname);
+  console.log('>>> PermissionsSummary networkInfo', networkInfo);
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
   let chainImage: ImageSourcePropType;
