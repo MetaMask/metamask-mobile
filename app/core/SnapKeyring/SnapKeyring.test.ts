@@ -1,5 +1,5 @@
 import { ControllerMessenger } from '@metamask/base-controller';
-import { EthAccountType, EthScopes, KeyringEvent } from '@metamask/keyring-api';
+import { EthAccountType, EthScope, KeyringEvent } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { snapKeyringBuilder } from './SnapKeyring';
 import {
@@ -35,7 +35,7 @@ const mockAccount = {
 };
 const mockInternalAccount: InternalAccount = {
   ...mockAccount,
-  scopes: [EthScopes.Namespace],
+  scopes: [EthScope.Eoa],
   metadata: {
     snap: {
       enabled: true,
