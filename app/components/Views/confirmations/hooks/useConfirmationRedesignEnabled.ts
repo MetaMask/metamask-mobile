@@ -1,38 +1,99 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { ApprovalType } from '@metamask/controller-utils';
 
-import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import { isExternalHardwareAccount } from '../../../../util/address';
-import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
+import {
+  type ConfirmationRedesignRemoteFlags,
+  selectConfirmationRedesignFlags,
+} from '../../../../selectors/featureFlagController';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import useApprovalRequest from './useApprovalRequest';
-import useQRHardwareAwareness from './useQRHardwareAwareness';
+
+const REDESIGNED_SIGNATURE_TYPES = [
+  ApprovalType.EthSignTypedData,
+  ApprovalType.PersonalSign,
+];
+
+const REDESIGNED_TRANSACTION_TYPES = [TransactionType.stakingDeposit];
+
+function isRedesignedSignature({
+  approvalRequestType,
+  confirmationRedesignFlags,
+  fromAddress,
+}: {
+  approvalRequestType: ApprovalType;
+  confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
+  fromAddress: string;
+}) {
+  return (
+    confirmationRedesignFlags?.signatures &&
+    // following condition will ensure that user is redirected to old designs for hardware wallets
+    !isExternalHardwareAccount(fromAddress) &&
+    approvalRequestType &&
+    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType)
+  );
+}
+
+function isRedesignedTransaction({
+  approvalRequestType,
+  confirmationRedesignFlags,
+  transactionMetadata,
+}: {
+  approvalRequestType: ApprovalType;
+  confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
+  transactionMetadata?: TransactionMeta;
+}) {
+  const isTransactionTypeRedesigned = REDESIGNED_TRANSACTION_TYPES.includes(
+    transactionMetadata?.type as TransactionType,
+  );
+
+  if (
+    !isTransactionTypeRedesigned ||
+    approvalRequestType !== ApprovalType.Transaction ||
+    !transactionMetadata
+  ) {
+    return false;
+  }
+
+  if (transactionMetadata.type === TransactionType.stakingDeposit) {
+    return confirmationRedesignFlags?.staking_transactions;
+  }
+
+  return false;
+}
 
 export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
-  const { isSigningQRObject, isSyncingQRHardware } = useQRHardwareAwareness();
-  const { confirmation_redesign } = useSelector(selectRemoteFeatureFlags);
+  const transactionMetadata = useTransactionMetadataRequest();
+  const confirmationRedesignFlags = useSelector(
+    selectConfirmationRedesignFlags,
+  );
 
-  const approvalRequestType = approvalRequest?.type;
+  const approvalRequestType = approvalRequest?.type as ApprovalType;
   const fromAddress = approvalRequest?.requestData?.from;
 
   const isRedesignedEnabled = useMemo(
     () =>
-      (confirmation_redesign as Record<string, string>)?.signatures &&
-      // following condition will ensure that user is redirected to old designs is using QR scan aware hardware
-      !isSyncingQRHardware &&
-      !isSigningQRObject &&
-      // following condition will ensure that user is redirected to old designs for hardware wallets
-      !isExternalHardwareAccount(fromAddress) &&
-      approvalRequestType &&
-      [ApprovalTypes.PERSONAL_SIGN, ApprovalTypes.ETH_SIGN_TYPED_DATA].includes(
-        approvalRequestType as ApprovalTypes,
-      ),
+      isRedesignedSignature({
+        approvalRequestType,
+        confirmationRedesignFlags,
+        fromAddress,
+      }) ||
+      isRedesignedTransaction({
+        approvalRequestType,
+        confirmationRedesignFlags,
+        transactionMetadata,
+      }),
     [
       approvalRequestType,
-      confirmation_redesign,
+      confirmationRedesignFlags,
       fromAddress,
-      isSigningQRObject,
-      isSyncingQRHardware,
+      transactionMetadata,
     ],
   );
 

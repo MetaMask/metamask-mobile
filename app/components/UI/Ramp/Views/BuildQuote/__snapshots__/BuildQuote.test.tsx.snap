@@ -2593,7 +2593,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
@@ -2782,7 +2782,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
@@ -4181,7 +4181,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
@@ -4370,7 +4370,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
@@ -5769,7 +5769,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
@@ -5958,7 +5958,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
@@ -7357,7 +7357,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
@@ -7546,7 +7546,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
@@ -8406,6 +8406,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   accessibilityRole="button"
                                   accessible={true}
                                   onPress={[Function]}
+                                  testID="region-dropdown"
                                 >
                                   <View
                                     style={
@@ -8492,7 +8493,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -8822,7 +8823,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -8873,6 +8874,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             }
                                           }
                                           onPress={[Function]}
+                                          testID="amount-input"
                                         >
                                           <Text
                                             accessibilityRole="text"
@@ -8925,6 +8927,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             }
                                           }
                                           onPress={[Function]}
+                                          testID="select-currency"
                                         >
                                           <View>
                                             <Text
@@ -9070,6 +9073,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "lineHeight": 20,
                                     }
                                   }
+                                  testID="min-limit-error"
                                 >
                                   Minimum deposit is
                                    
@@ -9116,7 +9120,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "borderColor": "#bbc0c5",
+                                          "borderColor": "#848c96",
                                           "borderRadius": 8,
                                           "borderWidth": 1.5,
                                           "padding": 16,
@@ -9396,7 +9400,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -9461,7 +9465,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -9526,7 +9530,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -9631,7 +9635,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -9712,7 +9716,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -9793,7 +9797,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -9883,7 +9887,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -9964,7 +9968,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -10045,7 +10049,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -10135,7 +10139,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -10216,7 +10220,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -10297,7 +10301,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -10458,7 +10462,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -11445,6 +11449,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   accessibilityRole="button"
                                   accessible={true}
                                   onPress={[Function]}
+                                  testID="region-dropdown"
                                 >
                                   <View
                                     style={
@@ -11598,7 +11603,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -11928,7 +11933,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -11979,6 +11984,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                             }
                                           }
                                           onPress={[Function]}
+                                          testID="amount-input"
                                         >
                                           <Text
                                             accessibilityRole="text"
@@ -12027,6 +12033,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "lineHeight": 20,
                                     }
                                   }
+                                  testID="min-limit-error"
                                 >
                                   Enter a larger amount to continue
                                 </Text>
@@ -12070,7 +12077,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     style={
                                       [
                                         {
-                                          "borderColor": "#bbc0c5",
+                                          "borderColor": "#848c96",
                                           "borderRadius": 8,
                                           "borderWidth": 1.5,
                                           "padding": 16,
@@ -12350,7 +12357,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -12415,7 +12422,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -12480,7 +12487,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -12545,7 +12552,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   onPress={[Function]}
                                   style={
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 999,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -12650,7 +12657,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -12731,7 +12738,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -12812,7 +12819,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -12902,7 +12909,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -12983,7 +12990,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -13064,7 +13071,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -13154,7 +13161,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -13235,7 +13242,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -13316,7 +13323,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,
@@ -13477,7 +13484,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "elevation": 1,
                                       "margin": 3.5,
                                       "paddingVertical": 5,
-                                      "shadowColor": "#0000001a",
+                                      "shadowColor": "#0000001A",
                                       "shadowOffset": {
                                         "height": 2,
                                         "width": 0,

@@ -55,11 +55,11 @@ import {
   isTestNet,
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
-  fetchEstimatedMultiLayerL1Fee,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
   getDecimalChainId,
 } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import Text from '../../../../Base/Text';
 import { removeFavoriteCollectible } from '../../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -85,17 +85,10 @@ import {
   stopGasPolling,
 } from '../../../../../core/GasPolling/GasPolling';
 import {
-  selectChainId,
-  selectNetworkClientId,
-  selectProviderType,
-  selectTicker,
-} from '../../../../../selectors/networkController';
-import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
 import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
@@ -136,7 +129,16 @@ import {
   validateSufficientBalance,
 } from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
+import {
+  selectNativeCurrencyByChainId,
+  // Pending updated multichain UX to specify the send chain.
+  // eslint-disable-next-line no-restricted-syntax
+  selectNetworkClientId,
+  selectProviderTypeByChainId,
+} from '../../../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { updateTransactionToMaxValue } from './utils';
+import { isNativeToken } from '../../utils/generic';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -199,9 +201,13 @@ class Confirm extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
-     * ID of the global network client
+     * ID of the associated network client
      */
     networkClientId: PropTypes.string,
+    /**
+     * ID of the global network client
+     */
+    globalNetworkClientId: PropTypes.string,
     /**
      * Indicates whether hex data should be shown in transaction editor
      */
@@ -328,9 +334,9 @@ class Confirm extends PureComponent {
   );
 
   setNetworkNonce = async () => {
-    const { networkClientId, setNonce, setProposedNonce, transaction } =
+    const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
+    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -422,7 +428,7 @@ class Confirm extends PureComponent {
      * Ref.: https://github.com/MetaMask/metamask-mobile/pull/3989#issuecomment-1367558394
      */
     if (
-      selectedAsset.isETH ||
+      isNativeToken(selectedAsset) ||
       selectedAsset.tokenId ||
       !selectedAsset.address
     ) {
@@ -462,7 +468,7 @@ class Confirm extends PureComponent {
   componentDidMount = async () => {
     const {
       chainId,
-      networkClientId,
+      globalNetworkClientId,
       showCustomNonce,
       navigation,
       providerType,
@@ -512,7 +518,7 @@ class Confirm extends PureComponent {
         transactionParams,
         {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId,
+          networkClientId: globalNetworkClientId,
           origin: TransactionTypes.MMM,
         },
       ));
@@ -629,7 +635,7 @@ class Confirm extends PureComponent {
 
       if (
         maxValueMode &&
-        selectedAsset.isETH &&
+        isNativeToken(selectedAsset) &&
         !isEmpty(gasFeeEstimates) &&
         haveGasFeeMaxNativeChanged
       ) {
@@ -738,9 +744,10 @@ class Confirm extends PureComponent {
 
     let transactionValue, transactionValueFiat;
     const valueBN = hexToBN(value);
-    const parsedTicker = getTicker(ticker);
+    const symbol = ticker ?? selectedAsset?.symbol;
+    const parsedTicker = getTicker(symbol);
 
-    if (selectedAsset.isETH) {
+    if (isNativeToken(selectedAsset)) {
       transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
       transactionValueFiat = weiToFiat(
         valueBN,
@@ -886,7 +893,10 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (selectedAsset.isETH || selectedAsset.tokenId) {
+    if (
+      isNativeToken(selectedAsset) ||
+      selectedAsset.tokenId
+    ) {
       return insufficientBalanceMessage;
     }
 
@@ -1581,36 +1591,42 @@ class Confirm extends PureComponent {
 
 Confirm.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  contractBalances: selectContractBalances(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  providerType: selectProviderType(state),
-  showHexData: state.settings.showHexData,
-  showCustomNonce: state.settings.showCustomNonce,
-  chainId: selectChainId(state),
-  networkClientId: selectNetworkClientId(state),
-  ticker: selectTicker(state),
-  transaction: getNormalizedTxState(state),
-  selectedAsset: state.transaction.selectedAsset,
-  transactionState: state.transaction,
-  primaryCurrency: state.settings.primaryCurrency,
-  gasFeeEstimates: selectGasFeeEstimates(state),
-  gasEstimateType: selectGasFeeControllerEstimateType(state),
-  isPaymentRequest: state.transaction.paymentRequest,
-  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  transactionMetricsById: selectTransactionMetrics(state),
-  transactionMetadata: selectCurrentTransactionMetadata(state),
-  useTransactionSimulations: selectUseTransactionSimulations(state),
-  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-  maxValueMode: state.transaction.maxValueMode,
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+  const networkClientId = transaction?.networkClientId;
+
+  return {
+    accounts: selectAccounts(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
+    contractBalances: selectContractBalances(state),
+    conversionRate: selectConversionRateByChainId(state, chainId),
+    currentCurrency: selectCurrentCurrency(state),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    showHexData: state.settings.showHexData,
+    showCustomNonce: state.settings.showCustomNonce,
+    chainId,
+    networkClientId,
+    globalNetworkClientId: selectNetworkClientId(state),
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    transaction,
+    selectedAsset: state.transaction.selectedAsset,
+    transactionState: state.transaction,
+    primaryCurrency: state.settings.primaryCurrency,
+    gasFeeEstimates: selectGasFeeEstimates(state),
+    gasEstimateType: selectGasFeeControllerEstimateType(state),
+    isPaymentRequest: state.transaction.paymentRequest,
+    isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
+      chainId,
+      getRampNetworks(state),
+    ),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    transactionMetricsById: selectTransactionMetrics(state),
+    transactionMetadata: selectCurrentTransactionMetadata(state),
+    useTransactionSimulations: selectUseTransactionSimulations(state),
+    securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   prepareTransaction: (transaction) =>

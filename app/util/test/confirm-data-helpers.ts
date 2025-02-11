@@ -1,11 +1,23 @@
 import {
+  MessageParamsPersonal,
   MessageParamsTyped,
   SignatureRequest,
   SignatureRequestStatus,
   SignatureRequestType,
 } from '@metamask/signature-controller';
-import { backgroundState } from './initial-root-state';
 import { Hex } from '@metamask/utils';
+import { TransactionControllerState } from '@metamask/transaction-controller';
+
+import { backgroundState } from './initial-root-state';
+
+export const confirmationRedesignRemoteFlagsState = {
+  remoteFeatureFlags: {
+    confirmation_redesign: {
+      signatures: true,
+      staking_transactions: true,
+    },
+  },
+};
 
 export const personalSignSignatureRequest = {
   chainId: '0x1',
@@ -59,10 +71,99 @@ export const personalSignatureConfirmationState = {
         approvalFlows: [],
       },
       RemoteFeatureFlagController: {
+        ...confirmationRedesignRemoteFlagsState,
+      },
+      SignatureController: {
+        signatureRequests: {
+          '76b33b40-7b5c-11ef-bc0a-25bce29dbc09': {
+            chainId: '0x1' as Hex,
+            messageParams: {
+              data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
+              from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              meta: {
+                url: 'https://metamask.github.io/test-dapp/',
+                title: 'E2E Test Dapp',
+                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+                analytics: { request_source: 'In-App-Browser' },
+              },
+              origin: 'metamask.github.io',
+              metamaskId: '76b33b40-7b5c-11ef-bc0a-25bce29dbc09',
+            } as MessageParamsTyped,
+          },
+        },
+      },
+    },
+  },
+};
+
+export const siweSignSignatureRequest = {
+  ...personalSignSignatureRequest,
+  messageParams: {
+    ...personalSignSignatureRequest.messageParams,
+    data: '0x6d6574616d61736b2e6769746875622e696f2077616e747320796f7520746f207369676e20696e207769746820796f757220457468657265756d206163636f756e743a0a3078386565656531373831666438383566663564646566373738393438363637363936313837336431320a0a492061636365707420746865204d6574614d61736b205465726d73206f6620536572766963653a2068747470733a2f2f636f6d6d756e6974792e6d6574616d61736b2e696f2f746f730a0a5552493a2068747470733a2f2f6d6574616d61736b2e6769746875622e696f0a56657273696f6e3a20310a436861696e2049443a20310a4e6f6e63653a2033323839313735370a4973737565642041743a20323032312d30392d33305431363a32353a32342e3030305a',
+    siwe: {
+      isSIWEMessage: true,
+      parsedMessage: {
+        domain: 'metamask.github.io',
+        address: '0x8eeee1781fd885ff5ddef7789486676961873d12',
+        statement:
+          'I accept the MetaMask Terms of Service: https://community.metamask.io/tos',
+        uri: 'https://metamask.github.io',
+        version: '1',
+        chainId: 1,
+        nonce: '32891757',
+        issuedAt: '2021-09-30T16:25:24.000Z',
+        requestId: '12345',
+        resources: ['resource-1', 'resource-2', 'resource-3'],
+      },
+    },
+  },
+} as unknown as SignatureRequest;
+
+export const siweSignatureConfirmationState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      ApprovalController: {
+        pendingApprovals: {
+          '72424261-e22f-11ef-8e59-bf627a5d8354': {
+            id: '72424261-e22f-11ef-8e59-bf627a5d8354',
+            origin: 'metamask.github.io',
+            type: 'personal_sign',
+            time: 1738587888035,
+            requestData: {
+              data: '0x6d6574616d61736b2e6769746875622e696f2077616e747320796f7520746f207369676e20696e207769746820796f757220457468657265756d206163636f756e743a0a3078386565656531373831666438383566663564646566373738393438363637363936313837336431320a0a492061636365707420746865204d6574614d61736b205465726d73206f6620536572766963653a2068747470733a2f2f636f6d6d756e6974792e6d6574616d61736b2e696f2f746f730a0a5552493a2068747470733a2f2f6d6574616d61736b2e6769746875622e696f0a56657273696f6e3a20310a436861696e2049443a20310a4e6f6e63653a2033323839313735370a4973737565642041743a20323032312d30392d33305431363a32353a32342e3030305a',
+              from: '0x8eeee1781fd885ff5ddef7789486676961873d12',
+              requestId: 106737718,
+              meta: {
+                url: 'https://metamask.github.io/test-dapp/',
+                title: 'E2E Test Dapp',
+                icon: {},
+                analytics: { request_source: 'In-App-Browser' },
+              },
+              origin: 'metamask.github.io',
+              siwe: (
+                siweSignSignatureRequest.messageParams as MessageParamsPersonal
+              ).siwe,
+              metamaskId: '72424260-e22f-11ef-8e59-bf627a5d8354',
+            },
+            requestState: null,
+            expectsResult: true,
+          },
+        },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+      RemoteFeatureFlagController: {
         remoteFeatureFlags: {
           confirmation_redesign: {
             signatures: true,
           },
+        },
+      },
+      SignatureController: {
+        signatureRequests: {
+          '72424261-e22f-11ef-8e59-bf627a5d8354': siweSignSignatureRequest,
         },
       },
     },
@@ -131,11 +232,7 @@ export const typedSignV1ConfirmationState = {
         },
       },
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          confirmation_redesign: {
-            signatures: true,
-          },
-        },
+        ...confirmationRedesignRemoteFlagsState,
       },
     },
   },
@@ -231,9 +328,7 @@ export const typedSignV3ConfirmationState = {
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          confirmation_redesign: {
-            signatures: true,
-          },
+          ...confirmationRedesignRemoteFlagsState,
         },
       },
     },
@@ -336,4 +431,85 @@ export const securityAlertResponse = {
     version: 'V4',
   },
   chainId: '0x1',
+};
+
+export const stakingDepositConfirmationState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      ApprovalController: {
+        pendingApprovals: {
+          '699ca2f0-e459-11ef-b6f6-d182277cf5e1': {
+            expectsResult: true,
+            id: '699ca2f0-e459-11ef-b6f6-d182277cf5e1',
+            origin: 'metamask',
+            requestData: { txId: '699ca2f0-e459-11ef-b6f6-d182277cf5e1' },
+            requestState: null,
+            time: 1738825814816,
+            type: 'transaction',
+          },
+        },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionDate: 1732887955.694,
+            conversionRate: 3596.25,
+            usdConversionRate: 3596.25,
+          },
+          LineaETH: {
+            conversionDate: 1732887955.694,
+            conversionRate: 3596.25,
+            usdConversionRate: 3596.25,
+          },
+        },
+      },
+      TransactionController: {
+        transactions: [
+          {
+            actionId: undefined,
+            chainId: '0x1',
+            dappSuggestedGasFees: undefined,
+            defaultGasEstimates: {
+              estimateType: 'medium',
+              gas: '0x1a5bd',
+              gasPrice: undefined,
+              maxFeePerGas: '0x74594b20',
+              maxPriorityFeePerGas: '0x1dcd6500',
+            },
+            deviceConfirmedOn: 'metamask_mobile',
+            gasLimitNoBuffer: '0x11929',
+            id: '699ca2f0-e459-11ef-b6f6-d182277cf5e1',
+            isFirstTimeInteraction: undefined,
+            networkClientId: 'mainnet',
+            origin: 'metamask',
+            originalGasEstimate: '0x1a5bd',
+            securityAlertResponse: undefined,
+            simulationFails: undefined,
+            status: 'unapproved',
+            time: 1738825814687,
+            txParams: {
+              data: '0xf9609f08000000000000000000000000dc47789de4ceff0e8fe9d15d728af7f17550c1640000000000000000000000000000000000000000000000000000000000000000',
+              from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+              gas: '0x1a5bd',
+              maxFeePerGas: '0x74594b20',
+              maxPriorityFeePerGas: '0x1dcd6500',
+              to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+              value: '0x5af3107a4000',
+            },
+            type: 'stakingDeposit',
+            userEditedGasLimit: false,
+            userFeeLevel: 'medium',
+            verifiedOnBlockchain: false,
+          },
+        ],
+      } as unknown as TransactionControllerState,
+      RemoteFeatureFlagController: {
+        ...confirmationRedesignRemoteFlagsState,
+      },
+    },
+  },
 };

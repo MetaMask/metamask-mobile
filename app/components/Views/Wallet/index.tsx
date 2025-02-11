@@ -58,7 +58,7 @@ import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
   selectTokens,
-  selectTokensByChainIdAndAddress,
+  selectTransformedTokens,
 } from '../../../selectors/tokensController';
 import {
   NavigationProp,
@@ -104,6 +104,10 @@ import {
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainIsEvm } from '../../../selectors/multichain';
+import NonEvmTokens from '../../UI/NonEvmTokens';
+///: END:ONLY_INCLUDE_IF
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -200,9 +204,7 @@ const Wallet = ({
   /**
    * An array that represents the user tokens by chainId and address
    */
-  const tokensByChainIdAndAddress = useSelector(
-    selectTokensByChainIdAndAddress,
-  );
+  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
   /**
    * Current provider ticker
    */
@@ -242,6 +244,10 @@ const Wallet = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const isEvm = useSelector(selectMultichainIsEvm);
+  ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
     if (
@@ -588,6 +594,48 @@ const Wallet = ({
     });
   }, [navigation]);
 
+  function renderTokensContent(assets: Token[]) {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (!isEvm) {
+      return (
+        <ScrollableTabView
+          renderTabBar={renderTabBar}
+          onChangeTab={onChangeTab}
+        >
+          <NonEvmTokens
+            tabLabel={strings('wallet.tokens')}
+            key={'tokens-tab'}
+          />
+        </ScrollableTabView>
+      );
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    return (
+      <ScrollableTabView
+        renderTabBar={renderTabBar}
+        // eslint-disable-next-line react/jsx-no-bind
+        onChangeTab={onChangeTab}
+      >
+        <Tokens
+          tabLabel={strings('wallet.tokens')}
+          key={'tokens-tab'}
+          navigation={navigation}
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error - TODO: Consolidate into the correct type.
+          tokens={assets}
+        />
+        <CollectibleContracts
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error - TODO: Consolidate into the correct type.
+          tabLabel={strings('wallet.collectibles')}
+          key={'nfts-tab'}
+          navigation={navigation}
+        />
+      </ScrollableTabView>
+    );
+  }
+
   const renderContent = useCallback(() => {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -665,30 +713,8 @@ const Wallet = ({
           </View>
         ) : null}
         <>
-          {accountBalanceByChainId && <PortfolioBalance />}
-          <ScrollableTabView
-            renderTabBar={renderTabBar}
-            // eslint-disable-next-line react/jsx-no-bind
-            onChangeTab={onChangeTab}
-          >
-            <Tokens
-              tabLabel={strings('wallet.tokens')}
-              key={'tokens-tab'}
-              navigation={navigation}
-              // TODO - Consolidate into the correct type.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              tokens={assets}
-            />
-            <CollectibleContracts
-              // TODO - Extend component to support injected tabLabel prop.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              tabLabel={strings('wallet.collectibles')}
-              key={'nfts-tab'}
-              navigation={navigation}
-            />
-          </ScrollableTabView>
+          <PortfolioBalance />
+          {renderTokensContent(assets)}
         </>
       </View>
     );
@@ -707,6 +733,10 @@ const Wallet = ({
     conversionRate,
     currentCurrency,
     contractBalances,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    isEvm,
+    tokensByChainIdAndAddress,
+    ///: END:ONLY_INCLUDE_IF
   ]);
   const renderLoader = useCallback(
     () => (

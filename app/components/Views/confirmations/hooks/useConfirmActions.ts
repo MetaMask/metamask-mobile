@@ -1,7 +1,9 @@
 import { useCallback } from 'react';
 
+import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
+import { useQRHardwareContext } from '../context/QRHardwareContext/QRHardwareContext';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './useSignatureMetrics';
 
@@ -12,11 +14,20 @@ export const useConfirmActions = () => {
     approvalRequest,
   } = useApprovalRequest();
   const { captureSignatureMetrics } = useSignatureMetrics();
+  const {
+    cancelQRScanRequestIfPresent,
+    isQRSigningInProgress,
+    setScannerVisible,
+  } = useQRHardwareContext();
 
   const signatureRequest =
     approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
 
   const onConfirm = useCallback(async () => {
+    if (isQRSigningInProgress) {
+      setScannerVisible(true);
+      return;
+    }
     await onRequestConfirm({
       waitForResult: true,
       deleteAfterResult: true,
@@ -24,15 +35,29 @@ export const useConfirmActions = () => {
     });
     if (signatureRequest) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
+      PPOMUtil.clearSignatureSecurityAlertResponse();
     }
-  }, [captureSignatureMetrics, onRequestConfirm, signatureRequest]);
+  }, [
+    captureSignatureMetrics,
+    isQRSigningInProgress,
+    onRequestConfirm,
+    setScannerVisible,
+    signatureRequest,
+  ]);
 
-  const onReject = useCallback(() => {
+  const onReject = useCallback(async () => {
+    await cancelQRScanRequestIfPresent();
     onRequestReject();
     if (signatureRequest) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
+      PPOMUtil.clearSignatureSecurityAlertResponse();
     }
-  }, [captureSignatureMetrics, onRequestReject, signatureRequest]);
+  }, [
+    cancelQRScanRequestIfPresent,
+    captureSignatureMetrics,
+    onRequestReject,
+    signatureRequest,
+  ]);
 
   return { onConfirm, onReject };
 };

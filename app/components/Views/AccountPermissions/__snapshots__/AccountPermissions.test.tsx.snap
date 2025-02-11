@@ -70,14 +70,14 @@ exports[`AccountPermissions renders correctly 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": 1334,
             "overflow": "hidden",
             "paddingBottom": 0,
-            "shadowColor": "#0000001a",
+            "shadowColor": "#0000001A",
             "shadowOffset": {
               "height": 2,
               "width": 0,
@@ -107,7 +107,7 @@ exports[`AccountPermissions renders correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#bbc0c566",
+              "backgroundColor": "#BBC0C566",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -119,10 +119,8 @@ exports[`AccountPermissions renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#ffffff",
             "flexDirection": "row",
-            "height": 32,
-            "justifyContent": "space-between",
+            "justifyContent": "center",
             "margin": 16,
           }
         }
@@ -130,10 +128,28 @@ exports[`AccountPermissions renders correctly 1`] = `
         <View
           style={
             {
-              "flex": 1,
+              "backgroundColor": "#ffffff",
+              "borderRadius": 16,
+              "height": 16,
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
             }
           }
-        />
+        >
+          <SvgMock
+            color="#141618"
+            height={20}
+            name="Global"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+        </View>
         <Text
           accessibilityRole="text"
           style={
@@ -147,16 +163,8 @@ exports[`AccountPermissions renders correctly 1`] = `
             }
           }
         >
-          Connected accounts
+          test
         </Text>
-        <View
-          style={
-            {
-              "alignItems": "flex-end",
-              "flex": 1,
-            }
-          }
-        />
       </View>
       <View
         style={
@@ -165,183 +173,22 @@ exports[`AccountPermissions renders correctly 1`] = `
           }
         }
       >
-        <View
-          iconName="LockSlash"
+        <Text
+          accessibilityRole="text"
           style={
             {
-              "alignItems": "center",
-              "alignSelf": "center",
-              "backgroundColor": "#ffffff",
-              "borderColor": "#bbc0c5",
-              "borderRadius": 99,
-              "borderWidth": 1,
-              "flexDirection": "row",
-              "paddingLeft": 8,
-              "paddingRight": 16,
-              "paddingVertical": 8,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderRadius": 16,
-                "height": 24,
-                "marginRight": 8,
-                "overflow": "hidden",
-                "width": 24,
-              }
-            }
-          >
-            <SvgMock
-              color="#141618"
-              height={20}
-              name="Global"
-              style={
-                {
-                  "height": 20,
-                  "width": 20,
-                }
-              }
-              width={20}
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#6a737d",
-                "flexShrink": 1,
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            https://test
-          </Text>
-          <Text
-            accessibilityRole="link"
-            accessible={true}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "backgroundColor": "transparent",
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "marginLeft": 16,
-              }
-            }
-            suppressHighlighting={true}
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Medium",
-                  "fontSize": 14,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            >
-              Permissions
-            </Text>
-          </Text>
-        </View>
-        <TouchableOpacity
-          disabled={false}
-          onPress={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "center",
-              "backgroundColor": "#f2f4f6",
-              "borderRadius": 16,
-              "flexDirection": "row",
-              "height": 32,
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
               "marginVertical": 16,
-              "paddingHorizontal": 8,
             }
           }
-          testID="accounts-connected-network-picker"
         >
-          <View
-            style={null}
-          >
-            <View
-              accessibilityLabel="Ethereum Main Network"
-              style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 8,
-                  "height": 16,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-picker"
-            >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
-                style={
-                  {
-                    "height": 16,
-                    "width": 16,
-                  }
-                }
-                testID="network-avatar-image"
-              />
-            </View>
-          </View>
-          <Text
-            accessibilityRole="text"
-            numberOfLines={1}
-            style={
-              {
-                "color": "#141618",
-                "flexShrink": 1,
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "marginHorizontal": 8,
-              }
-            }
-            testID="open-networks-text"
-          >
-            Ethereum Main Network
-          </Text>
-          <SvgMock
-            color="#141618"
-            height={12}
-            name="ArrowDown"
-            style={
-              {
-                "height": 12,
-                "width": 12,
-              }
-            }
-            testID="pickernetwork-arrow"
-            width={12}
-          />
-        </TouchableOpacity>
+          Connected accounts
+        </Text>
       </View>
       <RCTScrollView
         collapsable={false}
@@ -416,6 +263,46 @@ exports[`AccountPermissions renders correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderColor": "#0376c9",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginHorizontal": 16,
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="manage_permissions"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Manage Permissions
+        </Text>
+      </TouchableOpacity>
     </View>
   </View>
 </View>

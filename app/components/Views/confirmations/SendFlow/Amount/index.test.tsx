@@ -112,7 +112,7 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        selectedNetworkClientId: 'mainnet',
+        selectedNetworkClientId: 'sepolia',
         networksMetadata: {
           mainnet: {
             status: 'available',
@@ -179,6 +179,7 @@ const initialState = {
     },
   },
   settings: {
+    showFiatOnTestnets: true,
     primaryCurrency: 'ETH',
   },
 };
@@ -218,10 +219,18 @@ describe('Amount', () => {
 
   it('should display correct balance', () => {
     const { getByText, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
+          TokenRatesController: {
+            marketData: {
+              '0xaa36a7': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
+            },
+          },
           CurrencyRateController: {
             currentCurrency: 'usd',
             currencyRates: {
@@ -288,8 +297,9 @@ describe('Amount', () => {
     expect(setMaxValueMode).toHaveBeenCalled();
   });
 
-  it('should proceed if balance is sufficient while on Native primary currency', async () => {
+  it('should proceed if balance is sufficient while on Native primary currency is ETH', async () => {
     const { getByText, getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -369,8 +379,121 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('should proceed if balance is sufficient while on Native primary currency is not ETH', async () => {
+    //  {"address": "0x0000000000000000000000000000000000000000", "aggregators": [], "balance": "0.2059", "balanceFiat": "$5.74", "chainId": "0xa86a", "decimals": 18, "image": "", "isETH": false, "isNative": true, "isStaked": false, "logo": "", "name": "AVAX", "stakedBalance": "0x0", "symbol": "AVAX", "ticker": "AVAX", "tokenFiatAmount": 5.746669}}
+
+    const { getByText, getByTestId, toJSON } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          NetworkController: {
+            selectedNetworkClientId: 'asd',
+            networksMetadata: {
+              mainnet: {
+                status: 'available',
+                EIPS: {
+                  '1559': true,
+                },
+              },
+            },
+            networkConfigurationsByChainId: {
+              '0xa86a': {
+                blockExplorerUrls: ['https://snowtrace.io'],
+                chainId: '0xa86a',
+                defaultRpcEndpointIndex: 0,
+                name: 'Avalanche',
+                nativeCurrency: 'AVAX',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'asd',
+                    type: 'Custom',
+                    url: 'http://localhost/v3/',
+                  },
+                ],
+              },
+            },
+          },
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates: {
+              AVAX: {
+                conversionRate: 1,
+              },
+            },
+          },
+          AccountTrackerController: {
+            accounts: {
+              [CURRENT_ACCOUNT]: {
+                balance: '4563918244F40000',
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0xa86a': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'AVAX',
+        selectedAsset: {
+          address: '',
+          isETH: false,
+          isNative: true,
+          logo: '../images/avalanche.png',
+          name: 'Avalanche',
+          symbol: 'AVAX',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const balanceText = getByText(/Balance:/);
+    expect(balanceText.props.children).toBe('Balance: 5 AVAX');
+
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
+    await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
+
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
+    fireEvent.changeText(textInput, '1');
+
+    const amountConversionValue = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
+    );
+    expect(amountConversionValue.props.children).toBe('$1.00');
+
+    await act(() => fireEvent.press(nextButton));
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('should show an error message if balance is insufficient', async () => {
     const { getByText, getByTestId, queryByText, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -525,13 +648,14 @@ describe('Amount', () => {
 
   it('should convert ERC-20 token value to USD', () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
             marketData: {
-              '0x1': {
+              '0xaa36a7': {
                 '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
               },
             },
@@ -602,6 +726,7 @@ describe('Amount', () => {
 
   it('should convert USD to ETH', () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -636,6 +761,7 @@ describe('Amount', () => {
         },
       },
       settings: {
+        ...initialState.settings,
         primaryCurrency: 'Fiat',
       },
       transaction: {
@@ -671,13 +797,14 @@ describe('Amount', () => {
 
   it('should convert USD to ERC-20 token value', () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
             marketData: {
-              '0x1': {
+              '0xaa36a7': {
                 '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
               },
             },
@@ -716,9 +843,6 @@ describe('Amount', () => {
           },
         },
       },
-      settings: {
-        primaryCurrency: 'Fiat',
-      },
       transaction: {
         assetType: 'ERC20',
         selectedAsset: {
@@ -734,6 +858,10 @@ describe('Amount', () => {
         transactionTo: RECEIVER_ACCOUNT,
         transactionToName: 'Account 2',
       },
+      settings: {
+        ...initialState.settings,
+        primaryCurrency: 'Fiat'
+      }
     });
 
     const textInput = getByTestId(
@@ -751,6 +879,7 @@ describe('Amount', () => {
 
   it('should show a warning when conversion rate is not available', () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -785,6 +914,7 @@ describe('Amount', () => {
         },
       },
       settings: {
+        ...initialState.settings,
         primaryCurrency: 'Fiat',
       },
       transaction: {
@@ -815,13 +945,14 @@ describe('Amount', () => {
 
   it('should not show a warning when conversion rate is available', async () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
             marketData: {
-              '0x1': {
+              '0xaa36a7': {
                 '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
               },
             },
@@ -857,6 +988,7 @@ describe('Amount', () => {
         },
       },
       settings: {
+        ...initialState.settings,
         primaryCurrency: 'Fiat',
       },
       transaction: {
@@ -890,6 +1022,7 @@ describe('Amount', () => {
 
   it('should not show a warning when transfering collectibles', () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -914,7 +1047,7 @@ describe('Amount', () => {
           },
           TokenRatesController: {
             marketData: {
-              '0x1': {
+              '0xaa36a7': {
                 '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
               },
             },

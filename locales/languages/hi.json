@@ -48,7 +48,10 @@
     "connector": "पर"
   },
   "autocomplete": {
-    "placeholder": "ढूंढें या URL टाइप करें"
+    "placeholder": "साइट या एड्रेस से ढूंढें",
+    "recents": "हालिया",
+    "favorites": "पसंदीदा",
+    "sites": "साइट्स"
   },
   "navigation": {
     "back": "वापस",
@@ -449,6 +452,7 @@
     "next": "अगला",
     "buy_asset": "{{asset}} खरीदें",
     "no_tokens": "आपके पास कोई टोकन नहीं है!",
+    "show_tokens_without_balance": "बैलेंस के बिना टोकन दिखाएं",
     "no_nfts_yet": "अभी तक कोई NFT नहीं है",
     "nfts_autodetection_title": "NFT का पता लगाना",
     "nfts_autodetection_desc": "MetaMask को ऑटोमेटिक तरीके से NFTs का पता लगाने और आपके वॉलेट में दिखाने के लिए अनुमति दें।",
@@ -470,7 +474,7 @@
     "learn_more": "ज्यादा जानें।",
     "add_collectibles": "NFT इम्पोर्ट करें",
     "no_transactions": "आपके पास कोई लेन-देन नहीं है!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "कृपया ट्रांसेक्शन देखने के लिए नेटवर्क बदलें",
     "send_button": "भेजें",
     "deposit_button": "जमा करें",
     "copy_address": "कॉपी करें",
@@ -722,6 +726,7 @@
     "connected_and_active": "कनेक्ट किया हुआ और सक्रिय।",
     "now_active": "अब सक्रिय है",
     "network_added": "सफलतापूर्वक जोड़ा गया",
+    "network_removed": "सफलतापूर्वक हटाया गया",
     "network_deleted": "सफलतापूर्वक डिलीट किया गया",
     "network_permissions_updated": "नेटवर्क अनुमतियाँ अपडेट की गईं",
     "revoked": "निरस्त किया हुआ।",
@@ -1264,16 +1269,19 @@
     "sell_button": "बेचें",
     "receive_button": "प्राप्त करें",
     "portfolio_button": "पोर्टफोलियो",
+    "earn_button": "कमाएं",
     "add_collectible_button": "जोड़ें",
     "info": "जानकारी",
     "swap": "स्वैप",
     "bridge": "ब्रिज",
+    "earn": "कमाएं",
     "disabled_button": {
       "buy": "इस अकाउंट के लिए खरीदारी सपोर्ट नहीं करती है",
       "sell": "इस अकाउंट के लिए बेचना सपोर्ट नहीं करती है",
       "swap": "इस अकाउंट के लिए स्वैप करना सपोर्ट नहीं करती है",
       "bridge": "इस अकाउंट के लिए ब्रिज करना सपोर्ट नहीं करती है",
       "send": "इस अकाउंट के लिए भेजना सपोर्ट नहीं करती है",
+      "earn": "इस अकाउंट के लिए कमाना सपोर्टेड नहीं है",
       "action": "यह एक्शन इस अकाउंट के लिए सपोर्ट नहीं करती है"
     },
     "description": "विवरण",
@@ -1290,6 +1298,7 @@
     "bridge_description": "अलग-अलग नेटवर्कों के बीच टोकन ट्रांसफर करें",
     "send_description": "किसी भी खाते में क्रिप्टो भेजें",
     "receive_description": "क्रिप्टो प्राप्त करें",
+    "earn_description": "अपने टोकन पर पुरस्कार अर्जित करें",
     "chart_time_period": {
       "1d": "आज",
       "7d": "पिछले 7 दिन",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "चेन आईडी",
     "network_rpc_url": "नेटवर्क यूआरएल",
     "network_rpc_url_label": "नेटवर्क RPC URL",
+    "network_rpc_url_warning_punycode": "हमलावर कभी-कभी साइट के एड्रेस में छोटे-छोटे बदलाव करके साइटों की नकल करते हैं। जारी रखने से पहले सुनिश्चित करें कि आप इच्छित नेटवर्क URL के साथ इंटरैक्ट कर रहे हैं। पुनीकोड ​​वर्शन:",
     "new_default_network_url": "नया डिफॉल्ट नेटवर्क URL",
     "current_label": "मौजूदा",
     "new_label": "नया",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "हार्डवेयर वॉलेट जोड़ें",
     "import_account": "अकाउंट इम्पोर्ट करें",
     "add_bitcoin_account_testnet": "एक नया Bitcoin अकाउंट - टैस्टनेट (testnet) जोड़ें",
-    "add_bitcoin_account_mainnet": "एक नया Bitcoin अकाउंट (बीटा) जोड़ें"
+    "add_bitcoin_account_mainnet": "एक नया Bitcoin अकाउंट (बीटा) जोड़ें",
+    "add_solana_account": "एक नया Solana अकाउंट (बीटा) जोड़ें"
   },
   "show_nft": {
     "show_nft_title": "NFT दिखाएं",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "हस्ताक्षर का अनुरोध"
     },
+    "sub_title": {
+      "signature": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।"
+    },
     "request_from": "इनसे मिला अनुरोध",
     "message": "संदेश",
+    "primary_type": "प्राइमरी प्रकार",
     "personal_sign_tooltip": "यह साइट आपका सिग्नेचर मांग रही है",
     "details": "विवरण",
     "account": "अकाउंट",
     "balance": "बैलेंस",
     "network": "नेटवर्क",
     "simulation": {
-      "title": "अनुमानित बदलाव",
+      "decoded_tooltip_bid_nft": "बिड स्वीकार होने पर NFT आपके वॉलेट में दिखाई देगा।",
+      "decoded_tooltip_list_nft": "बदलाव की उम्मीद तभी करें जब कोई आपके NFTs खरीद ले।",
+      "info_permit": "आप खर्च करने वाले को अपने अकाउंट से इतने सारे टोकन खर्च करने की अनुमति दे रहे हैं।",
+      "label_change_type_bidding": "आप बिड करते हैं",
+      "label_change_type_listing": "आप लिस्ट करते हैं",
+      "label_change_type_nft_listing": "लिस्टिंग प्राइस",
+      "label_change_type_permit": "खर्च करने की सीमा",
+      "label_change_type_permit_nft": "निकालें",
+      "label_change_type_receive": "आप प्राप्त करते हैं",
+      "label_change_type_revoke": "निरस्त करें",
+      "label_change_type_transfer": "आप भेजते हैं",
       "personal_sign_info": "आप किसी साइट पर साइन इन कर रहे हैं और आपके अकाउंट में कोई अनुमानित परिवर्तन नहीं हैं।",
-      "tooltip": "अगर आप यह ट्रांसेक्शन करते हैं तो अनुमानित परिवर्तन हो सकते हैं। यह सिर्फ एक अनुमान है, कोई गारंटी नहीं।"
-    }
+      "title": "अनुमानित बदलाव",
+      "tooltip": "अगर आप यह ट्रांसेक्शन करते हैं तो अनुमानित परिवर्तन हो सकते हैं। यह सिर्फ एक अनुमान है, कोई गारंटी नहीं।",
+      "unavailable": "अनुपलब्ध"
+    },
+    "unlimited": "असीमित",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "परिणाम बदल गए हैं",
