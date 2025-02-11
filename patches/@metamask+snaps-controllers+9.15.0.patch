@@ -1,0 +1,40 @@
+diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs
+index 399214a..299dfea 100644
+--- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs
++++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs
+@@ -1649,11 +1649,14 @@ async function _SnapController_getEndowments(snapId) {
+             }
+         }
+         const timer = new Timer_1.Timer(timeout);
++        console.log('Snaps/ handleRpcRequestPromise params', snapId, origin, handlerType, request, timeout);
+         __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_recordSnapRpcRequestStart).call(this, snapId, request.id, timer);
+         const handleRpcRequestPromise = this.messagingSystem.call('ExecutionService:handleRpcRequest', snapId, { origin, handler: handlerType, request });
++        console.log('Snaps/ Got RPC promise:', handleRpcRequestPromise);
+         // This will either get the result or reject due to the timeout.
+         try {
+-            const result = await (0, utils_2.withTimeout)(handleRpcRequestPromise, timer);
++            const result = await handleRpcRequestPromise;
++            console.log('Snaps/ handleRpcRequestPromise result', result);
+             if (result === utils_2.hasTimedOut) {
+                 throw new Error(`${snapId} failed to respond to the request in time.`);
+             }
+diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.mjs b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.mjs
+index eaaa829..660d03a 100644
+--- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.mjs
++++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.mjs
+@@ -1649,11 +1649,15 @@ async function _SnapController_getEndowments(snapId) {
+             }
+         }
+         const timer = new Timer(timeout);
++        console.log('Snaps/ mjs handleRpcRequestPromise params', snapId, origin, handlerType, request, timeout);
+         __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_recordSnapRpcRequestStart).call(this, snapId, request.id, timer);
+         const handleRpcRequestPromise = this.messagingSystem.call('ExecutionService:handleRpcRequest', snapId, { origin, handler: handlerType, request });
++        console.log('Snaps/ Got RPC promise:', handleRpcRequestPromise);
++
+         // This will either get the result or reject due to the timeout.
+         try {
+             const result = await withTimeout(handleRpcRequestPromise, timer);
++            console.log('Snaps/ mjs handleRpcRequestPromise result', result);
+             if (result === hasTimedOut) {
+                 throw new Error(`${snapId} failed to respond to the request in time.`);
+             }

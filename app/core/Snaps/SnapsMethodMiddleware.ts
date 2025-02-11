@@ -110,6 +110,7 @@ const snapMethodMiddlewareBuilder = (
       origin,
     ),
     handleSnapRpcRequest: async (request: Omit<SnapRpcHookArgs, 'origin'>) => {
+      console.log('Snaps/ handleSnapRpcRequest from middleware:', request);
       const snapId = getSnapIdFromRequest(request);
 
       if (!snapId) {

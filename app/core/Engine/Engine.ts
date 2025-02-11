@@ -697,8 +697,10 @@ export class Engine {
         this.controllerMessenger,
         SnapControllerGetSnapAction,
       ),
-      handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
-        await handleSnapRequest(this.controllerMessenger, args),
+      handleSnapRpcRequest: async (args: HandleSnapRequestArgs) => {
+        console.log('Snaps/ handleSnapRpcRequest from engine:', args);
+        return await handleSnapRequest(this.controllerMessenger, args);
+      },
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       getSnapState: this.controllerMessenger.call.bind(

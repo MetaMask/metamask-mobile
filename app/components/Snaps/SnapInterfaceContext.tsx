@@ -67,6 +67,12 @@ export interface SnapInterfaceContextProviderProps {
 export const SnapInterfaceContextProvider: FunctionComponent<
   SnapInterfaceContextProviderProps
 > = ({ children, interfaceId, snapId, initialState, context }) => {
+  console.log('Snaps/ SnapInterfaceContextProvider props:', {
+    interfaceId,
+    snapId,
+    initialState,
+    context,
+  });
   // We keep an internal copy of the state to speed up the state update in the
   // UI. It's kept in a ref to avoid useless re-rendering of the entire tree of
   // components.
@@ -171,6 +177,15 @@ export const SnapInterfaceContextProvider: FunctionComponent<
   const setCurrentFocusedInput: SetCurrentInputFocus = (name) => {
     focusedInput.current = name;
   };
+
+  console.log('Snaps/ Creating context with value:', {
+    handleEvent,
+    getValue,
+    handleInputChange,
+    setCurrentFocusedInput,
+    focusedInput,
+    snapId,
+  });
 
   return (
     <SnapInterfaceContext.Provider

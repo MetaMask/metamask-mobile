@@ -44,6 +44,13 @@ export const SnapUIFooterButton: FunctionComponent<
   ...props
 }) => {
   const { handleEvent, snapId } = useSnapInterfaceContext();
+  console.log('Snaps/ handleEvent:', handleEvent);
+
+  if (!handleEvent) {
+    console.log('Snaps/ handleEvent is undefined');
+  }
+  console.log('Snaps/ snapId:', snapId);
+  console.log('Snaps/ isSnapAction:', isSnapAction);
   const snaps = useSelector(selectSnaps);
   const snapMetadata = snaps[snapId as SnapId];
 

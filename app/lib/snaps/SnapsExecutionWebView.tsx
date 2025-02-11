@@ -73,9 +73,12 @@ export class SnapsExecutionWebView extends Component {
   }
 
   onWebViewMessage(data: WebViewMessageEvent) {
+    console.log('WebView received message:', data.nativeEvent);
     if (this.listener) {
+      console.log('Calling listener with data');
       this.listener(data.nativeEvent);
     }
+    console.log('No listener registered for WebView messages');
   }
 
   render() {
