@@ -4990,16 +4990,6 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
-"@metamask/keyring-internal-api@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-2.0.0.tgz#809b1acea178384bb704e8025d8557a30072f6f1"
-  integrity sha512-CG9MSt3CdcnIQpvgJ4StQqUkdVfv3YX0dXQuZG6czKtW+TNV/43xbgoaQuAk+XsisqfY5zMCmr+XTL3Wvwfc7Q==
-  dependencies:
-    "@metamask/keyring-api" "^13.0.0"
-    "@metamask/keyring-utils" "^1.0.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.0.1"
-
 "@metamask/keyring-internal-api@^4.0.1", "@metamask/keyring-internal-api@^4.0.2":
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-4.0.2.tgz#0283bb725ab0f17e6ff720c773dc475af06126b1"
