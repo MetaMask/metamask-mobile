@@ -4,7 +4,7 @@ import React from 'react';
 
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
-import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
+import { useQRHardwareContext } from '../../../context/QRHardwareContext';
 import PersonalSign from './PersonalSign';
 import QRInfo from './QRInfo';
 import TypedSignV1 from './TypedSignV1';
