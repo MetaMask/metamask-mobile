@@ -15,6 +15,8 @@ import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
 } from './networkController';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { Hex } from '@metamask/utils';
 import { isNonEvmChainId } from '../core/Multichain/utils';
 
 const selectSelectedNetworkControllerState = (state: RootState) =>
@@ -81,6 +83,35 @@ const selectProviderNetworkImageSource = createSelector(
       chainId: providerConfig.chainId,
     }),
 );
+
+const selectChainIdToUse = createSelector(
+  [
+    selectNetworkConfigurations,
+    makeSelectDomainNetworkClientId(),
+    selectNetworkClientId,
+  ],
+  (networkConfigurations, domainNetworkClientId, globalNetworkClientId) => {
+    const relevantNetworkClientId =
+      domainNetworkClientId || globalNetworkClientId;
+
+    let chainIdToUse;
+
+    for (const networkConfig of Object.values(
+      networkConfigurations as Record<Hex, NetworkConfiguration>,
+    )) {
+      const matchingRpcEndpoint = networkConfig.rpcEndpoints.find(
+        (endpoint) => endpoint.networkClientId === relevantNetworkClientId,
+      );
+
+      if (matchingRpcEndpoint) {
+        chainIdToUse = networkConfig.chainId;
+      }
+    }
+
+    return chainIdToUse;
+  },
+);
+
 export const makeSelectNetworkName = () =>
   createSelector(
     [
@@ -90,6 +121,7 @@ export const makeSelectNetworkName = () =>
       selectNetworkClientId,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
+      selectChainIdToUse,
     ],
     (
       networkConfigurations,
@@ -98,13 +130,17 @@ export const makeSelectNetworkName = () =>
       globalNetworkClientId,
       chainId,
       hostname,
+      chainIdToUse,
     ) => {
       if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK)
         return providerNetworkName;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
+
+      const relevantChainId = chainIdToUse || chainId;
+
       return (
-        networkConfigurations[chainId]?.rpcEndpoints.find(
+        networkConfigurations[relevantChainId]?.rpcEndpoints.find(
           ({ networkClientId }: { networkClientId: string }) =>
             networkClientId === relevantNetworkClientId,
         )?.name ||
@@ -123,6 +159,7 @@ export const makeSelectNetworkImageSource = () =>
       selectNetworkClientId,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
+      selectChainIdToUse,
     ],
     (
       networkConfigurations,
@@ -131,13 +168,16 @@ export const makeSelectNetworkImageSource = () =>
       globalNetworkClientId,
       chainId,
       hostname,
+      chainIdToUse,
     ) => {
       if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK)
         return providerNetworkImageSource;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
 
-      const networkConfig = networkConfigurations[chainId];
+      const relevantChainId = chainIdToUse || chainId;
+
+      const networkConfig = networkConfigurations[relevantChainId];
       if (networkConfig) {
         // @ts-expect-error The utils/network file is still JS and this function expects a networkType, and should be optional
         return getNetworkImageSource({ chainId: networkConfig.chainId });
@@ -159,6 +199,7 @@ export const makeSelectChainId = () =>
       selectNetworkClientId,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
+      selectChainIdToUse,
     ],
     (
       providerChainId,
@@ -166,6 +207,7 @@ export const makeSelectChainId = () =>
       globalNetworkClientId,
       chainId,
       hostname,
+      chainIdToUse,
     ) => {
       if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK) {
         return providerChainId;
@@ -173,8 +215,10 @@ export const makeSelectChainId = () =>
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
 
+      const relevantChainId = chainIdToUse || chainId;
+
       return (
-        chainId ||
+        relevantChainId ||
         // @ts-expect-error The utils/network file is still JS
         NetworkList[relevantNetworkClientId]?.chainId
       );
