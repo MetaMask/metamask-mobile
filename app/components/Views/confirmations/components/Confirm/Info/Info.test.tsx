@@ -1,7 +1,10 @@
 import React from 'react';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
+import {
+  personalSignatureConfirmationState,
+  stakingDepositConfirmationState,
+} from '../../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareContext';
 import Info from './Info';
@@ -42,5 +45,13 @@ describe('Info', () => {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('QR Scanning Component')).toBeTruthy();
+  });
+  describe('Staking Deposit', () => {
+    it('should render correctly', async () => {
+      const { getByText } = renderWithProvider(<Info />, {
+        state: stakingDepositConfirmationState,
+      });
+      expect(getByText('Stake')).toBeDefined();
+    });
   });
 });
