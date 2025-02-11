@@ -153,7 +153,7 @@ const AccountPermissionsConnected = ({
           {strings('accounts.connected_accounts_title')}
         </Text>
         <PickerNetwork
-          label={providerConfig?.nickname || networkName}
+          label={networkName}
           imageSource={networkImageSource}
           onPress={switchNetwork}
           style={styles.networkPicker}

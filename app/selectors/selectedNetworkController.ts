@@ -15,6 +15,8 @@ import {
   ProviderConfig,
   selectChainId,
 } from './networkController';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { Hex } from '@metamask/utils';
 
 const selectSelectedNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.SelectedNetworkController;
@@ -77,6 +79,34 @@ const selectProviderNetworkImageSource = createSelector(
     }),
 );
 
+const selectChainIdToUse = createSelector(
+  [
+    selectNetworkConfigurations,
+    makeSelectDomainNetworkClientId(),
+    selectNetworkClientId,
+  ],
+  (networkConfigurations, domainNetworkClientId, globalNetworkClientId) => {
+    const relevantNetworkClientId =
+      domainNetworkClientId || globalNetworkClientId;
+
+    let chainIdToUse;
+
+    for (const networkConfig of Object.values(
+      networkConfigurations as Record<Hex, NetworkConfiguration>,
+    )) {
+      const matchingRpcEndpoint = networkConfig.rpcEndpoints.find(
+        (endpoint) => endpoint.networkClientId === relevantNetworkClientId,
+      );
+
+      if (matchingRpcEndpoint) {
+        chainIdToUse = networkConfig.chainId;
+      }
+    }
+
+    return chainIdToUse;
+  },
+);
+
 export const makeSelectNetworkName = () =>
   createSelector(
     [
@@ -86,6 +116,7 @@ export const makeSelectNetworkName = () =>
       selectNetworkClientId,
       selectChainId,
       (_: RootState, hostname?: string) => hostname,
+      selectChainIdToUse,
     ],
     (
       networkConfigurations,
@@ -94,12 +125,17 @@ export const makeSelectNetworkName = () =>
       globalNetworkClientId,
       chainId,
       hostname,
+      chainIdToUse,
     ) => {
-      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK) return providerNetworkName;
+      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK)
+        return providerNetworkName;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
+
+      const relevantChainId = chainIdToUse || chainId;
+
       return (
-        networkConfigurations[chainId]?.rpcEndpoints.find(
+        networkConfigurations[relevantChainId]?.rpcEndpoints.find(
           ({ networkClientId }: { networkClientId: string }) =>
             networkClientId === relevantNetworkClientId,
         )?.name ||
@@ -118,6 +154,7 @@ export const makeSelectNetworkImageSource = () =>
       selectNetworkClientId,
       selectChainId,
       (_: RootState, hostname?: string) => hostname,
+      selectChainIdToUse,
     ],
     (
       networkConfigurations,
@@ -126,13 +163,16 @@ export const makeSelectNetworkImageSource = () =>
       globalNetworkClientId,
       chainId,
       hostname,
+      chainIdToUse,
     ) => {
       if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK)
         return providerNetworkImageSource;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
 
-      const networkConfig = networkConfigurations[chainId];
+      const relevantChainId = chainIdToUse || chainId;
+
+      const networkConfig = networkConfigurations[relevantChainId];
       if (networkConfig) {
         // @ts-expect-error The utils/network file is still JS and this function expects a networkType, and should be optional
         return getNetworkImageSource({ chainId: networkConfig.chainId });
@@ -154,6 +194,7 @@ export const makeSelectChainId = () =>
       selectNetworkClientId,
       selectChainId,
       (_: RootState, hostname?: string) => hostname,
+      selectChainIdToUse,
     ],
     (
       providerChainId,
@@ -161,14 +202,18 @@ export const makeSelectChainId = () =>
       globalNetworkClientId,
       chainId,
       hostname,
+      chainIdToUse,
     ) => {
       if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK) {
         return providerChainId;
       }
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
+
+      const relevantChainId = chainIdToUse || chainId;
+
       return (
-        chainId ||
+        relevantChainId ||
         // @ts-expect-error The utils/network file is still JS
         NetworkList[relevantNetworkClientId]?.chainId
       );
@@ -193,7 +238,8 @@ export const makeSelectRpcUrl = () =>
       chainId,
       hostname,
     ) => {
-      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK) return providerRpcUrl;
+      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK)
+        return providerRpcUrl;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       return networkConfigurations[chainId]?.rpcEndpoints.find(
