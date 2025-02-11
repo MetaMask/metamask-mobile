@@ -5,7 +5,8 @@ const styleSheet = () => StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 10,
+      paddingVertical: 4,
+      marginBottom: 16,
     },
     left: {
       position: 'absolute',
