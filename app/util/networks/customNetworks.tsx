@@ -215,6 +215,8 @@ export const NETWORK_CHAIN_ID: {
   readonly GRAVITY_ALPHA_MAINNET: '0x659';
   readonly KAIA_MAINNET: '0x2019';
   readonly KAIA_KAIROS_TESTNET: '0x3e9';
+  readonly UNICHAIN: '0x82';
+  readonly UNICHAIN_SEPOLIA: '0x515';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -223,6 +225,8 @@ export const NETWORK_CHAIN_ID: {
   GRAVITY_ALPHA_MAINNET: '0x659',
   KAIA_MAINNET: '0x2019',
   KAIA_KAIROS_TESTNET: '0x3e9',
+  UNICHAIN: '0x82',
+  UNICHAIN_SEPOLIA: '0x515',
   ...CHAIN_IDS,
 };
 
@@ -236,4 +240,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.LINEA_MAINNET]: require('../../images/linea-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.KAIA_MAINNET]: require('../../images/kaia.png'),
   [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: require('../../images/kaia.png'),
+  [NETWORK_CHAIN_ID.UNICHAIN]: require('../../images/unichain.png'),
+  [NETWORK_CHAIN_ID.UNICHAIN_SEPOLIA]: require('../../images/unichain.png'),
 };
