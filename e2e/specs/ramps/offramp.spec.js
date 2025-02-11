@@ -62,7 +62,7 @@ describe(SmokeRamps('Off-Ramp'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
     await SellGetStartedView.tapGetStartedButton();
-    await SelectRegionView.tapSelectRegionDropdown();
+    await BuildQuoteView.tapSelectRegionDropdown();
     await SelectRegionView.tapRegionOption(Regions.USA);
     await SelectRegionView.tapRegionOption(Regions.CALIFORNIA);
     await SelectRegionView.tapContinueButton();
