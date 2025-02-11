@@ -25,9 +25,13 @@ import {
   MultichainNetworks,
   NETWORK_ASSETS_MAP,
 } from '@metamask/assets-controllers';
-import { selectAccountBalanceByChainId } from '../accountTrackerController';
+import {
+  selectAccountBalanceByChainId,
+  selectAccountsByChainId,
+} from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { getFormattedAddressFromInternalAccount } from '../../core/Multichain/utils';
 import { isEthAccount } from '../../core/Multichain/utils';
 
 /**
@@ -404,23 +408,47 @@ export const selectAllAccountsConversionRates = createDeepEqualSelector(
 export const selectAllAccountsBalances = createDeepEqualSelector(
   selectInternalAccounts,
   selectMultichainBalances,
-  selectAccountBalanceByChainId,
-  (accounts, multichainBalances, evmBalance) => {
-    return accounts.reduce<Record<string, string>>((acc, account) => {
-      if (isEvmAccountType(account.type)) {
-        acc[account.id] = evmBalance?.balance ?? '0x0';
-      } else {
-        // For non-EVM accounts, we need to look through all balances
-        const balancesForAccount = multichainBalances?.[account.id] || {};
-        // Find the first non-zero balance
-        const nonZeroBalance = Object.values(balancesForAccount).find(
-          (balance): balance is BalanceData =>
-            balance?.amount !== undefined && balance.amount !== '0',
-        );
-        acc[account.id] = nonZeroBalance?.amount ?? '0';
-      }
-      return acc;
-    }, {});
+  selectAccountsByChainId,
+  (
+    accounts: InternalAccount[],
+    multichainBalances: MultichainBalances,
+    accountsByChainId: Record<string, Record<string, { balance: string }>>,
+  ) => {
+    return accounts.reduce<Record<string, string>>(
+      (acc: Record<string, string>, account: InternalAccount) => {
+        if (isEvmAccountType(account.type)) {
+          // For EVM accounts, look through all chain balances
+          const formattedAddress =
+            getFormattedAddressFromInternalAccount(account);
+          // Find the first non-zero balance across all chains
+          for (const chainId in accountsByChainId) {
+            const chainAccounts = accountsByChainId[chainId];
+            const accountBalance = chainAccounts[formattedAddress]?.balance;
+            if (accountBalance && accountBalance !== '0x0') {
+              acc[account.id] = accountBalance;
+              return acc;
+            }
+          }
+          // If no non-zero balance found, use the first chain's balance or 0x0
+          const firstChainId = Object.keys(accountsByChainId)[0];
+          acc[account.id] = firstChainId
+            ? accountsByChainId[firstChainId][formattedAddress]?.balance ??
+              '0x0'
+            : '0x0';
+        } else {
+          // For non-EVM accounts, we need to look through all balances
+          const balancesForAccount = multichainBalances?.[account.id] || {};
+          // Find the first non-zero balance
+          const nonZeroBalance = Object.values(balancesForAccount).find(
+            (balance): balance is BalanceData =>
+              balance?.amount !== undefined && balance.amount !== '0',
+          );
+          acc[account.id] = nonZeroBalance?.amount ?? '0';
+        }
+        return acc;
+      },
+      {},
+    );
   },
 );
 ///: END:ONLY_INCLUDE_IF
