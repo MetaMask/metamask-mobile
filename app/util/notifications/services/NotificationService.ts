@@ -6,7 +6,12 @@ import notifee, {
   AndroidChannel,
 } from '@notifee/react-native';
 
-import { HandleNotificationCallback, LAUNCH_ACTIVITY, INotification as Notification, PressActionId } from '../types';
+import {
+  HandleNotificationCallback,
+  LAUNCH_ACTIVITY,
+  INotification as Notification,
+  PressActionId,
+} from '../types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
 import {
@@ -222,7 +227,7 @@ class NotificationsService {
   };
 
   getInitialNotification = async (
-    callback: HandleNotificationCallback
+    callback: HandleNotificationCallback,
   ): Promise<void> => {
     const event = await notifee.getInitialNotification();
     if (event) {
@@ -241,12 +246,12 @@ class NotificationsService {
     channelId,
     title,
     body,
-    data
+    data,
   }: {
-    channelId: ChannelId
-    title: string
-    body?: string
-    data?: Notification['data']
+    channelId: ChannelId;
+    title: string;
+    body?: string;
+    data?: Notification['data'];
   }): Promise<void> => {
     await notifee.displayNotification({
       title,
@@ -259,7 +264,7 @@ class NotificationsService {
         pressAction: {
           id: PressActionId.OPEN_NOTIFICATIONS_VIEW,
           launchActivity: LAUNCH_ACTIVITY,
-        }
+        },
       },
       ios: {
         launchImageName: 'Default',

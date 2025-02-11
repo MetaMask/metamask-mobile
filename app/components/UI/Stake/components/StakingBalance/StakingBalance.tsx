@@ -135,6 +135,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   }
 
   const renderStakingContent = () => {
+    if (chainId !== asset.chainId) {
+      return <></>;
+    }
     if (isLoadingPooledStakesData) {
       return (
         <SkeletonPlaceholder>
@@ -236,7 +239,11 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
               <NetworkMainAssetLogo style={styles.ethLogo} />
             )}
           </BadgeWrapper>
-          <Text style={styles.balances} variant={TextVariant.BodyLGMedium} testID="staked-ethereum-label">
+          <Text
+            style={styles.balances}
+            variant={TextVariant.BodyLGMedium}
+            testID="staked-ethereum-label"
+          >
             {strings('stake.staked_ethereum')}
           </Text>
         </AssetElement>

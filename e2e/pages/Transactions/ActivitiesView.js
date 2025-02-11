@@ -4,9 +4,9 @@ import {
 } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 class ActivitiesView {
-
   get title() {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
@@ -24,7 +24,10 @@ class ActivitiesView {
   }
 
   get stakeMoreDepositedLabel() {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT, 0);
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.STAKE_DEPOSIT,
+      0,
+    );
   }
 
   get unstakeLabel() {
@@ -34,7 +37,6 @@ class ActivitiesView {
   get stackingClaimLabel() {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
   }
-
 
   transactionStatus(row) {
     return Matchers.getElementByID(`transaction-status-${row}`);

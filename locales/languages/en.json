@@ -3628,6 +3628,9 @@
       "signature": "Review request details before you confirm.",
       "signature_siwe": "A site wants you to sign in to prove you own this account."
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Request from",
     "signing_in_with": "Signing in with",
     "message": "Message",

@@ -22,6 +22,10 @@ const mockInitialState = {
 };
 
 describe('useStakingEligibility', () => {
+  beforeEach(() => {
+    mockSdkContext = createMockStakeContext();
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -96,6 +100,24 @@ describe('useStakingEligibility', () => {
       await waitFor(() => {
         expect(result.current.isEligible).toBe(true); // Updated to eligible
         expect(getPooledStakingEligibilitySpy).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
+
+  describe('when stakingApiService is undefined', () => {
+    it('handles undefined stakingApiService gracefully', async () => {
+      // Override the mock context with undefined stakingApiService
+      mockSdkContext = createMockStakeContext({
+        stakingApiService: undefined,
+      });
+
+      const { result } = renderHookWithProvider(() => useStakingEligibility(), {
+        state: mockInitialState,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoadingEligibility).toBe(false);
+        expect(result.current.isEligible).toBe(false);
       });
     });
   });

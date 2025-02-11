@@ -223,7 +223,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.35.0]
 ### Added
-- [#12078](https://github.com/MetaMask/metamask-mobile/pull/12078): chore(runway): cherry-pick feat: add favorites to browser menu (#12078)
 - [#12107](https://github.com/MetaMask/metamask-mobile/pull/12107): feat: Add re-simulation feature (#12107)
 - [#11770](https://github.com/MetaMask/metamask-mobile/pull/11770): feat: enable Security Alerts API (#11770)
 - [#11812](https://github.com/MetaMask/metamask-mobile/pull/11812): feat: network value component for re-designed confirmation pages (#11812)
@@ -269,7 +268,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11194](https://github.com/MetaMask/metamask-mobile/pull/11194): chore: addressed lint issues (#11194)
 - [#11721](https://github.com/MetaMask/metamask-mobile/pull/11721): chore(sentry): don't report `AxiosError: Network Error` (#11721)
 - [#11842](https://github.com/MetaMask/metamask-mobile/pull/11842): chore: update release action to not create the release branch but just open PR (#11842)
-- [#11878](https://github.com/MetaMask/metamask-mobile/pull/11878): chore: Cherry pick bf5bb97 (#11878)
 - [#11356](https://github.com/MetaMask/metamask-mobile/pull/11356): chore: New Crowdin translations by Github Action (#11356)
 - [#12116](https://github.com/MetaMask/metamask-mobile/pull/12116): chore: upgrade assets-controllers to v38 (#12116)
 - [#11988](https://github.com/MetaMask/metamask-mobile/pull/11988): chore: upgrade assets-controllers v37 (#11988)
@@ -517,7 +515,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10917](https://github.com/MetaMask/metamask-mobile/pull/10917): chore(ci): split out ci scripts and devDeps into separate project (#10917)
 - [#11081](https://github.com/MetaMask/metamask-mobile/pull/11081): chore: Prevent redundant Sentry sourcemap uploads (#11081)
 - [#11470](https://github.com/MetaMask/metamask-mobile/pull/11470): chore: [Design quality] Update token details (#11470)
-- [#11439](https://github.com/MetaMask/metamask-mobile/pull/11439): chore: cherry-pick fix: ""chore(deps): Bump @metamask/base-controller from ^6.0.0 to ^7.0.0 (#11207)"" (#11439)
 - [#11169](https://github.com/MetaMask/metamask-mobile/pull/11169): chore(deps): Bump `@metamask/signature-controller` from `^17.0.0` to `^19.1.0`
 - [#11352](https://github.com/MetaMask/metamask-mobile/pull/11352): chore(deps): Bump `@metamask/accounts-controller` to `^18.2.1`
 
@@ -591,12 +588,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11122](https://github.com/MetaMask/metamask-mobile/pull/11122): test: e2e for auto-lock  (#11122)
 - [#11143](https://github.com/MetaMask/metamask-mobile/pull/11143): chore: bump react native webview to 14.0.3 version (#11143)
 - [#11284](https://github.com/MetaMask/metamask-mobile/pull/11284): chore: add notifications state awareness inapp badge (#11284)
-- [#11209](https://github.com/MetaMask/metamask-mobile/pull/11209): chore(runway): cherry-pick fix: freeze during swap with approval (#11209)
-- [#11157](https://github.com/MetaMask/metamask-mobile/pull/11157): chore(runway): cherry-pick chore: bump send for all the packages (#11157)
 - [#11082](https://github.com/MetaMask/metamask-mobile/pull/11082): chore: bump network controller 20.0.0 (#11082)
-- [#11095](https://github.com/MetaMask/metamask-mobile/pull/11095): chore(runway): cherry-pick fix: Intermittent Display Issue of Fiat Currency on Main Wallet View (#11095)
-- [#11181](https://github.com/MetaMask/metamask-mobile/pull/11181): chore(runway): cherry-pick fix: fix check token balance is zero (#11181)
-- [#11208](https://github.com/MetaMask/metamask-mobile/pull/11208): chore(runway): cherry-pick chore: update performance for new allocation (#11208)
 - [#10821](https://github.com/MetaMask/metamask-mobile/pull/10821): chore(deps): bump `accounts-controller` to v18.1.0 and `keyring-api` to v8.1.0 (#10821)
 
 ### Fixed
@@ -666,7 +658,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11000](https://github.com/MetaMask/metamask-mobile/pull/11000): chore: merge release 7.29.1 into main (#11000)
 - [#10937](https://github.com/MetaMask/metamask-mobile/pull/10937): chore: remove prefer default export eslint rule (#10937)
 - [#10958](https://github.com/MetaMask/metamask-mobile/pull/10958): test: Increase cold start bench marks (#10958)
-- [#10908](https://github.com/MetaMask/metamask-mobile/pull/10908): chore: Cherry pick reCaptcha fix (#10908)
 - [#10016](https://github.com/MetaMask/metamask-mobile/pull/10016): chore: Update Keystone and NGRAVE dependencies (#10016)
 - [#10866](https://github.com/MetaMask/metamask-mobile/pull/10866): chore: update typescript version to v~5.4.5 (#10866)
 - [#10745](https://github.com/MetaMask/metamask-mobile/pull/10745): chore: Enable typescript coverage for all the files (#10745)
@@ -779,7 +770,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10645](https://github.com/MetaMask/metamask-mobile/pull/10645): chore: confirmations directory ts coverage (#10645)
 - [#10653](https://github.com/MetaMask/metamask-mobile/pull/10653): chore: skip flakey test (#10653)
 - [#10557](https://github.com/MetaMask/metamask-mobile/pull/10557): test: Bump Detox version from v20.20.3 to v20.23.1 (#10557)
-- [#10609](https://github.com/MetaMask/metamask-mobile/pull/10609): chore: Cherry pick new terms of use (#10609)
 - [#10537](https://github.com/MetaMask/metamask-mobile/pull/10537): chore: TS coverage UI folder part 1 (#10537)
 - [#10538](https://github.com/MetaMask/metamask-mobile/pull/10538): chore: Update terms of use modal (#10538)
 - [#10559](https://github.com/MetaMask/metamask-mobile/pull/10559): chore: Create app launch times pipeline (#10559)
@@ -869,8 +859,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10487](https://github.com/MetaMask/metamask-mobile/pull/10487): test: Disable flakey portfolio test (#10487)
 - [#10372](https://github.com/MetaMask/metamask-mobile/pull/10372): chore: refactor async-storage-wrapper to MMKV-wrapper (#10372)
 - [#10373](https://github.com/MetaMask/metamask-mobile/pull/10373): chore: Migrate default preference to mmkv (#10373)
-- [#10416](https://github.com/MetaMask/metamask-mobile/pull/10416): chore: Cherry-picking commits from main to release/7.28.0 for PR #10387 (#10416)
-- [#10389](https://github.com/MetaMask/metamask-mobile/pull/10389): chore: Cherry-picking commits from main to release/7.28.0 for PR #10376 (#10389)
 - [#10387](https://github.com/MetaMask/metamask-mobile/pull/10387): test: Add step to close onboarding modals (#10387)
 - [#10376](https://github.com/MetaMask/metamask-mobile/pull/10376): test: Update env variables for appium upgrading on bitrise.yml (#10376)
 - [#10412](https://github.com/MetaMask/metamask-mobile/pull/10412): chore: Update BNB logos (#10412)
@@ -1102,7 +1090,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9982](https://github.com/MetaMask/metamask-mobile/pull/9982): fix: migration 43 stringify to type of (#9982)
 - [#9894](https://github.com/MetaMask/metamask-mobile/pull/9894): fix: Update bitrise.yml with correct Browserstack url (#9894)
 - [#9887](https://github.com/MetaMask/metamask-mobile/pull/9887): fix: Update Browserstack url as old link deprecated (#9887)
-- [#9869](https://github.com/MetaMask/metamask-mobile/pull/9869): fix: Cherry pick of e2e fixes from main (#9869)
 - [#9855](https://github.com/MetaMask/metamask-mobile/pull/9855): fix: Undefined balance when fetching from chain (#9855)
 - [#9812](https://github.com/MetaMask/metamask-mobile/pull/9812): fix: main token balance not updating when switching accounts (#9812)
 - [#9674](https://github.com/MetaMask/metamask-mobile/pull/9674): fix: update Delete MetaMetrics Data copy to 30 days (#9674)
@@ -1374,8 +1361,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.21.0]
 ### Added
-- [#9222](https://github.com/MetaMask/metamask-mobile/pull/9222): feat:  Cherry pick controller utils v5 (#9222)
-- [#9218](https://github.com/MetaMask/metamask-mobile/pull/9218): feat: cherry-pick assets controller v14 (#9218)
 - [#9065](https://github.com/MetaMask/metamask-mobile/pull/9065): feat: Update network controller to version 13.0.1 (#9065)
 - [#9166](https://github.com/MetaMask/metamask-mobile/pull/9166): feat: signature controller update to v6.0.0 (#9166)
 - [#9194](https://github.com/MetaMask/metamask-mobile/pull/9194): feat: 7.19.1 (#9194)
@@ -1398,7 +1383,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9146](https://github.com/MetaMask/metamask-mobile/pull/9146): test: Refactor Tab bar page object (#9146)
 - [#9135](https://github.com/MetaMask/metamask-mobile/pull/9135): chore: Update dependabot.yml to use new team label (#9135)
 - [#9106](https://github.com/MetaMask/metamask-mobile/pull/9106): test: fix secrets for tenderly (#9106)
-- [#9217](https://github.com/MetaMask/metamask-mobile/pull/9217): chore: cherry-pick #9092 (#9217)
 - [#8992](https://github.com/MetaMask/metamask-mobile/pull/8992): chore: New Crowdin translations by Github Action (#8992)
 - [#9190](https://github.com/MetaMask/metamask-mobile/pull/9190): chore(deps): bump tar from 6.2.0 to 6.2.1 (#9190)
 - [#9189](https://github.com/MetaMask/metamask-mobile/pull/9189): chore(deps): bump tar from 6.2.0 to 6.2.1 in /scripts/generate-attributions (#9189)
@@ -1619,7 +1603,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8492](https://github.com/MetaMask/metamask-mobile/pull/8492): docs: Improve README.md
 - [#8646](https://github.com/MetaMask/metamask-mobile/pull/8646): test: Create detox setup script
 - [#8644](https://github.com/MetaMask/metamask-mobile/pull/8644): test: Refactor settings page object
-- [#8614](https://github.com/MetaMask/metamask-mobile/pull/8614): chore: resolve cherry-pick conflict and added a new migration 29
 
 ### Fixed
 - [#8801](https://github.com/MetaMask/metamask-mobile/pull/8801): fix(ramp): undefined payment method
@@ -1710,7 +1693,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8504](https://github.com/MetaMask/metamask-mobile/pull/8504): fix: Remove isFullscreen from AddAccount, AccountPermissions, and AddChainApproval
 - [#8503](https://github.com/MetaMask/metamask-mobile/pull/8503): fix: Fix fullscreen issue with bottomsheet
 - [#8467](https://github.com/MetaMask/metamask-mobile/pull/8467): fix: Fix/8352 source map stack trace
-- [#8500](https://github.com/MetaMask/metamask-mobile/pull/8500): fix: clarify cherry pick action inputs
 - [#8488](https://github.com/MetaMask/metamask-mobile/pull/8488): fix: Cleanup/miscellaneous
 - [#8469](https://github.com/MetaMask/metamask-mobile/pull/8469): fix: deeplink handling issue when the app is closed
 - [#8491](https://github.com/MetaMask/metamask-mobile/pull/8491): fix: Update theme tokens for QR-related components
@@ -1804,7 +1786,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8216](https://github.com/MetaMask/metamask-mobile/pull/8216): fix: use correct link for reporting false positives in blockaid banner
 - [#8329](https://github.com/MetaMask/metamask-mobile/pull/8329): fix: android unit tests
 - [#7530](https://github.com/MetaMask/metamask-mobile/pull/7530): fix: fix require misname of @metamask/react-native-button
-- [#7793](https://github.com/MetaMask/metamask-mobile/pull/7793): fix: cherry pick PR improvement
 - [#8303](https://github.com/MetaMask/metamask-mobile/pull/8303): fix: fixup regex typo for validChainIdHex
 - [#8271](https://github.com/MetaMask/metamask-mobile/pull/8271): fix: migrations not being applied on 7.14.0
 - [#8281](https://github.com/MetaMask/metamask-mobile/pull/8281): fix: state initialisation in PPOMController
@@ -2144,7 +2125,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.10.0]
 ### Added
-- [#7588](https://github.com/MetaMask/metamask-mobile/pull/7588): chore: cherry pick #7584 - re-create connect_sign feature
 - [#7154](https://github.com/MetaMask/metamask-mobile/pull/7154): feat: incoming transactions by network
 - [#7541](https://github.com/MetaMask/metamask-mobile/pull/7541): feat: Add EIP-6963 Provider
 - [#7256](https://github.com/MetaMask/metamask-mobile/pull/7256): feat: Enable zkSync Era in Swaps
@@ -2156,9 +2136,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7584](https://github.com/MetaMask/metamask-mobile/pull/7584): feat: re-create connect_sign feature
 
 ### Changed
-- [#7636](https://github.com/MetaMask/metamask-mobile/pull/7636): chore: cherry-pick #7633 - bump browserify-sign to v 4.2.2
-- [#7581](https://github.com/MetaMask/metamask-mobile/pull/7581): chore: cherry pick #7574 - minor bump on react native dev tools to address audit issue
-- [#7619](https://github.com/MetaMask/metamask-mobile/pull/7619): chore: cherry pick #7614 - Bump crypto js to 4.2.0
 - [#7574](https://github.com/MetaMask/metamask-mobile/pull/7574): chore: minor bump on react native dev tools to address audit issue
 - [#7354](https://github.com/MetaMask/metamask-mobile/pull/7354): chore: New Crowdin translations by Github Action
 - [#7542](https://github.com/MetaMask/metamask-mobile/pull/7542): chore: @metamask/test-dapp@^7.1.0->^7.2.0
@@ -2197,9 +2174,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7364](https://github.com/MetaMask/metamask-mobile/pull/7364): chore: bump Node to v16.20
 
 ### Fixed
-- [#7665](https://github.com/MetaMask/metamask-mobile/pull/7665): chore: Cherry pick #7651 - revert nonce logic in transaction controller
-- [#7676](https://github.com/MetaMask/metamask-mobile/pull/7676): chore: cherry pick #7667 - Wallet not switching networks when add new network requested by a dapp
-- [#7580](https://github.com/MetaMask/metamask-mobile/pull/7580): chore: cherry pick #7540 - fix token decimals fetched from the chain
 - [#7540](https://github.com/MetaMask/metamask-mobile/pull/7540): fix: token decimals fetched from the chain
 - [#7531](https://github.com/MetaMask/metamask-mobile/pull/7531): fix: depcheck@^1.4.5->^1.4.7
 - [#7483](https://github.com/MetaMask/metamask-mobile/pull/7483): fix: android os connection issue
@@ -2752,7 +2726,6 @@ access
 - [#5842](https://github.com/MetaMask/metamask-mobile/pull/5842): [IMPROVEMENT] show the url protocol
 - [#5309](https://github.com/MetaMask/metamask-mobile/pull/5309): [IMPROVEMENT] New transaction header for approve and approval modal
 - [#5825](https://github.com/MetaMask/metamask-mobile/pull/5825): [Improvement] Send Token E2E test
-- [#5857](https://github.com/MetaMask/metamask-mobile/pull/5857): [IMPROVEMENT] Cherry pick QR scan bug fixes from v6.1 to main
 - [#5855](https://github.com/MetaMask/metamask-mobile/pull/5855): [IMPROVEMENT] dont render suspect links
 - [#5827](https://github.com/MetaMask/metamask-mobile/pull/5827): [IMPROVEMENT] analytics: add missing property to connect completed event
 - [#5711](https://github.com/MetaMask/metamask-mobile/pull/5711): [IMPROVEMENT] Improve signature request message
