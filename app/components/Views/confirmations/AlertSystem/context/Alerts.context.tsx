@@ -62,7 +62,7 @@ export const AlertsContextProvider: React.FC = ({ children }) => {
     unconfirmedFieldDangerAlerts,
   } = useAlertsManagement(confirmationAlerts);
 
-  const [alertModalVisible, setAlertModalVisibility] = useState(false);
+  const [alertModalVisible, setAlertModalVisible] = useState(false);
 
   const contextValue = useMemo(() => ({
     alertModalVisible,
@@ -75,11 +75,11 @@ export const AlertsContextProvider: React.FC = ({ children }) => {
     hasDangerAlerts,
     hasUnconfirmedDangerAlerts,
     hasUnconfirmedFieldDangerAlerts,
-    hideAlertModal: () => setAlertModalVisibility(false),
+    hideAlertModal: () => setAlertModalVisible(false),
     isAlertConfirmed,
     setAlertConfirmed,
     setAlertKey: (key: string) => setAlertKey(key),
-    showAlertModal: () => setAlertModalVisibility(true),
+    showAlertModal: () => setAlertModalVisible(true),
     unconfirmedDangerAlerts,
     unconfirmedFieldDangerAlerts,
   }), [
