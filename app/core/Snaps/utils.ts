@@ -1,4 +1,5 @@
 import { ControllerMessenger } from '../Engine';
+import { SnapControllerHandleRequestAction } from '../Engine/controllers/SnapController/constants';
 import { HandleSnapRequestArgs } from './types';
 
 /**
@@ -15,5 +16,8 @@ export async function handleSnapRequest(
   controllerMessenger: ControllerMessenger,
   args: HandleSnapRequestArgs,
 ) {
-  return await controllerMessenger.call('SnapController:handleRequest', args);
+  return await controllerMessenger.call(
+    SnapControllerHandleRequestAction,
+    args,
+  );
 }

@@ -12,6 +12,7 @@ interface BottomModalProps {
   children: ReactChild;
   onClose?: () => void;
   hideBackground?: boolean;
+  testID?: string;
 }
 
 /**
@@ -22,7 +23,8 @@ const BottomModal = ({
   canCloseOnBackdropClick = true,
   children,
   hideBackground,
-  onClose
+  onClose,
+  testID,
 }: BottomModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
@@ -42,6 +44,7 @@ const BottomModal = ({
       onSwipeComplete={onClose}
       swipeDirection={'down'}
       propagateSwipe
+      testID={testID}
     >
       <View style={styles.wrapper}>
         <View style={styles.topBar} />

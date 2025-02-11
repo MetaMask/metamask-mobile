@@ -1,5 +1,8 @@
 import { useRampSDK } from '../sdk';
 import useSDKMethod from './useSDKMethod';
+import { useMemo } from 'react';
+import { QuoteSortBy } from '@consensys/on-ramp-sdk/dist/IOnRampSdk';
+import { sortQuotes } from '../utils';
 
 function useQuotes(amount: number | string) {
   const {
@@ -20,8 +23,14 @@ function useQuotes(amount: number | string) {
     selectedAddress,
   );
 
+  const quotes = useMemo(
+    () => sortQuotes(data?.quotes, data?.sorted, QuoteSortBy.price),
+    [data],
+  );
+
   return {
-    data: data?.quotes,
+    quotes,
+    sorted: data?.sorted,
     isFetching,
     error,
     query,
