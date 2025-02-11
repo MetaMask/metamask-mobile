@@ -12,17 +12,17 @@ import { isRecognizedPermit, parseTypedDataMessageFromSignatureRequest } from '.
 import { useSignatureRequest } from '../../../../../hooks/useSignatureRequest';
 import useApprovalRequest from '../../../../../hooks/useApprovalRequest';
 import { View } from 'react-native';
-import styleSheet from './InfoSectionAddressAndOrigin.styles';
+import styleSheet from './InfoSectionOriginAndDetails.styles';
 import { isValidAddress } from 'ethereumjs-util';
 
-export const InfoSectionAddressAndOrigin = () => {
+export const InfoSectionOriginAndDetails = () => {
   const { styles } = useStyles(styleSheet, {});
 
   // signatureRequest from SignatureController does not include the origin
   // so we need to use approvalRequest
   const { approvalRequest } = useApprovalRequest();
   const origin = approvalRequest?.origin as string;
-  
+
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
 

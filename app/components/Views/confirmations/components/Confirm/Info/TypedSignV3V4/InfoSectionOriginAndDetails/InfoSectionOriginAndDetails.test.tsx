@@ -1,15 +1,15 @@
 import React from 'react';
 
 import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
-import { 
-  typedSignV3ConfirmationState, 
+import {
+  typedSignV3ConfirmationState,
   typedSignV4ConfirmationState,
 } from '../../../../../../../../util/test/confirm-data-helpers';
-import { InfoSectionAddressAndOrigin } from './InfoSectionAddressAndOrigin';
+import { InfoSectionOriginAndDetails } from './InfoSectionOriginAndDetails';
 
-describe('InfoSectionAddressAndOrigin', () => {
+describe('InfoSectionOriginAndDetails', () => {
   it('renders origin', () => {
-    const { getByText } = renderWithProvider(<InfoSectionAddressAndOrigin />, {
+    const { getByText } = renderWithProvider(<InfoSectionOriginAndDetails />, {
       state: typedSignV4ConfirmationState,
     });
 
@@ -18,7 +18,7 @@ describe('InfoSectionAddressAndOrigin', () => {
   });
 
   it('renders "Interacting with" if associated with a valid verifying contract', () => {
-    const { getByText } = renderWithProvider(<InfoSectionAddressAndOrigin />, {
+    const { getByText } = renderWithProvider(<InfoSectionOriginAndDetails />, {
       state: typedSignV4ConfirmationState,
     });
 
@@ -26,7 +26,7 @@ describe('InfoSectionAddressAndOrigin', () => {
   });
 
   it('renders Spender if it is a Permit', () => {
-    const { getByText } = renderWithProvider(<InfoSectionAddressAndOrigin />, {
+    const { getByText } = renderWithProvider(<InfoSectionOriginAndDetails />, {
       state: typedSignV4ConfirmationState,
     });
 
@@ -35,7 +35,7 @@ describe('InfoSectionAddressAndOrigin', () => {
   });
 
   it('does not render Spender if it is not a Permit', () => {
-    const { queryByText } = renderWithProvider(<InfoSectionAddressAndOrigin />, {
+    const { queryByText } = renderWithProvider(<InfoSectionOriginAndDetails />, {
       state: typedSignV3ConfirmationState,
     });
 
