@@ -146,6 +146,8 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
+  console.log('>>> from NetworkSelector, the origin is', origin);
+
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -157,7 +159,11 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
-
+  // logg everying coming from useNetworkInfo
+  console.log(
+    '>>> from NetworkSelector, the useNetworkInfo is',
+    useNetworkInfo(origin),
+  );
   const KEYBOARD_OFFSET = 120;
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -249,12 +255,13 @@ const NetworkSelector = () => {
         try {
           await NetworkController.setActiveNetwork(networkClientId);
         } catch (error) {
-          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
+          Logger.error(new Error(`Error i setActiveNetwork: ${error}`));
         }
       }
 
       setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isMultichainV1Enabled())) sheetRef.current?.dismissModal();
+      if (!(domainIsConnectedDapp && isMultichainV1Enabled()))
+        sheetRef.current?.dismissModal();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
