@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { Alert } from '../../types/confirm-alerts';
 import useConfirmationAlerts from '../../hooks/useConfirmationAlerts';
 import { useAlertsManagement } from '../../../../hooks/useAlertsManagement';
@@ -6,6 +6,7 @@ import { useAlertsManagement } from '../../../../hooks/useAlertsManagement';
 export interface AlertsContextParams {
   alertModalVisible: boolean;
   alerts: Alert[];
+  alertKey?: string;
   dangerAlerts: Alert[];
   fieldAlerts: Alert[];
   generalAlerts: Alert[];
@@ -16,6 +17,7 @@ export interface AlertsContextParams {
   hideAlertModal: () => void;
   isAlertConfirmed: (key: string) => boolean;
   setAlertConfirmed: (key: string, confirmed: boolean) => void;
+  setAlertKey: (key: string) => void;
   showAlertModal: () => void;
   unconfirmedDangerAlerts: Alert[];
   unconfirmedFieldDangerAlerts: Alert[];
@@ -24,6 +26,7 @@ export interface AlertsContextParams {
 const AlertsContext = React.createContext<AlertsContextParams>({
   alertModalVisible: true,
   alerts: [],
+  alertKey: undefined,
   dangerAlerts: [],
   fieldAlerts: [],
   generalAlerts: [],
@@ -34,6 +37,7 @@ const AlertsContext = React.createContext<AlertsContextParams>({
   hideAlertModal: () => undefined,
   isAlertConfirmed: () => false,
   setAlertConfirmed: () => undefined,
+  setAlertKey: () => undefined,
   showAlertModal: () => undefined,
   unconfirmedDangerAlerts: [],
   unconfirmedFieldDangerAlerts: [],
@@ -43,6 +47,7 @@ export const AlertsContextProvider: React.FC = ({ children }) => {
   const confirmationAlerts = useConfirmationAlerts();
   const {
     alerts,
+    alertKey,
     dangerAlerts,
     fieldAlerts,
     generalAlerts,
@@ -52,32 +57,51 @@ export const AlertsContextProvider: React.FC = ({ children }) => {
     hasUnconfirmedFieldDangerAlerts,
     isAlertConfirmed,
     setAlertConfirmed,
+    setAlertKey,
     unconfirmedDangerAlerts,
     unconfirmedFieldDangerAlerts,
   } = useAlertsManagement(confirmationAlerts);
 
   const [alertModalVisible, setAlertModalVisibility] = useState(false);
 
+  const contextValue = useMemo(() => ({
+    alertModalVisible,
+    alerts,
+    alertKey,
+    dangerAlerts,
+    fieldAlerts,
+    generalAlerts,
+    hasAlerts,
+    hasDangerAlerts,
+    hasUnconfirmedDangerAlerts,
+    hasUnconfirmedFieldDangerAlerts,
+    hideAlertModal: () => setAlertModalVisibility(false),
+    isAlertConfirmed,
+    setAlertConfirmed,
+    setAlertKey: (key: string) => setAlertKey(key),
+    showAlertModal: () => setAlertModalVisibility(true),
+    unconfirmedDangerAlerts,
+    unconfirmedFieldDangerAlerts,
+  }), [
+    alertModalVisible,
+    alerts,
+    alertKey,
+    dangerAlerts,
+    fieldAlerts,
+    generalAlerts,
+    hasAlerts,
+    hasDangerAlerts,
+    hasUnconfirmedDangerAlerts,
+    hasUnconfirmedFieldDangerAlerts,
+    isAlertConfirmed,
+    setAlertConfirmed,
+    setAlertKey,
+    unconfirmedDangerAlerts,
+    unconfirmedFieldDangerAlerts,
+  ]);
+
   return (
-    <AlertsContext.Provider
-      value={{
-        alertModalVisible,
-        alerts,
-        dangerAlerts,
-        fieldAlerts,
-        generalAlerts,
-        hasAlerts,
-        hasDangerAlerts,
-        hasUnconfirmedDangerAlerts,
-        hasUnconfirmedFieldDangerAlerts,
-        hideAlertModal: () => setAlertModalVisibility(false),
-        isAlertConfirmed,
-        setAlertConfirmed,
-        showAlertModal: () => setAlertModalVisibility(true),
-        unconfirmedDangerAlerts,
-        unconfirmedFieldDangerAlerts,
-      }}
-    >
+    <AlertsContext.Provider value={contextValue}>
       {children}
     </AlertsContext.Provider>
   );
