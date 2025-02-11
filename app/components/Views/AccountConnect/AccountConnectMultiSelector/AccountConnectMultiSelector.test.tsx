@@ -4,12 +4,10 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import Engine from '../../../../core/Engine';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { Account } from '../../../../components/hooks/useAccounts';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 const mockNavigate = jest.fn();
