@@ -1,0 +1,38 @@
+diff --git a/node_modules/@metamask/snaps-controllers/dist/services/webview/WebViewMessageStream.cjs b/node_modules/@metamask/snaps-controllers/dist/services/webview/WebViewMessageStream.cjs
+index f3a4420..233ac1a 100644
+--- a/node_modules/@metamask/snaps-controllers/dist/services/webview/WebViewMessageStream.cjs
++++ b/node_modules/@metamask/snaps-controllers/dist/services/webview/WebViewMessageStream.cjs
+@@ -53,19 +53,23 @@ class WebViewMessageStream extends post_message_stream_1.BasePostMessageStream {
+         });
+     }
+     _postMessage(data) {
+         (0, utils_2.assert)(__classPrivateFieldGet(this, _WebViewMessageStream_webView, "f"));
+         const json = JSON.stringify({
+             target: __classPrivateFieldGet(this, _WebViewMessageStream_target, "f"),
+             data,
+         });
+-        // To prevent XSS, we base64 encode the message before injecting it.
+-        // This adds significant performance overhead.
+-        // TODO: Should we use mobile native base64 here?
+         const bytes = (0, utils_2.stringToBytes)(json);
+-        const base64 = (0, utils_2.bytesToBase64)(bytes);
+-        __classPrivateFieldGet(this, _WebViewMessageStream_webView, "f").injectJavaScript(`window.postMessage('${base64}')`);
++        const bytesEncoded = new Uint8Array(bytes).toString();
++        __classPrivateFieldGet(this, _WebViewMessageStream_webView, "f").injectJavaScript(`window.postMessage([${bytesEncoded}])`);
+     }
+     _onMessage(event) {
+         if (typeof event.data !== 'string') {
+             return;
+         }
+diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs
+index 6aee4dd..52a30d8 100644
+--- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs
++++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs
+@@ -1712,7 +1712,10 @@ async function _SnapController_getEndowments(snapId) {
+             }
+             requestQueue.increment(origin);
+             try {
+                 await localStartPromise;
+             }
+             finally {
+                 requestQueue.decrement(origin);
