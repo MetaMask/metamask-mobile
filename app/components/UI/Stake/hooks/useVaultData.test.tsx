@@ -2,51 +2,62 @@ import { waitFor } from '@testing-library/react-native';
 import useVaultData from './useVaultData';
 import { stakingApiService } from '../sdk/stakeSdkProvider';
 import { MOCK_GET_VAULT_RESPONSE } from '../__mocks__/mockData';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderHookWithProvider,
+} from '../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../util/test/initial-root-state';
+import Engine from '../../../../core/Engine';
+import { PooledStakingState } from '@metamask/earn-controller';
+import { RootState } from '../../../../reducers';
 
 const mockVaultData = MOCK_GET_VAULT_RESPONSE;
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    EarnController: {
+      refreshVaultData: jest.fn(),
+    },
+  },
+}));
+
+const renderHook = (vaultData?: PooledStakingState['vaultData']) => {
+  const mockState: DeepPartial<RootState> = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        EarnController: {
+          pooled_staking: {
+            vaultData: {
+              ...mockVaultData,
+              ...vaultData,
+            },
+          },
+        },
+      },
+    },
+  };
+
+  return renderHookWithProvider(() => useVaultData(), { state: mockState });
+};
+
 describe('useVaultData', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
+  beforeEach(() => {
+    jest.resetAllMocks();
   });
 
   describe('when fetching vault data', () => {
-    it('fetches vault data and updates state', async () => {
-      // Mock API response
-      jest
-        .spyOn(stakingApiService, 'getVaultData')
-        .mockResolvedValue(mockVaultData);
-
-      const { result } = renderHookWithProvider(() => useVaultData());
-
-      // Initially loading should be true
-      expect(result.current.isLoadingVaultData).toBe(true);
-
-      // Wait for state updates
-      await waitFor(() => {
-        expect(result.current.vaultData).toEqual(mockVaultData);
-        expect(result.current.annualRewardRate).toBe('2.9%');
-        expect(result.current.annualRewardRateDecimal).toBe(
-          0.02853065141088763,
-        );
-        expect(result.current.isLoadingVaultData).toBe(false);
-        expect(result.current.error).toBeNull();
-      });
-    });
-
     it('handles error if the API request fails', async () => {
       // Simulate API error
-      jest
-        .spyOn(stakingApiService, 'getVaultData')
-        .mockRejectedValue(new Error('API Error'));
+      (
+        Engine.context.EarnController.refreshVaultData as jest.Mock
+      ).mockRejectedValue(new Error('API Error'));
 
-      const { result } = renderHookWithProvider(() => useVaultData());
+      const { result } = renderHook();
 
       await waitFor(() => {
         expect(result.current.isLoadingVaultData).toBe(false);
         expect(result.current.error).toBe('Failed to fetch vault data');
-        expect(result.current.vaultData).toEqual({});
       });
     });
   });
@@ -56,11 +67,7 @@ describe('useVaultData', () => {
       // Mock API response with a custom APY
       const customVaultData = { ...mockVaultData, apy: '7.0' };
 
-      jest
-        .spyOn(stakingApiService, 'getVaultData')
-        .mockResolvedValue(customVaultData);
-
-      const { result } = renderHookWithProvider(() => useVaultData());
+      const { result } = renderHook(customVaultData);
 
       await waitFor(() => {
         expect(result.current.vaultData).toEqual(customVaultData);
@@ -79,7 +86,7 @@ describe('useVaultData', () => {
         .spyOn(stakingApiService, 'getVaultData')
         .mockResolvedValue(emptyApyVaultData);
 
-      const { result } = renderHookWithProvider(() => useVaultData());
+      const { result } = renderHook(emptyApyVaultData);
 
       await waitFor(() => {
         expect(result.current.vaultData).toEqual(emptyApyVaultData);

@@ -1,39 +1,26 @@
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useEffect, useCallback, useState } from 'react';
-import { selectChainId } from '../../../../selectors/networkController';
-import { hexToNumber } from '@metamask/utils';
-import {
-  selectVaultData,
-  setVaultData,
-} from '../../../../core/redux/slices/staking';
-import { stakingApiService } from '../sdk/stakeSdkProvider';
+import { selectPooledStakingVaultData } from '../../../../selectors/earnController';
+import Engine from '../../../../core/Engine';
 
 const useVaultData = () => {
-  const dispatch = useDispatch();
-  const chainId = useSelector(selectChainId);
-  const { vaultData } = useSelector(selectVaultData);
+  const vaultData = useSelector(selectPooledStakingVaultData);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchVaultData = useCallback(async () => {
-    if (!stakingApiService) return;
-
     setIsLoading(true);
     setError(null);
 
     try {
-      const numericChainId = hexToNumber(chainId);
-      const vaultDataResponse = await stakingApiService.getVaultData(
-        numericChainId,
-      );
-      dispatch(setVaultData(vaultDataResponse));
+      await Engine.context.EarnController.refreshVaultData();
     } catch (err) {
       setError('Failed to fetch vault data');
     } finally {
       setIsLoading(false);
     }
-  }, [chainId, dispatch]);
+  }, []);
 
   useEffect(() => {
     fetchVaultData();

@@ -1,6 +1,5 @@
 import type {
   PooledStake,
-  VaultData,
   VaultDailyApy,
   VaultApyAverages,
 } from '@metamask/stake-sdk';
@@ -11,7 +10,6 @@ import type { RootState } from '../../../../reducers';
 interface PooledStakingState {
   pooledStakes: PooledStake;
   exchangeRate: string;
-  vaultData: VaultData;
   vaultApys: VaultDailyApy[];
   vaultApyAverages: VaultApyAverages;
 }
@@ -19,7 +17,6 @@ interface PooledStakingState {
 export const initialState: PooledStakingState = {
   pooledStakes: {} as PooledStake,
   exchangeRate: '',
-  vaultData: {} as VaultData,
   vaultApys: [],
   vaultApyAverages: {} as VaultApyAverages,
 };
@@ -40,9 +37,6 @@ const slice = createSlice({
       state.pooledStakes = action.payload.pooledStakes;
       state.exchangeRate = action.payload.exchangeRate;
     },
-    setVaultData: (state, action: PayloadAction<VaultData>) => {
-      state.vaultData = action.payload;
-    },
     setVaultApys: (state, action: PayloadAction<VaultDailyApy[]>) => {
       state.vaultApys = action.payload;
     },
@@ -54,12 +48,7 @@ const slice = createSlice({
 
 const { actions, reducer } = slice;
 export default reducer;
-export const {
-  setPooledStakes,
-  setVaultData,
-  setVaultApys,
-  setVaultApyAverages,
-} = actions;
+export const { setPooledStakes, setVaultApys, setVaultApyAverages } = actions;
 
 // Selectors
 const selectPooledStakingState = (state: RootState) => state.staking;
@@ -69,13 +58,6 @@ export const selectPooledStakesData = createSelector(
   (stakingState) => ({
     pooledStakesData: stakingState.pooledStakes,
     exchangeRate: stakingState.exchangeRate,
-  }),
-);
-
-export const selectVaultData = createSelector(
-  selectPooledStakingState,
-  (stakingState) => ({
-    vaultData: stakingState.vaultData,
   }),
 );
 

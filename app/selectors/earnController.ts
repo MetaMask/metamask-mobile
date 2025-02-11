@@ -10,3 +10,9 @@ export const selectPooledStakingEligibility = createSelector(
   (earnControllerState: EarnControllerState) =>
     earnControllerState.pooled_staking.isEligible,
 );
+
+export const selectPooledStakingVaultData = createSelector(
+  selectEarnControllerState,
+  (earnControllerState: EarnControllerState) =>
+    earnControllerState.pooled_staking.vaultData,
+);

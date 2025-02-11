@@ -1,17 +1,12 @@
 import reducer, {
   setPooledStakes,
-  setVaultData,
   selectPooledStakesData,
-  selectVaultData,
   setVaultApys,
   setVaultApyAverages,
   selectVaultApys,
   selectVaultApyAverages,
 } from '.';
-import {
-  MOCK_GET_POOLED_STAKES_API_RESPONSE,
-  MOCK_GET_VAULT_RESPONSE,
-} from '../../../../components/UI/Stake/__mocks__/mockData';
+import { MOCK_GET_POOLED_STAKES_API_RESPONSE } from '../../../../components/UI/Stake/__mocks__/mockData';
 import type {
   PooledStake,
   VaultApyAverages,
@@ -38,7 +33,6 @@ describe('PooledStaking', () => {
     staking: {
       pooledStakes: MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0],
       exchangeRate: MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate,
-      vaultData: MOCK_GET_VAULT_RESPONSE,
       vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
       vaultApys: MOCK_VAULT_APYS_ONE_YEAR,
     },
@@ -74,20 +68,6 @@ describe('PooledStaking', () => {
     });
   });
 
-  describe('when setting vault data', () => {
-    it('updates vault data', () => {
-      const state = reducer(
-        initialState,
-        setVaultData(MOCK_GET_VAULT_RESPONSE),
-      );
-
-      expect(state.vaultData).toEqual(MOCK_GET_VAULT_RESPONSE);
-      expect(state.vaultData.apy).toEqual(
-        '2.853065141088762750393474836309926',
-      );
-    });
-  });
-
   describe('when setting vault apys', () => {
     it('updates vaultApys', () => {
       const state = reducer(
@@ -118,16 +98,6 @@ describe('PooledStaking', () => {
         expect(result).toEqual({
           pooledStakesData: MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0],
           exchangeRate: MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate,
-        });
-      });
-    });
-
-    describe('when selecting vault data', () => {
-      it('returns vault information', () => {
-        const result = selectVaultData(mockRootState as RootState);
-
-        expect(result).toEqual({
-          vaultData: MOCK_GET_VAULT_RESPONSE,
         });
       });
     });
