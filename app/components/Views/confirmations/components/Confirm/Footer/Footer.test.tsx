@@ -6,6 +6,8 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareContext';
+// eslint-disable-next-line import/no-namespace
+import * as LedgerContext from '../../../context/LedgerContext/LedgerContext';
 import Footer from './index';
 
 const mockConfirmSpy = jest.fn();
@@ -46,11 +48,21 @@ describe('Footer', () => {
   it('renders confirm button text "Get Signature" if QR signing is in progress', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isQRSigningInProgress: true,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
+    } as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('Get Signature')).toBeTruthy();
+  });
+
+  it('renders confirm button text "Sign with Ledger" if account used for signing is ledger account', () => {
+    jest.spyOn(LedgerContext, 'useLedgerContext').mockReturnValue({
+      isLedgerAccount: true,
+    } as LedgerContext.LedgerContextType);
+    const { getByText } = renderWithProvider(<Footer />, {
+      state: personalSignatureConfirmationState,
+    });
+    expect(getByText('Sign with Ledger')).toBeTruthy();
   });
 
   it('confirm button is disabled if `needsCameraPermission` is true', () => {
