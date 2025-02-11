@@ -10,12 +10,18 @@ import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermis
 import { SnapId } from '@metamask/snaps-sdk';
 import { EngineContext } from '../Engine';
 import { handleSnapRequest } from './utils';
+import {
+  SnapControllerGetPermittedSnapsAction,
+  SnapControllerGetSnapAction,
+  SnapControllerGetSnapFileAction,
+  SnapControllerInstallSnapsAction,
+} from '../Engine/controllers/SnapController/constants';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
 ): SnapId | null {
   const { snapId } = request;
-  return typeof snapId === 'string' ? snapId as SnapId : null;
+  return typeof snapId === 'string' ? (snapId as SnapId) : null;
 }
 // Snaps middleware
 /*
@@ -33,7 +39,7 @@ const snapMethodMiddlewareBuilder = (
     getUnlockPromise: () => Promise.resolve(),
     getSnaps: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapController:getPermitted',
+      SnapControllerGetPermittedSnapsAction,
       origin,
     ),
     requestPermissions: async (requestedPermissions: RequestedPermissions) =>
@@ -52,12 +58,12 @@ const snapMethodMiddlewareBuilder = (
     getAllowedKeyringMethods: keyringSnapPermissionsBuilder(origin),
     getSnapFile: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapController:getFile',
+      SnapControllerGetSnapFileAction,
       origin,
     ),
     installSnaps: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapController:install',
+      SnapControllerInstallSnapsAction,
       origin,
     ),
     invokeSnap: engineContext.PermissionController.executeRestrictedMethod.bind(
@@ -67,7 +73,7 @@ const snapMethodMiddlewareBuilder = (
     ),
     getSnap: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapController:get',
+      SnapControllerGetSnapAction,
     ),
     handleSnapRpcRequest: async (request: Omit<SnapRpcHookArgs, 'origin'>) => {
       const snapId = getSnapIdFromRequest(request);

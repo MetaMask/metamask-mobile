@@ -158,7 +158,7 @@ const main = async () => {
   server.start();
 
   const testSpecificMock = {
-    GET: [mockEvents.GET.remoteFeatureFlags],
+    GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
   };
 
   await withFixtures(
