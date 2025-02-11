@@ -1073,6 +1073,7 @@ class ApproveTransactionReview extends PureComponent {
                           <TouchableOpacity
                             style={styles.actionTouchable}
                             onPress={this.toggleViewDetails}
+                            testID="view-transaction-details"
                           >
                             <View style={styles.iconContainer}>
                               <Text reset style={styles.viewDetailsText}>

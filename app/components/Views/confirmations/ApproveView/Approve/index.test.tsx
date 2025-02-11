@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { merge } from 'lodash';
+import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
@@ -10,6 +11,8 @@ import Approve from './index';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
+// eslint-disable-next-line import/no-namespace
+import * as TransactionController from '../../../../../util/transaction-controller';
 
 const TRANSACTION_ID_MOCK = '123';
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
@@ -29,11 +32,25 @@ jest.mock('../../../../../core/Engine', () => ({
   },
   rejectPendingApproval: jest.fn(),
   context: {
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {
+            '30786334-3935-4563-b064-363339643939': {
+              address: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+            },
+          },
+        },
+      },
+    },
     AssetsContractController: {
       getERC20BalanceOf: jest.fn().mockResolvedValue(null),
     },
     KeyringController: {
       getOrAddQRKeyring: jest.fn(),
+    },
+    TransactionController: {
+      getNonceLock: jest.fn().mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
     },
   },
 }));
@@ -128,28 +145,16 @@ describe('Approve', () => {
     });
   });
 
-  it('should render transaction approval', () => {
+  it('renders transaction approval', () => {
     const wrapper = renderComponent({ store });
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should navigate on confirm to the change in simulation modal when the transaction marked with isUpdatedAfterSecurityCheck as true', () => {
-    const storeWithUpdatedTransaction = mockStore({
-      ...initialRootState,
-      transaction: {
-        id: TRANSACTION_ID_MOCK,
-      },
-      settings: {
-        primaryCurrency: 'Fiat',
-      },
-      alert: {
-        isVisible: false,
-      },
+  it('should navigate on confirm to the change in simulation modal when the transaction marked with isUpdatedAfterSecurityCheck as true', async () => {
+    const storeWithUpdatedTransaction = mockStore(merge({}, store.getState(), {
       engine: {
         backgroundState: {
-          ...initialRootState.engine.backgroundState,
           TransactionController: {
-            ...initialRootState.engine.backgroundState.TransactionController,
             transactions: [
               {
                 id: TRANSACTION_ID_MOCK,
@@ -159,41 +164,59 @@ describe('Approve', () => {
               },
             ],
           },
-          AccountsController: {
-            ...initialRootState.engine.backgroundState.AccountsController,
-            internalAccounts: {
-              ...initialRootState.engine.backgroundState.AccountsController
-                .internalAccounts,
-              selectedAccount: '30786334-3935-4563-b064-363339643939',
-              accounts: {
-                '30786334-3935-4563-b064-363339643939': {
-                  address: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
-                },
-              },
-            },
-          },
-          TokensController: {
-            ...initialRootState.engine.backgroundState.TokensController,
-            allTokens: {
-              ...initialRootState.engine.backgroundState.TokensController
-                .allTokens,
-              '0x1': {
-                '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272': [],
-              },
-            },
-          },
         },
       },
-    });
+    }));
 
     renderComponent({ store: storeWithUpdatedTransaction });
 
-    fireEvent.press(screen.getByTestId('Confirm'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('Confirm'));
+    });
+
     expect(navigationPropMock.navigate).toHaveBeenCalledWith(
       Routes.MODAL.ROOT_MODAL_FLOW,
       expect.objectContaining({
         screen: Routes.SHEET.CHANGE_IN_SIMULATION_MODAL,
       }),
     );
+  });
+
+  it('displays the latest nonce from transaction.transaction when showCustomNonce is true', async () => {
+    const getNetworkNonceSpy = jest.spyOn(TransactionController, 'getNetworkNonce');
+
+    const storeWithTransaction = mockStore(merge({}, store.getState(), {
+      settings: {
+        showCustomNonce: true,
+      },
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [{
+              id: TRANSACTION_ID_MOCK,
+              transaction: {
+                from: '0xfrom',
+                to: '0xto',
+                nonce: '0x2',
+              },
+              mode: 'edit',
+            }],
+          },
+        },
+      },
+      transaction: {
+        mode: 'edit' // Add mode to transaction state
+      }
+    }));
+
+    renderComponent({
+      store: storeWithTransaction,
+    });
+
+    expect(getNetworkNonceSpy).toHaveBeenCalledWith({'id': TRANSACTION_ID_MOCK, 'mode': 'edit'}, undefined);
+    const nonceSpyResult = await getNetworkNonceSpy.mock.results[0].value;
+    expect(nonceSpyResult).toBe(2);
+
+    getNetworkNonceSpy.mockRestore();
   });
 });
