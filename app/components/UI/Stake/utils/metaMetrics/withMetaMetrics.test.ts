@@ -1,6 +1,7 @@
 import { withMetaMetrics } from './withMetaMetrics';
 import { MetaMetrics } from '../../../../../core/Analytics';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 describe('withMetaMetrics', () => {
   let trackEventSpy: jest.SpyInstance;
@@ -33,18 +34,18 @@ describe('withMetaMetrics', () => {
       {
         event: MetaMetricsEvents.TOOLTIP_OPENED,
         properties: {
-          selected_provider: 'consensys',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
           text: 'Tooltip Opened',
-          location: 'Unit Test',
+          location: EVENT_LOCATIONS.UNIT_TEST,
           tooltip_name: 'Test Tooltip 1',
         },
       },
       {
         event: MetaMetricsEvents.TOOLTIP_OPENED,
         properties: {
-          selected_provider: 'consensys',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
           text: 'Tooltip Opened',
-          location: 'Unit Test',
+          location: EVENT_LOCATIONS.UNIT_TEST,
           tooltip_name: 'Test Tooltip 2',
         },
       },
@@ -74,18 +75,18 @@ describe('withMetaMetrics', () => {
       {
         event: MetaMetricsEvents.TOOLTIP_OPENED,
         properties: {
-          selected_provider: 'consensys',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
           text: 'Tooltip Opened',
-          location: 'Unit Test',
+          location: EVENT_LOCATIONS.UNIT_TEST,
           tooltip_name: 'Test Tooltip 1',
         },
       },
       {
         event: MetaMetricsEvents.TOOLTIP_OPENED,
         properties: {
-          selected_provider: 'consensys',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
           text: 'Tooltip Opened',
-          location: 'Unit Test',
+          location: EVENT_LOCATIONS.UNIT_TEST,
           tooltip_name: 'Test Tooltip 2',
         },
       },

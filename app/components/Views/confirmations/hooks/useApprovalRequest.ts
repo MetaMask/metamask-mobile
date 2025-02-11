@@ -1,10 +1,10 @@
-import Engine from '../../../../core/Engine';
 import { useCallback, useMemo } from 'react';
-import { providerErrors } from '@metamask/rpc-errors';
 import { useSelector } from 'react-redux';
-import { selectPendingApprovals } from '../../../../selectors/approvalController';
 import { cloneDeep, isEqual } from 'lodash';
 import { ApprovalRequest } from '@metamask/approval-controller';
+import { providerErrors } from '@metamask/rpc-errors';
+import Engine from '../../../../core/Engine';
+import { selectPendingApprovals } from '../../../../selectors/approvalController';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

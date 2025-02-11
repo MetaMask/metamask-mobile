@@ -1,5 +1,7 @@
-import type { Theme as DesignTokenTheme } from '@metamask/design-tokens';
-import type { BrandColor } from '@metamask/design-tokens/dist/types/js/brandColor/brandColor.types';
+import type {
+  Theme as DesignTokenTheme,
+  BrandColor,
+} from '@metamask/design-tokens';
 
 export enum AppThemeKey {
   os = 'os',

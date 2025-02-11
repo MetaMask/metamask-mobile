@@ -33,7 +33,7 @@ import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { NetworkClientId, NetworkState } from '@metamask/network-controller';
@@ -640,12 +640,14 @@ export const getTokenDetails = async (
   tokenAddress: string,
   userAddress?: string,
   tokenId?: string,
+  networkClientId?: NetworkClientId,
 ) => {
   const { AssetsContractController } = Engine.context;
   const tokenData = await AssetsContractController.getTokenStandardAndDetails(
     tokenAddress,
     userAddress,
     tokenId,
+    networkClientId,
   );
   const { standard, name, symbol, decimals } = tokenData;
   if (standard === ERC721 || standard === ERC1155) {

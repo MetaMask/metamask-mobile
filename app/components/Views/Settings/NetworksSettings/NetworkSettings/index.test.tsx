@@ -12,6 +12,9 @@ import { mockNetworkState } from '../../../../../util/test/network';
 import * as jsonRequest from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../../../util/networks';
+const { PreferencesController } = Engine.context;
 
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
@@ -57,6 +60,9 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
+    },
+    PreferencesController: {
+      setTokenNetworkFilter: jest.fn(),
     },
   },
 }));
@@ -815,7 +821,34 @@ describe('NetworkSettings', () => {
       expect(wrapper.state('rpcUrls')[0].name).toBe('New RPC');
     });
 
+    it('adds add RPC URL through modal and update state when addMode is true', async () => {
+      wrapper.setState({ addMode: true });
+
+      const instance = wrapper.instance();
+
+      await instance.onRpcItemAdd('https://new-rpc-url.com', 'New RPC');
+
+      expect(wrapper.state('rpcUrls').length).toBe(1);
+      expect(wrapper.state('rpcUrls')[0].url).toBe('https://new-rpc-url.com');
+      expect(wrapper.state('rpcUrls')[0].name).toBe('New RPC');
+    });
+
     it('should correctly add Block Explorer URL through modal and update state', async () => {
+      const instance = wrapper.instance();
+
+      // Open Block Explorer form modal and add a new URL
+      instance.openAddBlockExplorerForm();
+      await instance.onBlockExplorerItemAdd('https://new-blockexplorer.com');
+
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+      expect(wrapper.state('blockExplorerUrls')[0]).toBe(
+        'https://new-blockexplorer.com',
+      );
+    });
+
+    it('adds correctly add Block Explorer URL through modal and update state when addMode is true', async () => {
+      wrapper.setState({ addMode: true });
+
       const instance = wrapper.instance();
 
       // Open Block Explorer form modal and add a new URL
@@ -1744,6 +1777,44 @@ describe('NetworkSettings', () => {
           shouldNetworkSwitchPopToWallet: false,
         }),
       );
+    });
+
+    it('should not call setTokenNetworkFilter when portfolio view is disabled', async () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+      const tokenNetworkFilterSpy = jest.spyOn(
+        PreferencesController,
+        'setTokenNetworkFilter',
+      );
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+      });
+
+      await wrapper.instance().addRpcUrl();
+      expect(tokenNetworkFilterSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('should call setTokenNetworkFilter when portfolio view is enabled', async () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      const tokenNetworkFilterSpy = jest.spyOn(
+        PreferencesController,
+        'setTokenNetworkFilter',
+      );
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+      });
+
+      await wrapper.instance().addRpcUrl();
+      expect(tokenNetworkFilterSpy).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -1,7 +1,6 @@
 const Routes = {
   WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
-  BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
@@ -119,7 +118,6 @@ const Routes = {
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
-    URL_MODAL: 'BrowserUrlModal',
     VIEW: 'BrowserView',
   },
   WEBVIEW: {
@@ -151,6 +149,7 @@ const Routes = {
     STAKE_CONFIRMATION: 'StakeConfirmation',
     UNSTAKE: 'Unstake',
     UNSTAKE_CONFIRMATION: 'UnstakeConfirmation',
+    EARNINGS_HISTORY: 'EarningsHistory',
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',

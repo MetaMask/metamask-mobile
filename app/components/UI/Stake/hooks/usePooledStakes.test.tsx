@@ -1,10 +1,10 @@
-import { type StakingApiService } from '@metamask/stake-sdk';
+import { PooledStakeExitRequest } from '@metamask/stake-sdk';
 
 import { MOCK_GET_POOLED_STAKES_API_RESPONSE } from '../__mocks__/mockData';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import type { Stake } from '../sdk/stakeSdkProvider';
+import { stakingApiService } from '../sdk/stakeSdkProvider';
 import usePooledStakes from './usePooledStakes';
 import { act, waitFor } from '@testing-library/react-native';
 
@@ -40,21 +40,8 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const mockStakingApiService: Partial<StakingApiService> = {
-  getPooledStakes: jest.fn(),
-};
-
-const mockSdkContext: Stake = {
-  stakingApiService: mockStakingApiService as StakingApiService,
-  setSdkType: jest.fn(),
-};
-
 const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
 const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
-
-jest.mock('../hooks/useStakeContext', () => ({
-  useStakeContext: () => mockSdkContext as Stake,
-}));
 
 describe('usePooledStakes', () => {
   afterEach(() => {
@@ -67,7 +54,7 @@ describe('usePooledStakes', () => {
 
   describe('when fetching pooled stakes data', () => {
     it('fetches pooled stakes data and updates state', async () => {
-      (mockStakingApiService.getPooledStakes as jest.Mock).mockResolvedValue({
+      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
         accounts: [mockPooledStakeData],
         exchangeRate: mockExchangeRate,
       });
@@ -86,9 +73,9 @@ describe('usePooledStakes', () => {
     });
 
     it('handles error if the API request fails', async () => {
-      (mockStakingApiService.getPooledStakes as jest.Mock).mockRejectedValue(
-        new Error('API Error'),
-      );
+      jest
+        .spyOn(stakingApiService, 'getPooledStakes')
+        .mockRejectedValue(new Error('API Error'));
 
       const { result } = renderHookWithProvider(() => usePooledStakes(), {
         state: mockInitialState,
@@ -104,7 +91,7 @@ describe('usePooledStakes', () => {
 
   describe('when handling staking statuses', () => {
     it('returns ACTIVE status when assets are greater than 0', async () => {
-      (mockStakingApiService.getPooledStakes as jest.Mock).mockResolvedValue({
+      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
         accounts: [{ ...mockPooledStakeData, assets: '100' }],
         exchangeRate: '1.2',
       });
@@ -121,12 +108,14 @@ describe('usePooledStakes', () => {
     });
 
     it('returns INACTIVE_WITH_EXIT_REQUESTS when assets are 0 and there are exit requests', async () => {
-      (mockStakingApiService.getPooledStakes as jest.Mock).mockResolvedValue({
+      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
         accounts: [
           {
             ...mockPooledStakeData,
             assets: '0',
-            exitRequests: [{ id: 'exit-1' }],
+            exitRequests: [
+              { id: 'exit-1' } as unknown as PooledStakeExitRequest,
+            ],
           },
         ],
         exchangeRate: '1.2',
@@ -143,7 +132,7 @@ describe('usePooledStakes', () => {
     });
 
     it('returns INACTIVE_WITH_REWARDS_ONLY when assets are 0 but has rewards', async () => {
-      (mockStakingApiService.getPooledStakes as jest.Mock).mockResolvedValue({
+      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
         accounts: [
           {
             ...mockPooledStakeData,
@@ -166,7 +155,7 @@ describe('usePooledStakes', () => {
     });
 
     it('returns NEVER_STAKED when assets and rewards are 0', async () => {
-      (mockStakingApiService.getPooledStakes as jest.Mock).mockResolvedValue({
+      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
         accounts: [
           {
             ...mockPooledStakeData,
@@ -191,10 +180,12 @@ describe('usePooledStakes', () => {
 
   describe('when refreshing pooled stakes', () => {
     it('refreshes pooled stakes when refreshPooledStakes is called', async () => {
-      (mockStakingApiService.getPooledStakes as jest.Mock).mockResolvedValue({
-        accounts: [mockPooledStakeData],
-        exchangeRate: mockExchangeRate,
-      });
+      const getPooledStakesSpy = jest
+        .spyOn(stakingApiService, 'getPooledStakes')
+        .mockResolvedValue({
+          accounts: [mockPooledStakeData],
+          exchangeRate: mockExchangeRate,
+        });
 
       const { result } = renderHookWithProvider(() => usePooledStakes(), {
         state: mockInitialState,
@@ -210,7 +201,7 @@ describe('usePooledStakes', () => {
       });
 
       await waitFor(() => {
-        expect(mockStakingApiService.getPooledStakes).toHaveBeenCalledTimes(2);
+        expect(getPooledStakesSpy).toHaveBeenCalledTimes(2);
       });
     });
   });

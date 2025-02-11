@@ -2,7 +2,7 @@ import { query } from '@metamask/controller-utils';
 import Engine from '../Engine';
 import { selectHooks } from '@metamask/snaps-rpc-methods';
 import { OptionalDataWithOptionalCause, rpcErrors } from '@metamask/rpc-errors';
-import { JsonRpcMiddleware } from 'json-rpc-engine';
+import { JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import { PermittedHandlerExport } from '@metamask/permission-controller';
 import { Json, JsonRpcParams, hasProperty } from '@metamask/utils';
 import EthQuery from '@metamask/eth-query';
@@ -76,7 +76,7 @@ export function makeMethodMiddlewareMaker<U>(
   const makeMethodMiddleware = (hooks: Record<string, unknown>) => {
     assertExpectedHook(hooks, expectedHookNames);
 
-    const methodMiddleware: JsonRpcMiddleware<JsonRpcParams, unknown> = async (
+    const methodMiddleware: JsonRpcMiddleware<JsonRpcParams, Json> = async (
       req,
       res,
       next,
@@ -88,12 +88,11 @@ export function makeMethodMiddlewareMaker<U>(
         try {
           // Implementations may or may not be async, so we must await them.
           return await implementation(
-            // @ts-expect-error JsonRpcId (number | string | void) doesn't match the permission middleware's id, which is (string | number | null)
             req,
             res,
             next,
             end,
-            selectHooks(hooks, hookNames),
+            selectHooks(hooks, hookNames) as U,
           );
         } catch (error) {
           if (process.env.METAMASK_DEBUG) {

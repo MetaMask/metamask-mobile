@@ -132,7 +132,7 @@ exports[`TokenValueStack render matches snapshot 1`] = `
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
-              "shadowColor": "#0000001a",
+              "shadowColor": "#0000001A",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -151,11 +151,7 @@ exports[`TokenValueStack render matches snapshot 1`] = `
           <Image
             onError={[Function]}
             resizeMode="contain"
-            source={
-              {
-                "uri": "MockImage",
-              }
-            }
+            source={1}
             style={
               {
                 "height": 32,

@@ -432,7 +432,7 @@ export async function getTransactionActionKey(transaction, chainId) {
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
-      : await isSmartContractAddress(to, undefined, networkClientId);
+      : await isSmartContractAddress(to, chainId, networkClientId);
 
   if (toSmartContract) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;
@@ -1428,9 +1428,14 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
   }
 }
 
+/**
+ * @param {number|string|BigNumber} value
+ * @param {number=} decimals
+ * @returns {BigNumber}
+ */
 export function calcTokenAmount(value, decimals) {
-  const multiplier = Math.pow(10, Number(decimals || 0));
-  return new BigNumber(String(value)).div(multiplier);
+  const divisor = new BigNumber(10).pow(decimals ?? 0);
+  return new BigNumber(String(value)).div(divisor);
 }
 
 export function calcTokenValue(value, decimals) {

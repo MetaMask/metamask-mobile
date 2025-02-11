@@ -15,18 +15,18 @@ import {
 
 import {
   BalanceChange,
-  NATIVE_ASSET_IDENTIFIER,
   TokenAssetIdentifier,
   AssetType,
   FIAT_UNAVAILABLE,
+  NativeAssetIdentifier,
 } from './types';
 import { getTokenDetails } from '../../../util/address';
 import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectChainId } from '../../../selectors/networkController';
 import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
+import { RootState } from '../../../reducers';
 
 const NATIVE_DECIMALS = 18;
 
@@ -132,14 +132,20 @@ async function fetchTokenFiatRates(
 function getNativeBalanceChange(
   nativeBalanceChange: SimulationBalanceChange | undefined,
   nativeFiatRate: number,
+  chainId: Hex,
 ): BalanceChange | undefined {
   if (!nativeBalanceChange) {
     return undefined;
   }
-  const asset = NATIVE_ASSET_IDENTIFIER;
-  const amount = getAssetAmount(nativeBalanceChange, NATIVE_DECIMALS);
 
+  const asset: NativeAssetIdentifier = {
+    type: AssetType.Native,
+    chainId,
+  };
+
+  const amount = getAssetAmount(nativeBalanceChange, NATIVE_DECIMALS);
   const fiatAmount = amount.times(nativeFiatRate).toNumber();
+
   return { asset, amount, fiatAmount };
 }
 
@@ -148,12 +154,14 @@ function getTokenBalanceChanges(
   tokenBalanceChanges: SimulationTokenBalanceChange[],
   erc20Decimals: Record<Hex, number>,
   erc20FiatRates: Partial<Record<Hex, number>>,
+  chainId: Hex,
 ): BalanceChange[] {
   return tokenBalanceChanges.map((tokenBc) => {
     const asset: TokenAssetIdentifier = {
       type: convertStandard(tokenBc.standard),
       address: tokenBc.address.toLowerCase() as Hex,
       tokenId: tokenBc.id,
+      chainId,
     };
 
     const decimals =
@@ -172,12 +180,15 @@ function getTokenBalanceChanges(
 }
 
 // Compiles a list of balance changes from simulation data
-export default function useBalanceChanges(
-  simulationData: SimulationData | undefined,
-): { pending: boolean; value: BalanceChange[] } {
-  const nativeFiatRate = useSelector(selectConversionRate) as number;
+export default function useBalanceChanges({
+  chainId,
+  simulationData,
+}: {
+  chainId: Hex;
+  simulationData?: SimulationData;
+}): { pending: boolean; value: BalanceChange[] } {
+  const nativeFiatRate = useSelector((state: RootState) => selectConversionRateByChainId(state, chainId)) as number;
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const chainId = useSelector(selectChainId);
 
   const { nativeBalanceChange, tokenBalanceChanges = [] } =
     simulationData ?? {};
@@ -200,18 +211,21 @@ export default function useBalanceChanges(
     [JSON.stringify(erc20TokenAddresses), chainId, fiatCurrency],
   );
 
-  if (erc20Decimals.pending || erc20FiatRates.pending || !simulationData ) {
+  if (erc20Decimals.pending || erc20FiatRates.pending || !simulationData) {
     return { pending: true, value: [] };
   }
 
   const nativeChange = getNativeBalanceChange(
     nativeBalanceChange,
     nativeFiatRate,
+    chainId,
   );
+
   const tokenChanges = getTokenBalanceChanges(
     tokenBalanceChanges,
     erc20Decimals.value,
     erc20FiatRates.value,
+    chainId,
   );
 
   const balanceChanges: BalanceChange[] = [

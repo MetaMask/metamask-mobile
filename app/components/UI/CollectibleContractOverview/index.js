@@ -145,6 +145,7 @@ class CollectibleContractOverview extends PureComponent {
             icon="add"
             onPress={this.onAdd}
             label={strings('asset_overview.add_collectible_button')}
+            testID={TokenOverviewSelectorsIDs.ADD_BUTTON}
           />
           <AssetActionButton
             testID={'collectible-info-button'}

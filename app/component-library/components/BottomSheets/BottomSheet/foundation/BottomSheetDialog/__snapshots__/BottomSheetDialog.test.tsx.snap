@@ -26,14 +26,14 @@ exports[`BottomSheetDialog should render correctly 1`] = `
       [
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#bbc0c566",
+          "borderColor": "#BBC0C566",
           "borderTopLeftRadius": 8,
           "borderTopRightRadius": 8,
           "borderWidth": 1,
           "maxHeight": 1333,
           "overflow": "hidden",
           "paddingBottom": 3,
-          "shadowColor": "#0000001a",
+          "shadowColor": "#0000001A",
           "shadowOffset": {
             "height": 2,
             "width": 0,
@@ -63,7 +63,7 @@ exports[`BottomSheetDialog should render correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#bbc0c566",
+            "backgroundColor": "#BBC0C566",
             "borderRadius": 2,
             "height": 4,
             "width": 40,

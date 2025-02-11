@@ -8,7 +8,7 @@ exports[`AccountTag render matches snapshot when name prop is defined 1`] = `
   style={
     {
       "alignSelf": "flex-start",
-      "backgroundColor": "#0376c91a",
+      "backgroundColor": "#0376C91A",
       "borderColor": "#0376c9",
       "borderRadius": 999,
       "borderWidth": 0,
@@ -205,7 +205,7 @@ exports[`AccountTag render matches snapshot when name prop isn't defined 1`] = `
   style={
     {
       "alignSelf": "flex-start",
-      "backgroundColor": "#0376c91a",
+      "backgroundColor": "#0376C91A",
       "borderColor": "#0376c9",
       "borderRadius": 999,
       "borderWidth": 0,

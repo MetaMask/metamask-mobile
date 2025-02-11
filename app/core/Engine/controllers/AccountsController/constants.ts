@@ -1,4 +1,5 @@
 import {
+  AccountsControllerChangeEvent as AccountsControllerStateChangeEventType,
   AccountsControllerGetAccountByAddressAction as AccountsControllerGetAccountByAddressActionType,
   AccountsControllerSetAccountNameAction as AccountsControllerSetAccountNameActionType,
   AccountsControllerSetSelectedAccountAction as AccountsControllerSetSelectedAccountActionType,
@@ -10,6 +11,10 @@ import {
   AccountsControllerSelectedAccountChangeEvent as AccountsControllerSelectedAccountChangeEventType,
   AccountsControllerAccountAddedEvent as AccountsControllerAccountAddedEventType,
   AccountsControllerAccountRenamedEvent as AccountsControllerAccountRenamedEventType,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  AccountsControllerAccountRemovedEvent as AccountsControllerAccountRemovedEventType,
+  AccountsControllerListMultichainAccountsAction as AccountsControllerListMultichainAccountsActionType,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/accounts-controller';
 
 // Action types of AccountsController
@@ -27,8 +32,14 @@ export const AccountsControllerListAccountsAction: AccountsControllerListAccount
   'AccountsController:listAccounts';
 export const AccountsControllerUpdateAccountMetadataAction: AccountsControllerUpdateAccountMetadataActionType['type'] =
   'AccountsController:updateAccountMetadata';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+export const AccountsControllerListMultichainAccountsAction: AccountsControllerListMultichainAccountsActionType['type'] =
+  'AccountsController:listMultichainAccounts';
+///: END:ONLY_INCLUDE_IF
 
 // Events of AccountsController
+export const AccountsControllerStateChangeEvent: AccountsControllerStateChangeEventType['type'] =
+  'AccountsController:stateChange';
 export const AccountsControllerSelectedEvmAccountChangeEvent: AccountsControllerSelectedEvmAccountChangeEventType['type'] =
   'AccountsController:selectedEvmAccountChange';
 export const AccountsControllerSelectedAccountChangeEvent: AccountsControllerSelectedAccountChangeEventType['type'] =
@@ -37,3 +48,7 @@ export const AccountsControllerAccountAddedEvent: AccountsControllerAccountAdded
   'AccountsController:accountAdded';
 export const AccountsControllerAccountRenamedEvent: AccountsControllerAccountRenamedEventType['type'] =
   'AccountsController:accountRenamed';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+export const AccountsControllerAccountRemovedEvent: AccountsControllerAccountRemovedEventType['type'] =
+  'AccountsController:accountRemoved';
+///: END:ONLY_INCLUDE_IF

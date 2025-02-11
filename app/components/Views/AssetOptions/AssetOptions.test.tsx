@@ -10,6 +10,7 @@ import {
   createProviderConfig,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
+import { TokenI } from '../../UI/Tokens/types';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -163,6 +164,17 @@ jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn(() => ({})),
 }));
 
+const mockAsset = {
+  address: '0x750e4C4984a9e0f12978eA6742Bc1c5D248f40ed',
+  balanceFiat: '$11.89',
+  chainId: '0x89',
+  decimals: 6,
+  image:
+    'https://static.cx.metamask.io/api/v1/tokenIcons/137/0x750e4c4984a9e0f12978ea6742bc1c5d248f40ed.png',
+  isETH: false,
+  isNative: false,
+};
+
 describe('AssetOptions Component', () => {
   const mockNavigation = {
     navigate: jest.fn(),
@@ -203,6 +215,7 @@ describe('AssetOptions Component', () => {
             address: '0x123',
             chainId: '0x1',
             isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
           },
         }}
       />,
@@ -220,6 +233,7 @@ describe('AssetOptions Component', () => {
             address: '0x123',
             chainId: '0x1',
             isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
           },
         }}
       />,
@@ -236,6 +250,7 @@ describe('AssetOptions Component', () => {
             address: '0x123',
             chainId: '0x1',
             isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
           },
         }}
       />,
@@ -255,6 +270,7 @@ describe('AssetOptions Component', () => {
             address: '0x123',
             chainId: '0x1',
             isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
           },
         }}
       />,
@@ -279,6 +295,7 @@ describe('AssetOptions Component', () => {
             address: '0x123',
             chainId: '0x1',
             isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
           },
         }}
       />,
@@ -298,6 +315,7 @@ describe('AssetOptions Component', () => {
         address: '0x123',
         chainId: '0x1',
         isNativeCurrency: false,
+        asset: mockAsset as unknown as TokenI,
       },
     };
     const { getByText } = render(<AssetOptions route={mockParams} />);
@@ -342,6 +360,7 @@ describe('AssetOptions Component', () => {
               address: '0x123',
               chainId: '0x1',
               isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
             },
           }}
         />,

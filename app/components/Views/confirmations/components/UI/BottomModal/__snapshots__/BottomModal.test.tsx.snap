@@ -114,10 +114,31 @@ exports[`BottomModal should match snapshot 1`] = `
     swipeDirection="down"
     swipeThreshold={100}
   >
-    <View>
-      <Text>
-        DUMMY
-      </Text>
+    <View
+      style={
+        {
+          "justifyContent": "flex-end",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "backgroundColor": "#DBE0E6",
+            "borderRadius": 4,
+            "height": 4,
+            "marginBottom": -8,
+            "width": 56,
+            "zIndex": 1,
+          }
+        }
+      />
+      <View>
+        <Text>
+          DUMMY
+        </Text>
+      </View>
     </View>
   </View>
 </Modal>

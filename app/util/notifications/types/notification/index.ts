@@ -1,22 +1,17 @@
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import {
+  INotification,
+  TRIGGER_TYPES,
+} from '@metamask/notification-services-controller/notification-services';
+export type { INotification } from '@metamask/notification-services-controller/notification-services';
 import type { FC } from 'react';
-import { TRIGGER_TYPES } from '../../constants';
-
-/**
- * The shape of a "generic" notification.
- * Other than the fields listed below, tt will also contain:
- * - `type` field (declared in the Raw shapes)
- * - `data` field (declared in the Raw shapes)
- */
-export type Notification = NotificationServicesController.Types.INotification;
 
 export type HandleNotificationCallback = (
-  data: Notification['data'] | undefined
-) => void
+  data: INotification['data'] | undefined,
+) => void;
 
 export enum PressActionId {
   OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
-  OPEN_TRANSACTIONS_VIEW = 'open-transactions-view-press-action-id'
+  OPEN_TRANSACTIONS_VIEW = 'open-transactions-view-press-action-id',
 }
 
 export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
@@ -24,9 +19,9 @@ export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
 /**
  * NotificationFC is the shared component interface for all notification components
  */
-type NotificationFC<N = Notification> = FC<{ notification: N }>;
+type NotificationFC<N = INotification> = FC<{ notification: N }>;
 
-interface BodyHalNotification<N = Notification> {
+interface BodyHalNotification<N = INotification> {
   type: 'body_hal_notification';
   Image?: NotificationFC<N>;
   Summary?: NotificationFC<N>;
@@ -35,18 +30,18 @@ interface BodyHalNotification<N = Notification> {
   NetworkFee?: NotificationFC<N>;
 }
 
-interface BodyFeatureAnnouncement<N = Notification> {
+interface BodyFeatureAnnouncement<N = INotification> {
   type: 'body_feature_announcement';
   Image: NotificationFC<N>;
   Description: NotificationFC<N>;
 }
 
-interface FooterHalNotification<N = Notification> {
+interface FooterHalNotification<N = INotification> {
   type: 'footer_hal_notification';
   ScanLink: NotificationFC<N>;
 }
 
-interface FooterFeatureAnnouncement<N = Notification> {
+interface FooterFeatureAnnouncement<N = INotification> {
   type: 'footer_feature_announcement';
   Link: NotificationFC<N>;
   Action: NotificationFC<N>;
@@ -56,8 +51,10 @@ interface FooterFeatureAnnouncement<N = Notification> {
  * This is the object shape that contains all the components of the particular notification.
  * the `guardFn` can be used to narrow a wide notification into the specific notification required.
  */
-export interface NotificationComponent<N extends Notification = Notification> {
-  guardFn: (n: Notification) => n is N;
+export interface NotificationComponent<
+  N extends INotification = INotification,
+> {
+  guardFn: (n: INotification) => n is N;
   item: {
     Icon: NotificationFC<N>;
     Title: NotificationFC<N>;
@@ -123,10 +120,10 @@ export interface MarketingNotificationData {
 }
 
 export const STAKING_PROVIDER_MAP: Record<
-NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_STAKE_COMPLETED
-| NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
-| NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
-| NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED,
+  | TRIGGER_TYPES.LIDO_STAKE_COMPLETED
+  | TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
+  | TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
+  | TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED,
   string
 > = {
   [TRIGGER_TYPES.LIDO_STAKE_COMPLETED]: 'Lido-staked ETH',

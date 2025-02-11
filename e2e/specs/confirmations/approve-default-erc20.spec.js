@@ -50,7 +50,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
-        await TestDApp.tapApproveButton();
+        await TestDApp.tapApproveERC20TokensButton();
 
         await Assertions.checkIfVisible(
           ContractApprovalBottomSheet.approveTokenAmount,

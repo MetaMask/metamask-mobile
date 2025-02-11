@@ -6,8 +6,13 @@ import reducer, {
   SWAPS_SET_LIVENESS,
   SWAPS_SET_HAS_ONBOARDED,
   swapsSmartTxFlagEnabled,
+  swapsTokensObjectSelector,
 } from './index';
 import { NetworkClientType } from '@metamask/network-controller';
+// eslint-disable-next-line import/no-namespace
+import * as tokensControllerSelectors from '../../selectors/tokensController';
+
+jest.mock('../../selectors/tokensController');
 
 const emptyAction = { type: null };
 
@@ -318,6 +323,69 @@ describe('swaps reducer', () => {
 
       const enabled = swapsSmartTxFlagEnabled(rootState);
       expect(enabled).toEqual(false);
+    });
+  });
+
+  describe('swapsTokensObjectSelector', () => {
+    it('should return a object that returns an object combining TokensController and SwapsController tokens where each key is an address and each value is undefined', () => {
+      jest.spyOn(tokensControllerSelectors, 'selectTokens').mockReturnValue([
+        {
+          address: '0x0000000000000000000000000000000000000010',
+          symbol: 'TOKEN1',
+          decimals: 1,
+          aggregators: [],
+        },
+        {
+          address: '0x0000000000000000000000000000000000000011',
+          symbol: 'TOKEN2',
+          decimals: 2,
+          aggregators: [],
+        },
+      ]);
+      const state = {
+        engine: {
+          backgroundState: {
+            SwapsController: {
+              tokens: [
+                {
+                  address: '0x0000000000000000000000000000000000000000',
+                  symbol: 'SWAPS-TOKEN1',
+                  decimals: 1,
+                  occurrences: 10,
+                  iconUrl: 'https://some.token.icon.url/1',
+                },
+                {
+                  address: '0x0000000000000000000000000000000000000001',
+                  symbol: 'SWAPS-TOKEN2',
+                  decimals: 2,
+                  occurrences: 20,
+                  iconUrl: 'https://some.token.icon.url/2',
+                },
+              ],
+            },
+          },
+        },
+      };
+      expect(swapsTokensObjectSelector(state)).toStrictEqual({
+        '0x0000000000000000000000000000000000000000': undefined,
+        '0x0000000000000000000000000000000000000001': undefined,
+        '0x0000000000000000000000000000000000000010': undefined,
+        '0x0000000000000000000000000000000000000011': undefined,
+      });
+    });
+
+    it('should return an empty object if there are no Swaps tokens or user tokens', () => {
+      jest.spyOn(tokensControllerSelectors, 'selectTokens').mockReturnValue([]);
+      const state = {
+        engine: {
+          backgroundState: {
+            SwapsController: {
+              tokens: [],
+            },
+          },
+        },
+      };
+      expect(swapsTokensObjectSelector(state)).toStrictEqual({});
     });
   });
 

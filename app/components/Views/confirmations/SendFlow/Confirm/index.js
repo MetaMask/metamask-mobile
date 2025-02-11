@@ -36,6 +36,7 @@ import {
   setNonce,
   setProposedNonce,
   setTransactionId,
+  setTransactionValue,
 } from '../../../../../actions/transaction';
 import { getGasLimit } from '../../../../../util/custom-gas';
 import Engine from '../../../../../core/Engine';
@@ -54,11 +55,11 @@ import {
   isTestNet,
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
-  fetchEstimatedMultiLayerL1Fee,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
   getDecimalChainId,
 } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import Text from '../../../../Base/Text';
 import { removeFavoriteCollectible } from '../../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -84,17 +85,10 @@ import {
   stopGasPolling,
 } from '../../../../../core/GasPolling/GasPolling';
 import {
-  selectChainId,
-  selectNetworkClientId,
-  selectProviderType,
-  selectTicker,
-} from '../../../../../selectors/networkController';
-import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
 import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
@@ -135,6 +129,16 @@ import {
   validateSufficientBalance,
 } from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
+import {
+  selectNativeCurrencyByChainId,
+  // Pending updated multichain UX to specify the send chain.
+  // eslint-disable-next-line no-restricted-syntax
+  selectNetworkClientId,
+  selectProviderTypeByChainId,
+} from '../../../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
+import { updateTransactionToMaxValue } from './utils';
+import { isNativeToken } from '../../utils/generic';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -197,9 +201,13 @@ class Confirm extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
-     * ID of the global network client
+     * ID of the associated network client
      */
     networkClientId: PropTypes.string,
+    /**
+     * ID of the global network client
+     */
+    globalNetworkClientId: PropTypes.string,
     /**
      * Indicates whether hex data should be shown in transaction editor
      */
@@ -264,16 +272,14 @@ class Confirm extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
-
     /**
      * Object containing transaction metrics by id
      */
     transactionMetricsById: PropTypes.object,
-
     /**
-     * Object containing the transaction simulation data
+     * Transaction metadata from the transaction controller
      */
-    transactionSimulationData: PropTypes.object,
+    transactionMetadata: PropTypes.object,
     /**
      * Update transaction metrics
      */
@@ -286,6 +292,14 @@ class Confirm extends PureComponent {
      * Object containing blockaid validation response for confirmation
      */
     securityAlertResponse: PropTypes.object,
+    /**
+     * Boolean that indicates if the max value mode is enabled
+     */
+    maxValueMode: PropTypes.bool,
+    /**
+     * Function that sets the transaction value
+     */
+    setTransactionValue: PropTypes.func,
   };
 
   state = {
@@ -320,8 +334,9 @@ class Confirm extends PureComponent {
   );
 
   setNetworkNonce = async () => {
-    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
+    const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
+      this.props;
+    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -351,8 +366,8 @@ class Confirm extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
@@ -413,7 +428,7 @@ class Confirm extends PureComponent {
      * Ref.: https://github.com/MetaMask/metamask-mobile/pull/3989#issuecomment-1367558394
      */
     if (
-      selectedAsset.isETH ||
+      isNativeToken(selectedAsset) ||
       selectedAsset.tokenId ||
       !selectedAsset.address
     ) {
@@ -453,7 +468,7 @@ class Confirm extends PureComponent {
   componentDidMount = async () => {
     const {
       chainId,
-      networkClientId,
+      globalNetworkClientId,
       showCustomNonce,
       navigation,
       providerType,
@@ -503,13 +518,13 @@ class Confirm extends PureComponent {
         transactionParams,
         {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId,
+          networkClientId: globalNetworkClientId,
           origin: TransactionTypes.MMM,
         },
       ));
     } catch (error) {
       Logger.error(error, 'error while adding transaction (Confirm)');
-      navigation?.dangerouslyGetParent()?.pop();
+      navigation.navigate(Routes.WALLET_VIEW);
       Alert.alert(
         strings('transactions.transaction_error'),
         error && error.message,
@@ -546,13 +561,20 @@ class Confirm extends PureComponent {
 
   componentDidUpdate = (prevProps, prevState) => {
     const {
+      accounts,
       transactionState: {
         transactionTo,
-        transaction: { value, gas },
+        transaction: { value, gas, from },
       },
       contractBalances,
       selectedAsset,
+      maxValueMode,
+      gasFeeEstimates,
     } = this.props;
+
+    const { transactionMeta } = this.state;
+    const { id: transactionId } = transactionMeta;
+
     this.updateNavBar();
 
     const transaction = this.prepareTransactionToSend();
@@ -575,6 +597,13 @@ class Confirm extends PureComponent {
     const haveEIP1559TotalMaxHexChanged =
       EIP1559GasTransaction.totalMaxHex !==
       prevState.EIP1559GasTransaction.totalMaxHex;
+    const isEIP1559Transaction =
+      this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET;
+    const haveGasFeeMaxNativeChanged = isEIP1559Transaction
+      ? EIP1559GasTransaction.gasFeeMaxNative !==
+        prevState.EIP1559GasTransaction.gasFeeMaxNative
+      : legacyGasTransaction.gasFeeMaxNative !==
+        prevState.legacyGasTransaction.gasFeeMaxNative;
 
     const haveGasPropertiesChanged =
       (this.props.gasFeeEstimates &&
@@ -605,13 +634,32 @@ class Confirm extends PureComponent {
         : this.state.gasSelected;
 
       if (
+        maxValueMode &&
+        isNativeToken(selectedAsset) &&
+        !isEmpty(gasFeeEstimates) &&
+        haveGasFeeMaxNativeChanged
+      ) {
+        updateTransactionToMaxValue({
+          transactionId,
+          isEIP1559Transaction,
+          EIP1559GasTransaction,
+          legacyGasTransaction,
+          accountBalance: accounts[from].balance,
+          setTransactionValue: this.props.setTransactionValue,
+        });
+
+        // In order to prevent race condition do not remove this early return.
+        // Another update will be triggered by `updateEditableParams` and validateAmount will be called next update.
+        return;
+      }
+
+      if (
         (!this.state.stopUpdateGas && !this.state.advancedGasInserted) ||
         gasEstimateTypeChanged
       ) {
         if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
           error = this.validateAmount({
             transaction,
-            total: EIP1559GasTransaction.totalMaxHex,
           });
           this.setError(error);
           // eslint-disable-next-line react/no-did-update-set-state
@@ -641,7 +689,6 @@ class Confirm extends PureComponent {
         } else {
           error = this.validateAmount({
             transaction,
-            total: legacyGasTransaction.totalHex,
           });
           this.setError(error);
         }
@@ -677,7 +724,8 @@ class Confirm extends PureComponent {
       prepareTransaction,
       transactionState: { transaction },
     } = this.props;
-    const estimation = await getGasLimit(transaction, true);
+    const { networkClientId } = this.props;
+    const estimation = await getGasLimit(transaction, true, networkClientId);
     prepareTransaction({ ...transaction, ...estimation });
   };
 
@@ -696,9 +744,10 @@ class Confirm extends PureComponent {
 
     let transactionValue, transactionValueFiat;
     const valueBN = hexToBN(value);
-    const parsedTicker = getTicker(ticker);
+    const symbol = ticker ?? selectedAsset?.symbol;
+    const parsedTicker = getTicker(symbol);
 
-    if (selectedAsset.isETH) {
+    if (isNativeToken(selectedAsset)) {
       transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
       transactionValueFiat = weiToFiat(
         valueBN,
@@ -805,7 +854,7 @@ class Confirm extends PureComponent {
    * Validates transaction balances
    * @returns - Whether there is an error with the amount
    */
-  validateAmount = ({ transaction, total }) => {
+  validateAmount = ({ transaction }) => {
     const {
       accounts,
       contractBalances,
@@ -821,7 +870,7 @@ class Confirm extends PureComponent {
 
     const selectedAddress = transaction?.from;
     const weiBalance = hexToBN(accounts[selectedAddress].balance);
-    const totalTransactionValue = hexToBN(total);
+    const totalTransactionValue = hexToBN(value);
 
     if (!isDecimal(value)) {
       return strings('transaction.invalid_amount');
@@ -844,7 +893,10 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (selectedAsset.isETH || selectedAsset.tokenId) {
+    if (
+      isNativeToken(selectedAsset) ||
+      selectedAsset.tokenId
+    ) {
       return insufficientBalanceMessage;
     }
 
@@ -913,17 +965,14 @@ class Confirm extends PureComponent {
       transactionState: { assetType },
       navigation,
       resetTransaction,
-      gasEstimateType,
       shouldUseSmartTransaction,
-      transactionSimulationData: { isUpdatedAfterSecurityCheck } = {},
+      transactionMetadata,
     } = this.props;
 
-    const {
-      legacyGasTransaction,
-      transactionConfirmed,
-      EIP1559GasTransaction,
-      isChangeInSimulationModalShown,
-    } = this.state;
+    const transactionSimulationData = transactionMetadata?.simulationData;
+    const { isUpdatedAfterSecurityCheck } = transactionSimulationData ?? {};
+
+    const { transactionConfirmed, isChangeInSimulationModalShown } = this.state;
     if (transactionConfirmed) return;
 
     if (isUpdatedAfterSecurityCheck && !isChangeInSimulationModalShown) {
@@ -947,18 +996,9 @@ class Confirm extends PureComponent {
     try {
       const transaction = this.prepareTransactionToSend();
 
-      let error;
-      if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-        error = this.validateAmount({
-          transaction,
-          total: EIP1559GasTransaction.totalMaxHex,
-        });
-      } else {
-        error = this.validateAmount({
-          transaction,
-          total: legacyGasTransaction.totalHex,
-        });
-      }
+      const error = this.validateAmount({
+        transaction,
+      });
       this.setError(error);
       if (error) {
         this.setState({ transactionConfirmed: false, stopUpdateGas: true });
@@ -1005,7 +1045,7 @@ class Confirm extends PureComponent {
         await ApprovalController.accept(transactionMeta.id, undefined, {
           waitForResult: false,
         });
-        navigation && navigation.dangerouslyGetParent()?.pop();
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
       } else {
         await ApprovalController.accept(transactionMeta.id, undefined, {
           waitForResult: true,
@@ -1038,8 +1078,7 @@ class Confirm extends PureComponent {
         resetTransaction();
 
         if (!shouldUseSmartTransaction) {
-          // We popped it already earlier
-          navigation && navigation.dangerouslyGetParent()?.pop();
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
         }
       });
     } catch (error) {
@@ -1063,7 +1102,7 @@ class Confirm extends PureComponent {
         );
       }
       resetTransaction();
-      navigation?.dangerouslyGetParent()?.pop();
+      navigation.navigate(Routes.WALLET_VIEW);
     }
     this.setState({ transactionConfirmed: false });
   };
@@ -1244,15 +1283,15 @@ class Confirm extends PureComponent {
       closeModal: true,
       ...(txnType
         ? {
-          legacyGasTransaction: gasTxn,
-          legacyGasObject: gasObj,
-          advancedGasInserted: !gasSelect,
-          stopUpdateGas: false,
-        }
+            legacyGasTransaction: gasTxn,
+            legacyGasObject: gasObj,
+            advancedGasInserted: !gasSelect,
+            stopUpdateGas: false,
+          }
         : {
-          EIP1559GasTransaction: gasTxn,
-          EIP1559GasObject: gasObj,
-        }),
+            EIP1559GasTransaction: gasTxn,
+            EIP1559GasObject: gasObj,
+          }),
     });
   };
 
@@ -1326,7 +1365,7 @@ class Confirm extends PureComponent {
       gasEstimateType,
       isNativeTokenBuySupported,
       shouldUseSmartTransaction,
-      transactionSimulationData,
+      transactionMetadata,
       transactionState,
       useTransactionSimulations,
     } = this.props;
@@ -1359,6 +1398,7 @@ class Confirm extends PureComponent {
     const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
       ExtendedKeyringTypes.ledger,
     ]);
+    const transactionSimulationData = transactionMetadata?.simulationData;
 
     const isTestNetwork = isTestNet(chainId);
 
@@ -1427,15 +1467,16 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          {useTransactionSimulations && transactionState?.id && (
-            <View style={styles.simulationWrapper}>
-              <SimulationDetails
-                enableMetrics
-                simulationData={transactionSimulationData}
-                transactionId={transactionState.id}
-              />
-            </View>
-          )}
+          {useTransactionSimulations &&
+            transactionState?.id &&
+            transactionMetadata && (
+              <View style={styles.simulationWrapper}>
+                <SimulationDetails
+                  transaction={transactionMetadata}
+                  enableMetrics
+                />
+              </View>
+            )}
           <TransactionReview
             gasSelected={this.state.gasSelected}
             primaryCurrency={primaryCurrency}
@@ -1550,36 +1591,42 @@ class Confirm extends PureComponent {
 
 Confirm.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  contractBalances: selectContractBalances(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  providerType: selectProviderType(state),
-  showHexData: state.settings.showHexData,
-  showCustomNonce: state.settings.showCustomNonce,
-  chainId: selectChainId(state),
-  networkClientId: selectNetworkClientId(state),
-  ticker: selectTicker(state),
-  transaction: getNormalizedTxState(state),
-  selectedAsset: state.transaction.selectedAsset,
-  transactionState: state.transaction,
-  primaryCurrency: state.settings.primaryCurrency,
-  gasFeeEstimates: selectGasFeeEstimates(state),
-  gasEstimateType: selectGasFeeControllerEstimateType(state),
-  isPaymentRequest: state.transaction.paymentRequest,
-  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  transactionMetricsById: selectTransactionMetrics(state),
-  transactionSimulationData:
-    selectCurrentTransactionMetadata(state)?.simulationData,
-  useTransactionSimulations: selectUseTransactionSimulations(state),
-  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+  const networkClientId = transaction?.networkClientId;
+
+  return {
+    accounts: selectAccounts(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
+    contractBalances: selectContractBalances(state),
+    conversionRate: selectConversionRateByChainId(state, chainId),
+    currentCurrency: selectCurrentCurrency(state),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    showHexData: state.settings.showHexData,
+    showCustomNonce: state.settings.showCustomNonce,
+    chainId,
+    networkClientId,
+    globalNetworkClientId: selectNetworkClientId(state),
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    transaction,
+    selectedAsset: state.transaction.selectedAsset,
+    transactionState: state.transaction,
+    primaryCurrency: state.settings.primaryCurrency,
+    gasFeeEstimates: selectGasFeeEstimates(state),
+    gasEstimateType: selectGasFeeControllerEstimateType(state),
+    isPaymentRequest: state.transaction.paymentRequest,
+    isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
+      chainId,
+      getRampNetworks(state),
+    ),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    transactionMetricsById: selectTransactionMetrics(state),
+    transactionMetadata: selectCurrentTransactionMetadata(state),
+    useTransactionSimulations: selectUseTransactionSimulations(state),
+    securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   prepareTransaction: (transaction) =>
@@ -1594,6 +1641,7 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
   updateTransactionMetrics: ({ transactionId, params }) =>
     dispatch(updateTransactionMetrics({ transactionId, params })),
+  setTransactionValue: (value) => dispatch(setTransactionValue(value)),
 });
 
 export default connect(

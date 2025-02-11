@@ -1,27 +1,98 @@
-import React from 'react';
-import { Text } from 'react-native';
+import React, { useMemo } from 'react';
+import { Hex, isValidHexAddress } from '@metamask/utils';
+import { Text, View } from 'react-native';
 
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
+import { strings } from '../../../../../../../../locales/i18n';
+import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import { useTypedSignSimulationEnabled } from '../../../../hooks/useTypedSignSimulationEnabled';
+import { parseSanitizeTypedDataMessage } from '../../../../utils/signature';
+import InfoRow from '../../../UI/InfoRow';
+import { useTokenDecimalsInTypedSignRequest } from '../../../../hooks/useTokenDecimalsInTypedSignRequest';
+import DataTree from '../../DataTree';
 import SignatureMessageSection from '../../SignatureMessageSection';
+import { DataTreeInput } from '../../DataTree/DataTree';
+import styleSheet from './Message.styles';
+
+/**
+ * If a token contract is found within the dataTree, fetch the token decimal of this contract
+ * to be utilized for displaying token amounts of the dataTree.
+ *
+ * @param dataTreeData
+ */
+export const getTokenContractInDataTree = (
+  dataTreeData: DataTreeInput,
+): Hex | undefined => {
+  if (!dataTreeData || Array.isArray(dataTreeData)) {
+    return undefined;
+  }
+
+  const tokenContract = dataTreeData.token?.value as Hex;
+  if (!tokenContract || !isValidHexAddress(tokenContract)) {
+    return undefined;
+  }
+
+  return tokenContract;
+};
 
 const Message = () => {
-  const { approvalRequest } = useApprovalRequest();
+  const signatureRequest = useSignatureRequest();
+  const isSimulationSupported = useTypedSignSimulationEnabled();
+  const chainId = signatureRequest?.chainId as Hex;
+  const { styles } = useStyles(styleSheet, {});
 
-  const typedSignData = approvalRequest?.requestData?.data;
+  // Pending alignment of controller types.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const typedSignData = signatureRequest?.messageParams?.data as any;
 
-  if (!typedSignData) {
+  const {
+    domain: { verifyingContract } = { verifyingContract: '' },
+    sanitizedMessage,
+    primaryType,
+  } = useMemo(
+    () => parseSanitizeTypedDataMessage(typedSignData),
+    [typedSignData],
+  );
+
+  const tokenDecimals = useTokenDecimalsInTypedSignRequest(
+    signatureRequest,
+    sanitizedMessage?.value as unknown as DataTreeInput,
+    verifyingContract,
+  );
+
+  if (!signatureRequest) {
     return null;
   }
 
-  const parsedData = JSON.stringify(typedSignData);
-
-  const firstDataValue = parsedData?.substring(0, 100);
-
-  // todo: detailed data tree to be implemented
   return (
     <SignatureMessageSection
-      messageCollapsed={<Text>{firstDataValue}</Text>}
-      messageExpanded={<Text>{parsedData}</Text>}
+      messageCollapsed={
+        isSimulationSupported ? undefined : (
+          <InfoRow
+            label={strings('confirm.primary_type')}
+            style={styles.collpasedInfoRow}
+          >
+            {primaryType}
+          </InfoRow>
+        )
+      }
+      messageExpanded={
+        <View>
+          <Text style={styles.title}>{strings('confirm.message')}</Text>
+          <InfoRow
+            label={strings('confirm.primary_type')}
+            style={styles.dataRow}
+          >
+            {primaryType}
+          </InfoRow>
+          <DataTree
+            data={sanitizedMessage?.value as unknown as DataTreeInput}
+            chainId={chainId}
+            primaryType={primaryType}
+            tokenDecimals={tokenDecimals}
+          />
+        </View>
+      }
       copyMessageText={typedSignData}
     />
   );

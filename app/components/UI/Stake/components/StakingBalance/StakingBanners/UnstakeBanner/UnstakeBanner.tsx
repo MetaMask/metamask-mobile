@@ -26,7 +26,9 @@ const UnstakingBanner = ({
     variant={BannerVariant.Alert}
     style={style}
     description={
-      <Text>{renderUnstakingTimeRemaining(timeRemaining, amountEth)}</Text>
+      <Text testID="unstaking-banner">
+        {renderUnstakingTimeRemaining(timeRemaining, amountEth)}
+      </Text>
     }
   />
 );

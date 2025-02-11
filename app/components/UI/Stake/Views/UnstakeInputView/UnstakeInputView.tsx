@@ -20,6 +20,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
@@ -54,9 +55,23 @@ const UnstakeInputView = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getStakingNavbar(title, navigation, theme.colors, {
-        hasBackButton: false,
-      }),
+      getStakingNavbar(
+        title,
+        navigation,
+        theme.colors,
+        {
+          hasBackButton: false,
+        },
+        {
+          cancelButtonEvent: {
+            event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
+            properties: {
+              selected_provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+            },
+          },
+        },
+      ),
     );
   }, [navigation, theme.colors, title]);
 
@@ -71,7 +86,7 @@ const UnstakeInputView = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
         .addProperties({
-          selected_provider: 'consensys',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
           tokens_to_stake_native_value: amountEth,
           tokens_to_stake_usd_value: fiatAmount,
         })
@@ -100,9 +115,9 @@ const UnstakeInputView = () => {
         handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
           event: MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED,
           properties: {
-            selected_provider: 'consensys',
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
             text: 'Currency Switch Trigger',
-            location: 'Unstake Input View',
+            location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
             // We want to track the currency switching to. Not the current currency.
             currency_type: isEth ? 'fiat' : 'native',
           },
@@ -116,7 +131,7 @@ const UnstakeInputView = () => {
           withMetaMetrics(handleQuickAmountPress, {
             event: MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
             properties: {
-              location: 'UnstakeInputView',
+              location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
               amount: value,
               is_max: value === 1,
               mode: isEth ? 'native' : 'fiat',

@@ -1,8 +1,10 @@
 import {
   parseTypedSignDataMessage,
+  sanitizeMessage,
   sanitizeString,
   stripMultipleNewlines,
 } from '.';
+import { mockTypedSignV3Message } from '../test/confirm-data-helpers';
 
 describe('string utils', () => {
   describe('sanitizeString', () => {
@@ -18,6 +20,53 @@ describe('string utils', () => {
         'Secure ✅ \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n',
       );
       expect(result).toEqual('Secure ✅ \n');
+    });
+  });
+
+  describe('sanitizeMessage', () => {
+    it('should throw an error if types is undefined', () => {
+      const { message, primaryType } = mockTypedSignV3Message;
+      expect(() => sanitizeMessage(message, primaryType, undefined)).toThrow(
+        'Invalid types definition',
+      );
+    });
+
+    it('should throw an error if base type is not defined', () => {
+      const { message, types } = mockTypedSignV3Message;
+      expect(() => sanitizeMessage(message, '', types)).toThrow(
+        'Invalid primary type definition',
+      );
+    });
+
+    it('should return message data as expected', () => {
+      const { message, primaryType, types } = mockTypedSignV3Message;
+      const result = sanitizeMessage(message, primaryType, types);
+      expect(result).toStrictEqual({
+        value: {
+          from: {
+            value: {
+              name: { value: 'Cow', type: 'string' },
+              wallet: {
+                value: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+                type: 'address',
+              },
+            },
+            type: 'Person',
+          },
+          to: {
+            value: {
+              name: { value: 'Bob', type: 'string' },
+              wallet: {
+                value: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+                type: 'address',
+              },
+            },
+            type: 'Person',
+          },
+          contents: { value: 'Hello, Bob!', type: 'string' },
+        },
+        type: 'Mail',
+      });
     });
   });
 
@@ -41,7 +90,7 @@ describe('string utils', () => {
       ).toThrow('Invalid primary type definition');
     });
 
-    it('should return ignore message data with unknown types and trim new lines', () => {
+    it('should return message data ignoring unknown types and trim new lines', () => {
       const result = parseTypedSignDataMessage(typedDataMsg);
       expect(result).toStrictEqual({
         value: {

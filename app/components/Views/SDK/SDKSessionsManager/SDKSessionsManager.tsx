@@ -5,8 +5,7 @@ import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
-import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typography';
+import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Button, {

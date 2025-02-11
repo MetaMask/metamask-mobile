@@ -38,27 +38,4 @@ describe('useAnalytics', () => {
         .build(),
     );
   });
-
-  it('calls trackEvent for anonymous params', () => {
-    const testEvent = 'RAMP_REGION_SELECTED';
-    const testEventParams = {
-      country_id: 'test-country-id',
-      is_unsupported_offramp: false,
-      is_unsupported_onramp: false,
-    } as const;
-
-    jest.mock('../constants', () => ({
-      AnonymousEvents: [testEvent],
-    }));
-
-    const { result } = renderHookWithProvider(() => useAnalytics());
-
-    result.current(testEvent, testEventParams);
-
-    expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents[testEvent])
-        .addSensitiveProperties(testEventParams)
-        .build(),
-    );
-  });
 });

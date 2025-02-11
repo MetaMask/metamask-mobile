@@ -41,6 +41,12 @@ class NetworkNonPemittedBottomSheet {
     );
   }
 
+  get elysiumTestnetNetworkName() {
+    return Matchers.getElementByText(
+      NetworkNonPemittedBottomSheetSelectorsText.ELYSIUM_TESTNET_NETWORK_NAME,
+    );
+  }
+
   get chooseFromPermittedNetworksButton() {
     return Matchers.getElementByID(
       NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON,
@@ -67,6 +73,10 @@ class NetworkNonPemittedBottomSheet {
 
   async tapLineaSepoliaNetworkName() {
     await Gestures.waitAndTap(this.lineaSepoliaNetworkName);
+  }
+
+  async tapElysiumTestnetNetworkName() {
+    await Gestures.waitAndTap(this.elysiumTestnetNetworkName);
   }
 
   async tapChooseFromPermittedNetworksButton() {

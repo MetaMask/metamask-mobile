@@ -2,7 +2,7 @@ import {
   JsonRpcEngine,
   JsonRpcEngineEndCallback,
   JsonRpcEngineNextCallback,
-} from 'json-rpc-engine';
+} from '@metamask/json-rpc-engine';
 import {
   Json,
   JsonRpcParams,
@@ -150,6 +150,10 @@ describe('createLegacyMethodMiddleware', () => {
     });
     assertIsJsonRpcFailure(response);
 
+    // Type assertion for the error not having cause object
+    const errorData = response.error.data as { cause?: Error };
+
+    expect(errorData.cause?.message).toBe('test error');
     expect(response.error.message).toBe('test error');
   });
 
@@ -166,6 +170,10 @@ describe('createLegacyMethodMiddleware', () => {
     });
     assertIsJsonRpcFailure(response);
 
+    // Type assertion for the error not having cause object
+    const errorData = response.error.data as { cause?: Error };
+
+    expect(errorData.cause?.message).toBe('test error');
     expect(response.error.message).toBe('test error');
   });
 

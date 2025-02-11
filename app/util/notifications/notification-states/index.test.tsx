@@ -1,19 +1,24 @@
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import {
+  TRIGGER_TYPES,
+  INotification,
+} from '@metamask/notification-services-controller/notification-services';
 import { hasNotificationModal, NotificationComponentState } from '.';
 
-const { TRIGGER_TYPES } = NotificationServicesController.Constants;
-type TRIGGER_TYPES = NotificationServicesController.Constants.TRIGGER_TYPES;
 describe('hasNotificationModal', () => {
-  const mockNotificationComponentState = (createModalDetails: boolean | undefined) => {
-    (NotificationComponentState)[TRIGGER_TYPES.ERC20_SENT] = {
-      guardFn: (n): n is NotificationServicesController.Types.INotification => true,
+  const mockNotificationComponentState = (
+    createModalDetails: boolean | undefined,
+  ) => {
+    NotificationComponentState[TRIGGER_TYPES.ERC20_SENT] = {
+      guardFn: (n): n is INotification => true,
       createMenuItem: jest.fn(),
       createModalDetails: createModalDetails ? jest.fn() : undefined,
     };
   };
 
   afterEach(() => {
-    delete (NotificationComponentState as { [key in TRIGGER_TYPES]?: unknown })[TRIGGER_TYPES.ERC20_SENT];
+    delete (NotificationComponentState as { [key in TRIGGER_TYPES]?: unknown })[
+      TRIGGER_TYPES.ERC20_SENT
+    ];
   });
 
   it('returns false for an invalid trigger type', () => {

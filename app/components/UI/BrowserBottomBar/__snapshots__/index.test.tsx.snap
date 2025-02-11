@@ -13,7 +13,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       },
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c566",
+        "borderColor": "#BBC0C566",
         "borderTopWidth": 0.5,
         "flex": 0,
         "flexDirection": "row",

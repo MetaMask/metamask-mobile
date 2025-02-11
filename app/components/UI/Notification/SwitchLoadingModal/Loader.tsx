@@ -19,7 +19,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import type { ThemeColors } from '@metamask/design-tokens';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({

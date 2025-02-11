@@ -6,6 +6,8 @@ import {
 import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
+  Provider,
+  QuoteSortMetadata,
 } from '@consensys/on-ramp-sdk/dist/API';
 import {
   timeToDescription,
@@ -23,11 +25,13 @@ import {
   isSellFiatOrder,
   getNotificationDetails,
   stateHasOrder,
+  sortQuotes,
 } from '.';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { FiatOrder, RampType } from '../../../../reducers/fiatOrders/types';
 import { getOrders } from '../../../../reducers/fiatOrders';
 import type { RootState } from '../../../../reducers';
+import { QuoteSortBy } from '@consensys/on-ramp-sdk/dist/IOnRampSdk';
 
 describe('timeToDescription', () => {
   it('should return a function', () => {
@@ -638,5 +642,42 @@ describe('stateHasOrder', () => {
     expect(stateHasOrder({} as RootState, { id: '4' } as FiatOrder)).toBe(
       false,
     );
+  });
+});
+
+describe('sortQuotes', () => {
+  const quotes: QuoteResponse[] = [
+    { provider: { id: 'provider-id-2' } as Provider } as QuoteResponse,
+    { provider: { id: 'provider-id-1' } as Provider } as QuoteResponse,
+  ];
+
+  it('should return quotes unsorted if no sortingArray is provided', () => {
+    expect(sortQuotes(quotes)).toEqual(quotes);
+  });
+
+  it('should return quotes unsorted if no sortOrder is found', () => {
+    const sortingArray: QuoteSortMetadata[] = [
+      // @ts-expect-error Testing invalid input on purpose
+      { sortBy: undefined, ids: ['provider-id-1', 'provider-id-2'] },
+    ];
+    expect(sortQuotes(quotes, sortingArray, QuoteSortBy.price)).toEqual(quotes);
+  });
+
+  it('should sort quotes by price correctly', () => {
+    const sortingArray: QuoteSortMetadata[] = [
+      { sortBy: QuoteSortBy.price, ids: ['provider-id-1', 'provider-id-2'] },
+    ];
+    expect(sortQuotes(quotes, sortingArray, QuoteSortBy.price)).toEqual([
+      { provider: { id: 'provider-id-1' } as Provider },
+      { provider: { id: 'provider-id-2' } as Provider },
+    ]);
+  });
+
+  it('should handle undefined quotes gracefully', () => {
+    expect(sortQuotes(undefined, [], QuoteSortBy.price)).toBeUndefined();
+  });
+
+  it('should handle undefined sortingArray gracefully', () => {
+    expect(sortQuotes(quotes, undefined, QuoteSortBy.price)).toEqual(quotes);
   });
 });

@@ -210,7 +210,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
             deviceProp: 'Device value',
             userProp: 'User value',
-            is_metrics_opted_in: true,
           });
           expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
             MetricsEventBuilder.createEventBuilder(
@@ -219,6 +218,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               .addProperties({
                 is_metrics_opted_in: true,
                 updated_after_onboarding: true,
+                location: 'settings',
               })
               .build(),
           );
@@ -299,7 +299,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
               deviceProp: 'Device value',
               userProp: 'User value',
-              is_metrics_opted_in: true,
             });
             expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
               1,
@@ -308,6 +307,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               )
                 .addProperties({
                   is_metrics_opted_in: true,
+                  location: 'settings',
                   updated_after_onboarding: true,
                 })
                 .build(),
@@ -318,7 +318,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             // if MetaMetrics is initially disabled, addTraitsToUser is called twice and this is 2nd call
             !metaMetricsInitiallyEnabled ? 2 : 1,
             {
-              has_marketing_consent: true,
+              has_marketing_consent: 'ON',
             },
           );
           expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
@@ -330,6 +330,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               .addProperties({
                 has_marketing_consent: true,
                 location: 'settings',
+                updated_after_onboarding: true,
               })
               .build(),
           );
@@ -376,7 +377,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledTimes(1);
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
-            has_marketing_consent: false,
+            has_marketing_consent: 'OFF',
           });
           expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(1);
           expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
@@ -386,6 +387,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               .addProperties({
                 has_marketing_consent: false,
                 location: 'settings',
+                updated_after_onboarding: true,
               })
               .build(),
           );

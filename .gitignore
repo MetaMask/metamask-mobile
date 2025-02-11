@@ -136,3 +136,6 @@ android/app/src/main/assets/modules.json
 .expo
 dist/
 web-build/
+
+# CICD
+github-tools/

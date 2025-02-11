@@ -59,6 +59,9 @@ const mockInitialState = {
           },
         },
       },
+      PreferencesController: {
+        privacyMode: false,
+      },
     },
   },
   accounts: {
@@ -101,7 +104,7 @@ const mockRoute: AccountSelectorProps['route'] = {
   params: {
     onSelectAccount: jest.fn((address: string) => address),
     checkBalanceError: (balance: string) => balance,
-    privacyMode: false,
+    disablePrivacyMode: false,
   } as AccountSelectorParams,
 };
 

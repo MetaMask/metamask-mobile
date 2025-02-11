@@ -18,7 +18,7 @@ exports[`SendTo Component should render 1`] = `
   <View
     style={
       {
-        "borderBottomColor": "#bbc0c566",
+        "borderBottomColor": "#BBC0C566",
         "borderBottomWidth": 1,
         "flex": 0,
         "paddingHorizontal": 8,
@@ -63,7 +63,7 @@ exports[`SendTo Component should render 1`] = `
         style={
           [
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 8,
               "borderWidth": 1,
               "flex": 1,
@@ -74,7 +74,7 @@ exports[`SendTo Component should render 1`] = `
               "padding": 10,
             },
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
             },
           ]
         }
@@ -236,7 +236,7 @@ exports[`SendTo Component should render 1`] = `
               "paddingHorizontal": 10,
             },
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
             },
           ]
         }
