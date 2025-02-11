@@ -3621,7 +3621,12 @@
     "reject": "Reject",
     "confirm": "Confirm",
     "label": {
+      "account": "Account",
+      "balance": "Balance",
       "interacting_with": "Interacting with",
+      "primary_type": "Primary type",
+      "request_from": "Request from",
+      "signing_in_with": "Signing in with",
       "spender": "Spender"
     },
     "title": {
@@ -3636,14 +3641,9 @@
       "signature": "Review request details before you confirm.",
       "signature_siwe": "A site wants you to sign in to prove you own this account."
     },
-    "request_from": "Request from",
-    "signing_in_with": "Signing in with",
     "message": "Message",
-    "primary_type": "Primary type",
     "personal_sign_tooltip": "This site is asking for your signature",
     "details": "Details",
-    "account": "Account",
-    "balance": "Balance",
     "network": "Network",
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",

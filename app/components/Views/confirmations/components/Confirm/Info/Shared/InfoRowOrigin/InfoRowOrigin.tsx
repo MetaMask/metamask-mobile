@@ -27,14 +27,14 @@ const InfoRowOrigin = () => {
       testID={ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION}
     >
       <InfoRow
-        label={strings('confirm.request_from')}
+        label={strings('confirm.label.request_from')}
         tooltip={strings('confirm.personal_sign_tooltip')}
       >
         <DisplayURL url={approvalRequest.origin} />
       </InfoRow>
       {isSIWEMessage && (
         <InfoRow
-          label={strings('confirm.signing_in_with')}
+          label={strings('confirm.label.signing_in_with')}
           testID={
             ConfirmationPageSectionsSelectorIDs.SIWE_SIGNING_ACCOUNT_INFO_SECTION
           }

@@ -20,15 +20,15 @@ const AccountNetworkInfoExpanded = () => {
   return (
     <View>
       <InfoSection>
-        <InfoRow label={strings('confirm.account')}>
+        <InfoRow label={strings('confirm.label.account')}>
           {renderShortAddress(accountAddress, 5)}
         </InfoRow>
-        <InfoRow label={strings('confirm.balance')}>
+        <InfoRow label={strings('confirm.label.balance')}>
           {accountFiatBalance}
         </InfoRow>
       </InfoSection>
       <InfoSection>
-        <InfoRow label={strings('confirm.network')}>
+        <InfoRow label={strings('confirm.label.network')}>
           <Network chainId={chainId} />
         </InfoRow>
       </InfoSection>
