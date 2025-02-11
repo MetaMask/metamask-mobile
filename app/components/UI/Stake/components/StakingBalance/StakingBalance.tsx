@@ -135,9 +135,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   }
 
   const renderStakingContent = () => {
-    if (chainId !== asset.chainId) {
-      return <></>;
-    }
     if (isLoadingPooledStakesData) {
       return (
         <SkeletonPlaceholder>
