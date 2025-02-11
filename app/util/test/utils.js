@@ -1,5 +1,3 @@
-import { device } from 'detox';
-
 export const flushPromises = () => new Promise(setImmediate);
 
 export const FIXTURE_SERVER_PORT = 12345;
@@ -15,4 +13,4 @@ export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FIXTURE_SERVER_PORT;
 
 // TODO: we will keep this only for Detox to be detected in postinit.ts
-export const isDetox = !!(device && device.getPlatform);
+export const isDetox = typeof global.device !== 'undefined' && !!global.device;
