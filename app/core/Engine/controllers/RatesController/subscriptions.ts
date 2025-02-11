@@ -5,10 +5,10 @@ import {
   CurrencyRateControllerEvents,
 } from '@metamask/assets-controllers';
 import Logger from '../../../../util/Logger';
-import { RestrictedControllerMessenger } from '@metamask/base-controller';
+import { RestrictedMessenger } from '@metamask/base-controller';
 
 // FIXME: This messenger type is not exported on `@metamask/assets-controllers`, so declare it here for now:
-type CurrencyRateControllerMessenger = RestrictedControllerMessenger<
+type CurrencyRateControllerMessenger = RestrictedMessenger<
   CurrencyRateController['name'],
   never,
   CurrencyRateControllerEvents,
