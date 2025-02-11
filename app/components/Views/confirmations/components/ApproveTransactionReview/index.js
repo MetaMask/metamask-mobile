@@ -347,6 +347,7 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
+      // We need to extract transaction.transaction here to retrieve up-to-date nonce
       transaction: { origin, to, data, from, transaction },
       setTransactionObject,
       tokenList,
