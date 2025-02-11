@@ -185,6 +185,8 @@ export const allowedInfuraHosts = [
   'opbnb-mainnet.infura.io',
   // Scroll
   'scroll-mainnet.infura.io',
+  // Unichain
+  'unichain-mainnet.infura.io',
 ];
 
 /**
