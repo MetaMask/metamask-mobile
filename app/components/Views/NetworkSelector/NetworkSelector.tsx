@@ -250,6 +250,7 @@ const NetworkSelector = () => {
           origin,
           networkConfigurationId,
         );
+        sheetRef.current?.dismissModal();
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
@@ -369,8 +370,10 @@ const NetworkSelector = () => {
       AccountTrackerController,
       SelectedNetworkController,
     } = Engine.context;
+
     if (domainIsConnectedDapp && isMultichainV1Enabled()) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+      closeRpcModal();
     } else {
       const networkConfiguration =
         networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
