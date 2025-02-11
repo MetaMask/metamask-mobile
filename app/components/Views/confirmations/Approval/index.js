@@ -767,7 +767,7 @@ const mapStateToProps = (state) => {
     transactionMetricsById: selectTransactionMetrics(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),
