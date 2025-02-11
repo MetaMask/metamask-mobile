@@ -180,6 +180,11 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+import {
+  SnapKeyringAccountAssetListUpdatedEvent,
+  SnapKeyringAccountBalancesUpdatedEvent,
+  SnapKeyringAccountTransactionsUpdatedEvent,
+} from '@metamask/eth-snap-keyring';
 
 /**
  * Controllers that area always instantiated
@@ -215,7 +220,10 @@ type SnapsGlobalEvents =
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents
-  | SnapsAllowedEvents;
+  | SnapsAllowedEvents
+  | SnapKeyringAccountAssetListUpdatedEvent
+  | SnapKeyringAccountBalancesUpdatedEvent
+  | SnapKeyringAccountTransactionsUpdatedEvent;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =

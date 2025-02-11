@@ -1,4 +1,9 @@
 import {
+  SnapKeyringAccountAssetListUpdatedEvent as SnapKeyringAccountAssetListUpdatedEventType,
+  SnapKeyringAccountBalancesUpdatedEvent as SnapKeyringAccountBalancesUpdatedEventType,
+  SnapKeyringAccountTransactionsUpdatedEvent as SnapKeyringAccountTransactionsUpdatedEventType,
+} from '@metamask/eth-snap-keyring';
+import {
   SnapStateChange as SnapControllerStateChangeEventType,
   HandleSnapRequest as SnapControllerHandleRequestActionType,
   ClearSnapState as SnapControllerClearSnapStateActionType,
@@ -38,3 +43,12 @@ export const SnapControllerInstallSnapsAction: SnapControllerInstallSnapsActionT
 
 export const SnapControllerGetSnapFileAction: SnapControllerGetSnapFileActionType['type'] =
   'SnapController:getFile';
+
+export const SnapKeyringAccountAssetListUpdatedEvent: SnapKeyringAccountAssetListUpdatedEventType['type'] =
+  'SnapKeyring:accountAssetListUpdated';
+
+export const SnapKeyringAccountBalancesUpdatedEvent: SnapKeyringAccountBalancesUpdatedEventType['type'] =
+  'SnapKeyring:accountBalancesUpdated';
+
+export const SnapKeyringAccountTransactionsUpdatedEvent: SnapKeyringAccountTransactionsUpdatedEventType['type'] =
+  'SnapKeyring:accountTransactionsUpdated';

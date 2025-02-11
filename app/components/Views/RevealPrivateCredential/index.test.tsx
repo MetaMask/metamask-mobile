@@ -7,7 +7,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { RevealPrivateCredential } from './';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
-import { EthAccountType, EthMethod, EthScopes } from '@metamask/keyring-api';
+import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('react-redux', () => ({
@@ -156,7 +156,7 @@ describe('RevealPrivateCredential', () => {
         someOption: 'optionValue',
         anotherOption: 42,
       },
-      scopes: [EthScopes.Namespace],
+      scopes: [EthScope.Eoa],
       methods: [
         EthMethod.PersonalSign,
         EthMethod.SignTransaction,

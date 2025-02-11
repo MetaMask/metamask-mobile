@@ -230,6 +230,9 @@ import {
   SnapControllerHandleRequestAction,
   SnapControllerStateChangeEvent,
   SnapControllerUpdateSnapStateAction,
+  SnapKeyringAccountAssetListUpdatedEvent,
+  SnapKeyringAccountBalancesUpdatedEvent,
+  SnapKeyringAccountTransactionsUpdatedEvent,
 } from './controllers/SnapController/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -382,9 +385,9 @@ export class Engine {
           'KeyringController:accountRemoved',
           'KeyringController:stateChange',
           ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          'SnapKeyring:accountAssetListUpdated',
-          'SnapKeyring:accountBalancesUpdated',
-          'SnapKeyring:accountTransactionsUpdated',
+          SnapKeyringAccountAssetListUpdatedEvent,
+          SnapKeyringAccountBalancesUpdatedEvent,
+          SnapKeyringAccountTransactionsUpdatedEvent,
           ///: END:ONLY_INCLUDE_IF
         ],
         allowedActions: [
