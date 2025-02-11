@@ -43,7 +43,7 @@ import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
 import Engine from '../../../core/Engine';
 import useStakingChain from '../../UI/Stake/hooks/useStakingChain';
 import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
-import { selectPooledStakingEligibility } from '../../../selectors/earnController';
+import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -61,7 +61,7 @@ const WalletActions = () => {
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
 
-  const isPooledStakingEligible = useSelector(selectPooledStakingEligibility);
+  const { isEligible: isPooledStakingEligible } = useStakingEligibility();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {

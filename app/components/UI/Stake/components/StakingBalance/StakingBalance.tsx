@@ -48,7 +48,7 @@ import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import { isPortfolioViewEnabled } from '../../../../../util/networks';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
-import { selectPooledStakingEligibility } from '../../../../../selectors/earnController';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -66,9 +66,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
   );
 
-  const isEligibleForPooledStaking = useSelector(
-    selectPooledStakingEligibility,
-  );
+  const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
   const { isStakingSupportedChain } = useStakingChainByChainId(
     asset.chainId as Hex,

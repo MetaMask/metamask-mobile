@@ -26,7 +26,7 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
-import { selectPooledStakingEligibility } from '../../../../../selectors/earnController';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -42,9 +42,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const chainId = useSelector(selectChainId);
   const { isStakingSupportedChain } = useStakingChain();
 
-  const isEligibleForPooledStaking = useSelector(
-    selectPooledStakingEligibility,
-  );
+  const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
   const onStakeButtonPress = async () => {
     if (!isStakingSupportedChain) {
