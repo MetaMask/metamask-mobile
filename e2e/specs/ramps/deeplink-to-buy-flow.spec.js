@@ -46,7 +46,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
 
         await BuyGetStartedView.tapGetStartedButton();
         await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
-        await BuildQuoteView.tapDefaultToken('Ethereum');
+        await BuildQuoteView.tapTokenDropdown('Ethereum');
 
         await TokenSelectBottomSheet.tapTokenByName('DAI');
         await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
