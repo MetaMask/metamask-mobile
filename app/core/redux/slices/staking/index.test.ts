@@ -4,12 +4,7 @@ import reducer, {
   selectVaultApys,
   selectVaultApyAverages,
 } from '.';
-import type {
-  PooledStake,
-  VaultApyAverages,
-  VaultDailyApy,
-  VaultData,
-} from '@metamask/stake-sdk';
+import type { VaultApyAverages, VaultDailyApy } from '@metamask/stake-sdk';
 import type { RootState } from '../../../../reducers';
 import {
   MOCK_VAULT_APY_AVERAGES,
@@ -18,9 +13,6 @@ import {
 
 describe('PooledStaking', () => {
   const initialState = {
-    pooledStakes: {} as PooledStake,
-    vaultData: {} as VaultData,
-    isEligible: false,
     vaultApyAverages: {} as VaultApyAverages,
     vaultApys: [] as VaultDailyApy[],
   };
