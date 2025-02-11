@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
@@ -10,8 +10,9 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
+import { useLedgerContext } from '../../../context/LedgerContext';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
-import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
+import { useQRHardwareContext } from '../../../context/QRHardwareContext';
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
 
@@ -20,8 +21,18 @@ const Footer = () => {
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
-
+  const { isLedgerAccount } = useLedgerContext();
   const { styles } = useStyles(styleSheet, {});
+
+  const confirmButtonLabel = useMemo(() => {
+    if (isQRSigningInProgress) {
+      return strings('confirm.qr_get_sign');
+    }
+    if (isLedgerAccount) {
+      return strings('confirm.sign_with_ledger');
+    }
+    return strings('confirm.confirm');
+  }, [isLedgerAccount, isQRSigningInProgress]);
 
   return (
     <View style={styles.buttonsContainer}>
@@ -37,11 +48,7 @@ const Footer = () => {
       <View style={styles.buttonDivider} />
       <Button
         onPress={onConfirm}
-        label={
-          isQRSigningInProgress
-            ? strings('confirm.qr_get_sign')
-            : strings('confirm.confirm')
-        }
+        label={confirmButtonLabel}
         style={styles.footerButton}
         size={ButtonSize.Lg}
         testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
