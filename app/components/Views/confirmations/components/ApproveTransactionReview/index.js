@@ -1353,7 +1353,7 @@ const mapStateToProps = (state) => {
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

@@ -731,7 +731,7 @@ const mapStateToProps = (state) => {
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
   };
-}
+};
 
 TransactionReview.contextType = ThemeContext;
 
