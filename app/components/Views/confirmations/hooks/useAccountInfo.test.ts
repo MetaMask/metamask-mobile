@@ -30,22 +30,16 @@ const mockInitialState: DeepPartial<RootState> = {
           },
         },
       },
-      MultichainNetworkController: {
-        selectedMultichainNetworkChainId: 'solana:mainnet',
-        multichainNetworksMetadata: {},
-        multichainNetworkConfigurationsByChainId: {},
-        nonEvmSelected: false,
-      },
     },
   },
 };
 
-/* jest.mock('react-redux', () => ({
+jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (fn: (state: DeepPartial<RootState>) => unknown) =>
     fn(mockInitialState),
 }));
- */
+
 describe('useAccountInfo', () => {
   it('should return existing address from accounts controller', async () => {
     const { result } = renderHookWithProvider(

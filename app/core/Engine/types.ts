@@ -347,9 +347,9 @@ export type Controllers = {
   UserStorageController: UserStorageController.Controller;
   NotificationServicesController: NotificationServicesController.Controller;
   NotificationServicesPushController: NotificationServicesPushController.Controller;
-  MultichainNetworkController: MultichainNetworkController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
+  MultichainNetworkController: MultichainNetworkController;
 };
 
 /**

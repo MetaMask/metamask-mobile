@@ -95,7 +95,8 @@ export function renderHookWithProvider<Result, Props>(
 ) {
   const { state = {} } = providerValues ?? {};
   const store = configureStore(state);
-
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../store')._updateMockState(state);
   const Providers = ({ children }: { children: React.ReactElement }) => (
     <Provider store={store}>{children}</Provider>
   );

@@ -215,7 +215,6 @@ import {
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
-import { SolScopes } from '@metamask/keyring-api';
 import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -351,29 +350,7 @@ export class Engine {
         ],
         allowedEvents: ['AccountsController:selectedAccountChange'],
       }),
-      state: initialState.MultichainNetworkController ?? {
-        multichainNetworkConfigurationsByChainId: {
-          [SolScopes.Mainnet]: {
-            chainId: SolScopes.Mainnet,
-            name: 'Solana',
-            nativeCurrency:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:skynetDj29GH6o6bAqoixCpDuYtWqi1rm8ZNx1hB3vq',
-            blockExplorers: {
-              urls: ['https://explorer.solana.com/'],
-              defaultIndex: 0,
-            },
-            isEvm: false,
-          },
-        },
-        multichainNetworksMetadata: {
-          [SolScopes.Mainnet]: {
-            features: [],
-            status: NetworkStatus.Available,
-          },
-        },
-        nonEvmSelected: false,
-        selectedMultichainNetworkChainId: SolScopes.Mainnet,
-      },
+      state: initialState.MultichainNetworkController,
     });
 
     const assetsContractController = new AssetsContractController({
@@ -399,6 +376,7 @@ export class Engine {
         name: 'AccountsController',
         allowedEvents: [
           'SnapController:stateChange',
+          'KeyringController:accountRemoved',
           'KeyringController:stateChange',
           'MultichainNetworkController:setActiveNetwork',
           'SnapKeyring:accountAssetListUpdated',

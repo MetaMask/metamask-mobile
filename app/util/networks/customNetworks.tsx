@@ -1,7 +1,9 @@
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScopes } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -102,6 +104,7 @@ export const PopularList = [
 ];
 // TODO: [SOLANA] - Replace this by constants of multichain network controller
 export const NON_EVM_NETWORKS = [
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   {
     chainId: SolScopes.Mainnet as CaipChainId,
     nickname: 'Solana',
@@ -112,6 +115,7 @@ export const NON_EVM_NETWORKS = [
       defaultIndex: 0,
     },
   },
+  ///: END:ONLY_INCLUDE_IF
 ];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {

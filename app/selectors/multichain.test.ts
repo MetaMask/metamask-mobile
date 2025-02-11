@@ -91,18 +91,19 @@ describe('Multichain Selectors', () => {
         },
         MultichainNetworkController: {
           multichainNetworkConfigurationsByChainId: {
-            'solana:mainnet': {
-              chainId: 'solana:mainnet',
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+              chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             },
           },
           multichainNetworksMetadata: {
-            'solana:mainnet': {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
               features: [],
               status: NetworkStatus.Available,
             },
           },
           nonEvmSelected: false,
-          selectedMultichainNetworkChainId: 'solana:mainnet',
+          selectedMultichainNetworkChainId:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         },
       },
     },

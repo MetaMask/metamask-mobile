@@ -784,8 +784,9 @@ const NetworkSelector = () => {
     sheetRef.current?.dismissModal();
   };
 
-  const renderNonEvmNetworks = () =>
-    NON_EVM_NETWORKS.map((network) => (
+  const renderNonEvmNetworks = () => {
+    if (NON_EVM_NETWORKS.length === 0) return null;
+    return NON_EVM_NETWORKS.map((network) => (
       <Cell
         key={network.chainId}
         variant={CellVariant.Select}
@@ -804,6 +805,7 @@ const NetworkSelector = () => {
         disabled={!!browserEvmChainId}
       />
     ));
+  };
 
   const renderTestNetworksSwitch = () => (
     <View style={styles.switchContainer}>

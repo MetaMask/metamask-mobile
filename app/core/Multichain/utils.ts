@@ -3,17 +3,13 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   EthAccountType,
   SolScopes,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   BtcAccountType,
   BtcScopes,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
 import { CaipChainId, Hex } from '@metamask/utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { validate, Network } from 'bitcoin-address-validation';
-///: END:ONLY_INCLUDE_IF
 
 /**
  * Returns whether an account is an EVM account.
@@ -102,8 +98,6 @@ export function isNonEvmChainId(chainId: string | Hex | CaipChainId): boolean {
   return chainId === SolScopes.Mainnet || chainId === BtcScopes.Mainnet;
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
 /**
  * Returns whether an account is a Bitcoin account.
  *
@@ -141,5 +135,3 @@ export function isBtcMainnetAddress(address: string): boolean {
 export function isBtcTestnetAddress(address: string): boolean {
   return validate(address, Network.testnet);
 }
-
-///: END:ONLY_INCLUDE_IF

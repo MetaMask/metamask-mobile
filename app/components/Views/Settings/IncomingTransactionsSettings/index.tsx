@@ -111,8 +111,10 @@ const IncomingTransactionsSettings = () => {
     return [...mainnetNetworks, ...otherNetworks].map(renderNetwork);
   };
 
-  const renderNonEvmNetworks = () =>
-    NON_EVM_NETWORKS.map((network) => (
+  const renderNonEvmNetworks = () => {
+    if (NON_EVM_NETWORKS.length === 0) return null;
+
+    return NON_EVM_NETWORKS.map((network) => (
       <NetworkCell
         key={network.chainId}
         name={network.nickname}
@@ -126,6 +128,7 @@ const IncomingTransactionsSettings = () => {
         testID={'solana-incoming-transactions-toggle'}
       />
     ));
+  };
 
   const renderOtherNetworks = () => {
     const NetworksTyped = Networks as NetworksI;

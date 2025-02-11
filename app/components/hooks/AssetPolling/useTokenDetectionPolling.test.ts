@@ -57,7 +57,8 @@ describe('useTokenDetectionPolling', () => {
         },
         MultichainNetworkController: {
           nonEvmSelected: false,
-          selectedMultichainNetworkChainId: 'solana:mainnet',
+          selectedMultichainNetworkChainId:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           multichainNetworksMetadata: {},
           multichainNetworkConfigurationsByChainId: {},
         },
