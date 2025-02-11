@@ -1,8 +1,8 @@
 import { act } from '@testing-library/react-hooks';
 
-import { Alert, Severity } from '../Views/confirmations/types/confirm';
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import { useAlertsManagement } from './useAlertsManagement';
+import { Alert, Severity } from '../Views/confirmations/types/confirm-alerts';
 
 describe('useAlerts', () => {
   const alert1: Alert = {
