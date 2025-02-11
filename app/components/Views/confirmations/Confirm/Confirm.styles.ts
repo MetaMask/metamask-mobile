@@ -34,7 +34,7 @@ const styleSheet = (params: {
     },
     scrollView: {
       paddingHorizontal: 16,
-      height: isFlatConfirmation ? '80%' :   '75%',
+      height: isFlatConfirmation ? '100%' :   '75%',
     },
   });
 };
