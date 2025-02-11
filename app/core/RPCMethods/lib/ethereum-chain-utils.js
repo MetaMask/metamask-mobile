@@ -290,10 +290,6 @@ export async function switchToNetwork({
     'eth_accounts',
   );
 
-  console.log(
-    '>>> from chain utils, process.env.MM_PER_DAPP_SELECTED_NETWORK',
-    process.env.MM_PER_DAPP_SELECTED_NETWORK,
-  );
   if (process.env.MM_PER_DAPP_SELECTED_NETWORK && originHasAccountsPermission) {
     SelectedNetworkController.setNetworkClientIdForDomain(
       origin,
