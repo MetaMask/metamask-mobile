@@ -98,6 +98,18 @@ export const PopularList = [
       imageSource: require('../../images/zk-sync.png'),
     },
   },
+  {
+    chainId: toHex('130'),
+    nickname: 'Unichain',
+    rpcUrl: 'https://mainnet.unichain.org',
+    ticker: 'ETH',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://uniscan.xyz',
+      imageUrl: 'UNICHAIN',
+      imageSource: require('../../images/unichain.png'),
+    },
+  },
 ];
 
 export const INFURA_TESTNET_CHAIN_IDS = {
