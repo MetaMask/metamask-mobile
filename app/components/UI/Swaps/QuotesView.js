@@ -2118,56 +2118,12 @@ function SwapsQuotesView({
                       onAnimationEnd={onGasAnimationEnd}
                       style={styles.quotesFiatColumn}
                     >
-                      {primaryCurrency === 'ETH' ? (
-                        <>
-                          <Text strikethrough>{gasTokenFiatAmount}</Text>
-                          <Text style={styles.included}>{` ${strings(
-                            'swaps.included',
-                          )}`}</Text>
-                          {/* <TouchableOpacity
-                            disabled={unableToSwap}
-                            onPress={
-                              unableToSwap
-                                ? undefined
-                                : onEditQuoteTransactionsGas
-                            }
-                          >
-                            <Text
-                              bold
-                              upper
-                              link={!unableToSwap}
-                              underline={!unableToSwap}
-                            >
-                              {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
-                              {getTicker(ticker)}
-                            </Text>
-                          </TouchableOpacity> */}
-                        </>
-                      ) : (
-                        <>
-                          {/* <TouchableOpacity
-                            disabled={unableToSwap}
-                            onPress={
-                              unableToSwap
-                                ? undefined
-                                : onEditQuoteTransactionsGas
-                            }
-                          >
-                            <Text
-                              upper
-                              link={!unableToSwap}
-                              underline={!unableToSwap}
-                            >
-                              {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
-                              {getTicker(ticker)}
-                            </Text>
-                          </TouchableOpacity> */}
-                          <Text strikethrough>{gasTokenFiatAmount}</Text>
-                          <Text style={styles.included}>{` ${strings(
-                            'swaps.included',
-                          )}`}</Text>
-                        </>
-                      )}
+                      <>
+                        <Text strikethrough>{gasTokenFiatAmount}</Text>
+                        <Text style={styles.included}>{` ${strings(
+                          'swaps.included',
+                        )}`}</Text>
+                      </>
                     </FadeAnimationView>
                   )}
                 </View>
