@@ -1,7 +1,6 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
-import styleSheet from './TokenHero.styles';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
@@ -13,15 +12,15 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useTokenValues } from '../../../hooks/useTokenValues';
+import styleSheet from './TokenHero.styles';
 
-// TODO: This component will extend to use token information from transaction metadata on upcoming redesigned confirmations
-const TokenHero = () => {
-  const { styles } = useStyles(styleSheet, {});
-  const { fiatDisplayValue, tokenAmountDisplayValue } = useTokenValues();
-
-  const tokenSymbol = 'ETH';
-
-  const NetworkAndTokenImage = (
+const NetworkAndTokenImage = ({
+  tokenSymbol,
+  styles,
+}: {
+  tokenSymbol: string;
+  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+}) => (
     <View style={styles.networkAndTokenContainer}>
       <BadgeWrapper
         badgeElement={
@@ -33,7 +32,15 @@ const TokenHero = () => {
     </View>
   );
 
-  const AssetAmount = (
+const AssetAmount = ({
+  tokenAmountDisplayValue,
+  tokenSymbol,
+  styles,
+}: {
+  tokenAmountDisplayValue: string;
+  tokenSymbol: string;
+  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+}) => (
     <View style={styles.assetAmountContainer}>
       <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
         {tokenAmountDisplayValue} {tokenSymbol}
@@ -41,7 +48,13 @@ const TokenHero = () => {
     </View>
   );
 
-  const AssetFiatConversion = (
+const AssetFiatConversion = ({
+  fiatDisplayValue,
+  styles,
+}: {
+  fiatDisplayValue: string;
+  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+}) => (
     <View style={styles.assetFiatConversionContainer}>
       <Text style={styles.assetFiatConversionText} variant={TextVariant.BodyMD}>
         {fiatDisplayValue}
@@ -49,11 +62,24 @@ const TokenHero = () => {
     </View>
   );
 
+const TokenHero = () => {
+  const { styles } = useStyles(styleSheet, {});
+  const { fiatDisplayValue, tokenAmountDisplayValue } = useTokenValues();
+
+  const tokenSymbol = 'ETH';
+
   return (
     <View style={styles.container}>
-      {NetworkAndTokenImage}
-      {AssetAmount}
-      {AssetFiatConversion}
+      <NetworkAndTokenImage tokenSymbol={tokenSymbol} styles={styles} />
+      <AssetAmount
+        tokenAmountDisplayValue={tokenAmountDisplayValue}
+        tokenSymbol={tokenSymbol}
+        styles={styles}
+      />
+      <AssetFiatConversion
+        fiatDisplayValue={fiatDisplayValue}
+        styles={styles}
+      />
     </View>
   );
 };
