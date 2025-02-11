@@ -1,10 +1,9 @@
 import { act } from '@testing-library/react-hooks';
-
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import { useAlertsManagement } from './useAlertsManagement';
 import { Alert, Severity } from '../Views/confirmations/types/confirm-alerts';
 
-describe('useAlerts', () => {
+describe('useAlertsManagement', () => {
   const alert1: Alert = {
     key: 'alert1',
     field: 'from',
@@ -107,6 +106,21 @@ describe('useAlerts', () => {
         result.current.setAlertConfirmed(alert1.key, true);
       });
       expect(result.current.isAlertConfirmed(alert1.key)).toBe(true);
+    });
+  });
+
+  describe('alertKey', () => {
+    it('returns the initial alert key', () => {
+      const { result } = renderHookWithProvider(() => useAlertsManagement(alertsMock));
+      expect(result.current.alertKey).toEqual(alert1.key);
+    });
+
+    it('sets a new alert key', () => {
+      const { result } = renderHookWithProvider(() => useAlertsManagement(alertsMock));
+      act(() => {
+        result.current.setAlertKey(alert2.key);
+      });
+      expect(result.current.alertKey).toEqual(alert2.key);
     });
   });
 });
