@@ -381,6 +381,11 @@ export class Engine {
           SnapControllerStateChangeEvent,
           'KeyringController:accountRemoved',
           'KeyringController:stateChange',
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          'SnapKeyring:accountAssetListUpdated',
+          'SnapKeyring:accountBalancesUpdated',
+          'SnapKeyring:accountTransactionsUpdated',
+          ///: END:ONLY_INCLUDE_IF
         ],
         allowedActions: [
           'KeyringController:getAccounts',
