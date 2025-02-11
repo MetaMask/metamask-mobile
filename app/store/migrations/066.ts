@@ -3,11 +3,11 @@ import { ensureValidState } from './util';
 import Logger from '../../util/Logger';
 import {
   BtcAccountType,
-  BtcScopes,
+  BtcScope,
   EthAccountType,
-  EthScopes,
+  EthScope,
   SolAccountType,
-  SolScopes,
+  SolScope,
 } from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
 
@@ -17,12 +17,12 @@ function getScopesForAccountType(accountType: string): string[] {
   switch (accountType) {
     case EthAccountType.Eoa:
     case EthAccountType.Erc4337:
-      return [EthScopes.Namespace];
+      return [EthScope.Eoa];
     case BtcAccountType.P2wpkh:
       // Default to mainnet scope if address is missing or invalid
-      return [BtcScopes.Mainnet];
+      return [BtcScope.Mainnet];
     case SolAccountType.DataAccount:
-      return [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet];
+      return [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet];
     default:
       // Default to EVM namespace for unknown account types
       captureException(
@@ -30,17 +30,17 @@ function getScopesForAccountType(accountType: string): string[] {
           `Migration ${migrationVersion}: Unknown account type ${accountType}, defaulting to EVM namespace`,
         ),
       );
-      return [EthScopes.Namespace];
+      return [EthScope.Eoa];
   }
 }
 
 /**
  * Migration for adding scopes to accounts in the AccountsController.
  * Each account type gets its appropriate scopes:
- * - EVM EOA: [EthScopes.Namespace]
- * - EVM ERC4337: [EthScopes.Namespace]
- * - BTC P2WPKH: [BtcScopes.Mainnet] or [BtcScopes.Testnet] based on address
- * - Solana: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet]
+ * - EVM EOA: [EthScope.Eoa]
+ * - EVM ERC4337: [EthScope.Eoa]
+ * - BTC P2WPKH: [BtcScope.Mainnet] or [BtcScope.Testnet] based on address
+ * - Solana: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet]
  *
  * @param state - The state to migrate
  * @returns The migrated state

@@ -1,9 +1,4 @@
-import {
-  BtcScopes,
-  EthScopes,
-  SolScopes,
-  EthMethod,
-} from '@metamask/keyring-api';
+import { BtcScope, EthScope, SolScope, EthMethod } from '@metamask/keyring-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import migration from './066';
@@ -137,7 +132,7 @@ describe('migration #66', () => {
                   EthMethod.SignTransaction,
                   EthMethod.SignTypedDataV4,
                 ],
-                scopes: [EthScopes.Namespace],
+                scopes: [EthScope.Eoa],
               },
             },
           },
@@ -220,19 +215,19 @@ describe('migration #66', () => {
         .accounts;
 
     // Check EVM EOA account
-    expect(accounts['evm-1']?.scopes).toEqual([EthScopes.Namespace]);
+    expect(accounts['evm-1']?.scopes).toEqual([EthScope.Eoa]);
 
     // Check EVM ERC4337 account
-    expect(accounts['evm-2']?.scopes).toEqual([EthScopes.Namespace]);
+    expect(accounts['evm-2']?.scopes).toEqual([EthScope.Eoa]);
 
     // Check BTC account
-    expect(accounts['btc-1']?.scopes).toEqual([BtcScopes.Mainnet]);
+    expect(accounts['btc-1']?.scopes).toEqual([BtcScope.Mainnet]);
 
     // Check Solana account
     expect(accounts['sol-1']?.scopes).toEqual([
-      SolScopes.Mainnet,
-      SolScopes.Testnet,
-      SolScopes.Devnet,
+      SolScope.Mainnet,
+      SolScope.Testnet,
+      SolScope.Devnet,
     ]);
   });
 
@@ -274,7 +269,7 @@ describe('migration #66', () => {
         .accounts;
 
     // Should still process valid accounts
-    expect(accounts['valid-1']?.scopes).toEqual([EthScopes.Namespace]);
+    expect(accounts['valid-1']?.scopes).toEqual([EthScope.Eoa]);
   });
 
   it('handles invalid scopes property gracefully', () => {
@@ -351,9 +346,9 @@ describe('migration #66', () => {
         .accounts;
 
     // Should fix accounts with invalid scopes
-    expect(accounts['invalid-1']?.scopes).toEqual([EthScopes.Namespace]);
-    expect(accounts['invalid-2']?.scopes).toEqual([EthScopes.Namespace]);
-    expect(accounts['invalid-3']?.scopes).toEqual([EthScopes.Namespace]);
+    expect(accounts['invalid-1']?.scopes).toEqual([EthScope.Eoa]);
+    expect(accounts['invalid-2']?.scopes).toEqual([EthScope.Eoa]);
+    expect(accounts['invalid-3']?.scopes).toEqual([EthScope.Eoa]);
   });
 
   it('logs unknown account types to Sentry', () => {
@@ -391,7 +386,7 @@ describe('migration #66', () => {
         .accounts;
 
     // Verify scopes are set to default EVM namespace
-    expect(accounts['unknown-1']?.scopes).toEqual([EthScopes.Namespace]);
+    expect(accounts['unknown-1']?.scopes).toEqual([EthScope.Eoa]);
 
     // Verify Sentry exception was captured
     expect(mockedCaptureException).toHaveBeenCalledWith(
