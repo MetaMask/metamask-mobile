@@ -107,11 +107,9 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
           </View>
         </View>
       </View>
-      <View>
-        {fiatValue !== undefined && (
-          <IndividualFiatDisplay fiatAmount={fiatValue} />
-        )}
-      </View>
+      {fiatValue !== undefined && (
+        <IndividualFiatDisplay fiatAmount={fiatValue} />
+      )}
       {hasValueModalOpen && (
           /**
            * TODO replace BottomModal instances with BottomSheet
