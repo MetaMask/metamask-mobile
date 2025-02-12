@@ -12,11 +12,11 @@ import { ModalFooterBlockExplorer } from '../../../../../util/notifications/noti
 import useStyles from '../useStyles';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { type Notification } from '../../../../../util/notifications/types';
+import { type INotification } from '../../../../../util/notifications/types';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 type BlockExplorerFooterProps = ModalFooterBlockExplorer & {
-  notification: Notification;
+  notification: INotification;
 };
 
 export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {

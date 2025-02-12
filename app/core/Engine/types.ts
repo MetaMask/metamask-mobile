@@ -33,6 +33,16 @@ import {
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesControllerState,
+  MultichainBalancesController,
+  MultichainBalancesControllerEvents,
+  MultichainBalancesControllerActions,
+  RatesControllerState,
+  RatesController,
+  RatesControllerEvents,
+  RatesControllerActions,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
   AddressBookController,
@@ -238,6 +248,10 @@ type GlobalActions =
   | NotificationServicesController.Actions
   | NotificationServicesPushController.Actions
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  | MultichainBalancesControllerActions
+  | RatesControllerActions
+  ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
   | PPOMControllerActions
@@ -270,6 +284,10 @@ type GlobalEvents =
   | UserStorageController.Events
   | NotificationServicesController.Events
   | NotificationServicesPushController.Events
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  | MultichainBalancesControllerEvents
+  | RatesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -350,6 +368,10 @@ export type Controllers = {
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   MultichainNetworkController: MultichainNetworkController;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesController: MultichainBalancesController;
+  RatesController: RatesController;
+  ///: END:ONLY_INCLUDE_IF
 };
 
 /**
@@ -398,4 +420,8 @@ export type EngineState = {
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
   MultichainNetworkController: MultichainNetworkControllerState;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesController: MultichainBalancesControllerState;
+  RatesController: RatesControllerState;
+  ///: END:ONLY_INCLUDE_IF
 };

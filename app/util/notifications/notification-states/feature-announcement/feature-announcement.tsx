@@ -1,8 +1,5 @@
-import {
-  ModalFieldType,
-  ModalHeaderType,
-  TRIGGER_TYPES,
-} from '../../constants';
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
+import { ModalFieldType, ModalHeaderType } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import { getNotificationBadge } from '../../methods/common';

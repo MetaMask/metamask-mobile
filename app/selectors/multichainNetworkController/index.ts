@@ -49,3 +49,16 @@ export const selectNonEvmBlockExplorerUrl = createSelector(
     return network?.blockExplorers.urls[network?.blockExplorers.defaultIndex];
   },
 );
+
+export const selectSelectedNonEvmNativeCurrency = createSelector(
+  selectNonEvmNetworkConfigurationsByChainId,
+  selectSelectedNonEvmNetworkChainId,
+  (
+    nonEvmNetworkConfigurationsByChainId,
+    selectedMultichainNetworkChainId: string,
+  ) => {
+    const network =
+      nonEvmNetworkConfigurationsByChainId[selectedMultichainNetworkChainId];
+    return network?.nativeCurrency;
+  },
+);

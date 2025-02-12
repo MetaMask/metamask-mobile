@@ -16,7 +16,6 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import PermissionItem from './PermissionItem';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -139,16 +138,15 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
     () => (
       <>
         <ScrollView>
-          {isMultichainVersion1Enabled &&
-            inAppBrowserPermissions.map((permissionItem, index) => (
-              <PermissionItem
-                key={`${index}`}
-                item={permissionItem}
-                onPress={() => {
-                  goToPermissionsDetails(permissionItem);
-                }}
-              />
-            ))}
+          {inAppBrowserPermissions.map((permissionItem, index) => (
+            <PermissionItem
+              key={`${index}`}
+              item={permissionItem}
+              onPress={() => {
+                goToPermissionsDetails(permissionItem);
+              }}
+            />
+          ))}
         </ScrollView>
       </>
     ),
@@ -172,7 +170,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
       style={styles.perissionsWrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      {isMultichainVersion1Enabled && inAppBrowserPermissions.length
+      {inAppBrowserPermissions.length
         ? renderPermissions()
         : renderEmptyResult()}
     </View>

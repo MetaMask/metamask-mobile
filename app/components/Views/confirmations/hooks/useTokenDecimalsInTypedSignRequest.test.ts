@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 
 import { typedSignV4SignatureRequest } from '../../../../util/test/confirm-data-helpers';
 import { DataTreeInput } from '../components/Confirm/DataTree/DataTree';
-import { parseSanitizeTypedDataMessage } from '../utils/signatures';
+import { parseSanitizeTypedDataMessage } from '../utils/signature';
 // eslint-disable-next-line import/no-namespace
 import * as TokenDecimalHook from './useGetTokenStandardAndDetails';
 import { useTokenDecimalsInTypedSignRequest } from './useTokenDecimalsInTypedSignRequest';

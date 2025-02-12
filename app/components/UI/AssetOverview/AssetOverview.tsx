@@ -202,7 +202,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         });
       }
     }
-    if (asset.isETH && ticker) {
+    if ((asset.isETH || asset.isNative) && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
     } else {
       dispatch(newAssetTransaction(asset));

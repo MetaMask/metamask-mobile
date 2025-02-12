@@ -14,6 +14,7 @@ import {
   defaultGanacheOptions,
 } from '../../../fixtures/fixture-helper.js';
 import { SmokeConfirmationsRedesigned } from '../../../tags.js';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 
 const SIGNATURE_LIST = [
   {
@@ -25,6 +26,11 @@ const SIGNATURE_LIST = [
     specName: 'SIWE Sign',
     testDappBtn: TestDApp.tapEthereumSignButton.bind(TestDApp),
     requestType: RequestTypes.PersonalSignRequest,
+    additionAssertions: async () => {
+      await Assertions.checkIfVisible(
+        PageSections.SiweSigningAccountInfoSection,
+      );
+    },
   },
   {
     specName: 'Typed V1 Sign',
@@ -44,6 +50,10 @@ const SIGNATURE_LIST = [
 ];
 
 describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
+  const testSpecificMock = {
+    GET: [mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations],
+  };
+
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -51,7 +61,8 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
 
   // using for loop here to ensure synchronous execution
   for (let index = 0; index < SIGNATURE_LIST.length; index++) {
-    const { specName, testDappBtn, requestType } = SIGNATURE_LIST[index];
+    const { specName, testDappBtn, requestType, additionAssertions } =
+      SIGNATURE_LIST[index];
     it(`should sign ${specName} message`, async () => {
       await withFixtures(
         {
@@ -62,6 +73,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
             .build(),
           restartDevice: true,
           ganacheOptions: defaultGanacheOptions,
+          testSpecificMock,
         },
         async () => {
           await loginToApp();
@@ -82,6 +94,11 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           await Assertions.checkIfVisible(PageSections.AccountNetworkSection);
           await Assertions.checkIfVisible(PageSections.OriginInfoSection);
           await Assertions.checkIfVisible(PageSections.MessageSection);
+
+          // any signature specific additional assertions
+          if (additionAssertions) {
+            await additionAssertions();
+          }
 
           // confirm request
           await FooterActions.tapConfirmButton();

@@ -78,7 +78,6 @@ import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
-import { isMultichainVersion1Enabled } from '../../../util/networks';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
@@ -609,14 +608,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
 
   const checkTabPermissions = useCallback(() => {
-    if (
-      !(
-        isMultichainVersion1Enabled &&
-        isFocused &&
-        !isInTabsView &&
-        isTabActive
-      )
-    ) {
+    if (!(isFocused && !isInTabsView && isTabActive)) {
       return;
     }
     if (!resolvedUrlRef.current) return;

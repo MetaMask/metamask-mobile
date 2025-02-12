@@ -4,11 +4,8 @@ import {
 } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 class ActivitiesView {
-  static FIRST_ROW = 0;
-  static SECOND_ROW = 1;
 
   get title() {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
@@ -22,18 +19,25 @@ class ActivitiesView {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
   }
 
-  get firstTransactionStatus() {
-    return Matchers.getElementByID(
-      CommonSelectorsIDs.TRANSACTION_STATUS,
-      ActivitiesView.FIRST_ROW,
-    );
+  get stakeDepositedLabel() {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
   }
 
-  get secondTransactionStatus() {
-    return Matchers.getElementByID(
-      CommonSelectorsIDs.TRANSACTION_STATUS,
-      ActivitiesView.SECOND_ROW,
-    );
+  get stakeMoreDepositedLabel() {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT, 0);
+  }
+
+  get unstakeLabel() {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
+  }
+
+  get stackingClaimLabel() {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
+  }
+
+
+  transactionStatus(row) {
+    return Matchers.getElementByID(`transaction-status-${row}`);
   }
 
   generateSwapActivityLabel(sourceToken, destinationToken) {

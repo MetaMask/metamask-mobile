@@ -333,5 +333,22 @@
     "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
     "multichainNetworksMetadata": {},
     "multichainNetworkConfigurationsByChainId": {}
+  },
+  "MultichainBalancesController": {
+    "balances": {}
+  },
+  "RatesController": {
+    "cryptocurrencies": ["btc", "sol"],
+    "fiatCurrency": "usd",
+    "rates": {
+      "btc": {
+        "conversionDate": 0,
+        "conversionRate": 0
+      },
+      "sol": {
+        "conversionDate": 0,
+        "conversionRate": 0
+      }
+    }
   }
 }

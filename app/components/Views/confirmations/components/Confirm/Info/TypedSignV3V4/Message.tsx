@@ -2,11 +2,11 @@ import React, { useMemo } from 'react';
 import { Hex, isValidHexAddress } from '@metamask/utils';
 import { Text, View } from 'react-native';
 
-import { parseSanitizeTypedDataMessage } from '../../../../utils/signatures';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { useTypedSignSimulationEnabled } from '../../../../hooks/useTypedSignSimulationEnabled';
+import { parseSanitizeTypedDataMessage } from '../../../../utils/signature';
 import InfoRow from '../../../UI/InfoRow';
 import { useTokenDecimalsInTypedSignRequest } from '../../../../hooks/useTokenDecimalsInTypedSignRequest';
 import DataTree from '../../DataTree';
