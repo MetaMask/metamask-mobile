@@ -143,7 +143,8 @@
     "nanoid": "^3.3.8",
     "undici": "5.28.5",
     "**/@ethersproject/signing-key/elliptic": "^6.6.0",
-    "**/@walletconnect/utils/elliptic": "^6.6.0"
+    "**/@walletconnect/utils/elliptic": "^6.6.0",
+    "@metamask/assets-controllers": "file:../metamask-core/packages/assets-controllers"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
@@ -155,7 +156,7 @@
     "@metamask/accounts-controller": "^21.0.0",
     "@metamask/address-book-controller": "^6.0.1",
     "@metamask/approval-controller": "^7.1.0",
-    "@metamask/assets-controllers": "^46.0.0",
+    "@metamask/assets-controllers": "46.0.0",
     "@metamask/base-controller": "^7.1.1",
     "@metamask/bitcoin-wallet-snap": "^0.9.0",
     "@metamask/composable-controller": "^10.0.0",
@@ -212,7 +213,7 @@
     "@metamask/stake-sdk": "^1.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^12.0.0",
-    "@metamask/token-search-discovery-controller": "file:../metamask-core/packages/token-search-discovery-controller",
+    "@metamask/token-search-discovery-controller": "2.0.0",
     "@metamask/transaction-controller": "^43.0.0",
     "@metamask/utils": "^11.0.1",
     "@ngraveio/bc-ur": "^1.1.6",

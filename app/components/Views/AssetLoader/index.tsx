@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { Hex } from '@metamask/utils';
-import { useSelector } from 'react-redux';
-import { selectSearchedToken } from '../../../selectors/tokensController';
-import { RootState } from '../../../reducers';
 import { ActivityIndicator, Text, View } from 'react-native';
-import Engine from '../../../core/Engine/Engine';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-
+import Logger from '../../../util/Logger';
+import Engine from '../../../core/Engine';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../reducers';
+import { selectTokenDisplayData } from '../../../selectors/tokenSearchDiscoveryDataController';
 export interface AssetLoaderProps {
     route: {
         params: {
@@ -18,13 +18,13 @@ export interface AssetLoaderProps {
 }
 
 export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { address, chainId } } }) => {
-    const tokenResult = useSelector((state: RootState) => selectSearchedToken(state, chainId, address));
-
+    const tokenResult = useSelector((state: RootState) => selectTokenDisplayData(state, chainId, address));
+    Logger.log('>>>>>>>>> tokenResult', tokenResult);
     const navigation = useNavigation();
 
     useEffect(() => {
         if (!tokenResult) {
-            Engine.context.TokensController.addSearchedToken(address, chainId);
+            Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(chainId, address);
         } else if (tokenResult.found) {
             navigation.dispatch(
                 StackActions.replace(Routes.BROWSER.ASSET_VIEW, {
@@ -37,7 +37,7 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { add
 
     if (!tokenResult) {
         return (
-            <View>
+            <View style={{flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center'}}>
                 <ActivityIndicator size="large" />
             </View>
         );
@@ -52,4 +52,4 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { add
     }
 
     return null;
-}
+};

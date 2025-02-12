@@ -17,6 +17,7 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerMessenger,
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -1326,6 +1327,14 @@ export class Engine {
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
+    const tokenSearchDiscoveryDataController = new TokenSearchDiscoveryDataController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TokenSearchDiscoveryDataController',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+    });
+
     this.context = {
       KeyringController: this.keyringController,
       AccountTrackerController: accountTrackerController,
@@ -1559,6 +1568,7 @@ export class Engine {
       MultichainBalancesController: multichainBalancesController,
       RatesController: multichainRatesController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2184,6 +2194,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
     } = instance.datamodel.state;
 
     return {
@@ -2224,6 +2235,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
     };
   },
 

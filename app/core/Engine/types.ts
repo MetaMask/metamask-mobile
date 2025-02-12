@@ -42,6 +42,8 @@ import {
   RatesController,
   RatesControllerEvents,
   RatesControllerActions,
+  TokenSearchDiscoveryDataController,
+  TokenSearchDiscoveryDataControllerState,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
@@ -370,6 +372,7 @@ export type Controllers = {
   MultichainBalancesController: MultichainBalancesController;
   RatesController: RatesController;
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
 };
 
 /**
@@ -422,4 +425,5 @@ export type EngineState = {
   MultichainBalancesController: MultichainBalancesControllerState;
   RatesController: RatesControllerState;
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
 };
