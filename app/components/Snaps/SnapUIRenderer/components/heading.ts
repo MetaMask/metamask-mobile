@@ -15,11 +15,13 @@ export const generateSize = (size: HeadingElement['props']['size']) => {
   }
 };
 
-export const heading: UIComponentFactory<HeadingElement> = ({ element }) => ({
+export const heading: UIComponentFactory<HeadingElement> = ({
+  element: e,
+}) => ({
   element: 'Text',
-  children: element.props.children,
+  children: e.props.children,
   props: {
-    variant: generateSize(element.props.size),
+    variant: generateSize(e.props.size),
     numberOfLines: 0,
     flexWrap: 'wrap',
   },

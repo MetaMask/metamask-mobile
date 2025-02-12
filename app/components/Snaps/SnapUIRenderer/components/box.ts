@@ -27,20 +27,20 @@ function generateJustifyContent(alignment?: BoxProps['alignment']) {
 }
 
 export const box: UIComponentFactory<BoxElement> = ({
-  element,
+  element: e,
   ...params
 }) => ({
   element: 'Box',
-  children: getJsxChildren(element).map((children) =>
+  children: getJsxChildren(e).map((children) =>
     mapToTemplate({ ...params, element: children as JSXElement }),
   ) as NonEmptyArray<UIComponent>,
   props: {
     flexDirection:
-      element.props.direction === 'horizontal'
+      e.props.direction === 'horizontal'
         ? FlexDirection.Row
         : FlexDirection.Column,
-    justifyContent: generateJustifyContent(element.props.alignment),
-    alignItems: element.props.center && AlignItems.center,
+    justifyContent: generateJustifyContent(e.props.alignment),
+    alignItems: e.props.center && AlignItems.center,
     color: TextColor.Default,
   },
 });

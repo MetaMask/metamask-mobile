@@ -17,27 +17,25 @@ interface ButtonElementProps extends ButtonElement {
 }
 
 export const button: UIComponentFactory<ButtonElementProps> = ({
-  element,
+  element: e,
   ...params
-}) => {
-  return {
-    element: 'SnapUIButton',
-    props: {
-      // type not used in mobile
-      type: element.type,
-      // form not used in mobile
-      form: element.props.form,
-      variant: element.props.variant,
-      name: element.props.name,
-      disabled: element.props.disabled,
-      loading: element.props.loading ?? false,
-      label: element.props.children,
-      textVariant:
-        element.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
-    },
-    children: mapTextToTemplate(
-      getJsxChildren(element) as NonEmptyArray<string | JSXElement>,
-      params,
-    ),
-  };
-};
+}) => ({
+  element: 'SnapUIButton',
+  props: {
+    // type not used in mobile
+    type: e.type,
+    // form not used in mobile
+    form: e.props.form,
+    variant: e.props.variant,
+    name: e.props.name,
+    disabled: e.props.disabled,
+    loading: e.props.loading ?? false,
+    label: e.props.children,
+    textVariant:
+      e.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
+  },
+  children: mapTextToTemplate(
+    getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
+    params,
+  ),
+});

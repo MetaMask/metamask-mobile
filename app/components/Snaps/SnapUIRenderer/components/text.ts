@@ -70,19 +70,19 @@ const alignText = (alignment: TextProps['props']['alignment']) => {
   }
 };
 
-export const text: UIComponentFactory<TextProps> = ({ element, ...params }) => {
-  return {
-    element: 'Text',
-    children: mapTextToTemplate(
-      getJsxChildren(element) as NonEmptyArray<string | JSXElement>,
-      params,
-    ),
-    props: {
-      variant:
-        element.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
-      fontWeight: getFontWeight(element.props.fontWeight),
-      color: getTextColor(element.props.color),
-      textAlign: alignText(element.props.alignment),
-    },
-  };
-};
+export const text: UIComponentFactory<TextProps> = ({
+  element: e,
+  ...params
+}) => ({
+  element: 'Text',
+  children: mapTextToTemplate(
+    getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
+    params,
+  ),
+  props: {
+    variant: e.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
+    fontWeight: getFontWeight(e.props.fontWeight),
+    color: getTextColor(e.props.color),
+    textAlign: alignText(e.props.alignment),
+  },
+});

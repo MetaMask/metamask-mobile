@@ -9,7 +9,7 @@ import {
   remove0x,
 } from '@metamask/utils';
 import { COMPONENT_MAPPING } from './components';
-import { unescape } from 'he';
+import { unescape as unescapeFn } from 'he';
 
 export interface MapToTemplateParams {
   map: Record<string, number>;
@@ -102,9 +102,8 @@ function generateKey(
  * @param {string} subjectName - Name of a subject.
  * @returns Single character, chosen from the first character or number, question mark otherwise.
  */
-export const getAvatarFallbackLetter = (subjectName: string) => {
-  return subjectName?.match(/[a-z0-9]/iu)?.[0] ?? '?';
-};
+export const getAvatarFallbackLetter = (subjectName: string) =>
+  subjectName?.match(/[a-z0-9]/iu)?.[0] ?? '?';
 
 export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
   const { type, key } = params.element;
@@ -127,7 +126,7 @@ export const mapTextToTemplate = (
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
     if (typeof e === 'string') {
-      return unescape(e);
+      return unescapeFn(e);
     }
     return mapToTemplate({ ...params, element: e });
   }) as NonEmptyArray<UIComponent | string>;

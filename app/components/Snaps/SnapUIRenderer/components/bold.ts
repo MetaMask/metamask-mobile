@@ -6,12 +6,12 @@ import { UIComponentFactory } from './types';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 
 export const bold: UIComponentFactory<BoldElement> = ({
-  element,
+  element: e,
   ...params
 }) => ({
   element: 'Text',
   children: mapTextToTemplate(
-    getJsxChildren(element) as NonEmptyArray<string | JSXElement>,
+    getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
     params,
   ),
   props: {
