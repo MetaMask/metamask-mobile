@@ -8,7 +8,6 @@ import {
 import { Json } from '@metamask/utils';
 import React, {
   FunctionComponent,
-  MutableRefObject,
   createContext,
   useContext,
   useEffect,
