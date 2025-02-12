@@ -554,7 +554,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                     "lineHeight": 24,
                                   }
                                 }
-                                testID="fiat-balance-test-id"
+                                testID="balance-test-id"
                               >
                                 5.5 SOL
                               </Text>
@@ -572,7 +572,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                     "textTransform": "uppercase",
                                   }
                                 }
-                                testID="main-balance-test-id"
+                                testID="secondary-balance-test-id"
                               >
                                 <View
                                   style={
