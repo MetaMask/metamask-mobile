@@ -11,6 +11,8 @@ export const WalletViewSelectorsIDs = {
   TOTAL_BALANCE_TEXT: 'total-balance-text',
   STAKE_BUTTON: 'stake-button',
   STAKE_EARNINGS_HISTORY_BUTTON: 'stake-earnings-history-button',
+  UNSTAKE_BUTTON: 'unstake-button',
+  STAKE_MORE_BUTTON: 'stake-more-button',
   IMPORT_NFT_BUTTON: 'import-collectible-button',
   IMPORT_TOKEN_BUTTON: 'import-token-button',
   IMPORT_TOKEN_BUTTON_LINK: 'import-token-button-link',
@@ -43,5 +45,6 @@ export const WalletViewSelectorsText = {
   NFTS_TAB: enContent.wallet.collectibles,
   TOKENS_TAB: enContent.wallet.tokens,
   HIDE_TOKENS: enContent.wallet.remove,
+  STAKED_ETHEREUM: enContent.stake.staked_ethereum,
   DEFAULT_TOKEN: 'Ethereum',
 };

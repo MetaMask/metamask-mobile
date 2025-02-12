@@ -13,12 +13,14 @@ interface SignatureMessageSectionProps {
   messageCollapsed?: ReactNode | string;
   messageExpanded: ReactNode;
   copyMessageText: string;
+  collapsedSectionAllowMultiline?: boolean;
 }
 
 const SignatureMessageSection = ({
   messageCollapsed,
   messageExpanded,
   copyMessageText,
+  collapsedSectionAllowMultiline = false,
 }: SignatureMessageSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -30,7 +32,10 @@ const SignatureMessageSection = ({
           {messageCollapsed && (
             <View style={styles.message}>
               {typeof messageCollapsed === 'string' ? (
-                <Text style={styles.description} numberOfLines={1}>
+                <Text
+                  style={styles.description}
+                  numberOfLines={collapsedSectionAllowMultiline ? undefined : 1}
+                >
                   {messageCollapsed}
                 </Text>
               ) : (

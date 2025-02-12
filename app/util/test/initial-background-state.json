@@ -327,5 +327,22 @@
     "isAccountSyncingReadyToBeDispatched": false,
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
+  },
+  "MultichainBalancesController": {
+    "balances": {}
+  },
+  "RatesController": {
+    "cryptocurrencies": ["btc", "sol"],
+    "fiatCurrency": "usd",
+    "rates": {
+      "btc": {
+        "conversionDate": 0,
+        "conversionRate": 0
+      },
+      "sol": {
+        "conversionDate": 0,
+        "conversionRate": 0
+      }
+    }
   }
 }

@@ -1,4 +1,5 @@
 import {
+  MessageParamsPersonal,
   MessageParamsTyped,
   SignatureRequest,
   SignatureRequestType,
@@ -67,7 +68,9 @@ interface TypedSignatureRequest {
  * @param signatureRequest - The signature request to check
  */
 export const isTypedSignV3V4Request = (signatureRequest?: SignatureRequest) => {
-  if (!signatureRequest) { return false; }
+  if (!signatureRequest) {
+    return false;
+  }
 
   const {
     type,
@@ -80,19 +83,23 @@ export const isTypedSignV3V4Request = (signatureRequest?: SignatureRequest) => {
   );
 };
 
-export const parseTypedDataMessageFromSignatureRequest = (signatureRequest?: SignatureRequest) => {
-  if (!signatureRequest || !isTypedSignV3V4Request(signatureRequest)) { return; }
+export const parseTypedDataMessageFromSignatureRequest = (
+  signatureRequest?: SignatureRequest,
+) => {
+  if (!signatureRequest || !isTypedSignV3V4Request(signatureRequest)) {
+    return;
+  }
 
   const data = signatureRequest.messageParams?.data as string;
   return parseTypedDataMessage(data);
 };
 
-
 const isRecognizedOfType = (
   request: SignatureRequest | undefined,
   types: PrimaryType[],
 ) => {
-  const { primaryType } = parseTypedDataMessageFromSignatureRequest(request) || {};
+  const { primaryType } =
+    parseTypedDataMessageFromSignatureRequest(request) || {};
   return types.includes(primaryType);
 };
 
@@ -113,15 +120,41 @@ export const isRecognizedOrder = (request?: SignatureRequest) =>
   isRecognizedOfType(request, PRIMARY_TYPES_ORDER);
 
 export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
-  if (!dataToParse) { return {}; }
+  if (!dataToParse) {
+    return {};
+  }
 
-  const {
-    domain,
-    message,
-    primaryType,
-    types,
-  } = parseTypedDataMessage(dataToParse);
+  const { domain, message, primaryType, types } =
+    parseTypedDataMessage(dataToParse);
 
   const sanitizedMessage = sanitizeMessage(message, primaryType, types);
   return { sanitizedMessage, primaryType, domain };
 };
+
+export interface SIWEMessage {
+  address: string;
+  chainId: string;
+  domain: string;
+  issuedAt: string;
+  nonce: string;
+  statement: string;
+  uri: string;
+  version: string;
+  requestId?: string;
+  resources?: string[];
+}
+
+type MessageParamsSIWE = MessageParamsPersonal & {
+  siwe: {
+    isSIWEMessage: boolean;
+    parsedMessage: SIWEMessage;
+  };
+};
+
+export const isSIWESignatureRequest = (signatureRequest?: SignatureRequest) =>
+  Boolean(
+    (signatureRequest?.messageParams as MessageParamsSIWE)?.siwe?.isSIWEMessage,
+  );
+
+export const getSIWEDetails = (signatureRequest?: SignatureRequest) =>
+  (signatureRequest?.messageParams as MessageParamsSIWE)?.siwe ?? {};

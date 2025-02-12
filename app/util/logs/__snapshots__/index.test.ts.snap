@@ -55,6 +55,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "LoggingController": {
         "logs": {},
       },
+      "MultichainBalancesController": {
+        "balances": {},
+      },
       "NetworkController": {
         "networkConfigurationsByChainId": {
           "0x1": {
@@ -190,6 +193,23 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "useSafeChainsListValidation": true,
         "useTokenDetection": true,
         "useTransactionSimulations": true,
+      },
+      "RatesController": {
+        "cryptocurrencies": [
+          "btc",
+          "sol",
+        ],
+        "fiatCurrency": "usd",
+        "rates": {
+          "btc": {
+            "conversionDate": 0,
+            "conversionRate": 0,
+          },
+          "sol": {
+            "conversionDate": 0,
+            "conversionRate": 0,
+          },
+        },
       },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,

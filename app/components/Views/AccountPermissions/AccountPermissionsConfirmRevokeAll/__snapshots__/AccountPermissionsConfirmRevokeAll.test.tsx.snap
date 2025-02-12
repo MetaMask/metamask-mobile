@@ -234,6 +234,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
+            testID="revoke-all-permissions-cancel-button"
           >
             <Text
               accessibilityRole="text"

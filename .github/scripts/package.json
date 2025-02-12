@@ -7,6 +7,7 @@
     "check-pr-has-required-labels": "ts-node ./check-pr-has-required-labels.ts",
     "close-release-bug-report-issue": "ts-node ./close-release-bug-report-issue.ts",
     "check-template-and-add-labels": "ts-node ./check-template-and-add-labels.ts",
+    "create-bug-report-issue": "ts-node ./create-bug-report-issue.ts",
     "run-bitrise-e2e-check": "ts-node ./bitrise/run-bitrise-e2e-check.ts"
   },
   "dependencies": {

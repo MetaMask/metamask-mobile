@@ -6,7 +6,7 @@ import notifee, {
   AndroidChannel,
 } from '@notifee/react-native';
 
-import { HandleNotificationCallback, LAUNCH_ACTIVITY, Notification, PressActionId } from '../types';
+import { HandleNotificationCallback, LAUNCH_ACTIVITY, INotification as Notification, PressActionId } from '../types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
 import {
@@ -224,9 +224,9 @@ class NotificationsService {
   getInitialNotification = async (
     callback: HandleNotificationCallback
   ): Promise<void> => {
-    const event = await notifee.getInitialNotification()
+    const event = await notifee.getInitialNotification();
     if (event) {
-      callback(event.notification.data as Notification['data'])
+      callback(event.notification.data as Notification['data']);
     }
   };
 

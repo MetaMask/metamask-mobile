@@ -74,6 +74,7 @@ const StakingButtons = ({
     <View style={[styles.balanceButtonsContainer, style]}>
       {hasEthToUnstake && (
         <Button
+          testID={'unstake-button'}
           style={styles.balanceActionButton}
           variant={ButtonVariants.Secondary}
           label={strings('stake.unstake')}
@@ -81,6 +82,7 @@ const StakingButtons = ({
         />
       )}
       <Button
+        testID={'stake-more-button'}
         style={styles.balanceActionButton}
         variant={ButtonVariants.Secondary}
         label={
