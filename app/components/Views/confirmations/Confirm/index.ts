@@ -1,2 +1,2 @@
-export { default as Confirm } from './Confirm';
-export { default as ConfirmRoot } from './ConfirmRoot';
+export { Confirm } from './Confirm';
+export { ConfirmRoot } from './ConfirmRoot';

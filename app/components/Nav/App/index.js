@@ -583,7 +583,7 @@ const ConnectHardwareWalletFlow = () => (
 
 const ConfirmRequest = () => (
   <Stack.Navigator mode={'modal'}>
-    <Stack.Screen name={Routes.CONFIRM_FLAT_PAGE} component={Confirm} />
+    <Stack.Screen name={Routes.CONFIRM_REQUEST} component={Confirm} />
   </Stack.Navigator>
 );
 
@@ -595,7 +595,7 @@ const ConfirmDappRequest = () => (
     }}
     mode={'modal'}
   >
-    <Stack.Screen name={Routes.CONFIRM_MODAL} component={Confirm} />
+    <Stack.Screen name={Routes.CONFIRM_DAPP_REQUEST} component={Confirm} />
   </Stack.Navigator>
 );
 
@@ -1037,13 +1037,14 @@ const App = (props) => {
             options={{ gestureEnabled: false }}
           />
           <Stack.Screen
-            name={Routes.CONFIRM_FLAT_PAGE}
+            name={Routes.CONFIRM_REQUEST}
             component={ConfirmRequest}
             options={{ animationEnabled: true }}
           />
           <Stack.Screen
-            name={Routes.CONFIRM_MODAL}
+            name={Routes.CONFIRM_DAPP_REQUEST}
             component={ConfirmDappRequest}
+            options={{ animationEnabled: true }}
           />
         </Stack.Navigator>
       </NavigationContainer>
