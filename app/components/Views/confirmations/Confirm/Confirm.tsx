@@ -33,7 +33,7 @@ const ConfirmWrapped = ({
   </QRHardwareContextProvider>
 );
 
-const Confirm = () => {
+export const Confirm = () => {
   const { approvalRequest } = useApprovalRequest();
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
@@ -63,5 +63,3 @@ const Confirm = () => {
     </BottomModal>
   );
 };
-
-export default Confirm;
