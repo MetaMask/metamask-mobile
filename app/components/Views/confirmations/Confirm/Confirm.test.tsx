@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => ({
     dispatch: jest.fn(),
     goBack: jest.fn(),
     navigate: jest.fn(),
-    removeListener: jest.fn(), 
+    removeListener: jest.fn(),
   }),
 }));
 
@@ -36,7 +36,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { width: 0, height: 0, x: 0, y: 0 };
-  
+
   return {
     ...jest.requireActual('react-native-safe-area-context'),
     SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
@@ -140,7 +140,7 @@ describe('Confirm', () => {
       },
     );
 
-    await act(async () => {});
+    await act(async () => undefined);
 
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
