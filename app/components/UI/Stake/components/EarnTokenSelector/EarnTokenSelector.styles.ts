@@ -1,4 +1,3 @@
-// app/components/UI/Stake/components/EarnTokenSelector/EarnTokenSelector.styles.ts
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 

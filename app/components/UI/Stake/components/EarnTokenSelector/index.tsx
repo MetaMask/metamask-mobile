@@ -1,4 +1,3 @@
-// app/components/UI/Stake/components/EarnTokenSelector/index.tsx
 import React from 'react';
 import { useStyles } from '../../../../../component-library/hooks';
 import { View } from 'react-native';
@@ -91,7 +90,7 @@ const EarnTokenSelector = ({ token, apr, balance }: EarnTokenSelectorProps) => {
       </Text>
       {balance && (
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {balance}
+          {`${balance} ${token.symbol}`}
         </Text>
       )}
     </View>

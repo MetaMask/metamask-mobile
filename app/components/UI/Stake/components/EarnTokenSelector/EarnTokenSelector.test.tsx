@@ -1,9 +1,8 @@
-// app/components/UI/Stake/components/EarnTokenSelector/EarnTokenSelector.test.tsx
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import EarnTokenSelector from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MOCK_USDC_ASSET } from '../../__mocks__/mockData';
+import { MOCK_USDC_MAINNET_ASSET } from '../../__mocks__/mockData';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
@@ -20,7 +19,7 @@ jest.mock('@react-navigation/native', () => {
 
 describe('EarnTokenSelector', () => {
   const mockProps = {
-    token: MOCK_USDC_ASSET,
+    token: MOCK_USDC_MAINNET_ASSET,
     apr: '4.5%',
     balance: '10,100.00',
   };
