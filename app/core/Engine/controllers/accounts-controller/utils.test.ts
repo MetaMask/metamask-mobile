@@ -1,6 +1,6 @@
 import Logger from '../../../../util/Logger';
-import { logAccountsControllerCreation } from './logger';
-import { defaultAccountsControllerState } from './utils';
+import { logAccountsControllerCreation } from './utils';
+import { defaultAccountsControllerState } from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 
 jest.mock('../../../../util/Logger');

@@ -1,9 +1,9 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import Logger from '../../../../util/Logger';
-import { defaultAccountsControllerState } from './utils';
+import { defaultAccountsControllerState } from './constants';
 
 export function logAccountsControllerCreation(
-  initialState?: AccountsControllerState,
+  initialState?: Partial<AccountsControllerState>,
 ) {
   if (!initialState) {
     Logger.log('Creating AccountsController with default state', {

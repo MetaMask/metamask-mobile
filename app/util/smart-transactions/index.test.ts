@@ -6,7 +6,7 @@ import {
   getSmartTransactionMetricsProperties,
 } from './index';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import type { ControllerMessenger } from '../../core/Engine';
+import type { BaseControllerMessenger } from '../../core/Engine';
 
 describe('Smart Transactions utils', () => {
   describe('getTransactionType', () => {
@@ -283,27 +283,63 @@ describe('Smart Transactions utils', () => {
   });
   describe('getShouldStartFlow', () => {
     it('returns true for Send transaction', () => {
-      const res = getShouldStartApprovalRequest(false, true, false, false, false);
+      const res = getShouldStartApprovalRequest(
+        false,
+        true,
+        false,
+        false,
+        false,
+      );
       expect(res).toBe(true);
     });
     it('returns false for Send transaction when mobileReturnTxHashAsap is true', () => {
-      const res = getShouldStartApprovalRequest(false, true, false, false, true);
+      const res = getShouldStartApprovalRequest(
+        false,
+        true,
+        false,
+        false,
+        true,
+      );
       expect(res).toBe(false);
     });
     it('returns true for Dapp transaction', () => {
-      const res = getShouldStartApprovalRequest(true, false, false, false, false);
+      const res = getShouldStartApprovalRequest(
+        true,
+        false,
+        false,
+        false,
+        false,
+      );
       expect(res).toBe(true);
     });
     it('returns false for Dapp transaction when mobileReturnTxHashAsap is true', () => {
-      const res = getShouldStartApprovalRequest(true, false, false, false, true);
+      const res = getShouldStartApprovalRequest(
+        true,
+        false,
+        false,
+        false,
+        true,
+      );
       expect(res).toBe(false);
     });
     it('returns true for Swap approve transaction', () => {
-      const res = getShouldStartApprovalRequest(false, false, true, false, false);
+      const res = getShouldStartApprovalRequest(
+        false,
+        false,
+        true,
+        false,
+        false,
+      );
       expect(res).toBe(true);
     });
     it('returns false for Swap transaction', () => {
-      const res = getShouldStartApprovalRequest(false, false, false, true, false);
+      const res = getShouldStartApprovalRequest(
+        false,
+        false,
+        false,
+        true,
+        false,
+      );
       expect(res).toBe(false);
     });
   });
@@ -335,7 +371,7 @@ describe('Smart Transactions utils', () => {
   });
   describe('getSmartTransactionMetricsProperties', () => {
     let smartTransactionsController: SmartTransactionsController;
-    let controllerMessenger: ControllerMessenger;
+    let controllerMessenger: BaseControllerMessenger;
 
     beforeEach(() => {
       smartTransactionsController = {
@@ -343,7 +379,7 @@ describe('Smart Transactions utils', () => {
       } as unknown as SmartTransactionsController;
       controllerMessenger = {
         subscribe: jest.fn(),
-      } as unknown as ControllerMessenger;
+      } as unknown as BaseControllerMessenger;
     });
 
     it('returns empty object if transactionMeta is undefined', async () => {
