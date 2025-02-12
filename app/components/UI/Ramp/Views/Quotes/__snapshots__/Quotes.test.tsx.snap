@@ -1187,6 +1187,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                           "width": "70%",
                                         }
                                       }
+                                      testID="shapes-background-animation"
                                     >
                                       <RNSVGSvgView
                                         align="xMidYMid"
