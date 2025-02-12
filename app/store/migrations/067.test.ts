@@ -1,7 +1,7 @@
 import { BtcScope, EthScope, SolScope, EthMethod } from '@metamask/keyring-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
-import migration from './066';
+import migration from './067';
 
 jest.mock('../../util/Logger');
 jest.mock('@sentry/react-native', () => ({
@@ -18,7 +18,8 @@ interface StateType {
   };
 }
 
-describe('migration #66', () => {
+// Migration 67 is a re-run of migration 66 with updated scope values. The tests are the same as 66 with a few extra checks
+describe('migration #67', () => {
   const MOCK_INVALID_STATE = {
     someKey: 'someValue',
   };
@@ -391,7 +392,7 @@ describe('migration #66', () => {
     // Verify Sentry exception was captured
     expect(mockedCaptureException).toHaveBeenCalledWith(
       new Error(
-        'Migration 66: Unknown account type unknown-type, defaulting to EVM EOA',
+        'Migration 67: Unknown account type unknown-type, defaulting to EVM EOA',
       ),
     );
   });
