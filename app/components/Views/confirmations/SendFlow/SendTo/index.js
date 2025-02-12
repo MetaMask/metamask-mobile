@@ -705,7 +705,7 @@ const mapStateToProps = (state) => {
     ),
     ambiguousAddressEntries: state.user.ambiguousAddressEntries,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setRecipient: (
