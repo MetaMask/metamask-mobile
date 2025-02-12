@@ -121,7 +121,7 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 const mockQueryGetQuotes = jest.fn();
 
 const mockUseQuotesInitialValues: Partial<ReturnType<typeof useQuotes>> = {
-  data: mockQuotesData as (QuoteResponse | QuoteError)[],
+  quotes: mockQuotesData as (QuoteResponse | QuoteError)[],
   isFetching: false,
   error: null,
   query: mockQueryGetQuotes,
@@ -159,7 +159,7 @@ describe('Quotes', () => {
     mockUseQuotesValues = {
       ...mockUseQuotesInitialValues,
       isFetching: true,
-      data: undefined,
+      quotes: undefined,
     };
     render(Quotes);
     expect(mockSetOptions).toBeCalledTimes(1);
@@ -200,7 +200,7 @@ describe('Quotes', () => {
     mockUseQuotesValues = {
       ...mockUseQuotesInitialValues,
       isFetching: true,
-      data: undefined,
+      quotes: undefined,
     };
     render(Quotes);
     const fetchingQuotesText = screen.getByText('Fetching quotes');
@@ -211,7 +211,7 @@ describe('Quotes', () => {
   it('renders correctly after animation without quotes', async () => {
     mockUseQuotesValues = {
       ...mockUseQuotesInitialValues,
-      data: [],
+      quotes: [],
     };
     render(Quotes);
     act(() => {
@@ -240,7 +240,7 @@ describe('Quotes', () => {
   it('renders correctly after animation with quotes and expanded', async () => {
     mockUseQuotesValues = {
       ...mockUseQuotesInitialValues,
-      data: [
+      quotes: [
         ...mockQuotesData.slice(0, 2),
         { ...mockQuotesData[2], error: false },
       ] as (QuoteResponse | QuoteError)[],
@@ -302,7 +302,7 @@ describe('Quotes', () => {
 
     mockUseQuotesValues = {
       ...mockUseQuotesInitialValues,
-      data: mockData as (QuoteResponse | QuoteError)[],
+      quotes: mockData as (QuoteResponse | QuoteError)[],
     };
     render(Quotes);
     act(() => {

@@ -1,11 +1,8 @@
-import { RootState } from '../reducers';
+import { RootState } from '../../reducers';
 import {
   selectedAccountNativeTokenCachedBalanceByChainId,
   selectAccountTokensAcrossChains,
-  selectIsBitcoinSupportEnabled,
-  selectIsBitcoinTestnetSupportEnabled,
-  selectIsSolanaSupportEnabled,
-} from './multichain';
+} from './evm';
 
 describe('Multichain Selectors', () => {
   const mockState: RootState = {
@@ -90,11 +87,6 @@ describe('Multichain Selectors', () => {
         },
       },
     },
-    multichainSettings: {
-      bitcoinSupportEnabled: true,
-      bitcoinTestnetSupportEnabled: false,
-      solanaSupportEnabled: true,
-    },
   } as unknown as RootState;
 
   describe('selectedAccountNativeTokenCachedBalanceByChainId', () => {
@@ -175,19 +167,6 @@ describe('Multichain Selectors', () => {
       expect(polygonTokens.some((token) => token.symbol === 'MATIC')).toBe(
         true,
       );
-    });
-  });
-
-  describe('Multichain Support Flags', () => {
-    it('should return bitcoin support enabled state', () => {
-      expect(selectIsBitcoinSupportEnabled(mockState)).toBe(true);
-    });
-
-    it('should return bitcoin testnet support enabled state', () => {
-      expect(selectIsBitcoinTestnetSupportEnabled(mockState)).toBe(false);
-    });
-    it('should return Solana support enabled state', () => {
-      expect(selectIsSolanaSupportEnabled(mockState)).toBe(true);
     });
   });
 });
