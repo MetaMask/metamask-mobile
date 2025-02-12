@@ -85,7 +85,7 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
+import { Encryptor, hmacSha512, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import {
   isMainnetByChainId,
   isTestNet,
@@ -674,7 +674,7 @@ export class Engine {
 
     const hdKeyringBuilder = () =>
       new HDKeyring({
-        cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
+        cryptographicFunctions: { pbkdf2Sha512: pbkdf2, hmacSha512 },
       });
     hdKeyringBuilder.type = HDKeyring.type;
     additionalKeyrings.push(hdKeyringBuilder);
@@ -821,7 +821,7 @@ export class Engine {
           origin,
           target,
         ),
-      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
+      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2, hmacSha512 }),
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -1106,6 +1106,7 @@ export class Engine {
       }),
       clientCryptography: {
         pbkdf2Sha512: pbkdf2,
+        hmacSha512
       },
     });
 
