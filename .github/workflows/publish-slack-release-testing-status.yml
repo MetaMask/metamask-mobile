@@ -15,6 +15,7 @@ jobs:
     with:
       platform: 'mobile'
       google-document-id: '1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ' # Release Testing Document
+      test-only: 'true'
     secrets:
       slack-api-key: ${{ secrets.SLACKBOT_RLS_TOKEN }}
       github-token: ${{ secrets.PR_TOKEN }}
