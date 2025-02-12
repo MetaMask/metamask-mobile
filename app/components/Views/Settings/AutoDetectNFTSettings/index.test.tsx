@@ -11,26 +11,17 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 // Internal dependencies
 import AutoDetectNFTSettings from './index';
 import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 let mockSetDisplayNftMedia: jest.Mock;
 let mockSetUseNftDetection: jest.Mock;
-let mockAddTraitsToUser: jest.Mock;
-let mockTrackEvent: jest.Mock;
-
-beforeEach(() => {
-  mockSetDisplayNftMedia.mockClear();
-  mockSetUseNftDetection.mockClear();
-  mockAddTraitsToUser.mockClear();
-  mockTrackEvent.mockClear();
-});
 
 const mockEngine = Engine;
 
 jest.mock('../../../../core/Engine', () => {
   mockSetDisplayNftMedia = jest.fn();
   mockSetUseNftDetection = jest.fn();
-  mockAddTraitsToUser = jest.fn();
-  mockTrackEvent = jest.fn();
   return {
     init: () => mockEngine.init({}),
     context: {
@@ -52,15 +43,24 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => mockNavigation),
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    addTraitsToUser: mockAddTraitsToUser,
-    trackEvent: mockTrackEvent,
-  }),
-  MetaMetricsEvents: {
-    NFT_AUTO_DETECTION_ENABLED: 'NFT_AUTO_DETECTION_ENABLED',
-  },
-}));
+jest.mock('../../../hooks/useMetrics');
+
+const mockTrackEvent = jest.fn();
+const mockAddTraitsToUser = jest.fn();
+
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  enable: jest.fn(),
+  addTraitsToUser: mockAddTraitsToUser,
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
 
 jest.mock('../../../../util/general', () => ({
   timeoutFetch: jest.fn(),
@@ -91,7 +91,7 @@ describe('AutoDetectNFTSettings', () => {
     },
   };
 
-  it('should render correctly', () => {
+  it('render matches snapshot', () => {
     const tree = renderWithProvider(<AutoDetectNFTSettings />, {
       state: initialState,
     });
@@ -99,7 +99,7 @@ describe('AutoDetectNFTSettings', () => {
   });
 
   describe('NFT Autodetection', () => {
-    it('should render NFT autodetection switch', () => {
+    it('renders NFT autodetection switch', () => {
       const { getByTestId } = renderWithProvider(<AutoDetectNFTSettings />, {
         state: initialState,
       });
@@ -107,7 +107,7 @@ describe('AutoDetectNFTSettings', () => {
       expect(autoDetectSwitch).toBeTruthy();
     });
 
-    it('should toggle NFT autodetection when switch is pressed', () => {
+    it('toggles NFT autodetection when switch is pressed', () => {
       const { getByTestId } = renderWithProvider(<AutoDetectNFTSettings />, {
         state: initialState,
       });
@@ -124,15 +124,18 @@ describe('AutoDetectNFTSettings', () => {
         'NFT Autodetection': 'ON',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith(
-        'NFT_AUTO_DETECTION_ENABLED',
-        {
-          'NFT Autodetection': 'ON',
-          location: 'app_settings',
-        },
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED,
+        )
+          .addProperties({
+            'NFT Autodetection': 'ON',
+            location: 'app_settings',
+          })
+          .build(),
       );
     });
 
-    it('should not enable display NFT media when autodetection is turned off', () => {
+    it('does not enable display NFT media when autodetection is turned off', () => {
       const { getByTestId } = renderWithProvider(<AutoDetectNFTSettings />, {
         state: initialState,
       });
@@ -147,11 +150,14 @@ describe('AutoDetectNFTSettings', () => {
         'NFT Autodetection': 'OFF',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith(
-        'NFT_AUTO_DETECTION_ENABLED',
-        {
-          'NFT Autodetection': 'OFF',
-          location: 'app_settings',
-        },
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED,
+        )
+          .addProperties({
+            'NFT Autodetection': 'OFF',
+            location: 'app_settings',
+          })
+          .build(),
       );
     });
   });

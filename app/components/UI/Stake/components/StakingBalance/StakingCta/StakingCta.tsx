@@ -12,7 +12,8 @@ import Button, {
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../constants/events';
 
 interface StakingCtaProps extends Pick<ViewProps, 'style'> {
   estimatedRewardRate: string;
@@ -20,9 +21,8 @@ interface StakingCtaProps extends Pick<ViewProps, 'style'> {
 
 const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
-
   const { navigate } = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const navigateToLearnMoreModal = () => {
     navigate('StakeModals', {
@@ -31,9 +31,9 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
         .addProperties({
-          selected_provider: 'consensys',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
           text: 'Learn More',
-          location: 'Token Details',
+          location: EVENT_LOCATIONS.TOKEN_DETAILS,
         })
         .build(),
     );

@@ -8,7 +8,6 @@ import Text, {
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { selectDetectedTokens } from '../../../../../selectors/tokensController';
 import { isZero } from '../../../../../util/lodash';
 import useRampNetwork from '../../../Ramp/hooks/useRampNetwork';
 import { createBuyNavigationDetails } from '../../../Ramp/routes/utils';
@@ -25,30 +24,24 @@ import {
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { TokenI } from '../../types';
-import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 
 interface TokenListFooterProps {
   tokens: TokenI[];
   goToAddToken: () => void;
-  showDetectedTokens: () => void;
   isAddTokenEnabled: boolean;
 }
 
 export const TokenListFooter = ({
   tokens,
   goToAddToken,
-  showDetectedTokens,
   isAddTokenEnabled,
 }: TokenListFooterProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
-  const detectedTokens = useSelector(selectDetectedTokens);
-  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
-
   const styles = createStyles(colors);
 
   const mainToken = tokens.find(({ isETH }) => isETH);
@@ -60,32 +53,19 @@ export const TokenListFooter = ({
 
   const goToBuy = () => {
     navigation.navigate(...createBuyNavigationDetails());
-    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      text: 'Buy Native Token',
-      location: 'Home Screen',
-      chain_id_destination: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy Native Token',
+          location: 'Home Screen',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   return (
     <>
-      {/* renderTokensDetectedSection */}
-      {detectedTokens?.length !== 0 && isTokenDetectionEnabled && (
-        <TouchableOpacity
-          style={styles.tokensDetectedButton}
-          onPress={showDetectedTokens}
-        >
-          <Text
-            style={styles.tokensDetectedText}
-            testID={WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON}
-          >
-            {strings('wallet.tokens_detected_in_account', {
-              tokenCount: detectedTokens.length,
-              tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',
-            })}
-          </Text>
-        </TouchableOpacity>
-      )}
       {/* render buy button */}
       {isBuyableToken && (
         <View style={styles.buy}>

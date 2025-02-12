@@ -26,6 +26,13 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       marginTop: 50,
     },
+    emptyTokensView: {
+      alignItems: 'center',
+      marginTop: 130,
+    },
+    emptyTokensViewText: {
+      fontFamily: 'EuclidCircularB-Medium',
+    },
     text: {
       fontSize: 20,
       color: colors.text.default,
@@ -174,6 +181,16 @@ const createStyles = (colors: Colors) =>
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+    },
+    controlButtonDisabled: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      maxWidth: '60%',
+      opacity: 0.5,
     },
     controlButtonText: {
       color: colors.text.default,

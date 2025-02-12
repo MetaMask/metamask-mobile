@@ -1,5 +1,5 @@
 import { RegexTypes } from './index.types';
-import { AccountListViewSelectorsIDs } from '../../../e2e/selectors/AccountListView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 
 export function hasDecimals(separator: string, decimalPlaces: string) {
   return new RegExp(`^\\d+\\${separator}\\d{${decimalPlaces}}$`, 'g');
@@ -12,7 +12,7 @@ export function hasProtocol(url: string) {
 export const regex: RegexTypes = {
   eth: (num: number) => new RegExp(`${num} ETH`),
   usd: (num: number) => new RegExp(`${num}`),
-  accountBalance: new RegExp(`${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
+  accountBalance: new RegExp(`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
   activationKey: /^[a-zA-Z0-9\\-]{1,32}$/,
   addressWithSpaces: /\s/g,
   colorBlack: /black/g,

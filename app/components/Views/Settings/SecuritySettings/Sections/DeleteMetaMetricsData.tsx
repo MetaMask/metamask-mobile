@@ -73,8 +73,12 @@ interface DeleteMetaMetricsDataProps {
  * ```
  */
 const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
-  const { checkDataDeleteStatus, trackEvent, createDataDeletionTask } =
-    useMetrics();
+  const {
+    checkDataDeleteStatus,
+    trackEvent,
+    createDataDeletionTask,
+    createEventBuilder,
+  } = useMetrics();
 
   /** metricsOptin prop is used to update the component when the user toggles the opt-in switch
    * We don't need the value to determine if the deletion button should be enabled or not
@@ -123,13 +127,13 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
 
   const trackDataDeletionRequest = () => {
     trackEvent(
-      MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION,
-      {
-        os: Platform.OS,
-        os_version: Platform.Version,
-        device_model: `${getBrand()} ${getDeviceId()}`,
-      },
-      false,
+      createEventBuilder(MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION)
+        .addProperties({
+          os: Platform.OS,
+          os_version: Platform.Version,
+          device_model: `${getBrand()} ${getDeviceId()}`,
+        })
+        .build(),
     );
   };
 

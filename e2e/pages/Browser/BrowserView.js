@@ -5,11 +5,12 @@ import {
   BrowserViewSelectorsText,
   BrowserViewSelectorsXPaths,
 } from '../../selectors/Browser/BrowserView.selectors';
-import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
+import { AccountOverviewSelectorsIDs } from '../../selectors/Browser/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+import { waitForTestDappToLoad } from '../../viewHelper';
 
 class Browser {
   get searchButton() {
@@ -145,6 +146,7 @@ class Browser {
   }
 
   async tapNetworkAvatarButtonOnBrowser() {
+    await TestHelpers.delay(4000);
     await Gestures.waitAndTap(this.networkAvatarButton);
   }
 
@@ -178,7 +180,6 @@ class Browser {
   }
 
   async navigateToURL(url) {
-    await Gestures.waitAndTap(this.clearURLButton);
     await device.disableSynchronization(); // because animations makes typing into the browser slow
 
     await Gestures.typeTextAndHideKeyboard(this.urlInputBoxID, url);
@@ -192,6 +193,7 @@ class Browser {
   async navigateToTestDApp() {
     await this.tapUrlInputBox();
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
+    await waitForTestDappToLoad();
   }
 }
 

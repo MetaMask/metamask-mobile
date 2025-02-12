@@ -1,7 +1,11 @@
 import {
+  SecurityAlertResponse,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
+
+import {
   Reason,
   ResultType,
-  SecurityAlertResponse,
   SecurityAlertSource,
 } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 // eslint-disable-next-line import/no-namespace
@@ -17,7 +21,6 @@ import {
   isBlockaidFeatureEnabled,
   TransactionType,
 } from '.';
-import { TransactionStatus } from '@metamask/transaction-controller';
 
 jest.mock('../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -54,6 +57,7 @@ describe('Blockaid util', () => {
         error: new Error('Simulated transaction error'),
         id: '1',
         chainId: '0x1',
+        networkClientId: 'testNetworkClientId',
         time: Date.now(),
         txParams: {
           from: '0x1',
@@ -82,6 +86,7 @@ describe('Blockaid util', () => {
         error: new Error('Simulated transaction error'),
         id: '1',
         chainId: '0x1',
+        networkClientId: 'testNetworkClientId',
         time: Date.now(),
         txParams: {
           from: '0x1',
@@ -137,16 +142,17 @@ describe('Blockaid util', () => {
     });
 
     it('should return additionalParams object when securityAlertResponse is defined', async () => {
-      const securityAlertResponse: SecurityAlertResponse = {
-        result_type: ResultType.Malicious,
-        reason: Reason.notApplicable,
-        source: SecurityAlertSource.API,
-        providerRequestsCount: {
-          eth_call: 5,
-          eth_getCode: 3,
-        },
-        features: [],
-      };
+      const securityAlertResponse: SecurityAlertResponse & { source: string } =
+        {
+          result_type: ResultType.Malicious,
+          reason: Reason.notApplicable,
+          source: SecurityAlertSource.API,
+          providerRequestsCount: {
+            eth_call: 5,
+            eth_getCode: 3,
+          },
+          features: [],
+        };
 
       const result = getBlockaidMetricsParams(securityAlertResponse);
       expect(result).toEqual({

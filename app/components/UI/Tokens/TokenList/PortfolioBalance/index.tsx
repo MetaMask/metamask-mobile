@@ -1,24 +1,15 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { useTheme } from '../../../../../util/theme';
 import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  selectChainId,
-  selectProviderConfig,
-  selectTicker,
-} from '../../../../../selectors/networkController';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { RootState } from '../../../../../reducers';
-import { renderFiat } from '../../../../../util/number';
-import { isTestNet } from '../../../../../util/networks';
 import { isPortfolioUrl } from '../../../../../util/url';
 import createStyles from '../../styles';
 import Button, {
@@ -39,43 +30,24 @@ import { BrowserTab } from '../../types';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
+import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
+import { useMultichainBalances } from '../../../../hooks/useMultichainBalances';
 
-export const PortfolioBalance = () => {
+export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const balance = Engine.getTotalFiatAccountBalance();
-  const navigation = useNavigation();
-  const { trackEvent, isEnabled } = useMetrics();
-
-  const { type } = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
-  const ticker = useSelector(selectTicker);
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
-  );
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const privacyMode = useSelector(selectPrivacyMode);
-
-  const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
-    chainId,
-    ticker,
-    type,
+  const isMultichainBalancesCollectionForMarketingEnabled = useSelector(
+    (state: RootState) => state.security.dataCollectionForMarketing,
   );
+  const navigation = useNavigation();
+  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
-  let total;
-  if (isOriginalNativeTokenSymbol) {
-    const tokenFiatTotal = balance?.tokenFiat ?? 0;
-    const ethFiatTotal = balance?.ethFiat ?? 0;
-    total = tokenFiatTotal + ethFiatTotal;
-  } else {
-    total = balance?.tokenFiat ?? 0;
-  }
+  const { multichainBalances } = useMultichainBalances();
 
-  const fiatBalance = `${renderFiat(total, currentCurrency)}`;
-
-  const onOpenPortfolio = () => {
+  const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
       isPortfolioUrl(url),
     );
@@ -97,7 +69,7 @@ export const PortfolioBalance = () => {
       );
       portfolioUrl.searchParams.append(
         'marketingEnabled',
-        String(!!isDataCollectionForMarketingEnabled),
+        String(!!isMultichainBalancesCollectionForMarketingEnabled),
       );
 
       newTabUrl = portfolioUrl.href;
@@ -111,30 +83,56 @@ export const PortfolioBalance = () => {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-      portfolioUrl: AppConstants.PORTFOLIO.URL,
-    });
-  };
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
+        .addProperties({
+          portfolioUrl: AppConstants.PORTFOLIO.URL,
+        })
+        .build(),
+    );
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    isEnabled,
+    isMultichainBalancesCollectionForMarketingEnabled,
+    browserTabs,
+  ]);
 
   const renderAggregatedPercentage = () => {
-    if (isTestNet(chainId)) {
+    if (!multichainBalances.shouldShowAggregatedPercentage) {
       return null;
+    }
+
+    if (multichainBalances.isPortfolioVieEnabled) {
+      return (
+        <AggregatedPercentageCrossChains
+          privacyMode={privacyMode}
+          totalFiatCrossChains={multichainBalances.totalFiatBalance}
+          tokenFiatBalancesCrossChains={
+            multichainBalances.tokenFiatBalancesCrossChains
+          }
+        />
+      );
     }
 
     return (
       <AggregatedPercentage
         privacyMode={privacyMode}
-        ethFiat={balance?.ethFiat}
-        tokenFiat={balance?.tokenFiat}
-        tokenFiat1dAgo={balance?.tokenFiat1dAgo}
-        ethFiat1dAgo={balance?.ethFiat1dAgo}
+        ethFiat={multichainBalances.aggregatedBalance.ethFiat}
+        tokenFiat={multichainBalances.aggregatedBalance.tokenFiat}
+        tokenFiat1dAgo={multichainBalances.aggregatedBalance.tokenFiat1dAgo}
+        ethFiat1dAgo={multichainBalances.aggregatedBalance.ethFiat1dAgo}
       />
     );
   };
 
-  const toggleIsBalanceAndAssetsHidden = (value: boolean) => {
-    PreferencesController.setPrivacyMode(value);
-  };
+  const toggleIsBalanceAndAssetsHidden = useCallback(
+    (value: boolean) => {
+      PreferencesController.setPrivacyMode(value);
+    },
+    [PreferencesController],
+  );
 
   return (
     <View style={styles.portfolioBalance}>
@@ -147,7 +145,7 @@ export const PortfolioBalance = () => {
               testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
               variant={TextVariant.DisplayMD}
             >
-              {fiatBalance}
+              {multichainBalances.displayBalance}
             </SensitiveText>
             <TouchableOpacity
               onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
@@ -180,4 +178,4 @@ export const PortfolioBalance = () => {
       </View>
     </View>
   );
-};
+});

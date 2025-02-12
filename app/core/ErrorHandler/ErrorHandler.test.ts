@@ -1,4 +1,8 @@
-import { getReactNativeDefaultHandler, handleCustomError, setReactNativeDefaultHandler } from './ErrorHandler';
+import {
+  getReactNativeDefaultHandler,
+  handleCustomError,
+  setReactNativeDefaultHandler,
+} from './ErrorHandler';
 import { ErrorHandlerCallback } from 'react-native';
 
 describe('ErrorHandler', () => {
@@ -10,10 +14,16 @@ describe('ErrorHandler', () => {
   });
 
   it('handles Ledger error without crashing the app', () => {
-    const mockError = { name: 'EthAppPleaseEnableContractData', message: 'Enable contract data' };
+    const mockError = {
+      name: 'EthAppPleaseEnableContractData',
+      message: 'Enable contract data',
+    };
     console.error = jest.fn();
     handleCustomError(mockError, true);
-    expect(console.error).toHaveBeenCalledWith('Ledger error: ', 'Enable contract data');
+    expect(console.error).toHaveBeenCalledWith(
+      'Ledger error: ',
+      'Enable contract data',
+    );
   });
 
   it('passes non-Ledger error to the default handler', () => {
@@ -24,9 +34,25 @@ describe('ErrorHandler', () => {
   });
 
   it('handles TransportStatusError without crashing the app', () => {
-    const mockError = { name: 'TransportStatusError', message: 'Transport error' };
+    const mockError = {
+      name: 'TransportStatusError',
+      message: 'Transport error',
+    };
     console.error = jest.fn();
     handleCustomError(mockError, true);
-    expect(console.error).toHaveBeenCalledWith('Ledger error: ', 'Transport error');
+    expect(console.error).toHaveBeenCalledWith(
+      'Ledger error: ',
+      'Transport error',
+    );
+  });
+
+  it('handles KeystoneError#Tx_canceled without crashing the app', () => {
+    const mockError = { name: 'Error', message: 'KeystoneError#Tx_canceled' };
+    console.error = jest.fn();
+    handleCustomError(mockError, true);
+    expect(console.error).toHaveBeenCalledWith(
+      'Keystone error: ',
+      'KeystoneError#Tx_canceled',
+    );
   });
 });

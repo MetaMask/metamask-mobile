@@ -1,10 +1,9 @@
 import { act, waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { type StakingApiService } from '@metamask/stake-sdk';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import useStakingEligibility from './useStakingEligibility';
-import { Stake } from '../sdk/stakeSdkProvider';
+import { stakingApiService } from '../sdk/stakeSdkProvider';
 
 // Mock initial state for the hook
 const MOCK_ADDRESS_1 = '0xAddress';
@@ -22,21 +21,6 @@ const mockInitialState = {
   },
 };
 
-// Mock Staking API Service
-const mockStakingApiService: Partial<StakingApiService> = {
-  getPooledStakingEligibility: jest.fn(),
-};
-
-const mockSdkContext: Stake = {
-  setSdkType: jest.fn(),
-  stakingApiService: mockStakingApiService as StakingApiService,
-};
-
-// Mock the context
-jest.mock('./useStakeContext', () => ({
-  useStakeContext: () => mockSdkContext,
-}));
-
 describe('useStakingEligibility', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -45,11 +29,9 @@ describe('useStakingEligibility', () => {
   describe('when fetching staking eligibility', () => {
     it('fetches staking eligibility and sets the state correctly', async () => {
       // Mock API response
-      (
-        mockStakingApiService.getPooledStakingEligibility as jest.Mock
-      ).mockResolvedValue({
-        eligible: true,
-      });
+      jest
+        .spyOn(stakingApiService, 'getPooledStakingEligibility')
+        .mockResolvedValue({ eligible: true });
 
       const { result } = renderHookWithProvider(() => useStakingEligibility(), {
         state: mockInitialState,
@@ -68,9 +50,9 @@ describe('useStakingEligibility', () => {
 
     it('handles error while fetching staking eligibility', async () => {
       // Mock API error
-      (
-        mockStakingApiService.getPooledStakingEligibility as jest.Mock
-      ).mockRejectedValue(new Error('API Error'));
+      jest
+        .spyOn(stakingApiService, 'getPooledStakingEligibility')
+        .mockRejectedValue(new Error('API Error'));
 
       const { result } = renderHookWithProvider(() => useStakingEligibility(), {
         state: mockInitialState,
@@ -89,11 +71,9 @@ describe('useStakingEligibility', () => {
   describe('when refreshing staking eligibility', () => {
     it('refreshes staking eligibility successfully', async () => {
       // Mock initial API response
-      (
-        mockStakingApiService.getPooledStakingEligibility as jest.Mock
-      ).mockResolvedValueOnce({
-        eligible: false,
-      });
+      const getPooledStakingEligibilitySpy = jest
+        .spyOn(stakingApiService, 'getPooledStakingEligibility')
+        .mockResolvedValue({ eligible: false });
 
       const { result } = renderHookWithProvider(() => useStakingEligibility(), {
         state: mockInitialState,
@@ -105,11 +85,7 @@ describe('useStakingEligibility', () => {
       });
 
       // Simulate API response after refresh
-      (
-        mockStakingApiService.getPooledStakingEligibility as jest.Mock
-      ).mockResolvedValueOnce({
-        eligible: true,
-      });
+      getPooledStakingEligibilitySpy.mockResolvedValue({ eligible: true });
 
       // Trigger refresh
       await act(async () => {
@@ -119,9 +95,7 @@ describe('useStakingEligibility', () => {
       // Wait for refresh result
       await waitFor(() => {
         expect(result.current.isEligible).toBe(true); // Updated to eligible
-        expect(
-          mockStakingApiService.getPooledStakingEligibility,
-        ).toHaveBeenCalledTimes(2);
+        expect(getPooledStakingEligibilitySpy).toHaveBeenCalledTimes(2);
       });
     });
   });

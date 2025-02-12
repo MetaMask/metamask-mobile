@@ -6,12 +6,8 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    confirmButton: {
+    footerButton: {
       flex: 1,
-    },
-    rejectButton: {
-      flex: 1,
-      backgroundColor: theme.colors.background.alternative,
     },
     divider: {
       height: 1,
@@ -19,7 +15,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     buttonsContainer: {
       flexDirection: 'row',
-      padding: 16,
+      paddingVertical: 16,
     },
     buttonDivider: {
       width: 8,

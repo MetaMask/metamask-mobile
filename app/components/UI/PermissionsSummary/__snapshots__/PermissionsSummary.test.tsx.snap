@@ -41,11 +41,14 @@ exports[`PermissionsSummary should render correctly 1`] = `
         />
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "justifyContent": "center",
+              },
+              false,
+            ]
           }
         >
           <View
@@ -116,6 +119,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             "marginTop": 8,
           }
         }
+        testID="permission-network-permissions-container"
       >
         <Text
           accessibilityRole="text"
@@ -146,13 +150,14 @@ exports[`PermissionsSummary should render correctly 1`] = `
               "marginTop": 8,
             }
           }
+          testID="permission-summary-container"
         >
           <View
             style={
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0000001a",
+                "backgroundColor": "#0000001A",
                 "borderRadius": 16,
                 "height": 32,
                 "justifyContent": "center",
@@ -227,6 +232,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       "lineHeight": 22,
                     }
                   }
+                  testID="permission-summary-account-text"
                 >
                   <Text
                     accessibilityRole="text"
@@ -397,7 +403,9 @@ exports[`PermissionsSummary should render correctly 1`] = `
               </View>
             </View>
           </View>
-          <View>
+          <View
+            testID="connection-details-button"
+          >
             <SvgMock
               color="#141618"
               height={20}
@@ -408,7 +416,6 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   "width": 20,
                 }
               }
-              testID="back-arrow-button"
               width={20}
             />
           </View>
@@ -416,6 +423,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
       </TouchableOpacity>
       <TouchableOpacity
         onPress={[Function]}
+        testID="navigate_to_edit_networks_permissions_button"
       >
         <View
           style={
@@ -433,7 +441,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0000001a",
+                "backgroundColor": "#0000001A",
                 "borderRadius": 16,
                 "height": 32,
                 "justifyContent": "center",
@@ -489,6 +497,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               <View
                 style={
                   {
+                    "marginRight": 4,
                     "maxWidth": "75%",
                   }
                 }
@@ -545,7 +554,9 @@ exports[`PermissionsSummary should render correctly 1`] = `
               </View>
             </View>
           </View>
-          <View>
+          <View
+            testID="connection-details-button"
+          >
             <SvgMock
               color="#141618"
               height={20}
@@ -556,7 +567,6 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   "width": 20,
                 }
               }
-              testID="back-arrow-button"
               width={20}
             />
           </View>
@@ -566,7 +576,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
     <View
       style={
         {
-          "marginTop": 16,
+          "marginTop": 8,
         }
       }
     >
@@ -575,6 +585,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           {
             "flexDirection": "row",
             "marginHorizontal": 24,
+            "marginTop": 8,
           }
         }
       >
@@ -600,6 +611,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               "paddingHorizontal": 16,
             }
           }
+          testID="disconnect_all"
         >
           <SvgMock
             color="#d73847"
@@ -619,9 +631,9 @@ exports[`PermissionsSummary should render correctly 1`] = `
             style={
               {
                 "color": "#d73847",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
-                "fontWeight": "400",
+                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
@@ -636,6 +648,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           {
             "flex": 0,
             "flexDirection": "row",
+            "marginTop": 8,
             "paddingHorizontal": 24,
           }
         }
@@ -808,11 +821,14 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
         />
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "justifyContent": "center",
+              },
+              false,
+            ]
           }
         >
           <View
@@ -883,6 +899,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             "marginTop": 8,
           }
         }
+        testID="permission-network-permissions-container"
       >
         <Text
           accessibilityRole="text"
@@ -902,6 +919,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
       </View>
       <TouchableOpacity
         onPress={[Function]}
+        testID="navigate_to_edit_networks_permissions_button"
       >
         <View
           style={
@@ -919,7 +937,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0000001a",
+                "backgroundColor": "#0000001A",
                 "borderRadius": 16,
                 "height": 32,
                 "justifyContent": "center",
@@ -975,6 +993,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               <View
                 style={
                   {
+                    "marginRight": 4,
                     "maxWidth": "75%",
                   }
                 }
@@ -1042,13 +1061,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "default": {
-                        "uri": "MockImage",
-                      },
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 16,
@@ -1066,7 +1079,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
     <View
       style={
         {
-          "marginTop": 16,
+          "marginTop": 8,
         }
       }
     >
@@ -1075,6 +1088,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           {
             "flexDirection": "row",
             "marginHorizontal": 24,
+            "marginTop": 8,
           }
         }
       >
@@ -1100,6 +1114,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               "paddingHorizontal": 16,
             }
           }
+          testID="disconnect_all"
         >
           <SvgMock
             color="#d73847"
@@ -1119,9 +1134,9 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             style={
               {
                 "color": "#d73847",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
-                "fontWeight": "400",
+                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
@@ -1136,6 +1151,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           {
             "flex": 0,
             "flexDirection": "row",
+            "marginTop": 8,
             "paddingHorizontal": 24,
           }
         }

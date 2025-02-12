@@ -11,7 +11,7 @@ import {
 
 const mockedEngine = Engine;
 
-jest.mock('../../../core/Engine.ts', () => {
+jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
   return {

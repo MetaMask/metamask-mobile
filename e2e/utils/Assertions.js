@@ -10,7 +10,7 @@ const TIMEOUT = 15000;
 class Assertions {
   /**
    * Check if an element with the specified ID is visible.
-   * @param {Promise<Detox.IndexableNativeElement>} elementId - The ID of the element to check.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} elementId - The ID of the element to check.
    * @param timeout
    */
   static async checkIfVisible(elementId, timeout = TIMEOUT) {
@@ -22,8 +22,17 @@ class Assertions {
   }
 
   /**
+   * Check if an element with the specified web selector exists.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} elementId - The ID of the element to check.
+   */
+  static async webViewElementExists(elementId) {
+    // rename this. We are checking if element is visible.
+    return await expect(await elementId).toExist();
+  }
+
+  /**
    * Check if an element with the specified ID is not visible.
-   * @param {Promise<Detox.IndexableNativeElement>} elementId - The ID of the element to check.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement>} elementId - The ID of the element to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
   static async checkIfNotVisible(elementId, timeout = TIMEOUT) {
@@ -55,8 +64,6 @@ class Assertions {
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
   static async checkIfElementHasLabel(elementId, label, timeout = TIMEOUT) {
-    // Rename me. The naming convention here is terrible.
-
     return await waitFor(await elementId)
       .toHaveLabel(label)
       .withTimeout(timeout);

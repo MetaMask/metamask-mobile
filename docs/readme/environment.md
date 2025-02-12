@@ -25,6 +25,18 @@ It is recommended to install a Ruby version manager such as [rbenv](https://gith
 
 Install ruby version defined in the file `.ruby-version`
 
+<details>
+  <summary>Troubleshooting</summary>
+
+  ```bash
+    # Inspect that ruby is in path
+    which ruby
+
+    # Ensure you are using the correct ruby version
+    ruby --version
+  ```
+</details>
+
 ### Gems
 
 Install [`bundler`](https://bundler.io/) gem to manage and install gems such as Cocoapods. The `bundle install` command, which is run during `yarn setup` handles installing gem versions as specified in the project's `GemFile`
@@ -55,11 +67,29 @@ Install node version defined in the file `.nvmrc`
 
 ### Yarn v1
 
-With the correct Node version installed, Yarn v1 can be installed sudo-less in your system using `npm`
+Ensure you are using the correct yarn version (yarn v1) as noted in the `package.json`.
 
-```bash
-npm install -g yarn
-```
+<details>
+  <summary>Install Yarn using corepack (recommended)</summary>
+
+  ```bash
+  corepack enable
+
+  # check yarn version
+  yarn --version
+  ```
+</details>
+
+<details>
+  <summary>Install Yarn V1 with NPM</summary>
+
+  ```bash
+  npm install -g yarn
+
+  # check yarn version
+  yarn --version
+  ```
+</details>
 
 ## Android
 

@@ -11,6 +11,7 @@ import { Buffer } from 'buffer';
 import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
 import Device from '../../util/device';
+import {MetaMetrics} from '../../core/Analytics';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/prefer-default-export
@@ -57,6 +58,8 @@ export const downloadStateLogs = async (
   const appName = await getApplicationName();
   const appVersion = await getVersion();
   const buildNumber = await getBuildNumber();
+  const metrics = MetaMetrics.getInstance();
+  const metaMetricsId = metrics.isEnabled() ? await metrics.getMetaMetricsId() : undefined;
   const path =
     RNFS.DocumentDirectoryPath +
     `/state-logs-v${appVersion}-(${buildNumber}).json`;
@@ -68,6 +71,7 @@ export const downloadStateLogs = async (
         ...fullState,
         appVersion,
         buildNumber,
+        metaMetricsId,
       },
       loggedIn,
     );

@@ -1,0 +1,809 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Options should render homepage options correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessible={true}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "bottom": 0,
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
+      "zIndex": 99999998,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#848c96",
+          "borderRadius": 10,
+          "borderWidth": 1,
+          "paddingBottom": 5,
+          "paddingTop": 10,
+          "position": "absolute",
+          "width": 200,
+          "zIndex": 99999999,
+        },
+        {
+          "bottom": 90,
+          "right": 5,
+          "shadowColor": "#0000001A",
+          "shadowOffset": {
+            "height": 2,
+            "width": 0,
+          },
+          "shadowOpacity": 1,
+          "shadowRadius": 4,
+        },
+      ]
+    }
+    testID="browser-options-menu"
+  >
+    <TouchableOpacity
+      delayPressIn={50}
+      onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#0376c9",
+            "borderRadius": 4,
+            "flex": 1,
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "height": "auto",
+            "justifyContent": "flex-start",
+            "marginTop": -5,
+            "minHeight": 44,
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "backgroundColor": "#0376C91A",
+            "borderRadius": 5,
+            "flex": 0,
+            "marginRight": 10,
+            "padding": 3,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 18,
+              },
+              {
+                "alignSelf": "center",
+                "color": "#0376c9",
+                "fontSize": 18,
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "Material Design Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <Text
+        numberOfLines={1}
+        style={
+          {
+            "alignSelf": "center",
+            "color": "#0376c9",
+            "flex": 1,
+            "fontSize": 16,
+            "justifyContent": "center",
+            "lineHeight": 16,
+            "marginTop": 3,
+          }
+        }
+        testID="browser-options-menu-new-tab"
+      >
+        New tab
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      delayPressIn={50}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#0376c9",
+            "borderRadius": 4,
+            "flex": 1,
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "height": "auto",
+            "justifyContent": "flex-start",
+            "marginTop": -5,
+            "minHeight": 44,
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "backgroundColor": "#0376C91A",
+            "borderRadius": 5,
+            "flex": 0,
+            "marginRight": 10,
+            "padding": 3,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 16,
+              },
+              {
+                "alignSelf": "center",
+                "color": "#0376c9",
+                "fontSize": 18,
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "FontAwesome",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <Text
+        numberOfLines={2}
+        style={
+          {
+            "alignSelf": "center",
+            "color": "#0376c9",
+            "flex": 1,
+            "fontSize": 16,
+            "justifyContent": "center",
+            "lineHeight": 16,
+            "marginTop": 3,
+          }
+        }
+        testID="browser-options-menu-open-favorites"
+      >
+        Go to Favorites
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`Options should render non-homepage options correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessible={true}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "bottom": 0,
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
+      "zIndex": 99999998,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#848c96",
+          "borderRadius": 10,
+          "borderWidth": 1,
+          "paddingBottom": 5,
+          "paddingTop": 10,
+          "position": "absolute",
+          "width": 200,
+          "zIndex": 99999999,
+        },
+        {
+          "bottom": 90,
+          "right": 5,
+          "shadowColor": "#0000001A",
+          "shadowOffset": {
+            "height": 2,
+            "width": 0,
+          },
+          "shadowOpacity": 1,
+          "shadowRadius": 4,
+        },
+      ]
+    }
+    testID="browser-options-menu"
+  >
+    <TouchableOpacity
+      delayPressIn={50}
+      onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#0376c9",
+            "borderRadius": 4,
+            "flex": 1,
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "height": "auto",
+            "justifyContent": "flex-start",
+            "marginTop": -5,
+            "minHeight": 44,
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "backgroundColor": "#0376C91A",
+            "borderRadius": 5,
+            "flex": 0,
+            "marginRight": 10,
+            "padding": 3,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 18,
+              },
+              {
+                "alignSelf": "center",
+                "color": "#0376c9",
+                "fontSize": 18,
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "Material Design Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <Text
+        numberOfLines={1}
+        style={
+          {
+            "alignSelf": "center",
+            "color": "#0376c9",
+            "flex": 1,
+            "fontSize": 16,
+            "justifyContent": "center",
+            "lineHeight": 16,
+            "marginTop": 3,
+          }
+        }
+        testID="browser-options-menu-new-tab"
+      >
+        New tab
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      delayPressIn={50}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#0376c9",
+            "borderRadius": 4,
+            "flex": 1,
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "height": "auto",
+            "justifyContent": "flex-start",
+            "marginTop": -5,
+            "minHeight": 44,
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "backgroundColor": "#0376C91A",
+            "borderRadius": 5,
+            "flex": 0,
+            "marginRight": 10,
+            "padding": 3,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 15,
+              },
+              {
+                "alignSelf": "center",
+                "color": "#0376c9",
+                "fontSize": 18,
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "FontAwesome",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <Text
+        numberOfLines={2}
+        style={
+          {
+            "alignSelf": "center",
+            "color": "#0376c9",
+            "flex": 1,
+            "fontSize": 16,
+            "justifyContent": "center",
+            "lineHeight": 16,
+            "marginTop": 3,
+          }
+        }
+        testID="browser-options-menu-reload"
+      >
+        Reload
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      delayPressIn={50}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#0376c9",
+            "borderRadius": 4,
+            "flex": 1,
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "height": "auto",
+            "justifyContent": "flex-start",
+            "marginTop": -5,
+            "minHeight": 44,
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "backgroundColor": "#0376C91A",
+            "borderRadius": 5,
+            "flex": 0,
+            "marginRight": 10,
+            "padding": 3,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 16,
+              },
+              {
+                "alignSelf": "center",
+                "color": "#0376c9",
+                "fontSize": 18,
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "FontAwesome",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <Text
+        numberOfLines={2}
+        style={
+          {
+            "alignSelf": "center",
+            "color": "#0376c9",
+            "flex": 1,
+            "fontSize": 16,
+            "justifyContent": "center",
+            "lineHeight": 16,
+            "marginTop": 3,
+          }
+        }
+        testID="browser-options-menu-add-favorites"
+      >
+        Add to Favorites
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      delayPressIn={50}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#0376c9",
+            "borderRadius": 4,
+            "flex": 1,
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "height": "auto",
+            "justifyContent": "flex-start",
+            "marginTop": -5,
+            "minHeight": 44,
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "backgroundColor": "#0376C91A",
+            "borderRadius": 5,
+            "flex": 0,
+            "marginRight": 10,
+            "padding": 3,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 16,
+              },
+              {
+                "alignSelf": "center",
+                "color": "#0376c9",
+                "fontSize": 18,
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "FontAwesome",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <Text
+        numberOfLines={2}
+        style={
+          {
+            "alignSelf": "center",
+            "color": "#0376c9",
+            "flex": 1,
+            "fontSize": 16,
+            "justifyContent": "center",
+            "lineHeight": 16,
+            "marginTop": 3,
+          }
+        }
+        testID="browser-options-menu-open-favorites"
+      >
+        Go to Favorites
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      delayPressIn={50}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#0376c9",
+            "borderRadius": 4,
+            "flex": 1,
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "height": "auto",
+            "justifyContent": "flex-start",
+            "marginTop": -5,
+            "minHeight": 44,
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "backgroundColor": "#0376C91A",
+            "borderRadius": 5,
+            "flex": 0,
+            "marginRight": 10,
+            "padding": 3,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 15,
+              },
+              {
+                "alignSelf": "center",
+                "color": "#0376c9",
+                "fontSize": 18,
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "FontAwesome",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <Text
+        numberOfLines={2}
+        style={
+          {
+            "alignSelf": "center",
+            "color": "#0376c9",
+            "flex": 1,
+            "fontSize": 16,
+            "justifyContent": "center",
+            "lineHeight": 16,
+            "marginTop": 3,
+          }
+        }
+        testID="browser-options-menu-share"
+      >
+        Share
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      delayPressIn={50}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#0376c9",
+            "borderRadius": 4,
+            "flex": 1,
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "flexDirection": "row",
+            "height": "auto",
+            "justifyContent": "flex-start",
+            "marginTop": -5,
+            "minHeight": 44,
+            "paddingHorizontal": 15,
+            "paddingVertical": 10,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignSelf": "center",
+            "backgroundColor": "#0376C91A",
+            "borderRadius": 5,
+            "flex": 0,
+            "marginRight": 10,
+            "padding": 3,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 16,
+              },
+              {
+                "alignSelf": "center",
+                "color": "#0376c9",
+                "fontSize": 18,
+                "textAlign": "center",
+              },
+              {
+                "fontFamily": "FontAwesome",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+      <Text
+        numberOfLines={2}
+        style={
+          {
+            "alignSelf": "center",
+            "color": "#0376c9",
+            "flex": 1,
+            "fontSize": 16,
+            "justifyContent": "center",
+            "lineHeight": 16,
+            "marginTop": 3,
+          }
+        }
+        testID="browser-options-menu-open-in-browser"
+      >
+        Open in browser
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

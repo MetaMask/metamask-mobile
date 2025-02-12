@@ -2,12 +2,21 @@ import React from 'react';
 import StakingEarnings from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
-
-jest.mock('../../constants', () => ({
-  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
-}));
+import { mockNetworkState } from '../../../../../util/test/network';
 
 const mockNavigate = jest.fn();
+
+const STATE_MOCK = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: '0x1',
+        }),
+      },
+    },
+  },
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -19,16 +28,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useStakingEligibility', () => ({
-  __esModule: true,
-  default: () => ({
-    isEligible: true,
-    loading: false,
-    error: null,
-    refreshPooledStakingEligibility: jest.fn(),
-  }),
-}));
-
 jest.mock('../../hooks/useStakingEarnings', () => ({
   __esModule: true,
   default: () => ({
@@ -38,6 +37,7 @@ jest.mock('../../hooks/useStakingEarnings', () => ({
     estimatedAnnualEarningsETH: '2.5 ETH',
     estimatedAnnualEarningsFiat: '$5000',
     isLoadingEarningsData: false,
+    hasStakedPositions: true,
   }),
 }));
 
@@ -66,12 +66,32 @@ jest.mock('../../../../../core/Engine', () => ({
 
 describe('Staking Earnings', () => {
   it('should render correctly', () => {
-    const { toJSON, getByText } = renderWithProvider(<StakingEarnings />);
+    const { toJSON, getByText } = renderWithProvider(
+      <StakingEarnings
+        asset={{
+          chainId: '0x1',
+          symbol: 'ETH',
+          address: '0x0',
+          decimals: 18,
+          image: '',
+          name: '',
+          aggregators: [],
+          balance: '0',
+          balanceFiat: '0',
+          logo: '',
+          isETH: true,
+        }}
+      />,
+      {
+        state: STATE_MOCK,
+      },
+    );
 
     expect(getByText(strings('stake.your_earnings'))).toBeDefined();
     expect(getByText(strings('stake.annual_rate'))).toBeDefined();
     expect(getByText(strings('stake.lifetime_rewards'))).toBeDefined();
     expect(getByText(strings('stake.estimated_annual_earnings'))).toBeDefined();
+    expect(getByText(strings('stake.view_earnings_history'))).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
 });

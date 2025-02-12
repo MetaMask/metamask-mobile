@@ -39,7 +39,7 @@ exports[`AddressInputs AddressFrom should match default snapshot 1`] = `
     style={
       [
         {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
           "borderRadius": 8,
           "borderWidth": 1,
           "flex": 1,
@@ -50,7 +50,7 @@ exports[`AddressInputs AddressFrom should match default snapshot 1`] = `
           "padding": 10,
         },
         {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
         },
       ]
     }
@@ -220,7 +220,7 @@ exports[`AddressInputs AddressFrom should match snapshot when layout is vertical
     style={
       [
         {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
           "borderRadius": 8,
           "borderWidth": 1,
           "flex": 1,
@@ -231,7 +231,7 @@ exports[`AddressInputs AddressFrom should match snapshot when layout is vertical
           "padding": 10,
         },
         {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
         },
       ]
     }
@@ -413,7 +413,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
           "paddingHorizontal": 10,
         },
         {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
         },
       ]
     }
@@ -684,7 +684,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
           "paddingHorizontal": 10,
         },
         {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
         },
       ]
     }

@@ -121,7 +121,7 @@ exports[`NotificationBadge should renders correctly 1`] = `
             "height": 32,
             "justifyContent": "center",
             "overflow": "hidden",
-            "shadowColor": "#0000001a",
+            "shadowColor": "#0000001A",
             "shadowOffset": {
               "height": 2,
               "width": 0,

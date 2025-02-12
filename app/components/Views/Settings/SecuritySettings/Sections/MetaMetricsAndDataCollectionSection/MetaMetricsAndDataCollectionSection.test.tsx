@@ -11,6 +11,7 @@ import {
 } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
+import { MetricsEventBuilder } from '../../../../../../core/Analytics/MetricsEventBuilder';
 
 const { InteractionManager, Alert, Linking } =
   jest.requireActual('react-native');
@@ -209,11 +210,17 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
             deviceProp: 'Device value',
             userProp: 'User value',
-            is_metrics_opted_in: true,
           });
           expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-            { is_metrics_opted_in: true, updated_after_onboarding: true },
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+            )
+              .addProperties({
+                is_metrics_opted_in: true,
+                updated_after_onboarding: true,
+                location: 'settings',
+              })
+              .build(),
           );
         });
       });
@@ -292,12 +299,18 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
               deviceProp: 'Device value',
               userProp: 'User value',
-              is_metrics_opted_in: true,
             });
             expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
               1,
-              MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-              { is_metrics_opted_in: true, updated_after_onboarding: true },
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+              )
+                .addProperties({
+                  is_metrics_opted_in: true,
+                  location: 'settings',
+                  updated_after_onboarding: true,
+                })
+                .build(),
             );
           }
 
@@ -305,14 +318,21 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             // if MetaMetrics is initially disabled, addTraitsToUser is called twice and this is 2nd call
             !metaMetricsInitiallyEnabled ? 2 : 1,
             {
-              has_marketing_consent: true,
+              has_marketing_consent: 'ON',
             },
           );
           expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
             // if MetaMetrics is initially disabled, trackEvent is called twice and this is 2nd call
             !metaMetricsInitiallyEnabled ? 2 : 1,
-            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-            { has_marketing_consent: true, location: 'settings' },
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+            )
+              .addProperties({
+                has_marketing_consent: true,
+                location: 'settings',
+                updated_after_onboarding: true,
+              })
+              .build(),
           );
         });
       };
@@ -357,12 +377,19 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledTimes(1);
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
-            has_marketing_consent: false,
+            has_marketing_consent: 'OFF',
           });
           expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(1);
           expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-            { has_marketing_consent: false, location: 'settings' },
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+            )
+              .addProperties({
+                has_marketing_consent: false,
+                location: 'settings',
+                updated_after_onboarding: true,
+              })
+              .build(),
           );
           expect(mockNavigate).toHaveBeenCalledWith(
             Routes.MODAL.ROOT_MODAL_FLOW,

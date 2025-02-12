@@ -12,6 +12,8 @@ import {
   LEDGER_LIVE_PATH,
 } from './constants';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
+import { strings } from '../../../locales/i18n';
+import { keyringTypeToName } from '@metamask/accounts-controller';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -130,7 +132,7 @@ export const setHDPath = async (path: string) => {
     if (isValidPath(path)) {
       keyring.setHdPath(path);
     } else {
-      throw new Error(`HD Path is invalid: ${path}`);
+      throw new Error(strings('ledger.hd_path_error', { path }));
     }
   });
 };
@@ -178,7 +180,7 @@ export const getLedgerAccountsByOperation = async (
     }));
   } catch (e) {
     /* istanbul ignore next */
-    throw new Error(`Unspecified error when connect Ledger Hardware, ${e}`);
+    throw new Error(strings('ledger.unspecified_error_during_connect'));
   }
 };
 
@@ -209,13 +211,43 @@ export const ledgerSignTypedMessage = async (
 };
 
 /**
+ * Check if account name exists in the accounts list
+ *
+ * @param accountName - The account name to check
+ */
+export const checkAccountNameExists = async (accountName: string) => {
+  const accountsController = Engine.context.AccountsController;
+  const accounts =  Object.values(accountsController.state.internalAccounts.accounts);
+  const existingAccount = accounts.find((account) => account.metadata.name === accountName);
+  return !!existingAccount;
+};
+
+/**
  * Unlock Ledger Wallet Account with index, and add it that account to metamask
  *
  * @param index - The index of the account to unlock
  */
 export const unlockLedgerWalletAccount = async (index: number) => {
-  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+  const accountsController = Engine.context.AccountsController;
+  const { unlockAccount, name}  = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    const existingAccounts = await keyring.getAccounts();
+    const keyringName = keyringTypeToName(ExtendedKeyringTypes.ledger);
+    const accountName = `${keyringName} ${existingAccounts.length + 1}`;
+
+    if(await checkAccountNameExists(accountName)) {
+      throw new Error(strings('ledger.account_name_existed', { accountName }));
+    }
+
     keyring.setAccountToUnlock(index);
-    await keyring.addAccounts(1);
+    const accounts = await keyring.addAccounts(1);
+    return { unlockAccount: accounts[accounts.length - 1], name: accountName };
   });
+
+  const account =
+    accountsController.getAccountByAddress(unlockAccount);
+
+  if(account && name !== account.metadata.name) {
+    accountsController.setAccountName(account.id, name);
+  }
 };
+

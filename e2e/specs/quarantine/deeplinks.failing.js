@@ -9,7 +9,7 @@ import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet
 import Browser from '../../pages/Browser/BrowserView';
 import NetworkView from '../../pages/Settings/NetworksView';
 import SettingsView from '../../pages/Settings/SettingsView';
-import LoginView from '../../pages/LoginView';
+import LoginView from '../../pages/wallet/LoginView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
@@ -17,7 +17,7 @@ import CommonView from '../../pages/CommonView';
 import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../utils/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 

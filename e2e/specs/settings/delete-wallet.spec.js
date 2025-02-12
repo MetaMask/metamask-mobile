@@ -2,13 +2,13 @@
 import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
-import LoginView from '../../pages/LoginView';
+import LoginView from '../../pages/wallet/LoginView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import ChangePasswordView from '../../pages/Settings/SecurityAndPrivacy/ChangePasswordView';
 import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import CommonView from '../../pages/CommonView';

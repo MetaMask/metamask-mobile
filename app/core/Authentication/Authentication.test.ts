@@ -10,8 +10,7 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 // eslint-disable-next-line import/no-namespace
 import * as Keychain from 'react-native-keychain';
 import SecureKeychain from '../SecureKeychain';
-import configureMockStore from 'redux-mock-store';
-import Logger from '../../util/Logger';
+import ReduxService, { ReduxStore } from '../redux';
 
 const storage: Record<string, unknown> = {};
 
@@ -32,30 +31,9 @@ jest.mock('../../store/storage-wrapper', () => ({
 }));
 
 describe('Authentication', () => {
-  const initialState = {
-    security: {
-      allowLoginWithRememberMe: true,
-    },
-  };
-  const mockStore = configureMockStore();
-  const store = mockStore(initialState);
-
-  beforeEach(() => {
-    Authentication.init(store);
-  });
-
   afterEach(() => {
     StorageWrapper.clearAll();
     jest.restoreAllMocks();
-  });
-
-  it('Does not initialize class more than once', async () => {
-    const spy = jest.spyOn(Logger, 'log');
-    Authentication.init(store);
-    Authentication.init(store);
-    expect(spy).toHaveBeenCalledWith(
-      'Attempted to call init on AuthenticationService but an instance has already been initialized',
-    );
   });
 
   it('should return a type password', async () => {
@@ -129,6 +107,10 @@ describe('Authentication', () => {
   });
 
   it('should return a auth type for components AUTHENTICATION_TYPE.REMEMBER_ME', async () => {
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+    } as unknown as ReduxStore);
+
     SecureKeychain.getSupportedBiometryType = jest
       .fn()
       .mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);

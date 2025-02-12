@@ -1,7 +1,7 @@
 'use strict';
 
-import EnableAutomaticSecurityChecksView from './pages/modals/EnableAutomaticSecurityChecksView';
-import EnableDeviceNotificationsAlert from './pages/EnableDeviceNotificationsAlert';
+import EnableAutomaticSecurityChecksView from './pages/Onboarding/EnableAutomaticSecurityChecksView';
+import EnableDeviceNotificationsAlert from './pages/Onboarding/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
 import NetworkEducationModal from './pages/Network/NetworkEducationModal';
@@ -9,25 +9,26 @@ import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
-import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
+import OnboardingWizardModal from './pages/Onboarding/OnboardingWizardModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
-import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
-import ProtectYourWalletModal from './pages/modals/ProtectYourWalletModal';
+import SkipAccountSecurityModal from './pages/Onboarding/SkipAccountSecurityModal';
+import ProtectYourWalletModal from './pages/Onboarding/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 
 import TestHelpers from './helpers';
 
-import TermsOfUseModal from './pages/modals/TermsOfUseModal';
-import TabBarComponent from './pages/TabBarComponent';
-import LoginView from './pages/LoginView';
+import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
+import TabBarComponent from './pages/wallet/TabBarComponent';
+import LoginView from './pages/wallet/LoginView';
 import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
-import ToastModal from './pages/modals/ToastModal';
+import ToastModal from './pages/wallet/ToastModal';
+import TestDApp from './pages/Browser/TestDApp';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -76,7 +77,7 @@ export const skipNotificationsDeviceSettings = async () => {
     await Assertions.checkIfVisible(
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
-    await EnableDeviceNotificationsAlert.tapOnNotEnableDeviceNotificationsButton();
+    await EnableDeviceNotificationsAlert.tapOnEnableDeviceNotificationsButton();
     await Assertions.checkIfNotVisible(
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
@@ -219,5 +220,12 @@ export const switchToSepoliaNetwork = async () => {
 export const loginToApp = async () => {
   const PASSWORD = '123123123';
   await Assertions.checkIfVisible(LoginView.container);
+  await Assertions.checkIfVisible(LoginView.passwordInput);
   await LoginView.enterPassword(PASSWORD);
+};
+
+export const waitForTestDappToLoad = async () => {
+  await TestHelpers.delay(3000);
+  await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
+  await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
 };

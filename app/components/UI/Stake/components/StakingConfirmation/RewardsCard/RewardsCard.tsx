@@ -12,6 +12,8 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import styleSheet from './RewardsCard.styles';
 import { RewardsCardProps } from './RewardsCard.types';
+import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
+import { useMetrics } from '../../../../../hooks/useMetrics';
 
 const RewardsCard = ({
   rewardRate,
@@ -19,6 +21,8 @@ const RewardsCard = ({
   rewardsFiat,
 }: RewardsCardProps) => {
   const { styles } = useStyles(styleSheet, {});
+
+  const { trackEvent } = useMetrics();
 
   return (
     <Card style={styles.card} disabled>
@@ -29,6 +33,10 @@ const RewardsCard = ({
             title: strings('tooltip_modal.reward_rate.title'),
             content: strings('tooltip_modal.reward_rate.tooltip'),
             size: TooltipSizes.Sm,
+            onPress: () =>
+              trackEvent(
+                createTooltipOpenedEvent('Rewards Card', 'Reward Rate'),
+              ),
           },
         }}
         value={{
@@ -57,6 +65,10 @@ const RewardsCard = ({
             title: strings('tooltip_modal.reward_frequency.title'),
             content: strings('tooltip_modal.reward_frequency.tooltip'),
             size: TooltipSizes.Sm,
+            onPress: () =>
+              trackEvent(
+                createTooltipOpenedEvent('Rewards Card', 'Reward Frequency'),
+              ),
           },
         }}
         value={{

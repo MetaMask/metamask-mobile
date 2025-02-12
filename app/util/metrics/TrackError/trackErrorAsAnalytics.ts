@@ -1,4 +1,5 @@
 import { EVENT_NAME, MetaMetrics } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { InteractionManager } from 'react-native';
 
 /**
@@ -17,13 +18,14 @@ const trackErrorAsAnalytics = (
 ) => {
   InteractionManager.runAfterInteractions(async () => {
     MetaMetrics.getInstance().trackEvent(
-      { category: EVENT_NAME.ERROR },
-      {
-        error: true,
-        type,
-        errorMessage,
-        ...(otherInfo && { otherInfo }),
-      },
+      MetricsEventBuilder.createEventBuilder({ category: EVENT_NAME.ERROR })
+        .addProperties({
+          error: true,
+          type,
+          errorMessage,
+          ...(otherInfo && { otherInfo }),
+        })
+        .build(),
     );
   });
 };

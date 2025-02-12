@@ -7,16 +7,12 @@ import { NameType } from './Name.types';
 import useDisplayName, {
   DisplayNameVariant,
 } from '../../hooks/DisplayName/useDisplayName';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../hooks/DisplayName/useDisplayName', () => ({
   __esModule: true,
   ...jest.requireActual('../../hooks/DisplayName/useDisplayName'),
   default: jest.fn(),
-}));
-
-jest.mock('../Identicon', () => ({
-  __esModule: true,
-  default: () => 'Identicon',
 }));
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
@@ -49,6 +45,7 @@ describe('Name', () => {
           <Name
             type={NameType.EthereumAddress}
             value={UNKNOWN_ADDRESS_NOT_CHECKSUMMED}
+            variation={CHAIN_IDS.MAINNET}
           />
         </Provider>,
       );
@@ -72,11 +69,31 @@ describe('Name', () => {
           <Name
             type={NameType.EthereumAddress}
             value={KNOWN_ADDRESS_CHECKSUMMED}
+            variation={CHAIN_IDS.MAINNET}
           />
         </Provider>,
       );
 
       expect(wrapper.getByText(KNOWN_NAME_MOCK)).toBeTruthy();
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should render image', () => {
+      mockUseDisplayName.mockReturnValue({
+        variant: DisplayNameVariant.Recognized,
+        name: KNOWN_NAME_MOCK,
+        image: 'https://example.com/image.png',
+      });
+
+      const wrapper = render(
+        <Provider store={store}>
+          <Name
+            type={NameType.EthereumAddress}
+            value={KNOWN_ADDRESS_CHECKSUMMED}
+            variation={CHAIN_IDS.MAINNET}
+          />
+        </Provider>,
+      );
       expect(wrapper).toMatchSnapshot();
     });
   });

@@ -4,6 +4,7 @@ import {
 } from '../../selectors/Browser/ConnectedAccountModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import TestHelpers from '../../helpers';
 
 class ConnectedAccountsModal {
   get permissionsButton() {
@@ -23,15 +24,56 @@ class ConnectedAccountsModal {
       ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
     );
   }
+  get disconnectButton() {
+    return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT);
+  }
+
+  get disconnectAllAccountsAndNetworksButton() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
+    );
+  }
+
+  get navigateToEditNetworksPermissionsButton() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
+    );
+  }
 
   get connectAccountsButton() {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
     );
   }
+  get managePermissionsButton() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
+    );
+  }
 
   get title() {
     return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
+  }
+
+  get selectAllNetworksButton() {
+    return Matchers.getElementByText(
+      ConnectedAccountModalSelectorsText.SELECT_ALL,
+    );
+    // return Matchers.getElementByID(
+    //   ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
+    // );
+  }
+
+  get disconnectNetworksButton() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
+    );
+  }
+
+  get confirmDisconnectNetworksButton() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
+    );
   }
 
   async tapPermissionsButton() {
@@ -44,6 +86,38 @@ class ConnectedAccountsModal {
 
   async tapDisconnectAllButton() {
     await Gestures.waitAndTap(this.disconnectAllButton);
+  }
+
+  async tapManagePermissionsButton() {
+    await TestHelpers.delay(4000);
+    await Gestures.waitAndTap(this.managePermissionsButton);
+  }
+
+  async tapDisconnectButton() {
+    await Gestures.waitAndTap(this.disconnectButton);
+  }
+  async tapDisconnectAllAccountsAndNetworksButton() {
+    await Gestures.waitAndTap(this.disconnectAllAccountsAndNetworksButton);
+  }
+
+  async tapNavigateToEditNetworksPermissionsButton() {
+    await Gestures.waitAndTap(this.navigateToEditNetworksPermissionsButton);
+  }
+
+  async tapSelectAllNetworksButton() {
+    await Gestures.waitAndTap(this.selectAllNetworksButton);
+  }
+
+  async tapDeselectAllNetworksButton() {
+    await Gestures.waitAndTap(this.selectAllNetworksButton);
+  }
+
+  async tapDisconnectNetworksButton() {
+    await Gestures.waitAndTap(this.disconnectNetworksButton);
+  }
+
+  async tapConfirmDisconnectNetworksButton() {
+    await Gestures.waitAndTap(this.confirmDisconnectNetworksButton);
   }
 
   //async tapToSetAsPrimaryAccount() {

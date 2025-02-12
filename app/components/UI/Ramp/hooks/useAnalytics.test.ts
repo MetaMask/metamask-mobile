@@ -1,6 +1,7 @@
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useAnalytics from './useAnalytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../../../core/Analytics', () => ({
   ...jest.requireActual('../../../../core/Analytics'),
@@ -24,38 +25,17 @@ describe('useAnalytics', () => {
     const { result } = renderHookWithProvider(() => useAnalytics());
 
     const testEvent = 'BUY_BUTTON_CLICKED';
-
-    result.current(testEvent, {
+    const testEventParams = {
       location: 'Amount to Buy Screen',
       text: 'Buy',
-    });
+    } as const;
+
+    result.current(testEvent, testEventParams);
 
     expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-      MetaMetricsEvents[testEvent],
-      {
-        location: 'Amount to Buy Screen',
-        text: 'Buy',
-      },
-    );
-  });
-
-  it('calls trackEvent for anonymous params', () => {
-    const { result } = renderHookWithProvider(() => useAnalytics());
-
-    const testEvent = 'RAMP_REGION_SELECTED';
-    const testPayload = {
-      country_id: 'test-country-id',
-      is_unsupported_offramp: false,
-      is_unsupported_onramp: false,
-    };
-
-    result.current(testEvent, testPayload);
-
-    expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-      MetaMetricsEvents[testEvent],
-      {
-        sensitiveProperties: testPayload,
-      },
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents[testEvent])
+        .addProperties(testEventParams)
+        .build(),
     );
   });
 });

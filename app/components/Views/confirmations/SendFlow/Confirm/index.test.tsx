@@ -2,6 +2,7 @@ import React from 'react';
 import { ConnectedComponent } from 'react-redux';
 import { waitFor, fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
+import { Alert } from 'react-native';
 import Confirm from '.';
 import {
   DeepPartial,
@@ -16,6 +17,8 @@ import { RootState } from '../../../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
 import { updateTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
+import Engine from '../../../../../core/Engine';
+import { flushPromises } from '../../../../../util/test/utils';
 
 const MOCK_ADDRESS = '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58';
 
@@ -84,6 +87,7 @@ const mockInitialState: DeepPartial<RootState> = {
       },
     },
     selectedAsset: {},
+    chainId: '0x1',
     transaction: {
       from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
       to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
@@ -253,6 +257,26 @@ describe('Confirm', () => {
             },
           },
         }),
+      );
+    });
+  });
+
+  it('should show error if transaction is not added', async () => {
+    jest.spyOn(Alert, 'alert');
+
+    Engine.context.TransactionController.addTransaction = jest
+      .fn()
+      .mockRejectedValue(new Error('Transaction not added'));
+
+    render(Confirm);
+
+    await flushPromises();
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Transaction error',
+        'Transaction not added',
+        expect.any(Array),
       );
     });
   });

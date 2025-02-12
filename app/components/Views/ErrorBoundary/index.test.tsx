@@ -2,8 +2,10 @@ import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary from './';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   ...jest.requireActual('../../../components/hooks/useMetrics'),
@@ -12,7 +14,13 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .mockImplementation((Children) => (props: any) => (
-      <Children {...props} metrics={{ trackEvent: mockTrackEvent }} />
+      <Children
+        {...props}
+        metrics={{
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }}
+      />
     )),
 }));
 

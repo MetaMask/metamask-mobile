@@ -18,6 +18,11 @@ class SecurityAndPrivacy {
       SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
     );
   }
+  get clearPrivacyDataButton() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON,
+    );
+  }
 
   get securityAndPrivacyHeading() {
     return Matchers.getElementByText(
@@ -144,6 +149,13 @@ class SecurityAndPrivacy {
     );
   }
 
+  async scrollToClearPrivacyData() {
+    await Gestures.scrollToElement(
+      this.clearPrivacyDataButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
   async scrollToMetaMetrics() {
     await Gestures.scrollToElement(
       this.metaMetricsToggle,
@@ -164,6 +176,9 @@ class SecurityAndPrivacy {
 
   async tapMetaMetricsToggle() {
     await Gestures.waitAndTap(this.metaMetricsToggle);
+  }
+  async tapClearPrivacyData() {
+    await Gestures.waitAndTap(this.clearPrivacyDataButton);
   }
 
   async tapTurnOnRememberMeToggle() {

@@ -13,13 +13,7 @@ exports[`FoxLoader renders correctly and matches snapshot 1`] = `
 >
   <Image
     resizeMode="contain"
-    source={
-      {
-        "default": {
-          "uri": "MockImage",
-        },
-      }
-    }
+    source={1}
     style={
       {
         "height": 72,

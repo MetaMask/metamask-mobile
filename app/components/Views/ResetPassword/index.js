@@ -53,7 +53,7 @@ import AnimatedFox from '../../Base/AnimatedFox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
 const createStyles = (colors) =>
@@ -808,7 +808,7 @@ class ResetPassword extends PureComponent {
 ResetPassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

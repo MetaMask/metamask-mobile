@@ -1,6 +1,6 @@
 import Selectors from '../helpers/Selectors';
 import {
-  COMFIRM_TXN_AMOUNT,
+  CONFIRM_TXN_AMOUNT,
   CONFIRM_TRANSACTION_BUTTON_ID,
 } from './testIDs/Screens/TransactionConfirm.testIds';
 import { ESTIMATED_FEE_TEST_ID } from './testIDs/Screens/TransactionSummaryScreen.testIds';
@@ -9,7 +9,7 @@ import Gestures from '../helpers/Gestures';
 
 class TransactionConfirmScreen {
   get confirmAmount() {
-    return Selectors.getElementByPlatform(COMFIRM_TXN_AMOUNT);
+    return Selectors.getElementByPlatform(CONFIRM_TXN_AMOUNT);
   }
 
   get estimatedGasFee() {

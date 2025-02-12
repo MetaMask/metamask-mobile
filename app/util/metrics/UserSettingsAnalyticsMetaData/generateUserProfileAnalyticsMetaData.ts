@@ -17,6 +17,8 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
   // This will return either "light" or "dark"
   const appThemeStyle =
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
+  const isDataCollectionForMarketingEnabled =
+      reduxState?.security?.dataCollectionForMarketing;
 
   return {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
@@ -38,6 +40,9 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
         : UserProfileProperty.OFF,
     [UserProfileProperty.SECURITY_PROVIDERS]:
       preferencesController?.securityAlertsEnabled ? 'blockaid' : '',
+    [UserProfileProperty.HAS_MARKETING_CONSENT]: isDataCollectionForMarketingEnabled
+        ? UserProfileProperty.ON
+        : UserProfileProperty.OFF,
   };
 };
 

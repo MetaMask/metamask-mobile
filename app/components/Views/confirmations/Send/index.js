@@ -48,17 +48,13 @@ import {
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { getBlockaidTransactionMetricsParams } from '../../../../util/blockaid';
-import {
-  selectChainId,
-  selectProviderType,
-} from '../../../../selectors/networkController';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from '../../../../selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
@@ -67,6 +63,14 @@ import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-pub
 import { toLowerCaseEquals } from '../../../../util/general';
 import { selectAddressBook } from '../../../../selectors/addressBookController';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import {
+  // Pending updated multichain UX to specify the send chain.
+  /* eslint-disable no-restricted-syntax */
+  selectChainId,
+  selectNetworkClientId,
+  /* eslint-enable no-restricted-syntax */
+  selectProviderTypeByChainId,
+} from '../../../../selectors/networkController';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -124,9 +128,13 @@ class Send extends PureComponent {
      */
     addressBook: PropTypes.object,
     /**
-     * The chain ID of the current selected network
+     * ID of the global network client
      */
-    chainId: PropTypes.string,
+    globalNetworkClientId: PropTypes.string,
+    /**
+     * ID of the global chain
+     */
+    globalChainId: PropTypes.string,
     /**
      * List of accounts from the AccountsController
      */
@@ -180,8 +188,8 @@ class Send extends PureComponent {
    * Resets gas and gasPrice of transaction
    */
   async reset() {
-    const { transaction } = this.props;
-    const { gas, gasPrice } = await estimateGas(transaction);
+    const { globalNetworkClientId, transaction } = this.props;
+    const { gas, gasPrice } = await estimateGas(transaction, globalNetworkClientId);
     this.props.setTransactionObject({
       gas: hexToBN(gas),
       gasPrice: hexToBN(gasPrice),
@@ -295,7 +303,7 @@ class Send extends PureComponent {
    * Handle deeplink txMeta recipient
    */
   handleNewTxMetaRecipient = async (recipient) => {
-    const to = await getAddress(recipient, this.props.chainId);
+    const to = await getAddress(recipient, this.props.globalChainId);
 
     if (!to) {
       NotificationManager.showSimpleNotification({
@@ -315,11 +323,9 @@ class Send extends PureComponent {
   handleNewTxMeta = async ({
     target_address,
     action,
-    chain_id = null,
-    function_name = null, // eslint-disable-line no-unused-vars
     parameters = null,
   }) => {
-    const { addressBook, chainId, internalAccounts, selectedAddress } =
+    const { addressBook, globalChainId, internalAccounts, selectedAddress } =
       this.props;
 
     let newTxMeta = {};
@@ -344,7 +350,7 @@ class Send extends PureComponent {
 
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
-          chainId,
+          chainId: globalChainId,
           toAddress: newTxMeta.to,
           internalAccounts,
           ensRecipient: newTxMeta.ensRecipient,
@@ -383,7 +389,7 @@ class Send extends PureComponent {
         };
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
-          chainId,
+          chainId: globalChainId,
           toAddress: to,
           internalAccounts,
           ensRecipient,
@@ -403,7 +409,10 @@ class Send extends PureComponent {
 
       // if gas and gasPrice is not defined in the deeplink, we should define them
       if (!gas && !gasPrice) {
-        const { gas, gasPrice } = await estimateGas(this.props.transaction);
+        const { gas, gasPrice } = await estimateGas(
+          this.props.transaction,
+          this.props.globalNetworkClientId,
+        );
         newTxMeta = {
           ...newTxMeta,
           gas,
@@ -550,7 +559,8 @@ class Send extends PureComponent {
     this.setState({ transactionConfirmed: true });
     const {
       transaction: { selectedAsset, assetType },
-      chainId,
+      globalChainId,
+      globalNetworkClientId,
       addressBook,
     } = this.props;
     let { transaction } = this.props;
@@ -562,6 +572,7 @@ class Send extends PureComponent {
       }
       const { result, transactionMeta } = await addTransaction(transaction, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId: globalNetworkClientId,
         origin: TransactionTypes.MMM,
       });
       await KeyringController.resetQRKeyringState();
@@ -601,9 +612,9 @@ class Send extends PureComponent {
         }
       }
       const existingContact =
-        addressBook[chainId] && addressBook[chainId][checksummedAddress];
+        addressBook[globalChainId] && addressBook[globalChainId][checksummedAddress];
       if (!existingContact) {
-        AddressBookController.set(checksummedAddress, '', chainId);
+        AddressBookController.set(checksummedAddress, '', globalChainId);
       }
       await new Promise((resolve) => {
         resolve(result);
@@ -636,7 +647,11 @@ class Send extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Send)');
       } else {
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            )
+            .build(),
         );
       }
       this.setState({ transactionConfirmed: false });
@@ -652,8 +667,10 @@ class Send extends PureComponent {
    */
   trackConfirmScreen = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -664,11 +681,13 @@ class Send extends PureComponent {
     const { transaction } = this.props;
     const actionKey = await getTransactionReviewActionKey({ transaction });
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
-      {
-        ...this.getTrackingParams(),
-        actionKey,
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .addProperties({
+          ...this.getTrackingParams(),
+          actionKey,
+        })
+        .build(),
     );
   };
 
@@ -677,8 +696,10 @@ class Send extends PureComponent {
    */
   trackOnCancel = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -687,8 +708,12 @@ class Send extends PureComponent {
    */
   trackOnConfirm = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(
+          MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
+        )
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -779,20 +804,25 @@ class Send extends PureComponent {
   };
 }
 
-const mapStateToProps = (state) => ({
-  addressBook: selectAddressBook(state),
-  accounts: selectAccounts(state),
-  contractBalances: selectContractBalances(state),
-  transaction: state.transaction,
-  networkType: selectProviderType(state),
-  tokens: selectTokens(state),
-  chainId: selectChainId(state),
-  internalAccounts: selectInternalAccounts(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
-  dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-  tokenList: selectTokenList(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-});
+const mapStateToProps = (state) => {
+  const globalChainId = selectChainId(state);
+
+  return {
+    addressBook: selectAddressBook(state),
+    accounts: selectAccounts(state),
+    contractBalances: selectContractBalances(state),
+    transaction: state.transaction,
+    networkType: selectProviderTypeByChainId(state, globalChainId),
+    tokens: selectTokens(state),
+    globalChainId,
+    globalNetworkClientId: selectNetworkClientId(state),
+    internalAccounts: selectInternalAccounts(state),
+    selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+    dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
+    tokenList: selectTokenList(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),
