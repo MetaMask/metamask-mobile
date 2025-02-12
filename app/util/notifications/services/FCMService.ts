@@ -13,7 +13,7 @@ type UnsubscribeFunc = () => void;
 
 /**
  * Converts an unprocessed raw notification to a processed raw notification
- * @todo - this is exported in the updated notification-services-controller package
+ * TEMP - this is exported in the updated notification-services-controller package
  * @param data - takes an unprocessed raw notification
  * @returns - adds additional properties to make it a processed raw notification
  */

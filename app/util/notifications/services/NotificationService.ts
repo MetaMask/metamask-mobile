@@ -47,7 +47,6 @@ class NotificationsService {
         // known notifee channels
         if ('blocked' in c && c.blocked) {
           deniedChannelMap.set(c.id as ChannelId, true);
-          return;
         }
       });
 

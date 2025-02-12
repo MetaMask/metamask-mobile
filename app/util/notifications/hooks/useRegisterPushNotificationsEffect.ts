@@ -1,8 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import {
-  INotification,
-  TRIGGER_TYPES,
-} from '@metamask/notification-services-controller/notification-services';
+import { INotification } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import NotificationsService from '../services/NotificationService';
@@ -15,10 +12,8 @@ import {
   selectIsMetaMaskPushNotificationsEnabled,
 } from '../../../selectors/notifications';
 
-// TODO - improve navigation types, so we have Type-Safety for navigation props
 type NavigationParams = Record<string, { notification: INotification }>;
 
-// TODO - improve type inference for notifications we support
 function isINotification(n: unknown): n is INotification {
   const assumedShape = n as INotification;
   return Boolean(assumedShape?.type) && Boolean(assumedShape?.data);
@@ -40,11 +35,6 @@ function clickPushNotification(
     'NotificationServicesPushController:pushNotificationClicked',
     notification,
   );
-
-  // TODO, find a nicer way of abstracting the notifications we do support push notifications for
-  if (notification.type === TRIGGER_TYPES.SNAP) {
-    return;
-  }
 
   // Navigate
   navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
@@ -142,23 +132,29 @@ export function useRegisterPushNotificationsEffect() {
 
   // App Open Effect
   useEffect(() => {
-    try {
-      if (notificationsEnabled) {
-        onAppOpenNotification(navigation);
+    const run = async () => {
+      try {
+        if (notificationsEnabled) {
+          await onAppOpenNotification(navigation);
+        }
+      } catch {
+        // Do Nothing
       }
-    } catch {
-      // Do Nothing
-    }
+    };
+    run();
   }, [navigation, notificationsEnabled]);
 
   // On Background and Foreground Events
   useEffect(() => {
-    try {
-      if (notificationsEnabled) {
-        onBackgroundEvent(navigation);
+    const run = async () => {
+      try {
+        if (notificationsEnabled) {
+          await onBackgroundEvent(navigation);
+        }
+      } catch {
+        // Do Nothing
       }
-    } catch {
-      // Do Nothing
-    }
+    };
+    run();
   }, [navigation, notificationsEnabled]);
 }

@@ -29,7 +29,7 @@ export const selectIsMetamaskNotificationsEnabled = createSelector(
     notificationServicesControllerState.isNotificationServicesEnabled,
 );
 /**
- * @todo - update controller to get up-to-date state
+ * TEMP - update controller to get up-to-date state
  */
 export const selectIsMetaMaskPushNotificationsEnabled = createSelector(
   selectNotificationServicesPushControllerState,

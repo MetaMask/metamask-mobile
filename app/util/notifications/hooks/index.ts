@@ -3,7 +3,7 @@ import { useRegisterPushNotificationsEffect } from './useRegisterPushNotificatio
 
 /**
  * Registers Push Notifications
- * @todo - clean up props once we finalise integration
+ * TEMP - clean up props once we finalise integration
  * @param navigation - page navigation prop
  */
 const useNotificationHandler = (_navigation: NavigationContainerRef) => {
