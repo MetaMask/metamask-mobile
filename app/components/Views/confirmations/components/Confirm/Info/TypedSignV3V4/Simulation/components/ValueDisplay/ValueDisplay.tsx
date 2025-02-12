@@ -6,6 +6,7 @@ import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
 import ButtonPill from '../../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
+import AnimatedPulse from '../../../../../../../../../../component-library/components-temp/Animated/AnimatedPulse';
 import { ButtonIconSizes } from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 import ButtonIcon from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import {
@@ -36,7 +37,6 @@ import BottomModal from '../../../../../../UI/BottomModal';
 
 import styleSheet from './ValueDisplay.styles';
 import { strings } from '../../../../../../../../../../../locales/i18n';
-import AnimatedPulse from '../AnimatedPulse/AnimatedPulse';
 import { selectContractExchangeRatesByChainId } from '../../../../../../../../../../selectors/tokenRatesController';
 import { RootState } from '../../../../../../../../../../reducers';
 
