@@ -436,6 +436,13 @@ class FixtureBuilder {
               isUpdatingMetamaskNotificationsAccount: [],
               isCheckingAccountsPresence: false,
             },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId:
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              multichainNetworksMetadata: {},
+              multichainNetworkConfigurationsByChainId: {},
+              nonEvmSelected: false,
+            },
           },
         },
         privacy: {
