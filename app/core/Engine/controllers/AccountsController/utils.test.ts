@@ -2,6 +2,14 @@ import {
   AccountsControllerMessenger,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
+import type {
+  KeyringControllerAccountRemovedEvent,
+  KeyringControllerGetAccountsAction,
+  KeyringControllerGetKeyringForAccountAction,
+  KeyringControllerGetKeyringsByTypeAction,
+  KeyringControllerStateChangeEvent,
+} from '@metamask/keyring-controller';
+import { SnapStateChange } from '@metamask/snaps-controllers';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import {
   createAccountsController,
@@ -30,7 +38,14 @@ describe('accountControllersUtils', () => {
     let accountsControllerMessenger: AccountsControllerMessenger;
 
     beforeEach(() => {
-      const globalMessenger = new ExtendedControllerMessenger();
+      const globalMessenger = new ExtendedControllerMessenger<
+        | KeyringControllerGetAccountsAction
+        | KeyringControllerGetKeyringsByTypeAction
+        | KeyringControllerGetKeyringForAccountAction,
+        | SnapStateChange
+        | KeyringControllerAccountRemovedEvent
+        | KeyringControllerStateChangeEvent
+      >();
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       accountsControllerMessenger = globalMessenger.getRestricted({
         name: 'AccountsController',
