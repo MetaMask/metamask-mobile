@@ -5,7 +5,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 
-export const ConfirmRoot = () => {
+const ConfirmRoot = () => {
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const { isFlatConfirmation } = useFlatConfirmation();
   const navigation = useNavigation();
@@ -20,3 +20,5 @@ export const ConfirmRoot = () => {
 
   return null;
 };
+
+export default ConfirmRoot;

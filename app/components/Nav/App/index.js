@@ -144,7 +144,7 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
-import { Confirm } from '../../Views/confirmations/Confirm';
+import Confirm from '../../Views/confirmations/Confirm/Confirm';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
