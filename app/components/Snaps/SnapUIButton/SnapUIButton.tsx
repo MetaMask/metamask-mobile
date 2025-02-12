@@ -1,5 +1,6 @@
+import React from 'react';
 import { ActivityIndicator } from 'react-native';
-import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
+import { ButtonType } from '@metamask/snaps-sdk';
 import {
   ButtonSize,
   ButtonVariants,
@@ -8,7 +9,7 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text/Text.types';
-import { useSnapInterfaceContext } from '../SnapInterfaceContext';
+// import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import Button from '../../../component-library/components/Buttons/Button';
 import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
@@ -21,7 +22,7 @@ import { DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT } from '../../../component-l
 
 interface SnapUIButtonProps {
   label: string | React.ReactNode;
-  type: ButtonType;
+  // type: ButtonType;
   snapVariant: ButtonVariants;
   name: string;
   children: React.ReactNode;
@@ -42,7 +43,7 @@ const SnapUIButton = ({
   label,
   name,
   children,
-  type = ButtonType.Button,
+  // type = ButtonType.Button,
   variant = ButtonVariants.Primary,
   disabled = false,
   loading = false,

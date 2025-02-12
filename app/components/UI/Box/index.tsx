@@ -15,7 +15,6 @@ const styles = StyleSheet.create({
     padding: 16,
     margin: 8,
   },
-  overflowHidden: { overflow: 'hidden' },
 });
 
 const getBoxStyles = (props: {
