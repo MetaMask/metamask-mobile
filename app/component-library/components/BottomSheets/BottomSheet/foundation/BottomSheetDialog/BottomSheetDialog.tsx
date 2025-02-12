@@ -55,11 +55,11 @@ const BottomSheetDialog = forwardRef<
   (
     {
       children,
-      isBackgroundAlternative = false,
       isFullscreen = false,
       isInteractable = true,
       onClose,
       onOpen,
+      stylesDialogSheet = {},
       ...props
     },
     ref,
@@ -70,9 +70,9 @@ const BottomSheetDialog = forwardRef<
     const { height: screenHeight } = useWindowDimensions();
     const maxSheetHeight = screenHeight - screenTopPadding;
     const { styles } = useStyles(styleSheet, {
-      isBackgroundAlternative,
       maxSheetHeight,
       screenBottomPadding,
+      stylesDialogSheet,
       isFullscreen,
     });
     // X and Y values start on top left of the DIALOG

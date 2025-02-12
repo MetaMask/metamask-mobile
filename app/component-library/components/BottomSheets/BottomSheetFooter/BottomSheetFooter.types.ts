@@ -25,11 +25,6 @@ export interface BottomSheetFooterProps extends ViewProps {
    * Array of buttons that will be displayed in the footer
    */
   buttonPropsArray: ButtonProps[];
-  /**
-   * Optional prop to control the background color of the footer.
-   * @default false
-   */
-  isBackgroundAlternative?: boolean;
 }
 
 /**
@@ -37,5 +32,5 @@ export interface BottomSheetFooterProps extends ViewProps {
  */
 export type BottomSheetFooterStyleSheetVars = Pick<
   BottomSheetFooterProps,
-  'style' | 'buttonsAlignment' | 'isBackgroundAlternative'
+  'style' | 'buttonsAlignment'
 >;

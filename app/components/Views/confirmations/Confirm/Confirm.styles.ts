@@ -12,6 +12,9 @@ const styleSheet = (params: {
   } = params;
 
   return StyleSheet.create({
+    bottomSheetDialogSheet: {
+      backgroundColor: theme.colors.background.alternative,
+    },
     flatContainer: {
       position: 'absolute',
       top: 0,

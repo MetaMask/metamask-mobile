@@ -36,7 +36,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       children,
       onClose,
       onOpen,
-      isBackgroundAlternative = false,
+      stylesDialogSheet,
       isInteractable = true,
       shouldNavigateBack = true,
       isFullscreen = false,
@@ -108,7 +108,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           onOpen={onOpenCB}
           ref={bottomSheetDialogRef}
           isFullscreen={isFullscreen}
-          isBackgroundAlternative={isBackgroundAlternative}
+          stylesDialogSheet={stylesDialogSheet}
         >
           {children}
         </BottomSheetDialog>

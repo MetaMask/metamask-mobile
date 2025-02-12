@@ -64,7 +64,7 @@ const Confirm = () => {
   return (
     <BottomSheet
       isInteractable={false}
-      isBackgroundAlternative
+      stylesDialogSheet={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >
       <View style={styles.modalContainer} testID={approvalRequest?.type}>

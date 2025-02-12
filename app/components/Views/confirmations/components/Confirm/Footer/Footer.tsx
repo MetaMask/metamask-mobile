@@ -48,7 +48,6 @@ export const Footer = () => {
     <BottomSheetFooter
       buttonsAlignment={ButtonsAlignment.Horizontal}
       buttonPropsArray={buttons}
-      isBackgroundAlternative
       style={styles.base}
     />
   );
