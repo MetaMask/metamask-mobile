@@ -17,6 +17,13 @@ import {
   useQRHardwareContext,
 } from './QRHardwareContext';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
