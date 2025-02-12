@@ -85,7 +85,7 @@ import {
   selectSwapsUsedGasEstimate,
   swapsTokensSelector,
 } from '../../../reducers/swaps';
-import { decGWEIToHexWEI } from '../../../util/conversions';
+import { decGWEIToHexWEI, hexToDecimal } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
@@ -118,7 +118,6 @@ import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeCon
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 import { getTransaction1559GasFeeEstimates } from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
-import { hexToDecimal } from '../../../util/conversions';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -635,6 +634,7 @@ function SwapsQuotesView({
     sourceAmount,
     sourceToken,
     tradeTxTokenFee,
+    isGasIncludedTrade,
   ]);
 
   /* Selected quote slippage */
@@ -898,6 +898,7 @@ function SwapsQuotesView({
       selectedQuoteId,
       conversionRate,
       selectedQuoteValue,
+      shouldUseSmartTransaction,
     ],
   );
 
@@ -1298,6 +1299,7 @@ function SwapsQuotesView({
     conversionRate,
     trackEvent,
     createEventBuilder,
+    shouldUseSmartTransaction,
   ]);
 
   const handleOpenQuotesModal = useCallback(() => {
@@ -1776,7 +1778,6 @@ function SwapsQuotesView({
   }, [
     isGasIncludedTrade,
     selectedQuote,
-    selectedQuoteValue,
     conversionRate,
     currentCurrency,
     tradeTxTokenFee,
