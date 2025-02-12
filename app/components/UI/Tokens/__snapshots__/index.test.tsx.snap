@@ -872,9 +872,9 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                   ETH
+                                  &lt; $0.01
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -890,9 +890,9 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                   ETH
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -1134,9 +1134,9 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                  &lt; 0.00001 BAT
+                                  $0
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -1152,9 +1152,9 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  $0
+                                  &lt; 0.00001 BAT
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2118,9 +2118,9 @@ exports[`Tokens render matches snapshot 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                   ETH
+                                  &lt; $0.01
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -2136,9 +2136,9 @@ exports[`Tokens render matches snapshot 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                   ETH
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2380,9 +2380,9 @@ exports[`Tokens render matches snapshot 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                  &lt; 0.00001 BAT
+                                  $0
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -2398,9 +2398,9 @@ exports[`Tokens render matches snapshot 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  $0
+                                  &lt; 0.00001 BAT
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3364,9 +3364,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                   ETH
+                                  &lt; $0.01
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -3382,9 +3382,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                   ETH
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3626,9 +3626,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                  &lt; 0.00001 BAT
+                                  $0
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -3644,9 +3644,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  $0
+                                  &lt; 0.00001 BAT
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -4610,9 +4610,9 @@ exports[`Tokens should render correctly 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                   ETH
+                                  &lt; $0.01
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -4628,9 +4628,9 @@ exports[`Tokens should render correctly 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                   ETH
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -4872,9 +4872,9 @@ exports[`Tokens should render correctly 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                  &lt; 0.00001 BAT
+                                  $0
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -4890,9 +4890,9 @@ exports[`Tokens should render correctly 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  $0
+                                  &lt; 0.00001 BAT
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -5874,9 +5874,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                   ETH
+                                  &lt; $0.01
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -5892,9 +5892,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                   ETH
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -6136,9 +6136,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                  &lt; 0.00001 BAT
+                                  $0
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -6154,9 +6154,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  $0
+                                  &lt; 0.00001 BAT
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -6398,9 +6398,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "lineHeight": 24,
                                     }
                                   }
-                                  testID="fiat-balance-test-id"
+                                  testID="balance-test-id"
                                 >
-                                  0 LINK
+                                  $0
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -6416,9 +6416,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "textTransform": "uppercase",
                                     }
                                   }
-                                  testID="main-balance-test-id"
+                                  testID="secondary-balance-test-id"
                                 >
-                                  $0
+                                  0 LINK
                                 </Text>
                               </View>
                             </TouchableOpacity>

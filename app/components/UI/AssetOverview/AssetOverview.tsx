@@ -396,19 +396,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   let mainBalance, secondaryBalance;
-  if (!isPortfolioViewEnabled()) {
-    if (primaryCurrency === 'ETH') {
-      mainBalance = `${balance} ${asset.symbol}`;
-      secondaryBalance = balanceFiat;
-    } else {
-      mainBalance = !balanceFiat ? `${balance} ${asset.symbol}` : balanceFiat;
-      secondaryBalance = !balanceFiat
-        ? balanceFiat
-        : `${balance} ${asset.symbol}`;
-    }
+  const formattedAssetBalance = `${balance} ${
+    (asset.isETH && asset.ticker) || asset.symbol
+  }`;
+  if (primaryCurrency === 'ETH' || !balanceFiat) {
+    mainBalance = formattedAssetBalance;
+    secondaryBalance = balanceFiat;
   } else {
-    mainBalance = `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`;
-    secondaryBalance = asset.balanceFiat || '';
+    mainBalance = balanceFiat;
+    secondaryBalance = formattedAssetBalance;
   }
 
   let currentPrice = 0;
