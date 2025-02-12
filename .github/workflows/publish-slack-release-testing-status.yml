@@ -10,7 +10,8 @@ jobs:
     uses: MetaMask/github-tools/.github/workflows/publish-slack-release-testing-status.yml@slack-release-testing
     with:
       platform: 'mobile'
+      google-document-id: '1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ' # Release Testing Document
+    secrets:
       slack-api-key: ${{ secrets.SLACKBOT_RLS_TOKEN }}
       github-token: ${{ secrets.PR_TOKEN }}
       google-credentials-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
-      google-document-id: '1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ' # Release Testing Document
