@@ -566,6 +566,9 @@ export const isChainPermissionsFeatureEnabled = true;
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
+export const isPerDappSelectedNetworkEnabled = () =>
+  process.env.MM_PER_DAPP_SELECTED_NETWORK === 'true';
+
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
 
