@@ -11,88 +11,104 @@ import WebViewHTML from '@metamask/snaps-execution-environments/dist/browserify/
 
 const styles = createStyles();
 
-interface SnapsExecutionWebViewProps {
-  injectJavaScript(js: string): void;
-  registerMessageListener(listener: (event: PostMessageEvent) => void): void;
-  unregisterMessageListener(listener: (event: PostMessageEvent) => void): void;
-}
 // This is a hack to allow us to asynchronously await the creation of the WebView.
-let resolveGetWebView: (arg0: SnapsExecutionWebViewProps) => void;
-let rejectGetWebView: (error: NativeSyntheticEvent<WebViewError>) => void;
+export let createWebView: (jobId: string) => Promise<WebViewInterface>;
+export let removeWebView: (jobId: string) => void;
 
-export const getSnapsWebViewPromise = new Promise<WebViewInterface>(
-  (resolve, reject) => {
-    resolveGetWebView = resolve;
-    rejectGetWebView = reject;
-  },
-);
+type WebViewState = {
+  ref?: WebView;
+  listener?: (event: PostMessageEvent) => void;
+  props: any;
+}
 
 // This is a class component because storing the references we are don't work in functional components.
 export class SnapsExecutionWebView extends Component {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  webViewRef: RefObject<WebView> | any = null;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  listener: any = null;
+  webViews: Record<string, WebViewState> = {};
 
   // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-useless-constructor
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(props: any) {
     super(props);
+
+    createWebView = this.createWebView.bind(this);
+    removeWebView = this.removeWebView.bind(this);
   }
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setWebViewRef(ref: React.RefObject<WebView<{ any: any }>> | null) {
-    this.webViewRef = ref;
+  createWebView(jobId: string) {
+    const promise = new Promise<WebViewInterface>((resolve, reject) => {
+      const onWebViewLoad = () => {
+        const api = {
+          injectJavaScript: (js: string) => {
+            this.webViews[jobId]?.ref?.injectJavaScript(js);
+          },
+          registerMessageListener: (
+            listener: (event: PostMessageEvent) => void,
+          ) => {
+            this.webViews[jobId].listener = listener;
+          },
+          unregisterMessageListener: (
+            _listener: (event: PostMessageEvent) => void,
+          ) => {
+            // this.webViews[jobId].listener = null;
+          },
+        }
+        resolve(api);
+      }
+
+      const onWebViewMessage = (data: WebViewMessageEvent) => {
+        if (this.webViews[jobId]?.listener) {
+          this.webViews[jobId].listener(data.nativeEvent as any);
+        }
+      }
+
+      const onWebViewError = (error: NativeSyntheticEvent<WebViewError>) => {
+        reject(error);
+      }
+
+      const setWebViewRef = (ref: WebView<{ any: any }>) => {
+        this.webViews[jobId].ref = ref;
+      }
+
+      this.webViews[jobId] = {
+        props: {
+          onWebViewLoad,
+          onWebViewError,
+          onWebViewMessage,
+          ref: setWebViewRef
+        }
+      }
+    })
+
+    // Force re-render.
+    this.forceUpdate();
+
+    return promise;
   }
 
-  onWebViewLoad() {
-    const api = {
-      injectJavaScript: (js: string) => {
-        this.webViewRef?.injectJavaScript(js);
-      },
-      registerMessageListener: (
-        listener: (event: PostMessageEvent) => void,
-      ) => {
-        this.listener = listener;
-      },
-      unregisterMessageListener: (
-        _listener: (event: PostMessageEvent) => void,
-      ) => {
-        this.listener = null;
-      },
-    };
+  removeWebView(jobId: string) {
+    delete this.webViews[jobId];
 
-    resolveGetWebView(api);
-  }
-
-  onWebViewError(error: NativeSyntheticEvent<WebViewError>) {
-    rejectGetWebView(error);
-  }
-
-  onWebViewMessage(data: WebViewMessageEvent) {
-    if (this.listener) {
-      this.listener(data.nativeEvent);
-    }
+    // Force re-render.
+    // this.forceUpdate();
   }
 
   render() {
     return (
       <ScrollView>
         <View style={styles.webview}>
-          <WebView
-            ref={
-              this.setWebViewRef as unknown as React.RefObject<WebView> | null
-            }
-            source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
-            onMessage={this.onWebViewMessage}
-            onError={this.onWebViewError}
-            onLoadEnd={this.onWebViewLoad}
-            originWhitelist={['*']}
-            javaScriptEnabled
-          />
+          {Object.entries(this.webViews).map(([key, { props }]) => (
+            <WebView
+              key={key}
+              ref={props.ref}
+              source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
+              onMessage={props.onWebViewMessage}
+              onError={props.onWebViewError}
+              onLoadEnd={props.onWebViewLoad}
+              originWhitelist={['*']}
+              javaScriptEnabled
+            />
+          ))}
+
         </View>
       </ScrollView>
     );
