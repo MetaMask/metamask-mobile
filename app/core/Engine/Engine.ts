@@ -231,6 +231,11 @@ import {
   SnapControllerStateChangeEvent,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
+import {
+  SnapKeyringAccountAssetListUpdatedEvent,
+  SnapKeyringAccountBalancesUpdatedEvent,
+  SnapKeyringAccountTransactionsUpdatedEvent,
+} from '../SnapKeyring/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -384,6 +389,9 @@ export class Engine {
           SnapControllerStateChangeEvent,
           'KeyringController:accountRemoved',
           'KeyringController:stateChange',
+          SnapKeyringAccountAssetListUpdatedEvent,
+          SnapKeyringAccountBalancesUpdatedEvent,
+          SnapKeyringAccountTransactionsUpdatedEvent,
         ],
         allowedActions: [
           'KeyringController:getAccounts',
