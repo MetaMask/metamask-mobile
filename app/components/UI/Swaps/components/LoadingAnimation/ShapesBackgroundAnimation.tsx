@@ -38,6 +38,7 @@ const ShapesBackgroundAnimation = ({
 
   return (
     <Animated.View
+      testID="shapes-background-animation"
       style={[styles.container, { transform: [{ rotate: spin }] }]}
     >
       <Svg width={width} height={height} viewBox="0 0 401 376" fill="none">
