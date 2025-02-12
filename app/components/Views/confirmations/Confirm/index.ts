@@ -1,1 +1,2 @@
-export { default } from './Confirm';
+export * from './Confirm';
+export * from './ConfirmRoot';
