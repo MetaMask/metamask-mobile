@@ -68,7 +68,7 @@ import {
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
-import { getSnapsWebViewPromise } from '../../lib/snaps';
+import { createWebView, removeWebView } from '../../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
@@ -1036,7 +1036,8 @@ export class Engine {
         allowedEvents: [],
       }),
       setupSnapProvider: setupSnapProvider.bind(this),
-      getWebView: () => getSnapsWebViewPromise,
+      createWebView,
+      removeWebView,
     });
 
     const snapControllerMessenger = this.controllerMessenger.getRestricted({
