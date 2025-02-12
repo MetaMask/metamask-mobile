@@ -5561,7 +5561,7 @@
 
 "@metamask/swaps-controller@^12.1.0":
   version "12.1.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/swaps-controller/-/swaps-controller-12.1.0.tgz#092faf636a4dccd593595e367b3682681ee53b3f"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-12.1.0.tgz#092faf636a4dccd593595e367b3682681ee53b3f"
   integrity sha512-vITGvwCLvueUNdA9I/6axswLtnYjSa3bRA+bFVt7Pp8udHnvr/dOLYzQ0ksuN3FzuAAirF1+bte0pJO0147uSw==
   dependencies:
     "@ethersproject/contracts" "^5.7.0"
