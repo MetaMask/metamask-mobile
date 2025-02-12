@@ -6,7 +6,7 @@ import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
 import ButtonPill from '../../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
-import AnimatedPulse from '../../../../../../../../../../component-library/components-temp/Animated/AnimatedPulse';
+import AnimatedPulse from '../../../../../../../../../../component-library/components-temp/AnimatedPulse/AnimatedPulse';
 import { ButtonIconSizes } from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 import ButtonIcon from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import {
