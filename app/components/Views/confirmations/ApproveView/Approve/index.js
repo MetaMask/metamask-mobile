@@ -511,7 +511,7 @@ class Approve extends PureComponent {
       metrics,
       chainId,
       shouldUseSmartTransaction,
-      simulationData: { isUpdatedAfterSecurityCheck },
+      simulationData: { isUpdatedAfterSecurityCheck } = {},
       navigation,
     } = this.props;
     const {
@@ -979,7 +979,7 @@ const mapStateToProps = (state) => {
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

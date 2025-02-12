@@ -222,5 +222,6 @@ export default {
   FEATURE_FLAGS_API: {
     BASE_URL: 'https://client-config.api.cx.metamask.io',
     VERSION: 'v1',
+    DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
   },
 } as const;

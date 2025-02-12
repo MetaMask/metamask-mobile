@@ -27,7 +27,7 @@ const Network = ({ chainId }: NetworkProps) => {
         variant={AvatarVariant.Network}
         name={networkName}
         imageSource={networkImage}
-        size={AvatarSize.Sm}
+        size={AvatarSize.Xs}
       />
       <Text style={styles.value}>{networkName}</Text>
     </View>

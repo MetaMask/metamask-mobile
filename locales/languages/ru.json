@@ -48,7 +48,10 @@
     "connector": "в"
   },
   "autocomplete": {
-    "placeholder": "Найдите или введите URL"
+    "placeholder": "Поиск по сайту или адресу",
+    "recents": "Недавние",
+    "favorites": "Избранное",
+    "sites": "Сайты"
   },
   "navigation": {
     "back": "Назад",
@@ -449,6 +452,7 @@
     "next": "Далее",
     "buy_asset": "Купить {{asset}}",
     "no_tokens": "У вас нет токенов!",
+    "show_tokens_without_balance": "Показать токены без баланса",
     "no_nfts_yet": "Пока нет NFT",
     "nfts_autodetection_title": "Определение NFT",
     "nfts_autodetection_desc": "Разрешите MetaMask автоматически определять и отображать NFT в вашем кошельке.",
@@ -470,7 +474,7 @@
     "learn_more": "Подробнее",
     "add_collectibles": "Импорт NFT",
     "no_transactions": "У вас нет транзакций!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Смените сеть для просмотра транзакций",
     "send_button": "Отправить",
     "deposit_button": "Депозит",
     "copy_address": "Копировать",
@@ -722,6 +726,7 @@
     "connected_and_active": "подключен и активен.",
     "now_active": "сейчас активен.",
     "network_added": "успешно добавлена",
+    "network_removed": "успешно удален",
     "network_deleted": "успешно удален",
     "network_permissions_updated": "Сетевые разрешения обновлены",
     "revoked": "отозван.",
@@ -1264,16 +1269,19 @@
     "sell_button": "Продать",
     "receive_button": "Получить",
     "portfolio_button": "Portfolio",
+    "earn_button": "Заработать",
     "add_collectible_button": "Добавить",
     "info": "Информация",
     "swap": "Своп",
     "bridge": "Мост",
+    "earn": "Заработать",
     "disabled_button": {
       "buy": "Этот счет не поддерживает покупку",
       "sell": "Этот счет не поддерживает продажу",
       "swap": "Этот счет не поддерживает обмен",
       "bridge": "Этот счет не поддерживает создание моста",
       "send": "Этот счет не поддерживает отправку",
+      "earn": "Зарабатывание не поддерживается для этого счета",
       "action": "Этот счет не поддерживает создание данное действие"
     },
     "description": "Описание",
@@ -1290,6 +1298,7 @@
     "bridge_description": "Передача токенов между сетями",
     "send_description": "Отправляйте криптовалюту на любой счет",
     "receive_description": "Получить криптовалюту",
+    "earn_description": "Зарабатывайте награды за свои токены",
     "chart_time_period": {
       "1d": "Сегодня",
       "7d": "Последние 7 дней",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "ID блокчейна",
     "network_rpc_url": "URL сети",
     "network_rpc_url_label": "URL-адрес сетевого RPC",
+    "network_rpc_url_warning_punycode": "Злоумышленники иногда имитируют сайты, внося небольшие изменения в адрес сайта. Прежде чем продолжить, убедитесь, что вы взаимодействуете с предполагаемым URL-адресом сети. Версия Punycode:",
     "new_default_network_url": "Новый URL-адрес сети по умолчанию",
     "current_label": "Текущая",
     "new_label": "Новая",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "Добавить аппаратный кошелек",
     "import_account": "Импорт счета",
     "add_bitcoin_account_testnet": "Добавить новый счет Биткойн (тестнет)",
-    "add_bitcoin_account_mainnet": "Добавить новый счет Биткойн (бета-версия)"
+    "add_bitcoin_account_mainnet": "Добавить новый счет Биткойн (бета-версия)",
+    "add_solana_account": "Добавить новый счет Solana (бета-версия)"
   },
   "show_nft": {
     "show_nft_title": "Показать NFT",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "Запрос подписи"
     },
+    "sub_title": {
+      "signature": "Прежде чем подтвердить запрос, просмотрите детали запроса."
+    },
     "request_from": "Запрос от",
     "message": "Сообщение",
+    "primary_type": "Первичный тип",
     "personal_sign_tooltip": "Этот сайт запрашивает вашу подпись",
     "details": "Подробности",
     "account": "Счет",
     "balance": "Баланс",
     "network": "Сеть",
     "simulation": {
-      "title": "Прогнозируемые изменения",
+      "decoded_tooltip_bid_nft": "NFT отобразится в вашем кошельке, когда ставка будет принята.",
+      "decoded_tooltip_list_nft": "Ожидайте изменений, только если кто-то купит ваши NFT.",
+      "info_permit": "Вы даете отправителю разрешение потратить такое количество токенов с вашего счета.",
+      "label_change_type_bidding": "Вы ставите",
+      "label_change_type_listing": "Вы размещаете для продажи",
+      "label_change_type_nft_listing": "Цена выставления на продажу",
+      "label_change_type_permit": "Лимит расходов",
+      "label_change_type_permit_nft": "Вывести",
+      "label_change_type_receive": "Вы получаете",
+      "label_change_type_revoke": "Отозвать",
+      "label_change_type_transfer": "Вы отправляете",
       "personal_sign_info": "Вы входите на сайт, и в вашем счете не происходит никаких прогнозируемых изменений.",
-      "tooltip": "Прогнозируемые изменения — это то, что может произойти, если вы завершите эту транзакцию. Это всего лишь прогноз, а не гарантия."
-    }
+      "title": "Прогнозируемые изменения",
+      "tooltip": "Прогнозируемые изменения — это то, что может произойти, если вы завершите эту транзакцию. Это всего лишь прогноз, а не гарантия.",
+      "unavailable": "Недоступно"
+    },
+    "unlimited": "Неограничено",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Результаты изменились",

@@ -11,6 +11,7 @@ import { withScope } from '@sentry/react-native';
 import { AGREED, METRICS_OPT_IN } from '../../../../constants/storage';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { logAccountsControllerCreation } from './logger';
+import { SnapControllerStateChangeEvent } from '../SnapController/constants';
 
 jest.mock('@sentry/react-native', () => ({
   withScope: jest.fn(),
@@ -33,7 +34,7 @@ describe('accountControllersUtils', () => {
       accountsControllerMessenger = globalMessenger.getRestricted({
         name: 'AccountsController',
         allowedEvents: [
-          'SnapController:stateChange',
+          SnapControllerStateChangeEvent,
           'KeyringController:accountRemoved',
           'KeyringController:stateChange',
         ],

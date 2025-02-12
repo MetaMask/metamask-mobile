@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import StakingBalance from './StakingBalance';
 import { strings } from '../../../../../../locales/i18n';
@@ -15,6 +15,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -142,13 +143,15 @@ describe('StakingBalance', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('redirects to StakeInputView on stake button click', () => {
+  it('redirects to StakeInputView on stake button click', async () => {
     const { getByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
       { state: mockInitialState },
     );
 
-    fireEvent.press(getByText(strings('stake.stake_more')));
+    await act(() => {
+      fireEvent.press(getByText(strings('stake.stake_more')));
+    });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
@@ -156,13 +159,15 @@ describe('StakingBalance', () => {
     });
   });
 
-  it('redirects to UnstakeInputView on unstake button click', () => {
+  it('redirects to UnstakeInputView on unstake button click', async () => {
     const { getByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
       { state: mockInitialState },
     );
 
-    fireEvent.press(getByText(strings('stake.unstake')));
+    await act(() => {
+      fireEvent.press(getByText(strings('stake.unstake')));
+    });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
@@ -178,10 +183,10 @@ describe('StakingBalance', () => {
     expect(queryByTestId('staking-balance-container')).toBeNull();
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
     expect(queryByText(strings('stake.unstake'))).toBeNull();
-    expect(queryByText(strings('stake.claim'))).toBeNull();
+    expect(queryByText(`${strings('stake.claim')} ETH`)).toBeNull();
   });
 
-  it('should not render claim link or action buttons if asset.chainId is not selected chainId', () => {
+  it('should render claim link and action buttons if supported asset.chainId is not selected chainId', () => {
     const { queryByText, queryByTestId } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
       {
@@ -192,16 +197,22 @@ describe('StakingBalance', () => {
             backgroundState: {
               ...mockInitialState.engine.backgroundState,
               NetworkController: {
-                ...mockNetworkState({ chainId: '0x4268' }),
+                ...mockNetworkState({
+                  chainId: CHAIN_IDS.SEPOLIA,
+                  id: 'sepolia',
+                  nickname: 'Sepolia',
+                  ticker: 'ETH',
+                }),
               },
             },
           },
         },
       },
     );
+
     expect(queryByTestId('staking-balance-container')).toBeTruthy();
-    expect(queryByText(strings('stake.stake_more'))).toBeNull();
-    expect(queryByText(strings('stake.unstake'))).toBeNull();
-    expect(queryByText(strings('stake.claim'))).toBeNull();
+    expect(queryByText(strings('stake.stake_more'))).toBeTruthy();
+    expect(queryByText(strings('stake.unstake'))).toBeTruthy();
+    expect(queryByText(`${strings('stake.claim')} ETH`)).toBeTruthy();
   });
 });

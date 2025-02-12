@@ -34,3 +34,13 @@ export const PRIMARY_TYPES_ORDER: PrimaryTypeOrder[] =
 export const PRIMARY_TYPES_PERMIT: PrimaryTypePermit[] =
   Object.values(PrimaryTypePermit);
 export const PRIMARY_TYPES: PrimaryType[] = Object.values(PrimaryType);
+
+export enum ResultType {
+  Benign = 'Benign',
+  Malicious = 'Malicious',
+  Warning = 'Warning',
+
+  // MetaMask defined result types
+  Failed = 'Failed',
+  RequestInProgress = 'RequestInProgress',
+}

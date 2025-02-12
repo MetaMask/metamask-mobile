@@ -18,10 +18,7 @@ import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
-import {
-  isMultichainVersion1Enabled,
-  isPermissionsSettingsV1Enabled,
-} from '../../../util/networks';
+import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -226,7 +223,7 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
         />
       )}
-      {isMultichainVersion1Enabled && isPermissionsSettingsV1Enabled && (
+      {isPermissionsSettingsV1Enabled && (
         <SettingsDrawer
           description={strings('app_settings.permissions_desc')}
           onPress={goToManagePermissions}

@@ -74,12 +74,14 @@ interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
+  swapsIsLive?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
   displaySwapsButton,
+  swapsIsLive,
 }: AssetOverviewProps) => {
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
@@ -198,7 +200,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         await NetworkController.setActiveNetwork(networkClientId as string);
       }
     }
-    if (asset.isETH && ticker) {
+    if ((asset.isETH || asset.isNative) && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
     } else {
       dispatch(newAssetTransaction(asset));
@@ -434,6 +436,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
+            swapsIsLive={swapsIsLive}
             goToBridge={goToBridge}
             goToSwaps={goToSwaps}
             onBuy={onBuy}

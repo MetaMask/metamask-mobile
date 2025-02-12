@@ -981,7 +981,7 @@ const mapStateToProps = (state) => {
     primaryCurrency: state.settings.primaryCurrency,
     chainId,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

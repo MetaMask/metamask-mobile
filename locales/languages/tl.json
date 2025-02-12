@@ -48,7 +48,10 @@
     "connector": "sa"
   },
   "autocomplete": {
-    "placeholder": "Hanapin o I-type ang URL"
+    "placeholder": "Maghanap ayon sa site o address",
+    "recents": "Mga Kamakailan",
+    "favorites": "Mga Favorite",
+    "sites": "Mga Site"
   },
   "navigation": {
     "back": "Bumalik",
@@ -449,6 +452,7 @@
     "next": "Susunod",
     "buy_asset": "Bumili ng {{asset}}",
     "no_tokens": "Wala kang anumang token!",
+    "show_tokens_without_balance": "Ipakita ang mga token na walang balanse",
     "no_nfts_yet": "Wala pang mga NFT",
     "nfts_autodetection_title": "Pagtuklas ng NFT",
     "nfts_autodetection_desc": "Hayaan ang MetaMask na awtomatikong i-detect at ipakita ang mga NFT sa iyong wallet.",
@@ -470,7 +474,7 @@
     "learn_more": "Matuto pa",
     "add_collectibles": "Mag-import ng mga NFT",
     "no_transactions": "Wala kang transaksyon!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Pakisuyong lumipat ng network para tingnan ang mga transaksyon",
     "send_button": "Magpadala",
     "deposit_button": "Magdeposito",
     "copy_address": "Kopyahin",
@@ -566,7 +570,7 @@
     "description_content_1": "Nais naming mangalap ng data para sa batayang paggamit upang mapahusay ang MetaMask. Dapat mong malaman na hindi namin ibebenta ang data na iyong ibibigay rito.",
     "description_content_2": "Kapag kami ay nangangalap ng metrics, ito ay palaging...",
     "description_content_3": "Matuto kung paano namin pinoprotektahan ang iyong privacy habang nangongolekta ng data ng paggamit para sa iyong profile.",
-    "checkbox": "Gagamitin namin ang data na ito upang matutunan paano ka nakikipag-ugnayan sa aming mga komunikasyon sa marketing. Maaari kaming magbahagi ng kaugnay na balita (tulad ng mga tampok ng produkto).",
+    "checkbox": "Gagamitin namin ang data na ito para matutunan kung paano ka nakikipag-ugnayan sa aming mga komunikasyon sa marketing. Maaari kaming magbahagi ng kaugnay na balita (tulad ng mga tampok ng produkto).",
     "action_description_1_prefix": "Pribado:",
     "action_description_2_prefix": "Pangkalahatan:",
     "action_description_3_prefix": "Opsyonal:",
@@ -722,6 +726,7 @@
     "connected_and_active": "konektado at aktibo.",
     "now_active": "aktibo ngayon.",
     "network_added": "matagumpay na naidagdag",
+    "network_removed": "matagumpay na naalis",
     "network_deleted": "matagumpay na natanggal",
     "network_permissions_updated": "Na-update ang mga pahintulot sa network",
     "revoked": "binawi.",
@@ -1264,16 +1269,19 @@
     "sell_button": "Magbenta",
     "receive_button": "Tumanggap",
     "portfolio_button": "Portfolio",
+    "earn_button": "Kumita",
     "add_collectible_button": "Magdagdag",
     "info": "Impormasyon",
     "swap": "I-swap",
     "bridge": "Bridge",
+    "earn": "Kumita",
     "disabled_button": {
       "buy": "Hindi sinusuportahan ang pagbili para sa account na ito",
       "sell": "Hindi sinusuportahan ang pagbebenta para sa account na ito",
       "swap": "Hindi sinusuportahan ang pag-swap para sa account na ito",
       "bridge": "Hindi sinusuportahan ang pag-bridge para sa account na ito",
       "send": "Hindi sinusuportahan ang pagpapadala para sa account na ito",
+      "earn": "Hindi sinusuportahan na kumita para sa account na ito",
       "action": "Hindi sinusuportahan ang aksyong ito para sa account na ito"
     },
     "description": "Deskripsyon",
@@ -1290,6 +1298,7 @@
     "bridge_description": "Maglipat ng mga token sa pagitan ng mga network",
     "send_description": "Magpadala ng crypto sa anumang account",
     "receive_description": "Tumanggap ng crypto",
+    "earn_description": "Kumita ng mga reward sa iyong mga token",
     "chart_time_period": {
       "1d": "Ngayong araw",
       "7d": "Nakalipas na 7 araw",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "ID ng Chain",
     "network_rpc_url": "URL ng Network",
     "network_rpc_url_label": "RPC URL ng Network",
+    "network_rpc_url_warning_punycode": "Ginagaya minsan ng mga umaatake ang mga site sa pamamagitan ng kaunting mga pagbabago sa site address. Tiyaking nakikipag-ugnayan ka sa tamang Network URL bago ka magpatuloy. Bersyon ng punycode:",
     "new_default_network_url": "Bagong URL ng default network",
     "current_label": "Kasalukuyan",
     "new_label": "Bago",
@@ -3340,9 +3350,9 @@
     "user_reject_transaction": "Tinanggihan ng user ang transaksyon",
     "user_reject_transaction_message": "Tinanggihan ng user ang transaksyon sa Ledger device.",
     "multiple_devices_error_message": "Hindi pa sinusuportahan ang maraming device. Para magdagdag ng bagong Ledger device, kakailanganin mong mag-alis ng lumang device.",
-    "hd_path_error": "HD Path is invalid: {{path}}",
-    "unspecified_error_during_connect": "Unspecified error when connect Ledger Hardware,",
-    "account_name_existed": "Account {{accountName}} already exists"
+    "hd_path_error": "Hindi balido ang HD Path: {{path}}",
+    "unspecified_error_during_connect": "Hindi tiyak na error sa pagkonekta ng Ledger Hardware,",
+    "account_name_existed": "Mayroon nang account na {{accountName}}"
   },
   "account_actions": {
     "edit_name": "I-edit ang pangalan ng account",
@@ -3351,8 +3361,9 @@
     "add_new_account": "Magdagdag ng bagong account",
     "add_hardware_wallet": "Magdagdag ng wallet na hardware",
     "import_account": "Mag-import ng account",
-    "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)",
-    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)"
+    "add_bitcoin_account_testnet": "Magdagdag ng bagong Bitcoin Account (Testnet)",
+    "add_bitcoin_account_mainnet": "Magdagdag ng bagong Bitcoin Account (Beta)",
+    "add_solana_account": "Magdagdag ng bagong Solana Account (Beta)"
   },
   "show_nft": {
     "show_nft_title": "Ipakita ang NFT",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "Kahilingan sa paglagda"
     },
+    "sub_title": {
+      "signature": "Suriin ang mga detalye ng kahilingan bago mo kumpirmahin."
+    },
     "request_from": "Hiling mula sa/kay",
     "message": "Mensahe",
+    "primary_type": "Pangunahing uri",
     "personal_sign_tooltip": "Hinihingi ng site na ito ang iyong pirma",
     "details": "Mga detalye",
     "account": "Account",
     "balance": "Balanse",
     "network": "Network",
     "simulation": {
+      "decoded_tooltip_bid_nft": "Makikita ang NFT sa wallet mo, kapag tinanggap ang bid.",
+      "decoded_tooltip_list_nft": "Asahan lang ang mga pagbabago kapag may bumili sa mga NFT mo.",
+      "info_permit": "Binibigyan mo ng pahintulot ang gumagastos na gastusin ang ganito karaming token mula sa account mo.",
+      "label_change_type_bidding": "Nag-bid ka ng",
+      "label_change_type_listing": "Nag-list ka ng",
+      "label_change_type_nft_listing": "Presyo ng listing",
+      "label_change_type_permit": "Limitasyon sa paggastos",
+      "label_change_type_permit_nft": "I-withdraw",
+      "label_change_type_receive": "Nakatanggap ka ng",
+      "label_change_type_revoke": "Ipawalang-bisa",
+      "label_change_type_transfer": "Nagpadala ka ng",
+      "personal_sign_info": "Nagsa-sign in ka sa isang site at walang inaasahang pagbabago sa iyong account.",
       "title": "Tinantyang mga pagbabago",
-      "personal_sign_info": "Nagsa-sign in ka sa isang site at walang mga inaasahang pagbabago sa iyong account.",
-      "tooltip": "Ang tinantyang mga pagbabago ay ang maaaring mangyari kung magpapatuloy ka sa transaksyon ito. Ito ay isang hula lamang, hindi isang garantiya."
-    }
+      "tooltip": "Ang tinantyang mga pagbabago ay ang maaaring mangyari kung magpapatuloy ka sa transaksyon ito. Ito ay isang hula lamang, hindi isang garantiya.",
+      "unavailable": "Hindi available"
+    },
+    "unlimited": "Walang limitasyon",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Nagbago ang mga resulta",

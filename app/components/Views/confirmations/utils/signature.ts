@@ -1,10 +1,17 @@
 import {
+  MessageParamsPersonal,
   MessageParamsTyped,
   SignatureRequest,
   SignatureRequestType,
 } from '@metamask/signature-controller';
-import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
 import { SignTypedDataVersion } from '@metamask/eth-sig-util';
+
+import {
+  PRIMARY_TYPES_ORDER,
+  PRIMARY_TYPES_PERMIT,
+  PrimaryType,
+} from '../constants/signatures';
+import { sanitizeMessage } from '../../../../util/string';
 
 /**
  * The contents of this file have been taken verbatim from
@@ -60,7 +67,11 @@ interface TypedSignatureRequest {
  *
  * @param signatureRequest - The signature request to check
  */
-export const isTypedSignV3V4Request = (signatureRequest: SignatureRequest) => {
+export const isTypedSignV3V4Request = (signatureRequest?: SignatureRequest) => {
+  if (!signatureRequest) {
+    return false;
+  }
+
   const {
     type,
     messageParams: { version },
@@ -72,38 +83,78 @@ export const isTypedSignV3V4Request = (signatureRequest: SignatureRequest) => {
   );
 };
 
+export const parseTypedDataMessageFromSignatureRequest = (
+  signatureRequest?: SignatureRequest,
+) => {
+  if (!signatureRequest || !isTypedSignV3V4Request(signatureRequest)) {
+    return;
+  }
+
+  const data = signatureRequest.messageParams?.data as string;
+  return parseTypedDataMessage(data);
+};
+
+const isRecognizedOfType = (
+  request: SignatureRequest | undefined,
+  types: PrimaryType[],
+) => {
+  const { primaryType } =
+    parseTypedDataMessageFromSignatureRequest(request) || {};
+  return types.includes(primaryType);
+};
+
 /**
  * Returns true if the request is a recognized Permit Typed Sign signature request
  *
  * @param request - The signature request to check
  */
-export const isRecognizedPermit = (request: SignatureRequest) => {
-  if (
-    !request ||
-    request.type !== SignatureRequestType.TypedSign ||
-    !isTypedSignV3V4Request(request)
-  ) {
-    return false;
-  }
-
-  const data = (request as SignatureRequest).messageParams?.data as string;
-
-  const { primaryType } = parseTypedDataMessage(data);
-  return PRIMARY_TYPES_PERMIT.includes(primaryType);
-};
+export const isRecognizedPermit = (request?: SignatureRequest) =>
+  isRecognizedOfType(request, PRIMARY_TYPES_PERMIT);
 
 /**
- * Returns primary type of typed signature request
+ * Returns true if the request is a recognized Order Typed Sign signature request
  *
- * @param signatureRequest - The signature request get primary type from
+ * @param request - The signature request to check
  */
-export const getSignatureRequestPrimaryType = (
-  signatureRequest: SignatureRequest,
-) => {
-  if (!isTypedSignV3V4Request(signatureRequest)) {
-    return;
+export const isRecognizedOrder = (request?: SignatureRequest) =>
+  isRecognizedOfType(request, PRIMARY_TYPES_ORDER);
+
+export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
+  if (!dataToParse) {
+    return {};
   }
-  const data = signatureRequest.messageParams?.data as string;
-  const { primaryType } = parseTypedDataMessage(data);
-  return primaryType;
+
+  const { domain, message, primaryType, types } =
+    parseTypedDataMessage(dataToParse);
+
+  const sanitizedMessage = sanitizeMessage(message, primaryType, types);
+  return { sanitizedMessage, primaryType, domain };
 };
+
+export interface SIWEMessage {
+  address: string;
+  chainId: string;
+  domain: string;
+  issuedAt: string;
+  nonce: string;
+  statement: string;
+  uri: string;
+  version: string;
+  requestId?: string;
+  resources?: string[];
+}
+
+type MessageParamsSIWE = MessageParamsPersonal & {
+  siwe: {
+    isSIWEMessage: boolean;
+    parsedMessage: SIWEMessage;
+  };
+};
+
+export const isSIWESignatureRequest = (signatureRequest?: SignatureRequest) =>
+  Boolean(
+    (signatureRequest?.messageParams as MessageParamsSIWE)?.siwe?.isSIWEMessage,
+  );
+
+export const getSIWEDetails = (signatureRequest?: SignatureRequest) =>
+  (signatureRequest?.messageParams as MessageParamsSIWE)?.siwe ?? {};

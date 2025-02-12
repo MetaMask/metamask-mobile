@@ -178,7 +178,7 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
         }
       }
     >
-      3.0% [missing "en.stake.apr" translation]
+      3.0% APR
     </Text>
     <Text
       accessibilityRole="text"

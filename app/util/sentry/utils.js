@@ -39,6 +39,7 @@ export const sentryStateMask = {
               type: true,
               options: true,
               methods: true,
+              scopes: true,
               metadata: {
                 name: true,
                 importTime: true,
@@ -545,7 +546,7 @@ export function setupSentry() {
 
     Sentry.init({
       dsn,
-      debug: isDev,
+      debug: isDev && process.env.SENTRY_DEBUG_DEV !== 'false',
       environment,
       integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.

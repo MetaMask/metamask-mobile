@@ -763,7 +763,7 @@ const mapStateToProps = (state) => {
     ),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setNonce: (nonce) => dispatch(setNonce(nonce)),

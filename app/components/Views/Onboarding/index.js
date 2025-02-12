@@ -47,6 +47,8 @@ import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onbo
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -327,7 +329,7 @@ class Onboarding extends PureComponent {
   };
 
   track = (event) => {
-    trackOnboarding(event);
+    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
   };
 
   alertExistingUser = (callback) => {

@@ -48,7 +48,10 @@
     "connector": "pada"
   },
   "autocomplete": {
-    "placeholder": "Cari atau Ketik URL"
+    "placeholder": "Cari berdasarkan situs atau alamat",
+    "recents": "Terbaru",
+    "favorites": "Favorit",
+    "sites": "Situs"
   },
   "navigation": {
     "back": "Kembali",
@@ -449,6 +452,7 @@
     "next": "Berikutnya",
     "buy_asset": "Beli {{asset}}",
     "no_tokens": "Anda tidak memiliki token!",
+    "show_tokens_without_balance": "Tampilkan token tanpa saldo",
     "no_nfts_yet": "Belum ada NFT",
     "nfts_autodetection_title": "Deteksi NFT",
     "nfts_autodetection_desc": "Izinkan MetaMask mendeteksi dan menampilkan NFT di dompet Anda secara otomatis.",
@@ -470,7 +474,7 @@
     "learn_more": "Pelajari selengkapnya",
     "add_collectibles": "Impor NFT",
     "no_transactions": "Belum ada transaksi!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Alihkan jaringan untuk melihat transaksi",
     "send_button": "Kirim",
     "deposit_button": "Deposit",
     "copy_address": "Salin",
@@ -722,6 +726,7 @@
     "connected_and_active": "terhubung dan aktif.",
     "now_active": "sekarang aktif.",
     "network_added": "berhasil ditambahkan",
+    "network_removed": "berhasil dihapus",
     "network_deleted": "berhasil dihapus",
     "network_permissions_updated": "Izin jaringan diperbarui",
     "revoked": "dicabut.",
@@ -1264,16 +1269,19 @@
     "sell_button": "Jual",
     "receive_button": "Terima",
     "portfolio_button": "Portofolio",
+    "earn_button": "Hasilkan",
     "add_collectible_button": "Tambahkan",
     "info": "Informasi",
     "swap": "Tukar",
     "bridge": "Bridge",
+    "earn": "Hasilkan",
     "disabled_button": {
       "buy": "Pembelian tidak didukung untuk akun ini",
       "sell": "Penjualan tidak didukung untuk akun ini",
       "swap": "Swap tidak didukung untuk akun ini",
       "bridge": "Bridge tidak didukung untuk akun ini",
       "send": "Pengiriman tidak didukung untuk akun ini",
+      "earn": "Penghasilan tidak didukung untuk akun ini",
       "action": "Tindakan ini tidak didukung untuk akun ini"
     },
     "description": "Deskripsi",
@@ -1290,6 +1298,7 @@
     "bridge_description": "Transfer token antar jaringan",
     "send_description": "Kirim kripto ke akun mana pun",
     "receive_description": "Terima kripto",
+    "earn_description": "Dapatkan imbalan atas token Anda",
     "chart_time_period": {
       "1d": "Hari ini",
       "7d": "7 hari terakhir",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "ID Chain",
     "network_rpc_url": "URL Jaringan",
     "network_rpc_url_label": "URL RPC Jaringan",
+    "network_rpc_url_warning_punycode": "Penyerang terkadang meniru situs dengan membuat perubahan kecil pada alamat situs. Pastikan Anda berinteraksi dengan URL Jaringan yang dituju sebelum melanjutkan. Versi Punycode:",
     "new_default_network_url": "URL jaringan default baru",
     "current_label": "Saat ini",
     "new_label": "Baru",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "Tambahkan dompet perangkat keras",
     "import_account": "Impor akun",
     "add_bitcoin_account_testnet": "Tambahkan Akun Bitcoin baru (Testnet)",
-    "add_bitcoin_account_mainnet": "Tambahkan Akun Bitcoin baru (Beta)"
+    "add_bitcoin_account_mainnet": "Tambahkan Akun Bitcoin baru (Beta)",
+    "add_solana_account": "Tambahkan Akun Solana baru (Beta)"
   },
   "show_nft": {
     "show_nft_title": "Tampilkan NFT",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "Permintaan tanda tangan"
     },
+    "sub_title": {
+      "signature": "Tinjau detail permintaan sebelum mengonfirmasi."
+    },
     "request_from": "Permintaan dari",
     "message": "Pesan",
+    "primary_type": "Tipe primer",
     "personal_sign_tooltip": "Situs ini meminta tanda tangan Anda",
     "details": "Detail",
     "account": "Akun",
     "balance": "Saldo",
     "network": "Jaringan",
     "simulation": {
+      "decoded_tooltip_bid_nft": "NFT akan terlihat di dompet Anda saat tawaran diterima.",
+      "decoded_tooltip_list_nft": "Nantikan perubahan hanya jika seseorang membeli NFT Anda.",
+      "info_permit": "Anda memberi izin kepada spender untuk menggunakan sejumlah token ini dari akun Anda.",
+      "label_change_type_bidding": "Anda menawar",
+      "label_change_type_listing": "Anda mendaftar",
+      "label_change_type_nft_listing": "Harga yang terdaftar",
+      "label_change_type_permit": "Batas penggunaan",
+      "label_change_type_permit_nft": "Tarik",
+      "label_change_type_receive": "Anda menerima",
+      "label_change_type_revoke": "Cabut",
+      "label_change_type_transfer": "Anda mengirim",
+      "personal_sign_info": "Anda masuk ke sebuah situs dan tidak ada perubahan yang terprediksi pada akun Anda.",
       "title": "Estimasi perubahan",
-      "personal_sign_info": "Anda masuk ke sebuah situs dan tidak ada perkiraan perubahan pada akun Anda.",
-      "tooltip": "Estimasi perubahan merupakan hal yang mungkin terjadi jika Anda melakukan transaksi ini. Ini hanyalah prediksi, bukan jaminan."
-    }
+      "tooltip": "Estimasi perubahan merupakan hal yang mungkin terjadi jika Anda melakukan transaksi ini. Ini hanyalah prediksi, bukan jaminan.",
+      "unavailable": "Tidak tersedia"
+    },
+    "unlimited": "Tak terbatas",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Hasil telah berubah",

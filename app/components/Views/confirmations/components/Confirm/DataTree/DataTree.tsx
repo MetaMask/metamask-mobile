@@ -18,11 +18,13 @@ const DataTree = ({
   chainId,
   depth = 0,
   primaryType,
+  tokenDecimals,
 }: {
   data: DataTreeInput;
   chainId: string;
   depth?: number;
   primaryType?: PrimaryType;
+  tokenDecimals?: number;
 }) => (
   <View style={styles.container}>
     {Object.keys(data).map((dataKey: string, index: number) => {
@@ -34,6 +36,7 @@ const DataTree = ({
           label={dataKey}
           key={`${dataKey}-${index}`}
           primaryType={primaryType}
+          tokenDecimals={tokenDecimals}
           {...datum}
         />
       );
