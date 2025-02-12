@@ -1,4 +1,4 @@
-import { SnapKeyring } from '@metamask/eth-snap-keyring';
+import { SnapKeyring, SnapKeyringMessenger } from '@metamask/eth-snap-keyring';
 import type { SnapController } from '@metamask/snaps-controllers';
 import { SnapKeyringBuilderMessenger } from './types';
 import Logger from '../../util/Logger';
@@ -20,13 +20,12 @@ import { showAccountNameSuggestionDialog } from './utils/showDialog';
  * - `addressExists`: Returns a boolean indicating if an address exists in the keyring.
  */
 export const snapKeyringBuilder = (
-  controllerMessenger: SnapKeyringBuilderMessenger,
-  getSnapController: () => SnapController,
+  controllerMessenger: SnapKeyringMessenger,
   persistKeyringHelper: () => Promise<void>,
   removeAccountHelper: (address: string) => Promise<unknown>,
 ): { (): SnapKeyring; type: string } => {
   const builder = () =>
-    new SnapKeyring(getSnapController(), {
+    new SnapKeyring(controllerMessenger, {
       addressExists: async (address) =>
         (
           await controllerMessenger.call('KeyringController:getAccounts')
