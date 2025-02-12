@@ -63,6 +63,7 @@ export const footer: UIComponentFactory<FooterElement> = ({
       ...params,
       t,
       element: children,
+      onCancel,
     } as UIComponentParams<ButtonElement>);
 
     return {

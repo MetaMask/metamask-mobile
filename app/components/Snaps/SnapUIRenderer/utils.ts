@@ -114,8 +114,10 @@ export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
     throw new Error(`Unknown component type: ${type}`);
   }
 
-  const mapped =
-    COMPONENT_MAPPING[type as keyof typeof COMPONENT_MAPPING](params);
+  const componentFn = COMPONENT_MAPPING[
+    type as keyof typeof COMPONENT_MAPPING
+  ] as (params: MapToTemplateParams) => UIComponent;
+  const mapped = componentFn(params);
   return { ...mapped, key: elementKey } as UIComponent;
 };
 

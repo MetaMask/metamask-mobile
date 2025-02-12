@@ -40,7 +40,7 @@ export interface SnapInterfaceContextType {
   getValue: GetValue;
   handleInputChange: HandleInputChange;
   setCurrentFocusedInput: SetCurrentInputFocus;
-  focusedInput: MutableRefObject<string | null>;
+  focusedInput: string | null;
   snapId: string;
 }
 
@@ -179,7 +179,7 @@ export const SnapInterfaceContextProvider: FunctionComponent<
         getValue,
         handleInputChange,
         setCurrentFocusedInput,
-        focusedInput,
+        focusedInput: focusedInput.current,
         snapId,
       }}
     >

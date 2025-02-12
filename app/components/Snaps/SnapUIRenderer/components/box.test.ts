@@ -1,7 +1,7 @@
 import { BoxElement } from '@metamask/snaps-sdk/jsx';
 import { box } from './box';
-import { FlexDirection } from '../utils';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
+import { FlexDirection } from './box.types';
 
 describe('box UIComponentFactory', () => {
   const mockParams = {

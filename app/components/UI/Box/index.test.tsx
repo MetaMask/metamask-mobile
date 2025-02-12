@@ -1,17 +1,17 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { Box } from './index';
-import {
-  Display,
-  FlexDirection,
-  JustifyContent,
-  AlignItems,
-  TextAlign,
-} from '../../Snaps/SnapUIRenderer/utils';
 import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
+import {
+  Display,
+  JustifyContent,
+  FlexDirection,
+  TextAlign,
+  AlignItems,
+} from '../../Snaps/SnapUIRenderer/components/box.types';
 
 describe('Box', () => {
   it('renders children correctly', () => {

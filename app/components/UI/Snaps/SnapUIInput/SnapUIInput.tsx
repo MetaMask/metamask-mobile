@@ -29,7 +29,7 @@ export const SnapUIInput = ({ name, form, ...props }: SnapUIInputProps) => {
    * This avoids loosing the focus when the UI is re-rendered
    */
   useEffect(() => {
-    if (inputRef.current && name === focusedInput) {
+    if (inputRef.current && focusedInput === name) {
       inputRef.current.focus();
     }
   }, [inputRef, name, focusedInput]);

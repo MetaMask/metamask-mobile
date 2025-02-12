@@ -47,19 +47,20 @@ const SnapUIButton = ({
   disabled = false,
   loading = false,
   textVariant = TextVariant.BodyMD,
+  handlePress,
   ...props
 }: SnapUIButtonProps) => {
-  const { handleEvent } = useSnapInterfaceContext();
+  // const { handleEvent } = useSnapInterfaceContext();
   const { styles } = useStyles(styleSheet, {
     buttonsAlignment: DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
   });
 
-  const handlePress = () => {
-    handleEvent({
-      event: UserInputEventType.ButtonClickEvent,
-      name,
-    });
-  };
+  // const handlePress = () => {
+  //   handleEvent({
+  //     event: UserInputEventType.ButtonClickEvent,
+  //     name,
+  //   });
+  // };
 
   const overriddenVariant = disabled ? 'disabled' : variant;
   const color = COLORS[overriddenVariant as keyof typeof COLORS];
