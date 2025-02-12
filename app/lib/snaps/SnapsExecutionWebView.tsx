@@ -49,7 +49,7 @@ export class SnapsExecutionWebView extends Component {
           unregisterMessageListener: (
             _listener: (event: PostMessageEvent) => void,
           ) => {
-            // this.webViews[jobId].listener = null;
+            this.webViews[jobId].listener = undefined;
           },
         }
         resolve(api);
