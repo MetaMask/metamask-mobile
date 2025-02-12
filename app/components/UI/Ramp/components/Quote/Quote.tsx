@@ -90,6 +90,8 @@ const Quote: React.FC<Props> = ({
   const fiatCode = fiat?.symbol ?? '';
   const fiatSymbol = fiat?.denomSymbol ?? '';
 
+  const shouldShowTags = previouslyUsedProvider || quote?.tags?.isBestRate;
+
   const expandedHeight = useSharedValue(0);
   const handleOnLayout = (event: LayoutChangeEvent) => {
     const { nativeEvent } = event;
@@ -128,20 +130,21 @@ const Quote: React.FC<Props> = ({
           topAccessoryGap={8}
           topAccessory={
             <>
-              <View style={styles.tags}>
-                {previouslyUsedProvider ? (
-                  <TagColored>
-                    {strings('fiat_on_ramp_aggregator.previously_used')}
-                  </TagColored>
-                ) : null}
+              {shouldShowTags && (
+                <View style={styles.tags}>
+                  {previouslyUsedProvider ? (
+                    <TagColored>
+                      {strings('fiat_on_ramp_aggregator.previously_used')}
+                    </TagColored>
+                  ) : null}
 
-                {quote?.tags?.isBestRate ? (
-                  <TagColored color={TagColor.Success}>
-                    {strings('fiat_on_ramp_aggregator.best_rate')}
-                  </TagColored>
-                ) : null}
-              </View>
-
+                  {quote?.tags?.isBestRate ? (
+                    <TagColored color={TagColor.Success}>
+                      {strings('fiat_on_ramp_aggregator.best_rate')}
+                    </TagColored>
+                  ) : null}
+                </View>
+              )}
               <TouchableOpacity
                 onPress={highlighted ? showInfo : undefined}
                 disabled={!highlighted}
