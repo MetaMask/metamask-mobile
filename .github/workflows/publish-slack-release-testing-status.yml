@@ -7,6 +7,9 @@ on:
 
 jobs:
   call-publish-slack-release-testing-status:
+    permissions:
+      contents: write
+      pull-requests: write
     uses: MetaMask/github-tools/.github/workflows/publish-slack-release-testing-status.yml@slack-release-testing
     with:
       platform: 'mobile'
