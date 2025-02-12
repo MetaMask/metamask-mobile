@@ -5,6 +5,7 @@ import {
   personalSignatureConfirmationState,
   securityAlertResponse,
   typedSignV1ConfirmationState,
+  stakingDepositConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
@@ -45,7 +46,21 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 describe('Confirm', () => {
-  it('should render correct information for personal sign', () => {
+  it('renders flat confirmation', async () => {
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(getByTestId('flat-confirmation-container')).toBeDefined();
+  });
+
+  it('renders modal confirmation', async () => {
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: typedSignV1ConfirmationState,
+    });
+    expect(getByTestId('modal-confirmation-container')).toBeDefined();
+  });
+
+  it('renders correct information for personal sign', async () => {
     const { getAllByRole, getByText } = renderWithProvider(<Confirm />, {
       state: personalSignatureConfirmationState,
     });
@@ -60,7 +75,7 @@ describe('Confirm', () => {
     expect(getAllByRole('button')).toHaveLength(2);
   });
 
-  it('should render correct information for typed sign v1', () => {
+  it('renders correct information for typed sign v1', async () => {
     const { getAllByRole, getAllByText, getByText, queryByText } =
       renderWithProvider(<Confirm />, {
         state: typedSignV1ConfirmationState,
@@ -74,7 +89,7 @@ describe('Confirm', () => {
     expect(queryByText('This is a deceptive request')).toBeNull();
   });
 
-  it('should render blockaid banner if confirmation has blockaid error response', () => {
+  it('renders blockaid banner if confirmation has blockaid error response', async () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: {
         ...typedSignV1ConfirmationState,

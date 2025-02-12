@@ -10,10 +10,20 @@ import TypedSignV3V4 from './TypedSignV3V4';
 
 jest.mock('../../../../../../../core/Engine', () => ({
   resetState: jest.fn(),
+  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+      getOrAddQRKeyring: jest.fn(),
+    },
     NetworkController: {
       findNetworkClientIdByChainId: () => 123,
     },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
   },
 }));
 
