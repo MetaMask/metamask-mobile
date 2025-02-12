@@ -31,6 +31,7 @@ describe('accountControllersUtils', () => {
 
     beforeEach(() => {
       const globalMessenger = new ExtendedControllerMessenger();
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       accountsControllerMessenger = globalMessenger.getRestricted({
         name: 'AccountsController',
         allowedEvents: [
