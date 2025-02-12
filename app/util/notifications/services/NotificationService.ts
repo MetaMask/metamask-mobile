@@ -224,9 +224,9 @@ class NotificationsService {
   getInitialNotification = async (
     callback: HandleNotificationCallback
   ): Promise<void> => {
-    const event = await notifee.getInitialNotification()
+    const event = await notifee.getInitialNotification();
     if (event) {
-      callback(event.notification.data as Notification['data'])
+      callback(event.notification.data as Notification['data']);
     }
   };
 
