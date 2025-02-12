@@ -18,4 +18,4 @@ jobs:
     secrets:
       slack-api-key: ${{ secrets.SLACKBOT_RLS_TOKEN }}
       github-token: ${{ secrets.PR_TOKEN }}
-      google-credentials-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
+      google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
