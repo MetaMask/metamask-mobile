@@ -363,6 +363,26 @@ exports[`Onboarding should render correctly 1`] = `
                                 }
                               }
                             >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "marginVertical": 24,
+                                  }
+                                }
+                              >
+                                <Image
+                                  resizeMethod="auto"
+                                  source={1}
+                                  style={
+                                    {
+                                      "height": 125,
+                                      "resizeMode": "contain",
+                                      "width": 125,
+                                    }
+                                  }
+                                />
+                              </View>
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -383,7 +403,7 @@ exports[`Onboarding should render correctly 1`] = `
                               <View
                                 style={
                                   {
-                                    "marginVertical": 24,
+                                    "marginVertical": 16,
                                   }
                                 }
                               >
@@ -405,26 +425,6 @@ exports[`Onboarding should render correctly 1`] = `
                                 >
                                   Import an existing wallet or create a new one
                                 </Text>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flex": 1,
-                                  }
-                                }
-                              >
-                                <Image
-                                  resizeMethod="auto"
-                                  source={1}
-                                  style={
-                                    {
-                                      "height": 200,
-                                      "resizeMode": "contain",
-                                      "width": 200,
-                                    }
-                                  }
-                                />
                               </View>
                               <View
                                 style={
