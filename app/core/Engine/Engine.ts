@@ -1231,6 +1231,8 @@ export class Engine {
             state,
           );
           const swapsQuotes = selectSwapsQuotes(state);
+          // We can choose the top agg id for now. Once selection is enabled, we need 
+          // to look for a selected agg id.
           const swapsTopAggId = selectSwapsTopAggId(state);
           const selectedQuote = swapsQuotes?.[swapsTopAggId];
           const tradeTxTokenFee = selectedQuote?.tradeTxFees?.fees?.[0]?.tokenFees?.[0];
