@@ -1053,6 +1053,9 @@ export class Engine {
         allowedActions: [
           'PhishingController:maybeUpdateState',
           'PhishingController:testOrigin',
+          'ApprovalController:hasRequest',
+          'ApprovalController:acceptRequest',
+          'SnapController:get',
         ],
         allowedEvents: [
           'NotificationServicesController:notificationsListUpdated',
