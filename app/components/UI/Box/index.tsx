@@ -8,7 +8,7 @@ import {
   FlexDirection,
   JustifyContent,
   TextAlign,
-} from '../../Snaps/SnapUIRenderer/utils';
+} from '../../Snaps/SnapUIRenderer/components/box.types';
 
 const styles = StyleSheet.create({
   container: {
