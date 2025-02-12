@@ -18,14 +18,4 @@ describe('ShapesBackgroundAnimation', () => {
     const animationWrapper = getByTestId('shapes-background-animation');
     expect(animationWrapper).toBeDefined();
   });
-
-  it('should start animation on mount', () => {
-    jest.spyOn(React, 'useEffect').mockImplementationOnce((f) => f());
-    const { getByTestId } = render(
-      <ShapesBackgroundAnimation width={200} height={200} />,
-    );
-    const animationWrapper = getByTestId('shapes-background-animation');
-
-    expect(animationWrapper).toBeDefined();
-  });
 });
