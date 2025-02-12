@@ -7,7 +7,7 @@ import { isSignatureRequest } from '../utils/confirm';
 import { useQRHardwareContext } from '../context/QRHardwareContext/QRHardwareContext';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './useSignatureMetrics';
-  
+
 export const useConfirmActions = () => {
   const {
     onConfirm: onRequestConfirm,
