@@ -872,6 +872,8 @@ function SwapsQuotesView({
           network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
           other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
           chain_id: getDecimalChainId(chainId),
+          is_smart_transaction: shouldUseSmartTransaction,
+          gas_included: selectedQuote.isGasIncludedTrade,
         },
         paramsForAnalytics: {
           sentAt: currentBlock.timestamp,
@@ -919,6 +921,7 @@ function SwapsQuotesView({
         network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
         chain_id: getDecimalChainId(chainId),
         is_smart_transaction: shouldUseSmartTransaction,
+        gas_included: selectedQuote.isGasIncludedTrade,
       };
       const sensitiveParameters = {
         token_from_amount: fromTokenMinimalUnitString(
@@ -1262,6 +1265,8 @@ function SwapsQuotesView({
       network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
       available_quotes: allQuotes.length,
       chain_id: getDecimalChainId(chainId),
+      is_smart_transaction: shouldUseSmartTransaction,
+      gas_included: selectedQuote.isGasIncludedTrade,
     };
     const sensitiveParameters = {
       token_from_amount: fromTokenMinimalUnitString(
