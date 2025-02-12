@@ -180,6 +180,14 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+import {
+  TokenSearchDiscoveryController,
+  TokenSearchDiscoveryControllerState,
+} from '@metamask/token-search-discovery-controller';
+import {
+  TokenSearchDiscoveryControllerActions,
+  TokenSearchDiscoveryControllerEvents,
+} from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -253,7 +261,8 @@ type GlobalActions =
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
-  | RemoteFeatureFlagControllerActions;
+  | RemoteFeatureFlagControllerActions
+  | TokenSearchDiscoveryControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -291,7 +300,8 @@ type GlobalEvents =
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
-  | RemoteFeatureFlagControllerEvents;
+  | RemoteFeatureFlagControllerEvents
+  | TokenSearchDiscoveryControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -341,6 +351,7 @@ export type Controllers = {
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
@@ -385,6 +396,7 @@ export type EngineState = {
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsControllerState;
