@@ -31,14 +31,10 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import {
-  selectProviderConfig,
-  ProviderConfig,
-} from '../../../../selectors/networkController';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import Routes from '../../../../constants/navigation/Routes';
+import { isPerDappSelectedNetworkEnabled } from '../../../../util/networks';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -56,8 +52,6 @@ const AccountPermissionsConnected = ({
   const { toastRef } = useContext(ToastContext);
 
   const { navigate } = useNavigation();
-
-  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
 
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
@@ -115,7 +109,7 @@ const AccountPermissionsConnected = ({
     //     })
     //     .build(),
     // );
-  }, [providerConfig.chainId, navigate /*trackEvent, createEventBuilder*/]);
+  }, [navigate]);
 
   const renderSheetAction = useCallback(
     () => (
@@ -152,13 +146,15 @@ const AccountPermissionsConnected = ({
         <Text style={styles.sectionTitle} variant={TextVariant.BodyMDMedium}>
           {strings('accounts.connected_accounts_title')}
         </Text>
-        <PickerNetwork
-          label={networkName}
-          imageSource={networkImageSource}
-          onPress={switchNetwork}
-          style={styles.networkPicker}
-          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-        />
+        {isPerDappSelectedNetworkEnabled() && (
+          <PickerNetwork
+            label={networkName}
+            imageSource={networkImageSource}
+            onPress={switchNetwork}
+            style={styles.networkPicker}
+            testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
+          />
+        )}
       </View>
       <AccountSelectorList
         onSelectAccount={switchActiveAccount}

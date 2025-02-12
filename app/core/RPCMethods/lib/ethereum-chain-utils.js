@@ -6,6 +6,7 @@ import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
   isChainPermissionsFeatureEnabled,
+  isPerDappSelectedNetworkEnabled,
 } from '../../../util/networks';
 import {
   CaveatFactories,
@@ -290,7 +291,7 @@ export async function switchToNetwork({
     'eth_accounts',
   );
 
-  if (process.env.MM_PER_DAPP_SELECTED_NETWORK && originHasAccountsPermission) {
+  if (isPerDappSelectedNetworkEnabled() && originHasAccountsPermission) {
     SelectedNetworkController.setNetworkClientIdForDomain(
       origin,
       networkConfigurationId || networkConfiguration.networkType,
