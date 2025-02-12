@@ -200,7 +200,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         await NetworkController.setActiveNetwork(networkClientId as string);
       }
     }
-    if (asset.isETH && ticker) {
+    if ((asset.isETH || asset.isNative) && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
     } else {
       dispatch(newAssetTransaction(asset));
