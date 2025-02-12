@@ -1,14 +1,9 @@
-import type { InternalAccount } from '@metamask/keyring-api';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import type { Notification } from '../../../util/notifications/types/notification';
+import type { INotification } from '../../../util/notifications/types/notification';
 
 import { MarkAsReadNotificationsParam } from '../../../actions/notification/helpers';
 
-export interface UseCreateSessionReturn {
-  createSession: () => Promise<void>;
-  loading: boolean;
-  error?: string;
-}
 export interface EnableMetametricsReturn {
   enableMetametrics: () => Promise<string | undefined>;
   loading: boolean;
@@ -21,7 +16,7 @@ export interface DisableMetametricsReturn {
 }
 export interface ListNotificationsReturn {
   listNotifications: () => Promise<string | undefined>;
-  notificationsData: readonly Notification[];
+  notificationsData: readonly INotification[];
   isLoading: boolean;
   error?: string;
 }
@@ -57,13 +52,6 @@ export interface MarkNotificationAsReadReturn {
   markNotificationAsRead: (
     notifications: MarkAsReadNotificationsParam,
   ) => Promise<string | undefined>;
-  loading: boolean;
-  error?: string;
-}
-
-export interface ProfileSyncingReturn {
-  enableProfileSyncing: () => Promise<string | undefined>;
-  disableProfileSyncing: () => Promise<string | undefined>;
   loading: boolean;
   error?: string;
 }

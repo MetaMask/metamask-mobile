@@ -9,13 +9,24 @@ interface InfoRowProps {
   label: string;
   children: ReactNode | string;
   tooltip?: string;
+  style?: Record<string, unknown>;
+  testID?: string;
 }
 
-const InfoRow = ({ label, children, tooltip }: InfoRowProps) => {
+const InfoRow = ({
+  label,
+  children,
+  style = {},
+  tooltip,
+  testID,
+}: InfoRowProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container}>
+    <View
+      style={{ ...styles.container, ...style }}
+      testID={testID ?? 'info-row'}
+    >
       <View style={styles.labelContainer}>
         <Text style={styles.label}>{label}</Text>
         {tooltip && <Tooltip content={tooltip} />}
@@ -23,7 +34,7 @@ const InfoRow = ({ label, children, tooltip }: InfoRowProps) => {
       {typeof children === 'string' ? (
         <Text style={styles.value}>{children}</Text>
       ) : (
-        children
+        <View style={styles.valueComponent}>{children}</View>
       )}
     </View>
   );

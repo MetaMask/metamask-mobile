@@ -9,7 +9,6 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { Account } from '../../hooks/useAccounts';
 import {
@@ -57,6 +56,9 @@ const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      PreferencesController: {
+        privacyMode: false,
+      },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
         ...mockNetworkState({
@@ -101,26 +103,26 @@ jest.mock('../../../util/ENSUtils', () => ({
     }),
 }));
 
+const mockSelector = jest
+  .fn()
+  .mockImplementation((callback) => callback(mockInitialState));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(mockInitialState)),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useSelector: (selector: any) => mockSelector(selector),
 }));
 
 describe('WalletAccount', () => {
+  beforeEach(() => {
+    mockSelector.mockImplementation((callback) => callback(mockInitialState));
+  });
+
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(<WalletAccount />, {
       state: mockInitialState,
     });
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('shows the account address', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
-    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ADDRESS)).toBeDefined();
   });
 
   it('copies the account address to the clipboard when the copy button is pressed', async () => {
@@ -130,17 +132,6 @@ describe('WalletAccount', () => {
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON));
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
-  });
-
-  it('should navigate to the account selector screen on account press', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createAccountSelectorNavDetails({}),
-    );
   });
   it('displays the correct account name', () => {
     const { getByText } = renderWithProvider(<WalletAccount />, {

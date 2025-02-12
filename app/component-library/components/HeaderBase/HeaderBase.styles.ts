@@ -31,7 +31,6 @@ const styleSheet = (params: {
       {
         backgroundColor: theme.colors.background.default,
         flexDirection: 'row',
-        alignItems: 'center',
       } as ViewStyle,
       style,
     ) as ViewStyle,

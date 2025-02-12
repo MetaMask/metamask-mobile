@@ -60,7 +60,6 @@ import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
-import BrowserUrlModal from '../../Views/BrowserUrlModal';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
@@ -212,11 +211,10 @@ const BrowserFlow = () => (
       cardStyle: { backgroundColor: importedColors.transparent },
     }}
   >
-    <Stack.Screen name={Routes.BROWSER.VIEW} component={Browser} />
     <Stack.Screen
-      name={Routes.BROWSER.URL_MODAL}
-      component={BrowserUrlModal}
-      options={{ animationEnabled: false, headerShown: false }}
+      name={Routes.BROWSER.VIEW}
+      component={Browser}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -400,7 +398,7 @@ const SettingsFlow = () => (
 );
 
 const HomeTabs = () => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
@@ -439,10 +437,14 @@ const HomeTabs = () => {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
       callback: () => {
-        trackEvent(MetaMetricsEvents.WALLET_OPENED, {
-          number_of_accounts: accountsLength,
-          chain_id: getDecimalChainId(chainId),
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
+            .addProperties({
+              number_of_accounts: accountsLength,
+              chain_id: getDecimalChainId(chainId),
+            })
+            .build(),
+        );
       },
       rootScreenName: Routes.WALLET_VIEW,
     },
@@ -453,27 +455,39 @@ const HomeTabs = () => {
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
       callback: () => {
-        trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-          number_of_accounts: accountsLength,
-          chain_id: getDecimalChainId(chainId),
-          source: 'Navigation Tab',
-          active_connected_dapp: activeConnectedDapp,
-          number_of_open_tabs: amountOfBrowserOpenTabs,
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.BROWSER_OPENED)
+            .addProperties({
+              number_of_accounts: accountsLength,
+              chain_id: getDecimalChainId(chainId),
+              source: 'Navigation Tab',
+              active_connected_dapp: activeConnectedDapp,
+              number_of_open_tabs: amountOfBrowserOpenTabs,
+            })
+            .build(),
+        );
       },
       rootScreenName: Routes.BROWSER_VIEW,
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
       callback: () => {
-        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
+          ).build(),
+        );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
       callback: () => {
-        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
+          ).build(),
+        );
       },
       rootScreenName: Routes.SETTINGS_VIEW,
       unmountOnBlur: true,

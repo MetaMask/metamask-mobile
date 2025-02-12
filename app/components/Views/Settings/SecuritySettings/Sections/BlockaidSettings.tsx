@@ -17,7 +17,7 @@ import { useMetrics } from '../../../../../components/hooks/useMetrics';
 const BlockaidSettings = () => {
   const theme = useTheme();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles();
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
@@ -26,9 +26,13 @@ const BlockaidSettings = () => {
 
     if (securityAlertsEnabled) {
       PreferencesController?.setSecurityAlertsEnabled(false);
-      trackEvent(MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED, {
-        security_alerts_enabled: false,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED)
+          .addProperties({
+            security_alerts_enabled: false,
+          })
+          .build(),
+      );
     } else {
       PreferencesController?.setSecurityAlertsEnabled(true);
     }

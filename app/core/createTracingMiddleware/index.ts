@@ -1,4 +1,4 @@
-import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
+import type { Json, JsonRpcParams, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import { trace, TraceName } from '../../util/trace';
 
 export const MESSAGE_TYPE = {
@@ -19,8 +19,8 @@ const METHOD_TYPE_TO_TRACE_NAME: Record<string, TraceName> = {
 
 export default function createTracingMiddleware() {
   return async function tracingMiddleware(
-    req: JsonRpcRequest<unknown> & { traceContext?: unknown },
-    _res: PendingJsonRpcResponse<unknown>,
+    req: JsonRpcRequest<JsonRpcParams> & { traceContext?: unknown },
+    _res: PendingJsonRpcResponse<Json>,
     next: () => void,
   ) {
     const { id, method } = req;

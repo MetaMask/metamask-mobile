@@ -10,6 +10,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { BuildQuoteSelectors } from '../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 const styles = StyleSheet.create({
   amount: {
@@ -55,6 +56,7 @@ const AmountInput: React.FC<Props> = ({
           accessibilityRole="button"
           onPress={onPress}
           hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+          testID={BuildQuoteSelectors.AMOUNT_INPUT}
         >
           <Text
             numberOfLines={1}
@@ -77,6 +79,7 @@ const AmountInput: React.FC<Props> = ({
             disabled={!onCurrencyPress}
             onPress={onCurrencyPress}
             hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+            testID={BuildQuoteSelectors.SELECT_CURRENCY}
           >
             <CurrencyChevron currency={currencyCode} />
           </TouchableOpacity>

@@ -1,4 +1,5 @@
-import { EthAccountType, InternalAccount } from '@metamask/keyring-api';
+import { EthAccountType, EthScopes } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
@@ -112,6 +113,7 @@ function createInternalAccountsForAccountsController(
 
     accounts[expectedId] = {
       address: identity.address,
+      scopes: [EthScopes.Namespace],
       id: expectedId,
       options: {},
       metadata: {

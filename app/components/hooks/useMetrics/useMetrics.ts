@@ -74,10 +74,13 @@ import { MetaMetrics } from '../../../core/Analytics';
  *   isDataRecorded,
  *   isEnabled,
  *   getMetaMetricsId,
+ *   createEventBuilder,
  * } = useMetrics();
  */
 const useMetrics = (): IUseMetricsHook => ({
-  trackEvent: MetaMetrics.getInstance().trackEvent,
+  trackEvent: MetaMetrics.getInstance().trackEvent.bind(
+    MetaMetrics.getInstance(),
+  ),
   enable: MetaMetrics.getInstance().enable,
   addTraitsToUser: MetaMetrics.getInstance().addTraitsToUser,
   createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,

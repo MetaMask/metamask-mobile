@@ -1,6 +1,6 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import { LoginViewSelectors } from '../../e2e/selectors/LoginView.selectors';
+import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
 
 class LoginScreen {
   get loginScreen() {

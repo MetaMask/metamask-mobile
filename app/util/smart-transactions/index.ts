@@ -69,14 +69,18 @@ export const getShouldStartApprovalRequest = (
   isSend: boolean,
   isSwapApproveTx: boolean,
   hasPendingApprovalForSwapApproveTx: boolean,
+  mobileReturnTxHashAsap: boolean,
 ): boolean =>
-  isDapp || isSend || isSwapApproveTx || !hasPendingApprovalForSwapApproveTx;
+  !mobileReturnTxHashAsap &&
+  (isDapp || isSend || isSwapApproveTx || !hasPendingApprovalForSwapApproveTx);
 
 export const getShouldUpdateApprovalRequest = (
   isDapp: boolean,
   isSend: boolean,
   isSwapTransaction: boolean,
-): boolean => isDapp || isSend || isSwapTransaction;
+  mobileReturnTxHashAsap: boolean,
+): boolean =>
+  !mobileReturnTxHashAsap && (isDapp || isSend || isSwapTransaction);
 
 const waitForSmartTransactionConfirmationDone = (
   controllerMessenger: ControllerMessenger,
@@ -116,9 +120,8 @@ export const getSmartTransactionMetricsProperties = async (
   if (!smartTransaction?.statusMetadata) {
     return {};
   }
-  const { duplicated, timedOut, proxied } = smartTransaction.statusMetadata;
+  const { timedOut, proxied } = smartTransaction.statusMetadata;
   return {
-    smart_transaction_duplicated: duplicated,
     smart_transaction_timed_out: timedOut,
     smart_transaction_proxied: proxied,
   };

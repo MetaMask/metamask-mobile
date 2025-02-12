@@ -1,18 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 
 import AssetPill from './AssetPill';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../../selectors/networkController';
 import { AssetType, AssetIdentifier } from '../types';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { mockNetworkState } from '../../../../util/test/network';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn().mockImplementation((selector) => selector()),
-}));
-jest.mock('../../../../selectors/networkController');
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork',
   () => 'AvatarNetwork',
@@ -22,18 +14,33 @@ jest.mock('../../../hooks/useStyles', () => ({
   useStyles: () => ({ styles: {} }),
 }));
 
+const CHAIN_ID_MOCK = '0x123';
+
+const STATE_MOCK = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: CHAIN_ID_MOCK,
+        }),
+      },
+    },
+  },
+};
+
 describe('AssetPill', () => {
-  const selectChainIdMock = jest.mocked(selectChainId);
-  const selectTickerMock = jest.mocked(selectTicker);
-
-  beforeAll(() => {
-    selectChainIdMock.mockReturnValue('0x1');
-    selectTickerMock.mockReturnValue('ETH');
-  });
-
   it('renders correctly for native assets', () => {
-    const asset = { type: AssetType.Native } as AssetIdentifier;
-    const { getByText, getByTestId } = render(<AssetPill asset={asset} />);
+    const asset = {
+      type: AssetType.Native,
+      chainId: CHAIN_ID_MOCK,
+    } as AssetIdentifier;
+
+    const { getByText, getByTestId } = renderWithProvider(
+      <AssetPill asset={asset} />,
+      {
+        state: STATE_MOCK,
+      },
+    );
 
     expect(
       getByTestId('simulation-details-asset-pill-avatar-network'),
@@ -45,8 +52,12 @@ describe('AssetPill', () => {
     const asset = {
       type: AssetType.ERC20,
       address: '0xabc123',
+      chainId: CHAIN_ID_MOCK,
     } as AssetIdentifier;
-    const { getByTestId } = render(<AssetPill asset={asset} />);
+
+    const { getByTestId } = renderWithProvider(<AssetPill asset={asset} />, {
+      state: STATE_MOCK,
+    });
 
     expect(getByTestId('simulation-details-asset-pill-name')).toBeTruthy();
   });

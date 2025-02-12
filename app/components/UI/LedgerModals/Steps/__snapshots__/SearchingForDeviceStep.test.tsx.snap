@@ -12,11 +12,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
 >
   <Image
     resizeMode="contain"
-    source={
-      {
-        "uri": "MockImage",
-      }
-    }
+    source={1}
     style={
       {
         "height": 54,
@@ -218,11 +214,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
 >
   <Image
     resizeMode="contain"
-    source={
-      {
-        "uri": "MockImage",
-      }
-    }
+    source={1}
     style={
       {
         "height": 54,

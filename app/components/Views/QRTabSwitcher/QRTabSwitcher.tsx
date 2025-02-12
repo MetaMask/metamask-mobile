@@ -13,6 +13,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
+import HeaderBase from '../../../component-library/components/HeaderBase';
 
 export enum QRTabSwitcherScreens {
   Scanner,
@@ -118,22 +119,26 @@ const QRTabSwitcher = () => {
       ) : null}
 
       <View style={styles.overlay}>
-        {selectedIndex === QRTabSwitcherScreens.Receive ? (
-          <NavbarTitle
-            // @ts-expect-error proptypes components requires ts-expect-error
-            title={strings(`receive.title`)}
-            // @ts-expect-error proptypes components requires ts-expect-error
-            translate={false}
-            // @ts-expect-error proptypes components requires ts-expect-error
-            disableNetwork
-          />
-        ) : null}
-        <ButtonIcon
-          style={styles.closeIcon}
-          iconName={IconName.Close}
-          size={ButtonIconSizes.Md}
-          onPress={goBack}
-        />
+        <HeaderBase
+          endAccessory={
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSizes.Md}
+              onPress={goBack}
+            />
+          }
+        >
+          {selectedIndex === QRTabSwitcherScreens.Receive ? (
+            <NavbarTitle
+              // @ts-expect-error proptypes components requires ts-expect-error
+              title={strings(`receive.title`)}
+              // @ts-expect-error proptypes components requires ts-expect-error
+              translate={false}
+              // @ts-expect-error proptypes components requires ts-expect-error
+              disableNetwork
+            />
+          ) : null}
+        </HeaderBase>
       </View>
 
       {disableTabber ? null : (

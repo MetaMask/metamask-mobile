@@ -46,20 +46,7 @@ export interface IMetaMetrics {
    */
   group(groupId: string, groupTraits?: GroupTraits): void;
   /**
-   * Track an event (deprecated legacy signature)
-   *
-   * @param event - Legacy analytics event
-   * @param properties - Object containing any event relevant traits or properties (optional).
-   * @param saveDataRecording - param to skip saving the data recording flag (optional)
-   * @deprecated use `trackEvent(ITrackingEvent,boolean)` instead
-   */
-  trackEvent(
-    event: IMetaMetricsEvent,
-    properties?: CombinedProperties,
-    saveDataRecording?: boolean,
-  ): void;
-  /**
-   * Track an event (new signature)
+   * Track an event
    *
    * @param event - Analytics event built with {@link MetricsEventBuilder}
    * @param saveDataRecording - param to skip saving the data recording flag (optional)

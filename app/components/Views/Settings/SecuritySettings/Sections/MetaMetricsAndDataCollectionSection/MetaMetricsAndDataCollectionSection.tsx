@@ -26,12 +26,16 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useMetrics } from '../../../../../hooks/useMetrics';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import {
+  UserProfileProperty
+} from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
-  const { trackEvent, enable, addTraitsToUser, isEnabled } = useMetrics();
+  const { trackEvent, enable, addTraitsToUser, isEnabled, createEventBuilder } =
+    useMetrics();
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -50,17 +54,21 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
       const consolidatedTraits = {
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
-        is_metrics_opted_in: true,
       };
       await enable();
       setAnalyticsEnabled(true);
 
       InteractionManager.runAfterInteractions(async () => {
         await addTraitsToUser(consolidatedTraits);
-        trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-          is_metrics_opted_in: true,
-          updated_after_onboarding: true,
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+            .addProperties({
+              is_metrics_opted_in: true,
+              updated_after_onboarding: true,
+              location: 'settings',
+            })
+            .build(),
+        );
       });
     } else {
       await enable(false);
@@ -77,14 +85,18 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
 
   const addMarketingConsentToTraits = (marketingOptIn: boolean) => {
     InteractionManager.runAfterInteractions(async () => {
-      const traits = {
-        has_marketing_consent: marketingOptIn,
-      };
-      await addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...traits,
-        location: 'settings',
+      await addTraitsToUser({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn ? UserProfileProperty.ON : UserProfileProperty.OFF,
       });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+          .addProperties({
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn,
+            updated_after_onboarding: true,
+            location: 'settings',
+          })
+          .build(),
+      );
     });
   };
 

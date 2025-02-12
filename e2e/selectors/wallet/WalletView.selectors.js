@@ -10,8 +10,12 @@ export const WalletViewSelectorsIDs = {
   PORTFOLIO_BUTTON: 'portfolio-button',
   TOTAL_BALANCE_TEXT: 'total-balance-text',
   STAKE_BUTTON: 'stake-button',
+  STAKE_EARNINGS_HISTORY_BUTTON: 'stake-earnings-history-button',
+  UNSTAKE_BUTTON: 'unstake-button',
+  STAKE_MORE_BUTTON: 'stake-more-button',
   IMPORT_NFT_BUTTON: 'import-collectible-button',
   IMPORT_TOKEN_BUTTON: 'import-token-button',
+  IMPORT_TOKEN_BUTTON_LINK: 'import-token-button-link',
   NAVBAR_NETWORK_BUTTON: 'open-networks-button',
   NAVBAR_NETWORK_TEXT: 'open-networks-text',
   NFT_TAB_CONTAINER: 'collectible-contracts',
@@ -23,13 +27,17 @@ export const WalletViewSelectorsIDs = {
   ACCOUNT_OVERVIEW: 'account-overview',
   ACCOUNT_ACTIONS: 'main-wallet-account-actions',
   ACCOUNT_COPY_BUTTON: 'wallet-account-copy-button',
-  ACCOUNT_ADDRESS: 'wallet-account-address',
   TEST_COLLECTIBLE: 'collectible-Test Dapp NFTs #1-1',
   COLLECTIBLE_FALLBACK: 'fallback-nft-with-token-id',
+  NAVBAR_ADDRESS_COPY_BUTTON: 'navbar-address-copy-button',
   IMPORT_TOKEN_FOOTER_LINK: 'import-token-footer-link',
   SORT_DECLINING_BALANCE: 'sort-declining-balance',
   SORT_ALPHABETICAL: 'sort-alphabetical',
   SORT_BY: 'sort-by',
+  NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
+  TOKEN_NETWORK_FILTER: 'token-network-filter',
+  TOKEN_NETWORK_FILTER_ALL: 'token-network-filter-all',
+  TOKEN_NETWORK_FILTER_CURRENT: 'token-network-filter-current',
 };
 
 export const WalletViewSelectorsText = {
@@ -37,5 +45,6 @@ export const WalletViewSelectorsText = {
   NFTS_TAB: enContent.wallet.collectibles,
   TOKENS_TAB: enContent.wallet.tokens,
   HIDE_TOKENS: enContent.wallet.remove,
+  STAKED_ETHEREUM: enContent.stake.staked_ethereum,
   DEFAULT_TOKEN: 'Ethereum',
 };

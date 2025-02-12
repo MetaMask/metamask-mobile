@@ -32,7 +32,10 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
 import Engine from '../../../core/Engine';
-import { isEIP1559Transaction } from '@metamask/transaction-controller';
+import {
+  isEIP1559Transaction,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 const { getSwapsContractAddress } = swapsUtils;
 
@@ -920,3 +923,11 @@ export default async function decodeTransaction(args) {
   }
   return [transactionElement, transactionDetails];
 }
+
+export const TOKEN_CATEGORY_HASH = {
+  [TransactionType.tokenMethodApprove]: true,
+  [TransactionType.tokenMethodSetApprovalForAll]: true,
+  [TransactionType.tokenMethodTransfer]: true,
+  [TransactionType.tokenMethodTransferFrom]: true,
+  [TransactionType.tokenMethodIncreaseAllowance]: true,
+};

@@ -9,9 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       backgroundColor: theme.colors.background.default,
-      borderColor: theme.colors.border.muted,
       borderRadius: 8,
-      borderWidth: 1,
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -40,6 +38,10 @@ const styleSheet = (params: { theme: Theme }) => {
       fontWeight: '700',
       width: '90%',
       textAlign: 'center',
+    },
+    expandIcon: {
+      position: 'absolute',
+      right: 16,
     },
   });
 };

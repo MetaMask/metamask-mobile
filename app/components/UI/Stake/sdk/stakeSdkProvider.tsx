@@ -2,8 +2,8 @@ import {
   StakingType,
   StakeSdk,
   PooledStakingContract,
-  type StakingApiService,
   isSupportedChain,
+  StakingApiService,
 } from '@metamask/stake-sdk';
 import React, {
   useState,
@@ -13,16 +13,21 @@ import React, {
 } from 'react';
 import { getProviderByChainId } from '../../../../util/notifications';
 import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkClientId,
+} from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
 
 export const SDK = StakeSdk.create({ stakingType: StakingType.POOLED });
 
+export const stakingApiService = new StakingApiService();
+
 export interface Stake {
   stakingContract?: PooledStakingContract;
-  stakingApiService?: StakingApiService;
   sdkType?: StakingType;
   setSdkType: (stakeType: StakingType) => void;
+  networkClientId?: string;
 }
 
 export const StakeContext = createContext<Stake | undefined>(undefined);
@@ -34,8 +39,8 @@ export const StakeSDKProvider: React.FC<
   PropsWithChildren<StakeProviderProps>
 > = ({ children }) => {
   const [sdkType, setSdkType] = useState(StakingType.POOLED);
-
   const chainId = useSelector(selectChainId);
+  const networkClientId = useSelector(selectNetworkClientId);
 
   const sdkService = useMemo(() => {
     if (!chainId || !isSupportedChain(getDecimalChainId(chainId))) {
@@ -67,11 +72,11 @@ export const StakeSDKProvider: React.FC<
   const stakeContextValue = useMemo(
     (): Stake => ({
       stakingContract: sdkService?.pooledStakingContract,
-      stakingApiService: sdkService?.stakingApiService,
       sdkType,
       setSdkType,
+      networkClientId,
     }),
-    [sdkService?.pooledStakingContract, sdkService?.stakingApiService, sdkType],
+    [sdkService?.pooledStakingContract, sdkType, networkClientId],
   );
   return (
     <StakeContext.Provider value={stakeContextValue}>

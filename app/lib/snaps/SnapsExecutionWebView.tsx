@@ -80,7 +80,7 @@ export class SnapsExecutionWebView extends Component {
 
   render() {
     return (
-      <ScrollView testID={'load-snap-webview'}>
+      <ScrollView>
         <View style={styles.webview}>
           <WebView
             ref={

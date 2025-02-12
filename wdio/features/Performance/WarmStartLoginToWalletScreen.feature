@@ -17,4 +17,4 @@ Feature: Measure Wallet Screen Warm Start
     And the app is move to the foreground
     And I fill my password in the Login screen
     And The timer starts running after I tap the login button
-    Then The wallet view appears in "6" seconds
+    Then The wallet view appears in "3" seconds

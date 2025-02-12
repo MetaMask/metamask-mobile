@@ -1,16 +1,13 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
 import engineReducer from '../core/redux/slices/engine';
-import featureFlagsReducer, {
-  FeatureFlagsState,
-} from '../core/redux/slices/featureFlags';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
 import alertReducer from './alert';
 import transactionReducer from './transaction';
 import legalNoticesReducer from './legalNotices';
-import userReducer, { IUserReducer } from './user';
+import userReducer, { UserState } from './user';
 import wizardReducer from './wizard';
 import onboardingReducer from './onboarding';
 import fiatOrders from './fiatOrders';
@@ -19,7 +16,7 @@ import signatureRequestReducer from './signatureRequest';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
-import navigationReducer from './navigation';
+import navigationReducer, { NavigationState } from './navigation';
 import networkOnboardReducer from './networkSelector';
 import securityReducer, { SecurityState } from './security';
 import { combineReducers, Reducer } from 'redux';
@@ -29,10 +26,15 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
+import stakingReducer from '../core/redux/slices/staking';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { MultichainSettingsState } from '../actions/multichain/state';
+import multichainReducer from './multichain';
+///: END:ONLY_INCLUDE_IF
+
 /**
  * Infer state from a reducer
  *
@@ -58,7 +60,6 @@ export interface RootState {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   collectibles: any;
   engine: { backgroundState: EngineState };
-  featureFlags: FeatureFlagsState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   privacy: any;
@@ -80,8 +81,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transaction: any;
-  smartTransactions: StateFromReducer<typeof smartTransactionsReducer>;
-  user: IUserReducer;
+  user: UserState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   wizard: any;
@@ -98,10 +98,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   infuraAvailability: any;
-  // The navigation reducer is TypeScript but not yet a valid reducer
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationState;
   // The networkOnboarded reducer is TypeScript but not yet a valid reducer
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -125,6 +122,10 @@ export interface RootState {
   transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
+  staking: StateFromReducer<typeof stakingReducer>;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  multichainSettings: MultichainSettingsState;
+  ///: END:ONLY_INCLUDE_IF
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -137,7 +138,6 @@ const rootReducer = combineReducers<RootState, any>({
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   engine: engineReducer as any,
-  featureFlags: featureFlagsReducer,
   privacy: privacyReducer,
   bookmarks: bookmarksReducer,
   browser: browserReducer,
@@ -145,7 +145,6 @@ const rootReducer = combineReducers<RootState, any>({
   settings: settingsReducer,
   alert: alertReducer,
   transaction: transactionReducer,
-  smartTransactions: smartTransactionsReducer,
   user: userReducer,
   wizard: wizardReducer,
   onboarding: onboardingReducer,
@@ -165,6 +164,10 @@ const rootReducer = combineReducers<RootState, any>({
   transactionMetrics: transactionMetricsReducer,
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
+  staking: stakingReducer,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  multichainSettings: multichainReducer,
+  ///: END:ONLY_INCLUDE_IF
 });
 
 export default rootReducer;

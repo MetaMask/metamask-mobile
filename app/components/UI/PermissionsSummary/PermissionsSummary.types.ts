@@ -13,6 +13,7 @@ export interface PermissionsSummaryProps {
   onCancel?: () => void;
   onConfirm?: () => void;
   onUserAction?: React.Dispatch<React.SetStateAction<USER_INTENT>>;
+  onAddNetwork?: () => void;
   showActionButtons?: boolean;
   isAlreadyConnected?: boolean;
   isRenderedAsBottomSheet?: boolean;
@@ -25,4 +26,6 @@ export interface PermissionsSummaryProps {
   accounts?: Account[];
   accountAddresses?: string[];
   networkAvatars?: ({ name: string; imageSource: string } | null)[];
+  isNonDappNetworkSwitch?: boolean;
+  onChooseFromPermittedNetworks?: () => void;
 }

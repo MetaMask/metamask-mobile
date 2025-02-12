@@ -6,7 +6,7 @@ import renderWithProvider, {
 } from '../../../util/test/renderWithProvider';
 
 import WalletActions from './WalletActions';
-import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
@@ -15,6 +15,27 @@ import {
   expectedUuid2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
 } from '../../../util/test/accountsControllerTestUtils';
+import useStakingChain from '../../UI/Stake/hooks/useStakingChain';
+import Engine from '../../../core/Engine';
+import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
+
+jest.mock('../../../components/UI/Stake/constants', () => ({
+  isStablecoinLendingFeatureEnabled: jest.fn(),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
+  },
+}));
+jest.mock('../../../components/UI/Stake/hooks/useStakingChain', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    isStakingSupportedChain: true,
+  }),
+}));
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -87,19 +108,30 @@ describe('WalletActions', () => {
     });
 
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.RECEIVE_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
+    ).toBeDefined();
+  });
+
+  it('should render earn button if the stablecoin lending feature is enabled', () => {
+    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
   });
 
@@ -142,12 +174,14 @@ describe('WalletActions', () => {
       state: mockState,
     });
 
-    expect(queryByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON)).toBeNull();
     expect(
-      queryByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON),
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
     ).toBeNull();
     expect(
-      queryByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON),
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
     ).toBeNull();
   });
 
@@ -156,7 +190,9 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON));
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+    );
     expect(mockNavigate).toHaveBeenCalled();
   });
 
@@ -165,7 +201,9 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON));
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
+    );
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -174,7 +212,9 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON));
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
+    );
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -183,9 +223,43 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON));
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
+    );
 
     expect(mockNavigate).toHaveBeenCalled();
+  });
+  it('should call the onEarn function when the Earn button is pressed', () => {
+    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalled();
+    expect(
+      Engine.context.NetworkController.setActiveNetwork,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('should switch to mainnet when onEarn called on unsupported staking network', () => {
+    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
+    (useStakingChain as jest.Mock).mockReturnValue({
+      isStakingSupportedChain: false,
+    });
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    );
+    expect(
+      Engine.context.NetworkController.setActiveNetwork,
+    ).toHaveBeenCalledWith('mainnet');
   });
   it('disables action buttons when the account cannot sign transactions', () => {
     const mockStateWithoutSigning: DeepPartial<RootState> = {
@@ -217,12 +291,23 @@ describe('WalletActions', () => {
       state: mockStateWithoutSigning,
     });
 
-    const buyButton = getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON);
-    const sellButton = getByTestId(WalletActionsModalSelectorsIDs.SELL_BUTTON);
-    const sendButton = getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON);
-    const swapButton = getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON);
+    const buyButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
+    );
+    const sellButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+    );
+    const sendButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
+    );
+    const swapButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
+    );
     const bridgeButton = getByTestId(
-      WalletActionsModalSelectorsIDs.BRIDGE_BUTTON,
+      WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
+    );
+    const earnButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
 
     expect(buyButton.props.disabled).toBe(true);
@@ -230,5 +315,6 @@ describe('WalletActions', () => {
     expect(sendButton.props.disabled).toBe(true);
     expect(swapButton.props.disabled).toBe(true);
     expect(bridgeButton.props.disabled).toBe(true);
+    expect(earnButton.props.disabled).toBe(true);
   });
 });

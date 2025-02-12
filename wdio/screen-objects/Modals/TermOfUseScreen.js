@@ -1,34 +1,28 @@
 import Selectors from '../../helpers/Selectors';
-import {
-  TERMS_OF_USE_ACCEPT_BUTTON_ID,
-  TERMS_OF_USE_CHECKBOX_ICON_ID,
-  TERMS_OF_USE_SCREEN_ID,
-  TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID,
-  TERMS_OF_USE_WEBVIEW_ID,
-} from '../testIDs/Components/TermsOfUse.testIds';
 import Gestures from '../../helpers/Gestures';
+import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 
 class TermOfUseScreen {
   get container() {
-    return Selectors.getXpathElementByResourceId(TERMS_OF_USE_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.CONTAINER);
   }
 
   get checkbox() {
-    return Selectors.getXpathElementByResourceId(TERMS_OF_USE_CHECKBOX_ICON_ID);
+    return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.CHECKBOX);
   }
 
   get scrollEndArrowButton() {
     return Selectors.getXpathElementByResourceId(
-      TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID,
+      TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON,
     );
   }
 
   get acceptButton() {
-    return Selectors.getXpathElementByResourceId(TERMS_OF_USE_ACCEPT_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
   }
 
   get webview() {
-    return Selectors.getXpathElementByResourceId(TERMS_OF_USE_WEBVIEW_ID);
+    return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.WEBVIEW);
   }
 
   async isDisplayed() {

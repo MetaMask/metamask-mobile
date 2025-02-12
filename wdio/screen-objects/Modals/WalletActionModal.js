@@ -1,14 +1,14 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import {WalletActionsModalSelectorsIDs} from "../../../e2e/selectors/Modals/WalletActionsModal.selectors";
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 
 class WalletActionModal {
   get sendButton() {
-    return Selectors.getElementByPlatform(WalletActionsModalSelectorsIDs.SEND_BUTTON);
+    return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
   }
 
   get receiveButton() {
-    return Selectors.getElementByPlatform(WalletActionsModalSelectorsIDs.RECEIVE_BUTTON);
+    return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON);
   }
 
   async tapSendButton() {

@@ -2,7 +2,7 @@ import React from 'react';
 import { waitFor } from '@testing-library/react-native';
 import OnboardingCarousel from './';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { PerformanceRegressionSelectorIDs } from '../../../../e2e/selectors/PerformanceRegression.selectors';
+import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -34,7 +34,7 @@ describe('OnboardingCarousel', () => {
 
     await waitFor(() => {
       expect(
-        getByTestId(PerformanceRegressionSelectorIDs.APP_START_TIME_ID),
+        getByTestId(OnboardingCarouselSelectorIDs.APP_START_TIME_ID),
       ).toBeTruthy();
     });
   });

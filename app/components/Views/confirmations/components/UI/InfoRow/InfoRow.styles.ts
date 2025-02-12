@@ -11,6 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
+      alignItems: 'baseline',
       flexWrap: 'wrap',
       paddingBottom: 8,
       paddingHorizontal: 8,
@@ -32,6 +33,9 @@ const styleSheet = (params: { theme: Theme }) => {
       ...fontStyles.normal,
       fontSize: 14,
       marginTop: 8,
+    },
+    valueComponent: {
+      alignSelf: 'flex-end',
     },
   });
 };

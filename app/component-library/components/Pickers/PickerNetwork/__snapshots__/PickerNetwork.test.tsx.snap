@@ -2,6 +2,7 @@
 
 exports[`PickerNetwork renders correctly 1`] = `
 <TouchableOpacity
+  disabled={false}
   onPress={[Function]}
   style={
     {
@@ -19,6 +20,7 @@ exports[`PickerNetwork renders correctly 1`] = `
     style={null}
   >
     <View
+      accessibilityLabel="Ethereum Mainnet"
       style={
         {
           "alignItems": "center",
@@ -30,6 +32,7 @@ exports[`PickerNetwork renders correctly 1`] = `
           "width": 16,
         }
       }
+      testID="network-avatar-picker"
     >
       <Image
         onError={[Function]}

@@ -8,10 +8,10 @@ import {
 } from '../../fixtures/fixture-helper';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
-import NftDetectionModal from '../../pages/modals/NftDetectionModal';
+import NftDetectionModal from '../../pages/wallet/NftDetectionModal';
 import { SmokeAssets } from '../../tags';
 
-import { NftDetectionModalSelectorsText } from '../../selectors/Modals/NftDetectionModal.selectors';
+import { NftDetectionModalSelectorsText } from '../../selectors/wallet/NftDetectionModal.selectors';
 
 describe(SmokeAssets('NFT Detection Modal'), () => {
   beforeAll(async () => {

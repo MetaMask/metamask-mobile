@@ -11,6 +11,7 @@ import { selectAccountsByChainId } from '../../../selectors/accountTrackerContro
 import { getHost, prefixUrlWithProtocol } from '../../../util/browser';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import stylesheet from './ApprovalTagUrl.styles';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 export const APPROVAL_TAG_URL_ORIGIN_PILL = 'APPROVAL_TAG_URL_ORIGIN_PILL';
@@ -51,14 +52,18 @@ const ApprovalTagUrl = ({
   const domainTitle = useMemo(() => {
     let title = '';
 
-    if (currentEnsName || origin || url) {
-      title = prefixUrlWithProtocol(currentEnsName || origin || getHost(url));
+    if (currentEnsName) {
+      title = prefixUrlWithProtocol(currentEnsName);
+    } else if (origin && isOriginDeepLink) {
+      title = prefixUrlWithProtocol(origin);
+    } else if (url) {
+      title = prefixUrlWithProtocol(getHost(url));
     } else {
       title = '';
     }
 
     return title;
-  }, [currentEnsName, origin, url]);
+  }, [currentEnsName, origin, url, isOriginDeepLink]);
 
   const faviconSource = useFavicon(origin as string) as
     | { uri: string }
@@ -72,7 +77,9 @@ const ApprovalTagUrl = ({
         uri: '',
       };
 
-  if (origin && !isOriginDeepLink) {
+  const showOrigin = origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
+
+  if (showOrigin) {
     return (
       <TagUrl
         testID={APPROVAL_TAG_URL_ORIGIN_PILL}

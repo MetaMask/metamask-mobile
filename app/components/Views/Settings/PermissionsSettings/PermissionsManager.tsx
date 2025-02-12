@@ -7,8 +7,7 @@ import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
-import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typography';
+import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
 import Icon, {
   IconName,
@@ -17,7 +16,6 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import PermissionItem from './PermissionItem';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -140,16 +138,15 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
     () => (
       <>
         <ScrollView>
-          {isMultichainVersion1Enabled &&
-            inAppBrowserPermissions.map((permissionItem, index) => (
-              <PermissionItem
-                key={`${index}`}
-                item={permissionItem}
-                onPress={() => {
-                  goToPermissionsDetails(permissionItem);
-                }}
-              />
-            ))}
+          {inAppBrowserPermissions.map((permissionItem, index) => (
+            <PermissionItem
+              key={`${index}`}
+              item={permissionItem}
+              onPress={() => {
+                goToPermissionsDetails(permissionItem);
+              }}
+            />
+          ))}
         </ScrollView>
       </>
     ),
@@ -173,7 +170,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
       style={styles.perissionsWrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      {isMultichainVersion1Enabled && inAppBrowserPermissions.length
+      {inAppBrowserPermissions.length
         ? renderPermissions()
         : renderEmptyResult()}
     </View>
