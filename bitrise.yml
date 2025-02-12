@@ -750,6 +750,9 @@ workflows:
     - VERSION_NAME: "7.40.0"
     - VERSION_CODE: "1542"
     - WORKFLOW_NAME: "build_android_qa"
+    before_run:
+      - setup
+      - prep_environment
     steps:
     - script@1:
         title: Download Previous APK
