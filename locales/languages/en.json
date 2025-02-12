@@ -3624,6 +3624,7 @@
       "account": "Account",
       "balance": "Balance",
       "interacting_with": "Interacting with",
+      "network": "Network",
       "primary_type": "Primary type",
       "request_from": "Request from",
       "signing_in_with": "Signing in with",
@@ -3644,7 +3645,6 @@
     "message": "Message",
     "personal_sign_tooltip": "This site is asking for your signature",
     "details": "Details",
-    "network": "Network",
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
     "siwe_message": {
