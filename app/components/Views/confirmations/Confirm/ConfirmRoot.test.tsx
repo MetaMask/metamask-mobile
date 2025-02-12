@@ -7,7 +7,7 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 import Routes from '../../../../constants/navigation/Routes';
 
-import ConfirmRoot from './ConfirmRoot';
+import { ConfirmRoot } from './ConfirmRoot';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
