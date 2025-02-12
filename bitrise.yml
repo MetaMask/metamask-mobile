@@ -745,6 +745,34 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeRamps.*'
     after_run:
       - android_e2e_test
+  upgrade_test:
+    envs:
+    - VERSION_NAME: "7.40.0"
+    - VERSION_CODE: "1542"
+    - WORKFLOW_NAME: "build_android_qa"
+    steps:
+    - script@1:
+        title: Download Previous APK
+        inputs:
+          - content: |
+              #!/usr/bin/env bash
+              ./scripts/download-apk-for-e2e.sh
+    - script@1:
+        title: Use Downloaded APK
+        inputs:
+          - content: |
+              #!/bin/bash
+              set -ex
+              
+              echo "Downloaded APK path: $UPGRADE_APK_PATH"
+              ls -la $UPGRADE_APK_PATH
+    - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$UPGRADE_APK_PATH
+    # after_run:
+    #   - ''
   android_e2e_build:
     before_run:
       - code_setup
@@ -1877,4 +1905,4 @@ trigger_map:
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
   - push_branch: detox/address-regression-tests-slowdown
-    pipeline: multichain_permissions_e2e_pipeline
+    pipeline: multichain_permissions_e2e_pipeline  
