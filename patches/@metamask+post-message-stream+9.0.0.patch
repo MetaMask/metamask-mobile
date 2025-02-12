@@ -1,0 +1,30 @@
+diff --git a/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.js b/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.js
+index f2e42ef..27807bb 100644
+--- a/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.js
++++ b/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.js
+@@ -17,11 +17,21 @@ const utils_1 = require("@metamask/utils");
+ const BasePostMessageStream_1 = require("../BasePostMessageStream");
+ const utils_2 = require("../utils");
+ /* istanbul ignore next */
+-const getSource = (_a = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'source')) === null || _a === void 0 ? void 0 : _a.get;
+-(0, utils_1.assert)(getSource, 'MessageEvent.prototype.source getter is not defined.');
++/**
+++     * ============================== PATCH INFORMATION ==============================
+++     * This patch was added for snaps controller integration. The MessageEvent is not
+++     * available in react native so we can simply return undefined here and handle the
+++     * origin and source elsewhere. 
+++     * ===============================================================================
+++     */
++/**
++// const getSource = (_a = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'source')) === null || _a === void 0 ? void 0 : _a.get;
++// (0, utils_1.assert)(getSource, 'MessageEvent.prototype.source getter is not defined.');
++const getSource = () => undefined;
+ /* istanbul ignore next */
+-const getOrigin = (_b = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'origin')) === null || _b === void 0 ? void 0 : _b.get;
+-(0, utils_1.assert)(getOrigin, 'MessageEvent.prototype.origin getter is not defined.');
++// const getOrigin = (_b = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'origin')) === null || _b === void 0 ? void 0 : _b.get;
++// (0, utils_1.assert)(getOrigin, 'MessageEvent.prototype.origin getter is not defined.');
++const getOrigin = () => undefined;
+ /**
+  * A {@link Window.postMessage} stream.
+  */
