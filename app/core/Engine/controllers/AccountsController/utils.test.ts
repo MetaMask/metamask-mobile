@@ -46,7 +46,6 @@ describe('accountControllersUtils', () => {
         | KeyringControllerAccountRemovedEvent
         | KeyringControllerStateChangeEvent
       >();
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       accountsControllerMessenger = globalMessenger.getRestricted({
         name: 'AccountsController',
         allowedEvents: [

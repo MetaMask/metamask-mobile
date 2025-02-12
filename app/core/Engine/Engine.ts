@@ -377,7 +377,6 @@ export class Engine {
     });
 
     // Create AccountsController
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'AccountsController',
@@ -620,7 +619,7 @@ export class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
-      name: 'SnapKeyringBuilder',
+      name: 'SnapKeyring',
       allowedActions: [
         'ApprovalController:addRequest',
         'ApprovalController:acceptRequest',
@@ -650,7 +649,6 @@ export class Engine {
     additionalKeyrings.push(
       snapKeyringBuilder(
         snapKeyringBuildMessenger,
-        getSnapController,
         persistAndUpdateAccounts,
         (address) => this.removeAccount(address),
       ),
@@ -1265,7 +1263,6 @@ export class Engine {
       },
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
