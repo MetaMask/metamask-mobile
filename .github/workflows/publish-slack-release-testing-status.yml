@@ -7,7 +7,7 @@ on:
 
 jobs:
   call-publish-slack-release-testing-status:
-    uses: MetaMask/metamask-extension/.github/workflows/publish-slack-release-testing-status.yml@slack-release-testing
+    uses: MetaMask/github-tools/.github/workflows/publish-slack-release-testing-status.yml@slack-release-testing
     with:
       platform: 'mobile'
       slack-api-key: ${{ secrets.SLACKBOT_RLS_TOKEN }}
