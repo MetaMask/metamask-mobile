@@ -1,4 +1,4 @@
-import { ControllerMessenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/base-controller';
 import { EthAccountType, EthScopes, KeyringEvent } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { snapKeyringBuilder } from './SnapKeyring';
@@ -55,7 +55,7 @@ const createControllerMessenger = ({
 }: {
   account?: InternalAccount;
 } = {}): SnapKeyringBuilderMessenger => {
-  const messenger = new ControllerMessenger<
+  const messenger = new Messenger<
     SnapKeyringBuilderAllowActions,
     never
   >().getRestricted({
