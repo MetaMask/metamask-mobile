@@ -200,9 +200,12 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
         </View>
       </View>
       <View>
-        {fiatValue && (
-          <IndividualFiatDisplay fiatAmount={fiatValue} />
-        )}
+        {fiatValue &&
+          (isPendingTokenDetails ? (
+            <View style={styles.loadingFiatValue} />
+          ) : (
+            <IndividualFiatDisplay fiatAmount={fiatValue} />
+          ))}
       </View>
       {hasValueModalOpen && (
         /**

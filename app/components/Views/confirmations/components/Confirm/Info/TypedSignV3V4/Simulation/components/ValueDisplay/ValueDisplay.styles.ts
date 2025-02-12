@@ -21,6 +21,9 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
+    loadingFiatValue:{
+      height: 24,
+    },
     loaderButtonPillEmptyContent: {
       height: 22,
       width: 22,
