@@ -35,10 +35,12 @@ import {
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
 
-const IMAGE_RATIO = 285 / 203;
+const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
-
-const IMG_PADDING = Device.isIphoneX() ? 80 : Device.isIphone5S() ? 160 : 200;
+const DEVICE_HEIGHT = Dimensions.get('window').height;
+const ANDROID_PADDING = DEVICE_HEIGHT > 800 ? 80 : 150;
+const IOS_PADDING = Device.isIphoneX() ? 80 : Device.isIphone5S() ? 160 : 150;
+const IMG_PADDING = Device.isAndroid() ? ANDROID_PADDING : IOS_PADDING;
 
 const carouselSize = {
   width: DEVICE_WIDTH - IMG_PADDING,

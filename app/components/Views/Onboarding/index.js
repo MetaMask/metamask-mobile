@@ -69,13 +69,12 @@ const createStyles = (colors) =>
       height: Device.isIos() ? 90 : 45,
     },
     largeFoxWrapper: {
-      flex: 1,
-      // justifyContent: 'center',
       alignItems: 'center',
+      marginVertical: 24,
     },
     foxImage: {
-      width: 200,
-      height: 200,
+      width: 125,
+      height: 125,
       resizeMode: 'contain',
     },
     title: {
@@ -99,7 +98,7 @@ const createStyles = (colors) =>
       marginBottom: 16,
     },
     importWrapper: {
-      marginVertical: 24,
+      marginVertical: 16,
     },
     createWrapper: {
       flex: 1,
@@ -364,6 +363,13 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
+        <View style={styles.largeFoxWrapper}>
+          <Image
+            source={require('../../../images/branding/fox.png')}
+            style={styles.foxImage}
+            resizeMethod={'auto'}
+          />
+        </View>
         <Text
           variant={TextVariant.HeadingLG}
           style={styles.title}
@@ -378,13 +384,6 @@ class Onboarding extends PureComponent {
           >
             {strings('onboarding.import')}
           </Text>
-        </View>
-        <View style={styles.largeFoxWrapper}>
-          <Image
-            source={require('../../../images/branding/fox.png')}
-            style={styles.foxImage}
-            resizeMethod={'auto'}
-          />
         </View>
         <View style={styles.createWrapper}>
           <View style={styles.buttonWrapper}>
