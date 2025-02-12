@@ -16,9 +16,7 @@ const useStakingEligibility = () => {
 
       await Engine.context.EarnController.refreshStakingEligibility();
     } catch (err) {
-      console.error(err);
       setError('Failed to fetch pooled staking eligibility');
-      return { isEligible: false };
     } finally {
       setIsLoading(false);
     }

@@ -12,14 +12,12 @@ export const selectPooledStakingEligibility = createSelector(
     earnControllerState.pooled_staking.isEligible,
 );
 
-// Shallow equality check is safe since @metamask/earn-controller creates new vaultData object on refresh.
-export const selectPooledStakingVaultData = createSelector(
+export const selectPooledStakingVaultData = createDeepEqualSelector(
   selectEarnControllerState,
   (earnControllerState: EarnControllerState) =>
     earnControllerState.pooled_staking.vaultData,
 );
 
-// Shallow equality check is safe since @metamask/earn-controller create new pooledStakes object on refresh.
 export const selectPoolStakesData = createDeepEqualSelector(
   selectEarnControllerState,
   (earnControllerState: EarnControllerState) =>
