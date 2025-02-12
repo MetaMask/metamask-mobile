@@ -11,9 +11,10 @@ import {
 } from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
 
-const migrationVersion = 66;
-
-function getScopesForAccountType(accountType: string): string[] {
+function getScopesForAccountType(
+  accountType: string,
+  migrationNumber: number,
+): string[] {
   switch (accountType) {
     case EthAccountType.Eoa:
     case EthAccountType.Erc4337:
@@ -27,7 +28,7 @@ function getScopesForAccountType(accountType: string): string[] {
       // Default to EVM namespace for unknown account types
       captureException(
         new Error(
-          `Migration ${migrationVersion}: Unknown account type ${accountType}, defaulting to EVM namespace`,
+          `Migration ${migrationNumber}: Unknown account type ${accountType}, defaulting to EVM EOA`,
         ),
       );
       return [EthScope.Eoa];
@@ -45,8 +46,8 @@ function getScopesForAccountType(accountType: string): string[] {
  * @param state - The state to migrate
  * @returns The migrated state
  */
-export default function migrate(state: unknown) {
-  if (!ensureValidState(state, migrationVersion)) {
+export function migration66(state: unknown, migrationNumber: number) {
+  if (!ensureValidState(state, migrationNumber)) {
     return state;
   }
 
@@ -70,7 +71,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Invalid state structure for AccountsController`,
+        `Migration ${migrationNumber}: Invalid state structure for AccountsController`,
       ),
     );
     return state;
@@ -95,11 +96,21 @@ export default function migrate(state: unknown) {
     }
 
     Logger.log(
-      `Migration ${migrationVersion}: Adding scopes for account type ${account.type}`,
+      `Migration ${migrationNumber}: Adding scopes for account type ${account.type}`,
     );
 
-    account.scopes = getScopesForAccountType(account.type as string);
+    account.scopes = getScopesForAccountType(
+      account.type as string,
+      migrationNumber,
+    );
   }
 
   return state;
+}
+
+/**
+ * Migration for adding scopes to accounts in the AccountsController.
+ */
+export default function migrate(state: unknown) {
+  return migration66(state, 66);
 }
