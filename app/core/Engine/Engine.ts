@@ -638,8 +638,6 @@ export class Engine {
       allowedEvents: [],
     });
 
-    const getSnapController = () => this.snapController;
-
     // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
     const persistAndUpdateAccounts = async () => {
       await this.keyringController.persistAllKeyrings();
@@ -661,7 +659,6 @@ export class Engine {
         preferencesController,
       ),
       encryptor,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],

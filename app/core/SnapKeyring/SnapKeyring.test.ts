@@ -15,7 +15,6 @@ const mockEndFlow = jest.fn();
 const mockGetAccounts = jest.fn();
 const mockSnapId: SnapId = 'snapId' as SnapId;
 const mockSnapName = 'mock-snap';
-const mockSnapController = jest.fn();
 const mockPersisKeyringHelper = jest.fn();
 const mockSetSelectedAccount = jest.fn();
 const mockRemoveAccountHelper = jest.fn();
@@ -109,7 +108,6 @@ const createControllerMessenger = ({
 const createSnapKeyringBuilder = () =>
   snapKeyringBuilder(
     createControllerMessenger(),
-    mockSnapController,
     mockPersisKeyringHelper,
     mockRemoveAccountHelper,
   );
