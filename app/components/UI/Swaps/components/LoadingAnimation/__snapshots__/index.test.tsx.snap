@@ -149,14 +149,6 @@ exports[`LoadingAnimation renders 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
-            "transform": [
-              {
-                "translateX": -20,
-              },
-              {
-                "translateY": -10,
-              },
-            ],
             "zIndex": 1,
           }
         }
@@ -165,13 +157,15 @@ exports[`LoadingAnimation renders 1`] = `
           collapsable={false}
           style={
             {
-              "height": "70%",
+              "alignItems": "center",
+              "height": "100%",
+              "justifyContent": "center",
               "transform": [
                 {
                   "rotate": "0deg",
                 },
               ],
-              "width": "70%",
+              "width": "100%",
             }
           }
           testID="shapes-background-animation"
