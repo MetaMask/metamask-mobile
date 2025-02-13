@@ -2,6 +2,7 @@ module.exports = {
   stories: [
     '../app/component-library/components/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/base-components/**/*.stories.?(ts|tsx|js|jsx)',
+    '../app/component-library/components-temp/AnimatedPulse/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components-temp/TagColored/**/*.stories.?(ts|tsx|js|jsx)',
     '../app/component-library/components-temp/KeyValueRow/**/*.stories.?(ts|tsx|js|jsx)',
   ],
