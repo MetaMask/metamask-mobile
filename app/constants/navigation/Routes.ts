@@ -50,6 +50,7 @@ const Routes = {
     WALLET_ACTIONS: 'WalletActions',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
+    SELECT_SRP: 'SelectSRP',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -159,6 +160,9 @@ const Routes = {
       GAS_IMPACT: 'GasImpact',
       EARN_TOKEN_LIST: 'EarnTokenList',
     },
+  },
+  MULTI_SRP: {
+    IMPORT: 'ImportSRPView',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {

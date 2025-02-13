@@ -136,6 +136,7 @@ export class EngineService {
     if (keyringState) {
       const newKeyringState: KeyringControllerState = {
         keyrings: [],
+        keyringsMetadata: [],
         vault: keyringState.vault,
         isUnlocked: false,
       };
