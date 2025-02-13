@@ -24,7 +24,7 @@ import {
 } from './smart-publish-hook';
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
-import { ControllerMessenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/base-controller';
 import {
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerStateChangeEvent,
@@ -140,13 +140,14 @@ function withRequest<ReturnValue>(
     pendingApprovals = [],
     ...options
   } = rest;
-  const controllerMessenger = new ControllerMessenger<
+  const messenger = new Messenger<
     NetworkControllerGetNetworkClientByIdAction | AllowedActions,
     NetworkControllerStateChangeEvent | AllowedEvents
   >();
 
   const smartTransactionsController = new SmartTransactionsController({
-    messenger: controllerMessenger.getRestricted({
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+    messenger: messenger.getRestricted({
       name: 'SmartTransactionsController',
       allowedActions: ['NetworkController:getNetworkClientById'],
       allowedEvents: ['NetworkController:stateChange'],
@@ -185,7 +186,7 @@ function withRequest<ReturnValue>(
       ...defaultTransactionMeta,
     },
     smartTransactionsController,
-    controllerMessenger,
+    controllerMessenger: messenger,
     transactionController: createTransactionControllerMock(),
     shouldUseSmartTransaction: true,
     approvalController: createApprovalControllerMock({
@@ -212,7 +213,7 @@ function withRequest<ReturnValue>(
   };
 
   return fn({
-    controllerMessenger,
+    controllerMessenger: messenger,
     request,
     getFeesSpy,
     submitSignedTransactionsSpy,

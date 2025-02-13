@@ -96,7 +96,7 @@ const PermitSimulation = () => {
               ) => (
                 <View style={styles.permitValues} key={`${token}-${i}`}>
                   <PermitSimulationValueDisplay
-                    labelChangeType={labelChangeType}
+                    modalHeaderText={labelChangeType}
                     networkClientId={networkClientId}
                     primaryType={primaryType}
                     tokenContract={safeToChecksumAddress(token)}
@@ -109,7 +109,7 @@ const PermitSimulation = () => {
           </>
         ) : (
           <PermitSimulationValueDisplay
-            labelChangeType={labelChangeType}
+            modalHeaderText={labelChangeType}
             networkClientId={networkClientId}
             tokenContract={verifyingContract}
             value={message.value}
