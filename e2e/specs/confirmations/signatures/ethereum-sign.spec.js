@@ -22,7 +22,7 @@ describe(SmokeConfirmations('Ethereum Sign'), () => {
 
   it('Sign in with Ethereum', async () => {
     const testSpecificMock = {
-      GET: [mockEvents.GET.remoteFeatureFlags],
+      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
     };
 
     await withFixtures(

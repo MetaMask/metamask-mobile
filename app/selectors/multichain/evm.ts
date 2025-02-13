@@ -4,21 +4,17 @@ import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
   selectSelectedInternalAccountFormattedAddress,
   selectSelectedInternalAccount,
-} from './accountsController';
-import { selectAllTokens } from './tokensController';
-import { selectAccountsByChainId } from './accountTrackerController';
-import { selectNetworkConfigurations } from './networkController';
-import { TokenI } from '../components/UI/Tokens/types';
-import { renderFromWei, weiToFiat } from '../util/number';
+} from '../accountsController';
+import { selectAllTokens } from '../tokensController';
+import { selectAccountsByChainId } from '../accountTrackerController';
+import { selectNetworkConfigurations } from '../networkController';
+import { TokenI } from '../../components/UI/Tokens/types';
+import { renderFromWei, weiToFiat } from '../../util/number';
 import { hexToBN, toHex } from '@metamask/controller-utils';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
-} from './currencyRateController';
-
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { RootState } from '../reducers';
-///: END:ONLY_INCLUDE_IF
+} from '../currencyRateController';
 
 interface NativeTokenBalance {
   balance: string;
@@ -222,35 +218,3 @@ export const selectAccountTokensAcrossChains = createSelector(
     return tokensByChain;
   },
 );
-
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-/**
- * Get the state of the `bitcoinSupportEnabled` flag.
- *
- * @param {*} state
- * @returns The state of the `bitcoinSupportEnabled` flag.
- */
-export function selectIsBitcoinSupportEnabled(state: RootState) {
-  return state.multichainSettings.bitcoinSupportEnabled;
-}
-
-/**
- * Get the state of the `bitcoinTestnetSupportEnabled` flag.
- *
- * @param {*} state
- * @returns The state of the `bitcoinTestnetSupportEnabled` flag.
- */
-export function selectIsBitcoinTestnetSupportEnabled(state: RootState) {
-  return state.multichainSettings.bitcoinTestnetSupportEnabled;
-}
-
-/**
- * Get the state of the `solanaSupportEnabled` flag.
- *
- * @param {*} state
- * @returns The state of the `solanaSupportEnabled` flag.
- */
-export function selectIsSolanaSupportEnabled(state: RootState) {
-  return state.multichainSettings.solanaSupportEnabled;
-}
-///: END:ONLY_INCLUDE_IF

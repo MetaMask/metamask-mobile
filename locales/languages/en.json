@@ -3637,6 +3637,8 @@
     "account": "Account",
     "balance": "Balance",
     "network": "Network",
+    "qr_get_sign": "Get Signature",
+    "qr_scan_text": "Scan with your hardware wallet",
     "siwe_message": {
       "url": "URL",
       "network" : "Network",

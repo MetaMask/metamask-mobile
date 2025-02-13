@@ -8,6 +8,8 @@ import {
   BtcScopes,
   SolScopes,
   KeyringAccountType,
+  BtcMethod,
+  SolMethod,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
@@ -129,6 +131,63 @@ export function createMockSnapInternalAccount(
     scopes: [EthScopes.Namespace],
   };
 }
+
+export const MOCK_ACCOUNT_BIP122_P2WPKH: InternalAccount = {
+  id: 'ae247df6-3911-47f7-9e36-28e6a7d96078',
+  address: 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
+  options: {},
+  methods: [BtcMethod.SendBitcoin],
+  scopes: [BtcScopes.Mainnet],
+  type: BtcAccountType.P2wpkh,
+  metadata: {
+    name: 'Bitcoin Account',
+    keyring: { type: KeyringTypes.snap },
+    importTime: 1691565967600,
+    lastSelected: 1955565967656,
+  },
+};
+
+export const MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET: InternalAccount = {
+  id: 'fcdafe8b-4bdf-4e25-9051-e255b2a0af5f',
+  address: 'tb1q6rmsq3vlfdhjdhtkxlqtuhhlr6pmj09y6w43g8',
+  options: {},
+  methods: [BtcMethod.SendBitcoin],
+  scopes: [BtcScopes.Testnet],
+  type: BtcAccountType.P2wpkh,
+  metadata: {
+    name: 'Bitcoin Testnet Account',
+    keyring: { type: KeyringTypes.snap },
+    importTime: 1691565967600,
+    lastSelected: 1955565967656,
+  },
+};
+
+export const MOCK_SOLANA_ACCOUNT: InternalAccount = {
+  address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
+  id: '1',
+  type: SolAccountType.DataAccount,
+  methods: [SolMethod.SendAndConfirmTransaction],
+  options: {},
+  metadata: {
+    name: 'Solana Account',
+    importTime: 1684232000456,
+    keyring: {
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: 'npm:"@metamask/solana-wallet-snap',
+      name: 'Solana Wallet Snap',
+      enabled: true,
+    },
+  },
+  scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
+};
+
+export const MOCK_MULTICHAIN_NON_EVM_ACCOUNTS = {
+  [MOCK_ACCOUNT_BIP122_P2WPKH.id]: MOCK_ACCOUNT_BIP122_P2WPKH,
+  [MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET.id]: MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET,
+  [MOCK_SOLANA_ACCOUNT.id]: MOCK_SOLANA_ACCOUNT,
+};
 
 // Mock checksummed addresses
 export const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
