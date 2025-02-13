@@ -54,7 +54,7 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 
 import useAnalytics from '../../hooks/useAnalytics';
-import useQuotes from '../../hooks/useQuotes';
+import useSortedQuotes from '../../hooks/useSortedQuotes';
 import { useRampSDK } from '../../sdk';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
@@ -140,7 +140,7 @@ function Quotes() {
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,
-  } = useQuotes(params.amount);
+  } = useSortedQuotes(params.amount);
 
   const [filteredQuotes, highlightedQuotes] = useMemo(() => {
     if (quotes) {
