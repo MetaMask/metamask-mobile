@@ -422,7 +422,7 @@ function Quotes() {
           : appConfig.POLLING_INTERVAL;
       });
     },
-    isInPolling && !isFetchingQuotes ? 1000 : null,
+    { delay: isInPolling && !isFetchingQuotes ? 1000 : null },
   );
 
   useEffect(() => {
