@@ -151,7 +151,6 @@ const createStyles = (colors) =>
     },
     smartTransactionsMigrationBanner: {
       paddingHorizontal: 20,
-      marginBottom: -8,
       width: '100%',
     },
     timerWrapper: {

@@ -154,7 +154,6 @@ const createStyles = (colors: any) =>
       marginBottom: 24,
     },
     smartTransactionsMigrationBanner: {
-      marginBottom: -8,
       marginHorizontal: 16,
     },
   });
