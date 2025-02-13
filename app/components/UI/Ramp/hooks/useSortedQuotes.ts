@@ -11,8 +11,15 @@ function useSortedQuotes(amount: number | string) {
     [quotes, sorted],
   );
 
+  const quotesByReliability = useMemo(
+    () => sortQuotes(quotes, sorted, QuoteSortBy.reliability),
+    [quotes, sorted],
+  );
+
   return {
-    quotes: quotesByPrice,
+    quotes,
+    quotesByPrice,
+    quotesByReliability,
     sorted,
     isFetching,
     error,

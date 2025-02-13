@@ -136,11 +136,14 @@ function Quotes() {
   });
 
   const {
-    quotes,
+    quotesByPrice,
+    quotesByReliability,
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,
   } = useSortedQuotes(params.amount);
+
+  const quotes = isExpanded ? quotesByPrice : quotesByReliability;
 
   const [filteredQuotes, highlightedQuotes] = useMemo(() => {
     if (quotes) {
