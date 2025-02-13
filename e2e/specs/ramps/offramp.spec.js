@@ -18,7 +18,7 @@ import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-
+import QuotesView from '../../pages/Ramps/QuotesView';
 const fixtureServer = new FixtureServer();
 
 const Regions = {
@@ -38,7 +38,6 @@ describe(SmokeRamps('Off-Ramp'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -72,5 +71,14 @@ describe(SmokeRamps('Off-Ramp'), () => {
     await SelectPaymentMethodView.tapContinueButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToSellLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a quote', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapSellButton();
+    await BuildQuoteView.enterAmount('0.1');
+    await BuildQuoteView.tapGetQuotesButton();
+    await Assertions.checkIfVisible(QuotesView.quotes);
   });
 });
