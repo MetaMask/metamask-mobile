@@ -14,6 +14,7 @@ import LINEA_MAINNET from './linea-mainnet-logo.png';
 import APE_TOKEN from './ape-token.png';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
+import UNICHAIN from './unichain.png';
 
 export default {
   PALM,
@@ -34,4 +35,6 @@ export default {
   G: GRAVITY,
   'KAIA-MAINNET': KAIA_MAINNET,
   'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
+  UNICHAIN,
+  'UNICHAIN-SEPOLIA': UNICHAIN,
 };
