@@ -1,0 +1,100 @@
+diff --git a/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/NotificationServicesController.cjs b/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/NotificationServicesController.cjs
+index 929861c..89c3154 100644
+--- a/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/NotificationServicesController.cjs
++++ b/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/NotificationServicesController.cjs
+@@ -248,6 +248,8 @@ class NotificationServicesController extends base_controller_1.BaseController {
+             },
+         });
+         _NotificationServicesController_accounts.set(this, {
++            // Flag to ensure we only setup once
++            isNotificationAccountsSetup: false,
+             /**
+              * Used to get list of addresses from keyring (wallet addresses)
+              *
+@@ -286,8 +288,11 @@ class NotificationServicesController extends base_controller_1.BaseController {
+              *
+              * @returns result from list accounts
+              */
+-            initialize: () => {
+-                return __classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").listAccounts();
++            initialize: async () => {
++                if (__classPrivateFieldGet(this, _NotificationServicesController_isUnlocked, "f") && !__classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").isNotificationAccountsSetup) {
++                    await __classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").listAccounts();
++                    __classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").isNotificationAccountsSetup = true;
++                }
+             },
+             /**
+              * Subscription to any state change in the keyring controller (aka wallet accounts).
+@@ -295,9 +300,7 @@ class NotificationServicesController extends base_controller_1.BaseController {
+              * And call effects to subscribe/unsubscribe to notifications.
+              */
+             subscribe: () => {
+-                this.messagingSystem.subscribe('KeyringController:stateChange', 
+-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+-                async () => {
++                this.messagingSystem.subscribe('KeyringController:stateChange', async () => {
+                     if (!this.state.isNotificationServicesEnabled) {
+                         return;
+                     }
+@@ -327,7 +330,10 @@ class NotificationServicesController extends base_controller_1.BaseController {
+         __classPrivateFieldSet(this, _NotificationServicesController_featureAnnouncementEnv, env.featureAnnouncements, "f");
+         __classPrivateFieldGet(this, _NotificationServicesController_instances, "m", _NotificationServicesController_registerMessageHandlers).call(this);
+         __classPrivateFieldGet(this, _NotificationServicesController_instances, "m", _NotificationServicesController_clearLoadingStates).call(this);
+-        __classPrivateFieldGet(this, _NotificationServicesController_keyringController, "f").setupLockedStateSubscriptions(__classPrivateFieldGet(this, _NotificationServicesController_pushNotifications, "f").initializePushNotifications);
++        __classPrivateFieldGet(this, _NotificationServicesController_keyringController, "f").setupLockedStateSubscriptions(async () => {
++            await __classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").initialize();
++            await __classPrivateFieldGet(this, _NotificationServicesController_pushNotifications, "f").initializePushNotifications();
++        });
+         // eslint-disable-next-line @typescript-eslint/no-floating-promises
+         __classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").initialize();
+         // eslint-disable-next-line @typescript-eslint/no-floating-promises
+diff --git a/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/NotificationServicesController.mjs b/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/NotificationServicesController.mjs
+index ffe9a4a..0398331 100644
+--- a/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/NotificationServicesController.mjs
++++ b/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/NotificationServicesController.mjs
+@@ -226,6 +226,8 @@ class NotificationServicesController extends BaseController {
+             },
+         });
+         _NotificationServicesController_accounts.set(this, {
++            // Flag to ensure we only setup once
++            isNotificationAccountsSetup: false,
+             /**
+              * Used to get list of addresses from keyring (wallet addresses)
+              *
+@@ -264,8 +266,11 @@ class NotificationServicesController extends BaseController {
+              *
+              * @returns result from list accounts
+              */
+-            initialize: () => {
+-                return __classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").listAccounts();
++            initialize: async () => {
++                if (__classPrivateFieldGet(this, _NotificationServicesController_isUnlocked, "f") && !__classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").isNotificationAccountsSetup) {
++                    await __classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").listAccounts();
++                    __classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").isNotificationAccountsSetup = true;
++                }
+             },
+             /**
+              * Subscription to any state change in the keyring controller (aka wallet accounts).
+@@ -273,9 +278,7 @@ class NotificationServicesController extends BaseController {
+              * And call effects to subscribe/unsubscribe to notifications.
+              */
+             subscribe: () => {
+-                this.messagingSystem.subscribe('KeyringController:stateChange', 
+-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+-                async () => {
++                this.messagingSystem.subscribe('KeyringController:stateChange', async () => {
+                     if (!this.state.isNotificationServicesEnabled) {
+                         return;
+                     }
+@@ -305,7 +308,10 @@ class NotificationServicesController extends BaseController {
+         __classPrivateFieldSet(this, _NotificationServicesController_featureAnnouncementEnv, env.featureAnnouncements, "f");
+         __classPrivateFieldGet(this, _NotificationServicesController_instances, "m", _NotificationServicesController_registerMessageHandlers).call(this);
+         __classPrivateFieldGet(this, _NotificationServicesController_instances, "m", _NotificationServicesController_clearLoadingStates).call(this);
+-        __classPrivateFieldGet(this, _NotificationServicesController_keyringController, "f").setupLockedStateSubscriptions(__classPrivateFieldGet(this, _NotificationServicesController_pushNotifications, "f").initializePushNotifications);
++        __classPrivateFieldGet(this, _NotificationServicesController_keyringController, "f").setupLockedStateSubscriptions(async () => {
++            await __classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").initialize();
++            await __classPrivateFieldGet(this, _NotificationServicesController_pushNotifications, "f").initializePushNotifications();
++        });
+         // eslint-disable-next-line @typescript-eslint/no-floating-promises
+         __classPrivateFieldGet(this, _NotificationServicesController_accounts, "f").initialize();
+         // eslint-disable-next-line @typescript-eslint/no-floating-promises
