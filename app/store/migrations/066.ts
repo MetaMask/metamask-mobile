@@ -1,4 +1,4 @@
-import { hasProperty, isObject } from '@metamask/utils';
+import { CaipChainId, hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 import Logger from '../../util/Logger';
 import {
@@ -6,10 +6,12 @@ import {
   BtcScope,
   EthAccountType,
   EthScope,
+  KeyringAccount,
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
+import { isBtcMainnetAddress } from '../../core/Multichain/utils';
 
 // Helper to check if a scope is a valid enum value
 function isValidScope(scope: string): boolean {
@@ -21,23 +23,35 @@ function isValidScope(scope: string): boolean {
 }
 
 function getScopesForAccountType(
-  accountType: string,
+  account: KeyringAccount,
   migrationNumber: number,
-): string[] {
-  switch (accountType) {
+): CaipChainId[] {
+  switch (account.type) {
     case EthAccountType.Eoa:
-    case EthAccountType.Erc4337:
       return [EthScope.Eoa];
-    case BtcAccountType.P2wpkh:
-      // Default to mainnet scope if address is missing or invalid
-      return [BtcScope.Mainnet];
+    case EthAccountType.Erc4337: {
+      // EVM Erc4337 account
+      // NOTE: A Smart Contract account might not be compatible with every chain, in this case we just default
+      // to testnet since we cannot really "guess" it from here.
+      // Also, there's no official Snap as of today that uses this account type. So this case should never happen
+      // in production.
+      return [EthScope.Testnet];
+    }
+    case BtcAccountType.P2wpkh: {
+      // Bitcoin uses different accounts for testnet and mainnet
+      return [
+        isBtcMainnetAddress(account.address)
+          ? BtcScope.Mainnet
+          : BtcScope.Testnet,
+      ];
+    }
     case SolAccountType.DataAccount:
       return [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet];
     default:
       // Default to EVM namespace for unknown account types
       captureException(
         new Error(
-          `Migration ${migrationNumber}: Unknown account type ${accountType}, defaulting to EVM EOA`,
+          `Migration ${migrationNumber}: Unknown account type ${account.type}, defaulting to EVM EOA`,
         ),
       );
       return [EthScope.Eoa];
@@ -111,7 +125,7 @@ export function migration66(state: unknown, migrationNumber: number) {
     );
 
     account.scopes = getScopesForAccountType(
-      account.type as string,
+      account as KeyringAccount,
       migrationNumber,
     );
   }
