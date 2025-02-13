@@ -6,9 +6,7 @@ import { act, render } from '@testing-library/react-native';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation(() => 'https://dweb.link/ipfs/'),
+  useSelector: jest.fn().mockImplementation(() => 'https://dweb.link/ipfs/'),
 }));
 
 jest.mock('../../../components/hooks/useIpfsGateway', () => jest.fn());
