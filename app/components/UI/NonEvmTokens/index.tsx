@@ -18,8 +18,8 @@ import {
   MULTICHAIN_TOKEN_IMAGES,
 } from '../../../core/Multichain/constants';
 import {
-  selectSelectedNonEvmNativeCurrency,
   selectSelectedNonEvmNetworkChainId,
+  selectSelectedNonEvmNetworkSymbol,
 } from '../../../selectors/multichainNetworkController';
 import { CaipChainId } from '@metamask/utils';
 
@@ -41,7 +41,7 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const conversionRate = useSelector(selectMultichainConversionRate);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
   const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
-  const nonEvmTicker = useSelector(selectSelectedNonEvmNativeCurrency);
+  const nonEvmTicker = useSelector(selectSelectedNonEvmNetworkSymbol);
 
   function getMultiChainFiatBalance(): string {
     if (conversionRate) {

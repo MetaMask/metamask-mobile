@@ -371,16 +371,11 @@ export class Engine {
       }),
       state: initialState.MultichainNetworkController ?? {
         selectedMultichainNetworkChainId: SolScopes.Mainnet,
-        multichainNetworksMetadata: {},
         multichainNetworkConfigurationsByChainId: {
           [SolScopes.Mainnet]: {
             name: 'Solana Mainnet',
             chainId: SolScopes.Mainnet,
-            blockExplorers: {
-              urls: ['https://solscan.io'],
-              defaultIndex: 0,
-            },
-            nativeCurrency: 'SOL',
+            nativeCurrency: `${SolScopes.Mainnet}/token:solAddress`,
             isEvm: false,
           },
         },

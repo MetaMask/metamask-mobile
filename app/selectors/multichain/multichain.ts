@@ -22,8 +22,8 @@ import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
 import {
   selectIsEvmNetworkSelected,
-  selectSelectedNonEvmNativeCurrency,
   selectSelectedNonEvmNetworkChainId,
+  selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
 
 /**
@@ -59,7 +59,7 @@ export function selectIsSolanaSupportEnabled(state: RootState) {
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
   selectEvmProviderConfig,
-  selectSelectedNonEvmNativeCurrency,
+  selectSelectedNonEvmNetworkSymbol,
   (isEvmSelected, evmProviderConfig, nonEvmTicker) => {
     const symbol = isEvmSelected ? evmProviderConfig.ticker : nonEvmTicker;
     return { symbol };
@@ -161,12 +161,12 @@ export const selectMultichainConversionRate = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
   selectConversionRate,
   selectMultichainCoinRates,
-  selectSelectedNonEvmNativeCurrency,
+  selectSelectedNonEvmNetworkSymbol,
   (isEvmSelected, evmConversionRate, multichaincCoinRates, nonEvmTicker) => {
     if (isEvmSelected) {
       return evmConversionRate;
     }
-
+    // TODO: [SOLANA] - This should be mapping a caip-19 not a ticker
     return nonEvmTicker
       ? multichaincCoinRates?.[nonEvmTicker.toLowerCase()]?.conversionRate
       : undefined;

@@ -8,7 +8,6 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../../../util/etherscan';
 import { useSelector } from 'react-redux';
-import { selectNonEvmBlockExplorerUrl } from '../../../../selectors/multichainNetworkController';
 import {
   selectEvmChainId,
   selectProviderConfig,
@@ -26,7 +25,6 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
   const networkName = useSelector(selectNetworkName);
-  const nonEvmBlockExplorerUrl = useSelector(selectNonEvmBlockExplorerUrl);
 
   useEffect(() => {
     const definitiveProviderConfig =
@@ -79,7 +77,6 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
     providerConfigTokenExplorer,
     chainId,
     networkName,
-    nonEvmBlockExplorerUrl,
   ]);
 
   const tx = useCallback(

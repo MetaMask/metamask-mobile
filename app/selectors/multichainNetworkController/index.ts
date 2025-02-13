@@ -2,6 +2,12 @@ import { MultichainNetworkControllerState } from '@metamask/multichain-network-c
 import { RootState } from '../../reducers';
 import { createSelector } from 'reselect';
 import { CaipChainId } from '@metamask/utils';
+import { MULTICHAIN_PROVIDER_CONFIGS } from '../../core/Multichain/constants';
+
+const getNonEvmNetworkSymbolByChainId = (chainId: CaipChainId) => {
+  const network = MULTICHAIN_PROVIDER_CONFIGS[chainId];
+  return network?.ticker;
+};
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -37,28 +43,18 @@ export const selectSelectedNonEvmNetworkName = createSelector(
   },
 );
 
-export const selectNonEvmBlockExplorerUrl = createSelector(
-  selectNonEvmNetworkConfigurationsByChainId,
-  selectSelectedNonEvmNetworkChainId,
-  (
-    nonEvmNetworkConfigurationsByChainId,
-    selectedMultichainNetworkChainId: CaipChainId,
-  ) => {
-    const network =
-      nonEvmNetworkConfigurationsByChainId[selectedMultichainNetworkChainId];
-    return network?.blockExplorers.urls[network?.blockExplorers.defaultIndex];
-  },
-);
-
 export const selectSelectedNonEvmNativeCurrency = createSelector(
   selectNonEvmNetworkConfigurationsByChainId,
   selectSelectedNonEvmNetworkChainId,
-  (
-    nonEvmNetworkConfigurationsByChainId,
-    selectedMultichainNetworkChainId: string,
-  ) => {
+  (nonEvmNetworkConfigurationsByChainId, selectedMultichainNetworkChainId) => {
     const network =
       nonEvmNetworkConfigurationsByChainId[selectedMultichainNetworkChainId];
     return network?.nativeCurrency;
   },
+);
+
+export const selectSelectedNonEvmNetworkSymbol = createSelector(
+  selectSelectedNonEvmNetworkChainId,
+  (selectedMultichainNetworkChainId) =>
+    getNonEvmNetworkSymbolByChainId(selectedMultichainNetworkChainId),
 );
