@@ -4,6 +4,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import TestHelpers from '../../helpers';
 import { SmokeRamps } from '../../tags';
+import { CustomNetworks } from '../../resources/networks.e2e';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -33,6 +34,7 @@ describe(SmokeRamps('On-Ramp Limits'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
           .withRampsSelectedRegion(franceRegion)
           .withRampsSelectedPaymentMethod()
           .build(),
@@ -41,13 +43,16 @@ describe(SmokeRamps('On-Ramp Limits'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapBuyButton();
+        await WalletActionsBottomSheet.tapSellButton();
         await BuyGetStartedView.tapGetStartedButton();
-        await BuildQuoteView.enterAmount('1');
+        await BuildQuoteView.enterAmount('0.001');
         await Assertions.checkIfVisible(BuildQuoteView.minLimitErrorMessage);
-        await BuildQuoteView.tapKeypadDeleteButton(1);
-        await BuildQuoteView.enterAmount('55555');
+        await BuildQuoteView.tapKeypadDeleteButton(4);
+        await BuildQuoteView.enterAmount('9');
         await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
+        await BuildQuoteView.tapKeypadDeleteButton(1);
+        await BuildQuoteView.enterAmount('999');
+        await Assertions.checkIfVisible(BuildQuoteView.insufficientBalanceErrorMessage);
         await BuildQuoteView.tapCancelButton();
       },
     );
