@@ -3639,6 +3639,7 @@
     "network": "Network",
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
+    "sign_with_ledger": "Sign with Ledger",
     "siwe_message": {
       "url": "URL",
       "network" : "Network",

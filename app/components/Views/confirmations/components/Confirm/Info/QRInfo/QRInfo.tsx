@@ -15,7 +15,7 @@ import {
   useMetrics,
 } from '../../../../../../hooks/useMetrics';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { useQRHardwareContext } from '../../../../context/QRHardwareContext/QRHardwareContext';
+import { useQRHardwareContext } from '../../../../context/QRHardwareContext';
 import styleSheet from './QRInfo.styles';
 
 const QRInfo = () => {

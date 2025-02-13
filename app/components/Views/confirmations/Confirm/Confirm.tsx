@@ -6,7 +6,8 @@ import { useStyles } from '../../../../component-library/hooks';
 import BottomModal from '../components/UI/BottomModal';
 import Footer from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
-import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
+import { LedgerContextProvider } from '../context/LedgerContext';
+import { QRHardwareContextProvider } from '../context/QRHardwareContext';
 import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
 import useApprovalRequest from '../hooks/useApprovalRequest';
@@ -25,17 +26,19 @@ const ConfirmWrapped = ({
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
 }) => (
   <QRHardwareContextProvider>
-    <Title />
-    <View style={styles.scrollWrapper}>
-      <ScrollView
-        style={styles.scrollable}
-        contentContainerStyle={styles.scrollableSection}
-      >
-        <SignatureBlockaidBanner />
-        <Info />
-      </ScrollView>
-    </View>
-    <Footer />
+    <LedgerContextProvider>
+      <Title />
+      <View style={styles.scrollWrapper}>
+        <ScrollView
+          style={styles.scrollable}
+          contentContainerStyle={styles.scrollableSection}
+        >
+          <SignatureBlockaidBanner />
+          <Info />
+        </ScrollView>
+      </View>
+      <Footer />
+    </LedgerContextProvider>
   </QRHardwareContextProvider>
 );
 
@@ -56,10 +59,7 @@ const Confirm = () => {
 
   if (isFlatConfirmation) {
     return (
-      <View
-        style={styles.flatContainer}
-        testID="flat-confirmation-container"
-      >
+      <View style={styles.flatContainer} testID="flat-confirmation-container">
         <ConfirmWrapped styles={styles} />
       </View>
     );

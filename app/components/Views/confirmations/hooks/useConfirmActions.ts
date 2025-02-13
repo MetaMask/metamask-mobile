@@ -3,7 +3,8 @@ import { useCallback } from 'react';
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
-import { useQRHardwareContext } from '../context/QRHardwareContext/QRHardwareContext';
+import { useLedgerContext } from '../context/LedgerContext';
+import { useQRHardwareContext } from '../context/QRHardwareContext';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './useSignatureMetrics';
 
@@ -19,11 +20,30 @@ export const useConfirmActions = () => {
     isQRSigningInProgress,
     setScannerVisible,
   } = useQRHardwareContext();
+  const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
 
-  const signatureRequest =
+  const isSignatureReq =
     approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
 
+  const onReject = useCallback(async () => {
+    await cancelQRScanRequestIfPresent();
+    onRequestReject();
+    if (isSignatureReq) {
+      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
+      PPOMUtil.clearSignatureSecurityAlertResponse();
+    }
+  }, [
+    cancelQRScanRequestIfPresent,
+    captureSignatureMetrics,
+    onRequestReject,
+    isSignatureReq,
+  ]);
+
   const onConfirm = useCallback(async () => {
+    if (ledgerSigningInProgress) {
+      openLedgerSignModal();
+      return;
+    }
     if (isQRSigningInProgress) {
       setScannerVisible(true);
       return;
@@ -33,30 +53,18 @@ export const useConfirmActions = () => {
       deleteAfterResult: true,
       handleErrors: false,
     });
-    if (signatureRequest) {
+    if (isSignatureReq) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
       PPOMUtil.clearSignatureSecurityAlertResponse();
     }
   }, [
-    captureSignatureMetrics,
     isQRSigningInProgress,
-    onRequestConfirm,
+    ledgerSigningInProgress,
+    openLedgerSignModal,
     setScannerVisible,
-    signatureRequest,
-  ]);
-
-  const onReject = useCallback(async () => {
-    await cancelQRScanRequestIfPresent();
-    onRequestReject();
-    if (signatureRequest) {
-      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
-      PPOMUtil.clearSignatureSecurityAlertResponse();
-    }
-  }, [
-    cancelQRScanRequestIfPresent,
     captureSignatureMetrics,
-    onRequestReject,
-    signatureRequest,
+    onRequestConfirm,
+    isSignatureReq,
   ]);
 
   return { onConfirm, onReject };
