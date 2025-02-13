@@ -310,28 +310,18 @@ exports[`NonEvmTokens should render correctly 1`] = `
                           tokens={
                             [
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
-                                "borderWidth": 1,
-                                "maxHeight": 1334,
-                                "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
-                              },
-                              {
-                                "transform": [
-                                  {
-                                    "translateY": 1334,
-                                  },
-                                ],
+                                "address": "",
+                                "aggregators": [],
+                                "balance": "5.5",
+                                "balanceFiat": "550 USD",
+                                "decimals": 9,
+                                "image": undefined,
+                                "isETH": false,
+                                "isNative": true,
+                                "logo": undefined,
+                                "name": "Solana",
+                                "symbol": "SOL",
+                                "ticker": "SOL",
                               },
                             ]
                           }

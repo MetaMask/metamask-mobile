@@ -338,29 +338,11 @@ exports[`Network Selector renders correctly 1`] = `
                           [
                             [
                               {
-<<<<<<< HEAD
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
-                                "borderWidth": 1,
-                                "maxHeight": 1334,
-                                "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
-=======
                                 "bottom": 0,
                                 "left": 0,
                                 "position": "absolute",
                                 "right": 0,
                                 "top": 0,
->>>>>>> b3f0ee771b515eb4c9bedda52148c74d3febdd39
                               },
                               {
                                 "transform": [
@@ -1570,21 +1552,11 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                           [
                             [
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
-                                "borderWidth": 1,
-                                "maxHeight": 1334,
-                                "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
                               },
                               {
                                 "transform": [
