@@ -71,6 +71,7 @@ import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
+  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
@@ -440,6 +441,10 @@ class DrawerView extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Selected multichain chainId
+     */
+    chainId: PropTypes.string,
   };
 
   state = {
@@ -573,23 +578,23 @@ class DrawerView extends PureComponent {
   }
 
   updateAccountInfo = async () => {
-    const { providerConfig, selectedInternalAccount } = this.props;
+    const { providerConfig, selectedInternalAccount, chainId } = this.props;
     const { currentChainId, address, name } = this.state.account;
     const accountName = selectedInternalAccount.metadata.name;
     if (
-      currentChainId !== providerConfig.chainId ||
+      currentChainId !== chainId ||
       address !== this.selectedChecksummedAddress ||
       name !== accountName
     ) {
       const ens = await doENSReverseLookup(
         this.selectedChecksummedAddress,
-        providerConfig.chainId,
+        chainId,
       );
       this.setState((state) => ({
         account: {
           ens,
           name: accountName,
-          currentChainId: providerConfig.chainId,
+          currentChainId: chainId,
           address: this.selectedChecksummedAddress,
         },
       }));
@@ -615,13 +620,13 @@ class DrawerView extends PureComponent {
 
   // NOTE: do we need this event?
   trackOpenBrowserEvent = () => {
-    const { providerConfig } = this.props;
+    const { chainId } = this.props;
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(MetaMetricsEvents.BROWSER_OPENED)
         .addProperties({
           source: 'In-app Navigation',
-          chain_id: getDecimalChainId(providerConfig.chainId),
+          chain_id: getDecimalChainId(chainId),
         })
         .build(),
     );
@@ -971,12 +976,12 @@ class DrawerView extends PureComponent {
 
   onInfoNetworksModalClose = () => {
     const {
-      providerConfig,
+      chainId,
       onboardNetworkAction,
       networkSwitched,
       toggleInfoNetworkModal,
     } = this.props;
-    onboardNetworkAction(providerConfig.chainId);
+    onboardNetworkAction(chainId);
     networkSwitched({ networkUrl: '', networkStatus: false });
     toggleInfoNetworkModal();
   };
@@ -1255,6 +1260,7 @@ class DrawerView extends PureComponent {
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
+  chainId: selectChainId(state),
   accounts: selectAccounts(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
   networkConfigurations: selectNetworkConfigurations(state),

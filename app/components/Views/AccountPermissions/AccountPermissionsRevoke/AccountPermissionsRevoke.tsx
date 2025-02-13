@@ -37,6 +37,7 @@ import { AvatarVariant } from '../../../../component-library/components/Avatars/
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { RootState } from '../../../../reducers';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -61,9 +62,8 @@ const AccountPermissionsRevoke = ({
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
+    (state: RootState) =>
+      Object.keys(selectNetworkConfigurations(state)).length + 1,
   );
 
   const revokeAllAccounts = useCallback(
@@ -77,7 +77,7 @@ const AccountPermissionsRevoke = ({
             .addProperties({
               number_of_accounts: accountsLength,
               number_of_accounts_connected: permittedAddresses.length,
-              number_of_networks: nonTestnetNetworks,
+              number_of_networks: nonTestnetNetworks, // TODO: [SOLANA] - Should we remove Solana from metrics until it's supported?
             })
             .build(),
         );

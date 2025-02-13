@@ -43,6 +43,9 @@ import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { NON_EVM_NETWORKS } from '../../../../util/networks/customNetworks';
+import { SolScopes } from '@metamask/keyring-api';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -65,6 +68,9 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       paddingVertical: 12,
       alignItems: 'center',
+    },
+    networkDisabled: {
+      opacity: 0.5,
     },
     networkWrapper: {
       flex: 0,
@@ -194,7 +200,7 @@ class NetworksSettings extends PureComponent {
     }, 1000);
   };
 
-  removeNetwork = () => {
+  removeNetwork = async () => {
     // Check if it's the selected network and then switch to mainnet first
     const { providerConfig } = this.props;
     if (
@@ -203,7 +209,7 @@ class NetworksSettings extends PureComponent {
     ) {
       this.switchToMainnet();
     }
-    const { NetworkController } = Engine.context;
+    const { NetworkController, MultichainNetworkController } = Engine.context;
 
     const { networkConfigurations } = this.props;
     const entry = Object.entries(networkConfigurations).find(
@@ -226,7 +232,9 @@ class NetworksSettings extends PureComponent {
 
     if (this.networkToRemove === selectedNetworkClientId) {
       // if we delete selected network, switch to mainnet before removing the selected network
-      NetworkController.setActiveNetwork('mainnet');
+      await MultichainNetworkController.setActiveNetwork({
+        evmClientId: 'mainnet',
+      });
     }
 
     NetworkController.removeNetwork(chainId);
@@ -324,7 +332,8 @@ class NetworksSettings extends PureComponent {
           isTestNet(chainId) ||
           isMainNet(chainId) ||
           chainId === CHAIN_IDS.LINEA_MAINNET ||
-          chainId === CHAIN_IDS.GOERLI
+          chainId === CHAIN_IDS.GOERLI ||
+          isNonEvmChainId(chainId)
         ) {
           return null;
         }
@@ -421,6 +430,42 @@ class NetworksSettings extends PureComponent {
             <ImageIcons image="LINEA-MAINNET" style={styles.networkIcon} />
             <View style={styles.networkInfo}>
               <Text style={styles.networkLabel}>{lineaMainnetName}</Text>
+            </View>
+          </View>
+          <FontAwesome
+            name="lock"
+            size={20}
+            color={colors.icon.default}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  renderSolanaMainnet() {
+    if (!NON_EVM_NETWORKS.length) {
+      return null;
+    }
+    // TODO: [SOLANA] - Please revisit this since it's supported on a constant array in mobile and should come from multichain network controller
+    const { nickname: solanaMainnetName } = NON_EVM_NETWORKS.find(
+      (network) => network.chainId === SolScopes.Mainnet,
+    );
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <View style={styles.mainnetHeader}>
+        <TouchableOpacity
+          style={{ ...styles.network, ...styles.networkDisabled }}
+          key={`network-${solanaMainnetName}`}
+          onPress={() => null}
+          disabled
+        >
+          <View style={styles.networkWrapper}>
+            <ImageIcons image={'SOLANA'} style={styles.networkIcon} />
+            <View style={styles.networkInfo}>
+              <Text style={styles.networkLabel}>{solanaMainnetName}</Text>
             </View>
           </View>
           <FontAwesome
@@ -537,6 +582,7 @@ class NetworksSettings extends PureComponent {
               </Text>
               {this.renderMainnet()}
               {this.renderLineaMainnet()}
+              {this.renderSolanaMainnet()}
               {this.renderRpcNetworksView()}
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.test_network_name')}

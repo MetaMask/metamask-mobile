@@ -38,8 +38,8 @@ import { toHex } from '@metamask/controller-utils';
 import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
 import {
-  selectNetworkConfigurations,
   selectIsAllNetworks,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import {
   NetworkConfiguration,
@@ -88,6 +88,7 @@ const NetworkModals = (props: NetworkProps) => {
     safeChains,
   } = props;
   const { trackEvent, createEventBuilder } = useMetrics();
+
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -198,7 +199,7 @@ const NetworkModals = (props: NetworkProps) => {
   );
 
   const networkConfigurationByChainId = useSelector(
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
   );
 
   const checkNetwork = useCallback(async () => {
@@ -225,6 +226,7 @@ const NetworkModals = (props: NetworkProps) => {
 
     const existingNetwork = networkConfigurationByChainId[chainId];
     let networkClientId;
+    // TODO: [SOLANA]
 
     if (existingNetwork) {
       const updatedNetwork = await NetworkController.updateNetwork(
@@ -265,7 +267,10 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (networkClientId) {
       onUpdateNetworkFilter();
-      await NetworkController.setActiveNetwork(networkClientId);
+
+      await Engine.context.MultichainNetworkController.setActiveNetwork({
+        evmClientId: networkClientId,
+      });
     }
 
     onClose();
@@ -275,7 +280,7 @@ const NetworkModals = (props: NetworkProps) => {
     existingNetwork: NetworkConfiguration,
     networkId: string,
   ) => {
-    const { NetworkController } = Engine.context;
+    const { NetworkController, MultichainNetworkController } = Engine.context;
     const updatedNetwork = await NetworkController.updateNetwork(
       existingNetwork.chainId,
       existingNetwork,
@@ -291,7 +296,10 @@ const NetworkModals = (props: NetworkProps) => {
       updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
       {};
     onUpdateNetworkFilter();
-    await NetworkController.setActiveNetwork(networkClientId);
+
+    await MultichainNetworkController.setActiveNetwork({
+      evmClientId: networkClientId,
+    });
   };
 
   const handleNewNetwork = async (
@@ -337,7 +345,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const switchNetwork = async () => {
-    const { NetworkController } = Engine.context;
+    const { MultichainNetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     const existingNetwork = networkConfigurationByChainId[chainId];
 
@@ -360,7 +368,10 @@ const NetworkModals = (props: NetworkProps) => {
         {};
 
       onUpdateNetworkFilter();
-      NetworkController.setActiveNetwork(networkClientId);
+
+      MultichainNetworkController.setActiveNetwork({
+        evmClientId: networkClientId,
+      });
     }
     onClose();
 

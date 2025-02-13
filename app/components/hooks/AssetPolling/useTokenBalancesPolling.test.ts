@@ -26,6 +26,13 @@ describe('useTokenBalancesPolling', () => {
         TokenBalancesController: {
           tokenBalances: {},
         },
+        MultichainNetworkController: {
+          nonEvmSelected: false,
+          selectedMultichainNetworkChainId:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          multichainNetworksMetadata: {},
+          multichainNetworkConfigurationsByChainId: {},
+        },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
           networkConfigurationsByChainId: {
@@ -168,6 +175,13 @@ describe('useTokenBalancesPolling', () => {
                     ],
                   },
                 },
+              },
+              MultichainNetworkController: {
+                nonEvmSelected: false,
+                selectedMultichainNetworkChainId:
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                multichainNetworksMetadata: {},
+                multichainNetworkConfigurationsByChainId: {},
               },
             },
           },

@@ -1,3 +1,4 @@
+import { NetworkStatus } from '@metamask/network-controller';
 import { RootState } from '../../reducers';
 import {
   selectedAccountNativeTokenCachedBalanceByChainId,
@@ -84,6 +85,22 @@ describe('Multichain Selectors', () => {
               },
             },
           },
+        },
+        MultichainNetworkController: {
+          multichainNetworkConfigurationsByChainId: {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+              chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            },
+          },
+          multichainNetworksMetadata: {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+              features: [],
+              status: NetworkStatus.Available,
+            },
+          },
+          nonEvmSelected: false,
+          selectedMultichainNetworkChainId:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         },
       },
     },

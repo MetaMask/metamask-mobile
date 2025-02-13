@@ -1,22 +1,24 @@
 import { toChecksumAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
 
-import { selectChainId } from '../../selectors/networkController';
 import { selectInternalAccounts } from '../../selectors/accountsController';
 import { toLowerCaseEquals } from '../../util/general';
 import { AddressBookEntry } from '@metamask/address-book-controller';
 import { selectAddressBook } from '../../selectors/addressBookController';
+import { selectNonEvmSelected } from '../../selectors/multichainNetworkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 
 type AccountInfo = Pick<AddressBookEntry, 'name' | 'address'>;
 
 const useExistingAddress = (address?: string): AccountInfo | undefined => {
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
+  const nonEvmSelected = useSelector(selectNonEvmSelected);
 
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
 
-  if (!address) return;
-
+  if (!address || nonEvmSelected) return;
+  // TODO: [SOLANA] Revisit this before shipping, Address Book controller should support non evm networks
   const networkAddressBook = addressBook[chainId] || {};
   const checksummedAddress = toChecksumAddress(address);
 

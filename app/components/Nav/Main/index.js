@@ -85,6 +85,7 @@ import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesi
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
 
 const Stack = createStackNavigator();
 
@@ -225,6 +226,7 @@ const Main = (props) => {
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkName = useSelector(selectNetworkName);
+  const nonEvmSelected = useSelector(selectNonEvmSelected);
   const previousProviderConfig = useRef(undefined);
   const previousNetworkConfigurations = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
@@ -233,9 +235,11 @@ const Main = (props) => {
   // Show network switch confirmation.
   useEffect(() => {
     if (
-      previousProviderConfig.current &&
-      (providerConfig.chainId !== previousProviderConfig.current.chainId ||
-        providerConfig.type !== previousProviderConfig.current.type)
+      previousProviderConfig.current && nonEvmSelected
+        ? chainId !== previousProviderConfig.current?.chainId
+        : chainId !== previousProviderConfig.current?.chainId ||
+          // This case is when for example we switch default infura ethereum mainnet to custom rpc infura network
+          providerConfig.type !== previousProviderConfig.current.type
     ) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
@@ -249,8 +253,17 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
-    previousProviderConfig.current = providerConfig;
-  }, [providerConfig, networkName, networkImage, toastRef]);
+    previousProviderConfig.current = nonEvmSelected
+      ? { chainId }
+      : providerConfig;
+  }, [
+    providerConfig,
+    networkName,
+    networkImage,
+    toastRef,
+    chainId,
+    nonEvmSelected,
+  ]);
 
   // Show add network confirmation.
   useEffect(() => {

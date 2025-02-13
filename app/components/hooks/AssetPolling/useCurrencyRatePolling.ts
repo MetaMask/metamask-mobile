@@ -2,10 +2,10 @@ import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import {
   selectAllPopularNetworkConfigurations,
-  selectChainId,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
-  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
 import {
@@ -20,8 +20,10 @@ const useCurrencyRatePolling = () => {
   const networkConfigurationsPopularNetworks = useSelector(
     selectAllPopularNetworkConfigurations,
   );
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const currentChainId = useSelector(selectChainId);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const currentChainId = useSelector(selectEvmChainId);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
 

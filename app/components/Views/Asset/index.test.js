@@ -76,12 +76,6 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../store', () => ({
-  store: {
-    getState: () => mockInitialState,
-  },
-}));
-
 jest.unmock('react-native/Libraries/Interaction/InteractionManager');
 
 jest.mock('../../../core/Engine', () => {

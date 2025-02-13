@@ -27,8 +27,8 @@ import BottomSheet, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
+  selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
-  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
   selectShowTestNetworks,
@@ -73,7 +73,10 @@ import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal'
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { PopularList } from '../../../util/networks/customNetworks';
+import {
+  NON_EVM_NETWORKS,
+  PopularList,
+} from '../../../util/networks/customNetworks';
 import NetworkSearchTextInput from './NetworkSearchTextInput';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
@@ -83,7 +86,7 @@ import { ButtonProps } from '../../../component-library/components/Buttons/Butto
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
@@ -100,6 +103,10 @@ import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
+import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { SolScopes } from '@metamask/keyring-api';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Logger from '../../../util/Logger';
 
 interface infuraNetwork {
@@ -115,6 +122,7 @@ interface ShowConfirmDeleteModalState {
 }
 
 interface NetworkSelectorRouteParams {
+  evmChainId?: Hex;
   hostInfo?: {
     metadata?: {
       origin?: string;
@@ -128,24 +136,28 @@ const NetworkSelector = () => {
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [searchString, setSearchString] = useState('');
   const { navigate } = useNavigation();
+
   const theme = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = theme;
   const styles = createStyles(colors);
-  // const sheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<ReusableModalRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const isNonEvmNetworkSelected = useSelector(selectNonEvmSelected);
 
   const route =
     useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
+  const browserEvmChainId = route.params?.evmChainId || null;
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -222,12 +234,9 @@ const NetworkSelector = () => {
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
-    const { NetworkController, SelectedNetworkController } = Engine.context;
-    trace({
-      name: TraceName.SwitchCustomNetwork,
-      parentContext: parentSpan,
-      op: TraceOperation.SwitchCustomNetwork,
-    });
+    const { MultichainNetworkController, SelectedNetworkController } =
+      Engine.context;
+
     if (networkConfiguration) {
       const {
         name: nickname,
@@ -245,16 +254,24 @@ const NetworkSelector = () => {
           networkConfigurationId,
         );
       } else {
+        trace({
+          name: TraceName.SwitchCustomNetwork,
+          parentContext: parentSpan,
+          op: TraceOperation.SwitchCustomNetwork,
+        });
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          await NetworkController.setActiveNetwork(networkClientId);
+          await MultichainNetworkController.setActiveNetwork({
+            evmClientId: networkClientId,
+          });
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
       }
 
       setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isMultichainV1Enabled())) sheetRef.current?.dismissModal();
+      if (!(domainIsConnectedDapp && isMultichainV1Enabled()))
+        sheetRef.current?.dismissModal();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
@@ -269,11 +286,16 @@ const NetworkSelector = () => {
     }
   };
 
-  const showRpcSelector = Object.values(networkConfigurations).some(
-    (networkConfiguration) =>
-      networkConfiguration.rpcEndpoints &&
-      networkConfiguration.rpcEndpoints.length > 1,
-  );
+  const showRpcSelector = Object.values(networkConfigurations)
+    .filter(
+      (network: NetworkConfiguration | MultichainNetworkConfiguration) =>
+        !isNonEvmChainId(network.chainId),
+    )
+    .some(
+      (networkConfiguration) =>
+        networkConfiguration.rpcEndpoints &&
+        networkConfiguration.rpcEndpoints.length > 1,
+    );
 
   const openRpcModal = useCallback(({ chainId, networkName }) => {
     setShowMultiRpcSelectModal({
@@ -358,7 +380,7 @@ const NetworkSelector = () => {
       op: TraceOperation.SwitchBuiltInNetwork,
     });
     const {
-      NetworkController,
+      MultichainNetworkController,
       AccountTrackerController,
       SelectedNetworkController,
     } = Engine.context;
@@ -374,7 +396,10 @@ const NetworkSelector = () => {
         ].networkClientId ?? type;
 
       setTokenNetworkFilter(networkConfiguration.chainId);
-      await NetworkController.setActiveNetwork(clientId);
+
+      await MultichainNetworkController.setActiveNetwork({
+        evmClientId: clientId,
+      });
 
       closeRpcModal();
       AccountTrackerController.refresh();
@@ -426,6 +451,14 @@ const NetworkSelector = () => {
     return !networkIdenfier.includes(searchString);
   };
 
+  const isNetworkSelected = (chainId: Hex | CaipChainId) => {
+    if (browserEvmChainId) {
+      return chainId === browserEvmChainId;
+    }
+
+    return isNonEvmNetworkSelected ? false : chainId === selectedChainId;
+  };
+
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
     const rpcUrl =
@@ -453,7 +486,7 @@ const NetworkSelector = () => {
             imageSource: images.ETHEREUM,
             size: AvatarSize.Sm,
           }}
-          isSelected={chainId === selectedChainId}
+          isSelected={isNetworkSelected(chainId)}
           onPress={() => onNetworkChange(MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
@@ -485,7 +518,7 @@ const NetworkSelector = () => {
           imageSource: images.ETHEREUM,
           size: avatarSize,
         }}
-        isSelected={chainId === selectedChainId}
+        isSelected={isNetworkSelected(chainId)}
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
       />
@@ -515,7 +548,7 @@ const NetworkSelector = () => {
             imageSource: images['LINEA-MAINNET'],
             size: AvatarSize.Sm,
           }}
-          isSelected={chainId === selectedChainId}
+          isSelected={isNetworkSelected(chainId)}
           onPress={() => onNetworkChange(LINEA_MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
@@ -552,7 +585,7 @@ const NetworkSelector = () => {
           imageSource: images['LINEA-MAINNET'],
           size: avatarSize,
         }}
-        isSelected={chainId === selectedChainId}
+        isSelected={isNetworkSelected(chainId)}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
@@ -560,6 +593,7 @@ const NetworkSelector = () => {
 
   const renderRpcNetworks = () =>
     Object.values(networkConfigurations).map((networkConfiguration) => {
+      if (isNonEvmChainId(networkConfiguration.chainId)) return null;
       const {
         name: nickname,
         rpcEndpoints,
@@ -598,7 +632,11 @@ const NetworkSelector = () => {
               imageSource: image,
               size: AvatarSize.Sm,
             }}
-            isSelected={Boolean(chainId === selectedChainId)}
+            isSelected={
+              isNonEvmNetworkSelected
+                ? false
+                : Boolean(chainId === selectedChainId)
+            }
             onPress={() => onSetRpcTarget(networkConfiguration)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
@@ -637,7 +675,11 @@ const NetworkSelector = () => {
             imageSource: image,
             size: avatarSize,
           }}
-          isSelected={Boolean(chainId === selectedChainId)}
+          isSelected={
+            isNonEvmNetworkSelected
+              ? false
+              : Boolean(chainId === selectedChainId)
+          }
           onPress={() => onSetRpcTarget(networkConfiguration)}
           style={styles.networkCell}
         >
@@ -685,7 +727,7 @@ const NetworkSelector = () => {
               imageSource,
               size: AvatarSize.Sm,
             }}
-            isSelected={chainId === selectedChainId}
+            isSelected={isNetworkSelected(chainId)}
             onPress={() => onNetworkChange(networkType)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
@@ -718,7 +760,7 @@ const NetworkSelector = () => {
             imageSource,
             size: avatarSize,
           }}
-          isSelected={chainId === selectedChainId}
+          isSelected={isNetworkSelected(chainId)}
           onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
         />
@@ -733,6 +775,36 @@ const NetworkSelector = () => {
         shouldShowPopularNetworks: false,
       });
     });
+  };
+
+  const onNonEvmNetworkChange = async (chainId: CaipChainId) => {
+    await Engine.context.MultichainNetworkController.setActiveNetwork({
+      nonEvmChainId: chainId,
+    });
+    sheetRef.current?.dismissModal();
+  };
+
+  const renderNonEvmNetworks = () => {
+    if (NON_EVM_NETWORKS.length === 0) return null;
+    return NON_EVM_NETWORKS.map((network) => (
+      <Cell
+        key={network.chainId}
+        variant={CellVariant.Select}
+        title={network.nickname}
+        avatarProps={{
+          variant: AvatarVariant.Network,
+          name: 'Solana',
+          imageSource: images.SOLANA,
+          size: avatarSize,
+        }}
+        isSelected={isNonEvmNetworkSelected && !browserEvmChainId}
+        onPress={() => onNonEvmNetworkChange(SolScopes.Mainnet)}
+        style={
+          browserEvmChainId ? styles.networkCellDisabled : styles.networkCell
+        }
+        disabled={!!browserEvmChainId}
+      />
+    ));
   };
 
   const renderTestNetworksSwitch = () => (
@@ -894,6 +966,7 @@ const NetworkSelector = () => {
       {renderMainnet()}
       {renderLineaMainnet()}
       {renderRpcNetworks()}
+      {renderNonEvmNetworks()}
       {isNetworkUiRedesignEnabled() &&
         searchString.length === 0 &&
         renderPopularNetworksTitle()}

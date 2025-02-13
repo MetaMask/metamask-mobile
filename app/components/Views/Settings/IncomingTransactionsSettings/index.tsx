@@ -16,7 +16,7 @@ import {
   selectShowTestNetworks,
   selectShowIncomingTransactionNetworks,
 } from '../../../../selectors/preferencesController';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import styleSheet from './index.styles';
@@ -29,7 +29,9 @@ import { NetworksI } from './index.types';
 import NetworkCell from '../../../UI/NetworkCell/NetworkCell';
 import { MAINNET, LINEA_MAINNET } from '../../../../../app/constants/network';
 import { INCOMING_TRANSACTIONS_SUPPORTED_CHAIN_IDS } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
+import { NON_EVM_NETWORKS } from '../../../../util/networks/customNetworks';
+import images from 'images/image-icons';
 
 const IncomingTransactionsSettings = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -39,10 +41,12 @@ const IncomingTransactionsSettings = () => {
     selectShowIncomingTransactionNetworks,
   );
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   const toggleEnableIncomingTransactions = (
-    hexChainId: Hex,
+    hexChainId: Hex | CaipChainId,
     value: boolean,
   ) => {
     PreferencesController.setEnableNetworkIncomingTransactions(
@@ -107,6 +111,25 @@ const IncomingTransactionsSettings = () => {
     return [...mainnetNetworks, ...otherNetworks].map(renderNetwork);
   };
 
+  const renderNonEvmNetworks = () => {
+    if (NON_EVM_NETWORKS.length === 0) return null;
+
+    return NON_EVM_NETWORKS.map((network) => (
+      <NetworkCell
+        key={network.chainId}
+        name={network.nickname}
+        chainId={network.chainId}
+        imageSource={images.SOLANA}
+        //TODO: [SOLANA] Disabled for now. When activity view supports non evm, we should enable this
+        showIncomingTransactionsNetworks={{
+          [network.chainId]: false,
+        }}
+        toggleEnableIncomingTransactions={() => null}
+        testID={'solana-incoming-transactions-toggle'}
+      />
+    ));
+  };
+
   const renderOtherNetworks = () => {
     const NetworksTyped = Networks as NetworksI;
     const getOtherNetworks = () => getAllNetworks().slice(2);
@@ -142,6 +165,7 @@ const IncomingTransactionsSettings = () => {
       </Text>
       <View style={styles.transactionsContainer}>
         {renderRpcNetworks()}
+        {renderNonEvmNetworks()}
         {showTestNetworks && renderOtherNetworks()}
       </View>
     </View>

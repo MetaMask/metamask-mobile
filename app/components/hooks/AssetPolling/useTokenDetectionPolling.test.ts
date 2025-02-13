@@ -55,6 +55,13 @@ describe('useTokenDetectionPolling', () => {
             },
           },
         },
+        MultichainNetworkController: {
+          nonEvmSelected: false,
+          selectedMultichainNetworkChainId:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          multichainNetworksMetadata: {},
+          multichainNetworkConfigurationsByChainId: {},
+        },
       },
     },
   } as unknown as RootState;

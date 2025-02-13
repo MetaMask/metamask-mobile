@@ -29,6 +29,9 @@ jest.mock('../Engine', () => ({
       addNetwork: jest.fn(),
       updateNetwork: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
@@ -419,7 +422,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       });
 
     const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.NetworkController,
+      Engine.context.MultichainNetworkController,
       'setActiveNetwork',
     );
     const spyOnUpdateExchangeRate = jest.spyOn(
@@ -454,7 +457,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     );
 
     const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.NetworkController,
+      Engine.context.MultichainNetworkController,
       'setActiveNetwork',
     );
     const spyOnUpdateExchangeRate = jest.spyOn(

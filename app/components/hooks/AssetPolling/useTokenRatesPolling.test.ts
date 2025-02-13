@@ -23,6 +23,13 @@ describe('useTokenRatesPolling', () => {
         TokenRatesController: {
           marketData: {},
         },
+        MultichainNetworkController: {
+          nonEvmSelected: false,
+          selectedMultichainNetworkChainId:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          multichainNetworksMetadata: {},
+          multichainNetworkConfigurationsByChainId: {},
+        },
         NetworkController: {
           networkConfigurationsByChainId: {
             '0x1': {},
@@ -68,6 +75,13 @@ describe('useTokenRatesPolling', () => {
     const stateToTest = {
       engine: {
         backgroundState: {
+          MultichainNetworkController: {
+            nonEvmSelected: false,
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            multichainNetworksMetadata: {},
+            multichainNetworkConfigurationsByChainId: {},
+          },
           NetworkController: {
             selectedNetworkClientId: 'selectedNetworkClientId',
             networkConfigurationsByChainId: {

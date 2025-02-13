@@ -168,7 +168,7 @@ export async function importAccountFromPrivateKey(private_key: string) {
       [pkey],
     );
   const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
-  return Engine.setSelectedAddress(checksummedAddress);
+  Engine.setSelectedAddress(checksummedAddress);
 }
 
 /**

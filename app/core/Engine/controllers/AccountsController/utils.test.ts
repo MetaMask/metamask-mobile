@@ -53,6 +53,10 @@ describe('accountControllersUtils', () => {
           SnapControllerStateChangeEvent,
           'KeyringController:accountRemoved',
           'KeyringController:stateChange',
+          'MultichainNetworkController:setActiveNetwork',
+          'SnapKeyring:accountAssetListUpdated',
+          'SnapKeyring:accountBalancesUpdated',
+          'SnapKeyring:accountTransactionsUpdated',
         ],
         allowedActions: [
           'KeyringController:getAccounts',

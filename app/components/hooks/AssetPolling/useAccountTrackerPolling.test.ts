@@ -22,6 +22,13 @@ describe('useAccountTrackerPolling', () => {
   const state = {
     engine: {
       backgroundState: {
+        MultichainNetworkController: {
+          nonEvmSelected: false,
+          selectedMultichainNetworkChainId:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          multichainNetworksMetadata: {},
+          multichainNetworkConfigurationsByChainId: {},
+        },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
           networkConfigurationsByChainId: {
@@ -142,6 +149,13 @@ describe('useAccountTrackerPolling', () => {
         state: {
           engine: {
             backgroundState: {
+              MultichainNetworkController: {
+                nonEvmSelected: false,
+                selectedMultichainNetworkChainId:
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                multichainNetworksMetadata: {},
+                multichainNetworkConfigurationsByChainId: {},
+              },
               NetworkController: {
                 selectedNetworkClientId: 'otherNetworkClientId',
                 networkConfigurationsByChainId: {

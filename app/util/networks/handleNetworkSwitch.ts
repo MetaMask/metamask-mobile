@@ -1,11 +1,12 @@
 import { toHex } from '@metamask/controller-utils';
-import { NetworkController } from '@metamask/network-controller';
+import { NetworkConfiguration } from '@metamask/network-controller';
 import Engine from '../../core/Engine';
 import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
+import { isNonEvmChainId } from '../../core/Multichain/utils';
 
 /**
  * Switch to the given chain ID.
@@ -21,27 +22,41 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     return;
   }
 
-  const networkController = Engine.context
-    .NetworkController as NetworkController;
   const chainId = selectChainId(store.getState());
   const networkConfigurations = selectNetworkConfigurations(store.getState());
 
   // If current network is the same as the one we want to switch to, do nothing
-  if (chainId === toHex(switchToChainId)) {
-    return;
+  if (!isNonEvmChainId(switchToChainId)) {
+    if (chainId === toHex(switchToChainId)) {
+      return;
+    }
   }
-
   const entry = Object.entries(networkConfigurations).find(
     ([, { chainId: configChainId }]) =>
       configChainId === toHex(switchToChainId),
   );
 
-  if (entry) {
-    const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] = entry;
+  if (entry && !isNonEvmChainId(entry[1].chainId)) {
+    const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] =
+      entry as unknown as [string, NetworkConfiguration];
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-    networkController.setActiveNetwork(networkClientId);
+    Engine.context.MultichainNetworkController.setActiveNetwork({
+      evmClientId: networkClientId,
+    });
 
+    return nickname;
+  }
+  // If is already in the same non evm network, do nothing
+  if (chainId === switchToChainId) {
+    return;
+  }
+
+  if (entry && isNonEvmChainId(entry[1].chainId)) {
+    const [, { name: nickname }] = entry;
+    Engine.context.MultichainNetworkController.setActiveNetwork({
+      nonEvmChainId: entry[1].chainId,
+    });
     return nickname;
   }
 };

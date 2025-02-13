@@ -361,7 +361,7 @@ exports[`AccountConnect renders correctly 1`] = `
                             }
                           }
                         >
-                          Requesting for 0 accounts
+                          Connect an account
                         </Text>
                       </Text>
                     </View>
@@ -804,8 +804,8 @@ exports[`AccountConnect renders correctly 1`] = `
               <TouchableOpacity
                 accessibilityRole="button"
                 accessible={true}
-                activeOpacity={0.2}
-                onPress={[Function]}
+                activeOpacity={1}
+                disabled={true}
                 style={
                   [
                     [
@@ -827,7 +827,9 @@ exports[`AccountConnect renders correctly 1`] = `
                         },
                       ],
                     ],
-                    null,
+                    {
+                      "opacity": 0.6,
+                    },
                   ]
                 }
                 testID="connect-button"
@@ -841,7 +843,9 @@ exports[`AccountConnect renders correctly 1`] = `
                         "fontWeight": "500",
                         "textAlign": "center",
                       },
-                      null,
+                      {
+                        "color": "#dcdcdc",
+                      },
                       [
                         {
                           "fontFamily": "EuclidCircularB-Bold",
@@ -854,7 +858,9 @@ exports[`AccountConnect renders correctly 1`] = `
                         },
                         undefined,
                       ],
-                      null,
+                      {
+                        "opacity": 0.6,
+                      },
                     ]
                   }
                 >

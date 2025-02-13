@@ -5,7 +5,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { strings } from '../../../../locales/i18n';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectTicker,
 } from '../../../selectors/networkController';
 import { collectConfusables } from '../../../util/confusables';
@@ -194,7 +194,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 
 const mapStateToProps = (state: RootState) => ({
   internalAccounts: selectInternalAccounts(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
   ticker: selectTicker(state),
 });
 

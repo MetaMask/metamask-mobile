@@ -6,10 +6,10 @@ import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
 import { isPortfolioViewEnabled } from '../util/networks';
 import {
-  selectChainId,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
-  selectNetworkConfigurations,
 } from './networkController';
 import { PopularList } from '../util/networks/customNetworks';
 
@@ -18,7 +18,7 @@ const selectTokensControllerState = (state: RootState) =>
 
 export const selectTokens = createDeepEqualSelector(
   selectTokensControllerState,
-  selectChainId,
+  selectEvmChainId,
   selectSelectedInternalAccountAddress,
   (
     tokensControllerState: TokensControllerState,
@@ -37,7 +37,7 @@ export const selectTokens = createDeepEqualSelector(
 
 export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
   selectTokensControllerState,
-  selectChainId,
+  selectEvmChainId,
   selectSelectedInternalAccountAddress,
   (
     tokensControllerState: TokensControllerState,
@@ -79,8 +79,8 @@ export const selectAllTokens = createSelector(
 );
 
 export const getChainIdsToPoll = createDeepEqualSelector(
-  selectNetworkConfigurations,
-  selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
+  selectEvmChainId,
   (networkConfigurations, currentChainId) => {
     if (!isPortfolioViewEnabled()) {
       return [currentChainId];
@@ -168,7 +168,7 @@ export const selectAllDetectedTokensFlat = createSelector(
 export const selectTransformedTokens = createSelector(
   selectAllTokens,
   selectSelectedInternalAccountAddress,
-  selectChainId,
+  selectEvmChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
   (

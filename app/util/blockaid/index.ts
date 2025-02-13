@@ -8,6 +8,8 @@ import { ResultType } from '../../components/Views/confirmations/components/Bloc
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';
 import PPOMUtils from '../../lib/ppom/ppom-util';
+import { isNonEvmChainId } from '../../core/Multichain/utils';
+import { Hex } from '@metamask/utils';
 
 interface TransactionSecurityAlertResponseType {
   securityAlertResponses: Record<string, SecurityAlertResponse>;
@@ -18,7 +20,8 @@ export type TransactionType = TransactionMeta &
 
 export const isBlockaidSupportedOnCurrentChain = async (): Promise<boolean> => {
   const chainId = selectChainId(store.getState());
-  return await PPOMUtils.isChainSupported(chainId);
+  if (isNonEvmChainId(chainId)) return false;
+  return await PPOMUtils.isChainSupported(chainId as Hex);
 };
 
 export const isBlockaidPreferenceEnabled = (): boolean => {

@@ -7,8 +7,18 @@ import {
 } from '../../../../util/networks';
 import { strings } from '../../../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../../../util/etherscan';
+import { useSelector } from 'react-redux';
+import {
+  selectNonEvmBlockExplorerUrl,
+  selectNonEvmSelected,
+} from '../../../../selectors/multichainNetworkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../../selectors/networkController';
+import { selectNetworkName } from '../../../../selectors/networkInfos';
 
-function useBlockExplorer(providerConfig, networkConfigurations) {
+function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
   const [explorer, setExplorer] = useState({
     name: '',
     value: null,
@@ -16,12 +26,19 @@ function useBlockExplorer(providerConfig, networkConfigurations) {
     isRPC: false,
     baseUrl: '',
   });
+  const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
+  const isNonEvmSelected = useSelector(selectNonEvmSelected);
+  const networkName = useSelector(selectNetworkName);
+  const nonEvmBlockExplorerUrl = useSelector(selectNonEvmBlockExplorerUrl);
 
   useEffect(() => {
-    if (providerConfig.type === RPC) {
+    const definitiveProviderConfig =
+      providerConfigTokenExplorer ?? providerConfig;
+    if (definitiveProviderConfig.type === RPC && !isNonEvmSelected) {
       try {
         const blockExplorer = findBlockExplorerForRpc(
-          providerConfig.rpcUrl,
+          definitiveProviderConfig.rpcUrl,
           networkConfigurations,
         );
         if (!blockExplorer) {
@@ -51,16 +68,33 @@ function useBlockExplorer(providerConfig, networkConfigurations) {
           baseUrl: '',
         });
       }
+    } else if (isNonEvmSelected) {
+      // TODO: [SOLANA] Revisit this before shipping, swaps team block explorer
+      setExplorer({
+        name: networkName,
+        value: chainId,
+        isValid: true,
+        isRPC: false,
+        baseUrl: nonEvmBlockExplorerUrl,
+      });
     } else {
       setExplorer({
         name: 'Etherscan',
-        value: providerConfig.chainId,
+        value: chainId,
         isValid: true,
         isRPC: false,
-        baseUrl: getEtherscanBaseUrl(providerConfig.type),
+        baseUrl: getEtherscanBaseUrl(definitiveProviderConfig.type),
       });
     }
-  }, [networkConfigurations, providerConfig]);
+  }, [
+    networkConfigurations,
+    providerConfig,
+    providerConfigTokenExplorer,
+    chainId,
+    isNonEvmSelected,
+    networkName,
+    nonEvmBlockExplorerUrl,
+  ]);
 
   const tx = useCallback(
     (hash) => {

@@ -10,7 +10,7 @@ import { Account, UseAccounts } from '../../hooks/useAccounts';
  */
 export interface AccountSelectorListProps
   extends Partial<FlatListProps<Account>>,
-    UseAccounts {
+    Omit<UseAccounts, 'evmAccounts'> {
   /**
    * Optional callback to trigger when account is selected.
    */

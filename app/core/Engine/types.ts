@@ -162,6 +162,7 @@ import {
   NotificationServicesPushController,
   NotificationServicesController,
 } from '@metamask/notification-services-controller';
+
 ///: END:ONLY_INCLUDE_IF
 import {
   AccountsController,
@@ -180,6 +181,15 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+
+import {
+  MultichainNetworkController,
+  MultichainNetworkControllerState,
+} from '@metamask/multichain-network-controller';
+import {
+  MultichainNetworkControllerEvents,
+  MultichainNetworkControllerActions,
+} from '@metamask/multichain-network-controller/dist/MultichainNetworkController.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -253,7 +263,8 @@ type GlobalActions =
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
-  | RemoteFeatureFlagControllerActions;
+  | RemoteFeatureFlagControllerActions
+  | MultichainNetworkControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -291,7 +302,8 @@ type GlobalEvents =
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
-  | RemoteFeatureFlagControllerEvents;
+  | RemoteFeatureFlagControllerEvents
+  | MultichainNetworkControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -355,6 +367,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
+  MultichainNetworkController: MultichainNetworkController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   RatesController: RatesController;
@@ -406,6 +419,7 @@ export type EngineState = {
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
+  MultichainNetworkController: MultichainNetworkControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesControllerState;
   RatesController: RatesControllerState;

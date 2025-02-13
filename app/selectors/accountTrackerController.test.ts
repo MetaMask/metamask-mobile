@@ -39,6 +39,13 @@ describe('selectAccountBalanceByChainId', () => {
               },
             },
           },
+          MultichainNetworkController: {
+            nonEvmSelected: false,
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            multichainNetworksMetadata: {},
+            multichainNetworkConfigurationsByChainId: {},
+          },
         },
       },
     } as unknown as RootState);
@@ -48,6 +55,13 @@ describe('selectAccountBalanceByChainId', () => {
     const result = selectAccountBalanceByChainId({
       engine: {
         backgroundState: {
+          MultichainNetworkController: {
+            nonEvmSelected: false,
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            multichainNetworksMetadata: {},
+            multichainNetworkConfigurationsByChainId: {},
+          },
           NetworkController: {
             ...mockNetworkState({
               id: 'sepolia',
@@ -69,7 +83,7 @@ describe('selectAccountBalanceByChainId', () => {
           } as any,
         },
       },
-    } as RootState);
+    } as unknown as RootState);
     expect(result).toBeUndefined();
   });
 });

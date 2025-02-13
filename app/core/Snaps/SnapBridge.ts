@@ -20,8 +20,8 @@ import Logger from '../../util/Logger';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 
-import  ObjectMultiplex from '@metamask/object-multiplex';
-import  createFilterMiddleware from '@metamask/eth-json-rpc-filters';
+import ObjectMultiplex from '@metamask/object-multiplex';
+import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
 import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 const pump = require('pump');
@@ -64,6 +64,7 @@ export default class SnapBridge {
       '[SNAP BRIDGE LOG] Engine+setupSnapProvider: Setup bridge for Snap',
       snapId,
     );
+
     this.snapId = snapId;
     this.stream = connectionStream;
     this.getRPCMethodMiddleware = getRPCMethodMiddleware;
@@ -120,6 +121,7 @@ export default class SnapBridge {
     Logger.log('[SNAP BRIDGE LOG] Engine+setupProviderConnection');
     const outStream = this.#mux.createStream('metamask-provider');
     const engine = this.setupProviderEngine();
+
     const providerStream = createEngineStream({ engine });
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

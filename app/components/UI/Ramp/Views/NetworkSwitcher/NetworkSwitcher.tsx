@@ -36,12 +36,13 @@ import { isNetworkRampSupported } from '../../utils';
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { getDecimalChainId } from '../../../../../util/networks';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 function NetworkSwitcher() {
   const navigation = useNavigation();
@@ -61,7 +62,9 @@ function NetworkSwitcher() {
   const [isCurrentNetworkRampSupported] = useRampNetwork();
   const { selectedChainId, isBuy, intent, setIntent } = useRampSDK();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const [networkToBeAdded, setNetworkToBeAdded] = useState<Network>();
 
   const isLoading = isLoadingNetworks || isLoadingNetworksDetail;
@@ -143,28 +146,35 @@ function NetworkSwitcher() {
   }, [navigation]);
 
   const switchToMainnet = useCallback(
-    (type: 'mainnet' | 'linea-mainnet') => {
-      const { NetworkController } = Engine.context;
-      NetworkController.setActiveNetwork(type);
+    async (type: 'mainnet' | 'linea-mainnet') => {
+      const { MultichainNetworkController } = Engine.context;
+
+      await MultichainNetworkController.setActiveNetwork({
+        evmClientId: type,
+      });
+
       navigateToGetStarted();
     },
     [navigateToGetStarted],
   );
 
   const switchNetwork = useCallback(
-    (networkConfiguration) => {
-      const { NetworkController } = Engine.context;
+    async (networkConfiguration) => {
+      const { MultichainNetworkController } = Engine.context;
       const config = Object.values(networkConfigurations).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
       );
 
-      if (config) {
+      if (config && !isNonEvmChainId(config?.chainId)) {
         const { rpcEndpoints, defaultRpcEndpointIndex } = config;
 
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
-        NetworkController.setActiveNetwork(networkClientId);
+        await MultichainNetworkController.setActiveNetwork({
+          evmClientId: networkClientId,
+        });
+
         navigateToGetStarted();
       }
     },

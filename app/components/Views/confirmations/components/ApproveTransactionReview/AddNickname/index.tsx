@@ -37,6 +37,7 @@ import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
+import { selectNonEvmSelected } from '../../../../../../selectors/multichainNetworkController';
 
 const getAnalyticsParams = () => ({});
 
@@ -61,6 +62,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);
+  const isNonEvmSelected = useSelector(selectNonEvmSelected);
   const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
@@ -157,11 +159,13 @@ const AddNickname = (props: AddNicknameProps) => {
     return errorMessage;
   };
 
-  const hasBlockExplorer = shouldShowBlockExplorer(
-    providerType,
-    providerRpcTarget,
-    networkConfigurations,
-  );
+  const hasBlockExplorer = isNonEvmSelected
+    ? false
+    : shouldShowBlockExplorer(
+        providerType,
+        providerRpcTarget,
+        networkConfigurations,
+      );
 
   return (
     <SafeAreaView style={styles.container}>

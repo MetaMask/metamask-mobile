@@ -28,6 +28,9 @@ jest.mock('../../../core/Engine', () => ({
     NetworkController: {
       setActiveNetwork: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
   },
 }));
 jest.mock('../../../components/UI/Stake/hooks/useStakingChain', () => ({
@@ -241,7 +244,7 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalled();
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();
   });
 
@@ -258,8 +261,8 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     );
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
-    ).toHaveBeenCalledWith('mainnet');
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).toHaveBeenCalledWith({ evmClientId: 'mainnet' });
   });
   it('disables action buttons when the account cannot sign transactions', () => {
     const mockStateWithoutSigning: DeepPartial<RootState> = {

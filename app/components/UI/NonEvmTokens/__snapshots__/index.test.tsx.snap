@@ -319,7 +319,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                 "isETH": false,
                                 "isNative": true,
                                 "logo": undefined,
-                                "name": "Solana",
+                                "name": "SOL",
                                 "symbol": "SOL",
                                 "ticker": "SOL",
                               },
@@ -339,7 +339,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                             "isETH": false,
                             "isNative": true,
                             "logo": undefined,
-                            "name": "Solana",
+                            "name": "SOL",
                             "symbol": "SOL",
                             "ticker": "SOL",
                           },
@@ -500,7 +500,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  Solana
+                                  SOL
                                 </Text>
                               </View>
                             </View>

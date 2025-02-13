@@ -21,6 +21,7 @@ const wallet_switchEthereumChain = async ({
     NetworkController,
     PermissionController,
     SelectedNetworkController,
+    MultichainNetworkController,
   } = Engine.context;
   const params = req.params?.[0];
   const { origin } = req;
@@ -43,7 +44,7 @@ const wallet_switchEthereumChain = async ({
     );
   }
   const _chainId = validateChainId(chainId);
-
+  // TODO: [SOLANA] - This do not support non evm networks
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const existingNetwork = findExistingNetwork(_chainId, networkConfigurations);
   if (existingNetwork) {
@@ -67,6 +68,7 @@ const wallet_switchEthereumChain = async ({
         NetworkController,
         PermissionController,
         SelectedNetworkController,
+        MultichainNetworkController,
       },
       requestUserApproval,
       analytics,

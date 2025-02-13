@@ -1,11 +1,8 @@
 import { CaipChainId } from '@metamask/utils';
-import {
-  isBtcMainnetAddress,
-  isBtcTestnetAddress,
-  isSolanaAddress,
-} from './utils';
+import { isBtcMainnetAddress, isBtcTestnetAddress } from './utils';
 import { MultichainNetworks } from '@metamask/assets-controllers';
 import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
 import BTC from '../../images/bitcoin-logo.png';
 import SOL from '../../images/solana-logo.png';
 

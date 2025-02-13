@@ -94,7 +94,9 @@ const WalletActions = () => {
 
   const onEarn = useCallback(async () => {
     if (!isStakingSupportedChain) {
-      await Engine.context.NetworkController.setActiveNetwork('mainnet');
+      await Engine.context.MultichainNetworkController.setActiveNetwork({
+        evmClientId: 'mainnet',
+      });
     }
 
     closeBottomSheetAndNavigate(() => {
@@ -250,18 +252,17 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
-        {AppConstants.SWAPS.ACTIVE &&
-          isSwapsAllowed(chainId) && (
-            <WalletAction
-              actionType={WalletActionType.Swap}
-              iconName={IconName.SwapHorizontal}
-              onPress={goToSwaps}
-              actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-              iconStyle={styles.icon}
-              iconSize={AvatarSize.Md}
-              disabled={!canSignTransactions || !swapsIsLive}
-            />
-          )}
+        {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
+          <WalletAction
+            actionType={WalletActionType.Swap}
+            iconName={IconName.SwapHorizontal}
+            onPress={goToSwaps}
+            actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions || !swapsIsLive}
+          />
+        )}
         {isBridgeAllowed(chainId) && (
           <WalletAction
             actionType={WalletActionType.Bridge}

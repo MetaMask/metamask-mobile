@@ -223,6 +223,7 @@ import {
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 import {
   SnapControllerClearSnapStateAction,
   SnapControllerGetSnapAction,
@@ -231,6 +232,7 @@ import {
   SnapControllerStateChangeEvent,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
+import { SolScopes } from '@metamask/keyring-api';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -358,6 +360,34 @@ export class Engine {
 
     networkController.initializeProvider();
 
+    const multichainNetworkController = new MultichainNetworkController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'MultichainNetworkController',
+        allowedActions: [
+          'NetworkController:setActiveNetwork',
+          'NetworkController:getState',
+        ],
+        allowedEvents: ['AccountsController:selectedAccountChange'],
+      }),
+      state: initialState.MultichainNetworkController ?? {
+        selectedMultichainNetworkChainId: SolScopes.Mainnet,
+        multichainNetworksMetadata: {},
+        multichainNetworkConfigurationsByChainId: {
+          [SolScopes.Mainnet]: {
+            name: 'Solana Mainnet',
+            chainId: SolScopes.Mainnet,
+            blockExplorers: {
+              urls: ['https://solscan.io'],
+              defaultIndex: 0,
+            },
+            nativeCurrency: 'SOL',
+            isEvm: false,
+          },
+        },
+        nonEvmSelected: false,
+      },
+    });
+
     const assetsContractController = new AssetsContractController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
@@ -385,6 +415,10 @@ export class Engine {
           SnapControllerStateChangeEvent,
           'KeyringController:accountRemoved',
           'KeyringController:stateChange',
+          'MultichainNetworkController:setActiveNetwork',
+          'SnapKeyring:accountAssetListUpdated',
+          'SnapKeyring:accountBalancesUpdated',
+          'SnapKeyring:accountTransactionsUpdated',
         ],
         allowedActions: [
           'KeyringController:getAccounts',
@@ -903,6 +937,7 @@ export class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+
     this.subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
@@ -1537,6 +1572,7 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
+      MultichainNetworkController: multichainNetworkController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -2189,6 +2225,7 @@ export default {
       UserStorageController,
       NotificationServicesController,
       NotificationServicesPushController,
+      MultichainNetworkController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       SelectedNetworkController,
@@ -2228,6 +2265,7 @@ export default {
       UserStorageController,
       NotificationServicesController,
       NotificationServicesPushController,
+      MultichainNetworkController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       SelectedNetworkController,
