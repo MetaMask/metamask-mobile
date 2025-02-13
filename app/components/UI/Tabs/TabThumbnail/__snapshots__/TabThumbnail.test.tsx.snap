@@ -75,21 +75,7 @@ exports[`TabThumbnail should render correctly 1`] = `
               "width": 22,
             }
           }
-        >
-          <Image
-            onError={[Function]}
-            resizeMode="contain"
-            source={{}}
-            style={
-              {
-                "flex": 1,
-                "height": undefined,
-                "width": undefined,
-              }
-            }
-            testID="favicon-avatar-image"
-          />
-        </View>
+        />
         <Text
           accessibilityRole="text"
           numberOfLines={1}

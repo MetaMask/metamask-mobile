@@ -25,6 +25,15 @@ import {
   FlexDirection,
 } from '../SnapUIRenderer/components/box.types';
 
+const styles = StyleSheet.create({
+  snapActionContainer: {
+    flexDirection: FlexDirection.Row,
+    alignItems: AlignItems.center,
+    justifyContent: JustifyContent.center,
+    gap: 4,
+  },
+});
+
 interface SnapUIFooterButtonProps {
   name?: string;
   variant?: ButtonVariants;
@@ -120,17 +129,9 @@ export const SnapUIFooterButton: FunctionComponent<
       loading={loading}
       variant={buttonVariant}
       textVariant={TextVariant.BodyMD}
-      children={children}
       {...props}
-    />
+    >
+      {children}
+    </SnapUIButton>
   );
 };
-
-const styles = StyleSheet.create({
-  snapActionContainer: {
-    flexDirection: FlexDirection.Row,
-    alignItems: AlignItems.center,
-    justifyContent: JustifyContent.center,
-    gap: 4,
-  },
-});

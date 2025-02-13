@@ -1,6 +1,7 @@
 import { HeadingElement } from '@metamask/snaps-sdk/jsx';
 import { heading } from './heading';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
+import { FlexWrap } from './box.types';
 
 describe('heading UIComponentFactory', () => {
   it('should transform HeadingElement into Text format with default size', () => {
@@ -24,6 +25,7 @@ describe('heading UIComponentFactory', () => {
       props: {
         variant: TextVariant.HeadingSM,
         numberOfLines: 0,
+        flexWrap: FlexWrap.Wrap,
       },
     });
   });
@@ -48,6 +50,7 @@ describe('heading UIComponentFactory', () => {
       props: {
         variant: TextVariant.HeadingSM,
         numberOfLines: 0,
+        flexWrap: FlexWrap.Wrap,
       },
     });
   });
@@ -72,6 +75,7 @@ describe('heading UIComponentFactory', () => {
       props: {
         variant: TextVariant.HeadingSM,
         numberOfLines: 0,
+        flexWrap: FlexWrap.Wrap,
       },
     });
   });
@@ -103,6 +107,7 @@ describe('heading UIComponentFactory', () => {
         element: 'Text',
         children: 'Test',
         props: {
+          flexWrap: FlexWrap.Wrap,
           variant: expectedVariants[size],
           numberOfLines: 0,
         },

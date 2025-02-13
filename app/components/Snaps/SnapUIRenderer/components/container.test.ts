@@ -42,7 +42,7 @@ describe('container', () => {
     });
 
     expect(result).toEqual({
-      element: 'View',
+      element: 'Box',
       children: [
         {
           element: 'text',
@@ -74,7 +74,7 @@ describe('container', () => {
     expect(Array.isArray(result.children)).toBe(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[0]).toEqual({
-      element: '',
+      element: 'Box',
       props: {
         style: { alignItems: 'center' },
       },

@@ -163,25 +163,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                         "width": 24,
                       }
                     }
-                  >
-                    <Image
-                      onError={[Function]}
-                      resizeMode="contain"
-                      source={
-                        {
-                          "uri": "",
-                        }
-                      }
-                      style={
-                        {
-                          "flex": 1,
-                          "height": undefined,
-                          "width": undefined,
-                        }
-                      }
-                      testID="favicon-avatar-image"
-                    />
-                  </View>
+                  />
                   <Text
                     accessibilityRole="text"
                     style={
@@ -828,25 +810,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                         "width": 24,
                       }
                     }
-                  >
-                    <Image
-                      onError={[Function]}
-                      resizeMode="contain"
-                      source={
-                        {
-                          "uri": "",
-                        }
-                      }
-                      style={
-                        {
-                          "flex": 1,
-                          "height": undefined,
-                          "width": undefined,
-                        }
-                      }
-                      testID="favicon-avatar-image"
-                    />
-                  </View>
+                  />
                   <Text
                     accessibilityRole="text"
                     style={

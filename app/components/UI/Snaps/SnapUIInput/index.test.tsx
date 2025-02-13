@@ -3,13 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { SnapUIInput } from './SnapUIInput';
 import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
 
-jest.mock(
-  '../../../Approvals/Snaps/SnapUIRenderer/SnapInterfaceContext',
-  () => ({
-    useSnapInterfaceContext: jest.fn(),
-  }),
-);
-
 describe('SnapUIInput', () => {
   const mockHandleInputChange = jest.fn();
   const mockSetCurrentFocusedInput = jest.fn();

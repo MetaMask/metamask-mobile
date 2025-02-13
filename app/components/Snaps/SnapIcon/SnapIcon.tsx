@@ -16,6 +16,17 @@ import {
 } from '../SnapUIRenderer/components/box.types';
 import { StyleSheet } from 'react-native';
 
+const styles = StyleSheet.create({
+  icon: {
+    borderRadius: 50,
+    borderWidth: 0,
+    width: 24,
+    height: 24,
+    alignItems: AlignItems.center,
+    justifyContent: JustifyContent.center,
+  },
+});
+
 type SnapIconProps = {
   snapId: string;
   avatarSize?: IconSize;
@@ -55,14 +66,3 @@ export const SnapIcon: FunctionComponent<SnapIconProps> = ({
     </AvatarBase>
   );
 };
-
-const styles = StyleSheet.create({
-  icon: {
-    borderRadius: 50,
-    borderWidth: 0,
-    width: 24,
-    height: 24,
-    alignItems: AlignItems.center,
-    justifyContent: JustifyContent.center,
-  },
-});
