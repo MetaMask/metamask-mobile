@@ -587,6 +587,7 @@ export class Engine {
     const tokenSearchDiscoveryController = createTokenSearchDiscoveryController(
       {
         state: initialState.TokenSearchDiscoveryController,
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenSearchDiscoveryController',
           allowedActions: [],
