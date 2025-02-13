@@ -171,6 +171,10 @@ export async function importAccountFromPrivateKey(private_key: string) {
   Engine.setSelectedAddress(checksummedAddress);
 }
 
+export function isHDAccount(account: InternalAccount) {
+  return account.metadata.keyring.type === ExtendedKeyringTypes.hd;
+}
+
 /**
  * judge address is QR hardware account or not
  *
@@ -265,7 +269,7 @@ export function isEthAddress(address: string): boolean {
  * @param {String} address - String corresponding to an address
  * @returns {InternalAccount | undefined} - Returns the internal account by address
  */
-function getInternalAccountByAddress(
+export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;
@@ -286,6 +290,20 @@ export function getLabelTextByAddress(address: string) {
   const keyring = internalAccount?.metadata?.keyring;
   if (keyring) {
     switch (keyring.type) {
+      case ExtendedKeyringTypes.hd: {
+        const { KeyringController } = Engine.context;
+        const { keyrings } = KeyringController.state;
+        const hdKeyrings = keyrings.filter(
+          (kr) => kr.type === ExtendedKeyringTypes.hd,
+        );
+        if (hdKeyrings.length > 1) {
+          const hdKeyring = hdKeyrings.findIndex((kr) =>
+            kr.accounts.includes(address.toLowerCase()),
+          );
+          return `${strings('accounts.srp_pill')} ${hdKeyring + 1}`;
+        }
+        break;
+      }
       case ExtendedKeyringTypes.ledger:
         return strings('accounts.ledger');
       case ExtendedKeyringTypes.qr:
