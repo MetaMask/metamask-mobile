@@ -6,8 +6,8 @@ import {
   getSmartTransactionMetricsProperties,
   getTradeTxTokenFee,
   getGasIncludedTransactionFees,
+  type GasIncludedQuote,
 } from './index';
-import type { GasIncludedQuote } from './index';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import type { ControllerMessenger } from '../../core/Engine';
 

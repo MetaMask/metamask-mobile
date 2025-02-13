@@ -523,7 +523,7 @@ function SwapsQuotesView({
   );
   const tradeTxTokenFee = useMemo(
     () => getTradeTxTokenFee(selectedQuote),
-    [selectedQuote, getTradeTxTokenFee],
+    [selectedQuote],
   );
   const isGasIncludedTrade = useMemo(
     () => selectedQuote?.isGasIncludedTrade ?? false,

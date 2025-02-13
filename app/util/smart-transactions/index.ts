@@ -8,8 +8,7 @@ import {
   getIsNativeTokenTransferred,
 } from '../transactions';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import { Fees } from '@metamask/smart-transactions-controller/dist/types';
-import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransaction, Fees } from '@metamask/smart-transactions-controller/dist/types';
 import type { ControllerMessenger } from '../../core/Engine';
 
 const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
@@ -130,11 +129,9 @@ export const getSmartTransactionMetricsProperties = async (
 
 export type GasIncludedQuote = Fees & { isGasIncludedTrade?: boolean };
 
-export const getTradeTxTokenFee = (quote: GasIncludedQuote) => {
-  // @ts-ignore Property 'tokenFees' does not exist on type 'Fee'. Need to update the type.
-  // Currently, we take the first token for gas fee payment, but later, a user can choose which token to use for gas payment.
-  return quote?.tradeTxFees?.fees?.[0]?.tokenFees?.[0];
-};
+// @ts-expect-error Property 'tokenFees' does not exist on type 'Fee'. Need to update the type.
+// Currently, we take the first token for gas fee payment, but later, a user can choose which token to use for gas payment.
+export const getTradeTxTokenFee = (quote: GasIncludedQuote) => quote?.tradeTxFees?.fees?.[0]?.tokenFees?.[0];
 
 // We get gas included fees from a swap quote now. In a future iteration we will have a universal
 // implementation that works for non-swaps transactions as well.
