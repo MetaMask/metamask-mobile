@@ -21,12 +21,14 @@ const FLAT_TRANSACTION_CONFIRMATIONS: TransactionType[] = [
 
 const ConfirmWrapped = ({
   styles,
+  testID,
 }: {
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+  testID?: string;
 }) => (
   <QRHardwareContextProvider>
     <Title />
-    <ScrollView style={styles.scrollView}>
+    <ScrollView style={styles.scrollView} testID={testID}>
       {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
       <SignatureBlockaidBanner />
       <Info />
@@ -67,9 +69,7 @@ const Confirm = () => {
       stylesDialogSheet={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >
-      <View style={styles.modalContainer} testID={approvalRequest?.type}>
-        <ConfirmWrapped styles={styles} />
-      </View>
+      <ConfirmWrapped styles={styles} testID={approvalRequest?.type} />
     </BottomSheet>
   );
 };
