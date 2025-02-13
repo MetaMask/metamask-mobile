@@ -40,7 +40,7 @@ import {
 } from '../../../util/address';
 
 import {
-  selectChainId,
+  selectEvmChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
@@ -335,7 +335,7 @@ const RootRPCMethodsUI = (props) => {
               transactionId: transactionMeta.id,
               deviceId,
               // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => { },
+              onConfirmationComplete: () => {},
               type: 'signTransaction',
             }),
           );
@@ -405,7 +405,8 @@ const RootRPCMethodsUI = (props) => {
           data &&
           data !== '0x' &&
           to &&
-          (await getMethodData(data, networkClientId)).name === TOKEN_METHOD_TRANSFER
+          (await getMethodData(data, networkClientId)).name ===
+            TOKEN_METHOD_TRANSFER
         ) {
           let asset = props.tokens.find(({ address }) =>
             toLowerCaseEquals(address, to),
@@ -581,7 +582,7 @@ RootRPCMethodsUI.propTypes = {
 
 const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
   tokens: selectTokens(state),
   providerType: selectProviderType(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),

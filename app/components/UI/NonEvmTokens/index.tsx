@@ -18,8 +18,8 @@ import {
   MULTICHAIN_TOKEN_IMAGES,
 } from '../../../core/Multichain/constants';
 import {
+  selectSelectedNonEvmNativeCurrency,
   selectSelectedNonEvmNetworkChainId,
-  selectSelectedNonEvmNetworkName,
 } from '../../../selectors/multichainNetworkController';
 import { CaipChainId } from '@metamask/utils';
 
@@ -41,7 +41,7 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const conversionRate = useSelector(selectMultichainConversionRate);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
   const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
-  const nonEvmNetworkName = useSelector(selectSelectedNonEvmNetworkName);
+  const nonEvmTicker = useSelector(selectSelectedNonEvmNativeCurrency);
 
   function getMultiChainFiatBalance(): string {
     if (conversionRate) {
@@ -71,7 +71,7 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
       aggregators: [],
       decimals: getDecimalsByChainId(nonEvmNetworkChainId),
       image: getTokenImage(),
-      name: nonEvmNetworkName,
+      name: nonEvmTicker,
       symbol: defaultToken.symbol,
       balance: nativeTokenBalance || '0',
       balanceFiat: shouldShowFiat ? getMultiChainFiatBalance() : '',

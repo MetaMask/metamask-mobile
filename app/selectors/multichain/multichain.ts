@@ -168,7 +168,7 @@ export const selectMultichainConversionRate = createDeepEqualSelector(
     }
 
     return nonEvmTicker
-      ? multichaincCoinRates?.[nonEvmTicker]?.conversionRate
+      ? multichaincCoinRates?.[nonEvmTicker.toLowerCase()]?.conversionRate
       : undefined;
   },
 );

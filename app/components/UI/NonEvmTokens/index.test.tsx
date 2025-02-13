@@ -97,6 +97,25 @@ const initialState = {
         selectedAddress: MOCK_SOLANA_ACCOUNT.address,
         shouldShowFiat: true,
       },
+      MultichainNetworkController: {
+        nonEvmSelected: true,
+        selectedMultichainNetworkChainId:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        multichainNetworksMetadata: {},
+        multichainNetworkConfigurationsByChainId: {
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            name: 'Solana Mainnet',
+            nativeCurrency: 'SOL',
+            decimals: 9,
+            isEvm: false,
+            blockExplorers: {
+              urls: ['https://solscan.io'],
+              defaultIndex: 0,
+            },
+          },
+        },
+      },
     },
   },
   settings: {
@@ -127,7 +146,7 @@ describe('NonEvmTokens', () => {
 
   it('should display the Solana token with correct balance', async () => {
     const { getByTestId, getByText } = renderComponent();
-    expect(getByText('Solana')).toBeDefined();
+    expect(getByText('SOL')).toBeDefined();
     const balanceText = getByTestId('fiat-balance-test-id');
     expect(balanceText.props.children).toBe('5.5 SOL');
   });
