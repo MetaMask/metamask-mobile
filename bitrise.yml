@@ -1846,3 +1846,4 @@ trigger_map:
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'v*.*.*'
     pipeline: create_qa_builds_pipeline
+    
