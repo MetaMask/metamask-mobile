@@ -1,4 +1,10 @@
-import { BtcScope, EthScope, SolScope, EthMethod } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  EthScope,
+  SolScope,
+  EthMethod,
+  CaipChainId,
+} from '@metamask/keyring-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import migration from './067';
@@ -78,13 +84,26 @@ describe('migration #67', () => {
                 ],
                 scopes: [],
               },
-              'btc-1': {
-                id: 'btc-1',
+              'btc-mainnet': {
+                id: 'btc-mainnet',
                 type: 'bip122:p2wpkh',
-                address: 'bc1abc',
+                address: 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
                 options: {},
                 metadata: {
-                  name: 'BTC Account',
+                  name: 'BTC Mainnet Account',
+                  keyring: { type: 'HD Key Tree' },
+                  importTime: Date.now(),
+                },
+                methods: [],
+                scopes: [],
+              },
+              'btc-testnet': {
+                id: 'btc-testnet',
+                type: 'bip122:p2wpkh',
+                address: 'tb1q6rmsq3vlfdhjdhtkxlqtuhhlr6pmj09y6w43g8',
+                options: {},
+                metadata: {
+                  name: 'BTC Testnet Account',
                   keyring: { type: 'HD Key Tree' },
                   importTime: Date.now(),
                 },
@@ -219,10 +238,11 @@ describe('migration #67', () => {
     expect(accounts['evm-1']?.scopes).toEqual([EthScope.Eoa]);
 
     // Check EVM ERC4337 account
-    expect(accounts['evm-2']?.scopes).toEqual([EthScope.Eoa]);
+    expect(accounts['evm-2']?.scopes).toEqual([EthScope.Testnet]);
 
     // Check BTC account
-    expect(accounts['btc-1']?.scopes).toEqual([BtcScope.Mainnet]);
+    expect(accounts['btc-mainnet']?.scopes).toEqual([BtcScope.Mainnet]);
+    expect(accounts['btc-testnet']?.scopes).toEqual([BtcScope.Testnet]);
 
     // Check Solana account
     expect(accounts['sol-1']?.scopes).toEqual([
@@ -399,9 +419,9 @@ describe('migration #67', () => {
 
   it('updates accounts that were previously migrated with old scope values', () => {
     // Old scope values for testing migration from previous state
-    const OLD_ETH_NAMESPACE_SCOPE = 'eip155' as `${string}:${string}`;
-    const OLD_SOL_NAMESPACE_SCOPE = 'solana' as `${string}:${string}`;
-    const OLD_BTC_NAMESPACE_SCOPE = 'bip122' as `${string}:${string}`;
+    const OLD_ETH_NAMESPACE_SCOPE = 'eip155' as CaipChainId;
+    const OLD_SOL_NAMESPACE_SCOPE = 'solana' as CaipChainId;
+    const OLD_BTC_NAMESPACE_SCOPE = 'bip122' as CaipChainId;
 
     const stateWithOldScopes: StateType = {
       engine: {
@@ -460,10 +480,24 @@ describe('migration #67', () => {
                   // Old Solana namespace scope
                   scopes: [OLD_SOL_NAMESPACE_SCOPE],
                 },
-                'btc-1': {
-                  id: 'btc-1',
+                'btc-mainnet': {
+                  id: 'btc-mainnet',
                   type: 'bip122:p2wpkh',
-                  address: 'bc1abc',
+                  address: 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
+                  options: {},
+                  metadata: {
+                    name: 'BTC Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  // Old BTC namespace scope
+                  scopes: [OLD_BTC_NAMESPACE_SCOPE],
+                },
+                'btc-testnet': {
+                  id: 'btc-testnet',
+                  type: 'bip122:p2wpkh',
+                  address: 'tb1q6rmsq3vlfdhjdhtkxlqtuhhlr6pmj09y6w43g8',
                   options: {},
                   metadata: {
                     name: 'BTC Account',
@@ -489,12 +523,13 @@ describe('migration #67', () => {
 
     // Check that old scope values were updated to new ones
     expect(accounts['evm-1']?.scopes).toEqual([EthScope.Eoa]);
-    expect(accounts['evm-2']?.scopes).toEqual([EthScope.Eoa]);
+    expect(accounts['evm-2']?.scopes).toEqual([EthScope.Testnet]);
     expect(accounts['sol-1']?.scopes).toEqual([
       SolScope.Mainnet,
       SolScope.Testnet,
       SolScope.Devnet,
     ]);
-    expect(accounts['btc-1']?.scopes).toEqual([BtcScope.Mainnet]);
+    expect(accounts['btc-mainnet']?.scopes).toEqual([BtcScope.Mainnet]);
+    expect(accounts['btc-testnet']?.scopes).toEqual([BtcScope.Testnet]);
   });
 });

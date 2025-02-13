@@ -1,4 +1,10 @@
-import { BtcScope, EthScope, SolScope, EthMethod } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  EthScope,
+  SolScope,
+  EthMethod,
+  CaipChainId,
+} from '@metamask/keyring-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import migration from './066';
@@ -77,13 +83,26 @@ describe('migration #66', () => {
                 ],
                 scopes: [],
               },
-              'btc-1': {
-                id: 'btc-1',
+              'btc-mainnet': {
+                id: 'btc-mainnet',
                 type: 'bip122:p2wpkh',
-                address: 'bc1abc',
+                address: 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
                 options: {},
                 metadata: {
-                  name: 'BTC Account',
+                  name: 'BTC Mainnet Account',
+                  keyring: { type: 'HD Key Tree' },
+                  importTime: Date.now(),
+                },
+                methods: [],
+                scopes: [],
+              },
+              'btc-testnet': {
+                id: 'btc-testnet',
+                type: 'bip122:p2wpkh',
+                address: 'tb1q6rmsq3vlfdhjdhtkxlqtuhhlr6pmj09y6w43g8',
+                options: {},
+                metadata: {
+                  name: 'BTC Testnet Account',
                   keyring: { type: 'HD Key Tree' },
                   importTime: Date.now(),
                 },
@@ -218,10 +237,13 @@ describe('migration #66', () => {
     expect(accounts['evm-1']?.scopes).toEqual([EthScope.Eoa]);
 
     // Check EVM ERC4337 account
-    expect(accounts['evm-2']?.scopes).toEqual([EthScope.Eoa]);
+    expect(accounts['evm-2']?.scopes).toEqual([EthScope.Testnet]);
 
-    // Check BTC account
-    expect(accounts['btc-1']?.scopes).toEqual([BtcScope.Mainnet]);
+    // Check BTC mainnet account
+    expect(accounts['btc-mainnet']?.scopes).toEqual([BtcScope.Mainnet]);
+
+    // Check BTC testnet account
+    expect(accounts['btc-testnet']?.scopes).toEqual([BtcScope.Testnet]);
 
     // Check Solana account
     expect(accounts['sol-1']?.scopes).toEqual([
@@ -349,7 +371,7 @@ describe('migration #66', () => {
                     EthMethod.SignTypedDataV4,
                   ],
                   // Invalid scope value that's not in any enum
-                  scopes: ['some-random-scope' as `${string}:${string}`],
+                  scopes: ['some-random-scope' as CaipChainId],
                 },
               },
             },
