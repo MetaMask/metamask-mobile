@@ -20,7 +20,6 @@ import {
   NOTIFICATION_NETWORK_CURRENCY_SYMBOL,
   SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS,
 } from '@metamask/notification-services-controller/notification-services/ui';
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
@@ -546,20 +545,4 @@ export function getAllUUIDs(userStorage: UserStorage): string[] {
     mapTrigger: triggerToId,
   });
   return uuids;
-}
-
-export function parseNotification(
-  remoteMessage: FirebaseMessagingTypes.RemoteMessage,
-) {
-  const notification = remoteMessage.data?.data;
-  const parsedNotification =
-    typeof notification === 'string' ? JSON.parse(notification) : notification;
-
-  const notificationData = {
-    type: parsedNotification?.type || parsedNotification?.data?.kind,
-    transaction: parsedNotification?.data,
-    duration: 5000,
-  };
-
-  return notificationData;
 }
