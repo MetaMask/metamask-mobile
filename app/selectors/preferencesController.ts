@@ -146,3 +146,15 @@ export const selectPrivacyMode = createSelector(
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.privacyMode,
 );
+
+export const selectSmartTransactionsMigrationApplied = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.featureFlags?.smartTransactionsMigrationApplied ?? false,
+);
+
+export const selectSmartTransactionsBannerDismissed = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.featureFlags?.smartTransactionsBannerDismissed ?? false,
+);

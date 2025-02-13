@@ -59,7 +59,7 @@ import TransactionReviewSummary from './TransactionReviewSummary';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { selectNativeCurrencyByChainId } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
-
+import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 let intervalIdForEstimatedL1Fee;
@@ -116,6 +116,9 @@ const createStyles = (colors) =>
     blockAidBannerContainer: {
       marginHorizontal: 16,
       marginBottom: -8,
+    },
+    smartTransactionsMigrationBanner: {
+      marginHorizontal: 16,
     },
   });
 
@@ -518,6 +521,7 @@ class TransactionReview extends PureComponent {
       error,
       transactionMetadata,
       useTransactionSimulations,
+      shouldUseSmartTransaction,
     } = this.props;
 
     const transactionSimulationData = transactionMetadata?.simulationData;
@@ -594,6 +598,11 @@ class TransactionReview extends PureComponent {
                         onContactUsClicked={this.onContactUsClicked}
                       />
                     </View>
+                    {shouldUseSmartTransaction && (
+                      <View style={styles.SmartTransactionsMigrationBanner}>
+                        <SmartTransactionsMigrationBanner />
+                      </View>
+                    )}
                     {to && (
                       <View style={styles.accountWrapper}>
                         <AccountFromToInfoCard

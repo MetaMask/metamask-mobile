@@ -185,6 +185,24 @@ jest.mock('../../../../../core/redux/slices/transactionMetrics', () => ({
   selectTransactionMetrics: jest.fn().mockReturnValue({}),
 }));
 
+jest.mock('../../../../../reducers/swaps', () => ({
+  swapsStateSelector: () => ({
+    featureFlags: {
+      smart_transactions: {
+        mobile_active: false
+      }
+    }
+  }),
+  swapsSmartTxFlagEnabled: () => false
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectSmartTransactionsBannerDismissed: () => false,
+  selectSmartTransactionsMigrationApplied: () => false,
+  selectSmartTransactionsOptInStatus: () => false,
+  selectUseTransactionSimulations: () => false,
+}));
+
 function render(
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
