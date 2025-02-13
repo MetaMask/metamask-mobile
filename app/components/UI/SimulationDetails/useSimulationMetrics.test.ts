@@ -330,7 +330,7 @@ describe('useSimulationMetrics', () => {
       const balanceChange = {
         ...BALANCE_CHANGE_MOCK,
         amount: new BigNumber(isNegative ? -1 : 1),
-        fiatAmount,
+        fiatAmount: fiatAmount as number,
       };
 
       expectUpdateTransactionMetricsCalled(

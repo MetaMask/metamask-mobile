@@ -27,7 +27,7 @@ export const useTokenValues = () => {
 
   const tokenAmountDisplayValue = formatAmount(locale, ethAmountInBN);
   const fiatDisplayValue =
-    preciseFiatValue && fiatFormatter(preciseFiatValue.toNumber());
+    preciseFiatValue && fiatFormatter(preciseFiatValue);
 
   return {
     tokenAmountDisplayValue,

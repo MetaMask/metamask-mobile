@@ -12,7 +12,7 @@ export enum AssetType {
  * Describes an amount of fiat.
  */
 export const FIAT_UNAVAILABLE = null;
-export type FiatAmountAvailable = number;
+export type FiatAmountAvailable = number | string;
 export type FiatAmount = FiatAmountAvailable | typeof FIAT_UNAVAILABLE;
 
 /**
