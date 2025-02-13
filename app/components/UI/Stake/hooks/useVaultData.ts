@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { useEffect, useCallback, useState } from 'react';
+import { useState } from 'react';
 import { selectPooledStakingVaultData } from '../../../../selectors/earnController';
 import Engine from '../../../../core/Engine';
 
@@ -9,7 +9,7 @@ const useVaultData = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchVaultData = useCallback(async () => {
+  const fetchVaultData = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -20,11 +20,7 @@ const useVaultData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchVaultData();
-  }, [fetchVaultData]);
+  };
 
   const apy = vaultData?.apy || '0';
   const annualRewardRatePercentage = apy ? parseFloat(apy) : 0;
@@ -41,6 +37,7 @@ const useVaultData = () => {
     error,
     annualRewardRate,
     annualRewardRateDecimal,
+    refreshPoolStakingVaultData: fetchVaultData,
   };
 };
 

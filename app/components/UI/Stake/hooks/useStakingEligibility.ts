@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { useEffect, useCallback, useState } from 'react';
+import { useState } from 'react';
 import { selectPooledStakingEligibility } from '../../../../selectors/earnController';
 import Engine from '../../../../core/Engine';
 
@@ -9,7 +9,7 @@ const useStakingEligibility = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchStakingEligibility = useCallback(async () => {
+  const fetchStakingEligibility = async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -20,11 +20,7 @@ const useStakingEligibility = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchStakingEligibility();
-  }, [fetchStakingEligibility]);
+  };
 
   return {
     isEligible,

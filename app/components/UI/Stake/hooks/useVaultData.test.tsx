@@ -1,4 +1,4 @@
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import useVaultData from './useVaultData';
 import { stakingApiService } from '../sdk/stakeSdkProvider';
 import { MOCK_GET_VAULT_RESPONSE } from '../__mocks__/mockData';
@@ -54,6 +54,10 @@ describe('useVaultData', () => {
       ).mockRejectedValue(new Error('API Error'));
 
       const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.refreshPoolStakingVaultData();
+      });
 
       await waitFor(() => {
         expect(result.current.isLoadingVaultData).toBe(false);

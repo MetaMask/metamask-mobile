@@ -9,7 +9,7 @@ import {
 } from '../../../../util/test/renderWithProvider';
 import { stakingApiService } from '../sdk/stakeSdkProvider';
 import usePooledStakes from './usePooledStakes';
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import {
   EarnControllerState,
   PooledStakingState,
@@ -88,6 +88,10 @@ describe('usePooledStakes', () => {
       ).mockRejectedValue(new Error('API Error'));
 
       const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.refreshPooledStakes();
+      });
 
       await waitFor(() => {
         expect(result.current.isLoadingPooledStakesData).toBe(false);

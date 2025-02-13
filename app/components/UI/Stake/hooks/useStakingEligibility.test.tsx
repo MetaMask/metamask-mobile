@@ -1,4 +1,4 @@
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import {
   DeepPartial,
   renderHookWithProvider,
@@ -51,6 +51,10 @@ describe('useStakingEligibility', () => {
       ).mockRejectedValue(new Error('API Error'));
 
       const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.refreshPooledStakingEligibility();
+      });
 
       await waitFor(() => {
         expect(result.current.isLoadingEligibility).toBe(false);

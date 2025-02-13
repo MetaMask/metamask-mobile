@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PooledStake } from '@metamask/stake-sdk';
 import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
@@ -22,7 +22,7 @@ const usePooledStakes = () => {
   const pooledStakesData = useSelector(selectPoolStakesData);
   const exchangeRate = useSelector(selectPooledStakingExchangeRate);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -33,11 +33,7 @@ const usePooledStakes = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  };
 
   const getStatus = (stake: PooledStake) => {
     if (stake.assets === '0' && stake.exitRequests.length > 0) {
