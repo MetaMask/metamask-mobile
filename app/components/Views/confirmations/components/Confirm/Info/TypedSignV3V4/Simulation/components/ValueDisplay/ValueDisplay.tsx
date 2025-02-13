@@ -117,11 +117,14 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     tokenDetails as TokenDetailsERC20,
   );
 
+  const isNFT = tokenId !== undefined && tokenId !== '0';
+
   const tokenAmount =
     isNumberValue(value) && !tokenId
       ? calcTokenAmount(value as number | string, tokenDecimals)
       : null;
   const isValidTokenAmount =
+    !isNFT &&
     tokenAmount !== null &&
     tokenAmount !== undefined &&
     tokenAmount instanceof BigNumber;
@@ -163,7 +166,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
             {
               <AnimatedPulse isPulsing={isPendingTokenDetails} testID="simulation-value-display-loader">
                 <ButtonPill
-                  isDisabled={!!tokenId || tokenId === '0'}
+                  isDisabled={isNFT}
                   onPress={handlePressTokenValue}
                   onPressIn={handlePressTokenValue}
                   onPressOut={handlePressTokenValue}

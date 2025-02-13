@@ -16,7 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.normal,
       fontSize: 14,
-      marginTop: 8,
     },
     warningContainer: {
       display: 'flex',

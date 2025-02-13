@@ -71,7 +71,8 @@ const PermitSimulation = () => {
 
   const tokenDetails = extractTokenDetailsByPrimaryType(message, primaryType);
 
-  const isNFT = tokenId !== undefined;
+  const isNFT = tokenId !== undefined && tokenId !== '0';
+
   const labelChangeType = isNFT
     ? strings('confirm.simulation.label_change_type_permit_nft')
     : strings('confirm.simulation.label_change_type_permit');
@@ -87,24 +88,25 @@ const PermitSimulation = () => {
 
       <InfoRow label={labelChangeType}>
         {Array.isArray(tokenDetails) ? (
-          <View style={styles.permitValues}>
+          <>
             {tokenDetails.map(
               (
                 { token, amount }: { token: string; amount: string },
                 i: number,
               ) => (
-                <PermitSimulationValueDisplay
-                  key={`${token}-${i}`}
-                  modalHeaderText={labelChangeType}
-                  networkClientId={networkClientId}
-                  primaryType={primaryType}
-                  tokenContract={safeToChecksumAddress(token)}
-                  value={amount}
-                  chainId={chainId}
-                />
+                <View style={styles.permitValues} key={`${token}-${i}`}>
+                  <PermitSimulationValueDisplay
+                    modalHeaderText={labelChangeType}
+                    networkClientId={networkClientId}
+                    primaryType={primaryType}
+                    tokenContract={safeToChecksumAddress(token)}
+                    value={amount}
+                    chainId={chainId}
+                  />
+                </View>
               ),
             )}
-          </View>
+          </>
         ) : (
           <PermitSimulationValueDisplay
             modalHeaderText={labelChangeType}
