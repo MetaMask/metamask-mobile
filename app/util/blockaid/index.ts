@@ -6,7 +6,7 @@ import type {
 import Engine from '../../core/Engine';
 import { ResultType } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 import { store } from '../../store';
-import { selectChainId } from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import PPOMUtils from '../../lib/ppom/ppom-util';
 import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { Hex } from '@metamask/utils';
@@ -19,7 +19,7 @@ export type TransactionType = TransactionMeta &
   TransactionSecurityAlertResponseType;
 
 export const isBlockaidSupportedOnCurrentChain = async (): Promise<boolean> => {
-  const chainId = selectChainId(store.getState());
+  const chainId = selectEvmChainId(store.getState());
   if (isNonEvmChainId(chainId)) return false;
   return await PPOMUtils.isChainSupported(chainId as Hex);
 };
