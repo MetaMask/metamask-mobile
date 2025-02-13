@@ -43,6 +43,7 @@ import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
 import Engine from '../../../core/Engine';
 import useStakingChain from '../../UI/Stake/hooks/useStakingChain';
 import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
+import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -59,6 +60,8 @@ const WalletActions = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+
+  const { isEligible: isPooledStakingEligible } = useStakingEligibility();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -291,7 +294,7 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
-        {isStablecoinLendingFeatureEnabled() && (
+        {isStablecoinLendingFeatureEnabled() && isPooledStakingEligible && (
           <WalletAction
             actionType={WalletActionType.Earn}
             iconName={IconName.Plant}

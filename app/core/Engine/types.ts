@@ -180,6 +180,12 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+import {
+  EarnController,
+  EarnControllerState,
+  EarnControllerEvents,
+  EarnControllerActions,
+} from '@metamask/earn-controller';
 
 /**
  * Controllers that area always instantiated
@@ -253,7 +259,8 @@ type GlobalActions =
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
-  | RemoteFeatureFlagControllerActions;
+  | RemoteFeatureFlagControllerActions
+  | EarnControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -291,7 +298,8 @@ type GlobalEvents =
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
-  | RemoteFeatureFlagControllerEvents;
+  | RemoteFeatureFlagControllerEvents
+  | EarnControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -359,6 +367,7 @@ export type Controllers = {
   MultichainBalancesController: MultichainBalancesController;
   RatesController: RatesController;
   ///: END:ONLY_INCLUDE_IF
+  EarnController: EarnController;
 };
 
 /**
@@ -410,4 +419,5 @@ export type EngineState = {
   MultichainBalancesController: MultichainBalancesControllerState;
   RatesController: RatesControllerState;
   ///: END:ONLY_INCLUDE_IF
+  EarnController: EarnControllerState;
 };

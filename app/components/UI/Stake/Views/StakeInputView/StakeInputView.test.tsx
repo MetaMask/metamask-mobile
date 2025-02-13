@@ -123,23 +123,11 @@ jest.mock('../../hooks/useStakingGasFee', () => ({
   }),
 }));
 
-const mockVaultData = MOCK_GET_VAULT_RESPONSE;
 // Mock hooks
-
-jest.mock('../../hooks/useStakingEligibility', () => ({
-  __esModule: true,
-  default: () => ({
-    isEligible: true,
-    loading: false,
-    error: null,
-    refreshPooledStakingEligibility: jest.fn(),
-  }),
-}));
-
 jest.mock('../../hooks/useVaultData', () => ({
   __esModule: true,
   default: () => ({
-    vaultData: mockVaultData,
+    vaultData: MOCK_GET_VAULT_RESPONSE,
     loading: false,
     error: null,
     refreshVaultData: jest.fn(),
