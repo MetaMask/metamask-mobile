@@ -600,13 +600,6 @@ exports[`Approval render matches snapshot 1`] = `
                                                       }
                                                     }
                                                   />
-                                                  <View
-                                                    style={
-                                                      {
-                                                        "marginHorizontal": 16,
-                                                      }
-                                                    }
-                                                  />
                                                   <View>
                                                     <View
                                                       style={

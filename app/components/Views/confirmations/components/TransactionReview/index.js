@@ -521,6 +521,7 @@ class TransactionReview extends PureComponent {
       error,
       transactionMetadata,
       useTransactionSimulations,
+      shouldUseSmartTransaction,
     } = this.props;
 
     const transactionSimulationData = transactionMetadata?.simulationData;
@@ -597,9 +598,11 @@ class TransactionReview extends PureComponent {
                         onContactUsClicked={this.onContactUsClicked}
                       />
                     </View>
-                    <View style={styles.SmartTransactionsMigrationBanner}>
-                      <SmartTransactionsMigrationBanner />
-                    </View>
+                    {shouldUseSmartTransaction && (
+                      <View style={styles.SmartTransactionsMigrationBanner}>
+                        <SmartTransactionsMigrationBanner />
+                      </View>
+                    )}
                     {to && (
                       <View style={styles.accountWrapper}>
                         <AccountFromToInfoCard
