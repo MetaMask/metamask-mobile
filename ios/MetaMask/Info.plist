@@ -45,6 +45,8 @@
 	<array>
 		<string>twitter</string>
 		<string>itms-apps</string>
+		<string>robinhood</string>
+		<string>cbwallet</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
