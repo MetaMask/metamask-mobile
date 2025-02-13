@@ -138,6 +138,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { updateTransactionToMaxValue } from './utils';
+import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../utils/generic';
 
 const EDIT = 'edit';
@@ -1422,11 +1423,14 @@ class Confirm extends PureComponent {
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
           {this.state.transactionMeta?.id && (
-            <TransactionBlockaidBanner
-              transactionId={this.state.transactionMeta.id}
-              style={styles.blockaidBanner}
-              onContactUsClicked={this.onContactUsClicked}
-            />
+            <>
+              <TransactionBlockaidBanner
+                transactionId={this.state.transactionMeta.id}
+                style={styles.blockaidBanner}
+                onContactUsClicked={this.onContactUsClicked}
+              />
+              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
+            </>
           )}
           {!selectedAsset.tokenId ? (
             <View style={styles.amountWrapper}>
