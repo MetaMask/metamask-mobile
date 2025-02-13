@@ -61,11 +61,6 @@ export type Alert  = {
   key: string;
 
   /**
-   * The reason for the alert.
-   */
-  reason?: string;
-
-  /**
    * The severity of the alert.
    */
   severity: AlertSeverity;
