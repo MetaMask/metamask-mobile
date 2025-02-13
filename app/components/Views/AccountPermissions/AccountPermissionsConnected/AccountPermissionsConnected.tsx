@@ -30,11 +30,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import { useNavigation } from '@react-navigation/native';
-import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-import Routes from '../../../../constants/navigation/Routes';
-import { isPerDappSelectedNetworkEnabled } from '../../../../util/networks';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -50,10 +45,6 @@ const AccountPermissionsConnected = ({
 }: AccountPermissionsConnectedProps) => {
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
-
-  const { navigate } = useNavigation();
-
-  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   const onConnectMoreAccounts = useCallback(() => {
     onSetSelectedAddresses([]);
@@ -96,21 +87,6 @@ const AccountPermissionsConnected = ({
     ],
   );
 
-  const switchNetwork = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
-
-    // TODO: add event tracking, commented out for now, doing POC work
-    // trackEvent(
-    //   createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
-    //     .addProperties({
-    //       chain_id: getDecimalChainId(providerConfig.chainId),
-    //     })
-    //     .build(),
-    // );
-  }, [navigate]);
-
   const renderSheetAction = useCallback(
     () => (
       <View
@@ -146,15 +122,6 @@ const AccountPermissionsConnected = ({
         <Text style={styles.sectionTitle} variant={TextVariant.BodyMDMedium}>
           {strings('accounts.connected_accounts_title')}
         </Text>
-        {isPerDappSelectedNetworkEnabled() && (
-          <PickerNetwork
-            label={networkName}
-            imageSource={networkImageSource}
-            onPress={switchNetwork}
-            style={styles.networkPicker}
-            testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-          />
-        )}
       </View>
       <AccountSelectorList
         onSelectAccount={switchActiveAccount}
