@@ -13,7 +13,10 @@ import {
   selectProviderConfig as selectEvmProviderConfig,
   ProviderConfig,
 } from '../networkController';
-import { selectSelectedInternalAccount } from '../accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectInternalAccounts,
+} from '../accountsController';
 import { createDeepEqualSelector } from '../util';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
@@ -22,8 +25,14 @@ import {
   MultichainNetworks,
   NETWORK_ASSETS_MAP,
 } from '@metamask/assets-controllers';
-import { selectAccountBalanceByChainId } from '../accountTrackerController';
+import {
+  selectAccountBalanceByChainId,
+  selectAccountsByChainId,
+} from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { getFormattedAddressFromInternalAccount } from '../../core/Multichain/utils';
+import { isEthAccount } from '../../core/Multichain/utils';
 
 /**
  * Get the state of the `bitcoinSupportEnabled` flag.
@@ -276,6 +285,170 @@ export const selectMultichainConversionRate = createDeepEqualSelector(
     }
     const ticker = multichainProviderConfig?.ticker?.toLowerCase();
     return ticker ? multichaincCoinRates?.[ticker]?.conversionRate : undefined;
+  },
+);
+
+interface BalanceData {
+  amount: string;
+}
+
+interface MultichainBalances {
+  [accountId: string]: {
+    [chainId: string]: BalanceData;
+  };
+}
+
+interface RatesControllerState {
+  rates: {
+    [ticker: string]: {
+      conversionRate: number;
+    };
+  };
+}
+
+interface EngineState {
+  backgroundState: {
+    MultichainBalancesController: {
+      balances: MultichainBalances;
+    };
+    RatesController: RatesControllerState;
+  };
+}
+
+// New selectors for all accounts
+export const selectAllAccountsIsEvm = createDeepEqualSelector(
+  selectInternalAccounts,
+  (accounts) => {
+    return accounts.reduce<Record<string, boolean>>((acc, account) => {
+      acc[account.id] = isEvmAccountType(account.type);
+      return acc;
+    }, {});
+  },
+);
+
+export const selectAllAccountsDefaultTokens = createDeepEqualSelector(
+  selectInternalAccounts,
+  selectEvmProviderConfig,
+  (accounts, evmProviderConfig) => {
+    return accounts.reduce<Record<string, { symbol: string }>>(
+      (acc, account) => {
+        // Find the provider config that matches this account's address
+        const nonEvmNetworks = Object.values(MULTICHAIN_PROVIDER_CONFIGS);
+        const nonEvmNetwork = nonEvmNetworks.find((provider) =>
+          provider.isAddressCompatible(account.address),
+        );
+
+        acc[account.id] = {
+          symbol: isEvmAccountType(account.type)
+            ? evmProviderConfig.ticker
+            : nonEvmNetwork?.ticker || '',
+        };
+        return acc;
+      },
+      {},
+    );
+  },
+);
+
+export const selectAllAccountsShouldShowFiat = createDeepEqualSelector(
+  selectInternalAccounts,
+  selectEvmChainId,
+  selectShowFiatInTestnets,
+  (accounts, evmChainId, shouldShowFiatOnTestnets) => {
+    return accounts.reduce<Record<string, boolean>>((acc, account) => {
+      const isEvm = isEvmAccountType(account.type);
+      const mainnet = (
+        MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET as Record<string, string>
+      )[account.type];
+      const nonEvmNetworks = Object.values(MULTICHAIN_PROVIDER_CONFIGS);
+      const nonEvmNetwork = nonEvmNetworks.find((provider) =>
+        provider.isAddressCompatible(account.address),
+      );
+      const isMainnet = isEvm
+        ? isMainNet(evmChainId)
+        : nonEvmNetwork?.chainId === mainnet;
+
+      const isTestnet = !isMainnet;
+      acc[account.id] = isEvm
+        ? isTestnet
+          ? Boolean(shouldShowFiatOnTestnets)
+          : true
+        : isMainnet || (isTestnet && Boolean(shouldShowFiatOnTestnets));
+      return acc;
+    }, {});
+  },
+);
+
+export const selectAllAccountsConversionRates = createDeepEqualSelector(
+  selectInternalAccounts,
+  selectConversionRate,
+  selectMultichainCoinRates,
+  (accounts, evmConversionRate, multichaincCoinRates) => {
+    return accounts.reduce<Record<string, number | undefined>>(
+      (acc, account) => {
+        if (isEvmAccountType(account.type)) {
+          acc[account.id] = evmConversionRate;
+        } else {
+          const nonEvmNetworks = Object.values(MULTICHAIN_PROVIDER_CONFIGS);
+          const nonEvmNetwork = nonEvmNetworks.find((provider) =>
+            provider.isAddressCompatible(account.address),
+          );
+          const ticker = nonEvmNetwork?.ticker?.toLowerCase();
+          acc[account.id] = ticker
+            ? multichaincCoinRates?.[ticker]?.conversionRate
+            : undefined;
+        }
+        return acc;
+      },
+      {},
+    );
+  },
+);
+
+export const selectAllAccountsBalances = createDeepEqualSelector(
+  selectInternalAccounts,
+  selectMultichainBalances,
+  selectAccountsByChainId,
+  (
+    accounts: InternalAccount[],
+    multichainBalances: MultichainBalances,
+    accountsByChainId: Record<string, Record<string, { balance: string }>>,
+  ) => {
+    return accounts.reduce<Record<string, string>>(
+      (acc: Record<string, string>, account: InternalAccount) => {
+        if (isEvmAccountType(account.type)) {
+          // For EVM accounts, look through all chain balances
+          const formattedAddress =
+            getFormattedAddressFromInternalAccount(account);
+          // Find the first non-zero balance across all chains
+          for (const chainId in accountsByChainId) {
+            const chainAccounts = accountsByChainId[chainId];
+            const accountBalance = chainAccounts[formattedAddress]?.balance;
+            if (accountBalance && accountBalance !== '0x0') {
+              acc[account.id] = accountBalance;
+              return acc;
+            }
+          }
+          // If no non-zero balance found, use the first chain's balance or 0x0
+          const firstChainId = Object.keys(accountsByChainId)[0];
+          acc[account.id] = firstChainId
+            ? accountsByChainId[firstChainId][formattedAddress]?.balance ??
+              '0x0'
+            : '0x0';
+        } else {
+          // For non-EVM accounts, we need to look through all balances
+          const balancesForAccount = multichainBalances?.[account.id] || {};
+          // Find the first non-zero balance
+          const nonZeroBalance = Object.values(balancesForAccount).find(
+            (balance): balance is BalanceData =>
+              balance?.amount !== undefined && balance.amount !== '0',
+          );
+          acc[account.id] = nonZeroBalance?.amount ?? '0';
+        }
+        return acc;
+      },
+      {},
+    );
   },
 );
 ///: END:ONLY_INCLUDE_IF
