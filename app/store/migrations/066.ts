@@ -1,52 +1,76 @@
-import { hasProperty, isObject } from '@metamask/utils';
+import { CaipChainId, hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 import Logger from '../../util/Logger';
 import {
   BtcAccountType,
-  BtcScopes,
+  BtcScope,
   EthAccountType,
-  EthScopes,
+  EthScope,
+  KeyringAccount,
   SolAccountType,
-  SolScopes,
+  SolScope,
 } from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
+import { isBtcMainnetAddress } from '../../core/Multichain/utils';
 
-const migrationVersion = 66;
+// Helper to check if a scope is a valid enum value
+function isValidScope(scope: string): boolean {
+  return (
+    Object.values(EthScope).includes(scope as EthScope) ||
+    Object.values(BtcScope).includes(scope as BtcScope) ||
+    Object.values(SolScope).includes(scope as SolScope)
+  );
+}
 
-function getScopesForAccountType(accountType: string): string[] {
-  switch (accountType) {
+function getScopesForAccountType(
+  account: KeyringAccount,
+  migrationNumber: number,
+): CaipChainId[] {
+  switch (account.type) {
     case EthAccountType.Eoa:
-    case EthAccountType.Erc4337:
-      return [EthScopes.Namespace];
-    case BtcAccountType.P2wpkh:
-      // Default to mainnet scope if address is missing or invalid
-      return [BtcScopes.Mainnet];
+      return [EthScope.Eoa];
+    case EthAccountType.Erc4337: {
+      // EVM Erc4337 account
+      // NOTE: A Smart Contract account might not be compatible with every chain, in this case we just default
+      // to testnet since we cannot really "guess" it from here.
+      // Also, there's no official Snap as of today that uses this account type. So this case should never happen
+      // in production.
+      return [EthScope.Testnet];
+    }
+    case BtcAccountType.P2wpkh: {
+      // Bitcoin uses different accounts for testnet and mainnet
+      return [
+        isBtcMainnetAddress(account.address)
+          ? BtcScope.Mainnet
+          : BtcScope.Testnet,
+      ];
+    }
     case SolAccountType.DataAccount:
-      return [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet];
+      return [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet];
     default:
       // Default to EVM namespace for unknown account types
       captureException(
         new Error(
-          `Migration ${migrationVersion}: Unknown account type ${accountType}, defaulting to EVM namespace`,
+          `Migration ${migrationNumber}: Unknown account type ${account.type}, defaulting to EVM EOA`,
         ),
       );
-      return [EthScopes.Namespace];
+      return [EthScope.Eoa];
   }
 }
 
 /**
  * Migration for adding scopes to accounts in the AccountsController.
  * Each account type gets its appropriate scopes:
- * - EVM EOA: [EthScopes.Namespace]
- * - EVM ERC4337: [EthScopes.Namespace]
- * - BTC P2WPKH: [BtcScopes.Mainnet] or [BtcScopes.Testnet] based on address
- * - Solana: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet]
+ * - EVM EOA: [EthScope.Eoa]
+ * - EVM ERC4337: [EthScope.Eoa]
+ * - BTC P2WPKH: [BtcScope.Mainnet] or [BtcScope.Testnet] based on address
+ * - Solana: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet]
  *
  * @param state - The state to migrate
  * @returns The migrated state
  */
-export default function migrate(state: unknown) {
-  if (!ensureValidState(state, migrationVersion)) {
+export function migration66(state: unknown, migrationNumber: number) {
+  if (!ensureValidState(state, migrationNumber)) {
     return state;
   }
 
@@ -70,7 +94,7 @@ export default function migrate(state: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Invalid state structure for AccountsController`,
+        `Migration ${migrationNumber}: Invalid state structure for AccountsController`,
       ),
     );
     return state;
@@ -89,17 +113,29 @@ export default function migrate(state: unknown) {
       hasProperty(account, 'scopes') &&
       Array.isArray(account.scopes) &&
       account.scopes.length > 0 &&
-      account.scopes.every((scope) => typeof scope === 'string')
+      account.scopes.every(
+        (scope) => typeof scope === 'string' && isValidScope(scope),
+      )
     ) {
       continue;
     }
 
     Logger.log(
-      `Migration ${migrationVersion}: Adding scopes for account type ${account.type}`,
+      `Migration ${migrationNumber}: Adding scopes for account type ${account.type}`,
     );
 
-    account.scopes = getScopesForAccountType(account.type as string);
+    account.scopes = getScopesForAccountType(
+      account as KeyringAccount,
+      migrationNumber,
+    );
   }
 
   return state;
+}
+
+/**
+ * Migration for adding scopes to accounts in the AccountsController.
+ */
+export default function migrate(state: unknown) {
+  return migration66(state, 66);
 }
