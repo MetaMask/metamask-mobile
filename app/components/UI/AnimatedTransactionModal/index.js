@@ -189,7 +189,7 @@ class AnimatedTransactionModal extends PureComponent {
   getAnimatedModalValueForAdvancedCG = () => {
     const { rootHeight, customGasHeight, originComponent } = this.state;
     if (originComponent === 'wallet') return 1;
-    //70 is the fixed height + margin of the error message in advanced custom gas. It expands 70 units vertically to accomodate it
+    //70 is the fixed height + margin of the error message in advanced custom gas. It expands 70 units vertically to accommodate it
     return 70 / (rootHeight - customGasHeight);
   };
 
