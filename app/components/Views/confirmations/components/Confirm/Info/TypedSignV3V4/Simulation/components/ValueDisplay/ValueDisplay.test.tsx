@@ -71,7 +71,7 @@ describe('SimulationValueDisplay', () => {
 
     const { findByText } = renderWithProvider(
       <SimulationValueDisplay
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
         chainId={'0x1'}
@@ -90,7 +90,7 @@ describe('SimulationValueDisplay', () => {
 
     const { findByTestId } = renderWithProvider(
       <SimulationValueDisplay
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
         chainId={'0x1'}
@@ -116,7 +116,7 @@ describe('SimulationValueDisplay', () => {
     const { findByText } = renderWithProvider(
       <SimulationValueDisplay
         canDisplayValueAsUnlimited
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'1461501637330902918203684832716283019655932542975'}
         chainId={'0x1'}
@@ -145,7 +145,7 @@ describe('SimulationValueDisplay', () => {
 
     renderWithProvider(
       <SimulationValueDisplay
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
         chainId={'0x1'}
@@ -174,7 +174,7 @@ describe('SimulationValueDisplay', () => {
 
     renderWithProvider(
       <SimulationValueDisplay
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
         chainId={'0x1'}
@@ -197,7 +197,7 @@ describe('SimulationValueDisplay', () => {
     it('does not invoke method to track missing decimal information', async () => {
       renderWithProvider(
         <SimulationValueDisplay
-          labelChangeType={'Withdraw'}
+          modalHeaderText={'Withdraw'}
           tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
           tokenId={'1234'}
           value={'4321'}
