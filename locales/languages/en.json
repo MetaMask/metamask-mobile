@@ -707,6 +707,7 @@
     "select_accounts_description": "Select the account(s) to use on this site:",
     "connect_multiple_accounts": "Connect multiple accounts",
     "connect_more_accounts": "Connect more accounts",
+    "add":"Add",
     "cancel": "Cancel",
     "connect": "Connect",
     "connect_with_count": "Connect{{countLabel}}",
@@ -734,7 +735,16 @@
     "potential_threat": "Potential threats include",
     "fake_metamask": "Fake versions of MetaMask",
     "srp_theft": "Secret recovery phrase or password theft",
-    "malicious_transactions": "Malicious transactions resulting in stolen assets"
+    "malicious_transactions": "Malicious transactions resulting in stolen assets",
+    "srp_pill": "SRP #",
+    "secret_recovery_phrase": "Secret Recovery Phrase",
+    "account_name": "Account name",
+    "select_secret_recovery_phrase": "Select Secret Recovery Phrase",
+    "reveal_secret_recovery_phrase": "Reveal Secret Recovery Phrase",
+    "add_new_hd_account_helper_text": "The Secret Recovery Phrase your new account will be generated from",
+    "accounts": "accounts",
+    "show_accounts": "Show",
+    "hide_accounts": "Hide"
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -1982,6 +1992,15 @@
   "import_private_key_success": {
     "title": "Account successfully imported!",
     "description_one": "You'll now be able to view your account in MetaMask."
+  },
+  "import_new_secret_recovery_phrase": {
+    "title":"Import Secret Recovery Phrase",
+    "description": "Enter your wallet's secret recovery phrase. You can import any Ethereum, Solana, or Bitcoin secret recovery phrase.",
+    "subtitle": "Paste your secret recovery phrase",
+    "cta_text": "IMPORT",
+    "error_title": "Something went wrong",
+    "error_message": "We couldn't import that secret recovery phrase. Please make sure you entered it correctly.",
+    "error_empty_message":"You need to enter your secret recovery phrase."
   },
   "first_incoming_transaction": {
     "title": "{{asset}} was deposited in your account",
@@ -3370,6 +3389,8 @@
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
     "add_account": "Add account",
     "add_new_account": "Add new account",
+    "import_srp":"Import secret recovery phrase",
+    "create_new_srp": "Create new secret recovery phrase",
     "add_hardware_wallet": "Add hardware wallet",
     "import_account": "Import account",
     "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)",
