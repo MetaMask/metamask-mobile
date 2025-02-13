@@ -22,7 +22,9 @@ import {
   PermissionController,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { backgroundState } from '../../util/test/initial-root-state';
+import initialRootState, {
+  backgroundState,
+} from '../../util/test/initial-root-state';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
@@ -33,6 +35,7 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import { merge } from 'lodash';
 import {
   processOriginThrottlingRejection,
   validateOriginThrottling,
@@ -41,7 +44,7 @@ import {
   NUMBER_OF_REJECTIONS_THRESHOLD,
   OriginThrottlingState,
 } from '../redux/slices/originThrottling';
-import { ProviderConfig } from '../../selectors/networkController';
+import { mockNetworkState } from '../../util/test/network';
 
 jest.mock('./spam');
 
@@ -66,6 +69,7 @@ jest.mock('../Engine', () => ({
       }),
     },
   },
+  setSelectedAddress: jest.fn(),
 }));
 const MockEngine = jest.mocked(Engine);
 
@@ -119,7 +123,10 @@ function assertIsJsonRpcSuccess(
     throw new Error(`Response is missing 'result' property`);
   }
 }
-
+// Mock the navigation object.
+const navigation = {
+  navigate: jest.fn(),
+};
 /**
  * Return a minimal set of options for `getRpcMethodMiddleware`. These options
  * are complete enough to test at least some method handlers, and they are type-
@@ -131,7 +138,7 @@ function getMinimalOptions() {
   return {
     hostname: '',
     getProviderState: jest.fn(),
-    navigation: jest.fn(),
+    navigation,
     url: { current: '' },
     title: { current: '' },
     icon: { current: undefined },
@@ -249,10 +256,23 @@ function setupGlobalState({
   selectedNetworkClientId: string;
   networksMetadata?: Record<string, object>;
   networkConfigurationsByChainId?: Record<string, object>;
-  providerConfig?: ProviderConfig;
   selectedAddress?: string;
   originThrottling?: OriginThrottlingState;
 }) {
+  const mockState: RootState = merge({}, initialRootState, {
+    browser: activeTab
+      ? {
+          activeTab,
+        }
+      : {},
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        PreferencesController: selectedAddress ? { selectedAddress } : {},
+      },
+    },
+  });
+  jest.spyOn(store, 'getState').mockImplementation(() => mockState);
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
     // TODO: Replace "any" with type
@@ -1389,6 +1409,354 @@ describe('getRpcMethodMiddleware', () => {
       const spy = jest.spyOn(PPOMUtil, 'validateRequest');
       await sendRequest();
       expect(spy).toBeCalledTimes(1);
+    });
+  });
+  describe('wallet_swapAsset', () => {
+    it('should throw error if the account sent by the dapp is not the one connected', async () => {
+      const mockState: RootState = merge({}, initialRootState, {
+        swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: 1,
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: true,
+            },
+          ],
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            NetworkController: {
+              ...mockNetworkState({
+                chainId: '0x1',
+                id: 'mainnet',
+                nickname: 'Ethereum Mainnet',
+                ticker: 'ETH',
+                blockExplorerUrl: 'https://goerli.lineascan.build',
+              }),
+            },
+          },
+        },
+      });
+      jest.spyOn(store, 'getState').mockImplementation(() => mockState);
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_swapAsset',
+        params: [
+          {
+            fromToken: [
+              {
+                // DAI address
+                address: 'eip155:1:0x6b175474e89094c44da98b954eedeac495271d0f',
+                value: '0xDE0B6B3A7640000',
+              },
+            ],
+            toToken: {
+              // ETH address
+              address: 'eip155:1:0x0000000000000000000000000000000000000000',
+            },
+            userAddress: 'eip155:1:0x0234',
+          },
+        ],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+      //@ts-expect-error now the response can have an error property
+      await expect(response?.error?.message).toStrictEqual(
+        'The swap could not be completed as requested',
+      );
+    });
+
+    it('should throw error if it was sent more than one token to swap from', async () => {
+      const mockAddress1 = '0x0000000000000000000000000000000000000001';
+      const mockAddress2 = '0x0000000000000000000000000000000000000002';
+      setupGlobalState({
+        permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+        selectedAddress: mockAddress2,
+        selectedNetworkClientId: 'testNetworkClientId',
+      });
+      const mockState: RootState = merge({}, initialRootState, {
+        swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: 1,
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: true,
+            },
+          ],
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            NetworkController: {
+              ...mockNetworkState({
+                chainId: '0x1',
+                id: 'mainnet',
+                nickname: 'Ethereum Mainnet',
+                ticker: 'ETH',
+                blockExplorerUrl: 'https://goerli.lineascan.build',
+              }),
+            },
+          },
+        },
+      });
+      jest.spyOn(store, 'getState').mockImplementation(() => mockState);
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_swapAsset',
+        params: [
+          {
+            fromToken: [
+              {
+                // DAI address
+                address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+                value: '0xDE0B6B3A7640000',
+              },
+              {
+                // ETH address
+                address: 'eip155:1:0x0000000000000000000000000000000000000000',
+                value: '0xDE0B6B3A7640000',
+              },
+            ],
+            toToken: {
+              chainId: '0x1',
+              // ETH address
+              address: 'eip155:1:0x0000000000000000000000000000000000000000',
+            },
+            userAddress: `eip155:1:${mockAddress1}`,
+          },
+        ],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+      //@ts-expect-error now the response can have an error property
+      await expect(response?.error?.message).toStrictEqual(
+        'Currently we de not support multiple tokens swap',
+      );
+    });
+
+    it('should throw error if address required param is not defined', async () => {
+      const mockAddress1 = '0x0000000000000000000000000000000000000001';
+      const mockAddress2 = '0x0000000000000000000000000000000000000002';
+      setupGlobalState({
+        permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+        selectedAddress: mockAddress2,
+        selectedNetworkClientId: 'testNetworkClientId',
+      });
+      const mockState = merge({}, initialRootState, {
+        swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: 1,
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: true,
+            },
+          ],
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            NetworkController: {
+              ...mockNetworkState({
+                chainId: '0x1',
+                id: 'mainnet',
+                nickname: 'Ethereum Mainnet',
+                ticker: 'ETH',
+                blockExplorerUrl: 'https://goerli.lineascan.build',
+              }),
+            },
+          },
+        },
+      });
+      jest.spyOn(store, 'getState').mockImplementation(() => mockState);
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_swapAsset',
+        params: [
+          {
+            fromToken: [
+              {
+                // DAI address
+                value: '0xDE0B6B3A7640000',
+              },
+            ],
+            toToken: {
+              // ETH address
+              address: 'eip155:1:0x0000000000000000000000000000000000000000',
+            },
+            userAddress: `eip155:1:${mockAddress1}`,
+          },
+        ],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+      //@ts-expect-error now the response can have an error property
+      await expect(response?.error?.message).toStrictEqual(
+        'address property of fromToken is not defined',
+      );
+    });
+
+    it('should throw error if swap is not live', async () => {
+      const mockAddress1 = '0x0000000000000000000000000000000000000001';
+      const mockAddress2 = '0x0000000000000000000000000000000000000002';
+      setupGlobalState({
+        permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+        selectedAddress: mockAddress2,
+        selectedNetworkClientId: 'testNetworkClientId',
+      });
+      const mockState = merge({}, initialRootState, {
+        swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: false },
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: 1,
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: true,
+            },
+          ],
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            NetworkController: {
+              ...mockNetworkState({
+                chainId: '0x1',
+                id: 'mainnet',
+                nickname: 'Ethereum Mainnet',
+                ticker: 'ETH',
+                blockExplorerUrl: 'https://goerli.lineascan.build',
+              }),
+            },
+          },
+        },
+      });
+      jest.spyOn(store, 'getState').mockImplementation(() => mockState);
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_swapAsset',
+        params: [
+          {
+            fromToken: [
+              {
+                // DAI address
+                address: 'eip155:1:0x6b175474e89094c44da98b954eedeac495271d0f',
+                value: '0xDE0B6B3A7640000',
+              },
+            ],
+            toToken: {
+              // ETH address
+              address: 'eip155:1:0x0000000000000000000000000000000000000000',
+            },
+            userAddress: `eip155:1:${mockAddress1}`,
+          },
+        ],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+      //@ts-expect-error now the response can have an error property
+      await expect(response?.error?.message).toStrictEqual(
+        'Swap is not available on this chain Ethereum Mainnet',
+      );
+    });
+
+    it('should navigate to SwapsAmountView if all conditions are met', async () => {
+      const mockAddress1 = '0x0000000000000000000000000000000000000001';
+      const mockAddress2 = '0x0000000000000000000000000000000000000002';
+      setupGlobalState({
+        permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+        selectedAddress: mockAddress2,
+        selectedNetworkClientId: 'testNetworkClientId',
+      });
+      const mockState = merge({}, initialRootState, {
+        swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: 1,
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: true,
+            },
+          ],
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            NetworkController: {
+              ...mockNetworkState({
+                chainId: '0x1',
+                id: 'mainnet',
+                nickname: 'Ethereum Mainnet',
+                ticker: 'ETH',
+                blockExplorerUrl: 'https://goerli.lineascan.build',
+              }),
+            },
+          },
+        },
+      });
+      jest.spyOn(store, 'getState').mockImplementation(() => mockState);
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_swapAsset',
+        params: [
+          {
+            fromToken: [
+              {
+                // DAI address
+                address: 'eip155:1:0x6b175474e89094c44da98b954eedeac495271d0f',
+                value: '0xDE0B6B3A7640000',
+              },
+            ],
+            toToken: {
+              // ETH address
+              address: 'eip155:1:0x0000000000000000000000000000000000000000',
+            },
+            userAddress: `eip155:1:${mockAddress1}`,
+          },
+        ],
+      };
+
+      await callMiddleware({ middleware, request });
+      expect(navigation.navigate).toHaveBeenCalledWith('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourceToken: '0x6b175474e89094c44da98b954eedeac495271d0f',
+          destinationToken: '0x0000000000000000000000000000000000000000',
+          amount: '1',
+        },
+      });
     });
   });
 
