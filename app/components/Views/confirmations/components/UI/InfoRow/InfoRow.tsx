@@ -27,7 +27,7 @@ const InfoRow = ({
       style={{ ...styles.container, ...style }}
       testID={testID ?? 'info-row'}
     >
-      {label && (
+      {Boolean(label) && (
         <View style={styles.labelContainer}>
           <Text style={styles.label}>{label}</Text>
           {tooltip && <Tooltip content={tooltip} />}
