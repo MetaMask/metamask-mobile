@@ -1,6 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import StakeInputView from '../Views/StakeInputView/StakeInputView';
+import EarnInputView from '../Views/EarnInputView';
 import Routes from '../../../../constants/navigation/Routes';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
 import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
@@ -11,6 +12,8 @@ import GasImpactModal from '../components/GasImpactModal';
 import StakeEarningsHistoryView from '../Views/StakeEarningsHistoryView/StakeEarningsHistoryView';
 import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
 import EarnTokenList from '../components/EarnTokenList';
+import { isStablecoinLendingFeatureEnabled } from '../constants';
+
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
@@ -26,7 +29,12 @@ const clearStackNavigatorOptions = {
 const StakeScreenStack = () => (
   <StakeSDKProvider>
     <Stack.Navigator>
-      <Stack.Screen name={Routes.STAKING.STAKE} component={StakeInputView} />
+      <Stack.Screen
+        name={Routes.STAKING.STAKE}
+        component={
+          isStablecoinLendingFeatureEnabled() ? EarnInputView : StakeInputView
+        }
+      />
       <Stack.Screen
         name={Routes.STAKING.UNSTAKE}
         component={UnstakeInputView}

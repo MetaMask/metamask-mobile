@@ -1,7 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -14,34 +13,20 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
 import QuickAmounts from '../../components/QuickAmounts';
-import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
 import Routes from '../../../../../constants/navigation/Routes';
-import styleSheet from './StakeInputView.styles';
+import styleSheet from './EarnInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import InputDisplay from '../../components/InputDisplay';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
-import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
-import { formatEther } from 'ethers/lib/utils';
 import { EVENT_PROVIDERS, EVENT_LOCATIONS } from '../../constants/events';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { StakeInputViewProps } from './StakeInputView.types';
-import { getStakeInputViewTitle } from './utils';
-import { isStablecoinLendingFeatureEnabled } from '../../constants';
+import { EarnInputViewProps } from './EarnInputView.types';
+import { getEarnInputViewTitle } from './utils';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 
-const StakeInputView = ({ route }: StakeInputViewProps) => {
+const EarnInputView = ({ route }: EarnInputViewProps) => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { attemptDepositTransaction } = usePoolStakedDeposit();
-  const confirmationRedesignFlags = useSelector(
-    selectConfirmationRedesignFlags,
-  );
-  const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_transactions;
-  const activeAccount = useSelector(selectSelectedInternalAccount);
 
   const {
     isEth,
@@ -57,11 +42,9 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     handleQuickAmountPress,
     handleKeypadChange,
     calculateEstimatedAnnualRewards,
-    estimatedAnnualRewards,
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultData,
     handleMax,
     balanceValue,
     isHighGasCostImpact,
@@ -70,21 +53,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     isLoadingStakingGasFee,
   } = useStakingInputHandlers();
 
-  const navigateToLearnMoreModal = () => {
-    navigation.navigate('StakeModals', {
-      screen: Routes.STAKING.MODALS.LEARN_MORE,
-    });
-  };
-
-  const handleStakePress = useCallback(async () => {
-    if (isStakingDepositRedesignedEnabled) {
-      await attemptDepositTransaction(
-        amountWei.toString(),
-        activeAccount?.address as string,
-      );
-      return;
-    }
-
+  const handleActionPress = useCallback(async () => {
     if (isHighGasCostImpact()) {
       trackEvent(
         createEventBuilder(
@@ -95,7 +64,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
             location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
             tokens_to_stake_native_value: amountEth,
             tokens_to_stake_usd_value: fiatAmount,
-            estimated_gas_fee: formatEther(estimatedGasFeeWei.toString()),
+            estimated_gas_fee: estimatedGasFeeWei.toString(),
             estimated_gas_percentage_of_deposit: `${getDepositTxGasPercentage()}%`,
           })
           .build(),
@@ -109,7 +78,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
           annualRewardsETH,
           annualRewardsFiat,
           annualRewardRate,
-          estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
+          estimatedGasFee: estimatedGasFeeWei.toString(),
           estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
         },
       });
@@ -148,9 +117,6 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     amountEth,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
-    isStakingDepositRedesignedEnabled,
-    activeAccount,
-    attemptDepositTransaction,
   ]);
 
   const handleMaxButtonPress = () => {
@@ -171,13 +137,10 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     : strings('stake.review');
 
   useEffect(() => {
-    const title = isStablecoinLendingFeatureEnabled()
-      ? getStakeInputViewTitle(
-          route?.params?.action,
-          route?.params?.token.symbol,
-          route?.params?.token.isETH,
-        )
-      : strings('stake.stake_eth');
+    const title = getEarnInputViewTitle(
+      route.params.action,
+      route.params.token.symbol,
+    );
 
     navigation.setOptions(
       getStakingNavbar(
@@ -215,68 +178,29 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
         fiatAmount={fiatAmount}
         isEth={isEth}
         currentCurrency={currentCurrency}
-        handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
-          event: MetaMetricsEvents.STAKE_INPUT_CURRENCY_SWITCH_CLICKED,
-          properties: {
-            selected_provider: EVENT_PROVIDERS.CONSENSYS,
-            text: 'Currency Switch Trigger',
-            location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-            currency_type: isEth ? 'fiat' : 'native',
-          },
-        })}
+        handleCurrencySwitch={handleCurrencySwitch}
         currencyToggleValue={currencyToggleValue}
       />
       <View style={styles.rewardsRateContainer}>
-        {isStablecoinLendingFeatureEnabled() ? (
-          <EarnTokenSelector
-            token={route.params.token}
-            apr={annualRewardRate}
-            balance={balanceValue}
-          />
-        ) : (
-          <EstimatedAnnualRewardsCard
-            estimatedAnnualRewards={estimatedAnnualRewards}
-            onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
-              event: MetaMetricsEvents.TOOLTIP_OPENED,
-              properties: {
-                selected_provider: EVENT_PROVIDERS.CONSENSYS,
-                text: 'Tooltip Opened',
-                location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-                tooltip_name: 'MetaMask Pool Estimated Rewards',
-              },
-            })}
-            isLoading={isLoadingVaultData}
-          />
-        )}
+        <EarnTokenSelector
+          token={route.params.token}
+          apr={annualRewardRate}
+          balance={balanceValue}
+        />
       </View>
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={({ value }: { value: number }) =>
-          withMetaMetrics(handleQuickAmountPress, {
-            event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
-            properties: {
-              location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-              amount: value,
-              is_max: false,
-              mode: isEth ? 'native' : 'fiat',
-            },
-          })({ value })
+          handleQuickAmountPress({ value })
         }
-        onMaxPress={withMetaMetrics(handleMaxButtonPress, {
-          event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
-          properties: {
-            location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-            is_max: true,
-            mode: isEth ? 'native' : 'fiat',
-          },
-        })}
+        onMaxPress={handleMaxButtonPress}
       />
       <Keypad
         value={isEth ? amountEth : fiatAmount}
         onChange={handleKeypadChange}
         style={styles.keypad}
-        currency={'ETH'}
-        decimals={isEth ? 5 : 2}
+        currency={route.params.token.symbol}
+        decimals={isEth ? route.params.token.decimals : 2}
       />
       <View style={styles.reviewButtonContainer}>
         <Button
@@ -288,11 +212,11 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
             isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee
           }
           width={ButtonWidthTypes.Full}
-          onPress={handleStakePress}
+          onPress={handleActionPress}
         />
       </View>
     </ScreenLayout>
   );
 };
 
-export default StakeInputView;
+export default EarnInputView;

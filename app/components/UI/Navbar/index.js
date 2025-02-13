@@ -1912,8 +1912,8 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
  * @param {String} title - Navbar Title.
  * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
  * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
- * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [navBarOptions] - Optional navbar options.
- * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>} }} [metricsOptions] - Optional metrics options.
+ * @param {{ backgroundColor?: string, hasBackButton?: boolean }} [navBarOptions] - Optional navbar options.
+ * @param {{ backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>} }} [metricsOptions] - Optional metrics options.
  * @returns Staking Navbar Component.
  */
 export function getStakingNavbar(
@@ -1923,7 +1923,7 @@ export function getStakingNavbar(
   navBarOptions,
   metricsOptions,
 ) {
-  const { hasBackButton = true, hasCancelButton = true } = navBarOptions ?? {};
+  const { hasBackButton = true } = navBarOptions ?? {};
 
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1934,10 +1934,8 @@ export function getStakingNavbar(
     headerLeft: {
       marginHorizontal: 16,
     },
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: 14,
-      ...fontStyles.normal,
+    headerRight: {
+      marginHorizontal: 16,
     },
     headerTitle: {
       alignItems: 'center',
@@ -1959,15 +1957,10 @@ export function getStakingNavbar(
     }
   }
 
-  function handleCancelPress() {
-    if (metricsOptions?.cancelButtonEvent) {
-      withMetaMetrics(navigationPop, {
-        event: metricsOptions.cancelButtonEvent.event,
-        properties: metricsOptions.cancelButtonEvent.properties,
-      })();
-    } else {
-      navigationPop();
-    }
+  function handleHelpPress() {
+    navigation.navigate('StakeModals', {
+      screen: Routes.STAKING.MODALS.LEARN_MORE,
+    });
   }
 
   return {
@@ -1988,18 +1981,13 @@ export function getStakingNavbar(
       ) : (
         <></>
       ),
-    headerRight: () =>
-      hasCancelButton ? (
-        <TouchableOpacity
-          onPress={handleCancelPress}
-          style={styles.closeButton}
-        >
-          <Text style={innerStyles.headerButtonText}>
-            {strings('navigation.cancel')}
-          </Text>
-        </TouchableOpacity>
-      ) : (
-        <></>
-      ),
+    headerRight: () => (
+      <ButtonIcon
+        size={ButtonIconSizes.Md}
+        iconName={IconName.Question}
+        onPress={handleHelpPress}
+        style={innerStyles.headerRight}
+      />
+    ),
   };
 }
