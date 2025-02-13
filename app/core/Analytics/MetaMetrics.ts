@@ -519,7 +519,6 @@ class MetaMetrics implements IMetaMetrics {
         );
 
       const segmentClient = isE2E ? undefined : createClient(config);
-      segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin() });
 
       this.instance = new MetaMetrics(segmentClient as SegmentClient);
     }
@@ -548,6 +547,9 @@ class MetaMetrics implements IMetaMetrics {
       this.deleteRegulationDate =
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
+
+      (this.segmentClient as unknown as SegmentClient).add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
+
       this.#isConfigured = true;
 
       // identify user with the latest traits
