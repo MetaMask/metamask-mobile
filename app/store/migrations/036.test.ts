@@ -1,4 +1,4 @@
-import { EthAccountType, EthMethod, EthScopes } from '@metamask/keyring-api';
+import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import migrate, { Identity } from './036';
 import { captureException } from '@sentry/react-native';
@@ -50,7 +50,7 @@ function expectedInternalAccount(
 ): InternalAccount {
   return {
     address,
-    scopes: [EthScopes.Namespace],
+    scopes: [EthScope.Eoa],
     id: getUUIDFromAddressOfNormalAccount(address),
     metadata: {
       name: nickname,
