@@ -11,6 +11,15 @@ import {
 } from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
 
+// Helper to check if a scope is a valid enum value
+function isValidScope(scope: string): boolean {
+  return (
+    Object.values(EthScope).includes(scope as EthScope) ||
+    Object.values(BtcScope).includes(scope as BtcScope) ||
+    Object.values(SolScope).includes(scope as SolScope)
+  );
+}
+
 function getScopesForAccountType(
   accountType: string,
   migrationNumber: number,
@@ -90,7 +99,9 @@ export function migration66(state: unknown, migrationNumber: number) {
       hasProperty(account, 'scopes') &&
       Array.isArray(account.scopes) &&
       account.scopes.length > 0 &&
-      account.scopes.every((scope) => typeof scope === 'string')
+      account.scopes.every(
+        (scope) => typeof scope === 'string' && isValidScope(scope),
+      )
     ) {
       continue;
     }

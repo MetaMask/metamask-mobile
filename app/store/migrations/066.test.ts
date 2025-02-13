@@ -333,6 +333,24 @@ describe('migration #66', () => {
                   // @ts-expect-error Testing invalid scope type
                   scopes: undefined,
                 },
+                'invalid-4': {
+                  id: 'evm-1',
+                  type: 'eip155:eoa',
+                  address: '0x123',
+                  options: {},
+                  metadata: {
+                    name: 'Account 1',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [
+                    EthMethod.PersonalSign,
+                    EthMethod.SignTransaction,
+                    EthMethod.SignTypedDataV4,
+                  ],
+                  // Invalid scope value that's not in any enum
+                  scopes: ['some-random-scope' as `${string}:${string}`],
+                },
               },
             },
           },
@@ -349,6 +367,7 @@ describe('migration #66', () => {
     expect(accounts['invalid-1']?.scopes).toEqual([EthScope.Eoa]);
     expect(accounts['invalid-2']?.scopes).toEqual([EthScope.Eoa]);
     expect(accounts['invalid-3']?.scopes).toEqual([EthScope.Eoa]);
+    expect(accounts['invalid-4']?.scopes).toEqual([EthScope.Eoa]);
   });
 
   it('logs unknown account types to Sentry', () => {
