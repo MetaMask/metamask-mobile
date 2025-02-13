@@ -70,7 +70,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
   const isValidTokenAmount = tokenAmount !== null && tokenAmount !== undefined && tokenAmount instanceof BigNumber;
 
   const fiatValue = isValidTokenAmount && conversionRate
-    ? tokenAmount.times(String(conversionRate)).toNumber()
+    ? tokenAmount.times(String(conversionRate))
     : undefined;
 
   const tokenValue = isValidTokenAmount ? formatAmount('en-US', tokenAmount) : null;
@@ -107,15 +107,9 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
           </View>
         </View>
       </View>
-      <View style={styles.fiatDisplay}>
-        {/**
-          TODO - add fiat shorten prop after tooltip logic has been updated
-          {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
-        */}
-        {fiatValue !== undefined && (
-          <IndividualFiatDisplay fiatAmount={fiatValue} />
-        )}
-      </View>
+      {fiatValue !== undefined && (
+        <IndividualFiatDisplay fiatAmount={fiatValue} />
+      )}
       {hasValueModalOpen && (
           /**
            * TODO replace BottomModal instances with BottomSheet
