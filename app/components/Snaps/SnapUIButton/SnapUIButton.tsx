@@ -9,6 +9,7 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text/Text.types';
+// import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import Button from '../../../component-library/components/Buttons/Button';
 import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
@@ -42,7 +43,7 @@ const SnapUIButton = ({
   label,
   name,
   children,
-  type = ButtonType.Button,
+  // type = ButtonType.Button,
   variant = ButtonVariants.Primary,
   disabled = false,
   loading = false,
@@ -50,9 +51,17 @@ const SnapUIButton = ({
   handlePress,
   ...props
 }: SnapUIButtonProps) => {
+  // const { handleEvent } = useSnapInterfaceContext();
   const { styles } = useStyles(styleSheet, {
     buttonsAlignment: DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
   });
+
+  // const handlePress = () => {
+  //   handleEvent({
+  //     event: UserInputEventType.ButtonClickEvent,
+  //     name,
+  //   });
+  // };
 
   const overriddenVariant = disabled ? 'disabled' : variant;
   const color = COLORS[overriddenVariant as keyof typeof COLORS];

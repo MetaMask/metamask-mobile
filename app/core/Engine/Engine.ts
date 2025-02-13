@@ -65,7 +65,6 @@ import {
   SnapController,
   SnapsRegistryMessenger,
   SnapInterfaceController,
-  SnapInterfaceControllerMessenger,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -1081,8 +1080,7 @@ export class Engine {
       });
 
     const snapInterfaceController = new SnapInterfaceController({
-      messenger:
-        snapInterfaceControllerMessenger as unknown as SnapInterfaceControllerMessenger,
+      messenger: snapInterfaceControllerMessenger,
       state: initialState.SnapInterfaceController,
     });
 
