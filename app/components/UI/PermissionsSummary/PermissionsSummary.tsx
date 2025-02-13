@@ -135,48 +135,46 @@ const PermissionsSummary = ({
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
-    return (
+    return isPerDappSelectedNetworkEnabled() ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
-        {isPerDappSelectedNetworkEnabled() ? (
-          <TouchableOpacity
-            onPress={switchNetwork}
-            testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
+        <TouchableOpacity
+          onPress={switchNetwork}
+          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
+        >
+          <BadgeWrapper
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                name={networkName}
+                imageSource={networkImageSource}
+              />
+            }
           >
-            <BadgeWrapper
-              badgeElement={
-                <Badge
-                  variant={BadgeVariant.Network}
-                  name={networkName}
-                  imageSource={networkImageSource}
-                />
-              }
-            >
-              {icon ? (
-                <AvatarFavicon
-                  imageSource={{
-                    uri: typeof icon === 'string' ? icon : icon?.uri,
-                  }}
-                  size={AvatarSize.Md}
-                />
-              ) : (
-                <AvatarToken
-                  name={iconTitle}
-                  isHaloEnabled
-                  size={AvatarSize.Md}
-                />
-              )}
-            </BadgeWrapper>
-          </TouchableOpacity>
-        ) : (
-          <WebsiteIcon
-            style={styles.domainLogoContainer}
-            viewStyle={styles.assetLogoContainer}
-            title={iconTitle}
-            url={currentEnsName || url}
-            icon={typeof icon === 'string' ? icon : icon?.uri}
-          />
-        )}
+            {icon ? (
+              <AvatarFavicon
+                imageSource={{
+                  uri: typeof icon === 'string' ? icon : icon?.uri,
+                }}
+                size={AvatarSize.Md}
+              />
+            ) : (
+              <AvatarToken
+                name={iconTitle}
+                isHaloEnabled
+                size={AvatarSize.Md}
+              />
+            )}
+          </BadgeWrapper>
+        </TouchableOpacity>
       </View>
+    ) : (
+      <WebsiteIcon
+        style={styles.domainLogoContainer}
+        viewStyle={styles.assetLogoContainer}
+        title={iconTitle}
+        url={currentEnsName || url}
+        icon={typeof icon === 'string' ? icon : icon?.uri}
+      />
     );
   };
 
