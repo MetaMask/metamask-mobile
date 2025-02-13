@@ -23,6 +23,7 @@ import useAnalytics from '../../hooks/useAnalytics';
 
 // Internal dependencies
 import ActivationKeys from './ActivationKeys';
+import InstalledApps from './InstalledApps';
 
 import styles from './Settings.styles';
 
@@ -92,6 +93,11 @@ function Settings() {
             {isInternalBuild ? (
               <Row>
                 <ActivationKeys />
+              </Row>
+            ) : null}
+            {isInternalBuild ? (
+              <Row>
+                <InstalledApps />
               </Row>
             ) : null}
           </ScreenLayout.Content>
