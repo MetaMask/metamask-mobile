@@ -351,7 +351,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                             style={
                               {
                                 "flex": 1,
-                                "marginTop": 15,
+                                "marginTop": 16,
                                 "padding": 20,
                                 "paddingBottom": 0,
                                 "paddingTop": 0,
