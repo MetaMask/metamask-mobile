@@ -22,7 +22,7 @@ interface SnapUIRendererProps {
 const styles = StyleSheet.create({
   root: {
     flexGrow: 1,
-    height: Dimensions.get('window').height * 0.5,
+    minHeight: Dimensions.get('window').height * 0.5,
   },
 });
 

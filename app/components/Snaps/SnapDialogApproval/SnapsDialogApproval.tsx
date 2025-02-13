@@ -15,7 +15,7 @@ import {
 } from '../../../component-library/components/Buttons/Button';
 import Engine from '../../../core/Engine';
 import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
-import { Json, SnapId } from '@metamask/snaps-sdk';
+import { Json } from '@metamask/snaps-sdk';
 import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
 
 export enum TemplateConfirmation {
@@ -38,25 +38,6 @@ const SnapDialogApproval = () => {
       approvalRequest.id,
     );
   };
-
-  // const onConfirmInput = async () => {
-  //   setIsLoading(true);
-  //   if (!approvalRequest) return;
-
-  //   const inputState =
-  //     await Engine.context.SnapInterfaceController.getInterface(
-  //       approvalRequest?.origin as SnapId,
-  //       approvalRequest.requestData.id,
-  //     );
-  //   await Engine.acceptPendingApproval(
-  //     approvalRequest.id,
-  //     inputState.state['custom-input'] as unknown as Record<string, Json>,
-  //   );
-  //   await Engine.context.SnapInterfaceController.deleteInterface(
-  //     approvalRequest.id,
-  //   );
-  //   setIsLoading(false);
-  // };
 
   const onConfirm = async () => {
     setIsLoading(true);
