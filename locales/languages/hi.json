@@ -3432,11 +3432,11 @@
     "not_enough_eth": "पर्याप्त ETH नहीं",
     "balance": "बैलेंस",
     "stake_eth_and_earn": "ETH स्टेक करें और कमाएं",
-    "stake_any_amount_of_eth": "ETH की किसी भी राशि को स्टेक करें",
+    "stake_any_amount_of_eth": "ETH की किसी भी राशि को स्टेक करें।",
     "no_minimum_required": "कोई न्यूनतम आवश्यक नहीं।",
-    "earn_eth_rewards": "ETH पुरस्कार अर्जित करें",
+    "earn_eth_rewards": "ETH पुरस्कार अर्जित करें।",
     "earn_eth_rewards_description": "स्टेक करते ही कमाई शुरू करें। पुरस्कार स्वचालित रूप से संयोजित होते हैं।",
-    "flexible_unstaking": "लचीला अनस्टेकिंग",
+    "flexible_unstaking": "लचीला अनस्टेकिंग।",
     "flexible_unstaking_description": "कभी भी अनस्टेक करें। आमतौर पर 3 दिन से कम समय लगता है, लेकिन प्रोसेस होने में 11 दिन तक का समय लग सकता है।",
     "disclaimer": "स्टेकिंग पुरस्कार की गारंटी नहीं देती है और इसमें धन की हानि सहित जोखिम शामिल होते हैं।",
     "learn_more": "ज़्यादा जानें",
@@ -3495,7 +3495,25 @@
     "estimated_unstaking_time": "1 से 11 दिन",
     "proceed_anyway": "कैसे भी आगे बढ़ें",
     "gas_cost_impact": "गैस लागत संबंधी प्रभाव",
-    "gas_cost_impact_warning": "चेतावनी: ट्रांसेक्शन गैस लागत आपकी डिपॉज़िट की 30% से अधिक होगी।"
+    "gas_cost_impact_warning": "चेतावनी: ट्रांसेक्शन गैस लागत आपकी डिपॉज़िट की {{percentOverDeposit}}% से अधिक होगी।",
+    "view_earnings_history": "कमाई का इतिहास देखें",
+    "earnings_history_title": "{{ticker}} कमाई",
+    "earnings_history_list_title": "भुगतान इतिहास",
+    "apr": "APR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7 दिन",
+        "1M": "1 महीना",
+        "3M": "3 महीने",
+        "6M": "6 महीने"
+      }
+    },
+    "today": "आज",
+    "one_week_average": "1 सप्ताह का औसत",
+    "one_month_average": "1 महीने का औसत",
+    "three_month_average": "3 महीने का औसत",
+    "six_month_average": "6 महीने का औसत",
+    "one_year_average": "1 साल का औसत"
   },
   "default_settings": {
     "title": "आपका वॉलेट तैयार है",
@@ -3580,12 +3598,15 @@
     "reject": "रिजेक्ट करें",
     "confirm": "कन्फर्म करें",
     "title": {
-      "signature": "हस्ताक्षर का अनुरोध"
+      "signature": "हस्ताक्षर का अनुरोध",
+      "signature_siwe": "साइन-इन का अनुरोध"
     },
     "sub_title": {
-      "signature": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।"
+      "signature": "कन्फर्म करने से पहले अनुरोध विवरण की समीक्षा करें।",
+      "signature_siwe": "एक साइट चाहती है कि आप यह साबित करने के लिए साइन इन करें कि यह अकाउंट आपका है।"
     },
     "request_from": "इनसे मिला अनुरोध",
+    "signing_in_with": "के साथ साइन इन किया जा रहा है",
     "message": "संदेश",
     "primary_type": "प्राइमरी प्रकार",
     "personal_sign_tooltip": "यह साइट आपका सिग्नेचर मांग रही है",
@@ -3593,6 +3614,19 @@
     "account": "अकाउंट",
     "balance": "बैलेंस",
     "network": "नेटवर्क",
+    "qr_get_sign": "सिग्नेचर प्राप्त करें",
+    "qr_scan_text": "अपने हार्डवेयर वॉलेट के साथ स्कैन करें",
+    "siwe_message": {
+      "url": "URL",
+      "network": "नेटवर्क",
+      "account": "अकाउंट",
+      "version": "वर्शन",
+      "chain_id": "चेन ID",
+      "nonce": "Nonce",
+      "issued": "जारी किया गया",
+      "requestId": "रिक्वेस्ट ID",
+      "resources": "संसाधन"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "बिड स्वीकार होने पर NFT आपके वॉलेट में दिखाई देगा।",
       "decoded_tooltip_list_nft": "बदलाव की उम्मीद तभी करें जब कोई आपके NFTs खरीद ले।",
@@ -3611,7 +3645,7 @@
       "unavailable": "अनुपलब्ध"
     },
     "unlimited": "असीमित",
-    "none": "None"
+    "none": "कोई नहीं"
   },
   "change_in_simulation_modal": {
     "title": "परिणाम बदल गए हैं",
