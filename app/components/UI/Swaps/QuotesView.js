@@ -19,8 +19,14 @@ import {
   TransactionStatus,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
-import { query } from '@metamask/controller-utils';
+import { query, toChecksumHexAddress } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
+import {
+  ContractExchangeRates,
+  fetchTokenContractExchangeRates,
+  CodefiTokenPricesServiceV2,
+} from '@metamask/assets-controllers';
 
 import {
   addHexPrefix,
@@ -1764,24 +1770,56 @@ function SwapsQuotesView({
       'https://support.metamask.io/token-swaps/user-guide-swaps/#gas-fees',
     );
 
-  const gasTokenFiatAmount = useMemo(() => {
-    if (!isGasIncludedTrade || !selectedQuote.trade || !tradeTxTokenFee) {
+  const fiatConversionRates = useAsyncResultOrThrow(async () => {
+    if (!isGasIncludedTrade || !selectedQuote?.trade || !tradeTxTokenFee) {
       return undefined;
     }
-    const { token: { decimals } = {}, balanceNeededToken } = tradeTxTokenFee;
-    if (!balanceNeededToken || !decimals) {
-      return '0';
+
+    const { token, balanceNeededToken } = tradeTxTokenFee;
+    if (!token?.decimals || !token?.address || !balanceNeededToken) {
+      return undefined;
     }
-    const tokenAmount = swapsUtils
-      .calcTokenAmount(hexToDecimal(balanceNeededToken), decimals)
-      .toString(10);
-    return weiToFiat(toWei(tokenAmount), conversionRate, currentCurrency) || '';
+
+    const checksumAddress = toChecksumHexAddress(token.address);
+    return fetchTokenContractExchangeRates({
+      tokenPricesService: new CodefiTokenPricesServiceV2(),
+      nativeCurrency: currentCurrency,
+      tokenAddresses: [checksumAddress],
+      chainId,
+    });
   }, [
     isGasIncludedTrade,
-    selectedQuote,
-    conversionRate,
-    currentCurrency,
+    selectedQuote?.trade,
     tradeTxTokenFee,
+    currentCurrency,
+    chainId,
+  ]);
+
+  const gasTokenFiatAmount = useMemo(() => {
+    if (!isGasIncludedTrade || !selectedQuote?.trade || !tradeTxTokenFee) {
+      return undefined;
+    }
+
+    const { token, balanceNeededToken } = tradeTxTokenFee;
+    if (!token?.decimals || !token?.address || !balanceNeededToken) {
+      return '0';
+    }
+
+    const tokenAmount = swapsUtils
+      .calcTokenAmount(hexToDecimal(balanceNeededToken), token.decimals)
+      .toString(10);
+
+    const fiatConversionRate =
+      fiatConversionRates?.value?.[toChecksumHexAddress(token.address)];
+    return (
+      weiToFiat(toWei(tokenAmount), fiatConversionRate, currentCurrency) || ''
+    );
+  }, [
+    isGasIncludedTrade,
+    selectedQuote?.trade,
+    tradeTxTokenFee,
+    currentCurrency,
+    fiatConversionRates?.value,
   ]);
 
   /* Rendering */
