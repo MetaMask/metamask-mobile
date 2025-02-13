@@ -79,6 +79,7 @@ import { Duplex } from 'stream';
 ///: END:ONLY_INCLUDE_IF
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { LoggingController } from '@metamask/logging-controller';
+import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
 import {
   LedgerKeyring,
   LedgerMobileBridge,
@@ -232,6 +233,7 @@ import {
   SnapControllerStateChangeEvent,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
+// import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -587,12 +589,11 @@ export class Engine {
     const tokenSearchDiscoveryController = createTokenSearchDiscoveryController(
       {
         state: initialState.TokenSearchDiscoveryController,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenSearchDiscoveryController',
           allowedActions: [],
           allowedEvents: [],
-        }),
+        }) as TokenSearchDiscoveryControllerMessenger,
       },
     );
 
