@@ -135,6 +135,18 @@ const PermissionsSummary = ({
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
 
+    if (!isAlreadyConnected) {
+      return (
+        <WebsiteIcon
+          style={styles.domainLogoContainer}
+          viewStyle={styles.assetLogoContainer}
+          title={iconTitle}
+          url={currentEnsName || url}
+          icon={typeof icon === 'string' ? icon : icon?.uri}
+        />
+      );
+    }
+
     return isPerDappSelectedNetworkEnabled() ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
         <TouchableOpacity
