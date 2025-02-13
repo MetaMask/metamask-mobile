@@ -1598,7 +1598,8 @@ Confirm.contextType = ThemeContext;
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
   const chainId = transaction?.chainId;
-  const networkClientId = transaction?.networkClientId;
+  const networkClientId =
+    transaction?.networkClientId || selectNetworkClientId(state);
 
   return {
     accounts: selectAccounts(state),
