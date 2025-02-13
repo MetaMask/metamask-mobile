@@ -44,8 +44,8 @@ interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
   chainId: Hex;
 
-  /** Change type to be displayed in value tooltip */
-  labelChangeType: string;
+  /** Header text to be displayed in the value modal */
+  modalHeaderText: string;
 
   /** The network client ID */
   networkClientId?: NetworkClientId;
@@ -80,7 +80,7 @@ interface SimulationValueDisplayParams {
 
 const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   chainId,
-  labelChangeType,
+  modalHeaderText,
   networkClientId,
   primaryType,
   tokenContract,
@@ -224,7 +224,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                   iconName={IconName.ArrowLeft}
                 />
                 <Text style={styles.valueModalHeaderText}>
-                  {labelChangeType}
+                  {modalHeaderText}
                 </Text>
               </View>
               <Text style={styles.valueModalText}>
