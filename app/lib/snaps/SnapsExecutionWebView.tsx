@@ -44,12 +44,16 @@ export class SnapsExecutionWebView extends Component {
           registerMessageListener: (
             listener: (event: PostMessageEvent) => void,
           ) => {
-            this.webViews[jobId].listener = listener;
+            if (this.webViews[jobId]) {
+              this.webViews[jobId].listener = listener;
+            }
           },
           unregisterMessageListener: (
             _listener: (event: PostMessageEvent) => void,
           ) => {
-            this.webViews[jobId].listener = undefined;
+            if (this.webViews[jobId]) {
+              this.webViews[jobId].listener = undefined;
+            }
           },
         }
         resolve(api);
@@ -66,7 +70,9 @@ export class SnapsExecutionWebView extends Component {
       }
 
       const setWebViewRef = (ref: WebView<{ any: any }>) => {
-        this.webViews[jobId].ref = ref;
+        if (this.webViews[jobId]) {
+          this.webViews[jobId].ref = ref;
+        }
       }
 
       this.webViews[jobId] = {
@@ -89,7 +95,7 @@ export class SnapsExecutionWebView extends Component {
     delete this.webViews[jobId];
 
     // Force re-render.
-    // this.forceUpdate();
+    this.forceUpdate();
   }
 
   render() {
