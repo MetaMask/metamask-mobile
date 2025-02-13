@@ -5,7 +5,6 @@ import {
   SafeAreaView,
   TouchableOpacity,
   View,
-  StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
@@ -94,7 +93,7 @@ const PermissionsSummary = ({
     () => new URL(currentPageInformation.url).hostname,
     [currentPageInformation.url],
   );
-  const networkInfo = useNetworkInfo(hostname);
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
@@ -135,7 +134,6 @@ const PermissionsSummary = ({
     const { currentEnsName, icon } = currentPageInformation;
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
-    const { networkName, networkImageSource } = useNetworkInfo(iconTitle);
 
     return (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
@@ -421,7 +419,7 @@ const PermissionsSummary = ({
                       </TextComponent>
                       <TextComponent variant={TextVariant.BodySMMedium}>
                         {isNonDappNetworkSwitch
-                          ? networkInfo?.networkName || providerConfig.nickname
+                          ? networkName || providerConfig.nickname
                           : chainName}
                       </TextComponent>
                     </TextComponent>
@@ -431,7 +429,7 @@ const PermissionsSummary = ({
                     size={AvatarSize.Xs}
                     name={
                       isNonDappNetworkSwitch
-                        ? networkInfo?.networkName || providerConfig.nickname
+                        ? networkName || providerConfig.nickname
                         : chainName
                     }
                     imageSource={
