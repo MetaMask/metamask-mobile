@@ -16,6 +16,7 @@ import { selectCanSignTransactions } from '../../../../selectors/accountsControl
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
+  swapsIsLive: boolean | undefined;
   onBuy: () => void;
   goToSwaps: () => void;
   goToBridge: () => void;
@@ -26,6 +27,7 @@ export interface AssetDetailsActionsProps {
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
+  swapsIsLive,
   onBuy,
   goToSwaps,
   goToBridge,
@@ -61,7 +63,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
-            disabled={!canSignTransactions}
+            disabled={!canSignTransactions || !swapsIsLive}
             actionID={TokenOverviewSelectorsIDs.SWAP_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>

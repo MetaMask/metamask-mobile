@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -21,6 +21,13 @@ import images from 'images/image-icons';
 import hideProtocolFromUrl from '../../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../../util/hideKeyFromUrl';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { useSelector } from 'react-redux';
+import { selectIsAllNetworks } from '../../../../selectors/networkController';
+import { PopularList } from '../../../../util/networks/customNetworks';
+import Engine from '../../../../core/Engine/Engine';
+import Logger from '../../../../util/Logger';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface RpcSelectionModalProps {
   showMultiRpcSelectModal: {
@@ -29,7 +36,6 @@ interface RpcSelectionModalProps {
     networkName: string;
   };
   closeRpcModal: () => void;
-  onRpcSelect: (networkClientId: string, chainId: `0x${string}`) => void;
   rpcMenuSheetRef: React.RefObject<BottomSheetRef>;
   networkConfigurations: Record<string, NetworkConfiguration>;
   styles: StyleSheet.NamedStyles<{
@@ -45,11 +51,67 @@ interface RpcSelectionModalProps {
 const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   showMultiRpcSelectModal,
   closeRpcModal,
-  onRpcSelect,
   rpcMenuSheetRef,
   networkConfigurations,
   styles,
 }) => {
+  const isAllNetwork = useSelector(selectIsAllNetworks);
+
+  const { navigate } = useNavigation();
+
+  const onRpcSelect = useCallback(
+    async (clientId: string, chainId: `0x${string}`) => {
+      const { NetworkController } = Engine.context;
+      const existingNetwork = networkConfigurations[chainId];
+
+      const indexOfRpc = existingNetwork.rpcEndpoints.findIndex(
+        ({ networkClientId }) => clientId === networkClientId,
+      );
+
+      if (indexOfRpc === -1) {
+        Logger.error(
+          new Error(
+            `RPC endpoint with clientId: ${clientId} not found for chainId: ${chainId}`,
+          ),
+        );
+        return;
+      }
+
+      // Proceed to update the network with the correct index
+      await NetworkController.updateNetwork(existingNetwork.chainId, {
+        ...existingNetwork,
+        defaultRpcEndpointIndex: indexOfRpc,
+      });
+
+      // Set the active network
+      NetworkController.setActiveNetwork(clientId);
+      // Redirect to wallet page
+      navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+    },
+    [networkConfigurations, navigate],
+  );
+
+  const setTokenNetworkFilter = useCallback(
+    (chainId: string) => {
+      const isPopularNetwork =
+        chainId === CHAIN_IDS.MAINNET ||
+        chainId === CHAIN_IDS.LINEA_MAINNET ||
+        PopularList.some((network) => network.chainId === chainId);
+
+      const { PreferencesController } = Engine.context;
+      if (!isAllNetwork && isPopularNetwork) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      }
+    },
+    [isAllNetwork],
+  );
   const imageSource = useMemo(() => {
     switch (showMultiRpcSelectModal.chainId) {
       case CHAIN_IDS.MAINNET:
@@ -119,6 +181,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
               gap={8}
               onPress={() => {
                 onRpcSelect(networkClientId, chainId as `0x${string}`);
+                setTokenNetworkFilter(chainId as `0x${string}`);
                 closeRpcModal();
               }}
             >

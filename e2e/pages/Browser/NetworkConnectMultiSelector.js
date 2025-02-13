@@ -1,7 +1,7 @@
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-
+import { waitFor } from 'detox';
 class NetworkConnectMultiSelector {
   get updateButton() {
     return Matchers.getElementByID(
@@ -21,6 +21,24 @@ class NetworkConnectMultiSelector {
 
   async tapBackButton() {
     await Gestures.waitAndTap(this.backButton);
+  }
+
+  async isNetworkChainPermissionSelected(chainName) {
+    const chainPermissionTestId = `${chainName}-selected`;
+
+    const element = await Matchers.getElementByID(chainPermissionTestId);
+    await waitFor(element).toBeVisible().withTimeout(10000);
+
+    return expect(element).toExist();
+  }
+
+  async isNetworkChainPermissionNotSelected(chainName) {
+    const chainPermissionTestId = `${chainName}-not-selected`;
+
+    const element = await Matchers.getElementByID(chainPermissionTestId);
+    await waitFor(element).toBeVisible().withTimeout(10000);
+
+    return expect(element).toExist();
   }
 }
 

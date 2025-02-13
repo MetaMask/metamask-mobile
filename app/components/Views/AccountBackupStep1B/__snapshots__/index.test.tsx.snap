@@ -122,13 +122,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
               >
                 <Image
                   resizeMethod="auto"
-                  source={
-                    {
-                      "default": {
-                        "uri": "MockImage",
-                      },
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 15,
@@ -861,7 +855,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                               style={
                                 {
                                   "backgroundColor": "#ffffff",
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#848c96",
                                   "borderRadius": 10,
                                   "borderWidth": 1,
                                   "elevation": 4,

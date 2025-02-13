@@ -4,6 +4,7 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import Logger from '../../../../util/Logger';
+import { logAccountsControllerCreation } from './logger';
 
 // Default AccountsControllerState
 export const defaultAccountsControllerState: AccountsControllerState = {
@@ -28,6 +29,7 @@ export const createAccountsController = ({
   initialState?: AccountsControllerState;
 }): AccountsController => {
   try {
+    logAccountsControllerCreation(initialState);
     const accountsController = new AccountsController({
       messenger,
       state: initialState ?? defaultAccountsControllerState,

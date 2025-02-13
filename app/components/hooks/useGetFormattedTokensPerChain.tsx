@@ -16,7 +16,7 @@ import {
   selectCurrentCurrency,
 } from '../../selectors/currencyRateController';
 import { MarketDataDetails, Token } from '@metamask/assets-controllers';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isTestNet } from '../../util/networks';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
 
@@ -52,7 +52,7 @@ export interface MarketDataMapping {
 
 export const useGetFormattedTokensPerChain = (
   accounts: InternalAccount[],
-  shouldGetTokensPerCurrentChain: boolean,
+  shouldAggregateAcrossChains: boolean, // We don't always want to aggregate across chains.
   allChainIDs: string[],
 ): {
   [address: string]: {
@@ -85,9 +85,9 @@ export const useGetFormattedTokensPerChain = (
     return {};
   }
 
-  const networksToFormat = shouldGetTokensPerCurrentChain
-    ? [currentChainId]
-    : allChainIDs;
+  const networksToFormat = shouldAggregateAcrossChains
+    ? allChainIDs
+    : [currentChainId];
 
   const result: {
     [address: string]: {

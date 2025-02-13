@@ -1196,7 +1196,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             onLongPress={[Function]}
                             style={
                               {
-                                "borderBottomColor": "#bbc0c566",
+                                "borderBottomColor": "#BBC0C566",
                                 "borderBottomWidth": 1,
                                 "flexDirection": "row",
                                 "paddingHorizontal": 20,
@@ -1313,7 +1313,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             onLongPress={[Function]}
                             style={
                               {
-                                "borderBottomColor": "#bbc0c566",
+                                "borderBottomColor": "#BBC0C566",
                                 "borderBottomWidth": 1,
                                 "flexDirection": "row",
                                 "paddingHorizontal": 20,

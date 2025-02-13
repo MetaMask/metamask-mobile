@@ -25,9 +25,10 @@ import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Setting
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
+import { RootState } from '../../../reducers';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -38,7 +39,7 @@ if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
 const DeleteWalletModal = () => {
   const navigation = useNavigation();
   const { colors, themeAppearance } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
   const styles = createStyles(colors);
 
   const modalRef = useRef<ReusableModalRef>(null);
@@ -49,6 +50,9 @@ const DeleteWalletModal = () => {
 
   const [resetWalletState, deleteUser] = useDeleteWallet();
   const dispatch = useDispatch();
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state: RootState) => state.security.dataCollectionForMarketing,
+  );
 
   const showConfirmModal = () => {
     setShowConfirm(true);
@@ -89,7 +93,9 @@ const DeleteWalletModal = () => {
   };
 
   const deleteWallet = async () => {
-    await dispatch(clearHistory());
+    await dispatch(
+      clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
+    );
     await CookieManager.clearAll(true);
     triggerClose();
     await resetWalletState();

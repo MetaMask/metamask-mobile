@@ -32,7 +32,7 @@ exports[`WarningAlert should render correctly 1`] = `
           "paddingVertical": 8,
         },
         {
-          "backgroundColor": "#bf52081a",
+          "backgroundColor": "#BF52081A",
           "borderColor": "#bf5208",
         },
         {

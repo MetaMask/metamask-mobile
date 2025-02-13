@@ -382,7 +382,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                         style={
                           {
                             "alignItems": "center",
-                            "borderColor": "#bbc0c5",
+                            "borderColor": "#848c96",
                             "borderRadius": 5,
                             "borderWidth": 1,
                             "color": "#141618",
@@ -420,7 +420,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           placeholderTextColor="#141618"
                           style={
                             {
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "color": "#141618",
                               "flex": 1,
                               "fontFamily": "EuclidCircularB-Regular",
@@ -470,11 +470,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,
@@ -546,11 +542,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,
@@ -629,11 +621,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,
@@ -697,11 +685,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,

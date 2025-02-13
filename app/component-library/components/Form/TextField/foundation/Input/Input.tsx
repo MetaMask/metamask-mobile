@@ -13,7 +13,7 @@ import styleSheet from './Input.styles';
 import { InputProps } from './Input.types';
 import { INPUT_TEST_ID } from './Input.constants';
 
-const Input: React.FC<InputProps> = ({
+const Input = React.forwardRef<TextInput, InputProps>(({
   style,
   textVariant = DEFAULT_TEXT_VARIANT,
   isStateStylesDisabled,
@@ -23,7 +23,7 @@ const Input: React.FC<InputProps> = ({
   onFocus,
   autoFocus = true,
   ...props
-}) => {
+}, ref) => {
   const [isFocused, setIsFocused] = useState(autoFocus);
 
   const { styles } = useStyles(styleSheet, {
@@ -67,8 +67,9 @@ const Input: React.FC<InputProps> = ({
       autoFocus={autoFocus}
       onBlur={onBlurHandler}
       onFocus={onFocusHandler}
+      ref={ref}
     />
   );
-};
+});
 
 export default Input;

@@ -1,9 +1,6 @@
-import { ControllerMessenger } from '@metamask/base-controller';
-import {
-  EthAccountType,
-  InternalAccount,
-  KeyringEvent,
-} from '@metamask/keyring-api';
+import { Messenger } from '@metamask/base-controller';
+import { EthAccountType, EthScopes, KeyringEvent } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { snapKeyringBuilder } from './SnapKeyring';
 import {
   SnapKeyringBuilderAllowActions,
@@ -28,6 +25,7 @@ const mockSetAccountName = jest.fn();
 const mockFlowId = '123';
 const address = '0x2a4d4b667D5f12C3F9Bf8F14a7B9f8D8d9b8c8fA';
 const accountNameSuggestion = 'Suggested Account Name';
+
 const mockAccount = {
   type: EthAccountType.Eoa,
   id: '3afa663e-0600-4d93-868a-61c2e553013b',
@@ -35,8 +33,9 @@ const mockAccount = {
   methods: [],
   options: {},
 };
-const mockInternalAccount = {
+const mockInternalAccount: InternalAccount = {
   ...mockAccount,
+  scopes: [EthScopes.Namespace],
   metadata: {
     snap: {
       enabled: true,
@@ -56,7 +55,7 @@ const createControllerMessenger = ({
 }: {
   account?: InternalAccount;
 } = {}): SnapKeyringBuilderMessenger => {
-  const messenger = new ControllerMessenger<
+  const messenger = new Messenger<
     SnapKeyringBuilderAllowActions,
     never
   >().getRestricted({

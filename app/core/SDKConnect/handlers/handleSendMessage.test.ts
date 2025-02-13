@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import Device from '../../../util/device';
-import { Minimizer } from '../../NativeModules';
 import { Connection } from '../Connection';
 import { RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
@@ -27,7 +26,6 @@ describe('handleSendMessage', () => {
   const mockDevLogger = DevLogger.log as jest.MockedFunction<
     typeof DevLogger.log
   >;
-  const mockMinimizer = Minimizer as jest.MockedFunction<typeof Minimizer>;
 
   const mockSendMessage = jest.fn();
   const mockSetLoading = jest.fn();
@@ -203,20 +201,6 @@ describe('handleSendMessage', () => {
         mockCanRedirect.mockReturnValue(true);
         mockConnection.trigger = 'deeplink';
       });
-      it('should handle deeplink trigger', async () => {
-        mockConnection.trigger = 'deeplink';
-
-        await handleSendMessage({
-          msg: {
-            data: {
-              id: 1,
-            },
-          },
-          connection: mockConnection,
-        });
-
-        expect(mockMinimizer.goBack).toHaveBeenCalled();
-      });
       it('should wait for specific methods', async () => {
         mockRpcQueueManagerGetId.mockReturnValue(RPC_METHODS.METAMASK_BATCH);
 
@@ -252,39 +236,6 @@ describe('handleSendMessage', () => {
         expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
           screen: 'ReturnToDappModal',
         });
-      });
-    });
-
-    describe('When redirection is not allowed', () => {
-      beforeEach(() => {
-        mockRpcQueueManagerGetId.mockReturnValue('1');
-        mockCanRedirect.mockReturnValue(false);
-      });
-      it('should skip goBack if canRedirect is false', async () => {
-        await handleSendMessage({
-          msg: {
-            data: {
-              id: 1,
-            },
-          },
-          connection: mockConnection,
-        });
-
-        expect(mockMinimizer.goBack).not.toHaveBeenCalled();
-      });
-      it('should skip goBack if trigger is not deeplink', async () => {
-        mockConnection.trigger = 'resume';
-
-        await handleSendMessage({
-          msg: {
-            data: {
-              id: 1,
-            },
-          },
-          connection: mockConnection,
-        });
-
-        expect(mockMinimizer.goBack).not.toHaveBeenCalled();
       });
     });
   });

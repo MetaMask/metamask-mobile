@@ -9,6 +9,9 @@ import Utilities from './utils/Utilities';
 import { resolveConfig } from 'detox/internals';
 
 export default class TestHelpers {
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async waitAndTap(elementId, timeout, index) {
     await waitFor(element(by.id(elementId)))
       .toBeVisible()
@@ -18,7 +21,9 @@ export default class TestHelpers {
       .atIndex(index || 0)
       .tap();
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async waitAndTapText(text, timeout) {
     await waitFor(element(by.text(text)))
       .toBeVisible()
@@ -26,79 +31,114 @@ export default class TestHelpers {
 
     return element(by.text(text)).tap();
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static tap(elementId) {
     return element(by.id(elementId)).tap();
   }
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static tapByDescendentTestID(parentElement, ChildElement) {
     return element(
       by.id(parentElement).withDescendant(by.id(ChildElement)),
     ).tap();
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static tapByText(text, index) {
     return element(by.text(text))
       .atIndex(index || 0)
       .tap();
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static doubleTapByText(text, index) {
     return element(by.text(text))
       .atIndex(index || 0)
       .multiTap(2);
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static tapAtPoint(elementId, point) {
     return element(by.id(elementId)).tap(point);
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static tapItemAtIndex(elementID, index) {
     return element(by.id(elementID))
       .atIndex(index || 0)
       .tap();
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static tapItemAtIndexByLabel(elementID, index) {
     return element(by.label(elementID, index))
       .atIndex(index || 0)
       .tap();
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async typeText(elementId, text) {
     await TestHelpers.tap(elementId);
     return element(by.id(elementId)).typeText(text);
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async typeNumbers(elementId, text, submitLabel) {
     await element(by.id(elementId)).replaceText(text.replace('\n', ''));
     return element(by.label(submitLabel)).atIndex(0).tap();
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async typeTextAndHideKeyboard(elementId, text) {
     if (device.getPlatform() === 'android') {
       await TestHelpers.clearField(elementId);
     }
     await TestHelpers.typeText(elementId, text + '\n');
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async clearField(elementId) {
     return element(by.id(elementId)).replaceText('');
   }
 
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async tapAndLongPress(elementId) {
     await TestHelpers.tap(elementId);
     return element(by.id(elementId)).longPress(2000);
   }
 
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async tapAndLongPressAtIndex(elementId, index) {
     return element(by.id(elementId))
       .atIndex(index || 0)
       .longPress(2000);
   }
 
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async replaceTextInField(elementId, text) {
     return element(by.id(elementId)).replaceText(text);
   }
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
 
   static tapAlertWithButton(text, index) {
     if (device.getPlatform() === 'android') {
@@ -109,6 +149,10 @@ export default class TestHelpers {
 
     return element(by.label(text)).atIndex(0).tap();
   }
+
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async waitAndTapByLabel(text, timeout, index) {
     await waitFor(element(by.label(text)))
       .toBeVisible()
@@ -118,12 +162,16 @@ export default class TestHelpers {
       .atIndex(index || 0)
       .tap();
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async tapWebviewElement(elementId) {
     // this method only words on android: https://wix.github.io/Detox/docs/api/webviews/
     return web.element(by.web.id(elementId)).tap();
   }
-
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async swipe(elementId, direction, speed, percentage, xStart, yStart) {
     await element(by.id(elementId)).swipe(
       direction,
@@ -133,18 +181,30 @@ export default class TestHelpers {
       yStart,
     );
   }
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async swipeByLabel(elementId, direction, speed, percentage) {
     await element(by.label(elementId)).swipe(direction, speed, percentage);
   }
 
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async swipeByText(text, direction, speed, percentage) {
     await element(by.text(text)).atIndex(0).swipe(direction, speed, percentage);
   }
 
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async scrollTo(scrollViewId, edge) {
     await element(by.id(scrollViewId)).scrollTo(edge);
   }
 
+  /**
+   * @deprecated Use Guestures Class to accomplish this.
+   */
   static async scrollUpTo(elementId, distance, direction) {
     await element(by.id(elementId)).scroll(distance, direction);
   }
@@ -161,22 +221,34 @@ export default class TestHelpers {
     });
   }
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static async checkIfVisible(elementId) {
     return await waitFor(element(by.id(elementId)))
       .toBeVisible()
       .withTimeout(15000);
   }
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static async checkIfNotVisible(elementId) {
     return await waitFor(element(by.id(elementId)))
       .not.toBeVisible()
       .withTimeout(10000);
   }
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static async checkIfElementWithTextIsNotVisible(text) {
     return await expect(element(by.text(text)).atIndex(0)).not.toBeVisible();
   }
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static async checkIfElementNotToHaveText(elementId, text) {
     await waitFor(element(by.id(elementId)))
       .toBeVisible()
@@ -185,6 +257,9 @@ export default class TestHelpers {
     return expect(element(by.id(elementId))).not.toHaveText(text);
   }
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static async checkIfExists(elementId) {
     await waitFor(element(by.id(elementId)))
       .toBeVisible()
@@ -192,6 +267,9 @@ export default class TestHelpers {
     return expect(element(by.id(elementId))).toExist();
   }
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static async checkIfHasText(elementId, text) {
     await waitFor(element(by.id(elementId)))
       .toBeVisible()
@@ -200,25 +278,41 @@ export default class TestHelpers {
     return expect(element(by.id(elementId))).toHaveText(text);
   }
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static async checkIfElementWithTextIsVisible(text, index) {
     return await waitFor(element(by.text(text)).atIndex(index || 0))
       .toBeVisible()
       .withTimeout(10000);
   }
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static async checkIfElementByTextIsVisible(text, timeout = 25000) {
     return await waitFor(element(by.text(text)))
       .toBeVisible()
       .withTimeout(timeout);
   }
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static async checkIfElementHasString(elementID, text) {
     return expect(element(by.id(elementID))).toString(text);
   }
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static checkIfToggleIsOn(elementID) {
     return expect(element(by.id(elementID))).toHaveToggleValue(true);
   }
+
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static checkIfToggleIsOff(elementID) {
     return expect(element(by.id(elementID))).toHaveToggleValue(false);
   }
@@ -240,6 +334,9 @@ export default class TestHelpers {
     });
   } // Detox has no waits for webview elements visibility. Here is the custom one.
 
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
   static async waitForWebElementToBeVisibleById(elementId, timeout = 15000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
@@ -253,6 +350,9 @@ export default class TestHelpers {
     }
     throw new Error('Element with ' + elementId + ' not found');
   }
+  /**
+   * @deprecated Use Assertion Class to accomplish this.
+   */
 
   static async retry(maxAttempts, testLogic) {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -293,7 +393,9 @@ export default class TestHelpers {
   }
 
   static async launchAppForDebugBuild(platform, launchOptions) {
-    const deepLinkUrl = this.getDeepLinkUrl(this.getDevLauncherPackagerUrl(platform));
+    const deepLinkUrl = this.getDeepLinkUrl(
+      this.getDevLauncherPackagerUrl(platform),
+    );
 
     if (platform === 'ios') {
       await device.launchApp(launchOptions);
@@ -304,14 +406,15 @@ export default class TestHelpers {
 
     return device.launchApp({
       url: deepLinkUrl,
-      ...launchOptions
+      ...launchOptions,
     });
   }
 
   static getDeepLinkUrl(url) {
-    return `expo-metamask://expo-development-client/?url=${encodeURIComponent(url)}`;
+    return `expo-metamask://expo-development-client/?url=${encodeURIComponent(
+      url,
+    )}`;
   }
-
 
   static getDevLauncherPackagerUrl(platform) {
     return `http://localhost:8081/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;

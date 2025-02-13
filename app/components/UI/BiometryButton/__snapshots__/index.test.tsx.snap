@@ -13,13 +13,7 @@ exports[`BiometryButton should render correctly 1`] = `
   onPress={[Function]}
 >
   <Image
-    source={
-      {
-        "default": {
-          "uri": "MockImage",
-        },
-      }
-    }
+    source={1}
     style={
       {
         "height": 24,

@@ -72,10 +72,7 @@ import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
-import {
-  isMultichainVersion1Enabled,
-  getNetworkImageSource,
-} from '../../../util/networks';
+import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
@@ -200,26 +197,37 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { chainId } = useNetworkInfo(hostname);
 
-  const [selectedChainIds, setSelectedChainIds] = useState<string[]>(() =>
-    chainId ? [chainId] : [],
-  );
-  const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>(() =>
-    chainId ? [chainId] : [],
-  );
+  const [selectedChainIds, setSelectedChainIds] = useState<string[]>(() => {
+    // Get all enabled network chain IDs from networkConfigurations
+    const enabledChainIds = Object.values(networkConfigurations).map(
+      (network) => network.chainId,
+    );
+    return enabledChainIds;
+  });
+
+  const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>(() => {
+    // Initialize with all enabled network chain IDs
+    const enabledChainIds = Object.values(networkConfigurations).map(
+      (network) => network.chainId,
+    );
+    return enabledChainIds;
+  });
 
   useEffect(() => {
-    if (chainId) {
-      const initialNetworkAvatar = {
+    // Create network avatars for all enabled networks
+    const networkAvatars = Object.values(networkConfigurations).map(
+      (network) => ({
         size: AvatarSize.Xs,
-        name: networkConfigurations[chainId]?.name || '',
-        // @ts-expect-error getNetworkImageSourcenot yet typed
-        imageSource: getNetworkImageSource({ chainId }),
-      };
-      setSelectedNetworkAvatars([initialNetworkAvatar]);
+        name: network.name || '',
+        // @ts-expect-error getNetworkImageSource not yet typed
+        imageSource: getNetworkImageSource({ chainId: network.chainId }),
+      }),
+    );
 
-      setSelectedChainIds([chainId]);
-    }
-  }, [chainId, networkConfigurations]);
+    setSelectedNetworkAvatars(networkAvatars);
+
+    // No need to update selectedChainIds here since it's already initialized with all networks
+  }, [networkConfigurations]);
 
   const handleUpdateNetworkPermissions = useCallback(async () => {
     let hasPermittedChains = false;
@@ -724,9 +732,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         hostname={hostname}
         onPrimaryActionButtonPress={() => {
           setConfirmedAddresses(selectedAddresses);
-          return isMultichainVersion1Enabled
-            ? setScreen(AccountConnectScreens.SingleConnect)
-            : undefined;
+          setScreen(AccountConnectScreens.SingleConnect);
         }}
         screenTitle={strings('accounts.edit_accounts_title')}
       />
@@ -810,9 +816,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       case AccountConnectScreens.SingleConnect:
         return isSdkUrlUnknown
           ? renderSingleConnectScreen()
-          : isMultichainVersion1Enabled
-          ? renderPermissionsSummaryScreen()
-          : renderSingleConnectScreen();
+          : renderPermissionsSummaryScreen();
       case AccountConnectScreens.SingleConnectSelector:
         return renderSingleConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectSelector:

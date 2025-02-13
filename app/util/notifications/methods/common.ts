@@ -11,6 +11,8 @@ import {
   USER_STORAGE_VERSION_KEY,
   OnChainRawNotification,
   OnChainRawNotificationsWithNetworkFields,
+  TRIGGER_TYPES,
+  INotification,
 } from '@metamask/notification-services-controller/notification-services';
 import {
   NOTIFICATION_CHAINS_ID,
@@ -22,8 +24,6 @@ import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
-import { TRIGGER_TYPES } from '../constants';
-import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -313,25 +313,30 @@ export const TRUNCATED_ADDRESS_END_CHARS = 5;
  */
 export function shortenString(
   stringToShorten = '',
-  { truncatedCharLimit, truncatedStartChars, truncatedEndChars } = {
-    truncatedCharLimit: TRUNCATED_NAME_CHAR_LIMIT,
-    truncatedStartChars: TRUNCATED_ADDRESS_START_CHARS,
-    truncatedEndChars: TRUNCATED_ADDRESS_END_CHARS,
-  },
+  {
+    truncatedCharLimit = TRUNCATED_NAME_CHAR_LIMIT,
+    truncatedStartChars = TRUNCATED_ADDRESS_START_CHARS,
+    truncatedEndChars = TRUNCATED_ADDRESS_END_CHARS,
+    skipCharacterInEnd = false,
+  }: {
+    truncatedCharLimit?: number;
+    truncatedStartChars?: number;
+    truncatedEndChars?: number;
+    skipCharacterInEnd?: boolean;
+  } = {},
 ) {
   if (stringToShorten.length < truncatedCharLimit) {
     return stringToShorten;
   }
 
-  return `${stringToShorten.slice(
-    0,
-    truncatedStartChars,
-  )}...${stringToShorten.slice(-truncatedEndChars)}`;
+  return `${stringToShorten.slice(0, truncatedStartChars)}...${
+    skipCharacterInEnd ? '' : stringToShorten.slice(-truncatedEndChars)
+  }`;
 }
 
 export const sortNotifications = (
-  notifications: Notification[],
-): Notification[] => {
+  notifications: INotification[],
+): INotification[] => {
   if (!notifications) {
     return [];
   }

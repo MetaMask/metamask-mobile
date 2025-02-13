@@ -5,21 +5,23 @@ import { BigNumber } from 'bignumber.js';
 import BalanceChangeRow from './BalanceChangeRow';
 import { AssetType, BalanceChange } from '../types';
 
+jest.mock('../AmountPill/AmountPill', () => 'AmountPill');
+jest.mock('../AssetPill/AssetPill', () => 'AssetPill');
 jest.mock('../FiatDisplay/FiatDisplay', () => ({
   IndividualFiatDisplay: 'IndividualFiatDisplay',
 }));
+
+const CHAIN_ID_MOCK = '0x123';
 
 const balanceChangeMock: BalanceChange = {
   asset: {
     type: AssetType.ERC20,
     address: '0xabc123',
+    chainId: CHAIN_ID_MOCK,
   },
   amount: new BigNumber(100),
   fiatAmount: 0,
 } as BalanceChange;
-
-jest.mock('../AmountPill/AmountPill', () => 'AmountPill');
-jest.mock('../AssetPill/AssetPill', () => 'AssetPill');
 
 describe('BalanceChangeList', () => {
   it('renders a balance change row', () => {

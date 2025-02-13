@@ -1,33 +1,55 @@
 import React from 'react';
 import { View } from 'react-native';
 
+import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
-import StyledButton from '../../../../../../components/UI/StyledButton';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
-import useApprovalRequest from '../../../hooks/useApprovalRequest';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
+import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
+import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
+import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
 
 const Footer = () => {
-  const { onConfirm, onReject } = useApprovalRequest();
+  const { onConfirm, onReject } = useConfirmActions();
+  const { isQRSigningInProgress, needsCameraPermission } =
+    useQRHardwareContext();
+  const { securityAlertResponse } = useSecurityAlertResponse();
+
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.buttonsContainer}>
-      <StyledButton
+      <Button
         onPress={onReject}
-        containerStyle={styles.rejectButton}
-        type={'normal'}
-      >
-        {strings('confirm.reject')}
-      </StyledButton>
+        label={strings('confirm.reject')}
+        style={styles.footerButton}
+        size={ButtonSize.Lg}
+        testID={ConfirmationFooterSelectorIDs.CANCEL_BUTTON}
+        variant={ButtonVariants.Secondary}
+        width={ButtonWidthTypes.Full}
+      />
       <View style={styles.buttonDivider} />
-      <StyledButton
+      <Button
         onPress={onConfirm}
-        containerStyle={styles.confirmButton}
-        type={'confirm'}
-      >
-        {strings('confirm.confirm')}
-      </StyledButton>
+        label={
+          isQRSigningInProgress
+            ? strings('confirm.qr_get_sign')
+            : strings('confirm.confirm')
+        }
+        style={styles.footerButton}
+        size={ButtonSize.Lg}
+        testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
+        variant={ButtonVariants.Primary}
+        width={ButtonWidthTypes.Full}
+        isDanger={securityAlertResponse?.result_type === ResultType.Malicious}
+        disabled={needsCameraPermission}
+      />
     </View>
   );
 };
