@@ -59,6 +59,7 @@ const BottomSheetDialog = forwardRef<
       isInteractable = true,
       onClose,
       onOpen,
+      stylesDialogSheet = {},
       ...props
     },
     ref,
@@ -71,6 +72,7 @@ const BottomSheetDialog = forwardRef<
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
       screenBottomPadding,
+      stylesDialogSheet,
       isFullscreen,
     });
     // X and Y values start on top left of the DIALOG

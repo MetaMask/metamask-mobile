@@ -914,11 +914,12 @@ class ApproveTransactionReview extends PureComponent {
                     style={styles.accountApprovalWrapper}
                     onStartShouldSetResponder={() => true}
                   >
-                    <TransactionBlockaidBanner
-                      transactionId={transactionId}
-                      style={styles.blockaidWarning}
-                      onContactUsClicked={this.onContactUsClicked}
-                    />
+                    <View style={styles.blockaidBannerContainer}>
+                      <TransactionBlockaidBanner
+                        transactionId={transactionId}
+                        onContactUsClicked={this.onContactUsClicked}
+                      />
+                    </View>
                     <Text variant={TextVariant.HeadingMD} style={styles.title}>
                       {this.getTrustTitle(
                         originIsDeeplink,

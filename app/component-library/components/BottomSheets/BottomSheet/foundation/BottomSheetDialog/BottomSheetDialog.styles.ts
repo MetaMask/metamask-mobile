@@ -21,7 +21,12 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors, shadows } = theme;
-  const { maxSheetHeight, screenBottomPadding, isFullscreen } = vars;
+  const {
+    isFullscreen,
+    maxSheetHeight,
+    screenBottomPadding,
+    stylesDialogSheet,
+  } = vars;
 
   return StyleSheet.create({
     base: Object.assign({
@@ -30,7 +35,7 @@ const styleSheet = (params: {
       left: 0,
       right: 0,
     } as ViewStyle) as ViewStyle,
-    sheet: {
+    sheet: Object.assign({
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
@@ -41,7 +46,9 @@ const styleSheet = (params: {
       borderColor: colors.border.muted,
       ...(isFullscreen && { height: maxSheetHeight }),
       ...shadows.size.lg,
-    },
+      },
+      stylesDialogSheet,
+    ) as ViewStyle,
     notchWrapper: {
       alignSelf: 'stretch',
       padding: 4,

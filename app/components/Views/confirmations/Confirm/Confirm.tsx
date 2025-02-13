@@ -2,9 +2,9 @@ import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 
+import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
-import BottomModal from '../components/UI/BottomModal';
-import Footer from '../components/Confirm/Footer';
+import { Footer } from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
 import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
 import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
@@ -21,20 +21,18 @@ const FLAT_TRANSACTION_CONFIRMATIONS: TransactionType[] = [
 
 const ConfirmWrapped = ({
   styles,
+  testID,
 }: {
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+  testID?: string;
 }) => (
   <QRHardwareContextProvider>
     <Title />
-    <View style={styles.scrollWrapper}>
-      <ScrollView
-        style={styles.scrollable}
-        contentContainerStyle={styles.scrollableSection}
-      >
-        <SignatureBlockaidBanner />
-        <Info />
-      </ScrollView>
-    </View>
+    <ScrollView style={styles.scrollView} testID={testID}>
+      {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
+      <SignatureBlockaidBanner />
+      <Info />
+    </ScrollView>
     <Footer />
   </QRHardwareContextProvider>
 );
@@ -66,14 +64,13 @@ const Confirm = () => {
   }
 
   return (
-    <BottomModal
-      canCloseOnBackdropClick={false}
+    <BottomSheet
+      isInteractable={false}
+      stylesDialogSheet={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >
-      <View style={styles.modalContainer} testID={approvalRequest?.type}>
-        <ConfirmWrapped styles={styles} />
-      </View>
-    </BottomModal>
+      <ConfirmWrapped styles={styles} testID={approvalRequest?.type} />
+    </BottomSheet>
   );
 };
 

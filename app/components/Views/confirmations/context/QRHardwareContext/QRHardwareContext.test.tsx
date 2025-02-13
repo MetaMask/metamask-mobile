@@ -6,7 +6,7 @@ import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { IQRState } from '../../../../UI/QRHardware/types';
-import Footer from '../../components/Confirm/Footer';
+import { Footer } from '../../components/Confirm/Footer';
 import QRInfo from '../../components/Confirm/Info/QRInfo';
 // eslint-disable-next-line import/no-namespace
 import * as Camera from './useCamera';
