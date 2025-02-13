@@ -10,6 +10,7 @@ import {
   KeyringAccountType,
   BtcMethod,
   SolMethod,
+  CaipChainId,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -39,14 +40,12 @@ export function createMockUuidFromAddress(address: string): AccountId {
  * @param accountType - The type of account (ETH, BTC, or Solana)
  * @returns Array of scopes corresponding to the account type
  */
-function getAccountTypeScopes(
-  accountType: KeyringAccountType,
-): `${string}:${string}`[] {
+function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
   // Define scope mappings
   const scopeMappings = {
     // Ethereum account types
     [EthAccountType.Eoa]: [EthScope.Eoa],
-    [EthAccountType.Erc4337]: [EthScope.Eoa],
+    [EthAccountType.Erc4337]: [EthScope.Testnet],
 
     // Bitcoin account types
     [BtcAccountType.P2wpkh]: [BtcScope.Mainnet],
