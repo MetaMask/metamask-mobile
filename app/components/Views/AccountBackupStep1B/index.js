@@ -48,6 +48,7 @@ const createStyles = (colors) =>
       padding: 20,
       paddingTop: 0,
       paddingBottom: 0,
+      marginTop: 16,
     },
     content: {
       alignItems: 'center',

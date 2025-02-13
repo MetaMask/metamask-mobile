@@ -119,6 +119,7 @@ export function getQuotesNavigationsParams(route) {
  * @param {string} sourceAmount Amount in minimal token units of sourceToken to be swapped
  * @param {string} fromAddress Current address attempting to swap
  * @param {string} networkClientId Current network client ID
+ * @param {boolean} enableGasIncludedQuotes Enable quotes with gas included
  */
 export function getFetchParams({
   slippage = 1,
@@ -127,6 +128,7 @@ export function getFetchParams({
   sourceAmount,
   walletAddress,
   networkClientId,
+  enableGasIncludedQuotes,
 }) {
   return {
     slippage,
@@ -139,6 +141,7 @@ export function getFetchParams({
       destinationTokenInfo: destinationToken,
       networkClientId,
     },
+    enableGasIncludedQuotes,
   };
 }
 

@@ -1,10 +1,11 @@
 import React from 'react';
 import { SignatureRequest } from '@metamask/signature-controller';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { isSIWESignatureRequest } from '../../../utils/signature';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';

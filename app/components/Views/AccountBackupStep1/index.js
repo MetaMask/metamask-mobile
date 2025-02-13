@@ -48,6 +48,7 @@ const createStyles = (colors) =>
       padding: 20,
       paddingTop: 0,
       paddingBottom: 0,
+      marginTop: 16,
     },
     content: {
       alignItems: 'center',
@@ -130,9 +131,9 @@ const AccountBackupStep1 = (props) => {
   const styles = createStyles(colors);
 
   const track = (event, properties) => {
-      const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
-      eventBuilder.addProperties(properties);
-      trackOnboarding(eventBuilder.build());
+    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    eventBuilder.addProperties(properties);
+    trackOnboarding(eventBuilder.build());
   };
 
   useEffect(() => {

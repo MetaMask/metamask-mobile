@@ -1,79 +1,15 @@
-import { isObject } from '@metamask/utils';
-import { captureException } from '@sentry/react-native';
 
-export interface State {
-  engine: {
-    backgroundState: {
-      PreferencesController: {
-        smartTransactionsOptInStatus: boolean;
-        featureFlags: {
-          smartTransactionsMigrationApplied: boolean;
-          smartTransactionsBannerDismissed: boolean;
-        };
-      };
-    };
-  };
-}
+import { migration66 } from './066';
 
+/**
+ * Migration for ensuring that all internal accounts have the correct scopes
+ * Re-uses logic from migration 66
+ * We have to re-run 66 as 67 because the values for the scopes changed
+ * and users who already had 66 ran would not have the updated scope values.
+ * The migration 66 was initially injecting a CAIP-2 namespace (eip155 for EVM EOA) rather than a full scope (eip155:0).
+ * We now require full scopes (namespace:chain-id) for all Internal Accounts.
+ * See https://github.com/MetaMask/accounts/pull/165 for more details.
+ */
 export default function migrate(state: unknown) {
-  if (!isObject(state)) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 67: Invalid state error: '${state === null ? 'null' : typeof state}'`,
-      ),
-    );
-    return state;
-  }
-  if (!isObject(state.engine)) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 67: Invalid engine state error: '${state.engine === null ? 'null' : typeof state.engine}'`,
-      ),
-    );
-    return state;
-  }
-  if (!isObject(state.engine.backgroundState)) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 67: Invalid engine backgroundState error: '${state.engine.backgroundState === null ? 'null' : typeof state.engine.backgroundState}'`,
-      ),
-    );
-    return state;
-  }
-  if (!isObject(state.engine.backgroundState.PreferencesController)) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 67: Invalid PreferencesController state error: '${state.engine.backgroundState.PreferencesController === null ? 'null' : typeof state.engine.backgroundState.PreferencesController}'`,
-      ),
-    );
-    return state;
-  }
-
-  // Clone state to avoid mutations
-  const newState = { ...state } as unknown as State;
-  const preferences = newState.engine.backgroundState.PreferencesController;
-
-  // Initialize featureFlags if it doesn't exist
-  if (!preferences.featureFlags) {
-    preferences.featureFlags = {
-      smartTransactionsBannerDismissed: false,
-      smartTransactionsMigrationApplied: false,
-    };
-  }
-
-  // Check current STX opt-in status
-  const currentOptInStatus = preferences.smartTransactionsOptInStatus;
-
-  if (currentOptInStatus === true) {
-    // User already had it on - no migration change made
-    preferences.smartTransactionsOptInStatus = true;
-    preferences.featureFlags.smartTransactionsMigrationApplied = false;  // Changed to false
-  } else {
-    // We're changing their setting - mark as migrated
-    preferences.smartTransactionsOptInStatus = true;
-    preferences.featureFlags.smartTransactionsMigrationApplied = true;  // Changed to true
-  }
-
-  preferences.featureFlags.smartTransactionsBannerDismissed = false;
-  return newState;
+  return migration66(state, 67);
 }
