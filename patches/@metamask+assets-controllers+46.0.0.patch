@@ -1,3 +1,15 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
+index 983c3f1..8329b2e 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
+@@ -75,7 +75,6 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
+         this.setIntervalLength(interval);
+         // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+         // eslint-disable-next-line @typescript-eslint/no-floating-promises
+-        this.poll();
+         this.messagingSystem.subscribe('AccountsController:selectedEvmAccountChange',
+         // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+         // eslint-disable-next-line @typescript-eslint/no-misused-promises
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 index 6ccbe9c..417a55e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
