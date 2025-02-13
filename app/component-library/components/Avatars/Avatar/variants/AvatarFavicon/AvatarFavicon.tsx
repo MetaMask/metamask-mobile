@@ -33,7 +33,6 @@ const AvatarFavicon = ({
     typeof imageSource === 'object' &&
     'uri' in imageSource
   );
-  const isValidSource = isRequireSource || isRemoteSource;
   const [error, setError] = useState<Error | undefined>(undefined);
   const [svgSource, setSvgSource] = useState<string>('');
   const { styles } = useStyles(stylesheet, { style });
@@ -92,7 +91,7 @@ const AvatarFavicon = ({
     ) : null;
 
   const renderImage = () =>
-    imageSource && (
+    isRequireSource && (
       <Image
         testID={AVATARFAVICON_IMAGE_TESTID}
         source={imageSource}

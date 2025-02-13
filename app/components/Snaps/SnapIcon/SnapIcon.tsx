@@ -9,7 +9,12 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import Text from '../../../component-library/components/Texts/Text';
 import { RootState } from '../../../reducers';
 import { selectTargetSubjectMetadata } from '../../../selectors/snaps/permissionController';
-import { BackgroundColor } from '../SnapUIRenderer/components/box.types';
+import {
+  AlignItems,
+  BackgroundColor,
+  JustifyContent,
+} from '../SnapUIRenderer/components/box.types';
+import { StyleSheet } from 'react-native';
 
 type SnapIconProps = {
   snapId: string;
@@ -37,24 +42,12 @@ export const SnapIcon: FunctionComponent<SnapIconProps> = ({
   return iconUrl ? (
     <AvatarFavicon
       {...props}
-      style={{
-        backgroundColor: 'var(--color-background-alternative-hover)',
-      }}
       imageSource={{ uri: iconUrl }}
-      // name={snapName ?? 'M'}
       size={avatarSize as unknown as AvatarSize}
     />
   ) : (
     <AvatarBase
-      style={{
-        borderRadius: 50,
-        borderWidth: 0,
-        width: 24,
-        height: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 4,
-      }}
+      style={styles.icon}
       {...props}
       size={avatarSize as unknown as AvatarSize}
     >
@@ -62,3 +55,14 @@ export const SnapIcon: FunctionComponent<SnapIconProps> = ({
     </AvatarBase>
   );
 };
+
+const styles = StyleSheet.create({
+  icon: {
+    borderRadius: 50,
+    borderWidth: 0,
+    width: 24,
+    height: 24,
+    alignItems: AlignItems.center,
+    justifyContent: JustifyContent.center,
+  },
+});

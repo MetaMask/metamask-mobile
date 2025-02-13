@@ -6,7 +6,7 @@ import {
   ButtonProps,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button/Button.types';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT } from '../../../component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.constants';
 import { SnapIcon } from '../SnapIcon/SnapIcon';
 import Text, {
@@ -19,6 +19,11 @@ import {
   DEFAULT_BUTTONPRIMARY_LABEL_COLOR,
   DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT,
 } from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.constants';
+import {
+  AlignItems,
+  JustifyContent,
+  FlexDirection,
+} from '../SnapUIRenderer/components/box.types';
 
 interface SnapUIFooterButtonProps {
   name?: string;
@@ -83,14 +88,7 @@ export const SnapUIFooterButton: FunctionComponent<
     }
     if (isSnapAction && !hideSnapBranding && !loading) {
       return (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 4,
-          }}
-        >
+        <View style={styles.snapActionContainer}>
           <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
           <Text
             variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
@@ -127,3 +125,12 @@ export const SnapUIFooterButton: FunctionComponent<
     />
   );
 };
+
+const styles = StyleSheet.create({
+  snapActionContainer: {
+    flexDirection: FlexDirection.Row,
+    alignItems: AlignItems.center,
+    justifyContent: JustifyContent.center,
+    gap: 4,
+  },
+});

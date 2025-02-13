@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, act } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import SnapDialogApproval from './index';

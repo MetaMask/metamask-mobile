@@ -3,14 +3,16 @@ import { TextColor } from '../Texts/Text/Text.types';
 import Text from '../Texts/Text';
 import { Box } from '../../../components/UI/Box';
 import { RowVariant } from '../../../components/Snaps/SnapUIRenderer/components/row';
-import { AlignItems } from '../../../components/Snaps/SnapUIRenderer/components/box.types';
-import { FlexDirection } from '../../../components/Snaps/SnapUIRenderer/components/box.types';
+import {
+  AlignItems,
+  FlexDirection,
+} from '../../../components/Snaps/SnapUIRenderer/components/box.types';
 
-export type ConfirmInfoRowValueDoubleProps = {
+export interface ConfirmInfoRowValueDoubleProps {
   left: ReactNode;
   right: ReactNode;
   variant?: RowVariant;
-};
+}
 
 const LEFT_TEXT_COLORS = {
   [RowVariant.Default]: TextColor.Muted,
@@ -22,23 +24,17 @@ export const ConfirmInfoRowValueDouble = ({
   left,
   right,
   variant = RowVariant.Default,
-}: ConfirmInfoRowValueDoubleProps) => {
-  return (
-    <Box
-      flexDirection={FlexDirection.Row}
-      alignItems={AlignItems.center}
-      gap={1}
-    >
-      {typeof left === 'string' ? (
-        <Text color={LEFT_TEXT_COLORS[variant] as TextColor}>{left}</Text>
-      ) : (
-        left
-      )}
-      {typeof right === 'string' ? (
-        <Text color={TextColor.Default}>{right}</Text>
-      ) : (
-        right
-      )}
-    </Box>
-  );
-};
+}: ConfirmInfoRowValueDoubleProps) => (
+  <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={1}>
+    {typeof left === 'string' ? (
+      <Text color={LEFT_TEXT_COLORS[variant] as TextColor}>{left}</Text>
+    ) : (
+      left
+    )}
+    {typeof right === 'string' ? (
+      <Text color={TextColor.Default}>{right}</Text>
+    ) : (
+      right
+    )}
+  </Box>
+);
