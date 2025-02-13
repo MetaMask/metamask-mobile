@@ -118,6 +118,7 @@ import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeCon
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 import { getTransaction1559GasFeeEstimates } from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import { getTradeTxTokenFee } from '../../../util/smart-transactions';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -521,8 +522,8 @@ function SwapsQuotesView({
     [allQuotes, selectedQuoteId],
   );
   const tradeTxTokenFee = useMemo(
-    () => selectedQuote?.tradeTxFees?.fees?.[0]?.tokenFees?.[0],
-    [selectedQuote],
+    () => getTradeTxTokenFee(selectedQuote),
+    [selectedQuote, getTradeTxTokenFee],
   );
   const isGasIncludedTrade = useMemo(
     () => selectedQuote?.isGasIncludedTrade ?? false,

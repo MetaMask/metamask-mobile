@@ -203,7 +203,7 @@ import { setupCurrencyRateSync } from './controllers/RatesController/subscriptio
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
-import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
+import { getSmartTransactionMetricsProperties, getGasIncludedTransactionFees } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
@@ -1235,14 +1235,7 @@ export class Engine {
           // to look for a selected agg id.
           const swapsTopAggId = selectSwapsTopAggId(state);
           const selectedQuote = swapsQuotes?.[swapsTopAggId];
-          const tradeTxTokenFee = selectedQuote?.tradeTxFees?.fees?.[0]?.tokenFees?.[0];
-          let transactionFees;
-          if (tradeTxTokenFee && selectedQuote?.isGasIncludedTrade) {
-            transactionFees = {
-              approvalTxFees: selectedQuote?.approvalTxFees,
-              tradeTxFees: selectedQuote?.tradeTxFees
-            }
-          }
+          const transactionFees = getGasIncludedTransactionFees(selectedQuote);
           return submitSmartTransactionHook({
             transactionMeta,
             transactionController: this.transactionController,
