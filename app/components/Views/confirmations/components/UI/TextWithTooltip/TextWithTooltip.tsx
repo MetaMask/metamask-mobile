@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
-import BottomModal from '../BottomModal';
-import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './TextWithTooltip.styles';
 import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import { ButtonIconSizes } from '../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 import {
   IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
-
+import { useStyles } from '../../../../../hooks/useStyles';
+import BottomModal from '../BottomModal';
+import styleSheet from './TextWithTooltip.styles';
 interface TextWithTooltipProps {
   text: string;
   tooltip: string;

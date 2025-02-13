@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { hexToText } from '@metamask/controller-utils';
 
+import Text from '../../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../../styles/common';
 import { useStyles } from '../../../../../../../component-library/hooks';

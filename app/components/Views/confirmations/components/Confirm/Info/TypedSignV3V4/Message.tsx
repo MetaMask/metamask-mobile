@@ -1,10 +1,11 @@
 import React from 'react';
 import { Hex } from '@metamask/utils';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { parseSanitizeTypedDataMessage } from '../../../../utils/signatures';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
+import Text from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { useTypedSignSimulationEnabled } from '../../../../hooks/useTypedSignSimulationEnabled';
 import InfoRow from '../../../UI/InfoRow';
