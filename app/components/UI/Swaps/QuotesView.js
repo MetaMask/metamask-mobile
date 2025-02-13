@@ -1802,7 +1802,7 @@ function SwapsQuotesView({
 
     const { token, balanceNeededToken } = tradeTxTokenFee;
     if (!token?.decimals || !token?.address || !balanceNeededToken) {
-      return '0';
+      return;
     }
 
     const tokenAmount = swapsUtils
