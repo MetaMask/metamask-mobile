@@ -69,6 +69,7 @@ interface RootStackParamList extends ParamListBase {
     credentialName: string;
     shouldUpdateNav?: boolean;
     selectedAccount?: InternalAccount;
+    keyringId?: string;
   };
 }
 
@@ -95,6 +96,7 @@ const RevealPrivateCredential = ({
   const hasNavigation = !!navigation;
   // TODO - Refactor or split RevealPrivateCredential when used in Nav stack vs outside of it
   const shouldUpdateNav = route?.params?.shouldUpdateNav;
+  const keyringId = route?.params?.keyringId;
   const [clipboardPrivateCredential, setClipboardPrivateCredential] =
     useState<string>('');
   const [unlocked, setUnlocked] = useState<boolean>(false);
@@ -149,7 +151,10 @@ const RevealPrivateCredential = ({
       try {
         let privateCredential;
         if (!isPrivateKeyReveal) {
-          const uint8ArraySeed = await KeyringController.exportSeedPhrase(pswd);
+          const uint8ArraySeed = await KeyringController.exportSeedPhrase(
+            pswd,
+            keyringId,
+          );
           privateCredential = uint8ArrayToMnemonic(uint8ArraySeed, wordlist);
         } else {
           privateCredential = await KeyringController.exportAccount(
@@ -179,7 +184,7 @@ const RevealPrivateCredential = ({
         setWarningIncorrectPassword(msg);
       }
     },
-    [selectedAddress],
+    [selectedAddress, keyringId],
   );
 
   useEffect(() => {

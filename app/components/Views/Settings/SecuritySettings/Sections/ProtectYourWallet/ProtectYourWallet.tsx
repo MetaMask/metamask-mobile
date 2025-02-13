@@ -22,6 +22,8 @@ import Banner, {
   BannerAlertSeverity,
 } from '../../../../../../component-library/components/Banners/Banner';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
+import { useSelector } from 'react-redux';
+import { hasMultipleHDKeyrings } from '../../../../../../selectors/keyringController';
 
 interface IProtectYourWalletProps {
   srpBackedup: boolean;
@@ -38,10 +40,17 @@ const ProtectYourWallet = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
+  const shouldShowSRPList = useSelector(hasMultipleHDKeyrings);
 
   const openSRPQuiz = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    });
+  };
+
+  const openSRPList = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SELECT_SRP,
     });
   };
 
@@ -55,6 +64,16 @@ const ProtectYourWallet = ({
         })
         .build(),
     );
+  };
+
+  const onBack = (): void => navigation.goBack();
+
+  const onRevealPressed = () => {
+    if (shouldShowSRPList) {
+      openSRPList();
+    } else {
+      openSRPQuiz();
+    }
   };
 
   return (
@@ -122,7 +141,7 @@ const ProtectYourWallet = ({
           width={ButtonWidthTypes.Full}
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
-          onPress={openSRPQuiz}
+          onPress={onRevealPressed}
           style={styles.accessory}
           testID={SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON}
         />

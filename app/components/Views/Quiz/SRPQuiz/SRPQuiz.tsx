@@ -27,10 +27,23 @@ import {
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
 } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+import Logger from '../../../../util/Logger';
 
 const introductionImg = require('../../../../images/reveal-srp.png');
 
-const SRPQuiz = () => {
+interface SRPQuizProps {
+  route: {
+    params: {
+      keyringId?: string;
+    };
+  };
+}
+
+const SRPQuiz = ({
+  route: {
+    params: { keyringId },
+  },
+}: SRPQuizProps) => {
   const modalRef = useRef<ReusableModalRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});
@@ -83,8 +96,9 @@ const SRPQuiz = () => {
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'seed_phrase',
       shouldUpdateNav: true,
+      keyringId,
     });
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder, keyringId]);
 
   const introduction = useCallback(() => {
     trackEvent(
