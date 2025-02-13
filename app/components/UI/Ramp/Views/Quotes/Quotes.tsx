@@ -2,7 +2,6 @@ import React, {
   Fragment,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -20,7 +19,6 @@ import {
   CryptoCurrency,
   FiatCurrency,
   ProviderBuyFeatureBrowserEnum,
-  QuoteError,
   QuoteResponse,
   SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
@@ -136,57 +134,30 @@ function Quotes() {
   });
 
   const {
-    quotesByPrice,
-    quotesByReliability,
+    recommendedQuote,
+    quotesWithoutError,
+    quotesWithError,
+    quotesByPriceWithoutError,
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,
   } = useSortedQuotes(params.amount);
-
-  const quotes = isExpanded ? quotesByPrice : quotesByReliability;
-
-  const [filteredQuotes, highlightedQuotes] = useMemo(() => {
-    if (quotes) {
-      const allQuotes = quotes.filter(
-        (quote): quote is QuoteResponse | SellQuoteResponse => !quote.error,
-      );
-      const highlightedPreviouslyUsed = allQuotes.findIndex(({ provider }) =>
-        ordersProviders.includes(provider.id),
-      );
-
-      let reorderedQuotes = allQuotes;
-      if (highlightedPreviouslyUsed > -1) {
-        reorderedQuotes = [
-          allQuotes[highlightedPreviouslyUsed],
-          ...allQuotes.slice(0, highlightedPreviouslyUsed),
-          ...allQuotes.slice(highlightedPreviouslyUsed + 1),
-        ];
-      }
-      return [
-        reorderedQuotes,
-        reorderedQuotes.slice(0, HIGHLIGHTED_QUOTES_COUNT),
-      ] as const;
-    }
-    return [[], []] as const;
-  }, [ordersProviders, quotes]);
-
-  const expandedCount = filteredQuotes.length - highlightedQuotes.length;
 
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Quotes Screen',
         chain_id_destination: selectedChainId,
-        results_count: filteredQuotes.length,
+        results_count: quotesByPriceWithoutError.length,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Quotes Screen',
         chain_id_source: selectedChainId,
-        results_count: filteredQuotes.length,
+        results_count: quotesByPriceWithoutError.length,
       });
     }
-  }, [filteredQuotes.length, isBuy, selectedChainId, trackEvent]);
+  }, [quotesByPriceWithoutError.length, isBuy, selectedChainId, trackEvent]);
 
   const handleClosePress = useCallback(
     (bottomSheetDialogRef) => {
@@ -245,10 +216,12 @@ function Quotes() {
       payment_method_id: selectedPaymentMethodId as string,
       amount: params.amount,
       refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
-      results_count: filteredQuotes.length,
-      provider_onramp_first: filteredQuotes[0]?.provider?.name,
-      provider_onramp_list: filteredQuotes.map(({ provider }) => provider.name),
-      previously_used_count: filteredQuotes.filter(({ provider }) =>
+      results_count: quotesByPriceWithoutError.length,
+      provider_onramp_first: quotesByPriceWithoutError[0]?.provider?.name,
+      provider_onramp_list: quotesByPriceWithoutError.map(
+        ({ provider }) => provider.name,
+      ),
+      previously_used_count: quotesByPriceWithoutError.filter(({ provider }) =>
         ordersProviders.includes(provider.id),
       ).length,
     };
@@ -269,7 +242,7 @@ function Quotes() {
     }
   }, [
     appConfig.POLLING_CYCLES,
-    filteredQuotes,
+    quotesByPriceWithoutError,
     isBuy,
     ordersProviders,
     params.amount,
@@ -321,7 +294,7 @@ function Quotes() {
         const payload = {
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           quote_position: index + 1,
-          results_count: filteredQuotes.length,
+          results_count: quotesByPriceWithoutError.length,
           payment_method_id: selectedPaymentMethodId as string,
           total_fee: totalFee,
           gas_fee: quote.networkFee ?? 0,
@@ -395,7 +368,7 @@ function Quotes() {
       isBuy,
       appConfig.POLLING_CYCLES,
       callbackBaseUrl,
-      filteredQuotes.length,
+      quotesByPriceWithoutError.length,
       navigation,
       params,
       pollingCyclesLeft,
@@ -434,14 +407,14 @@ function Quotes() {
       !isInPolling &&
       !ErrorFetchingQuotes &&
       !isFetchingQuotes &&
-      filteredQuotes?.length
+      quotesByPriceWithoutError?.length
     ) {
       setFirstFetchCompleted(true);
       setIsInPolling(true);
     }
   }, [
     ErrorFetchingQuotes,
-    filteredQuotes,
+    quotesByPriceWithoutError,
     firstFetchCompleted,
     isFetchingQuotes,
     isInPolling,
@@ -472,11 +445,7 @@ function Quotes() {
   }, [isFetchingQuotes]);
 
   useEffect(() => {
-    if (quotes && !isFetchingQuotes && pollingCyclesLeft >= 0) {
-      const quotesWithoutError = filteredQuotes as (
-        | QuoteResponse
-        | SellQuoteResponse
-      )[];
+    if (quotesWithoutError && !isFetchingQuotes && pollingCyclesLeft >= 0) {
       if (quotesWithoutError.length > 0) {
         const totals = quotesWithoutError.reduce(
           (acc, curr) => {
@@ -561,52 +530,51 @@ function Quotes() {
         }
       }
 
-      (quotes as (QuoteResponse | SellQuoteResponse | QuoteError)[])
-        .filter((quote): quote is QuoteError => Boolean(quote.error))
-        .forEach((quoteError) => {
-          const payload = {
-            amount: params.amount,
-            payment_method_id: selectedPaymentMethodId as string,
-            error_message: quoteError.message,
-          };
-          if (isBuy) {
-            trackEvent('ONRAMP_QUOTE_ERROR', {
-              ...payload,
-              currency_source: params.fiatCurrency?.symbol,
-              currency_destination: params.asset?.symbol,
-              provider_onramp: quoteError.provider.name,
-              chain_id_destination: selectedChainId,
-            });
-          } else {
-            trackEvent('OFFRAMP_QUOTE_ERROR', {
-              ...payload,
-              currency_destination: params.fiatCurrency?.symbol,
-              currency_source: params.asset?.symbol,
-              provider_offramp: quoteError.provider.name,
-              chain_id_source: selectedChainId,
-            });
-          }
-        });
+      quotesWithError.forEach((quoteError) => {
+        const payload = {
+          amount: params.amount,
+          payment_method_id: selectedPaymentMethodId as string,
+          error_message: quoteError.message,
+        };
+        if (isBuy) {
+          trackEvent('ONRAMP_QUOTE_ERROR', {
+            ...payload,
+            currency_source: params.fiatCurrency?.symbol,
+            currency_destination: params.asset?.symbol,
+            provider_onramp: quoteError.provider.name,
+            chain_id_destination: selectedChainId,
+          });
+        } else {
+          trackEvent('OFFRAMP_QUOTE_ERROR', {
+            ...payload,
+            currency_destination: params.fiatCurrency?.symbol,
+            currency_source: params.asset?.symbol,
+            provider_offramp: quoteError.provider.name,
+            chain_id_source: selectedChainId,
+          });
+        }
+      });
     }
   }, [
     appConfig.POLLING_CYCLES,
-    filteredQuotes,
+    quotesByPriceWithoutError,
     isBuy,
     isFetchingQuotes,
     params,
     pollingCyclesLeft,
-    quotes,
     rampType,
     selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
+    quotesWithError,
+    quotesWithoutError,
   ]);
 
   useEffect(() => {
-    if (filteredQuotes && filteredQuotes.length > 0) {
-      setProviderId(filteredQuotes[0].provider?.id);
+    if (quotesByPriceWithoutError && quotesByPriceWithoutError.length > 0) {
+      setProviderId(quotesByPriceWithoutError[0].provider?.id);
     }
-  }, [filteredQuotes]);
+  }, [quotesByPriceWithoutError]);
 
   if (sdkError) {
     if (!isExpanded) {
@@ -713,7 +681,7 @@ function Quotes() {
   }
 
   // No providers available
-  if (!isFetchingQuotes && filteredQuotes.length === 0) {
+  if (!isFetchingQuotes && quotesByPriceWithoutError.length === 0) {
     if (!isExpanded) {
       return (
         <BottomSheet>
@@ -769,30 +737,28 @@ function Quotes() {
           <ScrollView testID={QuoteSelectors.QUOTES}>
             {isFetchingQuotes && isInPolling ? (
               <LoadingQuotes count={2} />
-            ) : (
-              highlightedQuotes.map((quote, index) => (
-                <Row key={quote.provider.id}>
-                  <Quote
-                    isLoading={isQuoteLoading}
-                    previouslyUsedProvider={ordersProviders.includes(
-                      quote.provider.id,
-                    )}
-                    quote={quote}
-                    onPress={() => handleOnQuotePress(quote)}
-                    onPressCTA={() => handleOnPressCTA(quote, index)}
-                    highlighted={quote.provider.id === providerId}
-                    showInfo={() => handleInfoPress(quote)}
-                    rampType={rampType}
-                  />
-                </Row>
-              ))
-            )}
+            ) : recommendedQuote ? (
+              <Row key={recommendedQuote.provider.id}>
+                <Quote
+                  isLoading={isQuoteLoading}
+                  previouslyUsedProvider={ordersProviders.includes(
+                    recommendedQuote.provider.id,
+                  )}
+                  quote={recommendedQuote}
+                  onPress={() => handleOnQuotePress(recommendedQuote)}
+                  onPressCTA={() => handleOnPressCTA(recommendedQuote, 0)}
+                  highlighted={recommendedQuote.provider.id === providerId}
+                  showInfo={() => handleInfoPress(recommendedQuote)}
+                  rampType={rampType}
+                />
+              </Row>
+            ) : null}
           </ScrollView>
         </ScreenLayout.Content>
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Vertical}
           buttonPropsArray={
-            expandedCount > 0
+            quotesByPriceWithoutError.length > 1
               ? [
                   {
                     accessible: true,
@@ -895,20 +861,20 @@ function Quotes() {
               {isFetchingQuotes && isInPolling ? (
                 <LoadingQuotes />
               ) : (
-                filteredQuotes.map((quote, index) => (
+                quotesByPriceWithoutError.map((quote, index) => (
                   <Fragment key={quote.provider.id}>
                     {index === HIGHLIGHTED_QUOTES_COUNT &&
-                      expandedCount > 0 && (
+                      quotesByPriceWithoutError.length > 1 && (
                         <Row>
                           <Text variant={TextVariant.BodyLGMedium}>
-                            {expandedCount === 1
+                            {quotesByPriceWithoutError.length === 2
                               ? strings(
                                   'fiat_on_ramp_aggregator.one_more_option',
                                 )
                               : strings(
                                   'fiat_on_ramp_aggregator.more_options',
                                   {
-                                    count: expandedCount,
+                                    count: quotesByPriceWithoutError.length - 1,
                                   },
                                 )}
                           </Text>
