@@ -34,7 +34,9 @@ describe('useFiatFormatter', () => {
     const { result } = renderHook(() => useFiatFormatter());
     const formatFiat = result.current;
 
-    expect(formatFiat(new BigNumber('987543219876543219876.54321'))).toBe('$987,543,219,876,543,219,876.54');
+    expect(formatFiat(new BigNumber('987543219876543219876.54321'))).toBe(
+      '$987,543,219,876,543,219,876.54',
+    );
     expect(formatFiat(new BigNumber(1000))).toBe('$1,000');
     expect(formatFiat(new BigNumber(500.5))).toBe('$500.50');
     expect(formatFiat(new BigNumber(0))).toBe('$0');
@@ -58,7 +60,9 @@ describe('useFiatFormatter', () => {
     const formatFiat = result.current;
 
     // Testing the fallback formatting for an unknown currency
-    expect(formatFiat(new BigNumber('98754321987654321987654321'))).toBe('98754321987654321987654321 storj');
+    expect(formatFiat(new BigNumber('98754321987654321987654321'))).toBe(
+      '98754321987654321987654321 storj',
+    );
     expect(formatFiat(new BigNumber(1000))).toBe('1000 storj');
     expect(formatFiat(new BigNumber(500.5))).toBe('500.5 storj');
     expect(formatFiat(new BigNumber(0))).toBe('0 storj');

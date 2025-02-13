@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import Avatar, {
@@ -9,6 +9,7 @@ import Avatar, {
 import Badge, {
   BadgeVariant,
 } from '../../../../../../../component-library/components/Badges/Badge';
+import Text from '../../../../../../../component-library/components/Texts/Text';
 import BadgeWrapper from '../../../../../../../component-library/components/Badges/BadgeWrapper';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
