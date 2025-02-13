@@ -7,12 +7,9 @@ import {
   selectIsBitcoinSupportEnabled,
   selectIsBitcoinTestnetSupportEnabled,
   selectIsSolanaSupportEnabled,
-  selectMultichainCurrentNetwork,
   selectMultichainDefaultToken,
   selectMultichainIsBitcoin,
-  selectMultichainIsEvm,
   selectMultichainIsMainnet,
-  selectMultichainNetworkProviders,
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
@@ -29,6 +26,7 @@ import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { MULTICHAIN_PROVIDER_CONFIGS } from '../../core/Multichain/constants';
 import { selectNonEvmSelected } from '../multichainNetworkController';
+import { BtcScopes, SolAccountType, SolScopes } from '@metamask/keyring-api';
 
 function getEvmState(
   chainId?: Hex,
@@ -106,8 +104,7 @@ function getEvmState(
         },
         MultichainNetworkController: {
           nonEvmSelected: false,
-          selectedMultichainNetworkChainId:
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          selectedMultichainNetworkChainId: SolScopes.Mainnet,
           multichainNetworksMetadata: {},
           multichainNetworkConfigurationsByChainId: {},
         },
@@ -137,6 +134,13 @@ function getNonEvmState(
 
   const selectedAccount = account ?? mockBtcAccount;
 
+  const selectedNonEvmChainId =
+    selectedAccount.type === SolAccountType.DataAccount
+      ? SolScopes.Mainnet
+      : selectedAccount.scopes[0] === BtcScopes.Testnet
+      ? BtcScopes.Testnet
+      : BtcScopes.Mainnet;
+
   const state = {
     ...getEvmState(undefined, 1500, showFiatOnTestnets),
     engine: {
@@ -150,12 +154,11 @@ function getNonEvmState(
         },
         MultichainNetworkController: {
           nonEvmSelected: true,
-          selectedMultichainNetworkChainId:
-            'bip122:000000000019d6689c085ae165831e93',
+          selectedMultichainNetworkChainId: selectedNonEvmChainId,
           multichainNetworksMetadata: {},
           multichainNetworkConfigurationsByChainId: {
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-              chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            [SolScopes.Mainnet]: {
+              chainId: SolScopes.Mainnet,
               name: 'Solana Mainnet',
               nativeCurrency: 'SOL',
               isEvm: false,
@@ -164,9 +167,19 @@ function getNonEvmState(
                 defaultIndex: 0,
               },
             },
-            'bip122:000000000019d6689c085ae165831e93': {
-              chainId: 'bip122:000000000019d6689c085ae165831e93',
+            [BtcScopes.Mainnet]: {
+              chainId: BtcScopes.Mainnet,
               name: 'Bitcoin Mainnet',
+              nativeCurrency: 'BTC',
+              isEvm: false,
+              blockExplorers: {
+                urls: [],
+                defaultIndex: 0,
+              },
+            },
+            [BtcScopes.Testnet]: {
+              chainId: BtcScopes.Testnet,
+              name: 'Bitcoin Testnet',
               nativeCurrency: 'BTC',
               isEvm: false,
               blockExplorers: {
@@ -219,44 +232,6 @@ describe('MultichainNonEvm Selectors', () => {
     });
   });
 
-  describe('selectMultichainNetworkProviders', () => {
-    it('returns all multichain providers', () => {
-      const networkProviders = selectMultichainNetworkProviders();
-      expect(Array.isArray(networkProviders)).toBe(true);
-      expect(networkProviders.length).toBe(5);
-    });
-
-    it('returns correct decimal values for each network', () => {
-      const networkProviders = selectMultichainNetworkProviders();
-
-      // Bitcoin networks should have 8 decimals
-      const bitcoinMainnet = networkProviders.find(
-        (provider) => provider.id === 'btc-mainnet',
-      );
-      expect(bitcoinMainnet?.decimal).toBe(8);
-
-      const bitcoinTestnet = networkProviders.find(
-        (provider) => provider.id === 'btc-testnet',
-      );
-      expect(bitcoinTestnet?.decimal).toBe(8);
-
-      // Solana networks should have 9 decimals
-      const solanaMainnet = networkProviders.find(
-        (provider) => provider.id === 'solana-mainnet',
-      );
-      expect(solanaMainnet?.decimal).toBe(9);
-
-      const solanaDevnet = networkProviders.find(
-        (provider) => provider.id === 'solana-devnet',
-      );
-      expect(solanaDevnet?.decimal).toBe(9);
-
-      const solanaTestnet = networkProviders.find(
-        (provider) => provider.id === 'solana-testnet',
-      );
-      expect(solanaTestnet?.decimal).toBe(9);
-    });
-  });
   describe('selectMultichainIsEvm', () => {
     it('returns true if selected account is EVM compatible', () => {
       const state = getEvmState();
@@ -309,28 +284,7 @@ describe('MultichainNonEvm Selectors', () => {
       },
     );
   });
-  describe('selectMultichainCurrentNetwork', () => {
-    it('returns an EVM network provider if account is EVM', () => {
-      const state = getEvmState();
 
-      const network = selectMultichainCurrentNetwork(state);
-      expect(network.isEvmNetwork).toBe(true);
-    });
-
-    it('returns an non-EVM network provider if account is non-EVM', () => {
-      const state = getNonEvmState();
-
-      const network = selectMultichainCurrentNetwork(state);
-      expect(network.isEvmNetwork).toBe(false);
-    });
-
-    it('returns a nickname for default networks', () => {
-      const state = getEvmState();
-
-      const network = selectMultichainCurrentNetwork(state);
-      expect(network.nickname).toBe('Ethereum Mainnet');
-    });
-  });
   describe('selectMultichainShouldShowFiat', () => {
     it('returns true if account is EVM and the network is mainnet', () => {
       const state = getEvmState();

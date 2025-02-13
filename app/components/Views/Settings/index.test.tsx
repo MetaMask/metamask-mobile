@@ -1,13 +1,11 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import Settings from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
-const mockStore = configureMockStore();
+//const mockStore = configureMockStore();
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
   privacy: { approvedHosts: [] },
@@ -41,16 +39,12 @@ jest.mock('../../../util/networks', () => ({
   isPermissionsSettingsV1Enabled: true,
 }));
 
-const store = mockStore(initialState);
-
 describe('Settings', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Settings />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render general settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
@@ -132,7 +126,9 @@ describe('Settings', () => {
     expect(lock).toBeDefined();
   });
   it('should render permissions settings button when enabled', () => {
-    const { getByTestId } = renderWithProvider(<Settings />);
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
     const permissionsSettings = getByTestId(
       SettingsViewSelectorsIDs.PERMISSIONS,
     );
