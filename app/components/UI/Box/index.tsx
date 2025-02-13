@@ -10,13 +10,6 @@ import {
   TextAlign,
 } from '../../Snaps/SnapUIRenderer/components/box.types';
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    margin: 8,
-  },
-});
-
 const getBoxStyles = (props: {
   display?: Display;
   flexDirection?: FlexDirection;
@@ -47,8 +40,6 @@ const getBoxStyles = (props: {
     },
   });
 };
-
-export default styles;
 
 export interface BoxProps extends ViewProps {
   children: string | JSXElement | React.ReactNode;
