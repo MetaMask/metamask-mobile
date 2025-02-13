@@ -21,7 +21,7 @@ import {
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
 import {
-  selectNonEvmSelected,
+  selectIsEvmNetworkSelected,
   selectSelectedNonEvmNativeCurrency,
   selectSelectedNonEvmNetworkChainId,
 } from '../multichainNetworkController';
@@ -57,31 +57,31 @@ export function selectIsSolanaSupportEnabled(state: RootState) {
 }
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
-  selectNonEvmSelected,
+  selectIsEvmNetworkSelected,
   selectEvmProviderConfig,
   selectSelectedNonEvmNativeCurrency,
-  (isNonEvmSelected, evmProviderConfig, nonEvmTicker) => {
-    const symbol = !isNonEvmSelected ? evmProviderConfig.ticker : nonEvmTicker;
+  (isEvmSelected, evmProviderConfig, nonEvmTicker) => {
+    const symbol = isEvmSelected ? evmProviderConfig.ticker : nonEvmTicker;
     return { symbol };
   },
 );
 
 export const selectMultichainIsBitcoin = createDeepEqualSelector(
-  selectNonEvmSelected,
+  selectIsEvmNetworkSelected,
   selectMultichainDefaultToken,
-  (isNonEvmSelected, token) =>
-    isNonEvmSelected &&
+  (isEvmSelected, token) =>
+    !isEvmSelected &&
     token.symbol ===
       MULTICHAIN_PROVIDER_CONFIGS[MultichainNetworks.Bitcoin].ticker,
 );
 
 export const selectMultichainIsMainnet = createDeepEqualSelector(
-  selectNonEvmSelected,
+  selectIsEvmNetworkSelected,
   selectSelectedInternalAccount,
   selectEvmChainId,
   selectChainId,
-  (isNonEvmSelected, selectedAccount, evmChainId, chainId) => {
-    if (!isNonEvmSelected) {
+  (isEvmSelected, selectedAccount, evmChainId, chainId) => {
+    if (isEvmSelected) {
       return isMainNet(evmChainId);
     }
 
@@ -112,11 +112,11 @@ export const selectMultichainBalances = createDeepEqualSelector(
 
 export const selectMultichainShouldShowFiat = createDeepEqualSelector(
   selectMultichainIsMainnet,
-  selectNonEvmSelected,
+  selectIsEvmNetworkSelected,
   selectShowFiatInTestnets,
-  (multichainIsMainnet, isNonEvmSelected, shouldShowFiatOnTestnets) => {
+  (multichainIsMainnet, isEvmSelected, shouldShowFiatOnTestnets) => {
     const isTestnet = !multichainIsMainnet;
-    if (!isNonEvmSelected) {
+    if (isEvmSelected) {
       return isTestnet ? shouldShowFiatOnTestnets : true; // Is it safe to assume that we default show fiat for mainnet?
     }
     return (
@@ -144,11 +144,11 @@ const selectNonEvmCachedBalance = createDeepEqualSelector(
 
 export const selectMultichainSelectedAccountCachedBalance =
   createDeepEqualSelector(
-    selectNonEvmSelected,
+    selectIsEvmNetworkSelected,
     selectAccountBalanceByChainId,
     selectNonEvmCachedBalance,
-    (isNonEvmSelected, accountBalanceByChainId, nonEvmCachedBalance) =>
-      !isNonEvmSelected
+    (isEvmSelected, accountBalanceByChainId, nonEvmCachedBalance) =>
+      isEvmSelected
         ? accountBalanceByChainId?.balance ?? '0x0'
         : nonEvmCachedBalance,
   );
@@ -158,12 +158,12 @@ export function selectMultichainCoinRates(state: RootState) {
 }
 
 export const selectMultichainConversionRate = createDeepEqualSelector(
-  selectNonEvmSelected,
+  selectIsEvmNetworkSelected,
   selectConversionRate,
   selectMultichainCoinRates,
   selectSelectedNonEvmNativeCurrency,
-  (isNonEvmSelected, evmConversionRate, multichaincCoinRates, nonEvmTicker) => {
-    if (!isNonEvmSelected) {
+  (isEvmSelected, evmConversionRate, multichaincCoinRates, nonEvmTicker) => {
+    if (isEvmSelected) {
       return evmConversionRate;
     }
 

@@ -124,9 +124,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const onClaimPress = async () => {
     setShouldAttemptClaim(true);
     if (!isStakingSupportedChain) {
-      await MultichainNetworkController.setActiveNetwork({
-        evmClientId: 'mainnet',
-      });
+      await MultichainNetworkController.setActiveNetwork('mainnet');
     }
   };
 

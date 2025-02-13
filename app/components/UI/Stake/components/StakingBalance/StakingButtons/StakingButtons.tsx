@@ -34,9 +34,7 @@ const StakingButtons = ({
 
   const handleIsStakingSupportedChain = async () => {
     if (!isStakingSupportedChain) {
-      await MultichainNetworkController.setActiveNetwork({
-        evmClientId: 'mainnet',
-      });
+      await MultichainNetworkController.setActiveNetwork('mainnet');
     }
   };
 

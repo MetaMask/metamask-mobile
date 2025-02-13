@@ -18,7 +18,7 @@ import { RPC } from '../../../../../../constants/network';
 import TransactionTypes from '../../../../../../core/TransactionTypes';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { selectTokens } from '../../../../../../selectors/tokensController';
-import { selectNonEvmSelected } from '../../../../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../../../../selectors/multichainNetworkController';
 
 const {
   ASSET: { ERC20, ERC1155, ERC721 },
@@ -45,7 +45,7 @@ const VerifyContractDetails = ({
 
   const tokens = useSelector(selectTokens);
 
-  const isNonEvmSelected = useSelector(selectNonEvmSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const tokenData = useMemo(
     () =>
@@ -78,11 +78,11 @@ const VerifyContractDetails = ({
 
   // TODO: [SOLANA] - before ship make sure block explorer supports Solana
   const showBlockExplorerIcon = useCallback(() => {
-    if (providerType === RPC && !isNonEvmSelected) {
+    if (providerType === RPC && isEvmSelected) {
       return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);
     }
     return true;
-  }, [providerType, providerRpcTarget, networkConfigurations, isNonEvmSelected]);
+  }, [providerType, providerRpcTarget, networkConfigurations, isEvmSelected]);
 
   const hasBlockExplorer = showBlockExplorerIcon();
 

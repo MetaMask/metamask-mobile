@@ -105,7 +105,7 @@ import {
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
-import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import NonEvmTokens from '../../UI/NonEvmTokens';
 ///: END:ONLY_INCLUDE_IF
@@ -323,7 +323,7 @@ const Wallet = ({
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
   const name = useSelector(selectNetworkName);
-  const isNonEvmSelected = useSelector(selectNonEvmSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
@@ -462,7 +462,6 @@ const Wallet = ({
         isProfileSyncingEnabled,
         unreadNotificationCount,
         readNotificationCount,
-        isNonEvmSelected,
       ),
     );
   }, [
@@ -478,7 +477,6 @@ const Wallet = ({
     isProfileSyncingEnabled,
     unreadNotificationCount,
     readNotificationCount,
-    isNonEvmSelected,
   ]);
 
   useEffect(() => {
@@ -603,7 +601,7 @@ const Wallet = ({
   function renderTokensContent(assets: Token[]) {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // TODO: [SOLANA] Consider please reusing the Tokens UI, since it handles portion of the UI already (If not please remove dead code from it)
-    if (isNonEvmSelected) {
+    if (!isEvmSelected) {
       return (
         <ScrollableTabView
           renderTabBar={renderTabBar}
@@ -740,7 +738,7 @@ const Wallet = ({
     conversionRate,
     currentCurrency,
     contractBalances,
-    isNonEvmSelected,
+    isEvmSelected,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     tokensByChainIdAndAddress,
     ///: END:ONLY_INCLUDE_IF

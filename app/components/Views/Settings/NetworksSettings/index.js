@@ -232,9 +232,7 @@ class NetworksSettings extends PureComponent {
 
     if (this.networkToRemove === selectedNetworkClientId) {
       // if we delete selected network, switch to mainnet before removing the selected network
-      await MultichainNetworkController.setActiveNetwork({
-        evmClientId: 'mainnet',
-      });
+      await MultichainNetworkController.setActiveNetwork('mainnet');
     }
 
     NetworkController.removeNetwork(chainId);

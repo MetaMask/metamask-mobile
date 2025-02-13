@@ -384,7 +384,7 @@ export class Engine {
             isEvm: false,
           },
         },
-        nonEvmSelected: false,
+        isEvmSelected: true,
       },
     });
 
@@ -415,7 +415,7 @@ export class Engine {
           SnapControllerStateChangeEvent,
           'KeyringController:accountRemoved',
           'KeyringController:stateChange',
-          'MultichainNetworkController:setActiveNetwork',
+          'MultichainNetworkController:networkDidChange',
           'SnapKeyring:accountAssetListUpdated',
           'SnapKeyring:accountBalancesUpdated',
           'SnapKeyring:accountTransactionsUpdated',

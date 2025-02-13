@@ -25,7 +25,7 @@ import { Hex } from '@metamask/utils';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { MULTICHAIN_PROVIDER_CONFIGS } from '../../core/Multichain/constants';
-import { selectNonEvmSelected } from '../multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
 import { BtcScopes, SolAccountType, SolScopes } from '@metamask/keyring-api';
 
 function getEvmState(
@@ -103,7 +103,7 @@ function getEvmState(
           cryptocurrencies: [],
         },
         MultichainNetworkController: {
-          nonEvmSelected: false,
+          isEvmSelected: true,
           selectedMultichainNetworkChainId: SolScopes.Mainnet,
           multichainNetworksMetadata: {},
           multichainNetworkConfigurationsByChainId: {},
@@ -153,7 +153,7 @@ function getNonEvmState(
           },
         },
         MultichainNetworkController: {
-          nonEvmSelected: true,
+          isEvmSelected: false,
           selectedMultichainNetworkChainId: selectedNonEvmChainId,
           multichainNetworksMetadata: {},
           multichainNetworkConfigurationsByChainId: {
@@ -236,17 +236,17 @@ describe('MultichainNonEvm Selectors', () => {
     it('returns true if selected account is EVM compatible', () => {
       const state = getEvmState();
 
-      expect(selectNonEvmSelected(state)).toBe(false);
+      expect(selectIsEvmNetworkSelected(state)).toBe(true);
     });
 
     it('returns false if selected account is not EVM compatible', () => {
       const state = getNonEvmState();
-      expect(selectNonEvmSelected(state)).toBe(true);
+      expect(selectIsEvmNetworkSelected(state)).toBe(false);
     });
 
     it('returns false if selected account is Solana', () => {
       const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
-      expect(selectNonEvmSelected(state)).toBe(true);
+      expect(selectIsEvmNetworkSelected(state)).toBe(false);
     });
   });
   describe('selectMultichainIsMainnet', () => {

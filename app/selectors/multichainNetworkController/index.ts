@@ -6,10 +6,10 @@ import { CaipChainId } from '@metamask/utils';
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
 
-export const selectNonEvmSelected = createSelector(
+export const selectIsEvmNetworkSelected = createSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
-    multichainNetworkControllerState.nonEvmSelected,
+    multichainNetworkControllerState.isEvmSelected,
 );
 
 export const selectSelectedNonEvmNetworkChainId = createSelector(

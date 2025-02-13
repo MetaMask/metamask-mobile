@@ -17,7 +17,7 @@ import { PopularList } from '../util/networks/customNetworks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   selectNonEvmNetworkConfigurationsByChainId,
-  selectNonEvmSelected,
+  selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from './multichainNetworkController';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
@@ -141,9 +141,9 @@ export const selectEvmChainId = createSelector(
 export const selectChainId = createSelector(
   selectSelectedNonEvmNetworkChainId,
   selectEvmChainId,
-  selectNonEvmSelected,
-  (selectedNonEvmChainId, selectedEvmChainId: Hex, isNonEvmSelected: boolean) =>
-    isNonEvmSelected ? selectedNonEvmChainId : selectedEvmChainId,
+  selectIsEvmNetworkSelected,
+  (selectedNonEvmChainId, selectedEvmChainId: Hex, isEvmSelected: boolean) =>
+    !isEvmSelected ? selectedNonEvmChainId : selectedEvmChainId,
 );
 
 export const selectProviderType = createSelector(

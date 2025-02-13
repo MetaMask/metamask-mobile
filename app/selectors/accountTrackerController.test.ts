@@ -40,7 +40,7 @@ describe('selectAccountBalanceByChainId', () => {
             },
           },
           MultichainNetworkController: {
-            nonEvmSelected: false,
+            isEvmSelected: true,
             selectedMultichainNetworkChainId:
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             multichainNetworksMetadata: {},
@@ -56,7 +56,7 @@ describe('selectAccountBalanceByChainId', () => {
       engine: {
         backgroundState: {
           MultichainNetworkController: {
-            nonEvmSelected: false,
+            isEvmSelected: true,
             selectedMultichainNetworkChainId:
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             multichainNetworksMetadata: {},

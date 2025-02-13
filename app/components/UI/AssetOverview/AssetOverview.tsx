@@ -197,9 +197,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        await MultichainNetworkController.setActiveNetwork({
-          evmClientId: networkClientId,
-        });
+        await MultichainNetworkController.setActiveNetwork(networkClientId);
       }
     }
     if ((asset.isETH || asset.isNative) && ticker) {
@@ -231,13 +229,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        MultichainNetworkController.setActiveNetwork({
-          evmClientId: networkClientId,
-        }).then(() => {
-          setTimeout(() => {
-            handleSwapNavigation();
-          }, 500);
-        });
+        MultichainNetworkController.setActiveNetwork(networkClientId).then(
+          () => {
+            setTimeout(() => {
+              handleSwapNavigation();
+            }, 500);
+          },
+        );
       } else {
         handleSwapNavigation();
       }

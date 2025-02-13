@@ -268,9 +268,9 @@ const NetworkModals = (props: NetworkProps) => {
     if (networkClientId) {
       onUpdateNetworkFilter();
 
-      await Engine.context.MultichainNetworkController.setActiveNetwork({
-        evmClientId: networkClientId,
-      });
+      await Engine.context.MultichainNetworkController.setActiveNetwork(
+        networkClientId,
+      );
     }
 
     onClose();
@@ -297,9 +297,7 @@ const NetworkModals = (props: NetworkProps) => {
       {};
     onUpdateNetworkFilter();
 
-    await MultichainNetworkController.setActiveNetwork({
-      evmClientId: networkClientId,
-    });
+    await MultichainNetworkController.setActiveNetwork(networkClientId);
   };
 
   const handleNewNetwork = async (
@@ -369,9 +367,7 @@ const NetworkModals = (props: NetworkProps) => {
 
       onUpdateNetworkFilter();
 
-      MultichainNetworkController.setActiveNetwork({
-        evmClientId: networkClientId,
-      });
+      MultichainNetworkController.setActiveNetwork(networkClientId);
     }
     onClose();
 

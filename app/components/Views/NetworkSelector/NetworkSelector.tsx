@@ -103,7 +103,7 @@ import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
-import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { SolScopes } from '@metamask/keyring-api';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
@@ -150,7 +150,7 @@ const NetworkSelector = () => {
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const isNonEvmNetworkSelected = useSelector(selectNonEvmSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const route =
     useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
@@ -261,9 +261,7 @@ const NetworkSelector = () => {
         });
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          await MultichainNetworkController.setActiveNetwork({
-            evmClientId: networkClientId,
-          });
+          await MultichainNetworkController.setActiveNetwork(networkClientId);
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
@@ -397,9 +395,7 @@ const NetworkSelector = () => {
 
       setTokenNetworkFilter(networkConfiguration.chainId);
 
-      await MultichainNetworkController.setActiveNetwork({
-        evmClientId: clientId,
-      });
+      await MultichainNetworkController.setActiveNetwork(clientId);
 
       closeRpcModal();
       AccountTrackerController.refresh();
@@ -456,7 +452,7 @@ const NetworkSelector = () => {
       return chainId === browserEvmChainId;
     }
 
-    return isNonEvmNetworkSelected ? false : chainId === selectedChainId;
+    return !isEvmSelected ? false : chainId === selectedChainId;
   };
 
   const renderMainnet = () => {
@@ -633,9 +629,7 @@ const NetworkSelector = () => {
               size: AvatarSize.Sm,
             }}
             isSelected={
-              isNonEvmNetworkSelected
-                ? false
-                : Boolean(chainId === selectedChainId)
+              !isEvmSelected ? false : Boolean(chainId === selectedChainId)
             }
             onPress={() => onSetRpcTarget(networkConfiguration)}
             style={styles.networkCell}
@@ -676,9 +670,7 @@ const NetworkSelector = () => {
             size: avatarSize,
           }}
           isSelected={
-            isNonEvmNetworkSelected
-              ? false
-              : Boolean(chainId === selectedChainId)
+            !isEvmSelected ? false : Boolean(chainId === selectedChainId)
           }
           onPress={() => onSetRpcTarget(networkConfiguration)}
           style={styles.networkCell}
@@ -778,9 +770,7 @@ const NetworkSelector = () => {
   };
 
   const onNonEvmNetworkChange = async (chainId: CaipChainId) => {
-    await Engine.context.MultichainNetworkController.setActiveNetwork({
-      nonEvmChainId: chainId,
-    });
+    await Engine.context.MultichainNetworkController.setActiveNetwork(chainId);
     sheetRef.current?.dismissModal();
   };
 
@@ -797,7 +787,7 @@ const NetworkSelector = () => {
           imageSource: images.SOLANA,
           size: avatarSize,
         }}
-        isSelected={isNonEvmNetworkSelected && !browserEvmChainId}
+        isSelected={!isEvmSelected && !browserEvmChainId}
         onPress={() => onNonEvmNetworkChange(SolScopes.Mainnet)}
         style={
           browserEvmChainId ? styles.networkCellDisabled : styles.networkCell

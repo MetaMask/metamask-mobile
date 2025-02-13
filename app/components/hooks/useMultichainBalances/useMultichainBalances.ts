@@ -26,7 +26,7 @@ import {
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
 } from '../../../selectors/multichain';
-import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
 
 /**
@@ -66,7 +66,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const isNonEvmSelected = useSelector(selectNonEvmSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const multichainSelectedAccountCachedBalance = useSelector(
     selectMultichainSelectedAccountCachedBalance,
   );
@@ -132,7 +132,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
 
   const getDisplayBalance = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (isNonEvmSelected) {
+    if (!isEvmSelected) {
       return getNonEvmDisplayBalance();
     }
     ///: END:ONLY_INCLUDE_IF
@@ -151,7 +151,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
 
   const getShouldShowAggregatedPercentage = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    return !isTestNet(chainId) && !isNonEvmSelected;
+    return !isTestNet(chainId) && isEvmSelected;
     ///: END:ONLY_INCLUDE_IF
 
     // Note: This code marked as unreachable however when the above block gets removed after code fencing this return becomes necessary

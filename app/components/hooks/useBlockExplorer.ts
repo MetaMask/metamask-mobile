@@ -9,18 +9,18 @@ import {
   selectProviderConfig,
 } from '../../selectors/networkController';
 import Routes from '../../constants/navigation/Routes';
-import { selectNonEvmSelected } from '../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 
 const useBlockExplorer = () => {
   const navigation = useNavigation();
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const nonEvmSelected = useSelector(selectNonEvmSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const toBlockExplorer = useCallback(
     (address: string) => {
       // TODO: [SOLANA] to block explorer needs to be implemented
-      if (nonEvmSelected) return;
+      if (!isEvmSelected) return;
 
       const { type, rpcUrl } = providerConfig;
       let accountLink: string;
@@ -40,7 +40,7 @@ const useBlockExplorer = () => {
         },
       });
     },
-    [networkConfigurations, navigation, providerConfig, nonEvmSelected],
+    [networkConfigurations, navigation, providerConfig, isEvmSelected],
   );
   return {
     toBlockExplorer,

@@ -121,7 +121,7 @@ const initialState: DeepPartial<RootState> = {
         gasEstimateType: 'none',
       },
       MultichainNetworkController: {
-        nonEvmSelected: false,
+        isEvmSelected: true,
         selectedMultichainNetworkChainId:
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         multichainNetworksMetadata: {},

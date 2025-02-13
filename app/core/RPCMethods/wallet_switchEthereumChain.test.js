@@ -57,7 +57,7 @@ jest.mock('../../store', () => ({
             ),
           },
           MultichainNetworkController: {
-            nonEvmSelected: false,
+            isEvmSelected: true,
             selectedMultichainNetworkChainId:
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             multichainNetworksMetadata: {},
@@ -181,9 +181,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     });
     expect(otherOptions.requestUserApproval).toHaveBeenCalled();
     expect(spyOnGrantPermissionsIncremental).not.toHaveBeenCalled();
-    expect(spyOnSetActiveNetwork).toHaveBeenCalledWith({
-      evmClientId: 'test-network-configuration-id',
-    });
+    expect(spyOnSetActiveNetwork).toHaveBeenCalledWith(
+      'test-network-configuration-id',
+    );
   });
 
   describe('MM_CHAIN_PERMISSIONS is enabled', () => {
@@ -224,9 +224,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 
       expect(otherOptions.requestUserApproval).not.toHaveBeenCalled();
       expect(spyOnGrantPermissionsIncremental).not.toHaveBeenCalled();
-      expect(spyOnSetActiveNetwork).toHaveBeenCalledWith({
-        evmClientId: 'test-network-configuration-id',
-      });
+      expect(spyOnSetActiveNetwork).toHaveBeenCalledWith(
+        'test-network-configuration-id',
+      );
     });
 
     it('should add network permission and should switch with user approval when requested chain is not permitted', async () => {
@@ -274,9 +274,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
           origin: 'https://test.com',
         },
       });
-      expect(spyOnSetActiveNetwork).toHaveBeenCalledWith({
-        evmClientId: 'test-network-configuration-id',
-      });
+      expect(spyOnSetActiveNetwork).toHaveBeenCalledWith(
+        'test-network-configuration-id',
+      );
     });
   });
 });

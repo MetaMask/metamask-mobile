@@ -899,7 +899,6 @@ export function getWalletNavbarOptions(
   isProfileSyncingEnabled,
   unreadNotificationCount,
   readNotificationCount,
-  isNonEvmSelected,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -940,10 +939,7 @@ export function getWalletNavbarOptions(
             text: strings('wallet.yes'),
             onPress: async () => {
               try {
-                await importAccountFromPrivateKey(
-                  data.private_key,
-                  isNonEvmSelected,
-                );
+                await importAccountFromPrivateKey(data.private_key);
                 navigation.navigate('ImportPrivateKeyView', {
                   screen: 'ImportPrivateKeySuccess',
                 });

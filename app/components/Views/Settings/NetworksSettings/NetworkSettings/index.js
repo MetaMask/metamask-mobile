@@ -1573,9 +1573,7 @@ export class NetworkSettings extends PureComponent {
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    await MultichainNetworkController.setActiveNetwork({
-      evmClientId: networkClientId,
-    });
+    await MultichainNetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {
       await updateIncomingTransactions([CHAIN_IDS.MAINNET]);

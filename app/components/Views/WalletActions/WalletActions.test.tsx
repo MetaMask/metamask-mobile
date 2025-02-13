@@ -262,7 +262,7 @@ describe('WalletActions', () => {
     );
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
-    ).toHaveBeenCalledWith({ evmClientId: 'mainnet' });
+    ).toHaveBeenCalledWith('mainnet');
   });
   it('disables action buttons when the account cannot sign transactions', () => {
     const mockStateWithoutSigning: DeepPartial<RootState> = {

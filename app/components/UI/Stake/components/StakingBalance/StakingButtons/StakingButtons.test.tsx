@@ -112,7 +112,7 @@ describe('StakingButtons', () => {
 
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
-    ).toHaveBeenCalledWith({ evmClientId: 'mainnet' });
+    ).toHaveBeenCalledWith('mainnet');
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
     });
@@ -137,7 +137,7 @@ describe('StakingButtons', () => {
 
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
-    ).toHaveBeenCalledWith({ evmClientId: 'mainnet' });
+    ).toHaveBeenCalledWith('mainnet');
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
     });

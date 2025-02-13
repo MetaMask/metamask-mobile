@@ -19,7 +19,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
-import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -44,7 +44,7 @@ const Settings = () => {
     (state: any) => state.user.seedphraseBackedUp,
   );
 
-  const isNonEvmSelected = useSelector(selectNonEvmSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -234,7 +234,7 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.PERMISSIONS}
         />
       )}
-      {!isNonEvmSelected && (
+      {isEvmSelected && (
         <SettingsDrawer
           description={strings('app_settings.contacts_desc')}
           onPress={onPressContacts}

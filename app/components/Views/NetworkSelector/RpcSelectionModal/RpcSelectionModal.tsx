@@ -84,7 +84,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       });
 
       // Set the active network
-      MultichainNetworkController.setActiveNetwork({ evmClientId: clientId });
+      MultichainNetworkController.setActiveNetwork(clientId);
       // Redirect to wallet page
       navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,

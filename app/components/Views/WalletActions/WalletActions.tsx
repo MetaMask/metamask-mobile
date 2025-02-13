@@ -94,9 +94,9 @@ const WalletActions = () => {
 
   const onEarn = useCallback(async () => {
     if (!isStakingSupportedChain) {
-      await Engine.context.MultichainNetworkController.setActiveNetwork({
-        evmClientId: 'mainnet',
-      });
+      await Engine.context.MultichainNetworkController.setActiveNetwork(
+        'mainnet',
+      );
     }
 
     closeBottomSheetAndNavigate(() => {

@@ -149,9 +149,7 @@ function NetworkSwitcher() {
     async (type: 'mainnet' | 'linea-mainnet') => {
       const { MultichainNetworkController } = Engine.context;
 
-      await MultichainNetworkController.setActiveNetwork({
-        evmClientId: type,
-      });
+      await MultichainNetworkController.setActiveNetwork(type);
 
       navigateToGetStarted();
     },
@@ -171,9 +169,7 @@ function NetworkSwitcher() {
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
-        await MultichainNetworkController.setActiveNetwork({
-          evmClientId: networkClientId,
-        });
+        await MultichainNetworkController.setActiveNetwork(networkClientId);
 
         navigateToGetStarted();
       }

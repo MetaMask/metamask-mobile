@@ -98,7 +98,7 @@ const initialState = {
         shouldShowFiat: true,
       },
       MultichainNetworkController: {
-        nonEvmSelected: true,
+        isEvmSelected: false,
         selectedMultichainNetworkChainId:
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         multichainNetworksMetadata: {},

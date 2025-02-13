@@ -81,7 +81,7 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
-import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -104,10 +104,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const nonEvmSelected = useSelector(selectNonEvmSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
-    selectedWalletAddress && !nonEvmSelected ? [selectedWalletAddress] : [],
+    selectedWalletAddress && isEvmSelected ? [selectedWalletAddress] : [],
   );
   const [confirmedAddresses, setConfirmedAddresses] =
     useState<string[]>(selectedAddresses);

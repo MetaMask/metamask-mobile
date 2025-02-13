@@ -109,7 +109,7 @@ jest.mock('../core/Engine', () => ({
       },
     } as Partial<NetworkController['state']>,
     MultichainNetworkController: {
-      nonEvmSelected: false,
+      isEvmSelected: true,
       selectedMultichainNetworkChainId:
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       multichainNetworksMetadata: {},
@@ -241,7 +241,7 @@ describe('selectAccountBalanceByChainId', () => {
             },
           } as Partial<NetworkController['state']>,
           MultichainNetworkController: {
-            nonEvmSelected: false,
+            isEvmSelected: true,
             selectedMultichainNetworkChainId:
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             multichainNetworksMetadata: {},

@@ -46,9 +46,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
     if (!isStakingSupportedChain) {
       const { MultichainNetworkController } = Engine.context;
 
-      await MultichainNetworkController.setActiveNetwork({
-        evmClientId: 'mainnet',
-      });
+      await MultichainNetworkController.setActiveNetwork('mainnet');
     }
     if (isEligible) {
       navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });

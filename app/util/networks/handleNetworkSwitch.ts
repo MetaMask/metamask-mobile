@@ -41,9 +41,9 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
       entry as unknown as [string, NetworkConfiguration];
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-    Engine.context.MultichainNetworkController.setActiveNetwork({
-      evmClientId: networkClientId,
-    });
+    Engine.context.MultichainNetworkController.setActiveNetwork(
+      networkClientId,
+    );
 
     return nickname;
   }
@@ -54,9 +54,9 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
 
   if (entry && isNonEvmChainId(entry[1].chainId)) {
     const [, { name: nickname }] = entry;
-    Engine.context.MultichainNetworkController.setActiveNetwork({
-      nonEvmChainId: entry[1].chainId,
-    });
+    Engine.context.MultichainNetworkController.setActiveNetwork(
+      entry[1].chainId,
+    );
     return nickname;
   }
 };

@@ -108,7 +108,7 @@ describe('ClaimBanner', () => {
 
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
-    ).toHaveBeenCalledWith({ evmClientId: 'mainnet' });
+    ).toHaveBeenCalledWith('mainnet');
   });
 
   it('claim button is disabled on subsequent presses', async () => {

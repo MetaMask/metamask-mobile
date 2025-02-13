@@ -5,7 +5,7 @@ import {
 } from '../util/networks';
 import { ProviderConfig, selectProviderConfig } from './networkController';
 import {
-  selectNonEvmSelected,
+  selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkName,
 } from './multichainNetworkController';
@@ -28,28 +28,28 @@ export const selectEvmNetworkImageSource = createSelector(
 );
 export const selectNetworkName = createSelector(
   selectProviderConfig,
-  selectNonEvmSelected,
+  selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkName,
   (
     providerConfig: ProviderConfig,
-    isNonEvmNetworkSelected: boolean,
+    isEvmSelected: boolean,
     nonEvmNetworkName: string,
   ) =>
-    isNonEvmNetworkSelected
+    !isEvmSelected
       ? nonEvmNetworkName
       : getNetworkNameFromProviderConfig(providerConfig),
 );
 
 export const selectNetworkImageSource = createSelector(
   selectProviderConfig,
-  selectNonEvmSelected,
+  selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
   (
     providerConfig: ProviderConfig,
-    isNonEvmNetworkSelected: boolean,
+    isEvmSelected: boolean,
     nonEvmNetworkChainId: CaipChainId,
   ) =>
-    isNonEvmNetworkSelected
+    !isEvmSelected
       ? getNonEvmNetworkImageSourceByChainId(nonEvmNetworkChainId)
       : getNetworkImageSource({
           networkType: providerConfig?.type,

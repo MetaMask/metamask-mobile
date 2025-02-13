@@ -290,9 +290,7 @@ describe('NetworkSwitcher View', () => {
     ).toMatchInlineSnapshot(`
       [
         [
-          {
-            "evmClientId": "linea-mainnet",
-          },
+          "linea-mainnet",
         ],
       ]
     `);
@@ -308,9 +306,7 @@ describe('NetworkSwitcher View', () => {
     ).toMatchInlineSnapshot(`
       [
         [
-          {
-            "evmClientId": "networkId1",
-          },
+          "networkId1",
         ],
       ]
     `);

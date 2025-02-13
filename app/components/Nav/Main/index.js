@@ -85,7 +85,7 @@ import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesi
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
-import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const Stack = createStackNavigator();
 
@@ -226,7 +226,7 @@ const Main = (props) => {
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkName = useSelector(selectNetworkName);
-  const nonEvmSelected = useSelector(selectNonEvmSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const previousProviderConfig = useRef(undefined);
   const previousNetworkConfigurations = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
@@ -235,7 +235,7 @@ const Main = (props) => {
   // Show network switch confirmation.
   useEffect(() => {
     if (
-      previousProviderConfig.current && nonEvmSelected
+      previousProviderConfig.current && !isEvmSelected
         ? chainId !== previousProviderConfig.current?.chainId
         : chainId !== previousProviderConfig.current?.chainId ||
           // This case is when for example we switch default infura ethereum mainnet to custom rpc infura network
@@ -253,7 +253,7 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
-    previousProviderConfig.current = nonEvmSelected
+    previousProviderConfig.current = !isEvmSelected
       ? { chainId }
       : providerConfig;
   }, [
@@ -262,7 +262,7 @@ const Main = (props) => {
     networkImage,
     toastRef,
     chainId,
-    nonEvmSelected,
+    isEvmSelected,
   ]);
 
   // Show add network confirmation.

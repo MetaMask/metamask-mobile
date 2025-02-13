@@ -26,7 +26,7 @@ import LoopingScrollAnimation from './LoopingScrollAnimation';
 import { hexToDecimal } from '../../../util/conversions';
 import useRemainingTime from './useRemainingTime';
 import { ThemeColors } from '@metamask/design-tokens';
-import { selectNonEvmSelected } from '../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -255,7 +255,7 @@ const SmartTransactionStatus = ({
 }: Props) => {
   const { status, creationTime, uuid } = smartTransaction;
   const chainId = useSelector(selectEvmChainId);
-  const isNonEvmSelected = useSelector(selectNonEvmSelected);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -380,7 +380,7 @@ const SmartTransactionStatus = ({
         <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
 
-          {isNonEvmSelected ? renderViewTransactionLink() : null}
+          {isEvmSelected ? renderViewTransactionLink() : null}
         </View>
       </View>
       <LoopingScrollAnimation width={800}>

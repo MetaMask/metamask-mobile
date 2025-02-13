@@ -8,12 +8,9 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../../../util/etherscan';
 import { useSelector } from 'react-redux';
+import { selectNonEvmBlockExplorerUrl } from '../../../../selectors/multichainNetworkController';
 import {
-  selectNonEvmBlockExplorerUrl,
-  selectNonEvmSelected,
-} from '../../../../selectors/multichainNetworkController';
-import {
-  selectChainId,
+  selectEvmChainId,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
@@ -27,15 +24,14 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
     baseUrl: '',
   });
   const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
-  const isNonEvmSelected = useSelector(selectNonEvmSelected);
+  const chainId = useSelector(selectEvmChainId);
   const networkName = useSelector(selectNetworkName);
   const nonEvmBlockExplorerUrl = useSelector(selectNonEvmBlockExplorerUrl);
 
   useEffect(() => {
     const definitiveProviderConfig =
       providerConfigTokenExplorer ?? providerConfig;
-    if (definitiveProviderConfig.type === RPC && !isNonEvmSelected) {
+    if (definitiveProviderConfig.type === RPC) {
       try {
         const blockExplorer = findBlockExplorerForRpc(
           definitiveProviderConfig.rpcUrl,
@@ -68,15 +64,6 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
           baseUrl: '',
         });
       }
-    } else if (isNonEvmSelected) {
-      // TODO: [SOLANA] Revisit this before shipping, swaps team block explorer
-      setExplorer({
-        name: networkName,
-        value: chainId,
-        isValid: true,
-        isRPC: false,
-        baseUrl: nonEvmBlockExplorerUrl,
-      });
     } else {
       setExplorer({
         name: 'Etherscan',
@@ -91,7 +78,6 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
     providerConfig,
     providerConfigTokenExplorer,
     chainId,
-    isNonEvmSelected,
     networkName,
     nonEvmBlockExplorerUrl,
   ]);

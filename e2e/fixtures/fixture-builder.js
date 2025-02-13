@@ -441,7 +441,7 @@ class FixtureBuilder {
                 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
               multichainNetworksMetadata: {},
               multichainNetworkConfigurationsByChainId: {},
-              nonEvmSelected: false,
+              isEvmSelected: true,
             },
           },
         },
