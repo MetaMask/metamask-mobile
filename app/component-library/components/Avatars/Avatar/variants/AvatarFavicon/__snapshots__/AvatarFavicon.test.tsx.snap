@@ -2,7 +2,7 @@
 
 exports[`AvatarFavicon should match the snapshot 1`] = `
 <AvatarBase
-  size="32"
+  size="md"
   style={{}}
 >
   <Image
@@ -27,7 +27,7 @@ exports[`AvatarFavicon should match the snapshot 1`] = `
 
 exports[`AvatarFavicon should render SVG 1`] = `
 <AvatarBase
-  size="32"
+  size="md"
   style={{}}
 >
   <Image
@@ -52,7 +52,7 @@ exports[`AvatarFavicon should render SVG 1`] = `
 
 exports[`AvatarFavicon should render fallback when svg has error 1`] = `
 <AvatarBase
-  size="32"
+  size="md"
   style={{}}
 >
   <Image

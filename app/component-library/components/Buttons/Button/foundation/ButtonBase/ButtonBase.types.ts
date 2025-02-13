@@ -1,5 +1,10 @@
 // Third party dependencies.
-import { ColorValue, TouchableOpacityProps } from 'react-native';
+import {
+  ColorValue,
+  StyleProp,
+  TextStyle,
+  TouchableOpacityProps,
+} from 'react-native';
 
 // External dependencies.
 import { IconProps } from '../../../../Icons/Icon';
@@ -55,6 +60,10 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * An optional loading state of Button.
    */
   loading?: boolean;
+  /**
+   * An optional text props of Button.
+   */
+  textProps?: StyleProp<TextStyle>;
 }
 
 /**

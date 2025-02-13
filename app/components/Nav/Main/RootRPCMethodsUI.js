@@ -74,6 +74,7 @@ import { updateSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapsDialogApproval';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
@@ -335,7 +336,7 @@ const RootRPCMethodsUI = (props) => {
               transactionId: transactionMeta.id,
               deviceId,
               // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => { },
+              onConfirmationComplete: () => {},
               type: 'signTransaction',
             }),
           );
@@ -405,7 +406,8 @@ const RootRPCMethodsUI = (props) => {
           data &&
           data !== '0x' &&
           to &&
-          (await getMethodData(data, networkClientId)).name === TOKEN_METHOD_TRANSFER
+          (await getMethodData(data, networkClientId)).name ===
+            TOKEN_METHOD_TRANSFER
         ) {
           let asset = props.tokens.find(({ address }) =>
             toLowerCaseEquals(address, to),
@@ -534,6 +536,7 @@ const RootRPCMethodsUI = (props) => {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       }
       <InstallSnapApproval />
+      <SnapDialogApproval />
       {
         ///: END:ONLY_INCLUDE_IF
       }

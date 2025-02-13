@@ -102,17 +102,18 @@ exports[`Tabs should render correctly 1`] = `
                   }
                 }
               >
-                <SvgMock
-                  color="#141618"
-                  height={20}
-                  name="Global"
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={{}}
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "flex": 1,
+                      "height": undefined,
+                      "width": undefined,
                     }
                   }
-                  width={20}
+                  testID="favicon-avatar-image"
                 />
               </View>
               <Text
