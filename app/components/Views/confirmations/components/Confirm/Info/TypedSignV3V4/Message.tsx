@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
 import { Hex, isValidHexAddress } from '@metamask/utils';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
+import Text from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { useTypedSignSimulationEnabled } from '../../../../hooks/useTypedSignSimulationEnabled';
 import { parseSanitizeTypedDataMessage } from '../../../../utils/signature';
