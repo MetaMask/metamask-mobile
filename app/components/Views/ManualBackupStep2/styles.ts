@@ -9,6 +9,7 @@ const createStyles = (colors: any) =>
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+      marginTop: 15,
     },
     wrapper: {
       flex: 1,
