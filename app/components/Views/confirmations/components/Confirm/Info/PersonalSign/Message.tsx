@@ -14,6 +14,7 @@ import Address from '../../../UI/InfoRow/InfoValue/Address';
 import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
 import InfoDate from '../../../UI/InfoRow/InfoValue/InfoDate';
 import InfoRow from '../../../UI/InfoRow';
+import InfoText from '../../../UI/InfoRow/InfoValue/InfoText';
 import Network from '../../../UI/InfoRow/InfoValue/Network';
 import SignatureMessageSection from '../../SignatureMessageSection';
 
@@ -87,7 +88,7 @@ const DetailedSIWEMessage = ({
       {resources && (
         <InfoRow label={strings('confirm.siwe_message.resources')}>
           {resources.map((resource, index) => (
-            <Text key={`resource-${index}`}>{resource}</Text>
+            <InfoText key={`resource-${index}`}>{resource}</InfoText>
           ))}
         </InfoRow>
       )}

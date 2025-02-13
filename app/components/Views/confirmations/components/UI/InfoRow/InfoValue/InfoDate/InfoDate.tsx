@@ -1,14 +1,14 @@
 import React from 'react';
-import { Text } from 'react-native';
 
 import { formatUTCDateFromUnixTimestamp } from '../../../../../utils/date';
+import InfoText from '../InfoText';
 
 interface InfoDateProps {
   unixTimestamp: number;
 }
 
 const InfoDate = ({ unixTimestamp }: InfoDateProps) => (
-  <Text>{formatUTCDateFromUnixTimestamp(unixTimestamp)}</Text>
+  <InfoText>{formatUTCDateFromUnixTimestamp(unixTimestamp) as string}</InfoText>
 );
 
 export default InfoDate;

@@ -28,7 +28,7 @@ const TextWithTooltip = ({
   return (
     <View>
       <TouchableOpacity onPress={() => setTooltipVisible(true)}>
-        <Text>{text}</Text>
+        <Text style={styles.text}>{text}</Text>
       </TouchableOpacity>
       {isTooltipVisible && (
         <BottomModal onClose={() => setTooltipVisible(false)}>

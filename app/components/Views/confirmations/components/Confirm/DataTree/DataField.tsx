@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Hex, isValidHexAddress } from '@metamask/utils';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { startCase } from 'lodash';
 
 import { strings } from '../../../../../../../locales/i18n';
@@ -13,6 +13,7 @@ import {
 import Address from '../../UI/InfoRow/InfoValue/Address';
 import InfoDate from '../../UI/InfoRow/InfoValue/InfoDate';
 import InfoRow from '../../UI/InfoRow';
+import InfoText from '../../UI/InfoRow/InfoValue/InfoText';
 import TokenValue from '../../UI/InfoRow/InfoValue/TokenValue';
 import DataTree from './DataTree';
 
@@ -102,7 +103,7 @@ const DataField = memo(
 
       fieldDisplay =
         intValue === NONE_DATE_VALUE ? (
-          <Text>{strings('confirm.none')}</Text>
+          <InfoText>{strings('confirm.none')}</InfoText>
         ) : (
           <InfoDate unixTimestamp={parseInt(value, 10)} />
         );
@@ -119,7 +120,7 @@ const DataField = memo(
         />
       );
     } else {
-      fieldDisplay = <Text>{value}</Text>;
+      fieldDisplay = <InfoText>{value}</InfoText>;
     }
     return (
       <View style={styles.container}>

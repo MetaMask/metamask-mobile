@@ -25,6 +25,11 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 40,
       paddingBottom: 56,
     },
+    text: {
+      color: theme.colors.text.default,
+      ...fontStyles.normal,
+      fontSize: 14,
+    },
   });
 };
 
