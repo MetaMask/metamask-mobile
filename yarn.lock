@@ -5106,6 +5106,19 @@
     jsonschema "^1.2.4"
     uuid "^8.3.2"
 
+"@metamask/message-manager@^12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-12.0.0.tgz#c7b439f726d80ea2d589b6e24cd7e62e03c79d0a"
+  integrity sha512-WRGHoGyY5hOqZsFUVniWyPKM3jr04+ek4xMkqd8pvlZ1eHFmud1IKDnRhsElSp8ibN8NU7nrbqSAnemmmMu3qA==
+  dependencies:
+    "@metamask/base-controller" "^7.1.1"
+    "@metamask/controller-utils" "^11.4.5"
+    "@metamask/eth-sig-util" "^8.0.0"
+    "@metamask/utils" "^11.0.1"
+    "@types/uuid" "^8.3.0"
+    jsonschema "^1.4.1"
+    uuid "^8.3.2"
+
 "@metamask/message-signing-snap@^0.3.3":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@metamask/message-signing-snap/-/message-signing-snap-0.3.3.tgz#0c37814baa7bb58c2b8bc84caa08b247ba78067b"
@@ -28503,6 +28516,11 @@ uint8arrays@^3.0.0:
   integrity sha512-+QJa8QRnbdXVpHYjLoTpJIdCTiw9Ir62nocClWuXIq2JIh4Uta0cQsTSpFL678p2CN8B+XSApwcU+pQEqVpKWg==
   dependencies:
     multiformats "^9.4.2"
+
+ulid@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/ulid/-/ulid-2.3.0.tgz#93063522771a9774121a84d126ecd3eb9804071f"
+  integrity sha512-keqHubrlpvT6G2wH0OEfSW4mquYRcbe/J8NMmveoQOjUqmo+hXtO+ORCpWhdbZ7k72UtY61BL7haGxW6enBnjw==
 
 unbox-primitive@^1.0.2:
   version "1.0.2"
