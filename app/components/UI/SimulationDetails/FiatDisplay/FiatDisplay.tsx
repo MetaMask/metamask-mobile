@@ -37,8 +37,11 @@ const FiatNotAvailableDisplay: React.FC = () => {
 
 export function calculateTotalFiat(fiatAmounts: FiatAmount[]): BigNumber {
   return fiatAmounts.reduce(
-    (total: BigNumber, fiat) => total.plus(fiat === FIAT_UNAVAILABLE ? new BigNumber(0) : new BigNumber(fiat)),
-    new BigNumber(0)
+    (total: BigNumber, fiat) =>
+      total.plus(
+        fiat === FIAT_UNAVAILABLE ? new BigNumber(0) : new BigNumber(fiat),
+      ),
+    new BigNumber(0),
   );
 }
 
