@@ -642,6 +642,8 @@ export class Engine {
         AccountsControllerSetSelectedAccountAction,
         AccountsControllerGetAccountByAddressAction,
         AccountsControllerSetAccountNameAction,
+        SnapControllerHandleRequestAction,
+        SnapControllerGetSnapAction,
       ],
       allowedEvents: [],
     });
