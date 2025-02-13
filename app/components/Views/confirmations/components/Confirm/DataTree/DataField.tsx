@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { startCase } from 'lodash';
 
 import { strings } from '../../../../../../../locales/i18n';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import { NONE_DATE_VALUE } from '../../../utils/date';
 import {
   PRIMARY_TYPES_ORDER,
@@ -13,7 +14,6 @@ import {
 import Address from '../../UI/InfoRow/InfoValue/Address';
 import InfoDate from '../../UI/InfoRow/InfoValue/InfoDate';
 import InfoRow from '../../UI/InfoRow';
-import InfoText from '../../UI/InfoRow/InfoValue/InfoText';
 import TokenValue from '../../UI/InfoRow/InfoValue/TokenValue';
 import DataTree from './DataTree';
 
@@ -103,7 +103,7 @@ const DataField = memo(
 
       fieldDisplay =
         intValue === NONE_DATE_VALUE ? (
-          <InfoText>{strings('confirm.none')}</InfoText>
+          <Text>{strings('confirm.none')}</Text>
         ) : (
           <InfoDate unixTimestamp={parseInt(value, 10)} />
         );
@@ -120,7 +120,7 @@ const DataField = memo(
         />
       );
     } else {
-      fieldDisplay = <InfoText>{value}</InfoText>;
+      fieldDisplay = <Text>{value}</Text>;
     }
     return (
       <View style={styles.container}>

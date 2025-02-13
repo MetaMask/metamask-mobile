@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
+import { StyleProp, StyleSheet, TextStyle, View } from 'react-native';
 import { hexToText } from '@metamask/controller-utils';
 import { numberToHex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../../locales/i18n';
+import Text from '../../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../../styles/common';
 import { useStyles } from '../../../../../../../component-library/hooks';
@@ -14,7 +15,6 @@ import Address from '../../../UI/InfoRow/InfoValue/Address';
 import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
 import InfoDate from '../../../UI/InfoRow/InfoValue/InfoDate';
 import InfoRow from '../../../UI/InfoRow';
-import InfoText from '../../../UI/InfoRow/InfoValue/InfoText';
 import Network from '../../../UI/InfoRow/InfoValue/Network';
 import SignatureMessageSection from '../../SignatureMessageSection';
 
@@ -88,7 +88,7 @@ const DetailedSIWEMessage = ({
       {resources && (
         <InfoRow label={strings('confirm.siwe_message.resources')}>
           {resources.map((resource, index) => (
-            <InfoText key={`resource-${index}`}>{resource}</InfoText>
+            <Text key={`resource-${index}`}>{resource}</Text>
           ))}
         </InfoRow>
       )}
