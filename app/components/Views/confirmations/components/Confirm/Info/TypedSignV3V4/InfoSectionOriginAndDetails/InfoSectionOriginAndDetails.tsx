@@ -52,7 +52,7 @@ export const InfoSectionOriginAndDetails = () => {
         </>
       )}
       <InfoRow
-        label={strings('confirm.request_from')}
+        label={strings('confirm.label.request_from')}
         tooltip={strings('confirm.personal_sign_tooltip')}
       >
         <DisplayURL url={origin} />
