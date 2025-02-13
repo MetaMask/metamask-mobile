@@ -6,6 +6,13 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import * as QRHardwareHook from '../context/QRHardwareContext/QRHardwareContext';
 import { useConfirmActions } from './useConfirmActions';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
@@ -31,12 +38,10 @@ describe('useConfirmAction', () => {
       'clearSignatureSecurityAlertResponse',
     );
     const mockSetScannerVisible = jest.fn().mockResolvedValue(undefined);
-    jest
-      .spyOn(QRHardwareHook, 'useQRHardwareContext')
-      .mockReturnValue({
-        isQRSigningInProgress: true,
-        setScannerVisible: mockSetScannerVisible,
-      } as unknown as QRHardwareHook.QRHardwareContextType);
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      isQRSigningInProgress: true,
+      setScannerVisible: mockSetScannerVisible,
+    } as unknown as QRHardwareHook.QRHardwareContextType);
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });
@@ -72,11 +77,9 @@ describe('useConfirmAction', () => {
     const mockCancelQRScanRequestIfPresent = jest
       .fn()
       .mockResolvedValue(undefined);
-    jest
-      .spyOn(QRHardwareHook, 'useQRHardwareContext')
-      .mockReturnValue({
-        cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
-      } as unknown as QRHardwareHook.QRHardwareContextType);
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
+    } as unknown as QRHardwareHook.QRHardwareContextType);
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });

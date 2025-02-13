@@ -144,6 +144,7 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import { Confirm } from '../../Views/confirmations/Confirm';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -577,6 +578,24 @@ const ConnectHardwareWalletFlow = () => (
       component={SelectHardwareWallet}
       options={SelectHardwareWallet.navigationOptions}
     />
+  </Stack.Navigator>
+);
+
+const ConfirmRequest = () => (
+  <Stack.Navigator mode={'modal'}>
+    <Stack.Screen name={Routes.CONFIRM_FLAT_PAGE} component={Confirm} />
+  </Stack.Navigator>
+);
+
+const ConfirmDappRequest = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+    mode={'modal'}
+  >
+    <Stack.Screen name={Routes.CONFIRM_MODAL} component={Confirm} />
   </Stack.Navigator>
 );
 
@@ -1016,6 +1035,16 @@ const App = (props) => {
             name={Routes.LOCK_SCREEN}
             component={LockScreen}
             options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen
+            name={Routes.CONFIRM_FLAT_PAGE}
+            component={ConfirmRequest}
+            options={{ animationEnabled: true }}
+          />
+          <Stack.Screen
+            name={Routes.CONFIRM_MODAL}
+            component={ConfirmDappRequest}
+            options={{ animationEnabled: true }}
           />
         </Stack.Navigator>
       </NavigationContainer>
