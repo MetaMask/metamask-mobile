@@ -3,14 +3,14 @@
 import { decode, encode } from 'base-64';
 import {
   FIXTURE_SERVER_PORT,
-  isTest,
+  isE2E,
   testConfig,
 } from './app/util/test/utils.js';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
 
 // In a testing environment, assign the fixtureServerPort to use a deterministic port
-if (isTest) {
+if (isE2E) {
   const raw = LaunchArguments.value();
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
@@ -59,7 +59,7 @@ if (typeof localStorage !== 'undefined') {
 // crypto is loaded first, so it can populate global.crypto
 // require('crypto')
 
-if (isTest) {
+if (isE2E) {
   (async () => {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;

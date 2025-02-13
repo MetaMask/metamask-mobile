@@ -50,7 +50,7 @@ import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { passwordRequirementsMet } from '../../../util/password';
 import { Authentication } from '../../../core/';
 
-import { isTest } from '../../../util/test/utils';
+import { isE2E } from '../../../util/test/utils';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isHardwareAccount } from '../../../util/address';
@@ -517,7 +517,7 @@ const RevealPrivateCredential = ({
               </Text>
             </TouchableOpacity>
           </Text>
-          {isTest ? (
+          {isE2E ? (
             <Button
               label={strings('reveal_credential.reveal_credential', {
                 credentialName: isPrivateKeyReveal

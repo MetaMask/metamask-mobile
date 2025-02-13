@@ -20,7 +20,7 @@ Detox serves as our primary mobile automation framework, with most of our tests 
 #### Setup and Execution
 
 - **Test Wallet**: Requires a wallet with access to testnet and mainnet. On Bitrise CI, this wallet is created using a secret recovery phrase from environment variables. For local testing, retrieve the phrase from the `.e2e.env` file.
-- **Environment Variable**: Set `IS_TEST='true'` to enable the test environment. Refer to the `.e2e.env` file in the mobile 1Password vault for the complete list of environment variables.
+- **Environment Variable**: Set `IS_E2E='true'` to enable the test environment. Refer to the `.e2e.env` file in the mobile 1Password vault for the complete list of environment variables.
 - **Warning Logs**: Warning logs may sometimes cause test failures by interfering with automation interactions. To prevent this, disable warning logs during test execution.
 
 #### Default Devices

@@ -17,7 +17,7 @@ import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/Sn
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
-import { isTest } from '../../../util/test/utils';
+import { isE2E } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 
 const createStyles = (colors: Colors) =>
@@ -273,7 +273,7 @@ const Settings = () => {
          *
          * If this is shown in production, it is a bug.
          */
-        isTest && (
+        isE2E && (
           <SettingsDrawer
             title={strings('app_settings.aes_crypto_test_form_title')}
             description={strings(

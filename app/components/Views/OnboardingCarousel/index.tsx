@@ -27,7 +27,7 @@ import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-object
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { isTest } from '../../../util/test/utils';
+import { isE2E } from '../../../util/test/utils';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Dispatch } from 'redux';
 import {
@@ -250,7 +250,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                       <Text style={styles.title}>
                         {strings(`onboarding_carousel.title${key}`)}
                       </Text>
-                      {isTest && (
+                      {isE2E && (
                         // This Text component is used to grab the App Start Time for our E2E test
                         // ColdStartToOnboardingScreen.feature
                         <Text

@@ -40,7 +40,7 @@ import {
 } from '../../../components/hooks/useMetrics';
 import AppConstants from '../../../core/AppConstants';
 import { useSelector } from 'react-redux';
-import { isTest } from '../../../util/test/utils';
+import { isE2E } from '../../../util/test/utils';
 // eslint-disable-next-line import/no-commonjs
 const WarningIcon = require('./warning-icon.png');
 
@@ -270,7 +270,7 @@ export const Fallback = (props) => {
         }
       />
 
-      {isTest && (
+      {isE2E && (
         <Text style={styles.text}>
           <Text onPress={props.showExportSeedphrase} style={styles.link}>
             {strings('error_screen.save_seedphrase_2')}

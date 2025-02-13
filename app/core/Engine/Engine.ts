@@ -1055,7 +1055,7 @@ export class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       env: {
-        isAccountSyncingEnabled: Boolean(process.env.IS_TEST),
+        isAccountSyncingEnabled: Boolean(process.env.IS_E2E),
       },
       config: {
         accountSyncing: {

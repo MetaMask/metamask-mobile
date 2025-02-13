@@ -11,7 +11,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { useAppTheme, ThemeContext } from '../../../util/theme';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { isTest } from '../../../util/test/utils';
+import { isE2E } from '../../../util/test/utils';
 
 /**
  * Top level of the component hierarchy
@@ -50,21 +50,21 @@ export default class Root extends PureComponent {
 
     this.state = {
       isLoading: true, // Track loading state
-      isTest,
+      isE2E,
     };
   }
 
   async componentDidMount() {
-    const { isTest } = this.state;
-    if (isTest) {
+    const { isE2E } = this.state;
+    if (isE2E) {
       await this.waitForStore();
       this.setState({ isLoading: false });
     }
   }
 
   render() {
-    const { isTest, isLoading } = this.state;
-    if (isTest && isLoading) {
+    const { isE2E, isLoading } = this.state;
+    if (isE2E && isLoading) {
       return null;
     }
 

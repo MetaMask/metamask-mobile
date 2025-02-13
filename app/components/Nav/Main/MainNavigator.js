@@ -82,7 +82,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
-import { isTest } from '../../../util/test/utils';
+import { isE2E } from '../../../util/test/utils';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
@@ -290,7 +290,7 @@ const SettingsFlow = () => (
        *
        * If this is in production, it is a bug.
        */
-      isTest && (
+      isE2E && (
         <Stack.Screen
           name="AesCryptoTestForm"
           component={AesCryptoTestForm}

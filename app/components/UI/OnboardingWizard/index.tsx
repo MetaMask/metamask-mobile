@@ -23,7 +23,7 @@ import {
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { isTest } from '../../../util/test/utils';
+import { isE2E } from '../../../util/test/utils';
 import { useMetrics } from '../../hooks/useMetrics';
 import { RootState } from '../../../reducers';
 
@@ -118,9 +118,9 @@ const OnboardingWizard = ({
   };
 
   // Since react-native-default-preference is not covered by the fixtures,
-  // when isTest is `true`, if the ONBOARDING_WIZARD is marked as 'explored',
+  // when isE2E is `true`, if the ONBOARDING_WIZARD is marked as 'explored',
   // it indicates that it was provided by fixtures, triggering the call to closeOnboardingWizard().
-  if (isTest && step === 1) {
+  if (isE2E && step === 1) {
     const inTestCloseOnboardingWizard = async () => {
       const wizardStep = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (wizardStep === EXPLORED) {

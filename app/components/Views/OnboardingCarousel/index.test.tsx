@@ -7,7 +7,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 jest.mock('../../../util/test/utils', () => ({
-  isTest: true,
+  isE2E: true,
 }));
 
 const mockNavigate: jest.Mock = jest.fn();
@@ -26,7 +26,7 @@ describe('OnboardingCarousel', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-    it('should render the App Start Time text when isTest is true', async () => {
+    it('should render the App Start Time text when isE2E is true', async () => {
       const { toJSON, getByTestId } = renderWithProvider(
         <OnboardingCarousel navigation={mockNavigation}/>
       );

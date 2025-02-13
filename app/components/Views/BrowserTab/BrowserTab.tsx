@@ -73,7 +73,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
-import { isTest } from '../../../util/test/utils.js';
+import { isE2E } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
@@ -1368,7 +1368,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                     testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                     applicationNameForUserAgent={'WebView MetaMaskMobile'}
                     onFileDownload={handleOnFileDownload}
-                    webviewDebuggingEnabled={isTest}
+                    webviewDebuggingEnabled={isE2E}
                   />
                   {ipfsBannerVisible && (
                     <IpfsBanner setIpfsBannerVisible={setIpfsBannerVisible} />
