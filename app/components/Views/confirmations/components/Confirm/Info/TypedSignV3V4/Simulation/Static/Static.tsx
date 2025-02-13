@@ -10,10 +10,6 @@ const styleSheet = () => StyleSheet.create({
     display: 'flex',
     justifyContent: 'space-between',
   },
-  activityIndicator: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
 });
 
 const StaticSimulation: React.FC<{
@@ -41,7 +37,6 @@ const StaticSimulation: React.FC<{
         </InfoRow>
         {isLoading ? (
           <ActivityIndicator
-            style={styles.activityIndicator}
             size="small"
             color={theme.colors.warning.default}
           />
