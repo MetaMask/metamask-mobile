@@ -37,6 +37,11 @@ import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsM
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
+import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller/dist/utils/user-segmentation-utils.cjs';
+
+// in order to reduce the number of events sent to Segment
+// we only track 1% (.01) of the users' events
+const SEGMENT_EVENTS_PORTION_TO_TRACK = 0.01;
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -660,6 +665,16 @@ class MetaMetrics implements IMetaMetrics {
     saveDataRecording: boolean = true,
   ): void {
     if (!this.enabled) {
+      return;
+    }
+
+    // generate a random number based on the metaMetricsId
+    const metaMetricsIdRandomNumber = generateDeterministicRandomNumber(
+      this.metametricsId ?? '',
+    );
+
+    // early exit if not within portion range to track
+    if (metaMetricsIdRandomNumber > SEGMENT_EVENTS_PORTION_TO_TRACK) {
       return;
     }
 
