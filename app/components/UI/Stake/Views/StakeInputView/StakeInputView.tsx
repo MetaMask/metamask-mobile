@@ -26,9 +26,11 @@ import { formatEther } from 'ethers/lib/utils';
 import { EVENT_PROVIDERS, EVENT_LOCATIONS } from '../../constants/events';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { StakeInputViewProps } from './StakeInputView.types';
+import { getStakeInputViewTitle } from './utils';
+import { isStablecoinLendingFeatureEnabled } from '../../constants';
 
-const StakeInputView = () => {
-  const title = strings('stake.stake_eth');
+const StakeInputView = ({ route }: StakeInputViewProps) => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -169,6 +171,14 @@ const StakeInputView = () => {
     : strings('stake.review');
 
   useEffect(() => {
+    const title = isStablecoinLendingFeatureEnabled()
+      ? getStakeInputViewTitle(
+          route?.params?.action,
+          route?.params?.token.symbol,
+          route?.params?.token.isETH,
+        )
+      : strings('stake.stake_eth');
+
     navigation.setOptions(
       getStakingNavbar(
         title,
@@ -188,7 +198,7 @@ const StakeInputView = () => {
         },
       ),
     );
-  }, [navigation, theme.colors, title]);
+  }, [navigation, route.params, theme.colors]);
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();

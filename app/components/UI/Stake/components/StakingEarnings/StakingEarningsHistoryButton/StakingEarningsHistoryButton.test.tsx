@@ -3,7 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { WalletViewSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { MOCK_STAKED_ETH_ASSET } from '../../../__mocks__/mockData';
+import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
 import StakingEarningsHistoryButton from './StakingEarningsHistoryButton';
 
 const mockNavigate = jest.fn();
@@ -20,7 +20,7 @@ jest.mock('@react-navigation/native', () => {
 
 const renderComponent = () =>
   renderWithProvider(
-    <StakingEarningsHistoryButton asset={MOCK_STAKED_ETH_ASSET} />,
+    <StakingEarningsHistoryButton asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
   );
 
 describe('StakingEarningsHistoryButton', () => {
@@ -45,7 +45,7 @@ describe('StakingEarningsHistoryButton', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
         screen: Routes.STAKING.EARNINGS_HISTORY,
-        params: { asset: MOCK_STAKED_ETH_ASSET },
+        params: { asset: MOCK_STAKED_ETH_MAINNET_ASSET },
       });
     });
   });
