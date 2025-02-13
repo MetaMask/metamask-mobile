@@ -37,8 +37,8 @@ interface PermitSimulationValueDisplayParams {
   /** ID of the associated chain. */
   chainId: Hex;
 
-  /** Change type to be displayed in value tooltip */
-  labelChangeType: string;
+  /** Modal header text to be displayed in the value modal */
+  modalHeaderText: string;
 
   /** The token amount */
   value: number | string;
@@ -54,7 +54,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
   chainId,
   credit,
   debit,
-  labelChangeType,
+  modalHeaderText,
   value,
 }) => {
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
@@ -70,7 +70,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
   const isValidTokenAmount = tokenAmount !== null && tokenAmount !== undefined && tokenAmount instanceof BigNumber;
 
   const fiatValue = isValidTokenAmount && conversionRate
-    ? tokenAmount.times(String(conversionRate)).toNumber()
+    ? tokenAmount.times(String(conversionRate))
     : undefined;
 
   const tokenValue = isValidTokenAmount ? formatAmount('en-US', tokenAmount) : null;
@@ -107,15 +107,9 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
           </View>
         </View>
       </View>
-      <View style={styles.fiatDisplay}>
-        {/**
-          TODO - add fiat shorten prop after tooltip logic has been updated
-          {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
-        */}
-        {fiatValue !== undefined && (
-          <IndividualFiatDisplay fiatAmount={fiatValue} />
-        )}
-      </View>
+      {fiatValue !== undefined && (
+        <IndividualFiatDisplay fiatAmount={fiatValue} />
+      )}
       {hasValueModalOpen && (
           /**
            * TODO replace BottomModal instances with BottomSheet
@@ -136,7 +130,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
                     iconName={IconName.ArrowLeft}
                   />
                   <Text style={styles.valueModalHeaderText}>
-                    {labelChangeType}
+                    {modalHeaderText}
                   </Text>
                 </View>
                 <Text style={styles.valueModalText}>

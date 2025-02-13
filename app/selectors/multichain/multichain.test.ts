@@ -284,7 +284,6 @@ describe('MultichainNonEvm Selectors', () => {
       },
     );
   });
-
   describe('selectMultichainShouldShowFiat', () => {
     it('returns true if account is EVM and the network is mainnet', () => {
       const state = getEvmState();

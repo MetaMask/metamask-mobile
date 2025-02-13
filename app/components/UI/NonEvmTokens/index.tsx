@@ -11,7 +11,7 @@ import { TokenI } from '../Tokens/types';
 import { renderFiat } from '../../../util/number';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { Image } from 'react-native';
-import Engine from '../../../core/Engine/Engine';
+import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import {
   MULTICHAIN_PROVIDER_CONFIGS,
