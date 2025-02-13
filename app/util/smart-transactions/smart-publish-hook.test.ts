@@ -146,6 +146,7 @@ function withRequest<ReturnValue>(
   >();
 
   const smartTransactionsController = new SmartTransactionsController({
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     messenger: messenger.getRestricted({
       name: 'SmartTransactionsController',
       allowedActions: ['NetworkController:getNetworkClientById'],
