@@ -55,4 +55,5 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   MultichainBalancesControllerStateChangeEvent,
   RatesControllerStateChangeEvent,
   ///: END:ONLY_INCLUDE_IF
+  'EarnController:stateChange',
 ] as const;

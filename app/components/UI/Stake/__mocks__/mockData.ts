@@ -8,6 +8,8 @@ import {
 import { TokenI } from '../../Tokens/types';
 import { Contract } from 'ethers';
 import { Stake } from '../sdk/stakeSdkProvider';
+import { DeepPartial } from '../../../../util/test/renderWithProvider';
+import { RootState } from '../../../../reducers';
 
 export const MOCK_STAKED_ETH_ASSET = {
   decimals: 18,
@@ -155,4 +157,39 @@ export const MOCK_POOL_STAKING_SDK: Stake = {
   stakingContract: MOCK_POOLED_STAKING_CONTRACT_SERVICE,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
+};
+
+// @metamask/earn-controller mock data
+export const MOCK_POOLED_STAKES_DATA = {
+  account: '0x1234',
+  lifetimeRewards: '100',
+  assets: '1000',
+  exitRequests: [],
+};
+
+export const MOCK_VAULT_DATA = {
+  apy: '5.5',
+  capacity: '1000000',
+  feePercent: 10,
+  totalAssets: '500000',
+  vaultAddress: '0xabcd',
+};
+
+export const MOCK_EXCHANGE_RATE = '1.5';
+
+export const MOCK_EARN_CONTROLLER_STATE: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      EarnController: {
+        lastUpdated: 0,
+        pooled_staking: {
+          isEligible: true,
+          pooledStakes: MOCK_POOLED_STAKES_DATA,
+          vaultData: MOCK_VAULT_DATA,
+          exchangeRate: MOCK_EXCHANGE_RATE,
+        },
+        stablecoin_lending: {},
+      },
+    },
+  },
 };

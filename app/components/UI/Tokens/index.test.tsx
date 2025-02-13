@@ -216,6 +216,11 @@ const initialState = {
           },
         },
       },
+      EarnController: {
+        pooled_staking: {
+          isEligible: true,
+        },
+      },
     },
   },
   settings: {
@@ -240,18 +245,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    isEligible: true,
-    isLoadingEligibility: false,
-    refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
-      isEligible: true,
-    }),
-    error: false,
-  })),
-}));
 
 jest.mock('../../UI/Stake/hooks/useStakingChain', () => ({
   __esModule: true,

@@ -34,7 +34,6 @@ import {
 } from '../../utils/value';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 import StakingCta from './StakingCta/StakingCta';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
 import usePooledStakes from '../../hooks/usePooledStakes';
 import useVaultData from '../../hooks/useVaultData';
@@ -49,6 +48,7 @@ import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import { isPortfolioViewEnabled } from '../../../../../util/networks';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
 
 export interface StakingBalanceProps {
   asset: TokenI;
