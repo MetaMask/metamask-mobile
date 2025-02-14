@@ -5,6 +5,7 @@ import Logger from '../../util/Logger';
 import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
 import { PermissionKeys } from './specifications';
+import { normalizeOrigin } from '../WalletConnect/wc-utils';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -226,7 +227,7 @@ export const getPermittedAccounts = async (
 export const getPermittedChains = async (hostname: string): Promise<string[]> => {
   const { PermissionController } = Engine.context;
   const caveat = PermissionController.getCaveat(
-    hostname,
+    normalizeOrigin(hostname),
     PermissionKeys.permittedChains,
     CaveatTypes.restrictNetworkSwitching
   );

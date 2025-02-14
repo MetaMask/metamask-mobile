@@ -84,7 +84,7 @@ class WalletConnect2Session {
     const icons = session.peer.metadata.icons;
 
     DevLogger.log(
-      `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic}`,
+      `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${url} name=${name} icons=${icons}`,
     );
 
     this.backgroundBridge = backgroundBridgeFactory.create({
