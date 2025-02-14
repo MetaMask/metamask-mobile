@@ -45,11 +45,11 @@ describe('OnboardingCarousel', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render the App Start Time text when isTest is true', async () => {
-    const { toJSON, getByTestId } = renderWithProvider(
-      <OnboardingCarousel navigation={mockNavigation} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
+    it('should render the App Start Time text when isE2E is true', async () => {
+      const { toJSON, getByTestId } = renderWithProvider(
+        <OnboardingCarousel navigation={mockNavigation}/>
+      );
+      expect(toJSON()).toMatchSnapshot();
 
     await waitFor(() => {
       expect(
