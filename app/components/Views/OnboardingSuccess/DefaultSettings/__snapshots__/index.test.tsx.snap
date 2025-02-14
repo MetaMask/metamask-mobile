@@ -59,6 +59,8 @@ exports[`DefaultSettings should render correctly 1`] = `
         style={
           {
             "backgroundColor": "#ffffff",
+            "borderTopColor": "#ffffff",
+            "borderTopWidth": 1,
             "padding": 16,
           }
         }
@@ -153,6 +155,8 @@ exports[`DefaultSettings should render correctly 1`] = `
         style={
           {
             "backgroundColor": "#ffffff",
+            "borderTopColor": "#ffffff",
+            "borderTopWidth": 1,
             "padding": 16,
           }
         }
@@ -247,6 +251,8 @@ exports[`DefaultSettings should render correctly 1`] = `
         style={
           {
             "backgroundColor": "#ffffff",
+            "borderTopColor": "#ffffff",
+            "borderTopWidth": 1,
             "padding": 16,
           }
         }
