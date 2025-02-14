@@ -1,6 +1,13 @@
 import React from 'react';
-import { Text } from 'react-native';
 
-const StakingDeposit = () => <Text>Staking Deposit</Text>;
+import { strings } from '../../../../../../../../locales/i18n';
+import FlatNavHeader from '../../FlatNavHeader';
+import TokenHero from '../../TokenHero';
 
+const StakingDeposit = () => (
+  <>
+    <FlatNavHeader title={strings('stake.stake')} />
+    <TokenHero />
+  </>
+);
 export default StakingDeposit;
