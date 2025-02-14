@@ -97,7 +97,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
-    await AccountListBottomSheet.swipeToDismissAccountsModal();
+    await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
     await Assertions.checkIfVisible(WalletView.container);
   });
 
@@ -191,65 +191,79 @@ describe(SmokeStake('Stake from Actions'), () => {
     await NetworkEducationModal.tapGotItButton();
   });
 
-it('should Stake Claim ETH', async () => {
-  const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`;
-  const response = await axios.get(stakeAPIUrl);
+  it('should Stake Claim ETH', async () => {
+    // ethers.Wallet.createRandom() returns the address in mixed case (EIP-55) format which causes a cache miss.
+    // Converting to lowercase ensures the app uses the mock below.
+    const walletAddressLowercase = wallet.address.toLowerCase();
 
-  if (response.status !== 200) {
-    throw new Error('Error calling Staking API');
-  }
-  const account =  response.data.accounts[0];
-  if (!account.exitRequests[0]) {
-    throw new Error(`No claim entries found for account ${wallet.address}`);
-  }
+    const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${walletAddressLowercase}&resetCache=true`;
+    const response = await axios.get(stakeAPIUrl);
 
-  const testSpecificMock  = {
-    GET: [ {
-        urlEndpoint: stakeAPIUrl,
-        response: {
-          accounts: [
-            {
-              account: account.account,
-              lifetimeRewards: account.lifetimeRewards,
-              assets: account.lifetimeRewards,
-              exitRequests: [
-                {
+    if (response.status !== 200) {
+      throw new Error('Error calling Staking API');
+    }
 
-                  positionTicket: account.exitRequests[0].positionTicket,
-                  timestamp: '1737657204000',
-                  totalShares: account.exitRequests[0].totalShares,
-                  withdrawalTimestamp: '0',
-                  exitQueueIndex: '157',
-                  claimedAssets: '36968822284547795',
-                  leftShares: '0'
-                },
-              ]
-            }
-          ]
+    const account = response.data.accounts[0];
+
+    if (!account.exitRequests[0]) {
+      throw new Error(
+        `No claim entries found for account ${walletAddressLowercase}`,
+      );
+    }
+
+    const testSpecificMock = {
+      GET: [
+        {
+          urlEndpoint: stakeAPIUrl,
+          response: {
+            accounts: [
+              {
+                account: wallet.address,
+                lifetimeRewards: account.lifetimeRewards,
+                assets: account.lifetimeRewards,
+                exitRequests: [
+                  {
+                    positionTicket: account.exitRequests[0].positionTicket,
+                    timestamp: '1737657204000',
+                    totalShares: account.exitRequests[0].totalShares,
+                    withdrawalTimestamp: '0',
+                    exitQueueIndex: '157',
+                    claimedAssets: '36968822284547795',
+                    leftShares: '0',
+                  },
+                ],
+              },
+            ],
+          },
+          responseCode: 200,
         },
-        responseCode: 200,
+      ],
+    };
+    await device.terminateApp();
+
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+
+    await TestHelpers.launchApp({
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        mockServerPort: `${mockServerPort}`,
       },
-    ],
-  };
-  await device.terminateApp();
-
-
-  const mockServerPort = getMockServerPort();
-  mockServer = await startMockServer(testSpecificMock, mockServerPort);
-
-  await TestHelpers.launchApp({
-    launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`,  mockServerPort: `${mockServerPort}`, },
-  });
-  await loginToApp();
-  await WalletView.tapOnStakedEthereum();
-  await TokenOverview.scrollOnScreen();
-  await TestHelpers.delay(3000);
-  await TokenOverview.tapClaimButton();
-  await StakeConfirmView.tapConfirmButton();
-  await TokenOverview.tapBackButton();
-  await TabBarComponent.tapActivity();
-  await Assertions.checkIfVisible(ActivitiesView.title);
-  await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
-  await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
+    });
+    await loginToApp();
+    await WalletView.tapOnStakedEthereum();
+    await TokenOverview.scrollOnScreen();
+    await TestHelpers.delay(3000);
+    await TokenOverview.tapClaimButton();
+    await StakeConfirmView.tapConfirmButton();
+    await TokenOverview.tapBackButton();
+    await TabBarComponent.tapActivity();
+    await Assertions.checkIfVisible(ActivitiesView.title);
+    await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
+    await Assertions.checkIfElementToHaveText(
+      ActivitiesView.transactionStatus(FIRST_ROW),
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      120000,
+    );
   });
 });
