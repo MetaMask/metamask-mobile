@@ -196,7 +196,7 @@ describe('NotificationManager', () => {
         status: SmartTransactionStatuses.PENDING,
         transactionId: '0x123',
       };
-      
+
       notificationManager.watchSubmittedTransaction({ 
         id: '0x123',
         txParams: {
@@ -256,14 +256,14 @@ describe('NotificationManager', () => {
         transactionId: '0x123',
       };
 
-      notificationManager.watchSubmittedTransaction({
+      notificationManager.watchSubmittedTransaction({ 
         id: '0x123',
         txParams: {
           nonce: '0x1'
         },
         silent: false
       });
-
+      
       // Get the subscriber callback
       const subscriberCallback = mockControllerMessenger.subscribe.mock.calls[0][1];
       await subscriberCallback(transaction);
@@ -275,7 +275,7 @@ describe('NotificationManager', () => {
     });
 
     it('sets up transaction event listeners correctly', () => {
-      const transaction = {
+      const transaction = { 
         id: '0x123',
         txParams: {
           nonce: '0x1'
