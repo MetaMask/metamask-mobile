@@ -220,7 +220,7 @@ const EarnTokenList = () => {
           {strings('stake.select_a_token')}
         </Text>
       </BottomSheetHeader>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         {supportedStablecoins?.length ? (
           <>
             <UpsellBanner
@@ -229,40 +229,38 @@ const EarnTokenList = () => {
               tertiaryText={strings('stake.per_year_on_your_tokens')}
               variant={UPSELL_BANNER_VARIANTS.HEADER}
             />
-            <ScrollView>
-              {supportedStablecoins?.map(
-                (token, index) =>
-                  token?.chainId && (
-                    <View
-                      style={styles.listItemContainer}
-                      key={`${token.name}-${token.symbol}-${index}`}
-                    >
-                      <EarnTokenListItem
-                        token={token}
-                        onPress={handleRedirectToInputScreen}
-                        primaryText={{
-                          value: `${new BigNumber(
-                            MOCK_STABLECOIN_API_RESPONSE[token.symbol],
-                          ).toFixed(1, BigNumber.ROUND_DOWN)}% ${strings(
-                            'stake.apr',
-                          )}`,
-                          color: TextColor.Success,
-                        }}
-                        {...(!isEmptyBalance(token) && {
-                          secondaryText: {
-                            value: token.tokenBalanceFormatted,
-                          },
-                        })}
-                      />
-                    </View>
-                  ),
-              )}
-            </ScrollView>
+            {supportedStablecoins?.map(
+              (token, index) =>
+                token?.chainId && (
+                  <View
+                    style={styles.listItemContainer}
+                    key={`${token.name}-${token.symbol}-${index}`}
+                  >
+                    <EarnTokenListItem
+                      token={token}
+                      onPress={handleRedirectToInputScreen}
+                      primaryText={{
+                        value: `${new BigNumber(
+                          MOCK_STABLECOIN_API_RESPONSE[token.symbol],
+                        ).toFixed(1, BigNumber.ROUND_DOWN)}% ${strings(
+                          'stake.apr',
+                        )}`,
+                        color: TextColor.Success,
+                      }}
+                      {...(!isEmptyBalance(token) && {
+                        secondaryText: {
+                          value: token.tokenBalanceFormatted,
+                        },
+                      })}
+                    />
+                  </View>
+                ),
+            )}
           </>
         ) : (
           <EarnTokenListSkeletonPlaceholder />
         )}
-      </View>
+      </ScrollView>
     </BottomSheet>
   );
 };
