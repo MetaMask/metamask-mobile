@@ -26,6 +26,5 @@ export const row: UIComponentFactory<RowElement> = ({
     label: element.props.label,
     variant: element.props.variant,
     tooltip: element.props.tooltip,
-    ...(element.props as ViewProps),
   },
 });
