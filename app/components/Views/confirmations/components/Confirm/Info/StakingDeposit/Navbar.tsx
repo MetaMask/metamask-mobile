@@ -25,7 +25,9 @@ export function getStakingDepositNavbar({
   });
 
   function handleBackPress() {
-    onReject();
+    if (onReject) {
+      onReject();
+    }
   }
 
   return {
@@ -40,6 +42,7 @@ export function getStakingDepositNavbar({
         iconName={IconName.ArrowLeft}
         onPress={handleBackPress}
         style={innerStyles.headerLeft}
+        testID="staking-deposit-navbar-back-button"
       />
     ),
   };
