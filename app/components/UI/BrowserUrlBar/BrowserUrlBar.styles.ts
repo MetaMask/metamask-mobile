@@ -55,6 +55,13 @@ const styleSheet = ({
       ...fontStyles.normal,
     },
     rightButton: { height: 50, justifyContent: 'center' },
+    accountRightButtion: {
+      marginTop: 12,
+      marginRight: 16,
+      marginBottom: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
   });
 
 export default styleSheet;

@@ -46,6 +46,7 @@ const AccountRightButton = ({
   selectedAddress,
   onPress,
   isNetworkVisible,
+  style,
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
@@ -148,6 +149,7 @@ const AccountRightButton = ({
     <TouchableOpacity
       onPress={handleButtonPress}
       testID={AccountOverviewSelectorsIDs.ACCOUNT_BUTTON}
+      style={style}
     >
       <TextInput style={styles.placeholderInput} ref={placeholderInputRef} />
       {selectedAddress ? (

@@ -231,6 +231,15 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
   >
     <TouchableOpacity
       onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "marginBottom": 12,
+          "marginRight": 16,
+          "marginTop": 12,
+        }
+      }
       testID="navbar-account-button"
     >
       <TextInput
