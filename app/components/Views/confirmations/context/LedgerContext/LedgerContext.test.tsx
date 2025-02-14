@@ -9,6 +9,13 @@ import { personalSignatureConfirmationState } from '../../../../../util/test/con
 import Footer from '../../components/Confirm/Footer';
 import { fireEvent } from '@testing-library/react-native';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
