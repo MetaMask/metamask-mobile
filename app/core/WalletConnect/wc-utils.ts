@@ -207,21 +207,16 @@ export const checkWCPermissions = async ({ origin, caip2ChainId } : { origin: st
   const decimalChainId = caip2ChainId.split(':')[1];
   const hexChainIdString = `0x${parseInt(decimalChainId, 10).toString(16)}`;
 
-  DevLogger.log(`WC::checkWCPermissions netowrkConfiguration`, JSON.stringify(networkConfigurations, null, 2));
-
   const existingNetwork = findExistingNetwork(hexChainIdString, networkConfigurations);
-  const exist2 = findExistingNetwork(decimalChainId, networkConfigurations);
 
   const permittedChains = await getPermittedChains(origin);
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
   const providerConfig = selectProviderConfig(store.getState());
   const activeCaip2ChainId = `${EVM_IDENTIFIER}:${parseInt(providerConfig.chainId, 16)}`;
 
-  DevLogger.log(`WC::checkWCPermissions hexChainId=${hexChainIdString} decimalChainId=${decimalChainId}`);
   DevLogger.log(`WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`);
-  DevLogger.log(`WC::checkWCPermissions existingNetwork=${existingNetwork} exist2=${exist2}`);
 
-  if(!existingNetwork && !exist2) {
+  if(!existingNetwork) {
     DevLogger.log(`WC::checkWCPermissions no existing network found`);
     throw rpcErrors.invalidParams({
       message: `Invalid parameters: active chainId is different than the one provided.`,
