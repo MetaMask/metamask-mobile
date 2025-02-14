@@ -14,7 +14,7 @@ const StakingDeposit = () => {
 
   useEffect(() => {
     navigation.setOptions(getStakingDepositNavbar({ title, onReject }));
-  }, [navigation, title]);
+  }, [navigation, onReject, title]);
 
   return (
     <>
