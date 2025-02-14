@@ -452,6 +452,21 @@ export const stakingDepositConfirmationState = {
         pendingApprovalCount: 1,
         approvalFlows: [],
       },
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionDate: 1732887955.694,
+            conversionRate: 3596.25,
+            usdConversionRate: 3596.25,
+          },
+          LineaETH: {
+            conversionDate: 1732887955.694,
+            conversionRate: 3596.25,
+            usdConversionRate: 3596.25,
+          },
+        },
+      },
       TransactionController: {
         transactions: [
           {

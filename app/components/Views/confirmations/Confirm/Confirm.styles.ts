@@ -40,8 +40,8 @@ const styleSheet = (params: {
       minHeight: '100%',
     },
     scrollWrapper: {
-      minHeight: isFlatConfirmation ? '80%' : '75%',
-      maxHeight: isFlatConfirmation ? '80%' : '75%',
+      minHeight: isFlatConfirmation ? '100%' : '75%',
+      maxHeight: isFlatConfirmation ? '100%' : '75%',
       margin: 0,
     },
   });

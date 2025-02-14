@@ -110,20 +110,20 @@ const StateChangeRow = ({
     (changeType === DecodingDataChangeType.Approve ||
       changeType === DecodingDataChangeType.Revoke);
 
-  const changeLabel = shouldDisplayLabel
+  const labelChangeType = shouldDisplayLabel
     ? getStateChangeLabelMap(changeType, nftTransactionType)
     : '';
 
   return (
     <InfoRow
-      label={changeLabel}
+      label={labelChangeType}
       tooltip={tooltip}
     >
       {(assetType === TokenStandard.ERC20 ||
         assetType === TokenStandard.ERC721 ||
         assetType === TokenStandard.ERC1155) && (
         <SimulationValueDisplay
-          labelChangeType={changeType}
+          modalHeaderText={changeType}
           tokenContract={contractAddress}
           value={amount}
           chainId={chainId}
@@ -145,7 +145,7 @@ const StateChangeRow = ({
             changeType === DecodingDataChangeType.Receive
           }
           debit={changeType === DecodingDataChangeType.Transfer}
-          labelChangeType={changeLabel}
+          modalHeaderText={labelChangeType}
         />
       )}
     </InfoRow>
