@@ -42,7 +42,7 @@ export type Alert  = {
   /**
    * Alternate actions the user can take, specific to the alert.
    */
-  actions?: { label: string; callback: () => void }[];
+  action?: { label: string; callback: () => void };
 
   /**
    * The field associated with the alert.

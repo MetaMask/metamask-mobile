@@ -58,12 +58,13 @@ const Header: React.FC<HeaderProps> = ({ selectedAlert, iconColor, styles }) => 
 );
 
 interface ContentProps {
+  backgroundColor: string;
   selectedAlert: Alert;
   styles: Record<string, ViewStyle>;
 }
 
-const Content: React.FC<ContentProps> = ({ selectedAlert, styles }) => (
-  <View style={styles.content}>
+const Content: React.FC<ContentProps> = ({ backgroundColor, selectedAlert, styles }) => (
+  <View style={[styles.content, {backgroundColor}]}>
     {selectedAlert.content ?? (
       <>
         <Text style={styles.message}>{selectedAlert.message}</Text>
@@ -183,6 +184,7 @@ const AlertModal = () => {
         />
         <View>
           <Content
+            backgroundColor={severityStyle.background}
             selectedAlert={selectedAlert}
             styles={styles}
           />
