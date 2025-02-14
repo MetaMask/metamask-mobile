@@ -48,7 +48,6 @@ const styleSheet = (params: {
     },
     detailsText: {
       paddingLeft: 16,
-      wordWrap: 'break-word',
     },
     checkboxContainer: {
       marginTop: 8,
@@ -56,7 +55,6 @@ const styleSheet = (params: {
       borderRadius: 8,
       marginVertical: 8,
       padding: 12,
-      wordWrap: 'break-word',
       minHeight: 63,
     },
     checkboxLabel: {
@@ -67,6 +65,9 @@ const styleSheet = (params: {
     iconWrapper: {
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    buttonDivider: {
+      width: 8,
     },
   });
 };

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, ViewStyle } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { useAlerts } from '../context';
 import BottomModal from '../../components/UI/BottomModal';
@@ -33,19 +33,114 @@ const getSeverityStyle = (severity: Severity, colors: ThemeColors) => {
   }
 };
 
-const AlertModal = (
-) => {
-  const { colors } = useTheme();
-  const { styles } = useStyles(styleSheet, { theme: colors });
-  const { isAlertConfirmed, setAlertConfirmed, alerts, hideAlertModal, alertKey, alertModalVisible } = useAlerts();
+interface HeaderProps {
+  iconColor: string;
+  selectedAlert: Alert;
+  styles: Record<string, ViewStyle>;
+}
 
-  const handleActionClick = useCallback(
-    (callback: () => void ) => {
-      callback();
-      hideAlertModal();
-    },
-    [hideAlertModal],
+const Header: React.FC<HeaderProps> = ({ selectedAlert, iconColor, styles }) => (
+  <>
+    <View style={styles.iconWrapper}>
+      <Icon
+        name={selectedAlert.severity === Severity.Info ? IconName.Info : IconName.Danger}
+        size={IconSize.Xl}
+        color={iconColor}
+        testID="alert-modal-icon"
+      />
+    </View>
+    <View style={styles.headerContainer}>
+      <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
+        {selectedAlert.title ?? strings('alert_system.alert_modal.title')}
+      </Text>
+    </View>
+  </>
+);
+
+interface ContentProps {
+  selectedAlert: Alert;
+  styles: Record<string, ViewStyle>;
+}
+
+const Content: React.FC<ContentProps> = ({ selectedAlert, styles }) => (
+  <View style={styles.content}>
+    {selectedAlert.content ?? (
+      <>
+        <Text style={styles.message}>{selectedAlert.message}</Text>
+        <Text style={styles.message} variant={TextVariant.BodyMDBold}>
+          {strings('alert_system.alert_modal.alert_details')}
+        </Text>
+        {selectedAlert.alertDetails?.map((detail, index) => (
+          <Text key={index} style={styles.detailsText} variant={TextVariant.BodyMD}>
+            {'• ' + detail}
+          </Text>
+        ))}
+      </>
+    )}
+  </View>
+);
+
+interface CheckboxProps {
+  isConfirmed: boolean;
+  onCheckboxClick: (isConfirmed: boolean) => void;
+  selectedAlert: Alert;
+  styles: Record<string, ViewStyle>;
+}
+
+const AlertCheckbox: React.FC<CheckboxProps> = ({ selectedAlert, isConfirmed, onCheckboxClick, styles }) => {
+  if (selectedAlert.severity !== Severity.Danger || selectedAlert.isBlocking) {
+    return null;
+  }
+
+  return (
+    <View style={styles.checkboxContainer}>
+      <Checkbox
+        isChecked={isConfirmed}
+        onPress={() => onCheckboxClick(isConfirmed)}
+        label={strings('alert_system.alert_modal.checkbox_label')}
+        style={styles.checkboxLabel}
+      />
+    </View>
   );
+};
+
+interface ButtonsProps {
+  action?: { label: string; callback: () => void };
+  hideAlertModal: () => void;
+  onHandleActionClick: (callback: () => void) => void;
+  styles: Record<string, ViewStyle>;
+}
+
+const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHandleActionClick }) => (
+  <View style={styles.buttonsContainer}>
+    <Button
+      onPress={hideAlertModal}
+      label={strings('alert_system.alert_modal.got_it_btn')}
+      style={styles.footerButton}
+      size={ButtonSize.Lg}
+      variant={action ? ButtonVariants.Secondary : ButtonVariants.Primary}
+      width={ButtonWidthTypes.Full}
+    />
+    {action ? (
+      <>
+        <View style={styles.buttonDivider} />
+        <Button
+          onPress={() => onHandleActionClick(action.callback)}
+          label={action.label}
+          style={styles.footerButton}
+          size={ButtonSize.Lg}
+          variant={ButtonVariants.Primary}
+          width={ButtonWidthTypes.Full}
+        />
+      </>
+    ) : null}
+  </View>
+);
+
+const AlertModal = () => {
+  const { colors } = useTheme();
+  const styles = (useStyles(styleSheet, {})).styles as Record<string, ViewStyle>;
+  const { isAlertConfirmed, setAlertConfirmed, alerts, hideAlertModal, alertKey, alertModalVisible } = useAlerts();
 
   const handleClose = useCallback(
     () => {
@@ -54,9 +149,20 @@ const AlertModal = (
     [hideAlertModal],
   );
 
-  const handleCheckboxClick = useCallback((selectedAlertKey: string, isConfirmed: boolean) => {
-    setAlertConfirmed(selectedAlertKey, !isConfirmed);
-  }, [setAlertConfirmed]);
+  const handleCheckboxClick = useCallback(
+    (selectedAlertKey: string, isConfirmed: boolean) => {
+      setAlertConfirmed(selectedAlertKey, !isConfirmed);
+    },
+    [setAlertConfirmed],
+  );
+
+  const handleActionClick = useCallback(
+    (callback: () => void) => {
+      callback();
+      hideAlertModal();
+    },
+    [hideAlertModal],
+  );
 
   const selectedAlert = alerts.find((alertSelected: Alert) => alertSelected.key === alertKey);
 
@@ -70,78 +176,29 @@ const AlertModal = (
   return (
     <BottomModal onClose={handleClose}>
       <View style={styles.modalContainer}>
-        {/* header */}
-        <View style={styles.iconWrapper}>
-            <Icon
-              name={selectedAlert.severity === Severity.Info ? IconName.Info : IconName.Danger}
-              size={IconSize.Xl}
-              color={severityStyle.icon}
-              testID="alert-modal-icon"
-            />
-          </View>
-        {/* title */}
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
-            {selectedAlert.title ?? strings('alert_system.alert_modal.title')}
-          </Text>
-        </View>
-        <View/>
+        <Header
+          selectedAlert={selectedAlert}
+          iconColor={severityStyle.icon}
+          styles={styles}
+        />
         <View>
-        {/* content */}
-        <View style={styles.content}>
-          {selectedAlert.content ? (
-            selectedAlert.content
-          ) : (
-            <>
-              <Text style={styles.message}>
-                {selectedAlert.message}
-              </Text>
-
-              <Text style={styles.message} variant={TextVariant.BodyMDBold}>
-                {strings('alert_system.alert_modal.alert_details')}
-              </Text>
-              {selectedAlert.alertDetails?.map((detail, index) => (
-                <Text key={index} style={styles.detailsText} variant={TextVariant.BodyMD}>
-                  {'• ' + detail}
-                </Text>
-              ))}
-            </>
-          )}
+          <Content
+            selectedAlert={selectedAlert}
+            styles={styles}
+          />
+          <AlertCheckbox
+            selectedAlert={selectedAlert}
+            isConfirmed={isConfirmed}
+            onCheckboxClick={() => handleCheckboxClick(selectedAlert.key, isConfirmed)}
+            styles={styles}
+          />
         </View>
-          {/* checkbox */}
-          <View style={[styles.checkboxContainer]}>
-              <Checkbox
-                isChecked={isConfirmed}
-                onPressIn={() => handleCheckboxClick(selectedAlert.key, isConfirmed)}
-                label={strings('alert_system.alert_modal.checkbox_label')}
-                style={styles.checkboxLabel}
-
-              />
-          </View>
-        </View>
-        {/* buttons */}
-        <View style={styles.buttonsContainer}>
-            <Button
-              onPress={hideAlertModal}
-              label={strings('alert_system.alert_modal.got_it_btn')}
-              style={styles.footerButton}
-              size={ButtonSize.Lg}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
-              disabled={!isConfirmed}
-            />
-          {selectedAlert.actions?.map((action) => (
-            <Button
-              key={action.label}
-              onPress={() => handleActionClick(action.callback)}
-              label={action.label}
-              style={styles.footerButton}
-              size={ButtonSize.Lg}
-              variant={ButtonVariants.Secondary}
-              width={ButtonWidthTypes.Full}
-            />
-          ))}
-        </View>
+        <Buttons
+          hideAlertModal={hideAlertModal}
+          action={selectedAlert.action}
+          styles={styles}
+          onHandleActionClick={handleActionClick}
+        />
       </View>
     </BottomModal>
   );
