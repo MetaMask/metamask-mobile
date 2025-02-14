@@ -3,11 +3,8 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
+import { IWalletKit, WalletKit, WalletKitTypes } from '@reown/walletkit';
 import { Core } from '@walletconnect/core';
-import Client, {
-  SingleEthereum,
-  SingleEthereumTypes,
-} from '@walletconnect/se-sdk';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
 
@@ -25,11 +22,14 @@ import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import WalletConnect from './WalletConnect';
 import parseWalletConnectUri, {
+  getPermittedChains,
+  getApprovedWCMethods,
   hideWCLoadingState,
   showWCLoadingState,
 } from './wc-utils';
 
 import WalletConnect2Session from './WalletConnect2Session';
+import { EVM_IDENTIFIER } from './se';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -46,14 +46,14 @@ export class WC2Manager {
   private static instance: WC2Manager;
   private static _initialized = false;
   private navigation?: NavigationContainerRef;
-  private web3Wallet: Client;
+  private web3Wallet: IWalletKit;
   private sessions: { [topic: string]: WalletConnect2Session } = {};
   private deeplinkSessions: {
     [pairingTopic: string]: { redirectUrl?: string; origin: string };
   } = {};
 
   private constructor(
-    web3Wallet: Client,
+    web3Wallet: IWalletKit,
     deeplinkSessions: {
       [topic: string]: { redirectUrl?: string; origin: string };
     },
@@ -69,7 +69,7 @@ export class WC2Manager {
     web3Wallet.on('session_request', this.onSessionRequest.bind(this));
     web3Wallet.on(
       'session_delete',
-      async (event: SingleEthereumTypes.SessionDelete) => {
+      async (event: WalletKitTypes.SessionDelete) => {
         const session =
           this.getSession(event.topic) || this.sessions[event.topic].session;
         if (session && deeplinkSessions[session?.pairingTopic]) {
@@ -241,20 +241,17 @@ export class WC2Manager {
 
     let web3Wallet;
     // Extract chainId from controller
-    const options: SingleEthereumTypes.Options = {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      core: core as any,
-      chainId,
+    const options: WalletKitTypes.Options = {
+      core,
       metadata: AppConstants.WALLET_CONNECT.METADATA,
     };
 
     try {
-      web3Wallet = await SingleEthereum.init(options);
+      web3Wallet = await WalletKit.init(options);
     } catch (err) {
       DevLogger.log(`WC2::init() failed to init -- Try again`, err);
       // TODO Sometime needs to init twice --- not sure why...
-      web3Wallet = await SingleEthereum.init(options);
+      web3Wallet = await WalletKit.init(options);
     }
 
     let deeplinkSessions = {};
@@ -309,9 +306,10 @@ export class WC2Manager {
 
   public async removeSession(session: SessionTypes.Struct) {
     try {
+      // Use disconnectSession directly
       await this.web3Wallet.disconnectSession({
         topic: session.topic,
-        error: { code: 1, message: ERROR_MESSAGES.MANUAL_DISCONNECT },
+        reason: getSdkError('USER_DISCONNECTED'),
       });
 
       // Remove session from local list
@@ -333,11 +331,6 @@ export class WC2Manager {
       permissionsController.revokeAllPermissions(session.topic);
     } catch (err) {
       DevLogger.log(`WC2::removeSession error while disconnecting`, err);
-      // Fallback method because of bug in wc2 sdk
-      await this.web3Wallet.engine.web3wallet.engine.signClient.session.delete(
-        session.topic,
-        getSdkError('USER_DISCONNECTED'),
-      );
     }
   }
 
@@ -348,7 +341,7 @@ export class WC2Manager {
       this.web3Wallet
         .disconnectSession({
           topic: session.topic,
-          error: { code: 1, message: ERROR_MESSAGES.MANUAL_DISCONNECT },
+          reason: { code: 1, message: ERROR_MESSAGES.MANUAL_DISCONNECT },
         })
         .catch((err) => {
           console.warn(`Can't remove active session ${session.topic}`, err);
@@ -370,7 +363,7 @@ export class WC2Manager {
       this.web3Wallet
         .rejectSession({
           id: session.id,
-          error: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
+          reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
         })
         .catch((err) => {
           console.warn(`Can't remove pending session ${session.id}`, err);
@@ -380,10 +373,13 @@ export class WC2Manager {
     const requests = this.web3Wallet.getPendingSessionRequests() || [];
     requests.forEach(async (request) => {
       try {
-        await this.web3Wallet.rejectRequest({
-          id: request.id,
+        await this.web3Wallet.respondSessionRequest({
           topic: request.topic,
-          error: { code: 1, message: ERROR_MESSAGES.USER_REJECT },
+          response: {
+            id: request.id,
+            jsonrpc: '2.0',
+            error: { code: 1, message: ERROR_MESSAGES.INVALID_ID }
+          }
         });
       } catch (err) {
         console.warn(`Can't remove request ${request.id}`, err);
@@ -391,7 +387,7 @@ export class WC2Manager {
     });
   }
 
-  async onSessionProposal(proposal: SingleEthereumTypes.SessionProposal) {
+  async onSessionProposal(proposal: WalletKitTypes.SessionProposal) {
     //  Open session proposal modal for confirmation / rejection
     const { id, params } = proposal;
 
@@ -434,7 +430,7 @@ export class WC2Manager {
       // Failed permissions request - reject session
       await this.web3Wallet.rejectSession({
         id: proposal.id,
-        error: getSdkError('USER_REJECTED_METHODS'),
+        reason: getSdkError('USER_REJECTED_METHODS'),
       });
       return;
     }
@@ -442,17 +438,28 @@ export class WC2Manager {
     try {
       // use Permission controller
       const approvedAccounts = await getPermittedAccounts(url);
-      // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = selectChainId(store.getState());
       DevLogger.log(
         `WC2::session_proposal getPermittedAccounts for id=${id} hostname=${url}, chainId=${chainId}`,
         approvedAccounts,
       );
 
+      const chains = getPermittedChains({ permissionsController, origin: url, requiredNamespaces: proposal.params.requiredNamespaces });
+      const accountsPerChains = chains.map(chain => `${chain}:${approvedAccounts}`);
+
+      const eip155 =  {
+        chains,
+        methods: getApprovedWCMethods({ origin: url }),
+        events: ['chainChanged', 'accountsChanged'],
+        accounts: accountsPerChains
+      };
+      DevLogger.log(`WC2::session_proposal eip155`, eip155);
+
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
-        chainId: parseInt(chainId),
-        accounts: approvedAccounts,
+        namespaces: {
+          eip155
+        },
       });
       const deeplink =
         typeof this.deeplinkSessions[activeSession.pairingTopic] !==
@@ -485,7 +492,7 @@ export class WC2Manager {
   }
 
   private async onSessionRequest(
-    requestEvent: SingleEthereumTypes.SessionRequest,
+    requestEvent: WalletKitTypes.SessionRequest,
   ) {
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
@@ -500,10 +507,13 @@ export class WC2Manager {
 
       if (!session) {
         console.warn(`WC2 invalid session topic ${requestEvent.topic}`);
-        await this.web3Wallet.rejectRequest({
+        await this.web3Wallet.respondSessionRequest({
           topic: requestEvent.topic,
-          id: requestEvent.id,
-          error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
+          response: {
+            id: requestEvent.id,
+            jsonrpc: '2.0',
+            error: { code: 1, message: ERROR_MESSAGES.INVALID_ID }
+          }
         });
 
         return;

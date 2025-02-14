@@ -1,10 +1,15 @@
-import { RelayerTypes } from '@walletconnect/types';
+import { PermissionController } from '@metamask/permission-controller';
+import { NavigationContainerRef } from '@react-navigation/native';
+import { ProposalTypes, RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
-import { store } from '../../../app/store';
-import { wait } from '../SDKConnect/utils/wait.util';
-import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
+import { store } from '../../../app/store';
+import { CaveatTypes } from '../Permissions/constants';
+import { PermissionKeys } from '../Permissions/specifications';
+import DevLogger from '../SDKConnect/utils/DevLogger';
+import { wait } from '../SDKConnect/utils/wait.util';
+
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -111,4 +116,128 @@ export const waitForNetworkModalOnboarding = async ({
     }
   }
 };
+
+interface WCPermissionParams {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  permissionsController: PermissionController<any, any> | undefined;
+  origin: string;
+  defaultChainId?: string;
+  requiredNamespaces?: Record<string, ProposalTypes.RequiredNamespace>;
+  optionalNamespaces?: Record<string, ProposalTypes.OptionalNamespaces>;
+}
+
+export const normalizeOrigin = (origin: string): string => {
+  try {
+    // Remove protocol and trailing slashes
+    return origin.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  } catch (error) {
+    DevLogger.log(`WC::normalizeOrigin error:`, error);
+    return origin;
+  }
+};
+
+export const getPermittedChains = ({
+  permissionsController,
+  origin,
+  defaultChainId
+}: WCPermissionParams): string[] => {
+  try {
+    const normalizedOrigin = normalizeOrigin(origin);
+    // const normalizedOrigin = origin;
+
+    // const caveat = permissionsController?.getCaveat(
+    const caveat = permissionsController?.getCaveat(
+      normalizedOrigin,
+      PermissionKeys.permittedChains,
+      CaveatTypes.restrictNetworkSwitching,
+    );
+
+    DevLogger.log(`WC::getApprovedWCChains caveat found:`, { caveat });
+
+    if (Array.isArray(caveat?.value)) {
+      const chains = caveat.value
+        .filter((item): item is string => typeof item === 'string')
+        .map(chainId => `eip155:${parseInt(chainId)}`);
+
+      DevLogger.log(`WC::getApprovedWCChains extracted chains:`, chains);
+      return chains;
+    }
+
+    // Fallback to default
+    const defaultChains = defaultChainId ? [`eip155:${parseInt(defaultChainId)}`] : [];
+    DevLogger.log(`WC::getApprovedWCChains using default:`, defaultChains);
+    return defaultChains;
+
+  } catch (error) {
+    DevLogger.log(`WC::getApprovedWCChains error for origin=${origin}:`, error);
+    return defaultChainId ? [`eip155:${parseInt(defaultChainId)}`] : [];
+  }
+};
+
+export const getApprovedWCMethods = (_: {
+  origin: string;
+}): string[] => {
+  const allEIP155Methods = [
+    // Standard JSON-RPC methods
+    'eth_sendTransaction',
+    'eth_sign',
+    'eth_signTransaction',
+    'eth_signTypedData',
+    'eth_signTypedData_v3',
+    'eth_signTypedData_v4',
+    'personal_sign',
+    'eth_sendRawTransaction',
+    'eth_accounts',
+    'eth_getBalance',
+    'eth_call',
+    'eth_estimateGas',
+    'eth_blockNumber',
+    'eth_getCode',
+    'eth_getTransactionCount',
+    'eth_getTransactionReceipt',
+    'eth_getTransactionByHash',
+    'eth_getBlockByHash',
+    'eth_getBlockByNumber',
+    'net_version',
+    'eth_chainId',
+    'eth_requestAccounts',
+
+    // MetaMask specific methods
+    'wallet_addEthereumChain',
+    'wallet_switchEthereumChain',
+    'wallet_getPermissions',
+    'wallet_requestPermissions',
+    'wallet_watchAsset',
+    'wallet_scanQRCode'
+  ];
+  // const normalizedRequired = normalizeNamespaces(requiredNamespaces ?? {});
+
+  // const defaultMethods = normalizedRequired[EVM_IDENTIFIER]?.methods?.length
+  // ? normalizedRequired[EVM_IDENTIFIER].methods
+  // : ['eth_sendTransaction', 'personal_sign'];
+
+  // try {
+  //   const permissions = permissionsController?.getPermissions(origin);
+  //   DevLogger.log(`WC::getApprovedWCMethods permissions for origin=${origin}:`, permissions);
+
+  //   if (!permissions) {
+  //     DevLogger.log(`WC::getApprovedWCMethods no permissions, using defaults:`, defaultMethods);
+  //     return defaultMethods;
+  //   }
+
+  //   const permissionMethods = Object.keys(permissions)
+  //     .filter(key => key.startsWith('eth_') || key.startsWith('personal_'))
+  //     .map(key => key);
+
+  //   const result = [...new Set([...defaultMethods, ...permissionMethods])];
+  //   DevLogger.log(`WC::getApprovedWCMethods result:`, result);
+  //   return result;
+
+  // } catch (error) {
+  //   DevLogger.log(`WC::getApprovedWCMethods error for origin=${origin}:`, error);
+  //   return defaultMethods;
+  // }
+  return allEIP155Methods;
+};
+
 export default parseWalletConnectUri;
