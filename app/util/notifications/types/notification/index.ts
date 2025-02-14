@@ -10,8 +10,8 @@ export type HandleNotificationCallback = (
 ) => void;
 
 export enum PressActionId {
+  OPEN_HOME = 'open-home-press-action-id',
   OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
-  OPEN_TRANSACTIONS_VIEW = 'open-transactions-view-press-action-id',
 }
 
 export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
