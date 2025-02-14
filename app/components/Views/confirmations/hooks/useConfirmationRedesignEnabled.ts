@@ -58,7 +58,7 @@ function isRedesignedTransaction({
     !isTransactionTypeRedesigned ||
     approvalRequestType !== ApprovalType.Transaction ||
     !transactionMetadata ||
-    !isExternalHardwareAccount(fromAddress)
+    isExternalHardwareAccount(fromAddress)
   ) {
     return false;
   }

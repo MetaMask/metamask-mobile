@@ -90,6 +90,12 @@ describe('useConfirmationRedesignEnabled', () => {
   describe('transaction redesigned confirmations', () => {
     describe('staking confirmations', () => {
       describe('staking deposit', () => {
+        beforeEach(() => {
+          jest.clearAllMocks();
+          (isExternalHardwareAccount as jest.Mock).mockReturnValue(false);
+        });
+
+
         it('returns true when enabled', async () => {
           const { result } = renderHookWithProvider(
             useConfirmationRedesignEnabled,
@@ -162,7 +168,7 @@ describe('useConfirmationRedesignEnabled', () => {
         });
 
         it('returns false when from address is external hardware account', async () => {
-          (isExternalHardwareAccount as jest.Mock).mockReturnValue(false);
+          (isExternalHardwareAccount as jest.Mock).mockReturnValue(true);
           const { result } = renderHookWithProvider(
             useConfirmationRedesignEnabled,
             {
