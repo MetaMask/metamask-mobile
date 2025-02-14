@@ -16,7 +16,7 @@ export const selectSnapsMetadata = createDeepEqualSelector(
   selectSnaps,
   (snaps) =>
     Object.values(snaps).reduce<
-      Record<string, { name: string; description: string; iconUrl?: string }>
+      Record<string, { name: string; description: string }>
     >((snapsMetadata, snap) => {
       const snapId = snap.id;
       const manifest = snap.localizationFiles
