@@ -1,5 +1,5 @@
 import React, { FunctionComponent, ReactNode } from 'react';
-import { Box } from '../../UI/Box';
+import { Box } from '../../UI/Box/Box';
 import Text, {
   TextColor,
   TextVariant,

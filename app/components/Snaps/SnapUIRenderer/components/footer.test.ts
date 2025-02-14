@@ -35,7 +35,7 @@ describe('footer', () => {
     jest.clearAllMocks();
   });
 
-  it('should return default footer structure with no buttons when no children and no onCancel', () => {
+  it('return default footer structure with no buttons when no children and no onCancel', () => {
     const footerElement = createFooterElement([]);
 
     const result = footer({
@@ -69,7 +69,7 @@ describe('footer', () => {
     });
   });
 
-  it('should add cancel button when onCancel is provided and only one child', () => {
+  it('add cancel button when onCancel is provided and only one child', () => {
     const footerElement = createFooterElement([
       createButtonElement('confirm', 'Confirm'),
     ]);
@@ -95,7 +95,7 @@ describe('footer', () => {
     });
   });
 
-  it('should handle multiple buttons with correct variants', () => {
+  it('handle multiple buttons with correct variants', () => {
     const footerElement = createFooterElement([
       createButtonElement('reject', 'Reject'),
       createButtonElement('confirm', 'Confirm'),
@@ -122,7 +122,7 @@ describe('footer', () => {
     expect((result.children as any[])[1].props.isSnapAction).toBe(true);
   });
 
-  it('should use index as key when button name is not provided', () => {
+  it('use index as key when button name is not provided', () => {
     const footerElement = createFooterElement([
       createButtonElement(undefined, 'Button'),
     ]);

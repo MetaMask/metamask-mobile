@@ -103,7 +103,25 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
         }
       }
       testID="avatargroup-avatar"
-    />
+    >
+      <Image
+        onError={[Function]}
+        resizeMode="contain"
+        source={
+          {
+            "uri": "https://uniswap.org/favicon.ico",
+          }
+        }
+        style={
+          {
+            "flex": 1,
+            "height": undefined,
+            "width": undefined,
+          }
+        }
+        testID="favicon-avatar-image"
+      />
+    </View>
   </View>
   <View
     style={

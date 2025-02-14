@@ -19,15 +19,6 @@ const store = mockStore({
   },
 });
 
-jest.mock('../../../../core/Engine', () => ({
-  acceptPendingApproval: jest.fn(),
-  context: {
-    SnapInterfaceController: {
-      getInterface: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('../../../Views/confirmations/hooks/useApprovalRequest');
 
 jest.mock('../../../../selectors/snaps/interfaceController', () => ({

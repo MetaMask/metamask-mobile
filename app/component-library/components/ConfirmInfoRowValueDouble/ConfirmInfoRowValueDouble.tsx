@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { TextColor } from '../Texts/Text/Text.types';
 import Text from '../Texts/Text';
-import { Box } from '../../../components/UI/Box';
+import { Box } from '../../../components/UI/Box/Box';
 import { RowVariant } from '../../../components/Snaps/SnapUIRenderer/components/row';
 import {
   AlignItems,

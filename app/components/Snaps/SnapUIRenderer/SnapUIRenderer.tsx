@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Box } from '../../UI/Box';
+import { Box } from '../../UI/Box/Box';
 import { isEqual } from 'lodash';
 import { getMemoizedInterface } from '../../../selectors/snaps/interfaceController';
 import { SnapInterfaceContextProvider } from '../SnapInterfaceContext';
@@ -10,6 +10,7 @@ import { ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Container } from '@metamask/snaps-sdk/jsx';
 import { strings } from '../../../../locales/i18n';
+import styles from './SnapUIRenderer.styles';
 
 interface SnapUIRendererProps {
   snapId: string;
@@ -18,13 +19,6 @@ interface SnapUIRendererProps {
   onCancel: () => void;
   useFooter: boolean;
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flexGrow: 1,
-    minHeight: Dimensions.get('window').height * 0.5,
-  },
-});
 
 const SnapUIRendererComponent = ({
   snapId,

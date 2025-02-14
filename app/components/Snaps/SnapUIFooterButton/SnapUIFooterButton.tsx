@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from 'react';
-import { ButtonType, SnapId, UserInputEventType } from '@metamask/snaps-sdk';
+import { ButtonType, SnapId } from '@metamask/snaps-sdk';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { IconSize } from '../../../component-library/components/Icons/Icon';
 import {
@@ -59,26 +59,11 @@ export const SnapUIFooterButton: FunctionComponent<
   label,
   ...props
 }) => {
-  const { handleEvent, snapId } = useSnapInterfaceContext();
+  const { snapId } = useSnapInterfaceContext();
   const snaps = useSelector(selectSnaps);
   const snapMetadata = snaps[snapId as SnapId];
 
   const hideSnapBranding = snapMetadata.hideSnapBranding;
-
-  const handleSnapAction = () => {
-    handleEvent({
-      event: UserInputEventType.ButtonClickEvent,
-      name,
-    });
-  };
-
-  const handlePress = () => {
-    if (isSnapAction) {
-      handleSnapAction();
-    } else if (onCancel) {
-      onCancel();
-    }
-  };
 
   const brandedButtonVariant = isSnapAction
     ? ButtonVariants.Primary
@@ -98,7 +83,11 @@ export const SnapUIFooterButton: FunctionComponent<
     if (isSnapAction && !hideSnapBranding && !loading) {
       return (
         <View style={styles.snapActionContainer}>
-          <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
+          <SnapIcon
+            snapId={snapId}
+            avatarSize={IconSize.Sm}
+            imageSource={snapMetadata.icon}
+          />
           <Text
             variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
             color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
@@ -122,7 +111,6 @@ export const SnapUIFooterButton: FunctionComponent<
     <SnapUIButton
       label={renderLabel()}
       type={type}
-      handlePress={handlePress}
       snapVariant={snapVariant}
       name={name ?? ''}
       disabled={disabled}

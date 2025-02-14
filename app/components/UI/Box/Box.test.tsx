@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { Box } from './index';
+import { Box } from './Box';
 import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';

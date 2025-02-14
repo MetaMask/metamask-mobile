@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { FormTextField } from './index';
-import { FormTextFieldSize } from './form-text-field.types';
+import { FormTextFieldSize } from './FormTextField.types';
 
 describe('FormTextField', () => {
   it('renders correctly with basic props', () => {

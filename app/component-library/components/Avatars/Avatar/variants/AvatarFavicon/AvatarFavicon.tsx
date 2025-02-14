@@ -33,6 +33,7 @@ const AvatarFavicon = ({
     typeof imageSource === 'object' &&
     'uri' in imageSource
   );
+  const isValidSource = isRequireSource || isRemoteSource;
   const [error, setError] = useState<Error | undefined>(undefined);
   const [svgSource, setSvgSource] = useState<string>('');
   const { styles } = useStyles(stylesheet, { style });
@@ -90,22 +91,21 @@ const AvatarFavicon = ({
       />
     ) : null;
 
-  const renderImage = () =>
-    isRequireSource && (
-      <Image
-        testID={AVATARFAVICON_IMAGE_TESTID}
-        source={imageSource}
-        style={styles.image}
-        resizeMode={'contain'}
-        onError={onError}
-      />
-    );
+  const renderImage = () => (
+    <Image
+      testID={AVATARFAVICON_IMAGE_TESTID}
+      source={imageSource}
+      style={styles.image}
+      resizeMode={'contain'}
+      onError={onError}
+    />
+  );
 
   const renderFavicon = () => (svgSource ? renderSvg() : renderImage());
 
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
-      {error ? renderFallbackFavicon() : renderFavicon()}
+      {error || !isValidSource ? renderFallbackFavicon() : renderFavicon()}
     </AvatarBase>
   );
 };

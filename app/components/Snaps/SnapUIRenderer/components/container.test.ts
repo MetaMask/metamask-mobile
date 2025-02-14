@@ -29,7 +29,7 @@ describe('container', () => {
     key: 'mock-key',
   });
 
-  it('should render basic container with single child', () => {
+  it('render basic container with single child', () => {
     const mockElement = createMockElement([
       { type: 'text', props: {}, children: ['Hello'] },
     ]);
@@ -59,7 +59,7 @@ describe('container', () => {
     });
   });
 
-  it('should add footer button when useFooter is true and onCancel is provided', () => {
+  it('add footer button when useFooter is true and onCancel is provided', () => {
     const mockElement = createMockElement([]);
     const mockOnCancel = jest.fn();
 

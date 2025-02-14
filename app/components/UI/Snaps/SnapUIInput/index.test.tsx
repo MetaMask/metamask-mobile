@@ -8,16 +8,6 @@ describe('SnapUIInput', () => {
   const mockSetCurrentFocusedInput = jest.fn();
   const mockGetValue = jest.fn();
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (useSnapInterfaceContext as jest.Mock).mockReturnValue({
-      handleInputChange: mockHandleInputChange,
-      getValue: mockGetValue,
-      setCurrentFocusedInput: mockSetCurrentFocusedInput,
-      focusedInput: null,
-    });
-  });
-
   it('renders with initial value', () => {
     mockGetValue.mockReturnValue('initial value');
 

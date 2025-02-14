@@ -4,7 +4,7 @@ import { TextVariant } from '../../../../component-library/components/Texts/Text
 import { FlexWrap } from './box.types';
 
 describe('heading UIComponentFactory', () => {
-  it('should transform HeadingElement into Text format with default size', () => {
+  it('transform HeadingElement into Text format with default size', () => {
     const mockHeadingElement: HeadingElement = {
       type: 'Heading',
       key: 'mock-key',
@@ -30,7 +30,7 @@ describe('heading UIComponentFactory', () => {
     });
   });
 
-  it('should handle empty children prop', () => {
+  it('handle empty children prop', () => {
     const mockHeadingElement = {
       type: 'Heading',
       props: {
@@ -55,7 +55,7 @@ describe('heading UIComponentFactory', () => {
     });
   });
 
-  it('should handle complex children content', () => {
+  it('handle complex children content', () => {
     const mockHeadingElement = {
       type: 'Heading',
       props: {
@@ -80,7 +80,7 @@ describe('heading UIComponentFactory', () => {
     });
   });
 
-  it('should handle different heading sizes', () => {
+  it('handle different heading sizes', () => {
     const sizes = ['sm', 'md', 'lg'] as const;
     const expectedVariants = {
       sm: TextVariant.HeadingSM,

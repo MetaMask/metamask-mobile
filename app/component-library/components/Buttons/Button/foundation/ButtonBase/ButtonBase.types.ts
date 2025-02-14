@@ -60,10 +60,6 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * An optional loading state of Button.
    */
   loading?: boolean;
-  /**
-   * An optional text props of Button.
-   */
-  textProps?: StyleProp<TextStyle>;
 }
 
 /**

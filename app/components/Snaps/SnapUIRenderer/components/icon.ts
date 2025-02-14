@@ -33,7 +33,7 @@ export const icon: UIComponentFactory<IconElement> = ({ element }) => {
       case 'md':
         return IconSize.Md;
       default:
-        return IconSize.Inherit;
+        return 'inherit';
     }
   };
 

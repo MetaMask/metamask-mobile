@@ -11,7 +11,7 @@ describe('Icon UIComponentFactory', () => {
     t: jest.fn(),
   };
 
-  it('should create correct element configuration with valid props', () => {
+  it('create correct element configuration with valid props', () => {
     const mockElement = {
       props: {
         name: IconName.Danger,
@@ -33,7 +33,7 @@ describe('Icon UIComponentFactory', () => {
     });
   });
 
-  it('should handle minimal props with defaults', () => {
+  it('handle minimal props with defaults', () => {
     const mockElement = {
       props: {
         name: 'invalid-icon',
@@ -48,12 +48,12 @@ describe('Icon UIComponentFactory', () => {
       props: {
         name: IconName.Danger, // Invalid names default to Danger
         color: IconColor.iconDefault, // Default color
-        size: IconSize.Inherit, // Default size
+        size: 'inherit', // Default size
       },
     });
   });
 
-  it('should map color values correctly', () => {
+  it('map color values correctly', () => {
     const mockElement = {
       props: {
         name: IconName.Danger,
@@ -69,7 +69,7 @@ describe('Icon UIComponentFactory', () => {
       props: {
         name: IconName.Danger,
         color: IconColor.iconMuted,
-        size: IconSize.Inherit,
+        size: 'inherit',
       },
     });
   });

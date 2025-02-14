@@ -6,7 +6,7 @@ import {
   View,
   TextInputProps,
 } from 'react-native';
-import { FormTextFieldProps, FormTextFieldSize } from './form-text-field.types';
+import { FormTextFieldProps, FormTextFieldSize } from './FormTextField.types';
 import Text from '../../../component-library/components/Texts/Text';
 import { TextFieldProps } from '../../../component-library/components/Form/TextField/TextField.types';
 import React from 'react';

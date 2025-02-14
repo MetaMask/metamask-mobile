@@ -9,7 +9,7 @@ import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { SnapUIImage } from '../../UI/Snaps/SnapUIImage';
 import { SnapAvatar } from '../Snaps/SnapAvatar/SnapAvatar';
 import AddressElement from '../../../components/Views/confirmations/SendFlow/AddressElement';
-import { Box } from '../../UI/Box';
+import { Box } from '../Box/Box';
 import { SnapUICard } from '../../Snaps/SnapUICard/SnapUICard';
 import { SnapUILink } from '../Snaps/SnapUILink/SnapUILink';
 import { SnapUIInput } from '../Snaps/SnapUIInput/SnapUIInput';

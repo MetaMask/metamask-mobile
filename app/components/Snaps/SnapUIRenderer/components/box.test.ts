@@ -15,7 +15,7 @@ describe('box UIComponentFactory', () => {
     props: { children: text },
   });
 
-  it('should transform BoxElement with default props', () => {
+  it('transform BoxElement with default props', () => {
     const mockElement: BoxElement = {
       type: 'Box',
       key: 'mock-key',
@@ -41,6 +41,7 @@ describe('box UIComponentFactory', () => {
             fontWeight: 'normal',
             textAlign: 'left',
             variant: 'sBodyMD',
+            alignItems: 'center',
           },
         },
       ],
@@ -53,7 +54,7 @@ describe('box UIComponentFactory', () => {
     });
   });
 
-  it('should handle horizontal direction', () => {
+  it('handle horizontal direction', () => {
     const mockElement: BoxElement = {
       type: 'Box',
       key: 'mock-key',
@@ -71,7 +72,7 @@ describe('box UIComponentFactory', () => {
     expect(result.props?.flexDirection).toBe(FlexDirection.Row);
   });
 
-  it('should handle different alignments', () => {
+  it('handle different alignments', () => {
     const alignments = [
       'center',
       'end',
@@ -105,7 +106,7 @@ describe('box UIComponentFactory', () => {
     });
   });
 
-  it('should pass through additional BoxProps', () => {
+  it('pass through additional BoxProps', () => {
     const mockElement: BoxElement = {
       type: 'Box',
       key: 'mock-key',
