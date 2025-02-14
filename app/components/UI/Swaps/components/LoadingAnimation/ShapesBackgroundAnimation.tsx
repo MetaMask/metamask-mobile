@@ -4,8 +4,10 @@ import Svg, { Path, LinearGradient, Stop, Defs } from 'react-native-svg';
 
 const styles = StyleSheet.create({
   container: {
-    width: '70%',
-    height: '70%',
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
@@ -39,7 +41,12 @@ const ShapesBackgroundAnimation = ({
   return (
     <Animated.View
       testID="shapes-background-animation"
-      style={[styles.container, { transform: [{ rotate: spin }] }]}
+      style={[
+        styles.container,
+        {
+          transform: [{ rotate: spin }],
+        },
+      ]}
     >
       <Svg width={width} height={height} viewBox="0 0 401 376" fill="none">
         <Path
