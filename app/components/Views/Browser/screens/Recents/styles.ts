@@ -28,6 +28,7 @@ const styleSheet = ({ theme: { colors, shadows } }: { theme: Theme }) => {
     wrapper: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
+      paddingTop: 30,
     },
     hide: {
       flex: 0,

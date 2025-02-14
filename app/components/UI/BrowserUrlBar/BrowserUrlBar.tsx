@@ -180,11 +180,12 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     return (
       <View style={styles.browserUrlBarWrapper}>
         <View style={styles.main} testID={BrowserViewSelectorsIDs.URL_INPUT}>
-          <TouchableOpacity
+          {!isUrlBarFocused ? (<TouchableOpacity
+            style={styles.connectionIcon}
             onPress={() => { navigation.goBack(); }}
           >
             <Text>X</Text>
-          </TouchableOpacity>
+          </TouchableOpacity>) : null}
           {isConnectionIconVisible ? (
             <Icon
               color={colors.icon.alternative}

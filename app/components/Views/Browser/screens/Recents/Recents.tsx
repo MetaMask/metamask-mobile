@@ -45,6 +45,7 @@ import BrowserUrlBar, {
 import { isENSUrl } from './utils';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
+import Routes from '../../../../../constants/navigation/Routes';
 
 /**
  * Recent visited URLs the in-app browser
@@ -185,6 +186,8 @@ export const BrowserRecents: React.FC<BrowserRecentsProps> = ({
   const onSubmitEditing = useCallback(
     async (text: string) => {
       if (!text) return;
+
+      navigation.navigate('inappBrowser', { url: text });
       setConnectionType(ConnectionType.UNKNOWN);
       urlBarRef.current?.setNativeProps({ text });
       // Format url for browser to be navigatable by webview
@@ -211,13 +214,22 @@ export const BrowserRecents: React.FC<BrowserRecentsProps> = ({
     onSubmitEditingRef.current = onSubmitEditing;
   }, [onSubmitEditing]);
 
+  useEffect(() => {
+    if (!autocompleteRef.current) return;
+    //if (!urlBarRef.current) return;
+
+    autocompleteRef.current.show();
+  }, [autocompleteRef, urlBarRef]);
+
   /**
    * Handle autocomplete selection
    */
   const onSelect = (url: string) => {
     // Unfocus the url bar and hide the autocomplete results
-    urlBarRef.current?.hide();
+    //urlBarRef.current?.hide();
     onSubmitEditing(url);
+    // navigate to browser
+    navigation.navigate('inappBrowser', { url });
   };
 
   /**
@@ -225,7 +237,7 @@ export const BrowserRecents: React.FC<BrowserRecentsProps> = ({
    */
   const onDismissAutocomplete = () => {
     // Unfocus the url bar and hide the autocomplete results
-    urlBarRef.current?.hide();
+    //urlBarRef.current?.hide();
     const hostName =
       new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
@@ -237,7 +249,7 @@ export const BrowserRecents: React.FC<BrowserRecentsProps> = ({
   const hideAutocomplete = () => autocompleteRef.current?.hide();
 
   const onCancelUrlBar = () => {
-    hideAutocomplete();
+    //hideAutocomplete();
     // Reset the url bar to the current url
     const hostName =
       new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
@@ -246,7 +258,7 @@ export const BrowserRecents: React.FC<BrowserRecentsProps> = ({
 
   const onFocusUrlBar = () => {
     // Show the autocomplete results
-    autocompleteRef.current?.show();
+    //autocompleteRef.current?.show();
     urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
   };
 
@@ -255,36 +267,38 @@ export const BrowserRecents: React.FC<BrowserRecentsProps> = ({
     autocompleteRef.current?.search(text);
 
   return (
-    <ErrorBoundary navigation={navigation} view="BrowserTab">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.wrapper}
+    >
+      <View
         style={styles.wrapper}
+        {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
+        <BrowserUrlBar
+          ref={urlBarRef}
+          connectionType={connectionType}
+          onSubmitEditing={onSubmitEditing}
+          onCancel={onCancelUrlBar}
+          onFocus={onFocusUrlBar}
+          onBlur={() => null}
+          connectedAccounts={[]}
+          onChangeText={onChangeUrlBar}
+          activeUrl={resolvedUrlRef.current}
+          setIsUrlBarFocused={setIsUrlBarFocused}
+          isUrlBarFocused={true}
+        />
         <View
           style={styles.wrapper}
-          {...(Device.isAndroid() ? { collapsable: false } : {})}
         >
-          <BrowserUrlBar
-            ref={urlBarRef}
-            connectionType={connectionType}
-            onSubmitEditing={onSubmitEditing}
-            onCancel={onCancelUrlBar}
-            onFocus={onFocusUrlBar}
-            onBlur={hideAutocomplete}
-            connectedAccounts={[]}
-            onChangeText={onChangeUrlBar}
-            activeUrl={resolvedUrlRef.current}
-            setIsUrlBarFocused={setIsUrlBarFocused}
-            isUrlBarFocused={isUrlBarFocused}
-          />
           <UrlAutocomplete
             ref={autocompleteRef}
             onSelect={onSelect}
             onDismiss={onDismissAutocomplete}
           />
         </View>
-      </KeyboardAvoidingView>
-    </ErrorBoundary>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 

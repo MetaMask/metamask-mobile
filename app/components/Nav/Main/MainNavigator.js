@@ -214,7 +214,7 @@ const BrowserFlow = () => (
   >
     <Stack.Screen
       name={Routes.BROWSER.VIEW}
-      component={Browser}
+      component={BrowserRecents}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -549,7 +549,7 @@ const HomeTabs = () => {
             component={WalletTabModalFlow}
           />
           <Tab.Screen
-            name={'rissol'}
+            name={Routes.BROWSER.HOME}
             options={options.browser}
             component={BrowserFlow}
           />
@@ -803,7 +803,7 @@ const MainNavigator = () => (
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsModeView}
     />
-    <Stack.Screen name={Routes.BROWSER.HOME} component={Browser} />
+    <Stack.Screen name={'inappBrowser'} component={Browser} />
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
     <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
     <Stack.Screen

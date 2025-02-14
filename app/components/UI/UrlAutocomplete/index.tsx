@@ -31,7 +31,7 @@ import { Result } from './Result';
 
 export * from './types';
 
-const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'}));
+const dappsWithType = dappUrlList.map(i => ({ ...i, type: 'sites' }));
 
 /**
  * Autocomplete list that appears when the browser url bar is focused
@@ -40,7 +40,7 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
-  const [resultsByCategory, setResultsByCategory] = useState<{category: string, data: FuseSearchResult[]}[]>([]);
+  const [resultsByCategory, setResultsByCategory] = useState<{ category: string, data: FuseSearchResult[] }[]>([]);
   const hasResults = resultsByCategory.length > 0;
 
   const browserHistory = useSelector(selectBrowserHistoryWithType);
@@ -111,7 +111,7 @@ const UrlAutocomplete = forwardRef<
   }, [debouncedSearch]);
 
   const dismissAutocomplete = () => {
-    hide();
+    //hide();
     // Call the onDismiss callback
     onDismiss();
   };
@@ -148,15 +148,15 @@ const UrlAutocomplete = forwardRef<
     }
   }, [browserHistory, bookmarks, search]);
 
-  const renderSectionHeader = useCallback(({section: {category}}) => (
+  const renderSectionHeader = useCallback(({ section: { category } }) => (
     <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
   ), [styles]);
 
-  const renderItem = useCallback(({item}) => (
+  const renderItem = useCallback(({ item }) => (
     <Result
       result={item}
       onPress={() => {
-        hide();
+        //hide();
         onSelect(item.url);
       }}
     />
@@ -181,7 +181,7 @@ const UrlAutocomplete = forwardRef<
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
-    />
+      />
     </View>
   );
 });

@@ -6,8 +6,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     wrapper: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor: colors.background.default,
-      // Hidden by default
-      display: 'none',
+      display: 'flex',
       paddingTop: 8,
     },
     contentContainer: {

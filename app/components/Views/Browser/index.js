@@ -24,7 +24,7 @@ import { getPermittedAccounts } from '../../../core/Permissions';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
 import Tabs from '../../UI/Tabs';
-import BrowserTab from './screens/BrowserTab';
+import { BrowserTab } from './screens/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
