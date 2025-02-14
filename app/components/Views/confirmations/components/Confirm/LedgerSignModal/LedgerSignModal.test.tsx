@@ -11,6 +11,13 @@ import * as ConfirmationActions from '../../../hooks/useConfirmActions';
 
 import LedgerSignModal from './LedgerSignModal';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: jest.fn(),
+  }),
+}));
+
 const mockDeviceId = 'MockDeviceId';
 const mockCloseLedgerSignModal = jest.fn();
 jest.mock('../../../context/LedgerContext', () => ({
