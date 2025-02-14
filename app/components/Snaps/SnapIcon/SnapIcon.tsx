@@ -48,7 +48,7 @@ export const SnapIcon: FunctionComponent<SnapIconProps> = ({
   const snapName = subjectMetadata.name;
 
   // // We choose the first non-symbol char as the fallback icon.
-  const fallbackIcon = getAvatarFallbackLetter(snapName ?? 'M');
+  const fallbackIcon = getAvatarFallbackLetter(snapName);
 
   return iconUrl ? (
     <AvatarFavicon
