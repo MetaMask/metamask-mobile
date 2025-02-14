@@ -36,7 +36,7 @@ const helpOptions: HelpOption[] = [
 ];
 
 /* eslint-disable-next-line */
-const foxImage = require('images/fox.png');
+const foxImage = require('images/branding/fox.png');
 
 const ReviewModal = () => {
   const navigation = useNavigation();
