@@ -1,9 +1,10 @@
 import React, { memo } from 'react';
 import { Hex, isValidHexAddress } from '@metamask/utils';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { startCase } from 'lodash';
 
 import { strings } from '../../../../../../../locales/i18n';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import { NONE_DATE_VALUE } from '../../../utils/date';
 import {
   PRIMARY_TYPES_ORDER,
