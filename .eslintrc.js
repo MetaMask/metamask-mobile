@@ -24,7 +24,6 @@ module.exports = {
         'react/no-unused-prop-types': 'off',
         'react/prop-types': 'off',
         'react/self-closing-comp': 'off',
-        '@typescript-eslint/no-parameter-properties': 'off',
         // This change is included in `@metamask/eslint-config-typescript@10.0.0
         '@typescript-eslint/no-unused-vars': [
           'error',
