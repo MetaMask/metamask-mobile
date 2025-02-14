@@ -503,8 +503,6 @@ workflows:
   ios_build_regression_tests:
     envs:
       - TEST_SUITE: 'Regression'
-      - MM_MULTICHAIN_V1_ENABLED: false
-      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - ios_e2e_build
   ios_run_regression_tests:
