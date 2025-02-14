@@ -1,6 +1,5 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { TransactionType } from '@metamask/transaction-controller';
 
 import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
@@ -11,13 +10,8 @@ import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBann
 import Title from '../components/Confirm/Title';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
-import { useTransactionMetadataRequest } from '../hooks/useTransactionMetadataRequest';
+import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import styleSheet from './Confirm.styles';
-
-// todo: if possible derive way to dynamically check if confirmation should be rendered flat
-const FLAT_TRANSACTION_CONFIRMATIONS: TransactionType[] = [
-  TransactionType.stakingDeposit,
-];
 
 const ConfirmWrapped = ({
   styles,
@@ -37,14 +31,10 @@ const ConfirmWrapped = ({
   </QRHardwareContextProvider>
 );
 
-const Confirm = () => {
+export const Confirm = () => {
   const { approvalRequest } = useApprovalRequest();
-  const transactionMetadata = useTransactionMetadataRequest();
+  const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
-
-  const isFlatConfirmation = FLAT_TRANSACTION_CONFIRMATIONS.includes(
-    transactionMetadata?.type as TransactionType,
-  );
 
   const { styles } = useStyles(styleSheet, { isFlatConfirmation });
 
@@ -54,10 +44,7 @@ const Confirm = () => {
 
   if (isFlatConfirmation) {
     return (
-      <View
-        style={styles.flatContainer}
-        testID="flat-confirmation-container"
-      >
+      <View style={styles.flatContainer} testID="flat-confirmation-container">
         <ConfirmWrapped styles={styles} />
       </View>
     );
@@ -73,5 +60,3 @@ const Confirm = () => {
     </BottomSheet>
   );
 };
-
-export default Confirm;

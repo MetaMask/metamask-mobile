@@ -138,6 +138,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { updateTransactionToMaxValue } from './utils';
+import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../utils/generic';
 
 const EDIT = 'edit';
@@ -1422,12 +1423,14 @@ class Confirm extends PureComponent {
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
           {this.state.transactionMeta?.id && (
-            <View style={styles.blockaidBannerContainer}>
+            <>
               <TransactionBlockaidBanner
                 transactionId={this.state.transactionMeta.id}
+                style={styles.blockaidBanner}
                 onContactUsClicked={this.onContactUsClicked}
               />
-            </View>
+              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
+            </>
           )}
           {!selectedAsset.tokenId ? (
             <View style={styles.amountWrapper}>
@@ -1595,7 +1598,8 @@ Confirm.contextType = ThemeContext;
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
   const chainId = transaction?.chainId;
-  const networkClientId = transaction?.networkClientId;
+  const networkClientId =
+    transaction?.networkClientId || selectNetworkClientId(state);
 
   return {
     accounts: selectAccounts(state),
