@@ -78,6 +78,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
 
   const handleStakePress = useCallback(async () => {
     if (isStakingDepositRedesignedEnabled) {
+      // TODO: Decide if we want to navigate to a standalone confirmation here or do it in ConfirmRoot
       navigation.navigate('StakeScreens', {
         screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
       });
