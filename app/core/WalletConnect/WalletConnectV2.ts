@@ -15,21 +15,22 @@ import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
-import { getPermittedAccounts } from '../Permissions';
+import { getPermittedAccounts, getPermittedChains } from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import WalletConnect from './WalletConnect';
-import parseWalletConnectUri, {
-  getPermittedChains,
-  getApprovedWCMethods,
+import {
+  getApprovedSessionMethods,
+  getScopedPermissions,
   hideWCLoadingState,
+  normalizeOrigin,
+  parseWalletConnectUri,
   showWCLoadingState,
 } from './wc-utils';
 
 import WalletConnect2Session from './WalletConnect2Session';
-import { EVM_IDENTIFIER } from './se';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -417,9 +418,11 @@ export class WC2Manager {
     // Save Connection info to redux store to be retrieved in ui.
     store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
 
+    const origin = normalizeOrigin(url);
+
     try {
       await permissionsController.requestPermissions(
-        { origin: url },
+        { origin },
         {
           eth_accounts: {},
         },
@@ -437,7 +440,7 @@ export class WC2Manager {
 
     try {
       // use Permission controller
-      const approvedAccounts = await getPermittedAccounts(url);
+      const approvedAccounts = await getPermittedAccounts(origin);
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = selectEvmChainId(store.getState());
       DevLogger.log(
@@ -445,23 +448,26 @@ export class WC2Manager {
         approvedAccounts,
       );
 
-      const chains = getPermittedChains({ permissionsController, origin: url, requiredNamespaces: proposal.params.requiredNamespaces });
+      const chains = await getPermittedChains(origin);
       const accountsPerChains = chains.map(chain => `${chain}:${approvedAccounts}`);
 
       const eip155 =  {
         chains,
-        methods: getApprovedWCMethods({ origin: url }),
+        methods: getApprovedSessionMethods({ origin }),
         events: ['chainChanged', 'accountsChanged'],
         accounts: accountsPerChains
       };
       DevLogger.log(`WC2::session_proposal eip155`, eip155);
 
+
+
+      const namespaces = await getScopedPermissions({ origin });
+      DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
-        namespaces: {
-          eip155
-        },
+        namespaces,
       });
+
       const deeplink =
         typeof this.deeplinkSessions[activeSession.pairingTopic] !==
         'undefined';

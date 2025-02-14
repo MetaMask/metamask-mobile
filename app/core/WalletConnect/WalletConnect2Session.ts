@@ -5,10 +5,8 @@ import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
-import { PermissionController } from '@metamask/permission-controller';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
-import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -19,14 +17,13 @@ import Logger from '../../util/Logger';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 import { addTransaction } from '../../util/transaction-controller';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
-import Engine from '../Engine';
 import { Minimizer } from '../NativeModules';
 import { getPermittedAccounts } from '../Permissions';
 import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { ERROR_MESSAGES } from './WalletConnectV2';
 import METHODS_TO_REDIRECT from './wc-config';
-import { getPermittedChains, getApprovedWCMethods, hideWCLoadingState } from './wc-utils';
+import { checkWCPermissions, getScopedPermissions, hideWCLoadingState, normalizeOrigin } from './wc-utils';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -325,7 +322,7 @@ class WalletConnect2Session {
         );
         return;
       }
-      const origin = this.session.peer.metadata.url;
+      const origin = normalizeOrigin(this.session.peer.metadata.url);
       DevLogger.log(`WC2::updateSession origin=${origin} - chainId=${chainId} - accounts=${accounts}`);
 
       if (accounts.length === 0) {
@@ -358,38 +355,12 @@ class WalletConnect2Session {
         );
       }
 
-      // Format accounts to follow WalletConnect v2 format
-      const permittedAccounts = await getPermittedAccounts(origin);
-
-      const permissionController = (
-        Engine.context as {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          PermissionController: PermissionController<any, any>;
-        }
-      ).PermissionController;
-
-      const eip155 = {
-        chains: getPermittedChains({
-          permissionsController: permissionController,
-          origin: this.session.peer.metadata.url,
-          defaultChainId: chainId.toString()
-        }),
-        methods: getApprovedWCMethods({
-          origin: this.session.peer.metadata.url,
-        }),
-        events: ['chainChanged', 'accountsChanged'],
-        accounts: permittedAccounts.map(
-          account => `eip155:${chainId}:${account.toLowerCase()}`
-        ),
-      };
-
-      DevLogger.log(`WC2::updateSession updating with eip155 namespace`, eip155);
+      const namespaces = await getScopedPermissions({ origin });
+      DevLogger.log(`WC2::updateSession updating with eip155 namespace`, namespaces);
 
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
-        namespaces: {
-          eip155
-        },
+        namespaces
       });
     } catch (err) {
       console.warn(
@@ -415,36 +386,37 @@ class WalletConnect2Session {
     hideWCLoadingState({ navigation: this.navigation });
     const verified = requestEvent.verifyContext?.verified;
     const hostname = verified?.origin;
-    const origin = WALLET_CONNECT_ORIGIN + hostname; // allow correct origin for analytics with eth_sendTransaction
+    const origin = normalizeOrigin(hostname);
 
     let method = requestEvent.params.request.method;
-    const caip2Scope = requestEvent.params.chainId; // 'eip155:1'
-    const chainId = parseInt(caip2Scope.split(':')[1]);
+    const caip2ChainId = requestEvent.params.chainId; // 'eip155:1'
 
     // TODO: Replace "any" with type
     const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(
-      `WalletConnect2Session::handleRequest chainId=${chainId} method=${method}`,
+      `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method}`,
       JSON.stringify(methodParams, null, 2),
     );
 
-    // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-    const selectedChainId = parseInt(selectEvmChainId(store.getState()));
+    try {
+      const allowed = await checkWCPermissions({ origin, caip2ChainId });
+      DevLogger.log(`WC2::handleRequest caip2ChainId=${caip2ChainId} is allowed=${allowed}`);
 
-    // Is this chain allowed in the permissions controller
-    const allowedChains = getPermittedChains({
-      permissionsController: Engine.context.PermissionController,
-      origin: this.session.peer.metadata.url,
-    });
-    DevLogger.log(`allowedChains=${allowedChains}`);
-    const isChainAllowed = allowedChains.includes(`eip155:${chainId}`);
-    DevLogger.log(`isChainAllowed=${isChainAllowed}`);
-
-    if (!isChainAllowed) {
-      DevLogger.log(
-        `rejectRequest due to invalid chainId ${chainId} (selectedChainId=${selectedChainId})`,
-      );
+      if(!allowed) {
+        DevLogger.log(`WC2::handleRequest caip2ChainId=${caip2ChainId} is not allowed`);
+        await this.web3Wallet.respondSessionRequest({
+          topic: this.session.topic,
+          response: {
+            id: requestEvent.id,
+            jsonrpc: '2.0',
+            error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
+          },
+        });
+        return;
+      }
+    } catch (error) {
+      DevLogger.log(`WC2::handleRequest caip2ChainId=${caip2ChainId} is not allowed`);
       await this.web3Wallet.respondSessionRequest({
         topic: this.session.topic,
         response: {
@@ -453,10 +425,7 @@ class WalletConnect2Session {
           error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
         },
       });
-      return;
     }
-
-    // // Specific logic to prevent automatic redirect on switchChain and let the dapp call wallet_addEthereumChain on error.
     // if (method.toLowerCase() === RPC_WALLET_SWITCHETHEREUMCHAIN.toLowerCase()) {
     //   // extract first chainId param from request array
     //   const params = requestEvent.params.request.params as [

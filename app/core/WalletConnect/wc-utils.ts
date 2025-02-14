@@ -1,14 +1,18 @@
-import { PermissionController } from '@metamask/permission-controller';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { NavigationContainerRef } from '@react-navigation/native';
-import { ProposalTypes, RelayerTypes } from '@walletconnect/types';
+import { RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
 import Routes from '../../../app/constants/navigation/Routes';
 import { store } from '../../../app/store';
-import { CaveatTypes } from '../Permissions/constants';
-import { PermissionKeys } from '../Permissions/specifications';
+import { selectNetworkConfigurations, selectProviderConfig } from '../../selectors/networkController';
+import Engine from '../Engine';
+import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { findExistingNetwork, switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
+
+export const EVM_IDENTIFIER = 'eip155';
 
 
 export interface WCMultiVersionParams {
@@ -24,7 +28,7 @@ export interface WCMultiVersionParams {
   handshakeTopic?: string;
 }
 
-const parseWalletConnectUri = (uri: string): WCMultiVersionParams => {
+export const parseWalletConnectUri = (uri: string): WCMultiVersionParams => {
   // Handle wc:{} and wc://{} format
   const str = uri.startsWith('wc://') ? uri.replace('wc://', 'wc:') : uri;
   const pathStart: number = str.indexOf(':');
@@ -117,15 +121,6 @@ export const waitForNetworkModalOnboarding = async ({
   }
 };
 
-interface WCPermissionParams {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  permissionsController: PermissionController<any, any> | undefined;
-  origin: string;
-  defaultChainId?: string;
-  requiredNamespaces?: Record<string, ProposalTypes.RequiredNamespace>;
-  optionalNamespaces?: Record<string, ProposalTypes.OptionalNamespaces>;
-}
-
 export const normalizeOrigin = (origin: string): string => {
   try {
     // Remove protocol and trailing slashes
@@ -136,45 +131,8 @@ export const normalizeOrigin = (origin: string): string => {
   }
 };
 
-export const getPermittedChains = ({
-  permissionsController,
-  origin,
-  defaultChainId
-}: WCPermissionParams): string[] => {
-  try {
-    const normalizedOrigin = normalizeOrigin(origin);
-    // const normalizedOrigin = origin;
 
-    // const caveat = permissionsController?.getCaveat(
-    const caveat = permissionsController?.getCaveat(
-      normalizedOrigin,
-      PermissionKeys.permittedChains,
-      CaveatTypes.restrictNetworkSwitching,
-    );
-
-    DevLogger.log(`WC::getApprovedWCChains caveat found:`, { caveat });
-
-    if (Array.isArray(caveat?.value)) {
-      const chains = caveat.value
-        .filter((item): item is string => typeof item === 'string')
-        .map(chainId => `eip155:${parseInt(chainId)}`);
-
-      DevLogger.log(`WC::getApprovedWCChains extracted chains:`, chains);
-      return chains;
-    }
-
-    // Fallback to default
-    const defaultChains = defaultChainId ? [`eip155:${parseInt(defaultChainId)}`] : [];
-    DevLogger.log(`WC::getApprovedWCChains using default:`, defaultChains);
-    return defaultChains;
-
-  } catch (error) {
-    DevLogger.log(`WC::getApprovedWCChains error for origin=${origin}:`, error);
-    return defaultChainId ? [`eip155:${parseInt(defaultChainId)}`] : [];
-  }
-};
-
-export const getApprovedWCMethods = (_: {
+export const getApprovedSessionMethods = (_: {
   origin: string;
 }): string[] => {
   const allEIP155Methods = [
@@ -210,34 +168,93 @@ export const getApprovedWCMethods = (_: {
     'wallet_watchAsset',
     'wallet_scanQRCode'
   ];
-  // const normalizedRequired = normalizeNamespaces(requiredNamespaces ?? {});
 
-  // const defaultMethods = normalizedRequired[EVM_IDENTIFIER]?.methods?.length
-  // ? normalizedRequired[EVM_IDENTIFIER].methods
-  // : ['eth_sendTransaction', 'personal_sign'];
-
-  // try {
-  //   const permissions = permissionsController?.getPermissions(origin);
-  //   DevLogger.log(`WC::getApprovedWCMethods permissions for origin=${origin}:`, permissions);
-
-  //   if (!permissions) {
-  //     DevLogger.log(`WC::getApprovedWCMethods no permissions, using defaults:`, defaultMethods);
-  //     return defaultMethods;
-  //   }
-
-  //   const permissionMethods = Object.keys(permissions)
-  //     .filter(key => key.startsWith('eth_') || key.startsWith('personal_'))
-  //     .map(key => key);
-
-  //   const result = [...new Set([...defaultMethods, ...permissionMethods])];
-  //   DevLogger.log(`WC::getApprovedWCMethods result:`, result);
-  //   return result;
-
-  // } catch (error) {
-  //   DevLogger.log(`WC::getApprovedWCMethods error for origin=${origin}:`, error);
-  //   return defaultMethods;
-  // }
+  // TODO: extract from the permissions controller when implemented
   return allEIP155Methods;
 };
 
-export default parseWalletConnectUri;
+
+export const getScopedPermissions = async ({ origin } : { origin: string }) => {
+    const approvedAccounts = await getPermittedAccounts(origin);
+  const chains = await getPermittedChains(origin);
+  const accountsPerChains = chains.map(chain => `${chain}:${approvedAccounts}`);
+
+  const scopedPermissions = {
+    chains,
+    methods: getApprovedSessionMethods({ origin }),
+    events: ['chainChanged', 'accountsChanged'],
+    accounts: accountsPerChains
+  };
+
+  DevLogger.log(`WC::getScopedPermissions`, scopedPermissions);
+  return {
+    [EVM_IDENTIFIER]: scopedPermissions
+  };
+};
+
+const requestUserApproval = async ({ type = '' }: { type: string, requestData: Record<string, unknown> }) => {
+  await Engine.context.ApprovalController.clear(
+    providerErrors.userRejectedRequest(),
+  );
+  const responseData = await Engine.context.ApprovalController.add({
+    origin,
+    type,
+  });
+  return responseData;
+};
+
+
+export const checkWCPermissions = async ({ origin, caip2ChainId } : { origin: string, caip2ChainId: string }) => {
+  const networkConfigurations = selectNetworkConfigurations(store.getState());
+  const decimalChainId = caip2ChainId.split(':')[1];
+  const hexChainIdString = `0x${parseInt(decimalChainId, 10).toString(16)}`;
+
+  DevLogger.log(`WC::checkWCPermissions netowrkConfiguration`, JSON.stringify(networkConfigurations, null, 2));
+
+  const existingNetwork = findExistingNetwork(hexChainIdString, networkConfigurations);
+  const exist2 = findExistingNetwork(decimalChainId, networkConfigurations);
+
+  const permittedChains = await getPermittedChains(origin);
+  const isAllowedChainId = permittedChains.includes(caip2ChainId);
+  const providerConfig = selectProviderConfig(store.getState());
+  const activeCaip2ChainId = `${EVM_IDENTIFIER}:${parseInt(providerConfig.chainId, 16)}`;
+
+  DevLogger.log(`WC::checkWCPermissions hexChainId=${hexChainIdString} decimalChainId=${decimalChainId}`);
+  DevLogger.log(`WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`);
+  DevLogger.log(`WC::checkWCPermissions existingNetwork=${existingNetwork} exist2=${exist2}`);
+
+  if(!existingNetwork && !exist2) {
+    DevLogger.log(`WC::checkWCPermissions no existing network found`);
+    throw rpcErrors.invalidParams({
+      message: `Invalid parameters: active chainId is different than the one provided.`,
+    });
+  }
+
+  if(!isAllowedChainId) {
+    DevLogger.log(`WC::checkWCPermissions chainId is not permitted`);
+    throw rpcErrors.invalidParams({
+      message: `Invalid parameters: active chainId is different than the one provided.`,
+    });
+  }
+
+  DevLogger.log(`WC::checkWCPermissions switching to network:`, existingNetwork);
+
+  if(caip2ChainId !== activeCaip2ChainId) {
+    try {
+      await switchToNetwork({
+        network: existingNetwork,
+        chainId: hexChainIdString,
+        controllers: Engine.context,
+        requestUserApproval,
+        analytics: {},
+        origin,
+        isAddNetworkFlow: false,
+      });
+    } catch (error) {
+      DevLogger.log(`WC::checkWCPermissions error switching to network:`, error);
+      return false;
+    }
+  }
+
+  return true;
+};
