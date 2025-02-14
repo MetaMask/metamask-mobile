@@ -25,9 +25,8 @@ import {
   getApprovedSessionMethods,
   getScopedPermissions,
   hideWCLoadingState,
-  normalizeOrigin,
   parseWalletConnectUri,
-  showWCLoadingState,
+  showWCLoadingState
 } from './wc-utils';
 
 import WalletConnect2Session from './WalletConnect2Session';
@@ -418,7 +417,7 @@ export class WC2Manager {
     // Save Connection info to redux store to be retrieved in ui.
     store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
 
-    const origin = normalizeOrigin(url);
+    const origin = url;
 
     try {
       await permissionsController.requestPermissions(
