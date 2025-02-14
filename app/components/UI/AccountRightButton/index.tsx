@@ -146,7 +146,6 @@ const AccountRightButton = ({
 
   return (
     <TouchableOpacity
-      style={styles.leftButton}
       onPress={handleButtonPress}
       testID={AccountOverviewSelectorsIDs.ACCOUNT_BUTTON}
     >
