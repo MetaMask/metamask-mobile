@@ -42,10 +42,12 @@ function isRedesignedSignature({
 function isRedesignedTransaction({
   approvalRequestType,
   confirmationRedesignFlags,
+  fromAddress,
   transactionMetadata,
 }: {
   approvalRequestType: ApprovalType;
   confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
+  fromAddress: string;
   transactionMetadata?: TransactionMeta;
 }) {
   const isTransactionTypeRedesigned = REDESIGNED_TRANSACTION_TYPES.includes(
@@ -55,7 +57,8 @@ function isRedesignedTransaction({
   if (
     !isTransactionTypeRedesigned ||
     approvalRequestType !== ApprovalType.Transaction ||
-    !transactionMetadata
+    !transactionMetadata ||
+    !isExternalHardwareAccount(fromAddress)
   ) {
     return false;
   }
@@ -87,6 +90,7 @@ export const useConfirmationRedesignEnabled = () => {
       isRedesignedTransaction({
         approvalRequestType,
         confirmationRedesignFlags,
+        fromAddress,
         transactionMetadata,
       }),
     [
