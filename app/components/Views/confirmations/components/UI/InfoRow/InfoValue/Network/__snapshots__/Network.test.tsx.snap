@@ -37,12 +37,15 @@ exports[`Network should match snapshot 1`] = `
     />
   </View>
   <Text
+    accessibilityRole="text"
     style={
       {
         "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
         "marginLeft": 8,
       }
     }

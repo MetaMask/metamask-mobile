@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text,TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
@@ -11,7 +11,11 @@ import { useTheme } from '../../../../../../../../../../util/theme';
 import ButtonPill from '../../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
 import { ButtonIconSizes } from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 import ButtonIcon from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
-import { IconName , IconColor } from '../../../../../../../../../../component-library/components/Icons/Icon';
+import {
+  IconName,
+  IconColor,
+} from '../../../../../../../../../../component-library/components/Icons/Icon';
+import Text from '../../../../../../../../../../component-library/components/Texts/Text';
 
 import AssetPill from '../../../../../../../../../UI/SimulationDetails/AssetPill/AssetPill';
 import { IndividualFiatDisplay } from '../../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
@@ -66,15 +70,25 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
     selectConversionRateByChainId(state, chainId),
   );
 
-  const tokenAmount = isNumberValue(value) ? calcTokenAmount(value, NATIVE_DECIMALS) : null;
-  const isValidTokenAmount = tokenAmount !== null && tokenAmount !== undefined && tokenAmount instanceof BigNumber;
+  const tokenAmount = isNumberValue(value)
+    ? calcTokenAmount(value, NATIVE_DECIMALS)
+    : null;
+  const isValidTokenAmount =
+    tokenAmount !== null &&
+    tokenAmount !== undefined &&
+    tokenAmount instanceof BigNumber;
 
-  const fiatValue = isValidTokenAmount && conversionRate
-    ? tokenAmount.times(String(conversionRate)).toNumber()
-    : undefined;
+  const fiatValue =
+    isValidTokenAmount && conversionRate
+      ? tokenAmount.times(String(conversionRate)).toNumber()
+      : undefined;
 
-  const tokenValue = isValidTokenAmount ? formatAmount('en-US', tokenAmount) : null;
-  const tokenValueMaxPrecision = isValidTokenAmount ? formatAmountMaxPrecision('en-US', tokenAmount) : null;
+  const tokenValue = isValidTokenAmount
+    ? formatAmount('en-US', tokenAmount)
+    : null;
+  const tokenValueMaxPrecision = isValidTokenAmount
+    ? formatAmountMaxPrecision('en-US', tokenAmount)
+    : null;
 
   function handlePressTokenValue() {
     setHasValueModalOpen(true);
@@ -88,19 +102,22 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
             onPress={handlePressTokenValue}
             onPressIn={handlePressTokenValue}
             onPressOut={handlePressTokenValue}
-            style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
-            >
-              <Text>
-                {credit && '+ '}
-                {debit && '- '}
-                {tokenValue !== null &&
-                  shortenString(tokenValue || '', {
-                    truncatedCharLimit: 15,
-                    truncatedStartChars: 15,
-                    truncatedEndChars: 0,
-                    skipCharacterInEnd: true,
-                  })}
-              </Text>
+            style={[
+              credit && styles.valueIsCredit,
+              debit && styles.valueIsDebit,
+            ]}
+          >
+            <Text>
+              {credit && '+ '}
+              {debit && '- '}
+              {tokenValue !== null &&
+                shortenString(tokenValue || '', {
+                  truncatedCharLimit: 15,
+                  truncatedStartChars: 15,
+                  truncatedEndChars: 0,
+                  skipCharacterInEnd: true,
+                })}
+            </Text>
           </ButtonPill>
           <View style={styles.marginStart4}>
             <AssetPill asset={{ chainId, type: AssetType.Native }} />
@@ -117,35 +134,35 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
         )}
       </View>
       {hasValueModalOpen && (
-          /**
-           * TODO replace BottomModal instances with BottomSheet
-           * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
-           */
-          <BottomModal onClose={() => setHasValueModalOpen(false)}>
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={() => setHasValueModalOpen(false)}
-            >
-              <View style={styles.valueModal} >
-                <View style={styles.valueModalHeader}>
-                  <ButtonIcon
-                    iconColor={IconColor.Default}
-                    size={ButtonIconSizes.Sm}
-                    style={styles.valueModalHeaderIcon}
-                    onPress={() => setHasValueModalOpen(false)}
-                    iconName={IconName.ArrowLeft}
-                  />
-                  <Text style={styles.valueModalHeaderText}>
-                    {labelChangeType}
-                  </Text>
-                </View>
-                <Text style={styles.valueModalText}>
-                  {tokenValueMaxPrecision}
+        /**
+         * TODO replace BottomModal instances with BottomSheet
+         * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
+         */
+        <BottomModal onClose={() => setHasValueModalOpen(false)}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setHasValueModalOpen(false)}
+          >
+            <View style={styles.valueModal}>
+              <View style={styles.valueModalHeader}>
+                <ButtonIcon
+                  iconColor={IconColor.Default}
+                  size={ButtonIconSizes.Sm}
+                  style={styles.valueModalHeaderIcon}
+                  onPress={() => setHasValueModalOpen(false)}
+                  iconName={IconName.ArrowLeft}
+                />
+                <Text style={styles.valueModalHeaderText}>
+                  {labelChangeType}
                 </Text>
               </View>
-            </TouchableOpacity>
-          </BottomModal>
-        )}
+              <Text style={styles.valueModalText}>
+                {tokenValueMaxPrecision}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </BottomModal>
+      )}
     </View>
   );
 };
