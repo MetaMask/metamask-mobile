@@ -15,7 +15,7 @@ export const ConfirmRoot = () => {
   useEffect(() => {
     if (isRedesignedEnabled) {
       if (isStandaloneConfirmation) {
-        // TODO: Decide if we want to navigate to a standalone confirmation page or do it in wherever it's used
+        // TODO: Decide if we want to navigate to a standalone confirmation screen here or do it in wherever it's used
         return;
       }
       navigation.navigate(
