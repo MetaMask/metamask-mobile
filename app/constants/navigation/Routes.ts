@@ -159,7 +159,7 @@ const Routes = {
       GAS_IMPACT: 'GasImpact',
     },
   },
-  STANDALONE_CONFIRMATION: {
+  STANDALONE_CONFIRMATIONS: {
     STAKE_DEPOSIT: 'RedesignedStakeDeposit',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
