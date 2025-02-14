@@ -1,11 +1,12 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { SignatureRequest } from '@metamask/signature-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
 import { isSIWESignatureRequest , isRecognizedPermit, parseTypedDataMessageFromSignatureRequest } from '../../../utils/signature';

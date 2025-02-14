@@ -92,9 +92,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 }) => {
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
-    const { colors } = useTheme();
+  const { colors } = useTheme();
 
-    const styles = styleSheet(colors);
+  const styles = styleSheet(colors);
 
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId),
@@ -105,11 +105,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
       ? contractExchangeRates[tokenContract as `0x${string}`]?.price
       : undefined;
 
-    const {
-      details: tokenDetails,
-      isPending: isPendingTokenDetails,
-    } = useGetTokenStandardAndDetails(tokenContract, networkClientId);
-    const { decimalsNumber: tokenDecimals } = tokenDetails;
+  const { details: tokenDetails, isPending: isPendingTokenDetails } =
+    useGetTokenStandardAndDetails(tokenContract, networkClientId);
+  const { decimalsNumber: tokenDecimals } = tokenDetails;
 
   useTrackERC20WithoutDecimalInformation(
     chainId,
@@ -131,7 +129,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 
   const fiatValue =
     isValidTokenAmount && exchangeRate && !tokenId
-      ? tokenAmount.multipliedBy(exchangeRate).toNumber()
+      ? tokenAmount.multipliedBy(exchangeRate)
       : undefined;
 
   const tokenValue = isValidTokenAmount
@@ -182,30 +180,29 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                       ? strings('confirm.unlimited')
                       : tokenValue !== null &&
                         shortenString(tokenValue || '', {
-                        truncatedCharLimit: 15,
-                        truncatedStartChars: 15,
-                        truncatedEndChars: 0,
-                        skipCharacterInEnd: true,
-                      })}
-                      {tokenId && `#${tokenId}`}
-                    </Text>
-                  }
-                </ButtonPill>
-              </AnimatedPulse>
-            }
-            <View style={styles.marginStart4}>
-              <Address address={tokenContract} chainId={chainId} />
-            </View>
+                          truncatedCharLimit: 15,
+                          truncatedStartChars: 15,
+                          truncatedEndChars: 0,
+                          skipCharacterInEnd: true,
+                        })}
+                    {tokenId && `#${tokenId}`}
+                  </Text>
+                )}
+              </ButtonPill>
+            </AnimatedPulse>
+          }
+          <View style={styles.marginStart4}>
+            <Address address={tokenContract} chainId={chainId} />
           </View>
         </View>
-        <View style={styles.fiatDisplay}>
-          {/**
-            TODO - add fiat shorten prop after tooltip logic has been updated
-            {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
-          */}
-        {fiatValue && (
-          <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />
-        )}
+      </View>
+      <View>
+        {fiatValue &&
+          (isPendingTokenDetails ? (
+            <View style={styles.loadingFiatValue} />
+          ) : (
+            <IndividualFiatDisplay fiatAmount={fiatValue} />
+          ))}
       </View>
       {hasValueModalOpen && (
         /**

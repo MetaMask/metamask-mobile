@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
+import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip';
 import styleSheet from './InfoRow.styles';
