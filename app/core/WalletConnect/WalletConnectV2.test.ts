@@ -1,13 +1,12 @@
 import { WC2Manager } from './WalletConnectV2';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Ignoring the import error for testing purposes
-import { Client } from '@walletconnect/se-sdk';
 import { NavigationContainerRef } from '@react-navigation/native';
-import Engine from '../Engine';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
-import { SingleEthereumTypes } from '@walletconnect/se-sdk/dist/types';
-import AppConstants from '../AppConstants';
 import StorageWrapper from '../../store/storage-wrapper';
+import AppConstants from '../AppConstants';
+import Engine from '../Engine';
+import { IWalletKit } from '@reown/walletkit';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -27,8 +26,8 @@ jest.mock('../AppConstants', () => ({
   },
 }));
 
-jest.mock('@walletconnect/se-sdk', () => ({
-  Client: jest.fn().mockImplementation(() => ({
+jest.mock('@reown/walletkit', () => {
+  const mockClient = {
     approveRequest: jest.fn(),
     rejectRequest: jest.fn(),
     updateSession: jest.fn().mockResolvedValue(true),
@@ -45,47 +44,27 @@ jest.mock('@walletconnect/se-sdk', () => ({
     approveSession: jest.fn(),
     rejectSession: jest.fn(),
     disconnectSession: jest.fn(function ({ topic }) {
-      delete this.sessions?.[topic]; // Ensure this is correctly deleting the session
+      delete this.sessions?.[topic];
       return Promise.resolve(true);
     }),
     on: jest.fn(),
-  })),
-  SingleEthereum: {
-    init: jest.fn().mockResolvedValue({
-      approveSession: jest.fn().mockResolvedValue({
-        topic: 'test-topic',
-        pairingTopic: 'test-pairing',
-        peer: {
-          metadata: {
-            url: 'https://example.com',
-            name: 'Test App',
-            icons: [],
-          },
-        },
-        inpageProvider: {},
-      }),
-      rejectSession: jest.fn(),
-      rejectRequest: jest.fn(),
-      getActiveSessions: jest.fn().mockReturnValue({
-        'test-topic': {
-          topic: 'test-topic',
-          pairingTopic: 'test-pairing',
-          peer: {
-            metadata: {
-              url: 'https://example.com',
-              name: 'Test App',
-              icons: [],
-            },
-          },
-        },
-      }),
-      getPendingSessionRequests: jest.fn().mockReturnValue([]),
-      updateSession: jest.fn().mockResolvedValue(true),
-      disconnectSession: jest.fn().mockResolvedValue(true),
-      on: jest.fn(),
-    }),
-  },
-}));
+    respondSessionRequest: jest.fn(),
+  };
+
+  return {
+    __esModule: true,
+    default: {
+      init: jest.fn().mockResolvedValue(mockClient),
+    },
+    WalletKit: {
+      init: jest.fn().mockResolvedValue(mockClient),
+    },
+    Client: jest.fn().mockImplementation(() => mockClient),
+    SingleEthereum: {
+      init: jest.fn().mockResolvedValue(mockClient),
+    },
+  };
+});
 
 jest.mock('../Engine', () => ({
   context: {
@@ -111,6 +90,7 @@ jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest
     .fn()
     .mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
+  getPermittedChains: jest.fn().mockResolvedValue(['eip155:1']),
 }));
 
 jest.mock('../../selectors/networkController', () => ({
@@ -151,43 +131,14 @@ jest.mock('@walletconnect/client', () => ({
 
 describe('WC2Manager', () => {
   let manager: WC2Manager;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let mockClient: Client;
   let mockNavigation: NavigationContainerRef;
-  let mockApproveSession: jest.SpyInstance<
-    Promise<SessionTypes.Struct>,
-    [params: { id: number; chainId: number; accounts: string[] }],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    any
-  >;
+  let mockApproveSession: jest.SpyInstance;
 
   beforeEach(async () => {
-    mockClient = new Client();
     mockNavigation = {
       getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
+      navigate: jest.fn(),
     } as unknown as NavigationContainerRef;
-
-    Object.defineProperty(Engine, 'context', {
-      value: {
-        AccountsController: {
-          getSelectedAccount: jest.fn().mockReturnValue({
-            address: '0x1234567890abcdef1234567890abcdef12345678',
-          }),
-        },
-        KeyringController: {
-          isUnlocked: jest.fn().mockReturnValue(true),
-        },
-        PermissionController: {
-          requestPermissions: jest.fn().mockResolvedValue(true),
-          getPermission: jest.fn().mockReturnValue({
-            id: 'mockPermissionId',
-          }),
-          revokeAllPermissions: jest.fn(),
-        },
-      },
-      writable: true,
-      configurable: true,
-    });
 
     const initResult = await WC2Manager.init({ navigation: mockNavigation });
     if (!initResult) {
@@ -195,40 +146,58 @@ describe('WC2Manager', () => {
     }
     manager = initResult;
 
-    // Explicitly re-mock the approveSession on the correct instance
-    // eslint-disable-next-line dot-notation
-    mockApproveSession = jest.spyOn(manager['web3Wallet'], 'approveSession');
+    // Access private property for testing using unknown cast
+    const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
+    mockApproveSession = jest.spyOn(web3Wallet, 'approveSession');
   });
 
   it('should correctly handle a session proposal', async () => {
     const mockSessionProposal = {
       id: 1,
       params: {
+        id: 1,
         pairingTopic: 'test-pairing',
         proposer: {
+          publicKey: 'test-public-key',
           metadata: {
-            url: 'https://example.com',
+            name: 'Test App',
             description: 'Test App',
+            url: 'https://example.com',
             icons: ['https://example.com/icon.png'],
           },
         },
+        expiryTimestamp: Date.now() + 300000,
+        relays: [{ protocol: 'irn' }],
+        requiredNamespaces: {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged', 'accountsChanged'],
+          },
+        },
+        optionalNamespaces: {},
       },
-    } as unknown as SingleEthereumTypes.SessionProposal;
+      verifyContext: {
+        verified: {
+          verifyUrl: 'https://example.com',
+          validation: 'VALID' as const,
+          origin: 'https://example.com'
+        }
+      }
+    };
 
-    try {
-      await manager.onSessionProposal(mockSessionProposal);
-    } catch (error) {
-      console.error('Error during onSessionProposal execution', error);
-    }
+    await manager.onSessionProposal(mockSessionProposal);
 
-    // Verify directly if approveSession is being called
-    expect(mockApproveSession).toHaveBeenCalled(); // Simply check if it was called
-
-    // Check if approveSession was called with the expected parameters
     expect(mockApproveSession).toHaveBeenCalledWith({
       id: 1,
-      chainId: 1,
-      accounts: ['0x1234567890abcdef1234567890abcdef12345678'],
+      namespaces: {
+        eip155: {
+          chains: ['eip155:1'],
+          methods: expect.any(Array),
+          events: ['chainChanged', 'accountsChanged'],
+          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
+        }
+      }
     });
   });
 
