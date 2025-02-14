@@ -152,6 +152,9 @@
 		E83DB5522BBDF2AA00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		E83DB5532BBDF2AE00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		E83DB5542BBDF2AF00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
+		E8C512C32D60005400F39BC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E8C512C22D60005400F39BC9 /* Assets.xcassets */; };
+		E8C512C42D60005400F39BC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E8C512C22D60005400F39BC9 /* Assets.xcassets */; };
+		E8C512C52D60005400F39BC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E8C512C22D60005400F39BC9 /* Assets.xcassets */; };
 		ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */; };
 		EF65C42EA15B4774B1947A12 /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C752564A28B44392AEE16BD5 /* Roboto-Medium.ttf */; };
 		F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */; };
@@ -323,6 +326,7 @@
 		E020F42F788744B3BCE17F05 /* Roboto-LightItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-LightItalic.ttf"; path = "../app/fonts/Roboto-LightItalic.ttf"; sourceTree = "<group>"; };
 		E7EEA32C976A46B991D55FD4 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MetaMask-QA/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = MetaMask/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
+		E8C512C22D60005400F39BC9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E9629905BA1940ADA4189921 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		EBC2B6371CD846D28B9FAADF /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
 		F1CCBB0591B4D16C1710A05D /* Pods-MetaMask-Flask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.release.xcconfig"; sourceTree = "<group>"; };
@@ -410,6 +414,7 @@
 				15205D6221596AD90049EA93 /* MetaMask.entitlements */,
 				158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
+				E8C512C22D60005400F39BC9 /* Assets.xcassets */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -816,6 +821,7 @@
 				FF0F3B13A5354C41913F766D /* EuclidCircularB-Bold.otf in Resources */,
 				E34DE917F6FC4438A6E88402 /* EuclidCircularB-BoldItalic.otf in Resources */,
 				07CBADD9D4B441008304F8D3 /* EuclidCircularB-Light.otf in Resources */,
+				E8C512C32D60005400F39BC9 /* Assets.xcassets in Resources */,
 				2CDF19FE9DEE4BF8B07154B1 /* EuclidCircularB-LightItalic.otf in Resources */,
 				8DEB44A7E7EF48E1B3298910 /* EuclidCircularB-Medium.otf in Resources */,
 				D171C39A8BD44DBEB6B68480 /* EuclidCircularB-MediumItalic.otf in Resources */,
@@ -851,6 +857,7 @@
 				2EF282732B0FF86900D7B4B1 /* Roboto-Italic.ttf in Resources */,
 				2EF282742B0FF86900D7B4B1 /* Roboto-Light.ttf in Resources */,
 				2EF282752B0FF86900D7B4B1 /* Roboto-LightItalic.ttf in Resources */,
+				E8C512C42D60005400F39BC9 /* Assets.xcassets in Resources */,
 				2EF282762B0FF86900D7B4B1 /* release.xcconfig in Resources */,
 				2EF282772B0FF86900D7B4B1 /* Roboto-Medium.ttf in Resources */,
 				2EF282782B0FF86900D7B4B1 /* Roboto-MediumItalic.ttf in Resources */,
@@ -883,6 +890,7 @@
 				B339FF13289ABD70001B89FB /* Roboto-Black.ttf in Resources */,
 				B339FF14289ABD70001B89FB /* ThemeColors.xcassets in Resources */,
 				B339FF15289ABD70001B89FB /* Roboto-BlackItalic.ttf in Resources */,
+				E8C512C52D60005400F39BC9 /* Assets.xcassets in Resources */,
 				B339FF16289ABD70001B89FB /* Roboto-Bold.ttf in Resources */,
 				B339FF17289ABD70001B89FB /* debug.xcconfig in Resources */,
 				C8424AE42CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */,
