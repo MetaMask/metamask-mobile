@@ -1178,13 +1178,15 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "height": "70%",
+                                          "alignItems": "center",
+                                          "height": "100%",
+                                          "justifyContent": "center",
                                           "transform": [
                                             {
                                               "rotate": "0deg",
                                             },
                                           ],
-                                          "width": "70%",
+                                          "width": "100%",
                                         }
                                       }
                                       testID="shapes-background-animation"
