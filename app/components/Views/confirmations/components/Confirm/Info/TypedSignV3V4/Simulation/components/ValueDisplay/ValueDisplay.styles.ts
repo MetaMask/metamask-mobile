@@ -1,6 +1,9 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
-import { fontStyles, colors as importedColors } from '../../../../../../../../../../styles/common';
+import {
+  fontStyles,
+  colors as importedColors,
+} from '../../../../../../../../../../styles/common';
 
 const styleSheet = (colors: Theme['colors']) =>
   StyleSheet.create({
@@ -21,7 +24,7 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
-    loadingFiatValue:{
+    loadingFiatValue: {
       height: 24,
     },
     loaderButtonPillEmptyContent: {

@@ -181,15 +181,20 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 
 import {
   MultichainNetworkController,
-  MultichainNetworkControllerState,
-} from '@metamask/multichain-network-controller';
-import {
-  MultichainNetworkControllerEvents,
   MultichainNetworkControllerActions,
-} from '@metamask/multichain-network-controller/dist/MultichainNetworkController.cjs';
+  MultichainNetworkControllerState,
+  MultichainNetworkControllerStateChange,
+  MultichainNetworkControllerNetworkDidChangeEvent,
+} from '@metamask/multichain-network-controller';
+
+// TODO: Remove this once the controller is updated with exporting this types
+type MultichainNetworkControllerEvents =
+  | MultichainNetworkControllerStateChange
+  | MultichainNetworkControllerNetworkDidChangeEvent;
 
 /**
  * Controllers that area always instantiated
@@ -303,7 +308,8 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
-  | MultichainNetworkControllerEvents;
+  | MultichainNetworkControllerEvents
+  | SnapKeyringEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
