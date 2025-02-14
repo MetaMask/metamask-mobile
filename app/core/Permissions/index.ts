@@ -4,6 +4,7 @@ import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
+import { PermissionKeys } from './specifications';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -214,4 +215,29 @@ export const getPermittedAccounts = async (
     }
     throw error;
   }
+};
+
+/**
+ * Get permitted chains for the given the host.
+ *
+ * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
+ * @returns An array containing permitted chains for the specified host.
+ */
+export const getPermittedChains = async (hostname: string): Promise<string[]> => {
+  const { PermissionController } = Engine.context;
+  const caveat = PermissionController.getCaveat(
+    hostname,
+    PermissionKeys.permittedChains,
+    CaveatTypes.restrictNetworkSwitching
+  );
+
+  if (Array.isArray(caveat?.value)) {
+    const chains = caveat.value
+      .filter((item: unknown): item is string => typeof item === 'string')
+      .map((chainId: string) => `eip155:${parseInt(chainId)}`);
+
+    return chains;
+  }
+
+  return [];
 };

@@ -242,27 +242,51 @@ const AccountConnect = (props: AccountConnectProps) => {
       chainsToPermit = [chainId];
     }
 
+    DevLogger.log(`AccountConnect::handleUpdateNetworkPermissions initial chains to permit:`, {
+      selectedChainIds,
+      chainId,
+      chainsToPermit,
+    });
+
     try {
+      const origin = new URL(hostname).hostname;
       hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-        new URL(hostname).hostname,
+        origin,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );
-    } catch {
-      // noop
+
+      DevLogger.log(`AccountConnect::handleUpdateNetworkPermissions existing permissions check:`, {
+        origin,
+        hasPermittedChains,
+        existingPermissions: Engine.context.PermissionController.getPermissions(origin),
+      });
+    } catch (error) {
+      DevLogger.log(`AccountConnect::handleUpdateNetworkPermissions error checking permissions:`, error);
     }
 
+    const origin = new URL(hostname).hostname;
     if (hasPermittedChains) {
+      DevLogger.log(`AccountConnect::handleUpdateNetworkPermissions updating existing caveat:`, {
+        origin,
+        chainsToPermit,
+      });
+
       Engine.context.PermissionController.updateCaveat(
-        new URL(hostname).hostname,
+        origin,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
         chainsToPermit,
       );
     } else {
+      DevLogger.log(`AccountConnect::handleUpdateNetworkPermissions granting new permissions:`, {
+        origin,
+        chainsToPermit,
+      });
+
       Engine.context.PermissionController.grantPermissionsIncremental({
         subject: {
-          origin: new URL(hostname).hostname,
+          origin,
         },
         approvedPermissions: {
           [PermissionKeys.permittedChains]: {
@@ -276,6 +300,12 @@ const AccountConnect = (props: AccountConnectProps) => {
         },
       });
     }
+
+    // Log final permissions state after update
+    DevLogger.log(`AccountConnect::handleUpdateNetworkPermissions final permissions state:`, {
+      origin,
+      permissions: Engine.context.PermissionController.getPermissions(origin),
+    });
   }, [selectedChainIds, chainId, hostname]);
 
   const isAllowedOrigin = useCallback((origin: string) => {

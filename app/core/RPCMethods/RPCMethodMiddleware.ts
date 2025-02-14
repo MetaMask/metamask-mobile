@@ -29,12 +29,13 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
-import { getPermittedAccounts } from '../Permissions';
+import { getPermittedAccounts, getPermittedChains } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import {
   selectEvmChainId,
-  selectProviderConfig,
+  selectNetworkConfigurations,
+  selectProviderConfig
 } from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
@@ -49,6 +50,7 @@ import {
   SignatureController,
 } from '@metamask/signature-controller';
 import { PermissionKeys } from '../Permissions/specifications.js';
+import { findExistingNetwork, switchToNetwork } from './lib/ethereum-chain-utils.js';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -119,12 +121,16 @@ export const checkActiveAccountAndChainId = async ({
   channelId,
   hostname,
   isWalletConnect,
+  requestUserApproval,
+  analytics,
 }: {
   address?: string;
   chainId?: number;
   channelId?: string;
   hostname: string;
   isWalletConnect: boolean;
+  requestUserApproval?: (_: { type: string, requestData: Record<string, unknown> }) => unknown;
+  analytics?: unknown;
 }) => {
   let isInvalidAccount = false;
   if (address) {
@@ -150,7 +156,8 @@ export const checkActiveAccountAndChainId = async ({
     );
 
     const origin = isWalletConnect ? hostname : channelId ?? hostname;
-    const accounts = await getPermittedAccounts(origin);
+    const normalizedOrigin = origin.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const accounts = await getPermittedAccounts(normalizedOrigin);
 
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
@@ -175,6 +182,7 @@ export const checkActiveAccountAndChainId = async ({
   DevLogger.log(
     `checkActiveAccountAndChainId isInvalidAccount=${isInvalidAccount}`,
   );
+
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
     const providerConfigChainId = selectEvmChainId(store.getState());
@@ -200,7 +208,41 @@ export const checkActiveAccountAndChainId = async ({
       chainIdRequest = `0x${parseInt(chainIdRequest, 10).toString(16)}`;
     }
 
-    if (activeChainId !== chainIdRequest) {
+    const permittedChains = await getPermittedChains(hostname);
+    const isAllowedChainId = permittedChains.includes(chainIdRequest);
+
+    DevLogger.log(`RPCMethodMiddleware::checkActiveAccountAndChainId permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`);
+    if(activeChainId && isAllowedChainId) {
+      // should simulate a wallet_switchEthereumChain request
+      const { NetworkController, CurrencyRateController, SelectedNetworkController } =
+        Engine.context;
+      const networkConfigurations = selectNetworkConfigurations(store.getState());
+      const existingNetwork = findExistingNetwork(chainIdRequest, networkConfigurations);
+
+      if(!existingNetwork) {
+        DevLogger.log(`RPCMethodMiddleware::checkActiveAccountAndChainId no existing network found`);
+        throw rpcErrors.invalidParams({
+          message: `Invalid parameters: active chainId is different than the one provided.`,
+        });
+      }
+
+      DevLogger.log(`RPCMethodMiddleware::checkActiveAccountAndChainId existingNetwork=${existingNetwork}`);
+      // Switch to the requested chain
+      await switchToNetwork({
+        network: existingNetwork,
+        chainId: chainIdRequest,
+        controllers: {
+          CurrencyRateController,
+          NetworkController,
+          PermissionController,
+          SelectedNetworkController,
+        },
+        requestUserApproval,
+        analytics,
+        origin,
+        isAddNetworkFlow: false,
+      });
+    } else if (activeChainId !== chainIdRequest) {
       Alert.alert(
         `Active chainId is ${activeChainId} but received ${chainIdRequest}`,
       );
@@ -333,6 +375,9 @@ export const getRpcMethodMiddleware = ({
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return createAsyncMiddleware(async (req: any, res: any, next: any) => {
+
+    DevLogger.log(`getRpcMethodMiddleware hostname=${hostname} channelId=${channelId} method=${req.method}`);
+
     // Used by eth_accounts and eth_coinbase RPCs.
     const getEthAccounts = async () => {
       const accounts = await getPermittedAccounts(origin);
@@ -340,6 +385,7 @@ export const getRpcMethodMiddleware = ({
     };
 
     const checkTabActive = () => {
+      DevLogger.log(`checkTabActive tabId=${tabId}`);
       if (!tabId) return true;
       const { browser } = store.getState();
       if (tabId !== browser.activeTab)
@@ -371,7 +417,7 @@ export const getRpcMethodMiddleware = ({
       Engine.context.ApprovalController.setFlowLoadingText(opts);
     };
 
-    const requestUserApproval = async ({ type = '', requestData = {} }) => {
+    const requestUserApproval = async ({ type = '', requestData = {} }: { type: string, requestData: Record<string, unknown> }) => {
       checkTabActive();
       await Engine.context.ApprovalController.clear(
         providerErrors.userRejectedRequest(),
@@ -942,6 +988,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       wallet_switchEthereumChain: () => {
+        DevLogger.log(`RPCMethodMiddleware::wallet_switchEthereumChain now!!!`);
         checkTabActive();
         return RPCMethods.wallet_switchEthereumChain({
           req,
