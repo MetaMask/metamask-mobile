@@ -180,6 +180,7 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 import {
   EarnController,
   EarnControllerState,
@@ -299,6 +300,7 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
+  | SnapKeyringEvents
   | EarnControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController

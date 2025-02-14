@@ -12,7 +12,9 @@ class SendLinkView {
   }
 
   get closeSendLinkButton() {
-    return Matchers.getElementByID(SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON);
+    return Matchers.getElementByID(
+      SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON,
+    );
   }
 
   get qrCodeButton() {

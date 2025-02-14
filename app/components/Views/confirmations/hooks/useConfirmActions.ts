@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
@@ -19,6 +20,7 @@ export const useConfirmActions = () => {
     isQRSigningInProgress,
     setScannerVisible,
   } = useQRHardwareContext();
+  const navigation = useNavigation();
 
   const signatureRequest =
     approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
@@ -33,6 +35,7 @@ export const useConfirmActions = () => {
       deleteAfterResult: true,
       handleErrors: false,
     });
+    navigation.goBack();
     if (signatureRequest) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
       PPOMUtil.clearSignatureSecurityAlertResponse();
@@ -40,6 +43,7 @@ export const useConfirmActions = () => {
   }, [
     captureSignatureMetrics,
     isQRSigningInProgress,
+    navigation,
     onRequestConfirm,
     setScannerVisible,
     signatureRequest,
@@ -48,6 +52,7 @@ export const useConfirmActions = () => {
   const onReject = useCallback(async () => {
     await cancelQRScanRequestIfPresent();
     onRequestReject();
+    navigation.goBack();
     if (signatureRequest) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
       PPOMUtil.clearSignatureSecurityAlertResponse();
@@ -55,6 +60,7 @@ export const useConfirmActions = () => {
   }, [
     cancelQRScanRequestIfPresent,
     captureSignatureMetrics,
+    navigation,
     onRequestReject,
     signatureRequest,
   ]);
