@@ -15,9 +15,6 @@ export const ConfirmRoot = () => {
   useEffect(() => {
     if (isRedesignedEnabled) {
       if (isStandaloneConfirmation) {
-        navigation.navigate('StakeScreens', {
-          screen: Routes.STANDALONE_CONFIRMATION.STAKE_DEPOSIT,
-        });
         return;
       }
       navigation.navigate(

@@ -46,7 +46,7 @@ const StakeScreenStack = () => (
         component={StakeEarningsHistoryView}
       />
       <Stack.Screen
-        name={Routes.STANDALONE_CONFIRMATION.STAKE_DEPOSIT}
+        name={Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT}
         component={StakingDeposit}
       />
     </Stack.Navigator>

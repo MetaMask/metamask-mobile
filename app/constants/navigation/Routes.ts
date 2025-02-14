@@ -160,7 +160,7 @@ const Routes = {
       EARN_TOKEN_LIST: 'EarnTokenList',
     },
   },
-  STANDALONE_CONFIRMATION: {
+  STANDALONE_CONFIRMATIONS: {
     STAKE_DEPOSIT: 'RedesignedStakeDeposit',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
