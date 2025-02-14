@@ -19,7 +19,6 @@ import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import { doesPasswordMatch } from '../../../util/password';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { useDispatch } from 'react-redux';
-import { TurnOffRememberMeModalSelectorsIDs } from '../../../../e2e/selectors/Modals/TurnOffRememberMeModal.selectors';
 import { Authentication } from '../../../core';
 
 export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
@@ -93,7 +92,6 @@ const TurnOffRememberMeModal = () => {
               </Text>
               <OutlinedTextField
                 style={styles.input}
-                testID={TurnOffRememberMeModalSelectorsIDs.CONTAINER}
                 secureTextEntry
                 returnKeyType={'done'}
                 onChangeText={checkPassword}

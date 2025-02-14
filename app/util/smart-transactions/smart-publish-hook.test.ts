@@ -11,7 +11,11 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import type { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import {
+  type SmartTransaction,
+  ClientId,
+} from '@metamask/smart-transactions-controller/dist/types';
+
 import {
   AllowedActions,
   AllowedEvents,
@@ -20,7 +24,7 @@ import {
 } from './smart-publish-hook';
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
-import { ControllerMessenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/base-controller';
 import {
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerStateChangeEvent,
@@ -100,18 +104,8 @@ const defaultTransactionMeta: TransactionMeta = {
   },
   type: TransactionType.simpleSend,
   chainId: ChainId.mainnet,
+  networkClientId: 'testNetworkClientId',
   time: 1624408066355,
-  // defaultGasEstimates: {
-  //   gas: '0x7b0d',
-  //   gasPrice: '0x77359400',
-  // },
-  // error: {
-  //   name: 'Error',
-  //   message: 'Details of the error',
-  // },
-  // securityProviderResponse: {
-  //   flagAsDangerous: 0,
-  // },
 };
 
 type WithRequestOptions = {
@@ -122,11 +116,15 @@ type WithRequestOptions = {
 type WithRequestCallback<ReturnValue> = ({
   request,
   controllerMessenger,
+  getFeesSpy,
+  submitSignedTransactionsSpy,
+  smartTransactionsController,
 }: {
   request: SubmitSmartTransactionRequestMocked;
   controllerMessenger: SubmitSmartTransactionRequestMocked['controllerMessenger'];
   getFeesSpy: jest.SpyInstance;
   submitSignedTransactionsSpy: jest.SpyInstance;
+  smartTransactionsController: SmartTransactionsController;
 }) => ReturnValue;
 
 type WithRequestArgs<ReturnValue> =
@@ -142,14 +140,14 @@ function withRequest<ReturnValue>(
     pendingApprovals = [],
     ...options
   } = rest;
-  const controllerMessenger = new ControllerMessenger<
+  const messenger = new Messenger<
     NetworkControllerGetNetworkClientByIdAction | AllowedActions,
     NetworkControllerStateChangeEvent | AllowedEvents
   >();
 
   const smartTransactionsController = new SmartTransactionsController({
     // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-    messenger: controllerMessenger.getRestricted({
+    messenger: messenger.getRestricted({
       name: 'SmartTransactionsController',
       allowedActions: ['NetworkController:getNetworkClientById'],
       allowedEvents: ['NetworkController:stateChange'],
@@ -159,17 +157,20 @@ function withRequest<ReturnValue>(
     trackMetaMetricsEvent: jest.fn(),
     getTransactions: jest.fn(),
     getMetaMetricsProps: jest.fn(),
+    getFeatureFlags: jest.fn(),
+    updateTransaction: jest.fn(),
+    clientId: ClientId.Mobile,
   });
 
   const getFeesSpy = jest
     .spyOn(smartTransactionsController, 'getFees')
     .mockResolvedValue({
       tradeTxFees: {
-        cancelFees: [],
         feeEstimate: 42000000000000,
-        fees: [{ maxFeePerGas: 12843636951, maxPriorityFeePerGas: 2853145236 }],
         gasLimit: 21000,
         gasUsed: 21000,
+        cancelFees: [],
+        fees: [{ maxFeePerGas: 12843636951, maxPriorityFeePerGas: 2853145236 }],
       },
       approvalTxFees: null,
     });
@@ -184,8 +185,9 @@ function withRequest<ReturnValue>(
     transactionMeta: {
       ...defaultTransactionMeta,
     },
+    transactionFees: undefined,
     smartTransactionsController,
-    controllerMessenger,
+    controllerMessenger: messenger,
     transactionController: createTransactionControllerMock(),
     shouldUseSmartTransaction: true,
     approvalController: createApprovalControllerMock({
@@ -200,7 +202,8 @@ function withRequest<ReturnValue>(
       smartTransactions: {
         expectedDeadline: 45,
         maxDeadline: 150,
-        returnTxHashAsap: false,
+        mobileReturnTxHashAsap: false,
+        batchStatusPollingInterval: 1000,
       },
       mobile_active: true,
       extension_active: true,
@@ -211,10 +214,11 @@ function withRequest<ReturnValue>(
   };
 
   return fn({
-    controllerMessenger,
+    controllerMessenger: messenger,
     request,
     getFeesSpy,
     submitSignedTransactionsSpy,
+    smartTransactionsController,
   });
 }
 
@@ -231,7 +235,7 @@ describe('submitSmartTransactionHook', () => {
 
   it('returns a txHash asap if the feature flag requires it', async () => {
     withRequest(async ({ request }) => {
-      request.featureFlags.smartTransactions.returnTxHashAsap = true;
+      request.featureFlags.smartTransactions.mobileReturnTxHashAsap = true;
       const result = await submitSmartTransactionHook(request);
       expect(result).toEqual({ transactionHash });
     });
@@ -365,6 +369,69 @@ describe('submitSmartTransactionHook', () => {
             isSwapTransaction: false,
           },
         });
+      },
+    );
+  });
+
+  it('submits a smart transaction without the smart transaction status page', async () => {
+    withRequest(
+      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+        request.featureFlags.smartTransactions.mobileReturnTxHashAsap = true;
+        setImmediate(() => {
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'pending',
+              statusMetadata: {
+                minedHash: '',
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'success',
+              statusMetadata: {
+                minedHash: transactionHash,
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+        });
+        const result = await submitSmartTransactionHook(request);
+
+        expect(result).toEqual({ transactionHash });
+        const { txParams, chainId } = request.transactionMeta;
+
+        expect(
+          request.transactionController.approveTransactionsWithSameNonce,
+        ).toHaveBeenCalledWith(
+          [
+            {
+              ...txParams,
+              maxFeePerGas: '0x2fd8a58d7',
+              maxPriorityFeePerGas: '0xaa0f8a94',
+              chainId,
+              value: undefined,
+            },
+          ],
+          { hasNonce: true },
+        );
+        expect(submitSignedTransactionsSpy).toHaveBeenCalledWith({
+          signedTransactions: [createSignedTransaction()],
+          signedCanceledTransactions: [],
+          txParams,
+          transactionMeta: request.transactionMeta,
+        });
+
+        expect(
+          request.approvalController.addAndShowApprovalRequest,
+        ).not.toHaveBeenCalled();
+        expect(
+          request.approvalController.updateRequestState,
+        ).not.toHaveBeenCalled();
       },
     );
   });
@@ -599,6 +666,61 @@ describe('submitSmartTransactionHook', () => {
           });
         },
       );
+    });
+  });
+  it('sets the status refresh interval if provided in feature flags', async () => {
+    withRequest(async ({ request, smartTransactionsController }) => {
+      const setStatusRefreshIntervalSpy = jest.spyOn(
+        smartTransactionsController,
+        'setStatusRefreshInterval',
+      );
+
+      request.featureFlags.smartTransactions.batchStatusPollingInterval = 2000;
+
+      await submitSmartTransactionHook(request);
+
+      expect(setStatusRefreshIntervalSpy).toHaveBeenCalledWith(2000);
+    });
+  });
+
+  it('does not set the status refresh interval if not provided in feature flags', async () => {
+    withRequest(async ({ request, smartTransactionsController }) => {
+      const setStatusRefreshIntervalSpy = jest.spyOn(
+        smartTransactionsController,
+        'setStatusRefreshInterval',
+      );
+
+      request.featureFlags.smartTransactions.batchStatusPollingInterval = 0;
+
+      await submitSmartTransactionHook(request);
+
+      expect(setStatusRefreshIntervalSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  it('uses provided transaction fees instead of fetching new ones if provided', async () => {
+    withRequest(async ({ request, getFeesSpy }) => {
+      const transactionFees = {
+        tradeTxFees: {
+          feeEstimate: 41000000000000,
+          gasLimit: 21000,
+          gasUsed: 21000,
+          cancelFees: [],
+          fees: [{ maxFeePerGas: 13843636951, maxPriorityFeePerGas: 2953145236 }],
+        },
+        approvalTxFees: null,
+      };
+      request.transactionFees = transactionFees;
+      await submitSmartTransactionHook(request);
+      expect(getFeesSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  it('fetches new fees if no transaction fees provided', async () => {
+    withRequest(async ({ request, getFeesSpy }) => {
+      request.transactionFees = undefined;
+      await submitSmartTransactionHook(request);
+      expect(getFeesSpy).toHaveBeenCalled();
     });
   });
 });

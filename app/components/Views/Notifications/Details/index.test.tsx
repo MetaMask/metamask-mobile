@@ -7,6 +7,8 @@ import configureMockStore from 'redux-mock-store';
 import NotificationsDetails from './index';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import MOCK_NOTIFICATIONS from '../../../../components/UI/Notification/__mocks__/mock_notifications';
+// eslint-disable-next-line import/no-namespace
+import * as NotificationStatesModule from '../../../../util/notifications/notification-states';
 
 const mockInitialState = {
   settings: {
@@ -48,7 +50,7 @@ describe('NotificationsDetails', () => {
     } as unknown as NavigationProp<ParamListBase>;
   });
 
-  it('should renders correctly', () => {
+  it('renders correctly', () => {
     const { toJSON } = render(
       <Provider store={store}>
         <NotificationsDetails
@@ -63,5 +65,25 @@ describe('NotificationsDetails', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('returns null if unable to create modal state', () => {
+    jest
+      .spyOn(NotificationStatesModule, 'hasNotificationComponents')
+      .mockReturnValue(false);
+
+    const result = render(
+      <Provider store={store}>
+        <NotificationsDetails
+          navigation={navigation}
+          route={{
+            params: {
+              notification: MOCK_NOTIFICATIONS[1],
+            },
+          }}
+        />
+      </Provider>,
+    );
+    expect(result.toJSON()).toBe(null);
   });
 });

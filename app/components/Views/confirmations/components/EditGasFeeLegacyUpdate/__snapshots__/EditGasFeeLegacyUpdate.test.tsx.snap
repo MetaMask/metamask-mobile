@@ -13,6 +13,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
       "paddingTop": 24,
     }
   }
+  testID="edit-priority-legacy-screen"
 >
   <RCTScrollView
     style={
@@ -129,7 +130,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 "paddingVertical": 8,
               },
               {
-                "backgroundColor": "#bf52081a",
+                "backgroundColor": "#BF52081A",
                 "borderColor": "#bf5208",
               },
               undefined,
@@ -327,7 +328,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#848c96",
                       "borderRadius": 6,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -703,7 +704,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#848c96",
                       "borderRadius": 6,
                       "borderWidth": 1,
                       "flexDirection": "row",

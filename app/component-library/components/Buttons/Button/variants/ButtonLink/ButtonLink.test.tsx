@@ -1,15 +1,13 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // Internal dependencies.
 import ButtonLink from './ButtonLink';
 
-describe('Link', () => {
+describe('ButtonLink', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <ButtonLink onPress={jest.fn} label={`I'm a Link!`} />,
-    );
-    expect(wrapper).toMatchSnapshot();
+    render(<ButtonLink onPress={jest.fn()} label="I'm a Link!" />);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

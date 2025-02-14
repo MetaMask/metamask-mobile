@@ -9,15 +9,18 @@ on:
       semver-version:
         description: 'A semantic version. eg: x.x.x'
         required: true
-      version-number:
-        description: 'A natural version number. eg: 862'
-        required: true
       previous-version-tag:
         description: 'Previous release version tag. eg: v7.7.0'
         required: true
 jobs:
+  generate-build-version:
+    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
+    permissions:
+      id-token: write
+
   create-release-pr:
     runs-on: ubuntu-latest
+    needs: generate-build-version
     permissions:
       contents: write
       pull-requests: write
@@ -36,6 +39,7 @@ jobs:
           # The workaround is to use a personal access token (BUG_REPORT_TOKEN) instead of
           # the default GITHUB_TOKEN for the checkout action.
           token: ${{ secrets.BUG_REPORT_TOKEN }}
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -43,14 +47,11 @@ jobs:
           cache: yarn
       - name: Install dependencies
         run: yarn --immutable
-      - name: Set Versions
-        id: set-versions
-        shell: bash
-        run: SEMVER_VERSION=${{ github.event.inputs.semver-version }} VERSION_NUMBER=${{ github.event.inputs.version-number }} yarn set-version
-      - name: Create Release PR
-        id: create-release-pr
+      - name: Create Release & Changelog PR
+        id: create-release-changelog-pr
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.event.inputs.base-branch }}
         run: |
-          ./scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }}
+          ./scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }} ${{ needs.generate-build-version.outputs.build-version }}

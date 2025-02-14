@@ -7,6 +7,13 @@ const styleSheet = () =>
       paddingHorizontal: 16,
       paddingTop: 16,
     },
+    scrollRoot: {
+      flex: 1,
+      paddingTop: 16,
+    },
+    textContainer: {
+      paddingHorizontal: 16,
+    },
   });
 
 export default styleSheet;

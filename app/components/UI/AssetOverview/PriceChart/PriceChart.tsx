@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {

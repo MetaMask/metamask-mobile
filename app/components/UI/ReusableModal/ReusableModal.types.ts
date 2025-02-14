@@ -17,6 +17,14 @@ export interface ReusableModalProps extends ViewProps {
    * @default true
    */
   isInteractable?: boolean;
+
+  /**
+   * Determines whether the navigation should revert to the previous path when the modal is closed.
+   * If set to `true`, closing the modal will trigger the navigation to go back to the previous screen or route.
+   * If set to `false`, the navigation will remain on the current path when the modal is closed.
+   * @default true
+   */
+  shouldGoBack?: boolean;
 }
 
 export type ReusableModalPostCallback = () => void;

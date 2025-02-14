@@ -31,12 +31,13 @@ import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const diameter = 40;
@@ -60,20 +61,30 @@ export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
   // track event and add selected currency to user profile for analytics
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
   metrics.addTraitsToUser(traits);
-  metrics.trackEvent(MetaMetricsEvents.CURRENCY_CHANGED, {
-    ...traits,
-    location: 'app_settings',
-  });
+  metrics.trackEvent(
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
+      .addProperties({
+        ...traits,
+        location: 'app_settings',
+      })
+      .build(),
+  );
 };
 
 export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
   // track event and add primary currency preference (fiat/crypto) to user profile for analytics
   const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
   metrics.addTraitsToUser(traits);
-  metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
-    ...traits,
-    location: 'app_settings',
-  });
+  metrics.trackEvent(
+    MetricsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE,
+    )
+      .addProperties({
+        ...traits,
+        location: 'app_settings',
+      })
+      .build(),
+  );
 };
 
 const createStyles = (colors) =>
@@ -262,8 +273,8 @@ class Settings extends PureComponent {
       key,
     }));
     this.searchEngineOptions = [
-      { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
       { value: 'Google', label: 'Google', key: 'Google' },
+      { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
     ];
     this.primaryCurrencyOptions = [
       {
@@ -511,7 +522,7 @@ const mapStateToProps = (state) => ({
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
   useBlockieIcon: state.settings.useBlockieIcon,
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   // appTheme: state.user.appTheme,
 });

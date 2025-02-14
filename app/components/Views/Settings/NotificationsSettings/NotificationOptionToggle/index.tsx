@@ -34,7 +34,9 @@ interface NotificationOptionsToggleProps {
   disabledSwitch?: boolean;
   isLoading?: boolean;
   isEnabled: boolean;
-  refetchAccountSettings: () => Promise<void>;
+  updateAndfetchAccountSettings: () => Promise<
+    Record<string, boolean> | undefined
+  >;
 }
 
 /**
@@ -50,28 +52,32 @@ const NotificationOptionToggle = ({
   isEnabled,
   disabledSwitch,
   isLoading,
-  refetchAccountSettings,
+  updateAndfetchAccountSettings,
 }: NotificationOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { toggleAccount, loading: isUpdatingAccount } = useUpdateAccountSetting(
     address,
-    refetchAccountSettings,
+    updateAndfetchAccountSettings,
   );
 
   const loading = isLoading || isUpdatingAccount;
 
   const handleToggleAccountNotifications = useCallback(async () => {
-    trackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
-      settings_type: 'account_notifications',
-      old_value: isEnabled,
-      new_value: !isEnabled,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+        .addProperties({
+          settings_type: 'account_notifications',
+          old_value: isEnabled,
+          new_value: !isEnabled,
+        })
+        .build(),
+    );
     await toggleAccount(!isEnabled);
-  }, [isEnabled, toggleAccount, trackEvent]);
+  }, [isEnabled, toggleAccount, trackEvent, createEventBuilder]);
 
   return (
     <View style={styles.container}>
@@ -104,7 +110,7 @@ const NotificationOptionToggle = ({
         )}
       </View>
       <View style={styles.switchElement}>
-        {isLoading || loading ? (
+        {loading ? (
           <ActivityIndicator />
         ) : (
           <Switch

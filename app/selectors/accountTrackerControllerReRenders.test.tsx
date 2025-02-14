@@ -9,7 +9,7 @@ import {
   TextMatch,
   TextMatchOptions,
 } from '@testing-library/react-native/build/matches';
-import { AccountTrackerState } from '@metamask/assets-controllers';
+import { AccountTrackerControllerState } from '@metamask/assets-controllers';
 import { NetworkController } from '@metamask/network-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import {
@@ -27,7 +27,7 @@ import renderWithProvider from '../util/test/renderWithProvider';
 import Engine, { EngineState } from '../core/Engine';
 import {
   selectSelectedInternalAccount,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from './accountsController';
 import { selectChainId } from './networkController';
 
@@ -166,7 +166,7 @@ jest.mock('../core/Engine', () => ({
           '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756': { balance: '0x22' },
         },
       },
-    } as Partial<AccountTrackerState>,
+    } as Partial<AccountTrackerControllerState>,
   } as EngineState,
 }));
 
@@ -243,7 +243,7 @@ describe('selectAccountBalanceByChainId', () => {
                 [MOCK_ADDRESS_2]: { balance: MOCK_BALANCE_2 },
               },
             },
-          } as Partial<AccountTrackerState>,
+          } as Partial<AccountTrackerControllerState>,
         } as EngineState,
       },
     } as RootState;
@@ -305,7 +305,7 @@ describe('selectAccountBalanceByChainId', () => {
       // Clear memoized selectors for each test
       selectAccountBalanceByChainId.memoizedResultFunc.clearCache();
       selectAccountsByChainId.memoizedResultFunc.clearCache();
-      selectSelectedInternalAccountChecksummedAddress.memoizedResultFunc.clearCache();
+      selectSelectedInternalAccountFormattedAddress.memoizedResultFunc.clearCache();
       selectChainId.memoizedResultFunc.clearCache();
       selectSelectedInternalAccount.memoizedResultFunc.clearCache();
       const MockComponent = () => {

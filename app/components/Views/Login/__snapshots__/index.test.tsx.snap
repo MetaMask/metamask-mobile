@@ -1,32 +1,325 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Login should render correctly 1`] = `
-<ContextProvider
-  value={
+<RCTSafeAreaView
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#ffffff",
+      "flex": 1,
     }
   }
 >
-  <Component />
-</ContextProvider>
+  <RCTScrollView
+    automaticallyAdjustContentInsets={false}
+    contentInset={
+      {
+        "bottom": 0,
+      }
+    }
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    getScrollResponder={[Function]}
+    handleOnScroll={[Function]}
+    keyboardDismissMode="interactive"
+    keyboardOpeningTime={250}
+    keyboardShouldPersistTaps="handled"
+    keyboardSpace={0}
+    onScroll={[Function]}
+    resetKeyboardSpace={[Function]}
+    resetScrollToCoords={
+      {
+        "x": 0,
+        "y": 0,
+      }
+    }
+    scrollEventThrottle={1}
+    scrollForExtraHeightOnAndroid={[Function]}
+    scrollIntoView={[Function]}
+    scrollToEnd={[Function]}
+    scrollToFocusedInput={[Function]}
+    scrollToPosition={[Function]}
+    showsVerticalScrollIndicator={true}
+    style={
+      {
+        "flex": 1,
+        "paddingHorizontal": 32,
+      }
+    }
+    update={[Function]}
+    viewIsInsideTabBar={false}
+  >
+    <View>
+      <View
+        testID="login"
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          delayLongPress={10000}
+          onLongPress={[Function]}
+          style={
+            {
+              "alignSelf": "center",
+              "height": 130,
+              "justifyContent": "center",
+              "marginTop": 100,
+              "width": 130,
+            }
+          }
+        >
+          <Image
+            resizeMethod="auto"
+            source={1}
+            style={
+              {
+                "alignSelf": "center",
+                "height": 130,
+                "width": 130,
+              }
+            }
+          />
+        </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 35,
+              "fontWeight": "600",
+              "justifyContent": "center",
+              "letterSpacing": 0,
+              "lineHeight": 40,
+              "marginBottom": 20,
+              "marginTop": 20,
+              "textAlign": "center",
+            }
+          }
+          testID="login-title"
+        >
+          Welcome Back!
+        </Text>
+        <View
+          style={
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "marginBottom": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginBottom": 12,
+              }
+            }
+            testID="label"
+          >
+            Password
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#848c96",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "opacity": 1,
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="textfield"
+          >
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <TextInput
+                autoCapitalize="none"
+                autoFocus={false}
+                baseColor="#848c96"
+                editable={true}
+                keyboardAppearance="light"
+                onBlur={[Function]}
+                onChangeText={[Function]}
+                onFocus={[Function]}
+                onSubmitEditing={[Function]}
+                placeholder="Password"
+                placeholderTextColor="#9fa6ae"
+                returnKeyType="done"
+                secureTextEntry={true}
+                style={
+                  {
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "transparent",
+                    "borderWidth": 1,
+                    "color": "#141618",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "height": 24,
+                    "letterSpacing": 0,
+                    "opacity": 1,
+                    "paddingVertical": 0,
+                  }
+                }
+                testID="login-password-input"
+                tintColor="#0376c9"
+                value=""
+              />
+            </View>
+            <View
+              style={
+                {
+                  "marginLeft": 8,
+                }
+              }
+              testID="textfield-endacccessory"
+            />
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 20,
+            }
+          }
+          testID="log-in-button"
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#0376c9",
+                "borderRadius": 24,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              UNLOCK
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "marginVertical": 40,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "center",
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "justifyContent": "center",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+                "width": 280,
+              }
+            }
+          >
+            Wallet won't unlock? You can ERASE your current wallet and setup a new one
+          </Text>
+          <Text
+            accessibilityRole="link"
+            accessible={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "backgroundColor": "transparent",
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginVertical": 14,
+              }
+            }
+            suppressHighlighting={true}
+            testID="reset-wallet-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Reset Wallet
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "bottom": 0,
+        "left": 0,
+        "opacity": 1,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  />
+</RCTSafeAreaView>
 `;

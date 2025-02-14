@@ -15,7 +15,7 @@ import {
   NftContract,
   NftControllerState,
   TokenListState,
-  TokenRatesState,
+  TokenRatesControllerState,
   TokensControllerState,
 } from '@metamask/assets-controllers';
 
@@ -530,7 +530,7 @@ export default async function migrate(stateAsync: unknown) {
   const tokenRatesControllerState =
     state?.engine?.backgroundState?.TokenRatesController;
   const newTokenRatesControllerState = state?.engine?.backgroundState
-    ?.TokenRatesController as TokenRatesState;
+    ?.TokenRatesController as TokenRatesControllerState;
 
   if (!isObject(tokenRatesControllerState)) {
     captureException(

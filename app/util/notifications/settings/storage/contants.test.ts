@@ -17,6 +17,7 @@ describe('constants', () => {
       REQUEST_PERMISSION_GRANTED: 'REQUEST_PERMISSION_GRANTED',
       NOTIFICATION_DATE_FORMAT: 'DD/MM/YYYY HH:mm:ss',
       NOTIFICATIONS_SETTINGS: 'notifications-settings',
+      PN_USER_STORAGE: 'pnUserStorage',
     });
   });
 

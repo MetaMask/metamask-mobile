@@ -20,6 +20,8 @@ import {
   updateOnChainTriggersByAccount,
 } from '../../../actions/notification/helpers';
 import { getNotificationsList } from '../../../selectors/notifications';
+import { usePushNotifications } from './usePushNotifications';
+import { isNotificationsFeatureEnabled } from '../constants';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -33,6 +35,10 @@ export function useListNotifications(): ListNotificationsReturn {
   const [error, setError] = useState<string>();
 
   const listNotifications = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {
@@ -68,6 +74,10 @@ export function useCreateNotifications(): CreateNotificationsReturn {
   const [error, setError] = useState<string>();
 
   const createNotifications = useCallback(async (accounts: string[]) => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {
@@ -104,12 +114,21 @@ export function useCreateNotifications(): CreateNotificationsReturn {
 export function useEnableNotifications(): EnableNotificationsReturn {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
-
+  const { switchPushNotifications } = usePushNotifications();
   const enableNotifications = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {
-      const errorMessage = await enableNotificationServices();
+      const errorEnablingNotifications = await enableNotificationServices();
+      const errorEnablingPushNotifications = await switchPushNotifications(
+        true,
+      );
+      const errorMessage =
+        errorEnablingNotifications || errorEnablingPushNotifications;
 
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
@@ -122,7 +141,7 @@ export function useEnableNotifications(): EnableNotificationsReturn {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [switchPushNotifications]);
 
   return {
     enableNotifications,
@@ -139,12 +158,22 @@ export function useEnableNotifications(): EnableNotificationsReturn {
 export function useDisableNotifications(): DisableNotificationsReturn {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
-
+  const { switchPushNotifications } = usePushNotifications();
   const disableNotifications = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {
-      const errorMessage = await disableNotificationServices();
+      const errorDisablingNotifications = await disableNotificationServices();
+      const errorDisablingPushNotifications = await switchPushNotifications(
+        false,
+      );
+      const errorMessage =
+        errorDisablingNotifications || errorDisablingPushNotifications;
+
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
         return errorMessage;
@@ -156,7 +185,7 @@ export function useDisableNotifications(): DisableNotificationsReturn {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [switchPushNotifications]);
 
   return {
     disableNotifications,
@@ -177,6 +206,10 @@ export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
 
   const markNotificationAsRead = useCallback(
     async (notifications: MarkAsReadNotificationsParam) => {
+      if (!isNotificationsFeatureEnabled()) {
+        return;
+      }
+
       setLoading(true);
       setError(undefined);
       try {
@@ -216,6 +249,10 @@ export function useDeleteNotificationsStorageKey(): deleteNotificationsStorageKe
   const [error, setError] = useState<string>();
 
   const deleteNotificationsStorageKey = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {

@@ -1,15 +1,15 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 import SliderButton from './index';
 
 describe('SliderButton', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    render(
       <SliderButton
         incompleteText="Incomplete Text"
         completeText="Complete Text"
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

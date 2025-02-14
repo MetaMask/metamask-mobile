@@ -1,4 +1,5 @@
 import trackOnboarding from './trackOnboarding';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
@@ -19,47 +20,56 @@ jest.mock('../../../core/Analytics', () => ({
 
 const mockSaveOnboardingEvent = jest.fn();
 
-describe('trackAfterInteractions', () => {
+describe('trackOnboarding', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   it('calls saveOnboardingEvent when metrics is not enabled', async () => {
-    const mockEvent = { category: 'testEvent' };
     const mockProperties = { prop: 'testProp' };
+    const mockEvent = MetricsEventBuilder.createEventBuilder({
+      category: 'testEvent',
+    })
+      .addProperties(mockProperties)
+      .build();
 
     mockEnabled.mockReturnValue(false);
 
-    trackOnboarding(mockEvent, mockProperties, mockSaveOnboardingEvent);
+    trackOnboarding(mockEvent, mockSaveOnboardingEvent);
 
     expect(mockSaveOnboardingEvent).toHaveBeenCalledWith(mockEvent);
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('call trackEvent when metrics is not enabled but saveOnboardingEvent is not defined', async () => {
-    const mockEvent = { category: 'testEvent' };
     const mockProperties = { prop: 'testProp' };
+    const mockEvent = MetricsEventBuilder.createEventBuilder({
+      category: 'testEvent',
+    })
+      .addProperties(mockProperties)
+      .build();
 
     mockEnabled.mockReturnValue(false);
 
-    trackOnboarding(mockEvent, mockProperties);
+    trackOnboarding(mockEvent);
 
     expect(mockSaveOnboardingEvent).not.toHaveBeenCalledWith();
-    expect(mockTrackEvent).toHaveBeenCalledWith(mockEvent, mockProperties);
+    expect(mockTrackEvent).toHaveBeenCalledWith(mockEvent);
   });
 
   it('call trackEvent when metrics is enabled', async () => {
-    const mockEvent = { category: 'testEvent' };
     const mockProperties = { prop: 'testProp' };
+    const mockEvent = MetricsEventBuilder.createEventBuilder({
+      category: 'testEvent',
+    })
+      .addProperties(mockProperties)
+      .build();
 
     mockEnabled.mockReturnValue(true);
 
-    trackOnboarding(mockEvent, mockProperties);
     trackOnboarding(mockEvent);
 
     expect(mockSaveOnboardingEvent).not.toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-    expect(mockTrackEvent).toHaveBeenCalledWith(mockEvent, mockProperties);
-    expect(mockTrackEvent).toHaveBeenCalledWith(mockEvent, {});
+    expect(mockTrackEvent).toHaveBeenCalledWith(mockEvent);
   });
 });

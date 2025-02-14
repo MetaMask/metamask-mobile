@@ -58,6 +58,7 @@ export function useSimulationMetrics({
       value: asset.address ?? '',
       type: NameType.EthereumAddress,
       preferContractSymbol: true,
+      variation: asset.chainId,
     }),
   );
 
@@ -119,7 +120,7 @@ function useIncompleteAssetEvent(
   balanceChanges: BalanceChange[],
   displayNamesByAddress: { [address: string]: UseDisplayNameResponse },
 ) {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [processedAssets, setProcessedAssets] = useState<string[]>([]);
 
   for (const change of balanceChanges) {
@@ -134,17 +135,21 @@ function useIncompleteAssetEvent(
       continue;
     }
 
-    trackEvent(MetaMetricsEvents.INCOMPLETE_ASSET_DISPLAYED, {
-      asset_address: change.asset.address,
-      // Petnames doesn't exist in mobile so we set as unknown for now
-      asset_petname: 'unknown',
-      asset_symbol: displayName.contractDisplayName,
-      asset_type: change.asset.type,
-      fiat_conversion_available: change.fiatAmount
-        ? FiatType.Available
-        : FiatType.NotAvailable,
-      location: 'confirmation',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.INCOMPLETE_ASSET_DISPLAYED)
+        .addProperties({
+          asset_address: change.asset.address,
+          // Petnames doesn't exist in mobile so we set as unknown for now
+          asset_petname: 'unknown',
+          asset_symbol: displayName.contractDisplayName,
+          asset_type: change.asset.type,
+          fiat_conversion_available: change.fiatAmount
+            ? FiatType.Available
+            : FiatType.NotAvailable,
+          location: 'confirmation',
+        })
+        .build(),
+    );
 
     setProcessedAssets([...processedAssets, assetAddress]);
   }
@@ -167,7 +172,7 @@ function getProperties(changes: BalanceChange[], prefix: string) {
 function getSensitiveProperties(changes: BalanceChange[], prefix: string) {
   const fiatAmounts = changes.map((change) => change.fiatAmount);
   const totalFiat = calculateTotalFiat(fiatAmounts);
-  const totalValue = totalFiat ? Math.abs(totalFiat) : undefined;
+  const totalValue = totalFiat ? totalFiat.abs().toNumber() : undefined;
 
   return getPrefixProperties({ total_value: totalValue }, prefix);
 }

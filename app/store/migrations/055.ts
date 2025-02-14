@@ -1,8 +1,5 @@
 import { captureException } from '@sentry/react-native';
-import {
-  TransactionControllerState,
-  TransactionMeta,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { parse, equal } from 'uri-js';
 import { SelectedNetworkControllerState } from '@metamask/selected-network-controller';
 import { hasProperty, isObject, RuntimeObject } from '@metamask/utils';
@@ -74,8 +71,8 @@ export default function migrate(state: unknown) {
 
   const networkControllerState =
     state.engine?.backgroundState?.NetworkController;
-  const transactionControllerState = state.engine?.backgroundState
-    ?.TransactionController as TransactionControllerState;
+  const transactionControllerState =
+    state.engine?.backgroundState?.TransactionController;
   const selectedNetworkController = state.engine?.backgroundState
     ?.SelectedNetworkController as SelectedNetworkControllerState;
 

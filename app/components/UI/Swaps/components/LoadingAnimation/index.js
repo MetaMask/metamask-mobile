@@ -5,8 +5,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
 import { Animated, View, StyleSheet, Image } from 'react-native';
 import PropTypes from 'prop-types';
+import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import Device from '../../../../../util/device';
@@ -14,9 +16,9 @@ import { strings } from '../../../../../../locales/i18n';
 
 import Text from '../../../../Base/Text';
 import Title from '../../../../Base/Title';
-import Fox from '../../../Fox';
-import backgroundShapes from './backgroundShapes';
 import { useTheme } from '../../../../../util/theme';
+import foxImage from '../../../../../images/branding/fox.png';
+import ShapesBackgroundAnimation from './ShapesBackgroundAnimation';
 
 const ANIM_MULTIPLIER = 0.67;
 const INITIAL_DELAY = 1000 * ANIM_MULTIPLIER;
@@ -79,37 +81,33 @@ const createStyles = (colors, shadows) =>
     foxContainer: {
       width: STAGE_SIZE,
       height: STAGE_SIZE,
+      alignSelf: 'center',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     text: {
       color: colors.text.default,
     },
+    foxWrapper: {
+      position: 'relative',
+      width: STAGE_SIZE,
+      height: STAGE_SIZE,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    foxImage: {
+      width: 100,
+      height: 100,
+      zIndex: 2,
+    },
+    backgroundShapes: {
+      ...StyleSheet.absoluteFillObject,
+      zIndex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      transform: [{ translateX: -20 }, { translateY: -10 }],
+    },
   });
-
-const customStyle = (colors) => `
-  body {
-    background-color: ${colors.background.default};
-  }
-  #head {
-    height: 35%;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-  #bgShapes {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 70%;
-    height: 70%;
-    transform: translateX(-50%) translateY(-50%) rotate(0deg);
-    animation: rotate 50s linear infinite;
-  }
-
-  @keyframes rotate {
-    to {
-      transform: translateX(-50%) translateY(-50%) rotate(360deg);
-    }
-  }
-`;
 
 function round(value, decimals) {
   return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
@@ -128,6 +126,8 @@ function LoadingAnimation({
   const [hasStartedFinishing, setHasStartedFinishing] = useState(false);
   const [renderLogos, setRenderLogos] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   /* References */
   const foxRef = useRef();
@@ -317,9 +317,11 @@ function LoadingAnimation({
         return;
       }
       if (!aggregatorMetadata) {
+        const { SwapsController } = Engine.context;
         try {
-          const { SwapsController } = Engine.context;
-          await SwapsController.fetchAggregatorMetadataWithCache();
+          await SwapsController.fetchAggregatorMetadataWithCache({
+            networkClientId: selectedNetworkClientId,
+          });
         } catch (error) {
           Logger.error(
             error,
@@ -337,7 +339,7 @@ function LoadingAnimation({
         setShouldStart(true);
       }
     })();
-  }, [aggregatorMetadata, hasStarted]);
+  }, [aggregatorMetadata, hasStarted, selectedNetworkClientId]);
 
   /* Delay the logos rendering to avoid navigation transition lag */
   useEffect(() => {
@@ -454,12 +456,19 @@ function LoadingAnimation({
         </View>
       </View>
       <View style={styles.foxContainer} pointerEvents="none">
-        <Fox
-          ref={foxRef}
-          customContent={backgroundShapes}
-          customStyle={customStyle(colors)}
-          renderLoading={() => null}
-        />
+        <View style={styles.foxWrapper}>
+          <Image
+            source={foxImage}
+            style={styles.foxImage}
+            resizeMethod={'auto'}
+          />
+          <View style={styles.backgroundShapes} pointerEvents="none">
+            <ShapesBackgroundAnimation
+              width={STAGE_SIZE * 0.8}
+              height={STAGE_SIZE * 0.8}
+            />
+          </View>
+        </View>
         {renderLogos &&
           headPan &&
           metadata &&

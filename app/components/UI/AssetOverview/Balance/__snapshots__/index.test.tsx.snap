@@ -127,7 +127,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001a",
+                "shadowColor": "#0000001A",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -146,11 +146,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={
-                {
-                  "uri": "MockImage",
-                }
-              }
+              source={1}
               style={
                 {
                   "height": 32,
@@ -203,6 +199,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
             "lineHeight": 24,
           }
         }
+        testID="fiat-balance-test-id"
       >
         456
       </Text>
@@ -220,6 +217,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
             "textTransform": "uppercase",
           }
         }
+        testID="main-balance-test-id"
       >
         123
       </Text>
@@ -355,7 +353,7 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001a",
+                "shadowColor": "#0000001A",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -374,11 +372,7 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={
-                {
-                  "uri": "MockImage",
-                }
-              }
+              source={1}
               style={
                 {
                   "height": 32,
@@ -433,6 +427,7 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
             "textTransform": "uppercase",
           }
         }
+        testID="main-balance-test-id"
       >
         123
       </Text>

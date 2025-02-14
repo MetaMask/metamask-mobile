@@ -15,15 +15,18 @@ import styleSheet from './PickerBase.styles';
 const PickerBase: React.ForwardRefRenderFunction<
   TouchableOpacity,
   PickerBaseProps
-> = ({ style, children, ...props }, ref) => {
-  const { styles, theme } = useStyles(styleSheet, { style });
+> = (
+  { iconSize = IconSize.Md, style, dropdownIconStyle, children, ...props },
+  ref,
+) => {
+  const { styles, theme } = useStyles(styleSheet, { style, dropdownIconStyle });
   const { colors } = theme;
 
   return (
     <TouchableOpacity style={styles.base} {...props} ref={ref}>
       {children}
       <Icon
-        size={IconSize.Md}
+        size={iconSize}
         color={colors.icon.default}
         name={IconName.ArrowDown}
         style={styles.dropdownIcon}

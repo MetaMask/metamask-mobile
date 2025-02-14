@@ -60,7 +60,14 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     button: {
       alignSelf: 'stretch',
-      marginBottom: 16,
+      marginBottom: 48,
+    },
+
+  });
+
+  export const styles = StyleSheet.create({
+    headerLeft: {
+      marginHorizontal: 16,
     },
   });
 

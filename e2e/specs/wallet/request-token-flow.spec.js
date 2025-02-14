@@ -1,11 +1,12 @@
 'use strict';
 import { SmokeCore } from '../../tags';
-import SendLinkView from '../../pages/SendLinkView';
-import RequestPaymentView from '../../pages/RequestPaymentView';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
-import RequestPaymentModal from '../../pages/modals/RequestPaymentModal';
+import RequestPaymentModal from '../../pages/Receive/RequestPaymentModal';
+import SendLinkView from '../../pages/Receive/SendLinkView';
+import PaymentRequestQrBottomSheet from '../../pages/Receive/PaymentRequestQrBottomSheet';
+import RequestPaymentView from '../../pages/Receive/RequestPaymentView';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import { loginToApp } from '../../viewHelper';
 import {
   loadFixture,
@@ -29,7 +30,7 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
     fixture.state.user.seedphraseBackedUp = false;
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
   });
@@ -46,7 +47,7 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
     await loginToApp();
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapReceiveButton();
+    await WalletActionsBottomSheet.tapReceiveButton();
     await RequestPaymentModal.tapRequestPaymentButton();
     await Assertions.checkIfVisible(RequestPaymentView.requestPaymentContainer);
   });
@@ -63,16 +64,16 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
 
   it('should request DAI amount', async () => {
     await RequestPaymentView.typeInTokenAmount(5.5);
-    await SendLinkView.isVisible();
+    await Assertions.checkIfVisible(SendLinkView.container);
   });
 
   it('should see DAI request QR code', async () => {
     await SendLinkView.tapQRCodeButton();
-    await SendLinkView.isQRModalVisible();
+    await Assertions.checkIfVisible(PaymentRequestQrBottomSheet.container);
   });
 
   it('should close request', async () => {
-    await SendLinkView.tapQRCodeCloseButton();
+    await PaymentRequestQrBottomSheet.tapCloseButton();
     await SendLinkView.tapCloseSendLinkButton();
   });
 

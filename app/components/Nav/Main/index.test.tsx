@@ -10,7 +10,7 @@ import { MetaMetricsEvents } from '../../hooks/useMetrics';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 
-jest.mock('../../../core/Engine.ts', () => ({
+jest.mock('../../../core/Engine', () => ({
   controllerMessenger: {
     subscribeOnceIf: jest.fn(),
   },

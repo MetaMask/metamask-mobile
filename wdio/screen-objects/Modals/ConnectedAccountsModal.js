@@ -1,18 +1,15 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
-import {
-  CONNECTED_ACCOUNTS_MODAL_CONTAINER,
-  CONNECTED_ACCOUNTS_MODAL_DISCONNECT_ALL_BUTTON_ID,
-} from '../testIDs/Components/ConnectedAccountsModal.testIds';
 class ConnectedAccountsModal {
   get connectedModalContainer() {
-    return Selectors.getElementByPlatform(CONNECTED_ACCOUNTS_MODAL_CONTAINER);
+    return Selectors.getElementByPlatform(ConnectedAccountsSelectorsIDs.CONTAINER);
   }
 
   get disconnectAllButton() {
     return Selectors.getElementByPlatform(
-      CONNECTED_ACCOUNTS_MODAL_DISCONNECT_ALL_BUTTON_ID,
+      ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_BUTTON,
     );
   }
 

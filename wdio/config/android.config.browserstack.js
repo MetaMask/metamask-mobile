@@ -20,9 +20,7 @@ const defaultCapabilities = [
     build: 'Android App Launch Times Tests',
     device: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '13.0',
-    app: process.env.BROWSERSTACK_APP_URL,
-    'browserstack.debug': true,
-    'browserstack.local': true,
+    app: process.env.BROWSERSTACK_ANDROID_APP_URL,
   }
 ];
 
@@ -36,10 +34,10 @@ const upgradeCapabilities = [
     build: 'Android App Upgrade Tests',
     device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
-    app: process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_APP_URL,
+    app: process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_ANDROID_APP_URL,
     'browserstack.debug': true,
     'browserstack.local': true,
-    'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_APP_URL],
+    'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_ANDROID_APP_URL],
   },
 ];
 

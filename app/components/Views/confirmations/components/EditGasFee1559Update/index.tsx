@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useState, useMemo } from 'react';
@@ -31,7 +32,7 @@ import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 import createStyles from './styles';
 import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
-import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/EditGasView.selectors.js';
+import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/EditGasView.selectors.js';
 import {
   GAS_LIMIT_INCREMENT,
   GAS_PRICE_INCREMENT as GAS_INCREMENT,
@@ -88,7 +89,7 @@ const EditGasFee1559Update = ({
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const gasTransaction = useGasTransaction({
@@ -132,12 +133,13 @@ const EditGasFee1559Update = ({
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
       trackEvent(
-        MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
-        getAnalyticsParams(),
+        createEventBuilder(MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED)
+          .addProperties(getAnalyticsParams())
+          .build(),
       );
     }
     setShowAdvancedOptions(!showAdvancedOptions);
-  }, [getAnalyticsParams, showAdvancedOptions, trackEvent]);
+  }, [getAnalyticsParams, showAdvancedOptions, trackEvent, createEventBuilder]);
 
   const toggleLearnMoreModal = useCallback(() => {
     setShowLearnMoreModal(!showLearnMoreModal);
@@ -151,7 +153,11 @@ const EditGasFee1559Update = ({
   );
 
   const save = useCallback(() => {
-    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.GAS_FEE_CHANGED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
 
     const newGasPriceObject = {
       suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
@@ -160,7 +166,14 @@ const EditGasFee1559Update = ({
     };
 
     onSave(gasTransaction, newGasPriceObject);
-  }, [getAnalyticsParams, onSave, gasTransaction, gasObject, trackEvent]);
+  }, [
+    getAnalyticsParams,
+    onSave,
+    gasTransaction,
+    gasObject,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const changeGas = useCallback(
     (gas, option) => {

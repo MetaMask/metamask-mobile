@@ -233,7 +233,7 @@ class AccountInfoCard extends PureComponent {
         {accountLabelTag && (
           <View style={styles.tag}>
             <Text variant={TextVariant.BodySMBold} style={styles.tagText}>
-              {strings(accountLabelTag)}
+              {accountLabelTag}
             </Text>
           </View>
         )}

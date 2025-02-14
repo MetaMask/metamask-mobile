@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NotificationsDetails should renders correctly 1`] = `
+exports[`NotificationsDetails renders correctly 1`] = `
 <RCTScrollView
   collapsable={false}
   contentContainerStyle={
@@ -537,7 +537,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#1c82341a",
+              "backgroundColor": "#1C82341A",
               "borderRadius": 16,
               "height": 32,
               "justifyContent": "center",
@@ -719,7 +719,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
               }
               source={
                 {
-                  "uri": "MockImage",
+                  "uri": "",
                 }
               }
               style={
@@ -781,7 +781,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001a",
+                    "shadowColor": "#0000001A",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -800,11 +800,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "uri": "MockImage",
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 32,
@@ -925,11 +921,7 @@ exports[`NotificationsDetails should renders correctly 1`] = `
           <Image
             onError={[Function]}
             resizeMode="contain"
-            source={
-              {
-                "uri": "MockImage",
-              }
-            }
+            source={1}
             style={
               {
                 "height": 32,
@@ -979,6 +971,79 @@ exports[`NotificationsDetails should renders correctly 1`] = `
           </Text>
         </View>
       </View>
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "gap": 16,
+            "minWidth": "100%",
+            "paddingVertical": 5,
+          }
+        }
+      >
+        <View
+          onLayout={[Function]}
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 45,
+                      "marginTop": 8,
+                      "width": 32,
+                    },
+                    {
+                      "backgroundColor": "#E1E9EE",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 45,
+                      "marginTop": 8,
+                      "width": 682,
+                    },
+                    {
+                      "backgroundColor": "#E1E9EE",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
       <TouchableOpacity
         accessibilityRole="button"
         accessible={true}
@@ -1010,9 +1075,9 @@ exports[`NotificationsDetails should renders correctly 1`] = `
           style={
             {
               "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }

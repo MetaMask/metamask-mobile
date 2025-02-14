@@ -14,16 +14,24 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ ethFiat: 0, tokenFiat: 0 }),
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [],
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    getTotalFiatAccountBalance: () => ({ ethFiat: 0, tokenFiat: 0 }),
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
-  },
-}));
+  };
+});
 
 describe('DrawerView', () => {
   it('should render correctly', () => {

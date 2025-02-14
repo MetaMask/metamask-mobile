@@ -1,11 +1,13 @@
-import React, { useCallback, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import React, { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
-import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typography';
+import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
 import Icon, {
   IconName,
@@ -14,11 +16,18 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import PermissionItem from './PermissionItem';
-import mockPermissionItems from './PermissionItem/PermissionItem.constants';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { RootState } from '../../../../reducers';
+import {
+  PermissionListItemViewModel,
+  PermissionSource,
+} from './PermissionItem/PermissionItem.types';
+import {
+  PermissionControllerState,
+  PermissionConstraint,
+} from '@metamask/permission-controller';
 
 interface SDKSessionsManagerProps {
   navigation: NavigationProp<ParamListBase>;
@@ -53,6 +62,52 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
   const { navigation } = props;
+  const [inAppBrowserPermissions, setInAppBrowserPermissions] = useState<
+    PermissionListItemViewModel[]
+  >([]);
+  const subjects = useSelector(
+    (state: RootState) =>
+      (
+        state.engine.backgroundState
+          .PermissionController as PermissionControllerState<PermissionConstraint>
+      ).subjects,
+  );
+
+  useEffect(() => {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const walletConnectRegex = /^https?:\/\//;
+    const inAppBrowserSubjects: any[] = [];
+
+    Object.entries(subjects || {}).forEach(([key, value]) => {
+      if (key === 'npm:@metamask/message-signing-snap') return;
+
+      if (
+        !uuidRegex.test(key) &&
+        !walletConnectRegex.test((value as { origin: string }).origin)
+      ) {
+        inAppBrowserSubjects.push(value);
+      }
+    });
+
+    const mappedInAppBrowserPermissions: PermissionListItemViewModel[] =
+      inAppBrowserSubjects.map((subject) => ({
+        dappLogoUrl: '',
+        dappHostName: subject.origin,
+        numberOfAccountPermissions:
+          subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
+        numberOfNetworkPermissions:
+          subject.permissions?.['endowment:permitted-chains']?.caveats?.[0]
+            ?.value?.length ?? 0,
+        permissionSource: PermissionSource.MetaMaskBrowser,
+      }));
+
+    const mappedPermissions: PermissionListItemViewModel[] = [
+      ...mappedInAppBrowserPermissions,
+    ];
+
+    setInAppBrowserPermissions(mappedPermissions);
+  }, [subjects]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -65,36 +120,37 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
     );
   }, [navigation, colors]);
 
-  const goToPermissionsDetails = useCallback(() => {
-    navigation.navigate('AccountPermissionsAsFullScreen', {
-      hostInfo: {
-        metadata: {
-          origin: 'https://app.uniswap.org/',
+  const goToPermissionsDetails = useCallback(
+    (permissionItem: PermissionListItemViewModel) => {
+      navigation.navigate('AccountPermissionsAsFullScreen', {
+        hostInfo: {
+          metadata: {
+            origin: permissionItem.dappHostName,
+          },
         },
-      },
-      isRenderedAsBottomSheet: false,
-    });
-  }, [navigation]);
+        isRenderedAsBottomSheet: false,
+      });
+    },
+    [navigation],
+  );
 
   const renderPermissions = useCallback(
     () => (
       <>
         <ScrollView>
-          {
-            /* TODO: replace mock data with real data once available */
-            isMultichainVersion1Enabled &&
-              mockPermissionItems.map((mockPermissionItem, _index) => (
-                <PermissionItem
-                  key={`${_index}`}
-                  item={mockPermissionItem}
-                  onPress={goToPermissionsDetails}
-                />
-              ))
-          }
+          {inAppBrowserPermissions.map((permissionItem, index) => (
+            <PermissionItem
+              key={`${index}`}
+              item={permissionItem}
+              onPress={() => {
+                goToPermissionsDetails(permissionItem);
+              }}
+            />
+          ))}
         </ScrollView>
       </>
     ),
-    [goToPermissionsDetails],
+    [goToPermissionsDetails, inAppBrowserPermissions],
   );
 
   const renderEmptyResult = () => (
@@ -114,7 +170,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
       style={styles.perissionsWrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      {isMultichainVersion1Enabled && mockPermissionItems.length
+      {inAppBrowserPermissions.length
         ? renderPermissions()
         : renderEmptyResult()}
     </View>

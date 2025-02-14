@@ -1,6 +1,6 @@
-import { IMetaMetricsEvent, MetaMetrics } from '../../../core/Analytics';
+import { MetaMetrics } from '../../../core/Analytics';
 import { InteractionManager } from 'react-native';
-import { JsonMap } from '@segment/analytics-react-native';
+import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 
 /**
  * track onboarding event or save it for when metrics are enabled
@@ -9,9 +9,8 @@ import { JsonMap } from '@segment/analytics-react-native';
  * @param saveOnboardingEvent - function to store onboarding event before optin
  */
 const trackOnboarding = (
-  event: IMetaMetricsEvent,
-  properties: JsonMap = {},
-  saveOnboardingEvent?: (...args: [IMetaMetricsEvent]) => void
+  event: ITrackingEvent,
+  saveOnboardingEvent?: (...args: [ITrackingEvent]) => void,
 ): void => {
   InteractionManager.runAfterInteractions(async () => {
     const metrics = MetaMetrics.getInstance();
@@ -20,7 +19,7 @@ const trackOnboarding = (
     if (isOnboardingDelayedEvent) {
       saveOnboardingEvent(event);
     } else {
-      metrics.trackEvent(event, properties);
+      metrics.trackEvent(event);
     }
   });
 };

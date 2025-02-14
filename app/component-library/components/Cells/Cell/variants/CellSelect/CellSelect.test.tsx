@@ -5,7 +5,7 @@ import { render } from '@testing-library/react-native';
 // Internal dependencies.
 import CellSelect from './CellSelect';
 import { SAMPLE_CELLSELECT_PROPS } from './CellSelect.constants';
-import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellComponentSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/CellComponent.selectors';
 
 describe('CellSelect', () => {
   it('should render default settings correctly', () => {
@@ -16,6 +16,6 @@ describe('CellSelect', () => {
     const { queryByTestId } = render(
       <CellSelect {...SAMPLE_CELLSELECT_PROPS} />,
     );
-    expect(queryByTestId(CellModalSelectorsIDs.SELECT)).not.toBe(null);
+    expect(queryByTestId(CellComponentSelectorsIDs.SELECT)).not.toBe(null);
   });
 });

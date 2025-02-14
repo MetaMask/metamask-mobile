@@ -20,7 +20,7 @@ import createStyles from './index.styles';
 import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
 
 const AutoDetectNFTSettings = () => {
-  const { trackEvent, addTraitsToUser } = useMetrics();
+  const { trackEvent, addTraitsToUser, createEventBuilder } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
@@ -40,12 +40,16 @@ const AutoDetectNFTSettings = () => {
           : UserProfileProperty.OFF,
       };
       addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED, {
-        ...traits,
-        location: 'app_settings',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED)
+          .addProperties({
+            ...traits,
+            location: 'app_settings',
+          })
+          .build(),
+      );
     },
-    [addTraitsToUser, trackEvent],
+    [addTraitsToUser, trackEvent, createEventBuilder],
   );
 
   return (

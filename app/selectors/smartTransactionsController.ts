@@ -8,12 +8,11 @@ import {
   SmartTransaction,
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
-import { selectSelectedInternalAccountChecksummedAddress } from './accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 
 export const selectSmartTransactionsEnabled = (state: RootState) => {
-  const selectedAddress =
-    selectSelectedInternalAccountChecksummedAddress(state);
+  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
   const addrIshardwareAccount = selectedAddress
     ? isHardwareAccount(selectedAddress)
     : false;
@@ -53,8 +52,7 @@ export const selectShouldUseSmartTransaction = (state: RootState) => {
 };
 
 export const selectPendingSmartTransactionsBySender = (state: RootState) => {
-  const selectedAddress =
-    selectSelectedInternalAccountChecksummedAddress(state);
+  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
   const chainId = selectChainId(state);
 
   const smartTransactions: SmartTransaction[] =

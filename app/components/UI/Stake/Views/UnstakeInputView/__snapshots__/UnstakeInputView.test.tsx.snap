@@ -102,26 +102,49 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            />
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Bold",
-                    "fontSize": 18,
-                    "fontWeight": "700",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "alignItems": "center",
                   }
                 }
               >
-                Unstake ETH
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 18,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Unstake ETH
+                </Text>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -386,7 +409,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                             >
                               Staked balance
                               : 
-                              4.59996 ETH
+                              5.79133 ETH
                             </Text>
                           </View>
                           <View
@@ -403,7 +426,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9fa6ae",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
@@ -441,7 +464,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
                                   "backgroundColor": "#ffffff",
-                                  "borderColor": "#bbc0c566",
+                                  "borderColor": "#BBC0C566",
                                   "borderRadius": 16,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -485,7 +508,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#0376c91a",
+                              "backgroundColor": "#0376C91A",
                               "borderColor": "#0376c9",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
@@ -564,7 +587,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c5",
+                                "borderColor": "#848c96",
                                 "borderRadius": 20,
                                 "borderWidth": 1,
                                 "flex": 1,
@@ -601,7 +624,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c5",
+                                "borderColor": "#848c96",
                                 "borderRadius": 20,
                                 "borderWidth": 1,
                                 "flex": 1,
@@ -638,7 +661,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c5",
+                                "borderColor": "#848c96",
                                 "borderRadius": 20,
                                 "borderWidth": 1,
                                 "flex": 1,
@@ -675,7 +698,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c5",
+                                "borderColor": "#848c96",
                                 "borderRadius": 20,
                                 "borderWidth": 1,
                                 "flex": 1,
@@ -1550,9 +1573,9 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "EuclidCircularB-Medium",
                                   "fontSize": 14,
-                                  "fontWeight": "400",
+                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 22,
                                 }

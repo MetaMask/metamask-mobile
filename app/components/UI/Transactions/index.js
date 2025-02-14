@@ -25,6 +25,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
@@ -61,7 +62,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import {
   TransactionError,
   CancelTransactionError,
@@ -69,13 +70,13 @@ import {
 } from '../../../core/Transaction/TransactionError';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import {
   speedUpTransaction,
   updateIncomingTransactions,
 } from '../../../util/transaction-controller';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
+import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -102,6 +103,12 @@ const createStyles = (colors, typography) =>
     text: {
       fontSize: 20,
       color: colors.text.muted,
+      ...fontStyles.normal,
+    },
+    textTransactions: {
+      fontSize: 20,
+      color: colors.text.muted,
+      textAlign: 'center',
       ...fontStyles.normal,
     },
     viewMoreWrapper: {
@@ -207,6 +214,10 @@ class Transactions extends PureComponent {
      */
     onScrollThroughContent: PropTypes.func,
     gasFeeEstimates: PropTypes.object,
+    /**
+     * Chain ID of the token
+     */
+    tokenChainId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -342,9 +353,11 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { chainId } = this.props;
+
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions();
+    await updateIncomingTransactions([chainId]);
 
     this.setState({ refreshing: false });
   };
@@ -363,6 +376,15 @@ class Transactions extends PureComponent {
   renderEmpty = () => {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
+    if (this.props.tokenChainId !== this.props.chainId) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.textTransactions}>
+            {strings('wallet.switch_network_to_view_transactions')}
+          </Text>
+        </View>
+      );
+    }
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
@@ -779,6 +801,7 @@ class Transactions extends PureComponent {
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlatList
+              testID={ActivitiesViewSelectorsIDs.CONTAINER}
               ref={this.flatList}
               getItemLayout={this.getItemLayout}
               data={transactions}
@@ -855,7 +878,7 @@ class Transactions extends PureComponent {
 
     return (
       <PriceChartProvider>
-        <View style={styles.wrapper} testID={TOKEN_OVERVIEW_TXN_SCREEN}>
+        <View style={styles.wrapper}>
           {!this.state.ready || this.props.loading
             ? this.renderLoader()
             : this.renderList()}
@@ -901,11 +924,12 @@ class Transactions extends PureComponent {
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates: selectGasFeeEstimates(state),

@@ -48,7 +48,7 @@ import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
@@ -546,7 +546,7 @@ CollectibleOverview.propTypes = {
 
 const mapStateToProps = (state, props) => ({
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isInFavorites: isCollectibleInFavoritesSelector(state, props.collectible),
 });
 

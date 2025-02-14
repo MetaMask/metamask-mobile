@@ -31,7 +31,7 @@ exports[`BackupAlert should render correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#bf52081a",
+        "backgroundColor": "#BF52081A",
         "flex": 1,
         "padding": 14,
       }

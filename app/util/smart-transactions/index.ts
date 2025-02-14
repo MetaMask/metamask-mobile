@@ -8,6 +8,10 @@ import {
   getIsNativeTokenTransferred,
 } from '../transactions';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import { SmartTransaction, Fees } from '@metamask/smart-transactions-controller/dist/types';
+import type { ControllerMessenger } from '../../core/Engine';
+
+const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
 
 export const getTransactionType = (
   transactionMeta: TransactionMeta,
@@ -65,34 +69,80 @@ export const getShouldStartApprovalRequest = (
   isSend: boolean,
   isSwapApproveTx: boolean,
   hasPendingApprovalForSwapApproveTx: boolean,
+  mobileReturnTxHashAsap: boolean,
 ): boolean =>
-  isDapp || isSend || isSwapApproveTx || !hasPendingApprovalForSwapApproveTx;
+  !mobileReturnTxHashAsap &&
+  (isDapp || isSend || isSwapApproveTx || !hasPendingApprovalForSwapApproveTx);
 
 export const getShouldUpdateApprovalRequest = (
   isDapp: boolean,
   isSend: boolean,
   isSwapTransaction: boolean,
-): boolean => isDapp || isSend || isSwapTransaction;
+  mobileReturnTxHashAsap: boolean,
+): boolean =>
+  !mobileReturnTxHashAsap && (isDapp || isSend || isSwapTransaction);
 
-export const getSmartTransactionMetricsProperties = (
+const waitForSmartTransactionConfirmationDone = (
+  controllerMessenger: ControllerMessenger,
+): Promise<SmartTransaction | undefined> =>
+  new Promise((resolve) => {
+    controllerMessenger.subscribe(
+      'SmartTransactionsController:smartTransactionConfirmationDone',
+      async (smartTransaction: SmartTransaction) => {
+        resolve(smartTransaction);
+      },
+    );
+    setTimeout(() => {
+      resolve(undefined); // In a rare case we don't get the "smartTransactionConfirmationDone" event within 10 seconds, we resolve with undefined to continue.
+    }, TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT);
+  });
+
+export const getSmartTransactionMetricsProperties = async (
   smartTransactionsController: SmartTransactionsController,
   transactionMeta: TransactionMeta | undefined,
+  waitForSmartTransaction: boolean,
+  controllerMessenger?: ControllerMessenger,
 ) => {
   if (!transactionMeta) return {};
-
-  const smartTransaction =
+  let smartTransaction =
     smartTransactionsController.getSmartTransactionByMinedTxHash(
       transactionMeta.hash,
     );
+  const shouldWaitForSmartTransactionConfirmationDoneEvent =
+    waitForSmartTransaction &&
+    !smartTransaction?.statusMetadata && // We get this after polling for a status for a Smart Transaction.
+    controllerMessenger;
+  if (shouldWaitForSmartTransactionConfirmationDoneEvent) {
+    smartTransaction = await waitForSmartTransactionConfirmationDone(
+      controllerMessenger,
+    );
+  }
+  if (!smartTransaction?.statusMetadata) {
+    return {};
+  }
+  const { timedOut, proxied } = smartTransaction.statusMetadata;
+  return {
+    smart_transaction_timed_out: timedOut,
+    smart_transaction_proxied: proxied,
+  };
+};
 
-  if (smartTransaction?.statusMetadata) {
-    const { duplicated, timedOut, proxied } = smartTransaction.statusMetadata;
-    return {
-      duplicated,
-      timedOut,
-      proxied,
+export type GasIncludedQuote = Fees & { isGasIncludedTrade?: boolean };
+
+// @ts-expect-error Property 'tokenFees' does not exist on type 'Fee'. Need to update the type.
+// Currently, we take the first token for gas fee payment, but later, a user can choose which token to use for gas payment.
+export const getTradeTxTokenFee = (quote: GasIncludedQuote) => quote?.tradeTxFees?.fees?.[0]?.tokenFees?.[0];
+
+// We get gas included fees from a swap quote now. In a future iteration we will have a universal
+// implementation that works for non-swaps transactions as well.
+export const getGasIncludedTransactionFees = (quote: GasIncludedQuote) => {
+  const tradeTxTokenFee = getTradeTxTokenFee(quote);
+  let transactionFees;
+  if (tradeTxTokenFee && quote?.isGasIncludedTrade) {
+    transactionFees = {
+      approvalTxFees: quote?.approvalTxFees,
+      tradeTxFees: quote?.tradeTxFees,
     };
   }
-
-  return {};
+  return transactionFees;
 };

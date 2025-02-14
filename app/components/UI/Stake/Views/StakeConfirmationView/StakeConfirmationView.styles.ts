@@ -7,7 +7,7 @@ const stylesSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     mainContainer: {
-      flex: 1,
+      flexGrow: 1,
       paddingTop: 8,
       paddingHorizontal: 16,
       backgroundColor: colors.background.alternative,

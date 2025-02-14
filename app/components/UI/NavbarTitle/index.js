@@ -64,6 +64,10 @@ class NavbarTitle extends PureComponent {
      */
     showSelectedNetwork: PropTypes.bool,
     /**
+     * Name of the network to display
+     */
+    networkName: PropTypes.string,
+    /**
      * Content to display inside text element
      */
     children: PropTypes.node,
@@ -100,8 +104,14 @@ class NavbarTitle extends PureComponent {
   };
 
   render = () => {
-    const { providerConfig, title, translate, showSelectedNetwork, children } =
-      this.props;
+    const {
+      providerConfig,
+      title,
+      translate,
+      showSelectedNetwork,
+      children,
+      networkName,
+    } = this.props;
     let name = null;
     const color =
       (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
@@ -109,7 +119,9 @@ class NavbarTitle extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (providerConfig.nickname) {
+    if (networkName) {
+      name = networkName;
+    } else if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
       name =

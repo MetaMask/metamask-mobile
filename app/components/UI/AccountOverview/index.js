@@ -36,7 +36,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import Text, {
@@ -289,7 +289,11 @@ class AccountOverview extends PureComponent {
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
 
-    this.props.metrics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.WALLET_COPIED_ADDRESS)
+        .build(),
+    );
   };
 
   doENSLookup = async () => {
@@ -322,9 +326,12 @@ class AccountOverview extends PureComponent {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    this.props.metrics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-      portfolioUrl: AppConstants.PORTFOLIO.URL,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
+        .addProperties({ portfolioUrl: AppConstants.PORTFOLIO.URL })
+        .build(),
+    );
   };
 
   render() {
@@ -417,7 +424,7 @@ class AccountOverview extends PureComponent {
                         variant={TextVariant.BodySMBold}
                         style={styles.tagText}
                       >
-                        {strings(accountLabelTag)}
+                        {accountLabelTag}
                       </Text>
                     </View>
                   )}
@@ -443,7 +450,7 @@ class AccountOverview extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   internalAccounts: selectInternalAccounts(state),
   currentCurrency: selectCurrentCurrency(state),
   chainId: selectChainId(state),

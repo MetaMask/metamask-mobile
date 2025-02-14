@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import DataCollectionModal from './'; // Adjust the import path as necessary
 import { strings } from '../../../../locales/i18n';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { DataCollectionModalSelectorsIDs } from '../../../../e2e/selectors/Modals/DataCollectionModal.selectors';
+import { DataCollectionBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DataCollectionBottomSheet.selectors';
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn().mockReturnValue('Mocked string'),
@@ -37,7 +37,7 @@ describe('DataCollectionModal', () => {
     const { getByTestId } = render(<DataCollectionModal />);
 
     expect(
-      getByTestId(DataCollectionModalSelectorsIDs.ICON_WARNING),
+      getByTestId(DataCollectionBottomSheetSelectorsIDs.ICON_WARNING),
     ).toBeTruthy(); // Assuming you add testID='icon-warning' to your Icon component
 
     expect(strings).toHaveBeenCalledWith('data_collection_modal.content');

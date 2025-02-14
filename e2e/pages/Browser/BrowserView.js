@@ -1,17 +1,17 @@
 import TestHelpers from '../../helpers';
 import { TEST_DAPP_LOCAL_URL } from './TestDApp';
-
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
   BrowserViewSelectorsXPaths,
 } from '../../selectors/Browser/BrowserView.selectors';
-import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
+import { AccountOverviewSelectorsIDs } from '../../selectors/Browser/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
-
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+import { waitForTestDappToLoad } from '../../viewHelper';
+
 class Browser {
   get searchButton() {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.SEARCH_BUTTON);
@@ -45,8 +45,9 @@ class Browser {
   }
 
   get clearURLButton() {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.URL_CLEAR_ICON);
+    return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
   }
+
   get backToSafetyButton() {
     return Matchers.getElementByText(
       BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
@@ -57,19 +58,20 @@ class Browser {
     return Matchers.getElementByText(BrowserViewSelectorsText.RETURN_HOME);
   }
 
-  get addFavourtiesButton() {
+  get addFavouritesButton() {
     return Matchers.getElementByText(
       BrowserViewSelectorsText.ADD_FAVORITES_BUTTON,
     );
   }
-  get HomePageFavourtiesTab() {
+
+  get homePageFavouritesTab() {
     return Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       BrowserViewSelectorsXPaths.FAVORITE_TAB,
     );
   }
 
-  get TestDappURLInFavourtiesTab() {
+  get testDappURLInFavouritesTab() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByXPath(
           BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -144,11 +146,12 @@ class Browser {
   }
 
   async tapNetworkAvatarButtonOnBrowser() {
+    await TestHelpers.delay(4000);
     await Gestures.waitAndTap(this.networkAvatarButton);
   }
 
   async tapAddToFavoritesButton() {
-    await Gestures.waitAndTap(this.addFavourtiesButton);
+    await Gestures.waitAndTap(this.addFavouritesButton);
   }
 
   async tapAddBookmarksButton() {
@@ -169,15 +172,14 @@ class Browser {
 
   async tapDappInFavorites() {
     if (device.getPlatform() === 'ios') {
-      await Gestures.tapWebElement(this.TestDappURLInFavourtiesTab);
+      await Gestures.tapWebElement(this.testDappURLInFavouritesTab);
     } else {
-      await Gestures.tapWebElement(this.HomePageFavourtiesTab);
-      await Gestures.tapWebElement(this.TestDappURLInFavourtiesTab);
+      await Gestures.tapWebElement(this.homePageFavouritesTab);
+      await Gestures.tapWebElement(this.testDappURLInFavouritesTab);
     }
   }
 
   async navigateToURL(url) {
-    await Gestures.waitAndTap(this.clearURLButton);
     await device.disableSynchronization(); // because animations makes typing into the browser slow
 
     await Gestures.typeTextAndHideKeyboard(this.urlInputBoxID, url);
@@ -191,6 +193,7 @@ class Browser {
   async navigateToTestDApp() {
     await this.tapUrlInputBox();
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
+    await waitForTestDappToLoad();
   }
 }
 

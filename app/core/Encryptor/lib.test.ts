@@ -26,44 +26,37 @@ describe('lib', () => {
 
     it.each([ENCRYPTION_LIBRARY.original, 'random-lib'])(
       'throws an error if the algorithm is not correct: %s',
-      (_lib) => {
+      async (_lib) => {
         const lib = getEncryptionLibrary(_lib);
 
-        expect(
-          async () =>
-            await lib.deriveKey(mockPassword, mockSalt, {
-              ...LEGACY_DERIVATION_OPTIONS,
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-expect-error
-              algorithm: 'NotAValidKDFAlgorithm',
-            }),
+        await expect(
+          lib.deriveKey(mockPassword, mockSalt, {
+            ...LEGACY_DERIVATION_OPTIONS,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            algorithm: 'NotAValidKDFAlgorithm',
+          }),
         ).rejects.toThrow('Unsupported KDF algorithm');
       },
     );
 
-    it('derives a key when using a forked lib with legacy parameters', () => {
+    it('derives a key when using a forked lib with legacy parameters', async () => {
       const lib = getEncryptionLibrary('random-lib');
 
-      expect(
-        async () =>
-          await lib.deriveKey(
-            mockPassword,
-            mockSalt,
-            LEGACY_DERIVATION_OPTIONS,
-          ),
+      await expect(
+        lib.deriveKey(mockPassword, mockSalt, LEGACY_DERIVATION_OPTIONS),
       ).not.toBe(undefined);
     });
 
-    it('throws an error if when using forked lib with a different number of iterations than expected', () => {
+    it('throws an error when using forked lib with a different number of iterations than expected', async () => {
       const lib = getEncryptionLibrary('random-lib');
 
-      expect(
-        async () =>
-          await lib.deriveKey(
-            mockPassword,
-            mockSalt,
-            DERIVATION_OPTIONS_MINIMUM_OWASP2023,
-          ),
+      await expect(
+        lib.deriveKey(
+          mockPassword,
+          mockSalt,
+          DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+        ),
       ).rejects.toThrow(
         `Invalid number of iterations, should be: ${LEGACY_DERIVATION_OPTIONS.params.iterations}`,
       );

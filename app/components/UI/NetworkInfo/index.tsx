@@ -19,7 +19,7 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { NetworkEducationModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkEducationModal.selectors';
+import { NetworkEducationModalSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkEducationModal.selectors';
 
 const createStyles = (colors: {
   background: { default: string };

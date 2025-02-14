@@ -1,83 +1,58 @@
 import React, { useState } from 'react';
 import { View, FlatList, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import {
-  useMetrics,
-  MetaMetricsEvents,
-} from '../../../../components/hooks/useMetrics';
 import { useTheme } from '../../../../util/theme';
-import { createDetectedTokensNavDetails } from '../../../Views/DetectedTokens';
-import { selectChainId } from '../../../../selectors/networkController';
-import { selectDetectedTokens } from '../../../../selectors/tokensController';
-import { getDecimalChainId } from '../../../../util/networks';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import createStyles from '../styles';
-import Text from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
-import { PortfolioBalance } from './PortfolioBalance';
 import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem } from './TokenListItem';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface TokenListProps {
   tokens: TokenI[];
   refreshing: boolean;
+  isAddTokenEnabled: boolean;
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
-}
-
-interface TokenListNavigationParamList {
-  AddAsset: { assetType: string };
-  [key: string]: undefined | object;
+  goToAddToken: () => void;
+  showPercentageChange?: boolean;
+  showNetworkBadge?: boolean;
 }
 
 export const TokenList = ({
   tokens,
   refreshing,
+  isAddTokenEnabled,
   onRefresh,
   showRemoveMenu,
+  goToAddToken,
+  showPercentageChange = true,
+  showNetworkBadge = true,
 }: TokenListProps) => {
-  const navigation =
-    useNavigation<
-      StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
-    >();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
-
-  const chainId = useSelector(selectChainId);
-  const detectedTokens = useSelector(selectDetectedTokens);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
-  const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
 
   const styles = createStyles(colors);
+  const navigation = useNavigation();
 
-  const goToAddToken = () => {
-    setIsAddTokenEnabled(false);
-    navigation.push('AddAsset', { assetType: 'token' });
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-      source: 'manual',
-      chain_id: getDecimalChainId(chainId),
+  const handleLink = () => {
+    navigation.navigate(Routes.SETTINGS_VIEW, {
+      screen: Routes.ONBOARDING.GENERAL_SETTINGS,
     });
-    setIsAddTokenEnabled(true);
-  };
-
-  const showDetectedTokens = () => {
-    navigation.navigate(...createDetectedTokensNavDetails());
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-      source: 'detected',
-      chain_id: getDecimalChainId(chainId),
-      tokens: detectedTokens?.map(
-        (token) => `${token.symbol} - ${token.address}`,
-      ),
-    });
-    setIsAddTokenEnabled(true);
   };
 
   return tokens?.length ? (
     <FlatList
-      ListHeaderComponent={<PortfolioBalance />}
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokens}
       renderItem={({ item }) => (
         <TokenListItem
@@ -85,15 +60,17 @@ export const TokenList = ({
           showRemoveMenu={showRemoveMenu}
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
+          privacyMode={privacyMode}
+          showPercentageChange={showPercentageChange}
+          showNetworkBadge={showNetworkBadge}
         />
       )}
       keyExtractor={(_, index) => index.toString()}
       ListFooterComponent={
         <TokenListFooter
           tokens={tokens}
-          isAddTokenEnabled={isAddTokenEnabled}
           goToAddToken={goToAddToken}
-          showDetectedTokens={showDetectedTokens}
+          isAddTokenEnabled={isAddTokenEnabled}
         />
       }
       refreshControl={
@@ -107,7 +84,18 @@ export const TokenList = ({
     />
   ) : (
     <View style={styles.emptyView}>
-      <Text style={styles.text}>{strings('wallet.no_tokens')}</Text>
-    </View>
+      <View style={styles.emptyTokensView}>
+        <Text style={styles.emptyTokensViewText}>
+          {strings('wallet.no_tokens')}
+        </Text>
+        <Text
+          style={styles.emptyTokensViewText}
+          color={TextColor.Info}
+          onPress={handleLink}
+        >
+          {strings('wallet.show_tokens_without_balance')}
+        </Text>
+      </View>
+    </View> // TO see tokens without balance, Click here.
   );
 };

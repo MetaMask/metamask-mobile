@@ -2,7 +2,6 @@ import { NetworkController } from '@metamask/network-controller';
 import { EventEmitter2 } from 'eventemitter2';
 import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
-import { Minimizer } from '../../NativeModules';
 import { RPCQueueManager } from '../RPCQueueManager';
 
 import {
@@ -36,6 +35,7 @@ import { DappClient, DappConnections } from './dapp-sdk-types';
 import getDefaultBridgeParams from './getDefaultBridgeParams';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import Routes from '../../../constants/navigation/Routes';
 
 export default class AndroidService extends EventEmitter2 {
   public communicationClient = NativeModules.CommunicationClient;
@@ -233,7 +233,9 @@ export default class AndroidService extends EventEmitter2 {
               `AndroidService::clients_connected error failed sending jsonrpc error to client`,
             );
           });
-          Minimizer.goBack();
+          SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          });
           return;
         }
 

@@ -131,7 +131,6 @@ Then(/^I am taken to the token overview screen/, async () => {
 });
 
 Then(/^I tap back from the Token overview page/, async () => {
-  await TokenOverviewScreen.tapBackButton();
   await WalletMainScreen.isMainWalletViewVisible();
 });
 

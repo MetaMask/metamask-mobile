@@ -49,11 +49,10 @@ import {
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
 const createStyles = (colors) =>
@@ -341,7 +340,7 @@ class ResetPassword extends PureComponent {
     }, 100);
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(_, prevState) {
     this.updateNavBar();
     const prevLoading = prevState.loading;
     const { loading } = this.state;
@@ -460,7 +459,6 @@ class ResetPassword extends PureComponent {
   };
 
   tryExportSeedPhrase = async (password) => {
-    // const { originalPassword } = this.state;
     const { KeyringController } = Engine.context;
     await KeyringController.exportSeedPhrase(password);
   };
@@ -607,15 +605,11 @@ class ResetPassword extends PureComponent {
         {loading ? (
           <View style={styles.loadingWrapper}>
             <View style={styles.foxWrapper}>
-              {Device.isAndroid() ? (
-                <Image
-                  source={require('../../../images/fox.png')}
-                  style={styles.image}
-                  resizeMethod={'auto'}
-                />
-              ) : (
-                <AnimatedFox bgColor={colors.background.default} />
-              )}
+              <Image
+                source={require('../../../images/branding/fox.png')}
+                style={styles.image}
+                resizeMethod={'auto'}
+              />
             </View>
             <ActivityIndicator size="large" color={colors.icon.default} />
             <Text variant={TextVariant.HeadingLG} style={styles.title}>
@@ -809,7 +803,7 @@ class ResetPassword extends PureComponent {
 ResetPassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -27,9 +27,3 @@ exports[`TransactionApproval renders approve component if transaction type is tr
   modalVisible={true}
 />
 `;
-
-exports[`TransactionApproval returns null if incorrect approval request type 1`] = `""`;
-
-exports[`TransactionApproval returns null if incorrect transaction type 1`] = `""`;
-
-exports[`TransactionApproval returns null if no approval request 1`] = `""`;

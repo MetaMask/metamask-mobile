@@ -122,7 +122,7 @@ exports[`NetworkDetails renders correctly 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#bbc0c566",
+                "backgroundColor": "#BBC0C566",
                 "borderRadius": 2,
                 "height": 4,
                 "width": 40,
@@ -145,12 +145,14 @@ exports[`NetworkDetails renders correctly 1`] = `
           >
             <View
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "flexDirection": "row",
-                  "padding": 16,
-                }
+                [
+                  {
+                    "backgroundColor": "#ffffff",
+                    "flexDirection": "row",
+                    "padding": 16,
+                  },
+                  false,
+                ]
               }
               testID="header"
             >
@@ -187,7 +189,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     }
                   }
                 >
-                  Add custom network
+                  Add Test Network
                 </Text>
               </View>
               <View
@@ -230,34 +232,36 @@ exports[`NetworkDetails renders correctly 1`] = `
                   }
                 >
                   <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#f2f4f6",
-                        "borderRadius": 8,
-                        "borderWidth": 1,
-                        "height": 16,
-                        "justifyContent": "center",
-                        "overflow": "hidden",
-                        "width": 16,
-                      }
-                    }
+                    style={null}
                   >
-                    <Text
-                      accessibilityRole="text"
+                    <View
+                      accessibilityLabel="Test Network"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 10,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": undefined,
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 8,
+                          "height": 16,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "width": 16,
                         }
                       }
+                      testID="network-avatar-picker"
                     >
-                      T
-                    </Text>
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 16,
+                            "width": 16,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
                   </View>
                   <Text
                     accessibilityRole="text"
@@ -321,7 +325,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   style={
                     [
                       {
-                        "borderColor": "#bbc0c5",
+                        "borderColor": "#848c96",
                         "borderRadius": 10,
                         "borderWidth": 1,
                         "marginVertical": 16,
@@ -337,15 +341,15 @@ exports[`NetworkDetails renders correctly 1`] = `
                       style={
                         {
                           "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
-                          "fontWeight": "700",
+                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 22,
                         }
                       }
                     >
-                      Display name
+                      Currency symbol
                     </Text>
                     <Text
                       accessibilityRole="text"
@@ -361,54 +365,33 @@ exports[`NetworkDetails renders correctly 1`] = `
                         }
                       }
                     >
-                      Test Network
+                      TEST
                     </Text>
-                    <Text
-                      accessibilityRole="text"
+                    <View
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Bold",
-                          "fontSize": 14,
-                          "fontWeight": "700",
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "gap": 8,
                         }
                       }
                     >
-                      Chain ID
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
-                          "marginBottom": 8,
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "EuclidCircularB-Medium",
+                            "fontSize": 14,
+                            "fontWeight": "500",
+                            "letterSpacing": 0,
+                            "lineHeight": 22,
+                          }
                         }
-                      }
-                    >
-                      1
-                    </Text>
-                    <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Bold",
-                          "fontSize": 14,
-                          "fontWeight": "700",
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
-                        }
-                      }
-                    >
-                      Network URL
-                    </Text>
+                      >
+                        Network RPC URL
+                      </Text>
+                    </View>
                     <Text
                       accessibilityRole="text"
                       style={
@@ -505,7 +488,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                 accessibilityRole="button"
                 accessible={true}
                 activeOpacity={1}
-                onPress={[Function]}
+                onPress={[MockFunction]}
                 onPressIn={[Function]}
                 onPressOut={[Function]}
                 style={
@@ -530,9 +513,9 @@ exports[`NetworkDetails renders correctly 1`] = `
                   style={
                     {
                       "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
-                      "fontWeight": "400",
+                      "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -570,9 +553,9 @@ exports[`NetworkDetails renders correctly 1`] = `
                   style={
                     {
                       "color": "#ffffff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
-                      "fontWeight": "400",
+                      "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }

@@ -11,15 +11,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  HOME_BUTTON,
-  TABS_BUTTON,
-  FORWARD_BUTTON,
-  BACK_BUTTON,
-  OPTIONS_BUTTON,
-  SEARCH_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 // NOTE: not needed anymore. The use of BottomTabBar already accomodates the home indicator height
@@ -108,17 +100,27 @@ class BrowserBottomBar extends PureComponent {
   };
 
   trackSearchEvent = () => {
-    this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
-      option_chosen: 'Browser Bottom Bar Menu',
-      number_of_tabs: undefined,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
+        .addProperties({
+          option_chosen: 'Browser Bottom Bar Menu',
+          number_of_tabs: undefined,
+        })
+        .build(),
+    );
   };
 
   trackNavigationEvent = (navigationOption) => {
-    this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_NAVIGATION, {
-      option_chosen: navigationOption,
-      os: Platform.OS,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_NAVIGATION)
+        .addProperties({
+          option_chosen: navigationOption,
+          os: Platform.OS,
+        })
+        .build(),
+    );
   };
 
   render() {
@@ -160,7 +162,7 @@ class BrowserBottomBar extends PureComponent {
         <TouchableOpacity
           onPress={onBackPress}
           style={styles.iconButton}
-          {...generateTestId(Platform, BACK_BUTTON)}
+          testID={BrowserViewSelectorsIDs.BACK_BUTTON}
           disabled={!canGoBack}
         >
           <Icon
@@ -172,7 +174,7 @@ class BrowserBottomBar extends PureComponent {
         <TouchableOpacity
           onPress={onForwardPress}
           style={styles.iconButton}
-          {...generateTestId(Platform, FORWARD_BUTTON)}
+          testID={BrowserViewSelectorsIDs.FORWARD_BUTTON}
           disabled={!canGoForward}
         >
           <Icon
@@ -184,7 +186,7 @@ class BrowserBottomBar extends PureComponent {
         <TouchableOpacity
           onPress={onSearchPress}
           style={styles.iconButton}
-          {...generateTestId(Platform, SEARCH_BUTTON)}
+          testID={BrowserViewSelectorsIDs.SEARCH_BUTTON}
         >
           <FeatherIcons name="search" size={24} style={styles.icon} />
         </TouchableOpacity>
@@ -192,14 +194,14 @@ class BrowserBottomBar extends PureComponent {
         <TouchableOpacity
           onPress={showTabs}
           style={styles.iconButton}
-          {...generateTestId(Platform, TABS_BUTTON)}
+          testID={BrowserViewSelectorsIDs.TABS_BUTTON}
         >
           <TabCountIcon style={styles.tabIcon} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onHomePress}
           style={styles.iconButton}
-          {...generateTestId(Platform, HOME_BUTTON)}
+          testID={BrowserViewSelectorsIDs.HOME_BUTTON}
         >
           <SimpleLineIcons name="home" size={22} style={styles.icon} />
         </TouchableOpacity>
@@ -207,7 +209,7 @@ class BrowserBottomBar extends PureComponent {
         <TouchableOpacity
           onPress={toggleOptions}
           style={styles.iconButton}
-          {...generateTestId(Platform, OPTIONS_BUTTON)}
+          testID={BrowserViewSelectorsIDs.OPTIONS_BUTTON}
         >
           <MaterialIcon name="more-horiz" size={22} style={styles.icon} />
         </TouchableOpacity>

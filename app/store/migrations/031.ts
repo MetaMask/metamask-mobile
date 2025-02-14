@@ -2,7 +2,7 @@ import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import {
   TokenListState,
-  TokenRatesState,
+  TokenRatesControllerState,
   TokensControllerState,
 } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
@@ -105,7 +105,7 @@ export default async function migrate(stateAsync: unknown) {
   const tokenRatesControllerState =
     state?.engine?.backgroundState?.TokenRatesController;
   const newTokenRatesControllerState = state?.engine?.backgroundState
-    ?.TokenRatesController as TokenRatesState;
+    ?.TokenRatesController as TokenRatesControllerState;
 
   if (!isObject(tokenRatesControllerState)) {
     captureException(

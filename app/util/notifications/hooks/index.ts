@@ -1,73 +1,74 @@
 import { useCallback, useEffect } from 'react';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import NotificationsService from '../../../util/notifications/services/NotificationService';
-import Routes from '../../../constants/navigation/Routes';
 import {
-  isNotificationsFeatureEnabled,
-} from '../../../util/notifications';
-import { Notification } from '../../../util/notifications/types';
-import {
+  INotification,
   TRIGGER_TYPES,
-} from  '../../../util/notifications/constants';
-import { Linking } from 'react-native';
+} from '@metamask/notification-services-controller/notification-services';
 
-const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
-  const performActionBasedOnOpenedNotificationType = useCallback(
-    async (notification: Notification) => {
+import { useSelector } from 'react-redux';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+
+import FCMService from '../services/FCMService';
+import NotificationsService from '../services/NotificationService';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import { Linking } from 'react-native';
+import { NavigationContainerRef } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
+
+const useNotificationHandler = (navigation: NavigationContainerRef) => {
+  /**
+   * Handles the action based on the type of notification (sent from the backend & following Notification types) that is opened
+   * @param notification - The notification that is opened
+   */
+
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+
+  const handleNotificationCallback = useCallback(
+    async (notification: INotification) => {
+      if (!notification) {
+        return;
+      }
       if (
         notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT &&
         notification.data.externalLink
       ) {
         Linking.openURL(notification.data.externalLink.externalLinkUrl);
       } else {
-        navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
-          notificationId: notification.id,
-        });
+        navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       }
     },
     [navigation],
   );
 
-  const handlePressedNotification = useCallback(
-    (notification?: Notification) => {
-      if (!notification) {
-        return;
-      }
-      performActionBasedOnOpenedNotificationType(notification);
-    },
-    [performActionBasedOnOpenedNotificationType],
-  );
+  const notificationEnabled =
+    isNotificationsFeatureEnabled() && isNotificationEnabled;
 
   useEffect(() => {
-    if (!isNotificationsFeatureEnabled()) return;
+    if (!notificationEnabled) return;
 
-    const unsubscribeForegroundEvent = NotificationsService.onForegroundEvent(
-      async ({ type, detail }) =>
-        await NotificationsService.handleNotificationEvent({
-          type,
-          detail,
-          callback: handlePressedNotification,
-        }),
-    );
+    // Firebase Cloud Messaging
+    FCMService.registerAppWithFCM();
+    FCMService.saveFCMToken();
+    FCMService.getFCMToken();
+    FCMService.listenForMessagesBackground();
 
+    // Notifee
     NotificationsService.onBackgroundEvent(
       async ({ type, detail }) =>
         await NotificationsService.handleNotificationEvent({
           type,
           detail,
-          callback: handlePressedNotification,
+          callback: handleNotificationCallback,
         }),
     );
+
+    const unsubscribeForegroundEvent = FCMService.listenForMessagesForeground();
 
     return () => {
       unsubscribeForegroundEvent();
     };
-  }, [handlePressedNotification]);
-
-  return {
-    performActionBasedOnOpenedNotificationType,
-    handlePressedNotification,
-  };
+  }, [handleNotificationCallback, notificationEnabled]);
 };
 
 export default useNotificationHandler;

@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
-import { isMultichainVersion1Enabled } from '../../../../util/networks';
+import Device from '../../../../util/device';
 
 /**
  * Style sheet function for AccountConnectMultiSelector screen.
@@ -18,22 +18,26 @@ const styleSheet = (params: {
   const { vars } = params;
   return StyleSheet.create({
     container: {
-      height: '100%',
+      height: Device.isAndroid() || Device.isMediumDevice() ? '99%' : '100%',
     },
     body: {
       paddingHorizontal: 16,
     },
     description: {
       textAlign: 'center',
-      marginVertical: isMultichainVersion1Enabled ? 8 : 16,
+      marginVertical: 8,
       color: colors.text.alternative,
     },
     ctaButtonsContainer: {
-      marginTop: isMultichainVersion1Enabled ? 0 : 24,
+      marginTop: 0,
       marginBottom: vars.isRenderedAsBottomSheet ? 0 : 16,
     },
-    connectOrUpdateButtonContainer: { flexDirection: 'row' },
-    button: { flex: 1 },
+    connectOrUpdateButtonContainer: {
+      flexDirection: 'row',
+    },
+    button: {
+      flex: 1,
+    },
     buttonSeparator: {
       width: 16,
     },
@@ -59,7 +63,7 @@ const styleSheet = (params: {
     },
     addAccountButtonContainer: {
       marginHorizontal: 16,
-      marginTop: 16,
+      marginBottom: 16,
     },
     selectAll: {
       marginLeft: 0,

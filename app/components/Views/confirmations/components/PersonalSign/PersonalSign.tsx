@@ -20,16 +20,17 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import createStyles from './styles';
 import { PersonalSignProps } from './types';
 
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import AppConstants from '../../../../../core/AppConstants';
-import { selectChainId } from '../../../../../selectors/networkController';
-import { store } from '../../../../../store';
 import Logger from '../../../../../util/Logger';
 import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
+import { selectSignatureRequestById } from '../../../../../selectors/signatureController';
+import { selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import { RootState } from '../../../../../reducers';
+import { Hex } from '@metamask/utils';
 
 /**
  * Converts a hexadecimal string to a utf8 string.
@@ -61,12 +62,23 @@ const PersonalSign = ({
   showExpandedMessage,
 }: PersonalSignProps) => {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
+
   const { securityAlertResponse } = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (reduxState: any) => reduxState.signatureRequest,
+  );
+
+  const signatureRequest = useSelector((state: RootState) =>
+    selectSignatureRequestById(state, messageParams.metamaskId),
+  );
+
+  const { chainId } = signatureRequest ?? {};
+
+  const networkType = useSelector((state: RootState) =>
+    selectProviderTypeByChainId(state, chainId as Hex),
   );
 
   // TODO: Replace "any" with type
@@ -84,8 +96,6 @@ const PersonalSign = ({
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     const pageInfo = currentPageInformation || messageParams.meta || {};
-
-    const chainId = selectChainId(store.getState());
     const fallbackUrl = 'N/A';
 
     let urlHost = fallbackUrl;
@@ -100,9 +110,7 @@ const PersonalSign = ({
 
     let blockaidParams: Record<string, unknown> = {};
     if (securityAlertResponse) {
-      blockaidParams = getBlockaidMetricsParams(
-        securityAlertResponse as SecurityAlertResponse,
-      );
+      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
     }
 
     return {
@@ -113,14 +121,15 @@ const PersonalSign = ({
       ...pageInfo.analytics,
       ...blockaidParams,
     };
-  }, [currentPageInformation, messageParams, securityAlertResponse]);
+  }, [chainId, currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          getAnalyticsParams(),
+          createEventBuilder(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED)
+            .addProperties(getAnalyticsParams())
+            .build(),
         );
       }
     };
@@ -134,7 +143,12 @@ const PersonalSign = ({
         onSignatureError,
       );
     };
-  }, [getAnalyticsParams, messageParams.metamaskId, trackEvent]);
+  }, [
+    getAnalyticsParams,
+    messageParams.metamaskId,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
@@ -157,14 +171,22 @@ const PersonalSign = ({
   const rejectSignature = async () => {
     await onReject();
     showWalletConnectNotification(false);
-    trackEvent(MetaMetricsEvents.SIGNATURE_REJECTED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SIGNATURE_REJECTED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
   };
 
   const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
       await onConfirm();
       showWalletConnectNotification(true);
-      trackEvent(MetaMetricsEvents.SIGNATURE_APPROVED, getAnalyticsParams());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SIGNATURE_APPROVED)
+          .addProperties(getAnalyticsParams())
+          .build(),
+      );
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(
@@ -244,7 +266,8 @@ const PersonalSign = ({
       type="personal_sign"
       fromAddress={messageParams.from}
       origin={messageParams.origin}
-      testID={SigningModalSelectorsIDs.PERSONAL_REQUEST}
+      testID={SigningBottomSheetSelectorsIDs.PERSONAL_REQUEST}
+      networkType={networkType}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>
