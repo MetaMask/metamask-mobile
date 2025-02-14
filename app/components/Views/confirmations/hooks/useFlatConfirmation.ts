@@ -2,10 +2,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 
 import { useTransactionMetadataRequest } from '../hooks/useTransactionMetadataRequest';
 
-// todo: if possible derive way to dynamically check if confirmation should be rendered flat
-const FLAT_TRANSACTION_CONFIRMATIONS: TransactionType[] = [
-  TransactionType.stakingDeposit,
-];
+const FLAT_TRANSACTION_CONFIRMATIONS: TransactionType[] = [];
 
 export const useFlatConfirmation = () => {
   const transactionMetadata = useTransactionMetadataRequest();
