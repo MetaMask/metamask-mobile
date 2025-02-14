@@ -8,11 +8,11 @@ import { EthMethod } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   getFormattedAddressFromInternalAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  isSolanaAccount,
   isBtcAccount,
   isBtcMainnetAddress,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isBtcTestnetAddress,
-  isSolanaAccount,
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
 
