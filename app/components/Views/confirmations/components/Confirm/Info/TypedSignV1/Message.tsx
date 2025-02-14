@@ -1,10 +1,7 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-
-import { selectChainId } from '../../../../../../../selectors/networkController';
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import SignatureMessageSection from '../../SignatureMessageSection';
 import DataTree, { DataTreeInput } from '../../DataTree/DataTree';
+import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 
 interface TypesSignDataV1 {
   name: string;
@@ -13,10 +10,11 @@ interface TypesSignDataV1 {
 }
 
 const Message = () => {
-  const { approvalRequest } = useApprovalRequest();
-  const chainId = useSelector(selectChainId);
+  const signatureRequest = useSignatureRequest();
+  const chainId = signatureRequest?.chainId as string;
 
-  const typedSignData = approvalRequest?.requestData?.data;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const typedSignData = signatureRequest?.messageParams?.data as any;
 
   if (!typedSignData) {
     return null;

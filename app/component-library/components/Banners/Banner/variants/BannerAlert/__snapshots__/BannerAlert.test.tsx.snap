@@ -4,7 +4,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#0376c91a",
+      "backgroundColor": "#0376C91A",
       "borderColor": "#0376c9",
       "borderLeftWidth": 4,
       "borderRadius": 4,
@@ -96,9 +96,9 @@ exports[`BannerAlert should render BannerAlert 1`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }

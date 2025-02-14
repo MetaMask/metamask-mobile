@@ -9,6 +9,8 @@ import {
   SimulationErrorCode,
   SimulationTokenStandard,
   CHAIN_IDS,
+  TransactionMeta,
+  SimulationData,
 } from '@metamask/transaction-controller';
 
 import {
@@ -145,8 +147,20 @@ const meta: Meta<typeof SimulationDetails> = {
 };
 export default meta;
 
+function buildArgs({
+  simulationData,
+}: {
+  simulationData?: SimulationData;
+}): Partial<SimulationDetailsProps> {
+  return {
+    transaction: {
+      simulationData,
+    } as TransactionMeta,
+  };
+}
+
 export const MultipleTokens: Story = {
-  args: {
+  args: buildArgs({
     simulationData: {
       nativeBalanceChange: {
         ...DUMMY_BALANCE_CHANGE,
@@ -193,11 +207,11 @@ export const MultipleTokens: Story = {
         },
       ],
     },
-  },
+  }),
 };
 
 export const SendSmallAmount: Story = {
-  args: {
+  args: buildArgs({
     simulationData: {
       nativeBalanceChange: {
         ...DUMMY_BALANCE_CHANGE,
@@ -206,11 +220,11 @@ export const SendSmallAmount: Story = {
       },
       tokenBalanceChanges: [],
     },
-  },
+  }),
 };
 
 export const LongValuesAndNames: Story = {
-  args: {
+  args: buildArgs({
     simulationData: {
       nativeBalanceChange: {
         ...DUMMY_BALANCE_CHANGE,
@@ -234,11 +248,11 @@ export const LongValuesAndNames: Story = {
         },
       ],
     },
-  },
+  }),
 };
 
 export const PolygonNativeAsset: Story = {
-  args: {
+  args: buildArgs({
     simulationData: {
       nativeBalanceChange: {
         ...DUMMY_BALANCE_CHANGE,
@@ -247,14 +261,14 @@ export const PolygonNativeAsset: Story = {
       },
       tokenBalanceChanges: [],
     },
-  },
+  }),
   decorators: [
     (story) => <Provider store={storeMockPolygon}>{story()}</Provider>,
   ],
 };
 
 export const ArbitrumNativeAsset: Story = {
-  args: {
+  args: buildArgs({
     simulationData: {
       nativeBalanceChange: {
         ...DUMMY_BALANCE_CHANGE,
@@ -263,14 +277,14 @@ export const ArbitrumNativeAsset: Story = {
       },
       tokenBalanceChanges: [],
     },
-  },
+  }),
   decorators: [
     (story) => <Provider store={storeMockArbitrum}>{story()}</Provider>,
   ],
 };
 
 export const ReceiveOnly: Story = {
-  args: {
+  args: buildArgs({
     simulationData: {
       nativeBalanceChange: {
         previousBalance: '0x2',
@@ -280,11 +294,11 @@ export const ReceiveOnly: Story = {
       },
       tokenBalanceChanges: [],
     },
-  },
+  }),
 };
 
 export const SendOnly: Story = {
-  args: {
+  args: buildArgs({
     simulationData: {
       nativeBalanceChange: {
         previousBalance: '0x1',
@@ -294,40 +308,40 @@ export const SendOnly: Story = {
       },
       tokenBalanceChanges: [],
     },
-  },
+  }),
 };
 
 export const NoBalanceChanges: Story = {
-  args: {
+  args: buildArgs({
     simulationData: {
       nativeBalanceChange: undefined,
       tokenBalanceChanges: [],
     },
-  },
+  }),
 };
 
 export const Loading: Story = {
-  args: {
+  args: buildArgs({
     simulationData: undefined,
-  },
+  }),
 };
 
 export const TransactionReverted: Story = {
-  args: {
+  args: buildArgs({
     simulationData: {
       error: { code: SimulationErrorCode.Reverted },
       nativeBalanceChange: undefined,
       tokenBalanceChanges: [],
     },
-  },
+  }),
 };
 
 export const GenericError: Story = {
-  args: {
+  args: buildArgs({
     simulationData: {
       error: {},
       nativeBalanceChange: undefined,
       tokenBalanceChanges: [],
     },
-  },
+  }),
 };

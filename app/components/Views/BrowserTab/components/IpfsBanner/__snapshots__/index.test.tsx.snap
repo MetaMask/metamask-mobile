@@ -1,0 +1,200 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`IpfsBanner should render banner correctly 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderRadius": 4,
+      "bottom": 16,
+      "left": 16,
+      "position": "absolute",
+      "right": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#0376C91A",
+        "borderColor": "#0376c9",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
+      }
+    }
+    testID="banneralert"
+    variant="Alert"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+    >
+      <SvgMock
+        color="#0376c9"
+        height={24}
+        name="Info"
+        style={
+          {
+            "height": 24,
+            "width": 24,
+          }
+        }
+        width={24}
+      />
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        IPFS gateway
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        This is an IPFS website. to see this site, you need to turn on
+         
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 14,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          IPFS gateway
+        </Text>
+         
+        in
+         
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 14,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Settings.
+        </Text>
+      </Text>
+      <Text
+        accessibilityRole="link"
+        accessible={true}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "backgroundColor": "transparent",
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Turn on IPFS gateway
+        </Text>
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "marginLeft": 12,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "borderRadius": 8,
+            "height": 24,
+            "justifyContent": "center",
+            "opacity": 1,
+            "width": 24,
+          }
+        }
+        testID="banner-close-button-icon"
+      >
+        <SvgMock
+          color="#141618"
+          height={16}
+          name="Close"
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          width={16}
+        />
+      </TouchableOpacity>
+    </View>
+  </View>
+</View>
+`;

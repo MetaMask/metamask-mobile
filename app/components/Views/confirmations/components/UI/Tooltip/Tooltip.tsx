@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import Modal from 'react-native-modal';
 
 import ButtonIcon, {
@@ -9,6 +9,7 @@ import {
   IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTheme } from '../../../../../../util/theme';
 import styleSheet from './Tooltip.styles';

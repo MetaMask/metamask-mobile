@@ -1,6 +1,11 @@
 // eslint-disable-next-line import/no-nodejs-modules
 import { inspect } from 'util';
-import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
+import type {
+  Json,
+  JsonRpcParams,
+  JsonRpcRequest,
+  PendingJsonRpcResponse,
+} from '@metamask/utils';
 import type {
   TransactionParams,
   TransactionController,
@@ -50,8 +55,8 @@ const NETWORK_CLIENT_ID_MOCK = 'testNetworkClientId';
  * @returns The JSON-RPC request.
  */
 function constructSendTransactionRequest(
-  params: unknown,
-): JsonRpcRequest<unknown> & {
+  params: [TransactionParams & JsonRpcParams],
+): JsonRpcRequest<[TransactionParams & JsonRpcParams]> & {
   method: 'eth_sendTransaction';
   networkClientId: string;
 } {
@@ -69,7 +74,7 @@ function constructSendTransactionRequest(
  *
  * @returns A pending JSON-RPC response.
  */
-function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<unknown> {
+function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<Json> {
   return {
     jsonrpc: '2.0',
     id: 1,
@@ -181,6 +186,7 @@ describe('eth_sendTransaction', () => {
         async () =>
           await eth_sendTransaction({
             hostname: 'example.metamask.io',
+            //@ts-expect-error - invalid parameters forced
             req: constructSendTransactionRequest(invalidParameter),
             res: constructPendingJsonRpcResponse(),
             sendTransaction: getMockAddTransaction({
@@ -203,6 +209,7 @@ describe('eth_sendTransaction', () => {
         async () =>
           await eth_sendTransaction({
             hostname: 'example.metamask.io',
+            //@ts-expect-error - invalid parameters forced
             req: constructSendTransactionRequest(invalidParameter),
             res: constructPendingJsonRpcResponse(),
             sendTransaction: getMockAddTransaction({

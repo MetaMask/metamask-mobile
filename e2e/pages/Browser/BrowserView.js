@@ -10,6 +10,7 @@ import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+import { waitForTestDappToLoad } from '../../viewHelper';
 
 class Browser {
   get searchButton() {
@@ -145,6 +146,7 @@ class Browser {
   }
 
   async tapNetworkAvatarButtonOnBrowser() {
+    await TestHelpers.delay(4000);
     await Gestures.waitAndTap(this.networkAvatarButton);
   }
 
@@ -191,6 +193,7 @@ class Browser {
   async navigateToTestDApp() {
     await this.tapUrlInputBox();
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
+    await waitForTestDappToLoad();
   }
 }
 

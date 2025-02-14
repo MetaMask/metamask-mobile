@@ -4,7 +4,7 @@ exports[`CustomNonce should render correctly 1`] = `
 <TouchableOpacity
   style={
     {
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 8,
       "borderWidth": 1,
       "display": "flex",

@@ -51,6 +51,13 @@ const mockInitialState = {
             balance: '0x0',
           },
         },
+        accountsByChainId: {
+          '0x1': {
+            '0xd018538C87232FF95acbCe4870629b75640a78E7': {
+              balance: '0x0',
+            },
+          },
+        },
       },
       AccountsController: {
         internalAccounts: {
@@ -105,6 +112,7 @@ describe('SendFlowAddressFrom', () => {
         <SendFlowAddressFrom
           fromAccountBalanceState={jest.fn}
           setFromAddress={jest.fn}
+          chainId="0x1"
         />
       </Provider>,
     );

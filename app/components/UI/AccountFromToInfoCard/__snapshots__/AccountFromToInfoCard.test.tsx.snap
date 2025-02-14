@@ -39,7 +39,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
           "borderRadius": 4,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -269,7 +269,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                       "height": 32,
                       "justifyContent": "center",
                       "overflow": "hidden",
-                      "shadowColor": "#0000001a",
+                      "shadowColor": "#0000001A",
                       "shadowOffset": {
                         "height": 2,
                         "width": 0,
@@ -288,13 +288,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                   <Image
                     onError={[Function]}
                     resizeMode="contain"
-                    source={
-                      {
-                        "default": {
-                          "uri": "MockImage",
-                        },
-                      }
-                    }
+                    source={1}
                     style={
                       {
                         "height": 32,
@@ -439,7 +433,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
             "paddingHorizontal": 10,
           },
           {
-            "borderColor": "#bbc0c5",
+            "borderColor": "#848c96",
           },
         ]
       }

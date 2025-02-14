@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import QRCode from 'react-native-qrcode-svg';
 import { RouteProp, ParamListBase } from '@react-navigation/native';
 import ScrollableTabView, {

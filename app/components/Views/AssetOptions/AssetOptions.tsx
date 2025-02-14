@@ -30,9 +30,10 @@ import {
   isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
-import { BrowserTab } from '../../../components/UI/Tokens/types';
+import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
 import { Hex } from '../../../util/smart-transactions/smart-publish-hook';
+import { appendURLParams } from '../../../util/browser';
 interface Option {
   label: string;
   onPress: () => void;
@@ -45,12 +46,18 @@ interface Props {
       address: string;
       isNativeCurrency: boolean;
       chainId: string;
+      asset: TokenI;
     };
   };
 }
 
 const AssetOptions = (props: Props) => {
-  const { address, isNativeCurrency, chainId: networkId } = props.route.params;
+  const {
+    address,
+    isNativeCurrency,
+    chainId: networkId,
+    asset,
+  } = props.route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -125,6 +132,7 @@ const AssetOptions = (props: Props) => {
       navigation.navigate('AssetDetails', {
         address,
         chainId: networkId,
+        asset,
       });
     });
   };
@@ -140,19 +148,12 @@ const AssetOptions = (props: Props) => {
       existingTabId = existingPortfolioTab.id;
     } else {
       const analyticsEnabled = isEnabled();
-      const portfolioUrl = new URL(AppConstants.PORTFOLIO.URL);
 
-      portfolioUrl.searchParams.append('metamaskEntry', 'mobile');
-
-      // Append user's privacy preferences for metrics + marketing on user navigation to Portfolio.
-      portfolioUrl.searchParams.append(
-        'metricsEnabled',
-        String(analyticsEnabled),
-      );
-      portfolioUrl.searchParams.append(
-        'marketingEnabled',
-        String(!!isDataCollectionForMarketingEnabled),
-      );
+      const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
+        metamaskEntry: 'mobile',
+        metricsEnabled: analyticsEnabled,
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      });
 
       newTabUrl = portfolioUrl.href;
     }

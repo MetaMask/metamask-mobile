@@ -87,6 +87,7 @@ const mockInitialState: DeepPartial<RootState> = {
       },
     },
     selectedAsset: {},
+    chainId: '0x1',
     transaction: {
       from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
       to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
@@ -182,6 +183,24 @@ jest.mock('../../../../../core/redux/slices/transactionMetrics', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/transactionMetrics'),
   updateTransactionMetrics: jest.fn(),
   selectTransactionMetrics: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../../reducers/swaps', () => ({
+  swapsStateSelector: () => ({
+    featureFlags: {
+      smart_transactions: {
+        mobile_active: false
+      }
+    }
+  }),
+  swapsSmartTxFlagEnabled: () => false
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectSmartTransactionsBannerDismissed: () => false,
+  selectSmartTransactionsMigrationApplied: () => false,
+  selectSmartTransactionsOptInStatus: () => false,
+  selectUseTransactionSimulations: () => false,
 }));
 
 function render(

@@ -11,7 +11,7 @@ import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useStyles } from '../../../component-library/hooks';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {

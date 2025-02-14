@@ -7,6 +7,7 @@ import {
 import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
+  QuoteSortMetadata,
   SellOrder,
 } from '@consensys/on-ramp-sdk/dist/API';
 import {
@@ -20,6 +21,7 @@ import { RootState } from '../../../../reducers';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { strings } from '../../../../../locales/i18n';
 import { getDecimalChainId } from '../../../../util/networks';
+import { QuoteSortBy } from '@consensys/on-ramp-sdk/dist/IOnRampSdk';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 
@@ -214,6 +216,30 @@ export function isSellOrder(order: Order): order is SellOrder {
 
 export function isSellFiatOrder(order: FiatOrder): order is FiatOrder {
   return order.orderType === OrderOrderTypeEnum.Sell;
+}
+
+export function sortQuotes(
+  quotes?: (QuoteResponse | QuoteError | SellQuoteResponse)[] | undefined,
+  sortingArray?: QuoteSortMetadata[],
+  quoteSortBy?: QuoteSortBy,
+): (QuoteResponse | QuoteError | SellQuoteResponse)[] | undefined {
+  if (!quotes || !sortingArray) {
+    return quotes;
+  }
+
+  const sortOrder = sortingArray.find((s) => s.sortBy === quoteSortBy)?.ids;
+
+  if (!sortOrder) {
+    return quotes;
+  }
+
+  const sortOrderMap = new Map(sortOrder.map((id, index) => [id, index]));
+
+  return [...quotes].sort(
+    (a, b) =>
+      (sortOrderMap.get(a.provider.id) ?? 0) -
+      (sortOrderMap.get(b.provider.id) ?? 0),
+  );
 }
 
 const NOTIFICATION_DURATION = 5000;

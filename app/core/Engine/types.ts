@@ -33,6 +33,16 @@ import {
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesControllerState,
+  MultichainBalancesController,
+  MultichainBalancesControllerEvents,
+  MultichainBalancesControllerActions,
+  RatesControllerState,
+  RatesController,
+  RatesControllerEvents,
+  RatesControllerActions,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
   AddressBookController,
@@ -136,6 +146,7 @@ import {
   SignatureController,
   SignatureControllerActions,
   SignatureControllerEvents,
+  SignatureControllerState,
 } from '@metamask/signature-controller';
 import SmartTransactionsController, {
   type SmartTransactionsControllerActions,
@@ -169,6 +180,7 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 
 /**
  * Controllers that area always instantiated
@@ -227,6 +239,10 @@ type GlobalActions =
   | NotificationServicesController.Actions
   | NotificationServicesPushController.Actions
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  | MultichainBalancesControllerActions
+  | RatesControllerActions
+  ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
   | PPOMControllerActions
@@ -259,6 +275,10 @@ type GlobalEvents =
   | NotificationServicesController.Events
   | NotificationServicesPushController.Events
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  | MultichainBalancesControllerEvents
+  | RatesControllerEvents
+  ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
   | PPOMControllerEvents
@@ -272,7 +292,8 @@ type GlobalEvents =
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
-  | RemoteFeatureFlagControllerEvents;
+  | RemoteFeatureFlagControllerEvents
+  | SnapKeyringEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -336,6 +357,10 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesController: MultichainBalancesController;
+  RatesController: RatesController;
+  ///: END:ONLY_INCLUDE_IF
 };
 
 /**
@@ -382,4 +407,9 @@ export type EngineState = {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
+  SignatureController: SignatureControllerState;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesController: MultichainBalancesControllerState;
+  RatesController: RatesControllerState;
+  ///: END:ONLY_INCLUDE_IF
 };

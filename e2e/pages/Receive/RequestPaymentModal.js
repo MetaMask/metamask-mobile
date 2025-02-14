@@ -6,7 +6,7 @@ class RequestPaymentModal {
   get requestPaymentButton() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByLabel(
-        RequestPaymentModalSelectorsIDs.REQUEST_BUTTON,
+          RequestPaymentModalSelectorsIDs.REQUEST_BUTTON,
         )
       : Matchers.getElementByID(RequestPaymentModalSelectorsIDs.REQUEST_BUTTON);
   }

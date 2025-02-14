@@ -5,7 +5,7 @@ import {
   enablePushNotifications,
 } from '../../../actions/notification/helpers';
 import { mmStorage } from '../settings';
-import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
+import { UserStorage } from '@metamask/notification-services-controller/notification-services';
 import { isNotificationsFeatureEnabled } from '../constants';
 
 export function usePushNotifications() {

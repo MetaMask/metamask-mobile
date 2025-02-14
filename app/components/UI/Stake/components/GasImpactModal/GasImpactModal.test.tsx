@@ -29,6 +29,8 @@ const props: GasImpactModalProps = {
       annualRewardRate: '2.5%',
       annualRewardsETH: '2.5 ETH',
       annualRewardsFiat: '$5000',
+      estimatedGasFee: '0.009171428571428572',
+      estimatedGasFeePercentage: '35%',
     },
     name: 'params',
   },

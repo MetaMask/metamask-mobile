@@ -1,25 +1,50 @@
 import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  selectAllPopularNetworkConfigurations,
+  selectChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
 import {
   selectConversionRate,
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 // Polls native currency prices across networks.
 const useCurrencyRatePolling = () => {
   // Selectors to determine polling input
+  const networkConfigurationsPopularNetworks = useSelector(
+    selectAllPopularNetworkConfigurations,
+  );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const currentChainId = useSelector(selectChainId);
+  const isAllNetworksSelected = useSelector(selectIsAllNetworks);
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   // Selectors returning state updated by the polling
   const conversionRate = useSelector(selectConversionRate);
   const currencyRates = useSelector(selectCurrencyRates);
 
+  // if all networks are selected, poll all popular networks
+  const networkConfigurationsToPoll =
+    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
+      ? Object.values(networkConfigurationsPopularNetworks).map((network) => ({
+          nativeCurrency: network.nativeCurrency,
+        }))
+      : [
+          {
+            nativeCurrency:
+              networkConfigurations[currentChainId].nativeCurrency,
+          },
+        ];
+
+  // get all native currencies to poll
   const nativeCurrencies = [
-    ...new Set(
-      Object.values(networkConfigurations).map((n) => n.nativeCurrency),
-    ),
+    ...new Set(networkConfigurationsToPoll.map((n) => n.nativeCurrency)),
   ];
 
   const { CurrencyRateController } = Engine.context;

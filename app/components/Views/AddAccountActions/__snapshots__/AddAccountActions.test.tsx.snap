@@ -1,0 +1,653 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddAccountActions renders correctly 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "zIndex": 1,
+        }
+      }
+    >
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "rgb(255, 255, 255)",
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "flex": 1,
+                "shadowColor": "rgb(216, 216, 216)",
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "height": 20,
+              }
+            }
+          />
+          <View
+            pointerEvents="box-none"
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 16,
+                  "opacity": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
+                style={
+                  {
+                    "color": "rgb(28, 28, 30)",
+                    "fontSize": 17,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                AddAccountActions
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        pointerEvents="box-none"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <RCTSafeAreaView>
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "#ffffff",
+                            "flexDirection": "row",
+                            "height": 32,
+                            "justifyContent": "space-between",
+                            "margin": 16,
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "flex": 1,
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[MockFunction]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "borderRadius": 8,
+                                "height": 24,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 24,
+                              }
+                            }
+                            testID="sheet-header-back-button"
+                          >
+                            <SvgMock
+                              color="#141618"
+                              height={16}
+                              name="ArrowLeft"
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#141618",
+                              "fontFamily": "EuclidCircularB-Bold",
+                              "fontSize": 18,
+                              "fontWeight": "700",
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                            }
+                          }
+                        >
+                          Add account
+                        </Text>
+                        <View
+                          style={
+                            {
+                              "alignItems": "flex-end",
+                              "flex": 1,
+                            }
+                          }
+                        />
+                      </View>
+                      <View>
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                          testID="add-account-new-account"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={20}
+                            name="Add"
+                            style={
+                              {
+                                "color": "#141618",
+                                "height": 20,
+                                "marginHorizontal": 16,
+                                "width": 20,
+                              }
+                            }
+                            width={20}
+                          />
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 16,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            Add new account
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                          testID="add-account-add-solana-account"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={20}
+                            name="Add"
+                            style={
+                              {
+                                "color": "#141618",
+                                "height": 20,
+                                "marginHorizontal": 16,
+                                "width": 20,
+                              }
+                            }
+                            width={20}
+                          />
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 16,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            Add a new Solana Account (Beta)
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                          testID="add-account-add-bitcoin-account"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={20}
+                            name="Add"
+                            style={
+                              {
+                                "color": "#141618",
+                                "height": 20,
+                                "marginHorizontal": 16,
+                                "width": 20,
+                              }
+                            }
+                            width={20}
+                          />
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 16,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            Add a new Bitcoin Account (Beta)
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                          testID="add-account-add-bitcoin-testnet-account"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={20}
+                            name="Add"
+                            style={
+                              {
+                                "color": "#141618",
+                                "height": 20,
+                                "marginHorizontal": 16,
+                                "width": 20,
+                              }
+                            }
+                            width={20}
+                          />
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 16,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            Add a new Bitcoin Account (Testnet)
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                          testID="add-account-import-account"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={20}
+                            name="Import"
+                            style={
+                              {
+                                "color": "#141618",
+                                "height": 20,
+                                "marginHorizontal": 16,
+                                "width": 20,
+                              }
+                            }
+                            width={20}
+                          />
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 16,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            Import account
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                          testID="add-account-add-hardware-wallet"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={20}
+                            name="Hardware"
+                            style={
+                              {
+                                "color": "#141618",
+                                "height": 20,
+                                "marginHorizontal": 16,
+                                "width": 20,
+                              }
+                            }
+                            width={20}
+                          />
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 16,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            Add hardware wallet
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </RCTSafeAreaView>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
+</View>
+`;

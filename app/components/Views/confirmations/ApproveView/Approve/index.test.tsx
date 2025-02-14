@@ -13,7 +13,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const TRANSACTION_ID_MOCK = '123';
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
-  selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
+  selectSmartTransactionsEnabled: () => false,
+  selectShouldUseSmartTransaction: () => false,
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectSmartTransactionsBannerDismissed: () => false,
+  selectSmartTransactionsMigrationApplied: () => false,
+  selectSmartTransactionsOptInStatus: () => false,
 }));
 
 jest.mock('../../../../../core/GasPolling/GasPolling', () => ({

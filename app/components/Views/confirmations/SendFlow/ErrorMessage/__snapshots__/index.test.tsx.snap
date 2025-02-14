@@ -13,7 +13,7 @@ exports[`ErrorMessage should render correctly 1`] = `
       },
       undefined,
       {
-        "backgroundColor": "#d738471a",
+        "backgroundColor": "#D738471A",
         "borderColor": "#d73847",
       },
       undefined,

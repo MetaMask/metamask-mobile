@@ -1,11 +1,12 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../../../../component-library/components/Icons/Icon';
+import Text from '../../../../../../../../component-library/components/Texts/Text';
 import Logger from '../../../../../../../../util/Logger';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import styleSheet from './DisplayURL.styles';

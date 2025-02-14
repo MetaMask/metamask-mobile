@@ -8,11 +8,107 @@ import {
 } from '../scripts.types';
 import axios from 'axios';
 
+let octokitInstance: InstanceType<typeof GitHub> | null = null;
+let owner: string;
+let repo: string;
+
 main().catch((error: Error): void => {
   console.error(error);
   process.exit(1);
 });
 
+
+
+function getOctokitInstance(): InstanceType<typeof GitHub> {
+  if (!octokitInstance) {
+    const githubToken = process.env.GITHUB_TOKEN;
+    if (!githubToken) {
+      throw new Error("GitHub token is not set in the environment variables");
+    }
+    octokitInstance = getOctokit(githubToken);
+  }
+  return octokitInstance;
+}
+
+async function upsertStatusCheck(
+  statusCheckName: string,
+  commitHash: string,
+  status: StatusCheckStatusType, 
+  conclusion: CompletedConclusionType | undefined, 
+  summary: string
+): Promise<void> {
+  const octokit = getOctokitInstance();
+
+  // List existing checks
+  const listResponse = await octokit.rest.checks.listForRef({
+    owner,
+    repo,
+    ref: commitHash,
+  });
+
+  if (listResponse.status !== 200) {
+    core.setFailed(
+      `Failed to list checks for commit ${commitHash}, received status code ${listResponse.status}`,
+    );
+    process.exit(1);
+  }
+
+  const existingCheck = listResponse.data.check_runs.find(check => check.name === statusCheckName);
+
+  if (existingCheck) {
+    console.log(`Check already exists: ${existingCheck.name}, updating...`);
+    // Update the existing check
+    const updateCheckResponse = await octokit.rest.checks.update({
+      owner,
+      repo,
+      check_run_id: existingCheck.id,
+      name: statusCheckName,
+      status: status,
+      conclusion: conclusion,
+      output: {
+        title: `${statusCheckName} Status Check`,
+        summary: summary,
+      },
+    });
+
+    if (updateCheckResponse.status !== 200) {
+      core.setFailed(
+        `Failed to update '${statusCheckName}' check with status ${status} for commit ${commitHash}, got status code ${updateCheckResponse.status}`,
+      );
+      process.exit(1);
+    }
+
+    console.log(`Updated existing check: ${statusCheckName} with id ${existingCheck.id} & status ${status} for commit ${commitHash}`);
+
+    
+
+  } else {
+    console.log(`Check does not exist: ${statusCheckName}, creating...`);
+    // Create a new status check
+    const createCheckResponse = await octokit.rest.checks.create({
+      owner,
+      repo,
+      name: statusCheckName,
+      head_sha: commitHash,
+      status: status,
+      conclusion: conclusion,
+      started_at: new Date().toISOString(),
+      output: {
+        title: `${statusCheckName} Status Check`,
+        summary: summary,
+      },
+    });
+
+    if (createCheckResponse.status !== 201) {
+      core.setFailed(
+        `Failed to create '${statusCheckName}' check with status ${status} for commit ${commitHash}, got status code ${createCheckResponse.status}`,
+      );
+      process.exit(1);
+    }
+
+    console.log(`Created check: ${statusCheckName} with id ${createCheckResponse.data.id} & status ${status} for commit ${commitHash}`);
+  }
+}
 // Determine whether E2E should run and provide the associated reason
 function shouldRunBitriseE2E(antiLabel: boolean, hasSmokeTestLabel: boolean, isDocs: boolean, isFork: boolean, isMergeQueue: boolean): [boolean, string] {
 
@@ -43,7 +139,11 @@ async function main(): Promise<void> {
   const e2ePipeline = process.env.E2E_PIPELINE;
   const workflowName = process.env.WORKFLOW_NAME;
   const triggerAction = context.payload.action as PullRequestTriggerType;
-  const { owner, repo, number: pullRequestNumber } = context.issue;
+  // Assuming context.issue comes populated with owner and repo, as typical with GitHub Actions
+  const { owner: contextOwner, repo: contextRepo, number: pullRequestNumber } = context.issue;
+  owner = contextOwner;
+  repo = contextRepo;
+  
   const removeAndApplyInstructions = `Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`;
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
@@ -80,7 +180,7 @@ async function main(): Promise<void> {
   const mqCommitHash = context.payload?.merge_group?.head_sha;
 
 
-  const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
+  const octokit = getOctokitInstance();
 
   const { data: prData } = await octokit.rest.pulls.get({
     owner,
@@ -114,34 +214,9 @@ async function main(): Promise<void> {
   if (!mergeQueue && !hasSmokeTestLabel && !hasAntiLabel) {
 
     // Fail Status due to missing labels
-    const createStatusCheckResponse = await octokit.rest.checks.create({
-      owner,
-      repo,
-      name: statusCheckName,
-      head_sha: latestCommitHash,
-      status: StatusCheckStatusType.Completed,
-      conclusion: CompletedConclusionType.Failure, 
-      started_at: new Date().toISOString(),
-      output: {
-        title: statusCheckTitle,
-        summary: `Failed due to missing labels. Please apply either ${e2eLabel} or ${antiLabel}.`,
-      },
-    });
-
-    if (createStatusCheckResponse.status === 201) {
-      console.log(
-        `Created '${statusCheckName}' check with failed status for commit ${latestCommitHash}`,
-      );
-    } else {
-      core.setFailed(
-        `Failed to create '${statusCheckName}' check with failed status for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
-      );
-      process.exit(1);
-    }
-    core.setFailed(
-      `At least 1 E2E Label must be Applied either ${e2eLabel} or ${antiLabel}`,
-    );
-    process.exit(1);
+    await upsertStatusCheck(statusCheckName, latestCommitHash, StatusCheckStatusType.Completed, 
+      CompletedConclusionType.Failure, `Failed due to missing labels. Please apply either ${e2eLabel} or ${antiLabel}.`);
+    return
   }
 
   if (!shouldRun) {
@@ -149,32 +224,8 @@ async function main(): Promise<void> {
       `Skipping Bitrise status check. due to the following reason: ${reason}`,
     );
 
-    
-    // Post success status (skipped)
-    const createStatusCheckResponse = await octokit.rest.checks.create({
-      owner,
-      repo,
-      name: statusCheckName,
-      head_sha: latestCommitHash,
-      status: StatusCheckStatusType.Completed,
-      conclusion: CompletedConclusionType.Success, 
-      started_at: new Date().toISOString(),
-      output: {
-        title: statusCheckTitle,
-        summary: `Skip run since ${reason}`,
-      },
-    });
-
-    if (createStatusCheckResponse.status === 201) {
-      console.log(
-        `Created '${statusCheckName}' check with skipped status for commit ${latestCommitHash}`,
-      );
-    } else {
-      core.setFailed(
-        `Failed to create '${statusCheckName}' check with skipped status for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
-      );
-      process.exit(1);
-    }
+    await upsertStatusCheck(statusCheckName, latestCommitHash, StatusCheckStatusType.Completed, CompletedConclusionType.Success,
+      `Skip run since ${reason}`);
     return;
   }
 
@@ -314,29 +365,9 @@ async function main(): Promise<void> {
     // Post pending status
     console.log(`Posting pending status for commit ${latestCommitHash}`);
     
-    const createStatusCheckResponse = await octokit.rest.checks.create({
-      owner,
-      repo,
-      name: statusCheckName,
-      head_sha: latestCommitHash,
-      status: StatusCheckStatusType.InProgress,
-      started_at: new Date().toISOString(),
-      output: {
-        title: statusCheckTitle,
-        summary: `Test runs in progress... You can view them at ${buildLink}`,
-      },
-    });
+    await upsertStatusCheck( statusCheckName, latestCommitHash, StatusCheckStatusType.InProgress, undefined, `Test runs in progress... You can view them at ${buildLink}`);
 
-    if (createStatusCheckResponse.status === 201) {
-      console.log(
-        `Created '${statusCheckName}' check for commit ${latestCommitHash}`,
-      );
-    } else {
-      core.setFailed(
-        `Failed to create '${statusCheckName}' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
-      );
-      process.exit(1);
-    }
+
     return;
   }
 
@@ -383,31 +414,11 @@ async function main(): Promise<void> {
   if (!bitriseComment) {
 
     console.log(`Bitrise comment not detected for commit ${latestCommitHash}`);
-    // Post fail status
-    const createStatusCheckResponse = await octokit.rest.checks.create({
-      owner,
-      repo,
-      name: statusCheckName,
-      head_sha: latestCommitHash,
-      status: StatusCheckStatusType.Completed,
-      conclusion: CompletedConclusionType.Failure,
-      started_at: new Date().toISOString(),
-      output: {
-        title: statusCheckTitle,
-        summary: `No Bitrise comment found for commit ${latestCommitHash}. Try re-applying the '${e2eLabel}' label.`,
-      },
-    });
 
-    if (createStatusCheckResponse.status === 201) {
-      console.log(
-        `Created '${statusCheckName}' check for commit ${latestCommitHash}`,
-      );
-    } else {
-      core.setFailed(
-        `Failed to create '${statusCheckName}' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
-      );
-      process.exit(1);
-    }
+    await upsertStatusCheck(statusCheckName, latestCommitHash, StatusCheckStatusType.Completed,
+       CompletedConclusionType.Failure, 
+       `No Bitrise comment found for commit ${latestCommitHash}. Try re-applying the '${e2eLabel}' label.`);
+
     return;
   }
 
@@ -498,27 +509,6 @@ async function main(): Promise<void> {
   }
 
   // Post status check
-  const createStatusCheckResponse = await octokit.rest.checks.create({
-    owner,
-    repo,
-    name: statusCheckName,
-    head_sha: latestCommitHash,
-    started_at: new Date().toISOString(),
-    output: {
-      title: statusCheckTitle,
-      summary: statusMessage,
-    },
-    ...checkStatus,
-  });
+  await upsertStatusCheck(statusCheckName, latestCommitHash, checkStatus.status, checkStatus.conclusion, statusMessage);
 
-  if (createStatusCheckResponse.status === 201) {
-    console.log(
-      `Created '${statusCheckName}' check for commit ${latestCommitHash}`,
-    );
-  } else {
-    core.setFailed(
-      `Failed to create '${statusCheckName}' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
-    );
-    process.exit(1);
-  }
 }

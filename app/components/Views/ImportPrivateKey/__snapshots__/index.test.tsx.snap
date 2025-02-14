@@ -349,7 +349,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                         showsVerticalScrollIndicator={true}
                         style={
                           {
-                            "backgroundColor": "#0376c91a",
+                            "backgroundColor": "#0376C91A",
                             "flex": 1,
                           }
                         }
@@ -543,7 +543,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                   [
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 4,
                                       "borderWidth": 0.5,
                                       "color": "#141618",

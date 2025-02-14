@@ -9,7 +9,7 @@ import NFTCollectionField from './NFTCollectionField';
 import StakingProviderField from './StakingProviderField';
 import SwapsRateField from './SwapsRateField';
 import TransactionField from './TransactionField';
-import type { Notification } from '../../../../../util/notifications/types';
+import type { INotification } from '../../../../../util/notifications/types';
 
 interface Props {
   modalField: ModalField;
@@ -24,7 +24,7 @@ interface Props {
   /**
    * Notification object
    */
-  notification: Notification;
+  notification: INotification;
 }
 
 export default function ModalField({

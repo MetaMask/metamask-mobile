@@ -36,7 +36,7 @@ exports[`ButtonBase should render correctly 1`] = `
         "color": "#141618",
       }
     }
-    variant="sBodyMD"
+    variant="sBodyMDMedium"
   >
     Click me!
   </Text>
@@ -81,7 +81,7 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
         "color": "#141618",
       }
     }
-    variant="sBodyMD"
+    variant="sBodyMDMedium"
   >
     Click me!
   </Text>

@@ -31,7 +31,7 @@ import { selectPermissionControllerState } from '../../../../selectors/snaps/per
 import KeyringSnapRemovalWarning from '../KeyringSnapRemovalWarning/KeyringSnapRemovalWarning';
 import { getAccountsBySnapId } from '../../../../core/SnapKeyring/utils/getAccountsBySnapId';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import Logger from '../../../../util/Logger';
 interface SnapSettingsProps {
   snap: Snap;
@@ -100,7 +100,6 @@ const SnapSettings = () => {
     setIsShowingSnapKeyringRemoveWarning(false);
   }, []);
 
-
   const removeSnap = useCallback(async () => {
     const { SnapController } = Engine.context;
     await SnapController.removeSnap(snap.id);
@@ -110,8 +109,11 @@ const SnapSettings = () => {
         for (const keyringAccount of keyringAccounts) {
           await Engine.removeAccount(keyringAccount.address);
         }
-      } catch(error) {
-        Logger.error(error as Error, 'SnapSettings: failed to remove snap accounts when calling Engine.removeAccount');
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'SnapSettings: failed to remove snap accounts when calling Engine.removeAccount',
+        );
       }
     }
     navigation.goBack();
@@ -124,7 +126,6 @@ const SnapSettings = () => {
       removeSnap();
     }
   }, [isKeyringSnap, keyringAccounts.length, removeSnap]);
-
 
   const handleRemoveSnapKeyring = useCallback(() => {
     try {

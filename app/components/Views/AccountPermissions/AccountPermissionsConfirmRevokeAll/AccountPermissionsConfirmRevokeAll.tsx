@@ -90,6 +90,7 @@ const AccountPermissionsConfirmRevokeAll = (
             size={ButtonSize.Lg}
             variant={ButtonVariants.Secondary}
             onPress={onCancel}
+            testID="revoke-all-permissions-cancel-button"
           />
 
           <Button
