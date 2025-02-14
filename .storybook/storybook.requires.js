@@ -128,6 +128,7 @@ const getStories = () => {
     "./app/components/Views/confirmations/components/UI/Tooltip/Tooltip.stories.tsx": require("../app/components/Views/confirmations/components/UI/Tooltip/Tooltip.stories.tsx"),
     "./app/components/Views/confirmations/components/UI/TextWithTooltip/TextWithTooltip.stories.tsx": require("../app/components/Views/confirmations/components/UI/TextWithTooltip/TextWithTooltip.stories.tsx"),
     "./app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx": require("../app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx"),
+    "./app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx": require("../app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx"),
   };
 };
 
