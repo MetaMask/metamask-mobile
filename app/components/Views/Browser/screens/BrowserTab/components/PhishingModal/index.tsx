@@ -1,16 +1,16 @@
 import React from 'react';
-import PhishingModalUI from '../../../../UI/PhishingModal';
+import PhishingModalUI from '../../../../../../UI/PhishingModal';
 import URLParse from 'url-parse';
 import {
   MM_PHISH_DETECT_URL,
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
   MM_BLOCKLIST_ISSUE_URL,
-} from '../../../../../constants/urls';
+} from '../../../../../../../constants/urls';
 import Modal from 'react-native-modal';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '../../../../../../../component-library/hooks';
 import styleSheet from './styles';
-import { BrowserUrlBarRef } from '../../../../UI/BrowserUrlBar/BrowserUrlBar.types';
+import { BrowserUrlBarRef } from '../../../../../../UI/BrowserUrlBar/BrowserUrlBar.types';
 
 interface PhishingModalProps {
   blockedUrl?: string;

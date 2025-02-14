@@ -1,4 +1,4 @@
-import AppConstants from '../../../core/AppConstants';
+import AppConstants from '../../../../../core/AppConstants';
 import URLParse from 'url-parse';
 import { SessionENSNames } from './types';
 

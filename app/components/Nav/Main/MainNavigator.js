@@ -89,6 +89,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import { BrowserRecents } from '../../Views/Browser/screens/Recents';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -548,11 +549,10 @@ const HomeTabs = () => {
             component={WalletTabModalFlow}
           />
           <Tab.Screen
-            name={Routes.BROWSER.HOME}
+            name={'rissol'}
             options={options.browser}
             component={BrowserFlow}
           />
-
           <Tab.Screen
             name={Routes.SETTINGS_VIEW}
             options={options.settings}
@@ -803,6 +803,7 @@ const MainNavigator = () => (
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsModeView}
     />
+    <Stack.Screen name={Routes.BROWSER.HOME} component={Browser} />
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
     <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
     <Stack.Screen

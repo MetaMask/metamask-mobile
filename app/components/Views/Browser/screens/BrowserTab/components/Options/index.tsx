@@ -8,12 +8,12 @@ import {
   ImageSourcePropType,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
-import Device from '../../../../../util/device';
-import { useStyles } from '../../../../hooks/useStyles';
+import generateTestId from '../../../../../../../../wdio/utils/generateTestId';
+import Device from '../../../../../../../util/device';
+import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './styles';
-import Button from '../../../../UI/Button';
-import { strings } from '../../../../../../locales/i18n';
+import Button from '../../../../../../UI/Button';
+import { strings } from '../../../../../../../../locales/i18n';
 import {
   ADD_FAVORITES_OPTION,
   MENU_ID,
@@ -22,10 +22,10 @@ import {
   OPEN_IN_BROWSER_OPTION,
   RELOAD_OPTION,
   SHARE_OPTION,
-} from '../../../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
+} from '../../../../../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import Logger from '../../../../../util/Logger';
+import { MetaMetricsEvents, useMetrics } from '../../../../../../hooks/useMetrics';
+import Logger from '../../../../../../../util/Logger';
 import { OLD_HOMEPAGE_URL_HOST } from '../../constants';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
@@ -34,8 +34,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import SearchApi from '@metamask/react-native-search-api';
 import Share from 'react-native-share';
 
-import { addBookmark } from '../../../../../actions/bookmarks';
-import { RootState } from '../../../../../reducers';
+import { addBookmark } from '../../../../../../../actions/bookmarks';
+import { RootState } from '../../../../../../../reducers';
 
 interface OptionsProps {
   toggleOptions: () => void;

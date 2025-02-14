@@ -2,7 +2,7 @@ import React from 'react';
 import PhishingModal from '.';
 import { useNavigation } from '@react-navigation/native';
 import { render } from '@testing-library/react-native';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../../../../util/theme';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({

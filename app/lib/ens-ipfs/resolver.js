@@ -6,7 +6,7 @@ import resolverAbi from './contracts/resolver';
 import contentHash from 'content-hash';
 import multihash from 'multihashes';
 import Engine from '../../core/Engine';
-import { IPFS_GATEWAY_DISABLED_ERROR } from '../../components/Views/BrowserTab/constants';
+import { IPFS_GATEWAY_DISABLED_ERROR } from '../../components/Views/Browser/screens/BrowserTab/constants';
 
 export default async function resolveEnsToIpfsContentId({
   provider,

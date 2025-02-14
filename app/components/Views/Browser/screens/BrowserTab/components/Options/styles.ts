@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
-import { fontStyles } from '../../../../../styles/common';
-import Device from '../../../../../util/device';
+import { fontStyles } from '../../../../../../../styles/common';
+import Device from '../../../../../../../util/device';
 
 const styleSheet = ({ theme: { colors, shadows } }: { theme: Theme }) =>
   StyleSheet.create({

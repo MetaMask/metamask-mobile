@@ -15,12 +15,12 @@ import {
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
-import BrowserBottomBar from '../../UI/BrowserBottomBar';
+import BrowserBottomBar from '../../../../UI/BrowserBottomBar';
 import { connect, useSelector } from 'react-redux';
-import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
-import Engine from '../../../core/Engine';
-import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import Logger from '../../../util/Logger';
+import BackgroundBridge from '../../../../../core/BackgroundBridge/BackgroundBridge';
+import Engine from '../../../../../core/Engine';
+import WebviewProgressBar from '../../../../UI/WebviewProgressBar';
+import Logger from '../../../../../util/Logger';
 import {
   processUrlForBrowser,
   prefixUrlWithProtocol,
@@ -30,35 +30,35 @@ import {
   getAlertMessage,
   allowLinkOpen,
   getUrlObj,
-} from '../../../util/browser';
+} from '../../../../../util/browser';
 import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
-} from '../../../util/browserScripts';
-import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
-import { strings } from '../../../../locales/i18n';
+} from '../../../../../util/browserScripts';
+import resolveEnsToIpfsContentId from '../../../../../lib/ens-ipfs/resolver';
+import { strings } from '../../../../../../locales/i18n';
 import URLParse from 'url-parse';
-import WebviewErrorComponent from '../../UI/WebviewError';
-import { addToHistory, addToWhitelist } from '../../../actions/browser';
-import Device from '../../../util/device';
-import AppConstants from '../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import OnboardingWizard from '../../UI/OnboardingWizard';
-import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
-import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
-import ErrorBoundary from '../ErrorBoundary';
-import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import downloadFile from '../../../util/browser/downloadFile';
-import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
-import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
-import Routes from '../../../constants/navigation/Routes';
+import WebviewErrorComponent from '../../../../UI/WebviewError';
+import { addToHistory, addToWhitelist } from '../../../../../actions/browser';
+import Device from '../../../../../util/device';
+import AppConstants from '../../../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import OnboardingWizard from '../../../../UI/OnboardingWizard';
+import DrawerStatusTracker from '../../../../../core/DrawerStatusTracker';
+import EntryScriptWeb3 from '../../../../../core/EntryScriptWeb3';
+import ErrorBoundary from '../../../ErrorBoundary';
+import { getRpcMethodMiddleware } from '../../../../../core/RPCMethods/RPCMethodMiddleware';
+import downloadFile from '../../../../../util/browser/downloadFile';
+import { MAX_MESSAGE_LENGTH } from '../../../../../constants/dapp';
+import sanitizeUrlInput from '../../../../../util/url/sanitizeUrlInput';
+import { getPermittedAccountsByHostname } from '../../../../../core/Permissions';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
-} from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import useFavicon from '../../hooks/useFavicon/useFavicon';
+} from '../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import useFavicon from '../../../../hooks/useFavicon/useFavicon';
 import {
   HOMEPAGE_HOST,
   IPFS_GATEWAY_DISABLED_ERROR,
@@ -66,22 +66,22 @@ import {
   NOTIFICATION_NAMES,
   MM_MIXPANEL_TOKEN,
 } from './constants';
-import { regex } from '../../../../app/util/regex';
-import { selectChainId } from '../../../selectors/networkController';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { trackDappViewedEvent } from '../../../util/metrics';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
-import { isTest } from '../../../util/test/utils.js';
-import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
-import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
+import { regex } from '../../../../../../app/util/regex';
+import { selectChainId } from '../../../../../selectors/networkController';
+import { BrowserViewSelectorsIDs } from '../../../../../../e2e/selectors/Browser/BrowserView.selectors';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { trackDappViewedEvent } from '../../../../../util/metrics';
+import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { selectPermissionControllerState } from '../../../../../selectors/snaps/permissionController';
+import { isTest } from '../../../../../util/test/utils.js';
+import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
+import { PermissionKeys } from '../../../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../../../core/Permissions/constants';
+import { AccountPermissionsScreens } from '../../../AccountPermissions/AccountPermissions.types';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { useStyles } from '../../hooks/useStyles';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
-import { type RootState } from '../../../reducers';
+import { type RootState } from '../../../../../reducers';
 import { type Dispatch } from 'redux';
 import {
   type SessionENSNames,
@@ -101,14 +101,14 @@ import PhishingModal from './components/PhishingModal';
 import BrowserUrlBar, {
   ConnectionType,
   BrowserUrlBarRef,
-} from '../../UI/BrowserUrlBar';
+} from '../../../../UI/BrowserUrlBar';
 import { getMaskedUrl, isENSUrl } from './utils';
-import { getURLProtocol } from '../../../util/general';
-import { PROTOCOLS } from '../../../constants/deeplinks';
+import { getURLProtocol } from '../../../../../util/general';
+import { PROTOCOLS } from '../../../../../constants/deeplinks';
 import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
-import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
-import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import UrlAutocomplete, { UrlAutocompleteRef } from '../../../../UI/UrlAutocomplete';
+import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 
 /**
  * Tab component for the in-app browser
@@ -352,13 +352,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
+            }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
+            }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -542,8 +540,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       const disctinctId = await getMetaMetricsId();
       const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-                injectedBookmarks || bookmarks,
-              )};
+        injectedBookmarks || bookmarks,
+      )};
               window.__mmSearchEngine = "${searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";

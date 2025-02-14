@@ -2,14 +2,14 @@ import React from 'react';
 import Options from '.';
 import { render } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useMetrics } from '../../../../../../hooks/useMetrics';
 import { useSelector } from 'react-redux';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
+jest.mock('../../../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
 }));
 

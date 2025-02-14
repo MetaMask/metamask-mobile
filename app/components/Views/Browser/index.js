@@ -24,7 +24,7 @@ import { getPermittedAccounts } from '../../../core/Permissions';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
 import Tabs from '../../UI/Tabs';
-import BrowserTab from '../BrowserTab/BrowserTab';
+import BrowserTab from './screens/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,7 +37,7 @@ import styleSheet from './styles';
  * Component that wraps all the browser
  * individual tabs and the tabs view
  */
-export const Browser = (props) => {
+const Browser = (props) => {
   const {
     route,
     navigation,
@@ -293,10 +293,27 @@ export const Browser = (props) => {
     }
   };
 
-  const renderTabsView = () => {
-    const showTabs = route.params?.showTabs;
-    if (showTabs) {
-      return (
+  const tab = tabs.find((tab) => tab.id === activeTabId);
+  const isShowingTabs = route.params?.showTabs;
+
+  return (
+    <View
+      style={styles.browserContainer}
+      testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
+    >
+      {tab ? (
+        <BrowserTab
+          id={tab.id}
+          activeTab={activeTabId}
+          key={`tab_${tab.id}`}
+          initialUrl={tab.url || AppConstants.HOMEPAGE_URL}
+          linkType={tab.linkType}
+          updateTabInfo={updateTabInfo}
+          showTabs={showTabs}
+          newTab={newTab}
+        />
+      ) : null}
+      {isShowingTabs ? (
         <Tabs
           tabs={tabs}
           activeTab={activeTabId}
@@ -306,33 +323,7 @@ export const Browser = (props) => {
           closeTabsView={closeTabsView}
           closeAllTabs={closeAllTabs}
         />
-      );
-    }
-    return null;
-  };
-
-  const renderBrowserTabs = () =>
-    tabs.map((tab) => (
-      <BrowserTab
-        id={tab.id}
-        key={`tab_${tab.id}`}
-        initialUrl={tab.url}
-        linkType={tab.linkType}
-        updateTabInfo={updateTabInfo}
-        showTabs={showTabs}
-        newTab={newTab}
-        isInTabsView={route.params?.showTabs}
-        homePageUrl={homePageUrl()}
-      />
-    ));
-
-  return (
-    <View
-      style={styles.browserContainer}
-      testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
-    >
-      {renderBrowserTabs()}
-      {renderTabsView()}
+      ) : null}
     </View>
   );
 };

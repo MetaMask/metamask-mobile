@@ -1,18 +1,18 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useStyles } from '../../../../hooks/useStyles';
+import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { View } from 'react-native';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
+} from '../../../../../../../component-library/components/Banners/Banner';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../locales/i18n';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
-import Routes from '../../../../../constants/navigation/Routes';
+} from '../../../../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../../../../locales/i18n';
+import { ButtonVariants } from '../../../../../../../component-library/components/Buttons/Button';
+import Routes from '../../../../../../../constants/navigation/Routes';
 
 const IpfsBanner = ({
   setIpfsBannerVisible,
