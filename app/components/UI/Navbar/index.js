@@ -181,12 +181,11 @@ export function getTransactionsNavbarOptions(
       <HeaderBase
         includesTopInset
         endAccessory={
-          <View style={styles.headerRightButton}>
-            <AccountRightButton
-              selectedAddress={selectedAddress}
-              onPress={handleRightButtonPress}
-            />
-          </View>
+          <AccountRightButton
+            selectedAddress={selectedAddress}
+            onPress={handleRightButtonPress}
+            style={styles.headerRightButton}
+          />
         }
       >
         <NavbarTitle title={title} />
@@ -1369,6 +1368,7 @@ export function getWebviewNavbar(navigation, route) {
             <ButtonIcon
               iconName={IconName.ArrowLeft}
               onPress={() => navigation.pop()}
+              {...generateTestId(Platform, BACK_BUTTON_SIMPLE_WEBVIEW)}
             />
           </View>
         }
