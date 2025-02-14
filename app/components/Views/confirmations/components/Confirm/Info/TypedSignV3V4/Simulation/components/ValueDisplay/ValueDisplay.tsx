@@ -187,7 +187,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                         })}
                     {tokenId && `#${tokenId}`}
                   </Text>
-                )}
+                }
               </ButtonPill>
             </AnimatedPulse>
           }
