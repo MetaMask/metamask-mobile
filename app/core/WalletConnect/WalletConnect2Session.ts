@@ -371,10 +371,6 @@ class WalletConnect2Session {
   };
 
   handleRequest = async (requestEvent: WalletKitTypes.SessionRequest) => {
-    DevLogger.log(
-      `WalletConnect2Session::handleRequest id=${requestEvent.id} topic=${requestEvent.topic} method=${requestEvent.params.request.method}`,
-      requestEvent,
-    );
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
     this.requestByRequestId[requestEvent.id] = requestEvent;
 
@@ -395,8 +391,7 @@ class WalletConnect2Session {
     const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(
-      `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method}`,
-      JSON.stringify(methodParams, null, 2),
+      `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method} origin=${origin}`,
     );
 
     try {
@@ -426,51 +421,6 @@ class WalletConnect2Session {
         },
       });
     }
-    // if (method.toLowerCase() === RPC_WALLET_SWITCHETHEREUMCHAIN.toLowerCase()) {
-    //   // extract first chainId param from request array
-    //   const params = requestEvent.params.request.params as [
-    //     { chainId?: string },
-    //   ];
-    //   const _chainId = params[0]?.chainId;
-    //   DevLogger.log(
-    //     `formatting chainId=>${chainId} ==> 0x${chainId.toString(16)}`,
-    //   );
-
-    //   const networkConfigurations = selectNetworkConfigurations(
-    //     store.getState(),
-    //   );
-    //   const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);
-    //   const existingEntry = Object.entries(networkConfigurations).find(
-    //     ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
-    //   );
-    //   DevLogger.log(
-    //     `rpcMiddleWare -- check for auto rejection (_chainId=${_chainId}) networkConfigurations=${JSON.stringify(
-    //       networkConfigurations,
-    //     )} existingEntry=${existingEntry} existingNetworkDefault=${existingNetworkDefault}`,
-    //   );
-    //   if (!existingEntry && !existingNetworkDefault) {
-    //     DevLogger.log(
-    //       `SKIP rpcMiddleWare -- auto rejection is detected (_chainId=${_chainId})`,
-    //     );
-    //     await this.web3Wallet.respondSessionRequest({
-    //       topic: requestEvent.topic,
-    //       response: {
-    //         id: requestEvent.id,
-    //         jsonrpc: '2.0',
-    //         error: { code: 32603, message: ERROR_MESSAGES.INVALID_CHAIN },
-    //       },
-    //     });
-
-    //     showWCLoadingState({ navigation: this.navigation });
-    //     this.timeoutRef = setTimeout(() => {
-    //       DevLogger.log(`wc2::timeoutRef redirecting...`);
-    //       hideWCLoadingState({ navigation: this.navigation });
-    //       // Redirect or do nothing if timer gets cleared upon receiving wallet_addEthereumChain after automatic reject
-    //       this.redirect('handleRequestTimeout');
-    //     }, 3000);
-    //     return;
-    //   }
-    // }
 
     // Manage redirects
     if (METHODS_TO_REDIRECT[method]) {
