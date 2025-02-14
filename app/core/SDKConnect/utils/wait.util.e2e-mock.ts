@@ -112,32 +112,8 @@ export const waitForKeychainUnlocked = async ({
   context?: string;
   waitTime?: number;
 }) => {
-  // Disable during e2e tests otherwise Detox fails
-  // if (isE2E) {
-  //   return true;
-  // }
-
-  let i = 1;
-  if (!keyringController) {
-    console.warn('Keyring controller not found');
-  }
-
-  let unlocked = keyringController.isUnlocked();
-  DevLogger.log(
-    `wait:: waitForKeyChainUnlocked[${context}] unlocked: ${unlocked}`,
-  );
-  while (!unlocked) {
-    await wait(waitTime);
-    if (i % 5 === 0) {
-      DevLogger.log(
-        `SDKConnect [${context}] Waiting for keychain unlock... attempt ${i}`,
-      );
-    }
-    unlocked = keyringController.isUnlocked();
-    i += 1;
-  }
-
-  return unlocked;
+  DevLogger.log(`MOCK waitForKeychainUnlocked returning true for context=${context} and keyringController=${keyringController} and waitTime=${waitTime}`);
+  return true;
 };
 
 export const waitForUserLoggedIn = async ({

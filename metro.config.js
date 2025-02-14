@@ -18,7 +18,10 @@ module.exports = function (baseConfig) {
   return mergeConfig(defaultConfig, {
     resolver: {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
-      sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
+      // sourceExts: process.env.CI || process.env.IS_E2E
+      // ? ['e2e-mock.ts', ...sourceExts, ...defaultSourceExts]
+      // : [...sourceExts, ...defaultSourceExts],
+      sourceExts: ['e2e-mock.ts', 'e2e-mock.js', ...sourceExts, 'svg', 'cjs', 'mjs'],
       resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
     },
     transformer: {
