@@ -7,11 +7,11 @@ import Routes from '../../../app/constants/navigation/Routes';
 import { store } from '../../../app/store';
 import { selectNetworkConfigurations, selectProviderConfig } from '../../selectors/networkController';
 import Engine from '../Engine';
+import { EVM_IDENTIFIER } from '../Multichain/constants';
 import { getPermittedAccounts, getPermittedChains } from '../Permissions';
 import { findExistingNetwork, switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
-import { EVM_IDENTIFIER } from '../Multichain/constants';
 
 export interface WCMultiVersionParams {
   protocol: string;
