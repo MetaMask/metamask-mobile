@@ -150,9 +150,6 @@ const styles = StyleSheet.create({
   headerRightButton: {
     marginHorizontal: 16,
   },
-  headerContainer: {
-    paddingVertical: 16,
-  },
   addressCopyWrapper: {
     marginHorizontal: 4,
   },
@@ -1359,20 +1356,8 @@ export function getNetworkNavbarOptions(
  */
 export function getWebviewNavbar(navigation, route, themeColors) {
   const innerStyles = StyleSheet.create({
-    headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      textAlign: 'center',
-      ...fontStyles.normal,
-      alignItems: 'center',
-    },
     headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerIcon: {
-      color: themeColors.default,
+      paddingVertical: 16,
     },
   });
 
@@ -1381,7 +1366,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
   return {
     header: () => (
       <HeaderBase
-        style={styles.headerContainer}
+        style={innerStyles.headerStyle}
         includesTopInset
         startAccessory={
           <View style={styles.headerLeftButton}>
