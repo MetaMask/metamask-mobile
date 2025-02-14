@@ -11,6 +11,8 @@ import GasImpactModal from '../components/GasImpactModal';
 import StakeEarningsHistoryView from '../Views/StakeEarningsHistoryView/StakeEarningsHistoryView';
 import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
 import EarnTokenList from '../components/EarnTokenList';
+import StakingDeposit from '../../../Views/confirmations/components/Confirm/Info/StakingDeposit/StakingDeposit';
+
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
@@ -42,6 +44,10 @@ const StakeScreenStack = () => (
       <Stack.Screen
         name={Routes.STAKING.EARNINGS_HISTORY}
         component={StakeEarningsHistoryView}
+      />
+      <Stack.Screen
+        name={Routes.STANDALONE_CONFIRMATION.STAKE_DEPOSIT}
+        component={StakingDeposit}
       />
     </Stack.Navigator>
   </StakeSDKProvider>

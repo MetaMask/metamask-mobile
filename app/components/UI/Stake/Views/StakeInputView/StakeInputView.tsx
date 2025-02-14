@@ -78,6 +78,9 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
 
   const handleStakePress = useCallback(async () => {
     if (isStakingDepositRedesignedEnabled) {
+      // navigation.navigate('StakeScreens', {
+      //   screen: Routes.STANDALONE_CONFIRMATION.STAKE_DEPOSIT,
+      // });
       await attemptDepositTransaction(
         amountWei.toString(),
         activeAccount?.address as string,
