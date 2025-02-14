@@ -6,7 +6,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     base: {
-      background: colors.background.alternative,
+      backgroundColor: colors.background.alternative,
       paddingHorizontal: 16,
       paddingBottom: 8,
       paddingTop: 16,
