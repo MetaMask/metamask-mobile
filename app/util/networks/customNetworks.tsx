@@ -2,7 +2,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScopes } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
@@ -106,7 +106,7 @@ export const PopularList = [
 export const NON_EVM_NETWORKS = [
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   {
-    chainId: SolScopes.Mainnet as CaipChainId,
+    chainId: SolScope.Mainnet as CaipChainId,
     nickname: 'Solana',
     ticker: 'SOL',
     imageSource: require('../../images/solana-logo.png'),

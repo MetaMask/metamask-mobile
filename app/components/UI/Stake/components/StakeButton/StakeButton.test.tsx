@@ -11,6 +11,7 @@ import { mockNetworkState } from '../../../../../util/test/network';
 import AppConstants from '../../../../../core/AppConstants';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockNavigate = jest.fn();
 
@@ -89,9 +90,8 @@ const STATE_MOCK = {
       },
       MultichainNetworkController: {
         isEvmSelected: true,
-        selectedMultichainNetworkChainId:
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        multichainNetworksMetadata: {},
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+
         multichainNetworkConfigurationsByChainId: {},
       },
     },
@@ -166,9 +166,8 @@ describe('StakeButton', () => {
           },
           MultichainNetworkController: {
             isEvmSelected: true,
-            selectedMultichainNetworkChainId:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            multichainNetworksMetadata: {},
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
             multichainNetworkConfigurationsByChainId: {},
           },
         },

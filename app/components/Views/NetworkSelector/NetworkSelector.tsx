@@ -105,7 +105,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { SolScopes } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Logger from '../../../util/Logger';
 
@@ -788,7 +788,7 @@ const NetworkSelector = () => {
           size: avatarSize,
         }}
         isSelected={!isEvmSelected && !browserEvmChainId}
-        onPress={() => onNonEvmNetworkChange(SolScopes.Mainnet)}
+        onPress={() => onNonEvmNetworkChange(SolScope.Mainnet)}
         style={
           browserEvmChainId ? styles.networkCellDisabled : styles.networkCell
         }

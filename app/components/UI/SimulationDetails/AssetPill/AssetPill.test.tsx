@@ -5,6 +5,7 @@ import { AssetType, AssetIdentifier } from '../types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockNetworkState } from '../../../../util/test/network';
 import { RootState } from '../../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork',
@@ -27,9 +28,8 @@ const STATE_MOCK = {
       },
       MultichainNetworkController: {
         isEvmSelected: true,
-        selectedMultichainNetworkChainId:
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        multichainNetworksMetadata: {},
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+
         multichainNetworkConfigurationsByChainId: {},
       },
     },

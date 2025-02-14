@@ -7,6 +7,7 @@ import { RootState } from '../reducers';
 import { selectAccountBalanceByChainId } from './accountTrackerController';
 import { mockNetworkState } from '../util/test/network';
 import mockedEngine from '../core/__mocks__/MockedEngine';
+import { SolScope } from '@metamask/keyring-api';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -41,9 +42,7 @@ describe('selectAccountBalanceByChainId', () => {
           },
           MultichainNetworkController: {
             isEvmSelected: true,
-            selectedMultichainNetworkChainId:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            multichainNetworksMetadata: {},
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
             multichainNetworkConfigurationsByChainId: {},
           },
         },
@@ -57,9 +56,8 @@ describe('selectAccountBalanceByChainId', () => {
         backgroundState: {
           MultichainNetworkController: {
             isEvmSelected: true,
-            selectedMultichainNetworkChainId:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            multichainNetworksMetadata: {},
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
             multichainNetworkConfigurationsByChainId: {},
           },
           NetworkController: {

@@ -11,6 +11,7 @@ import {
   DeepPartial,
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockedNetworkControllerState = mockNetworkState({
   chainId: CHAIN_IDS.MAINNET,
@@ -122,9 +123,7 @@ const initialState: DeepPartial<RootState> = {
       },
       MultichainNetworkController: {
         isEvmSelected: true,
-        selectedMultichainNetworkChainId:
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        multichainNetworksMetadata: {},
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
         multichainNetworkConfigurationsByChainId: {},
       },
     },

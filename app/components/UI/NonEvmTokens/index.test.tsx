@@ -14,6 +14,7 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
@@ -99,29 +100,24 @@ const initialState = {
       },
       MultichainNetworkController: {
         isEvmSelected: false,
-        selectedMultichainNetworkChainId:
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        multichainNetworksMetadata: {},
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
         multichainNetworkConfigurationsByChainId: {
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          [SolScope.Mainnet]: {
+            chainId: SolScope.Mainnet,
             name: 'Solana Mainnet',
-            nativeCurrency: 'SOL',
-            decimals: 9,
+            nativeCurrency:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:solAddress',
             isEvm: false,
-            blockExplorers: {
-              urls: ['https://solscan.io'],
-              defaultIndex: 0,
-            },
           },
         },
       },
     },
   },
+
   settings: {
     showTestNetworks: true,
   },
-};
+} as unknown as RootState;
 
 const Stack = createStackNavigator();
 const renderComponent = (state: Partial<RootState> = {}) =>

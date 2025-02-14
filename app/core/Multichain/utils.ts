@@ -2,9 +2,9 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   EthAccountType,
-  SolScopes,
+  SolScope,
   BtcAccountType,
-  BtcScopes,
+  BtcScope,
 } from '@metamask/keyring-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
@@ -69,9 +69,9 @@ export function isNonEvmAddress(address: string): boolean {
  */
 export function nonEvmNetworkChainIdByAccountAddress(address: string): string {
   if (isSolanaAddress(address)) {
-    return SolScopes.Mainnet;
+    return SolScope.Mainnet;
   }
-  return BtcScopes.Mainnet;
+  return BtcScope.Mainnet;
 }
 
 export function lastSelectedAccountAddressByNonEvmNetworkChainId(
@@ -95,7 +95,7 @@ export function lastSelectedAccountAddressInEvmNetwork(): string | undefined {
  * @returns `true` if the chain id is a non-EVM chain id, `false` otherwise.
  */
 export function isNonEvmChainId(chainId: string | Hex | CaipChainId): boolean {
-  return chainId === SolScopes.Mainnet || chainId === BtcScopes.Mainnet;
+  return chainId === SolScope.Mainnet || chainId === BtcScope.Mainnet;
 }
 
 /**

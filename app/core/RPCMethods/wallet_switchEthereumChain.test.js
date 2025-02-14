@@ -60,7 +60,6 @@ jest.mock('../../store', () => ({
             isEvmSelected: true,
             selectedMultichainNetworkChainId:
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-            multichainNetworksMetadata: {},
             multichainNetworkConfigurationsByChainId: {},
           },
         },

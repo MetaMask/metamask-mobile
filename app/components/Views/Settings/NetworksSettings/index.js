@@ -45,7 +45,7 @@ import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { NON_EVM_NETWORKS } from '../../../../util/networks/customNetworks';
-import { SolScopes } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -447,7 +447,7 @@ class NetworksSettings extends PureComponent {
     }
     // TODO: [SOLANA] - Please revisit this since it's supported on a constant array in mobile and should come from multichain network controller
     const { nickname: solanaMainnetName } = NON_EVM_NETWORKS.find(
-      (network) => network.chainId === SolScopes.Mainnet,
+      (network) => network.chainId === SolScope.Mainnet,
     );
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);

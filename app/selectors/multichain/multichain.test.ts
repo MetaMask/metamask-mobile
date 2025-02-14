@@ -26,7 +26,7 @@ import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { MULTICHAIN_PROVIDER_CONFIGS } from '../../core/Multichain/constants';
 import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
-import { BtcScopes, SolAccountType, SolScopes } from '@metamask/keyring-api';
+import { BtcScope, SolAccountType, SolScope } from '@metamask/keyring-api';
 
 function getEvmState(
   chainId?: Hex,
@@ -104,8 +104,8 @@ function getEvmState(
         },
         MultichainNetworkController: {
           isEvmSelected: true,
-          selectedMultichainNetworkChainId: SolScopes.Mainnet,
-          multichainNetworksMetadata: {},
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
+
           multichainNetworkConfigurationsByChainId: {},
         },
       },
@@ -136,10 +136,10 @@ function getNonEvmState(
 
   const selectedNonEvmChainId =
     selectedAccount.type === SolAccountType.DataAccount
-      ? SolScopes.Mainnet
-      : selectedAccount.scopes[0] === BtcScopes.Testnet
-      ? BtcScopes.Testnet
-      : BtcScopes.Mainnet;
+      ? SolScope.Mainnet
+      : selectedAccount.scopes[0] === BtcScope.Testnet
+      ? BtcScope.Testnet
+      : BtcScope.Mainnet;
 
   const state = {
     ...getEvmState(undefined, 1500, showFiatOnTestnets),
@@ -155,10 +155,10 @@ function getNonEvmState(
         MultichainNetworkController: {
           isEvmSelected: false,
           selectedMultichainNetworkChainId: selectedNonEvmChainId,
-          multichainNetworksMetadata: {},
+
           multichainNetworkConfigurationsByChainId: {
-            [SolScopes.Mainnet]: {
-              chainId: SolScopes.Mainnet,
+            [SolScope.Mainnet]: {
+              chainId: SolScope.Mainnet,
               name: 'Solana Mainnet',
               nativeCurrency: 'SOL',
               isEvm: false,
@@ -167,8 +167,8 @@ function getNonEvmState(
                 defaultIndex: 0,
               },
             },
-            [BtcScopes.Mainnet]: {
-              chainId: BtcScopes.Mainnet,
+            [BtcScope.Mainnet]: {
+              chainId: BtcScope.Mainnet,
               name: 'Bitcoin Mainnet',
               nativeCurrency: 'BTC',
               isEvm: false,
@@ -177,8 +177,8 @@ function getNonEvmState(
                 defaultIndex: 0,
               },
             },
-            [BtcScopes.Testnet]: {
-              chainId: BtcScopes.Testnet,
+            [BtcScope.Testnet]: {
+              chainId: BtcScope.Testnet,
               name: 'Bitcoin Testnet',
               nativeCurrency: 'BTC',
               isEvm: false,

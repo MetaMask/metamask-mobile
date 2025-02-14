@@ -2,6 +2,7 @@ import Engine from '../../core/Engine';
 import { SEPOLIA } from '../../constants/network';
 import { store } from '../../store';
 import { handleNetworkSwitch } from './handleNetworkSwitch';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockEngine = Engine;
 const mockStore = jest.mocked(store);
@@ -35,9 +36,8 @@ function setupGetStateMock() {
           backgroundState: {
             MultichainNetworkController: {
               isEvmSelected: true,
-              selectedMultichainNetworkChainId:
-                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-              multichainNetworksMetadata: {},
+              selectedMultichainNetworkChainId: SolScope.Mainnet,
+
               multichainNetworkConfigurationsByChainId: {},
             },
             NetworkController: {

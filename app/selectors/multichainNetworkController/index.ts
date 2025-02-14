@@ -33,10 +33,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
 export const selectSelectedNonEvmNetworkName = createSelector(
   selectNonEvmNetworkConfigurationsByChainId,
   selectSelectedNonEvmNetworkChainId,
-  (
-    nonEvmNetworkConfigurationsByChainId,
-    selectedMultichainNetworkChainId: string,
-  ) => {
+  (nonEvmNetworkConfigurationsByChainId, selectedMultichainNetworkChainId) => {
     const network =
       nonEvmNetworkConfigurationsByChainId[selectedMultichainNetworkChainId];
     return network?.name;

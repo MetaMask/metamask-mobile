@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -53,9 +54,8 @@ const initialState = {
       },
       MultichainNetworkController: {
         isEvmSelected: true,
-        selectedMultichainNetworkChainId:
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        multichainNetworksMetadata: {},
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+
         multichainNetworkConfigurationsByChainId: {},
       },
       AccountsController: {

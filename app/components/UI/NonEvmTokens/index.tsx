@@ -56,7 +56,7 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const getTokenImage = () => {
     const imageSource =
       MULTICHAIN_TOKEN_IMAGES[
-        nonEvmNetworkChainId as keyof typeof MULTICHAIN_TOKEN_IMAGES
+        nonEvmNetworkChainId as unknown as keyof typeof MULTICHAIN_TOKEN_IMAGES
       ];
     return imageSource ? Image.resolveAssetSource(imageSource).uri : '';
   };

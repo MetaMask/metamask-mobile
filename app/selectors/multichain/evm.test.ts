@@ -1,9 +1,9 @@
-import { NetworkStatus } from '@metamask/network-controller';
 import { RootState } from '../../reducers';
 import {
   selectedAccountNativeTokenCachedBalanceByChainId,
   selectAccountTokensAcrossChains,
 } from './evm';
+import { SolScope } from '@metamask/keyring-api';
 
 describe('Multichain Selectors', () => {
   const mockState: RootState = {
@@ -88,19 +88,13 @@ describe('Multichain Selectors', () => {
         },
         MultichainNetworkController: {
           multichainNetworkConfigurationsByChainId: {
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-              chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            [SolScope.Mainnet]: {
+              chainId: SolScope.Mainnet,
             },
           },
-          multichainNetworksMetadata: {
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-              features: [],
-              status: NetworkStatus.Available,
-            },
-          },
+
           isEvmSelected: true,
-          selectedMultichainNetworkChainId:
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
         },
       },
     },

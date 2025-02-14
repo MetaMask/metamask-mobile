@@ -42,7 +42,7 @@ import {
   SEPOLIA_FAUCET,
 } from '../../constants/urls';
 import { isNonEvmChainId } from '../../core/Multichain/utils';
-import { SolScopes } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 import { store } from '../../store';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../selectors/multichainNetworkController';
 
@@ -174,7 +174,7 @@ export const isMainNet = (chainId) => chainId === '0x1';
 
 export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
-export const isSolanaMainnet = (chainId) => chainId === SolScopes.Mainnet;
+export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
 export const getDecimalChainId = (chainId) => {
   if (

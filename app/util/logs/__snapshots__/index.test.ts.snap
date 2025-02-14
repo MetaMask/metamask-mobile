@@ -61,7 +61,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "MultichainNetworkController": {
         "isEvmSelected": true,
         "multichainNetworkConfigurationsByChainId": {},
-        "multichainNetworksMetadata": {},
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
       },
       "NetworkController": {
