@@ -11,9 +11,7 @@ import { getPermittedAccounts, getPermittedChains } from '../Permissions';
 import { findExistingNetwork, switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
-
-export const EVM_IDENTIFIER = 'eip155';
-
+import { EVM_IDENTIFIER } from '../Multichain/constants';
 
 export interface WCMultiVersionParams {
   protocol: string;
