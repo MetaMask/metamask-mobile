@@ -13,7 +13,6 @@ export enum RowVariant {
   Warning = 'warning',
 }
 
-// TODO: Row is not a valid component on mobile. Check InfoRow.tsx for the mobile implementation against extension. Possible new component needed.
 
 export const row: UIComponentFactory<RowElement> = ({
   element,
