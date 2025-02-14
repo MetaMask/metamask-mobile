@@ -65,7 +65,6 @@ const ActivityView = () => {
       navigation.setOptions(
         getTransactionsNavbarOptions(
           title,
-          colors,
           navigation,
           selectedAddress,
           openAccountSelector,

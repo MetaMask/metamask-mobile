@@ -150,6 +150,9 @@ const styles = StyleSheet.create({
   headerRightButton: {
     marginHorizontal: 16,
   },
+  headerContainer: {
+    paddingVertical: 16,
+  },
   addressCopyWrapper: {
     marginHorizontal: 4,
   },
@@ -169,7 +172,6 @@ const metamask_fox = require('../../../images/branding/fox.png'); // eslint-disa
  */
 export function getTransactionsNavbarOptions(
   title,
-  themeColors,
   _,
   selectedAddress,
   handleRightButtonPress,
@@ -1354,19 +1356,13 @@ export function getNetworkNavbarOptions(
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
-export function getWebviewNavbar(navigation, route, themeColors) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      paddingVertical: 16,
-    },
-  });
-
+export function getWebviewNavbar(navigation, route) {
   const title = route.params?.title ?? '';
   const share = route.params?.dispatch;
   return {
     header: () => (
       <HeaderBase
-        style={innerStyles.headerStyle}
+        style={styles.headerContainer}
         includesTopInset
         startAccessory={
           <View style={styles.headerLeftButton}>
