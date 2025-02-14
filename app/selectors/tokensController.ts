@@ -94,6 +94,7 @@ export const getChainIdsToPoll = createDeepEqualSelector(
       (chainId) =>
         chainId === currentChainId ||
         chainId === ChainId.mainnet ||
+        chainId === ChainId['linea-mainnet'] ||
         popularNetworksChainIds.includes(chainId as Hex),
     );
   },
