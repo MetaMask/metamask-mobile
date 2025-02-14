@@ -6,6 +6,7 @@ import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
 import { PermissionKeys } from './specifications';
 import { normalizeOrigin } from '../WalletConnect/wc-utils';
+import { EVM_IDENTIFIER } from '../Multichain/constants';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -235,7 +236,7 @@ export const getPermittedChains = async (hostname: string): Promise<string[]> =>
   if (Array.isArray(caveat?.value)) {
     const chains = caveat.value
       .filter((item: unknown): item is string => typeof item === 'string')
-      .map((chainId: string) => `eip155:${parseInt(chainId)}`);
+      .map((chainId: string) => `${EVM_IDENTIFIER}:${parseInt(chainId)}`);
 
     return chains;
   }
