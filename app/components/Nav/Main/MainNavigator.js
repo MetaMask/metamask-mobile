@@ -89,6 +89,8 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import Profile from '../../Views/Profile';
+import { isSettingsRedesignEnabled } from '../../Views/Profile/index.constants';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -255,7 +257,19 @@ const NotificationsOptInStack = () => (
 );
 
 const SettingsFlow = () => (
-  <Stack.Navigator initialRouteName={'Settings'}>
+  <Stack.Navigator
+    initialRouteName={
+      isSettingsRedesignEnabled
+        ? Routes.SETTINGS.PROFILE_SETTINGS
+        : Routes.SETTINGS.SETTINGS
+    }
+  >
+    <Stack.Screen
+      name={Routes.SETTINGS.PROFILE_SETTINGS}
+      component={Profile}
+      options={Profile.navigationOptions}
+    />
+
     <Stack.Screen
       name="Settings"
       component={Settings}
@@ -481,7 +495,9 @@ const HomeTabs = () => {
       rootScreenName: Routes.TRANSACTIONS_VIEW,
     },
     settings: {
-      tabBarIconKey: TabBarIconKey.Setting,
+      tabBarIconKey: isSettingsRedesignEnabled
+        ? TabBarIconKey.Profile
+        : TabBarIconKey.Setting,
       callback: () => {
         trackEvent(
           createEventBuilder(
