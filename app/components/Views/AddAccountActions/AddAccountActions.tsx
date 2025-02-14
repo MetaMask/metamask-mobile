@@ -25,7 +25,7 @@ import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWallet
 import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
 import { useSelector } from 'react-redux';
 import {
-  hasCreatedBtcMainnetAccount,
+  selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
 } from '../../../selectors/accountsController';
 import {
@@ -92,7 +92,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const isSolanaSupportEnabled = useSelector(selectIsSolanaSupportEnabled);
 
   const isBtcMainnetAccountAlreadyCreated = useSelector(
-    hasCreatedBtcMainnetAccount,
+    selectHasCreatedBtcMainnetAccount,
   );
   const isBtcTestnetAccountAlreadyCreated = useSelector(
     hasCreatedBtcTestnetAccount,

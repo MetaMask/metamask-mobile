@@ -100,16 +100,27 @@ export const selectCanSignTransactions = createSelector(
     selectedAccount?.methods?.includes(EthMethod.SignTransaction) ?? false,
 );
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+/**
+ * A selector that returns whether the user has already created a Solana mainnet account
+ */
+export const selectHasCreatedSolanaMainnetAccount = createSelector(
+  selectInternalAccounts,
+  (accounts) => accounts.some((account) => isSolanaAccount(account)),
+);
+
 /**
  * A selector that returns whether the user has already created a Bitcoin mainnet account
  */
-export function hasCreatedBtcMainnetAccount(state: RootState): boolean {
-  const accounts = selectInternalAccounts(state);
-  return accounts.some(
-    (account) => isBtcAccount(account) && isBtcMainnetAddress(account.address),
-  );
-}
+export const selectHasCreatedBtcMainnetAccount = createSelector(
+  selectInternalAccounts,
+  (accounts) =>
+    accounts.some(
+      (account) =>
+        isBtcAccount(account) && isBtcMainnetAddress(account.address),
+    ),
+);
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 
 /**
  * A selector that returns whether the user has already created a Bitcoin testnet account
@@ -119,14 +130,6 @@ export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
   return accounts.some(
     (account) => isBtcAccount(account) && isBtcTestnetAddress(account.address),
   );
-}
-
-/**
- * A selector that returns whether the user has already created a Solana mainnet account
- */
-export function hasCreatedSolanaMainnetAccount(state: RootState): boolean {
-  const accounts = selectInternalAccounts(state);
-  return accounts.some((account) => isSolanaAccount(account));
 }
 
 /**

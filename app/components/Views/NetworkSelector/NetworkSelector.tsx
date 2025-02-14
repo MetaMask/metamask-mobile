@@ -105,9 +105,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Logger from '../../../util/Logger';
+import {
+  selectHasCreatedBtcMainnetAccount,
+  selectHasCreatedSolanaMainnetAccount,
+} from '../../../selectors/accountsController';
+import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 
 interface infuraNetwork {
   name: string;
@@ -145,6 +150,13 @@ const NetworkSelector = () => {
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const isSolanaAccountAlreadyCreated = useSelector(
+    selectHasCreatedSolanaMainnetAccount,
+  );
+
+  const isBtcAccountAlreadyCreated = useSelector(
+    selectHasCreatedBtcMainnetAccount,
+  );
   const safeAreaInsets = useSafeAreaInsets();
 
   const networkConfigurations = useSelector(
@@ -770,6 +782,21 @@ const NetworkSelector = () => {
   };
 
   const onNonEvmNetworkChange = async (chainId: CaipChainId) => {
+    if (!isSolanaAccountAlreadyCreated && chainId === SolScope.Mainnet) {
+      navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
+        navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
+      });
+
+      return;
+    }
+
+    if (!isBtcAccountAlreadyCreated && chainId === BtcScope.Mainnet) {
+      navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
+        navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
+      });
+      return;
+    }
+
     await Engine.context.MultichainNetworkController.setActiveNetwork(chainId);
     sheetRef.current?.dismissModal();
   };
