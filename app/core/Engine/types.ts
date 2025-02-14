@@ -417,17 +417,17 @@ export type EngineState = {
   ///: END:ONLY_INCLUDE_IF
 };
 
-/**
- * Controller type
- */
-export type Controller = Controllers[keyof Controllers];
-
 /** Controller names */
 export type ControllerName = keyof Controllers;
 
+/**
+ * Controller type
+ */
+export type Controller = Controllers[ControllerName];
+
 /** Map of controllers by name. */
 export type ControllerByName = {
-  [name in ControllerName]: Controllers[name];
+  [Name in ControllerName]: Controllers[Name];
 };
 
 /**
