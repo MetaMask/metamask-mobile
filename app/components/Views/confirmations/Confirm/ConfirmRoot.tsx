@@ -22,7 +22,12 @@ export const ConfirmRoot = () => {
         isFlatConfirmation ? Routes.CONFIRM_FLAT_PAGE : Routes.CONFIRM_MODAL,
       );
     }
-  }, [isFlatConfirmation, isRedesignedEnabled, navigation]);
+  }, [
+    isFlatConfirmation,
+    isRedesignedEnabled,
+    isStandaloneConfirmation,
+    navigation,
+  ]);
 
   return null;
 };
