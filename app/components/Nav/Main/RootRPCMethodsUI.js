@@ -62,7 +62,7 @@ import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import Confirm from '../../../components/Views/confirmations/Confirm';
+import { ConfirmRoot } from '../../../components/Views/confirmations/Confirm';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
@@ -517,7 +517,7 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
-      <Confirm />
+      <ConfirmRoot />
       <SignatureApproval />
       <WalletConnectApproval />
       <TransactionApproval

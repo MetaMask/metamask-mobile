@@ -105,6 +105,7 @@ import { WC2Manager } from '../../../../../core/WalletConnect/WalletConnectV2';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
+import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -923,6 +924,9 @@ class ApproveTransactionReview extends PureComponent {
                       transactionId={transactionId}
                       style={styles.blockaidWarning}
                       onContactUsClicked={this.onContactUsClicked}
+                    />
+                    <SmartTransactionsMigrationBanner
+                      style={styles.smartTransactionsMigrationBanner}
                     />
                     <Text variant={TextVariant.HeadingMD} style={styles.title}>
                       {this.getTrustTitle(
