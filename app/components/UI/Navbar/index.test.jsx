@@ -7,6 +7,7 @@ import {
   getTransactionsNavbarOptions,
   getWebviewNavbar,
 } from '.';
+import { mockTheme } from '../../../util/theme';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -85,6 +86,7 @@ describe('getTransactionsNavbarOptions', () => {
     const mockHandleRightButtonPress = jest.fn();
     const options = getTransactionsNavbarOptions(
       'transactions_view.title',
+      mockTheme.colors,
       null,
       '0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092',
       mockHandleRightButtonPress,
@@ -117,7 +119,7 @@ describe('getWebviewNavbar', () => {
       params: { title: 'Webview Title', dispatch: mockDispatch },
     };
 
-    const options = getWebviewNavbar(mockNavigation, route);
+    const options = getWebviewNavbar(mockNavigation, route, mockTheme.colors);
 
     const { getByText } = renderWithProvider(
       <TestNavigator options={options} />,

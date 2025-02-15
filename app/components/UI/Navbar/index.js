@@ -172,6 +172,7 @@ const metamask_fox = require('../../../images/branding/fox.png'); // eslint-disa
  */
 export function getTransactionsNavbarOptions(
   title,
+  themeColors,
   _,
   selectedAddress,
   handleRightButtonPress,
