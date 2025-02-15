@@ -1355,7 +1355,7 @@ export function getNetworkNavbarOptions(
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
-export function getWebviewNavbar(navigation, route) {
+export function getWebviewNavbar(navigation, route, themeColors) {
   const title = route.params?.title ?? '';
   const share = route.params?.dispatch;
   return {

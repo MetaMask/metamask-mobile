@@ -236,6 +236,7 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
           "alignItems": "center",
           "justifyContent": "center",
           "marginBottom": 12,
+          "marginLeft": 0,
           "marginRight": 16,
           "marginTop": 12,
         }

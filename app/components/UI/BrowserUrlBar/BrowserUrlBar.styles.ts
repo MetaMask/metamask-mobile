@@ -59,6 +59,7 @@ const styleSheet = ({
       marginTop: 12,
       marginRight: 16,
       marginBottom: 12,
+      marginLeft: 0,
       alignItems: 'center',
       justifyContent: 'center',
     },

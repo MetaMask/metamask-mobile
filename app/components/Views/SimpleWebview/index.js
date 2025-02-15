@@ -22,7 +22,8 @@ export default class SimpleWebview extends PureComponent {
 
   updateNavBar = () => {
     const { navigation, route } = this.props;
-    navigation.setOptions(getWebviewNavbar(navigation, route));
+    const colors = this.context.colors || mockTheme.colors;
+    navigation.setOptions(getWebviewNavbar(navigation, route, colors));
   };
 
   componentDidMount = () => {
