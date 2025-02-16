@@ -2244,7 +2244,6 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
-      AssetsContractController,
       SnapInterfaceController,
       NftController,
       TokenListController,
