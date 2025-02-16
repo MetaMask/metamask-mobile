@@ -161,33 +161,3 @@ export const mergeValue = <Type extends State>(
   }
   return { ...state, [name]: value };
 };
-
-export enum IconColor {
-  iconDefault = 'icon-default',
-  iconAlternative = 'icon-alternative',
-  iconAlternativeSoft = 'icon-alternative-soft',
-  iconMuted = 'icon-muted',
-  overlayInverse = 'overlay-inverse',
-  primaryDefault = 'primary-default',
-  primaryInverse = 'primary-inverse',
-  errorDefault = 'error-default',
-  errorInverse = 'error-inverse',
-  successDefault = 'success-default',
-  successInverse = 'success-inverse',
-  warningDefault = 'warning-default',
-  warningInverse = 'warning-inverse',
-  infoDefault = 'info-default',
-  infoInverse = 'info-inverse',
-  inherit = 'inherit',
-  goerli = 'goerli',
-  sepolia = 'sepolia',
-  lineaGoerli = 'linea-goerli',
-  lineaGoerliInverse = 'linea-goerli-inverse',
-  lineaSepolia = 'linea-sepolia',
-  lineaSepoliaInverse = 'linea-sepolia-inverse',
-  lineaMainnet = 'linea-mainnet',
-  lineaMainnetInverse = 'linea-mainnet-inverse',
-  goerliInverse = 'goerli-inverse',
-  sepoliaInverse = 'sepolia-inverse',
-  transparent = 'transparent',
-}
