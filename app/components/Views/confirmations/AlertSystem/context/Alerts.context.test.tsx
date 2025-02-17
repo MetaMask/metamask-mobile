@@ -118,3 +118,11 @@ describe('AlertsContext', () => {
       expect(result.current.unconfirmedFieldDangerAlerts).toEqual([]);
     });
 });
+
+describe('AlertsContextProvider', () => {
+  it('should throw error is not wrapped in AlertsContextProvider', () => {
+    expect(() => {
+      useAlerts();
+    }).toThrow();
+  });
+});
