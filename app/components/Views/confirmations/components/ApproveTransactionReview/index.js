@@ -347,6 +347,7 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
+      // We need to extract transaction.transaction here to retrieve up-to-date nonce
       transaction: { origin, to, data, from, transaction },
       setTransactionObject,
       tokenList,
@@ -1074,6 +1075,7 @@ class ApproveTransactionReview extends PureComponent {
                           <TouchableOpacity
                             style={styles.actionTouchable}
                             onPress={this.toggleViewDetails}
+                            testID="view-transaction-details"
                           >
                             <View style={styles.iconContainer}>
                               <Text reset style={styles.viewDetailsText}>

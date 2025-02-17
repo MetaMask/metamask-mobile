@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Approve should render transaction approval 1`] = `
+exports[`Approve renders transaction approval 1`] = `
 <View
   style={
     {
@@ -722,6 +722,7 @@ exports[`Approve should render transaction approval 1`] = `
                                                               "flexDirection": "column",
                                                             }
                                                           }
+                                                          testID="view-transaction-details"
                                                         >
                                                           <View
                                                             style={
