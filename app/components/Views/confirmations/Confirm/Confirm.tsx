@@ -1,10 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { TransactionType } from '@metamask/transaction-controller';
 
 import { useStyles } from '../../../../component-library/hooks';
-import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
 import BottomModal from '../components/UI/BottomModal';
 import Footer from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
@@ -13,14 +10,8 @@ import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBann
 import Title from '../components/Confirm/Title';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
-
+import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import styleSheet from './Confirm.styles';
-
-// todo: if possible derive way to dynamically check if confirmation should be rendered flat
-// todo: unit test coverage to be added once we have flat confirmations in place
-const FLAT_CONFIRMATIONS: TransactionType[] = [
-  // To be filled with flat confirmations
-];
 
 const ConfirmWrapped = ({
   styles,
@@ -35,7 +26,6 @@ const ConfirmWrapped = ({
         contentContainerStyle={styles.scrollableSection}
       >
         <SignatureBlockaidBanner />
-        <AccountNetworkInfo />
         <Info />
       </ScrollView>
     </View>
@@ -43,13 +33,10 @@ const ConfirmWrapped = ({
   </QRHardwareContextProvider>
 );
 
-const Confirm = () => {
+export const Confirm = () => {
   const { approvalRequest } = useApprovalRequest();
+  const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
-
-  const isFlatConfirmation = FLAT_CONFIRMATIONS.includes(
-    approvalRequest?.type as TransactionType,
-  );
 
   const { styles } = useStyles(styleSheet, { isFlatConfirmation });
 
@@ -59,19 +46,20 @@ const Confirm = () => {
 
   if (isFlatConfirmation) {
     return (
-      <SafeAreaView style={styles.flatContainer}>
+      <View style={styles.flatContainer} testID="flat-confirmation-container">
         <ConfirmWrapped styles={styles} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <BottomModal canCloseOnBackdropClick={false}>
+    <BottomModal
+      canCloseOnBackdropClick={false}
+      testID="modal-confirmation-container"
+    >
       <View style={styles.modalContainer} testID={approvalRequest?.type}>
         <ConfirmWrapped styles={styles} />
       </View>
     </BottomModal>
   );
 };
-
-export default Confirm;
