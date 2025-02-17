@@ -5,7 +5,7 @@ import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
 import ReadOnlyNetworkStore from '../util/test/network-store';
-import { isE2E } from '../util/test/utils';
+import { isTest } from '../util/test/utils';
 import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 
 import thunk from 'redux-thunk';
@@ -30,7 +30,7 @@ const createStoreAndPersistor = async () => {
     op: TraceOperation.StoreInit,
   });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
-  const initialState = isE2E
+  const initialState = isTest
     ? await ReadOnlyNetworkStore.getState()
     : undefined;
 
