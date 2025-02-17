@@ -4,12 +4,31 @@ IOS_WORKFLOW_ID="build_ios_qa"
 OWNER="MetaMask"
 REPO="metamask-mobile"
 
-TAG=$(curl -s "https://api.github.com/repos/$OWNER/$REPO/tags" | jq -r '.[0].name')
-echo "latest tag is $TAG"
+# Get tags with error checking
+TAGS_RESPONSE=$(curl -s "https://api.github.com/repos/$OWNER/$REPO/tags")
+if [ -z "$TAGS_RESPONSE" ] || [ "$TAGS_RESPONSE" = "null" ]; then
+    echo "Error: Failed to fetch tags"
+    echo "Response: $TAGS_RESPONSE"
+    exit 1
+fi
 
-# Fetch the commit hash for the latest tag
-COMMIT_HASH=$(curl -s "https://api.github.com/repos/$OWNER/$REPO/tags" | jq -r '.[0].commit.sha')
-echo "latest commit hash is $COMMIT_HASH"
+# Parse tag with error checking
+TAG=$(echo "$TAGS_RESPONSE" | jq -r '.[0].name')
+if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+    echo "Error: Failed to parse tag"
+    echo "Tags response: $TAGS_RESPONSE"
+    exit 1
+fi
+echo "Latest tag is $TAG"
+
+# Fetch the commit hash with error checking
+COMMIT_HASH=$(echo "$TAGS_RESPONSE" | jq -r '.[0].commit.sha')
+if [ -z "$COMMIT_HASH" ] || [ "$COMMIT_HASH" = "null" ]; then
+    echo "Error: Failed to parse commit hash"
+    echo "Tags response: $TAGS_RESPONSE"
+    exit 1
+fi
+echo "Latest commit hash is $COMMIT_HASH"
 
 # Check if the commit hash and tag are defined
 if [[ -z "$COMMIT_HASH" || -z "$TAG" ]]; then
