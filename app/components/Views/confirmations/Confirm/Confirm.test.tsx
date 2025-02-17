@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
   securityAlertResponse,
+  stakingDepositConfirmationState,
   typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
@@ -82,6 +83,13 @@ describe('Confirm', () => {
     expect(getByText('Hi, Alice!')).toBeDefined();
     expect(getAllByRole('button')).toHaveLength(2);
     expect(queryByText('This is a deceptive request')).toBeNull();
+  });
+
+  it('renders correct information for staking deposit', async () => {
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(getByText('0.0001 ETH')).toBeDefined();
   });
 
   it('renders blockaid banner if confirmation has blockaid error response', async () => {
