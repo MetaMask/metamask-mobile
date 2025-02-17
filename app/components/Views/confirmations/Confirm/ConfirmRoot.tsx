@@ -15,7 +15,9 @@ export const ConfirmRoot = () => {
   useEffect(() => {
     if (isRedesignedEnabled) {
       if (isStandaloneConfirmation) {
-        // TODO: Decide if we want to navigate to a standalone confirmation screen here or do it in wherever it's used
+        navigation.navigate('StakeScreens', {
+          screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+        });
         return;
       }
       navigation.navigate(
