@@ -1,11 +1,9 @@
 import { StyleSheet } from 'react-native';
-
-import Device from '../../../../util/device';
 import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: {
-  theme: Theme;
   vars: { isFlatConfirmation: boolean };
+  theme: Theme;
 }) => {
   const {
     theme,
@@ -13,6 +11,9 @@ const styleSheet = (params: {
   } = params;
 
   return StyleSheet.create({
+    bottomSheetDialogSheet: {
+      backgroundColor: theme.colors.background.alternative,
+    },
     flatContainer: {
       position: 'absolute',
       top: 0,
@@ -24,25 +25,9 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
       paddingHorizontal: 16,
     },
-    modalContainer: {
-      backgroundColor: theme.colors.background.alternative,
+    scrollView: {
       paddingHorizontal: 16,
-      paddingVertical: 24,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      paddingBottom: Device.isIphoneX() ? 20 : 0,
-      maxHeight: '90%',
-    },
-    scrollableSection: {
-      padding: 4,
-    },
-    scrollable: {
-      minHeight: '100%',
-    },
-    scrollWrapper: {
-      minHeight: isFlatConfirmation ? '100%' : '75%',
-      maxHeight: isFlatConfirmation ? '100%' : '75%',
-      margin: 0,
+      height: isFlatConfirmation ? '100%' : undefined,
     },
   });
 };

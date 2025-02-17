@@ -6,7 +6,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareContext';
-import Footer from './index';
+import { Footer } from './index';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
