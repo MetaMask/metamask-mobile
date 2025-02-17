@@ -14,21 +14,23 @@ import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertRespons
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
+import { useScrollContext } from '../../../context/ScrollContext';
 
 const Footer = () => {
   const { onConfirm, onReject } = useConfirmActions();
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
-
-  const { styles } = useStyles(styleSheet, {});
+  const { isScrollToBottomNeeded } = useScrollContext();
+  const confirmDisabled = needsCameraPermission || isScrollToBottomNeeded;
+  const { styles } = useStyles(styleSheet, { confirmDisabled });
 
   return (
     <View style={styles.buttonsContainer}>
       <Button
         onPress={onReject}
         label={strings('confirm.reject')}
-        style={styles.footerButton}
+        style={styles.rejectButton}
         size={ButtonSize.Lg}
         testID={ConfirmationFooterSelectorIDs.CANCEL_BUTTON}
         variant={ButtonVariants.Secondary}
@@ -42,13 +44,13 @@ const Footer = () => {
             ? strings('confirm.qr_get_sign')
             : strings('confirm.confirm')
         }
-        style={styles.footerButton}
+        style={styles.confirmButton}
         size={ButtonSize.Lg}
         testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
         variant={ButtonVariants.Primary}
         width={ButtonWidthTypes.Full}
         isDanger={securityAlertResponse?.result_type === ResultType.Malicious}
-        disabled={needsCameraPermission}
+        disabled={confirmDisabled}
       />
     </View>
   );
