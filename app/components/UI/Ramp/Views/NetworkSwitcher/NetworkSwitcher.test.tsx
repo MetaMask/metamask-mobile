@@ -118,6 +118,9 @@ jest.mock('../../../../../core/Engine', () => ({
         },
       }),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
@@ -281,8 +284,8 @@ describe('NetworkSwitcher View', () => {
     const lineaNetworkText = screen.getByText('Linea Main Network');
     fireEvent.press(lineaNetworkText);
     expect(
-      (Engine.context.NetworkController.setActiveNetwork as jest.Mock).mock
-        .calls,
+      (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
+        .mock.calls,
     ).toMatchInlineSnapshot(`
       [
         [
@@ -296,8 +299,8 @@ describe('NetworkSwitcher View', () => {
     const polygonNetworkTest = screen.getByText('Polygon Mainnet');
     fireEvent.press(polygonNetworkTest);
     expect(
-      (Engine.context.NetworkController.setActiveNetwork as jest.Mock).mock
-        .calls,
+      (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
+        .mock.calls,
     ).toMatchInlineSnapshot(`
       [
         [

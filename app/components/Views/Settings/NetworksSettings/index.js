@@ -203,7 +203,7 @@ class NetworksSettings extends PureComponent {
     ) {
       this.switchToMainnet();
     }
-    const { NetworkController } = Engine.context;
+    const { NetworkController, MultichainNetworkController } = Engine.context;
 
     const { networkConfigurations } = this.props;
     const entry = Object.entries(networkConfigurations).find(
@@ -226,7 +226,7 @@ class NetworksSettings extends PureComponent {
 
     if (this.networkToRemove === selectedNetworkClientId) {
       // if we delete selected network, switch to mainnet before removing the selected network
-      NetworkController.setActiveNetwork('mainnet');
+      MultichainNetworkController.setActiveNetwork('mainnet');
     }
 
     NetworkController.removeNetwork(chainId);

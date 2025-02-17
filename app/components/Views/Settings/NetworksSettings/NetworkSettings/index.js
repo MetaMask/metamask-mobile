@@ -1565,7 +1565,7 @@ export class NetworkSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController } = Engine.context;
+    const { MultichainNetworkController } = Engine.context;
     const { networkConfigurations } = this.props;
 
     const { networkClientId } =
@@ -1573,7 +1573,7 @@ export class NetworkSettings extends PureComponent {
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    NetworkController.setActiveNetwork(networkClientId);
+    MultichainNetworkController.setActiveNetwork(networkClientId);
     setTimeout(async () => {
       await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);

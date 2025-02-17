@@ -116,7 +116,7 @@ const NetworkConnectMultiSelector = ({
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
           // Switch to the network using networkClientId
-          await Engine.context.NetworkController.setActiveNetwork(
+          await Engine.context.MultichainNetworkController.setActiveNetwork(
             networkClientId,
           );
         }
