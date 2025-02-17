@@ -28,6 +28,7 @@ export const ConfirmRoot = () => {
     isRedesignedEnabled,
     isStandaloneConfirmation,
     navigation,
+    navigationOpts,
   ]);
 
   return null;

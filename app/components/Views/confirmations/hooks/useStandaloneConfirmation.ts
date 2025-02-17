@@ -1,5 +1,4 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import { NavigationProp } from '@react-navigation/native';
 
 import Routes from '../../../../constants/navigation/Routes';
 import { useTransactionMetadataRequest } from '../hooks/useTransactionMetadataRequest';
