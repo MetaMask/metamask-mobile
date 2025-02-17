@@ -34,7 +34,7 @@ describe('Confirm', () => {
     expect(mockNavigate).toHaveBeenLastCalledWith(Routes.CONFIRM_MODAL);
   });
 
-  it('does not navigate if standalone confirmation is enabled', async () => {
+  it('navigates to standalone confirmation', async () => {
     renderWithProvider(<ConfirmRoot />, {
       state: stakingDepositConfirmationState,
     });
