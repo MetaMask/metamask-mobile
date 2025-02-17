@@ -24,7 +24,7 @@ module.exports = function (baseConfig) {
   return mergeConfig(defaultConfig, {
     resolver: {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
-      sourceExts: [...sourceExts, ...mockExts, 'svg', 'cjs', 'mjs'],
+      sourceExts: [...mockExts, ...sourceExts, 'svg', 'cjs', 'mjs'],
       resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
     },
     transformer: {
