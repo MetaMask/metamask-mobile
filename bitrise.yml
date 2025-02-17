@@ -756,12 +756,12 @@ workflows:
     #  - _upload_apk_to_browserstack
      - _upload_ipa_to_browserstack
     steps:
-    # - script@1:
-    #     title: Download Production QA APK
-    #     inputs:
-    #       - content: |
-    #           #!/usr/bin/env bash
-    #           ./scripts/download-android-qa-app.sh
+    - script@1:
+        title: Download Production QA APK
+        inputs:
+          - content: |
+              #!/usr/bin/env bash
+              ./scripts/download-android-qa-app.sh
     - script@1:
         title: Download Production QA IPA
         inputs:
@@ -783,12 +783,12 @@ workflows:
             is_always_run: false
             is_skippable: true
             inputs:
-              - deploy_path: "$BITRISE_SOURCE_DIR/MetaMask-${RELEASE_VERSION_NAME}-${RELEASE_VERSION_NUMBER}.apk"
+              - deploy_path: "$BITRISE_SOURCE_DIR/MetaMask-$RELEASE_VERSION_NAME-$RELEASE_VERSION_NUMBER.apk"
     - deploy-to-bitrise-io@2.2.3:
             is_always_run: false
             is_skippable: true
             inputs:
-              - deploy_path: "$BITRISE_SOURCE_DIR/MetaMask-${RELEASE_VERSION_NAME}-${RELEASE_VERSION_NUMBER}.ipa"
+              - deploy_path: "$BITRISE_SOURCE_DIR/MetaMask-$RELEASE_VERSION_NAME-$RELEASE_VERSION_NUMBER.ipa"
   android_e2e_build:
     before_run:
       - code_setup

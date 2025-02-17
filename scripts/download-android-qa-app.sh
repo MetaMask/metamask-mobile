@@ -5,13 +5,38 @@ ANDROID_WORKFLOW_ID="build_android_qa"
 OWNER="MetaMask"
 REPO="metamask-mobile"
 
-TAG=$(curl -s "https://api.github.com/repos/$OWNER/$REPO/tags" | jq -r '.[0].name')
-echo "latest tag is $TAG"
+# Check for GitHub token
+if [ -z "$GITHUB_ACCESS_TOKEN" ]; then
+    echo "Error: GITHUB_TOKEN is not set"
+    exit 1
+fi
 
-# Fetch the commit hash for the latest tag
-COMMIT_HASH=$(curl -s "https://api.github.com/repos/$OWNER/$REPO/tags" | jq -r '.[0].commit.sha')
-echo "latest commit hash is $COMMIT_HASH"
+# Get tags with authentication
+TAGS_RESPONSE=$(curl -s -H "Authorization: token $GITHUB_ACCESS_TOKEN" \
+    "https://api.github.com/repos/$OWNER/$REPO/tags")
+if [ -z "$TAGS_RESPONSE" ] || [ "$TAGS_RESPONSE" = "null" ]; then
+    echo "Error: Failed to fetch tags"
+    echo "Response: $TAGS_RESPONSE"
+    exit 1
+fi
 
+# Parse tag with error checking
+TAG=$(echo "$TAGS_RESPONSE" | jq -r '.[0].name')
+if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+    echo "Error: Failed to parse tag"
+    echo "Tags response: $TAGS_RESPONSE"
+    exit 1
+fi
+echo "Latest tag is $TAG"
+
+# Fetch the commit hash with error checking
+COMMIT_HASH=$(echo "$TAGS_RESPONSE" | jq -r '.[0].commit.sha')
+if [ -z "$COMMIT_HASH" ] || [ "$COMMIT_HASH" = "null" ]; then
+    echo "Error: Failed to parse commit hash"
+    echo "Tags response: $TAGS_RESPONSE"
+    exit 1
+fi
+echo "Latest commit hash is $COMMIT_HASH"
 
 # Check if the commit hash and tag are defined
 if [[ -z "$COMMIT_HASH" || -z "$TAG" ]]; then
@@ -98,6 +123,9 @@ if [[ -n "$APK_ARTIFACT" ]]; then
 
     export RELEASE_VERSION_NAME="$VERSION_NAME"
     export RELEASE_VERSION_NUMBER="$VERSION_CODE"
+    envman add --key RELEASE_VERSION_NUMBER --value "$VERSION_CODE"
+    envman add --key RELEASE_VERSION_NAME --value "$VERSION_NAME"
+
 
     if [[ -n "$DOWNLOAD_URL" && "$DOWNLOAD_URL" != "null" ]]; then
         echo "Downloading Android APK..."
