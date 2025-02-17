@@ -42,6 +42,10 @@ import Banner, {
   BannerVariant,
 } from '../../../component-library/components/Banners/Banner';
 import CLText from '../../../component-library/components/Texts/Text/Text';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -165,6 +169,8 @@ class AddCustomToken extends PureComponent {
     metrics: PropTypes.object,
   };
 
+  static contextType = ToastContext;
+
   getAnalyticsParams = () => {
     try {
       const { chainId } = this.props;
@@ -207,11 +213,19 @@ class AddCustomToken extends PureComponent {
         InteractionManager.runAfterInteractions(() => {
           this.props.navigation.goBack();
           this.props.navigation.goBack();
-          NotificationManager.showSimpleNotification({
-            status: `import_success`,
-            duration: 5000,
-            title: strings('wallet.token_toast.token_imported_title'),
-            description: strings('wallet.token_toast.token_imported_desc_1'),
+          this.context.toastRef?.current?.showToast({
+            variant: ToastVariants.Plain,
+            labelOptions: [
+              {
+                label: strings('wallet.token_toast.token_imported_title'),
+                isBold: true,
+              },
+              {
+                label: strings('wallet.token_toast.token_imported_desc_1'),
+                isBold: false,
+              },
+            ],
+            hasNoTimeout: false,
           });
         });
       },
