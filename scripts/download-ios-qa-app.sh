@@ -5,7 +5,7 @@ OWNER="MetaMask"
 REPO="metamask-mobile"
 
 # Check for GitHub token
-if [ -z "$GITHUB_TOKEN" ]; then
+if [ -z "$GITHUB_ACCESS_TOKEN" ]; then
     echo "Error: GITHUB_TOKEN is not set"
     exit 1
 fi
