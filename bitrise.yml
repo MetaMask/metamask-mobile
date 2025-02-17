@@ -747,19 +747,24 @@ workflows:
       - android_e2e_test
   upgrade_test:
     envs:
-    - VERSION_NAME: "7.40.0"
-    - VERSION_CODE: "1542"
-    - WORKFLOW_NAME: "build_android_qa"
+    - ANDROID_WORKFLOW_ID: "build_android_qa"
+    - IOS_WORKFLOW_ID: "build_ios_qa"
     before_run:
       - setup
       - prep_environment
     steps:
     - script@1:
-        title: Download Previous APK
+        title: Download Production QA APK
         inputs:
           - content: |
               #!/usr/bin/env bash
               ./scripts/download-apk-for-e2e.sh
+    - script@1:
+        title: Download Production QA IPA
+        inputs:
+          - content: |
+              #!/usr/bin/env bash
+              ./scripts/download-ios-qa-app.sh
     - script@1:
         title: Use Downloaded APK
         inputs:
@@ -767,13 +772,16 @@ workflows:
               #!/bin/bash
               set -ex
               
-              echo "Downloaded APK path: $UPGRADE_APK_PATH"
-              ls -la $UPGRADE_APK_PATH
-    - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$UPGRADE_APK_PATH
+              echo "Downloaded APK path: $APK_PATH"
+              echo "Current working directory: $PWD"
+              echo "Bitrise source directory: $BITRISE_SOURCE_DIR"
+              ls -la $APK_PATH
+              ls -la $BITRISE_SOURCE_DIR
+    # - deploy-to-bitrise-io@2.2.3:
+    #       is_always_run: false
+    #       is_skippable: true
+    #       inputs:
+    #         - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$UPGRADE_APK_PATH
     # after_run:
     #   - ''
   android_e2e_build:
@@ -1671,14 +1679,45 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
+
+                # If BITRISE_GIT_BRANCH is not set, use a default or derive it
+                if [ -z "$BITRISE_GIT_BRANCH" ]; then
+                    # You can derive it from the downloaded IPA name or set a default
+                    BITRISE_GIT_BRANCH="qa-release"
+                    VERSION_NAME=$RELEASE_VERSION_NAME
+                    VERSION_NUMBER=$RELEASE_VERSION_NUMBER
+                fi
+
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                IPA_PATH=ios/build/output/MetaMask-QA.ipa
-                IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_IOS_APP_URL
-                mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+
+                # Use the downloaded IPA path if it exists, otherwise fall back to default path
+                if [ -n "$IPA_PATH" ] && [ -f "$IPA_PATH" ]; then
+                    echo "Using downloaded IPA from: $IPA_PATH"
+                    UPLOAD_IPA_PATH="$IPA_PATH"
+                else
+                    echo "Using default IPA path"
+                    UPLOAD_IPA_PATH="ios/build/output/$CUSTOM_ID.ipa"
+                fi
+
+                # Upload to app-automate
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                    -F "file=@$UPLOAD_IPA_PATH" \
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}' \
+                    | jq -j '.app_url' \
+                    | envman add --key BROWSERSTACK_IOS_APP_URL
+
+                # Upload to app-live
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X POST "https://api-cloud.browserstack.com/app-live/upload" \
+                    -F "file=@$UPLOAD_IPA_PATH" \
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}'
+
+                # Get recent apps
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X GET https://api-cloud.browserstack.com/app-automate/recent_apps \
+                    | jq > browserstack_uploaded_apps.json
       - share-pipeline-variable@1:
           title: Persist BROWSERSTACK_IOS_APP_URL across all stages
           inputs:
@@ -1906,6 +1945,5 @@ trigger_map:
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
-    pipeline: release_e2e_pipeline
-  - push_branch: detox/address-regression-tests-slowdown
-    pipeline: multichain_permissions_e2e_pipeline  
+    pipeline: create_qa_builds_pipeline
+ 
