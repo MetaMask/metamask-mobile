@@ -109,7 +109,7 @@ if [[ -n "$APK_ARTIFACT" ]]; then
         
         echo "Android APK downloaded: $APK_FILENAME"
         envman add --key APK_FILE --value "$APK_FILENAME"
-
+        envman add --key APK_PATH --value "$PWD/$APK_FILENAME"
         # Set the APK path as environment variable
         export APK_PATH="$PWD/$APK_FILENAME"
         

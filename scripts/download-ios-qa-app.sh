@@ -108,6 +108,9 @@ if [[ -n "$IPA_ARTIFACT" ]]; then
         # Download with specific filename
         wget -O "$IPA_FILENAME" "$DOWNLOAD_URL"
         
+        envman add --key IPA_FILE --value "$IPA_FILENAME"
+        envman add --key IPA_PATH --value "$PWD/$IPA_FILENAME"
+
         # Set the IPA path as environment variable
         export IPA_PATH="$PWD/$IPA_FILENAME"
         

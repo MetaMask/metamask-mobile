@@ -752,6 +752,9 @@ workflows:
     before_run:
       - setup
       - prep_environment
+    after_run:
+    #  - _upload_apk_to_browserstack
+     - _upload_ipa_to_browserstack
     steps:
     - script@1:
         title: Download Production QA APK
@@ -782,8 +785,11 @@ workflows:
             is_skippable: true
             inputs:
               - deploy_path: $BITRISE_SOURCE_DIR/$APK_FILE
-    #   after_run:
-    # #   - ''
+    - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: $BITRISE_SOURCE_DIR/$IPA_FILE
   android_e2e_build:
     before_run:
       - code_setup
