@@ -88,7 +88,7 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await Assertions.checkIfTextIsDisplayed(paymentMethod);
     await Assertions.checkIfTextIsNotDisplayed('🇺🇸');
     await Assertions.checkIfTextIsDisplayed('🇫🇷');
-    await BuildQuoteView.enterFiatAmount('100');
+    await BuildQuoteView.enterAmount('100');
     await BuildQuoteView.tapGetQuotesButton();
     await Assertions.checkIfVisible(QuotesView.quotes);
     await QuotesView.closeQuotesSection();
