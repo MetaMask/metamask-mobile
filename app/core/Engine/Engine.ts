@@ -150,6 +150,8 @@ import {
   AccountsControllerSetAccountNameAction,
   AccountsControllerListMultichainAccountsAction,
   AccountsControllerAccountRemovedEvent,
+  AccountsControllerAccountAssetListUpdatedEvent,
+
   ///: END:ONLY_INCLUDE_IF
   AccountsControllerGetAccountAction,
   AccountsControllerGetSelectedAccountAction,
@@ -243,6 +245,10 @@ import {
   SnapKeyringAccountBalancesUpdatedEvent,
   SnapKeyringAccountTransactionsUpdatedEvent,
 } from '../SnapKeyring/constants';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
+///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -370,6 +376,18 @@ export class Engine {
 
     networkController.initializeProvider();
 
+    const multichainNetworkController = new MultichainNetworkController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'MultichainNetworkController',
+        allowedActions: [
+          'NetworkController:setActiveNetwork',
+          'NetworkController:getState',
+        ],
+        allowedEvents: ['AccountsController:selectedAccountChange'],
+      }),
+      state: initialState.MultichainNetworkController,
+    });
+
     const assetsContractController = new AssetsContractController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'AssetsContractController',
@@ -398,6 +416,7 @@ export class Engine {
           SnapKeyringAccountAssetListUpdatedEvent,
           SnapKeyringAccountBalancesUpdatedEvent,
           SnapKeyringAccountTransactionsUpdatedEvent,
+          'MultichainNetworkController:networkDidChange',
         ],
         allowedActions: [
           'KeyringController:getAccounts',
@@ -411,12 +430,31 @@ export class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+    const multichainAssetsControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'MultichainAssetsController',
+        allowedEvents: [
+          AccountsControllerAccountAddedEvent,
+          AccountsControllerAccountRemovedEvent,
+          AccountsControllerAccountAssetListUpdatedEvent,
+        ],
+        allowedActions: [AccountsControllerListMultichainAccountsAction],
+      });
+
+    const multichainAssetsController = createMultichainAssetsController({
+      messenger: multichainAssetsControllerMessenger,
+      initialState: initialState.MultichainAssetsController,
+    });
+
     const multichainBalancesControllerMessenger: MultichainBalancesControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'MultichainBalancesController',
         allowedEvents: [
           AccountsControllerAccountAddedEvent,
           AccountsControllerAccountRemovedEvent,
+          'AccountsController:accountBalancesUpdated',
+          'MultichainAssetsController:stateChange',
         ],
         allowedActions: [
           AccountsControllerListMultichainAccountsAction,
@@ -1581,7 +1619,9 @@ export class Engine {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
       RatesController: multichainRatesController,
+      MultichainAssetsController: multichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
+      MultichainNetworkController: multichainNetworkController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2203,7 +2243,9 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController,
       RatesController,
+      MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
+      MultichainNetworkController,
     } = instance.datamodel.state;
 
     return {
@@ -2242,7 +2284,9 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController,
       RatesController,
+      MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
+      MultichainNetworkController,
     };
   },
 
