@@ -68,6 +68,12 @@ jest.mock('../../store', () => ({
               type: 'infura' as RpcEndpointType,
             }),
           },
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            multichainNetworkConfigurationsByChainId: {},
+          },
         },
       },
     })),

@@ -20,6 +20,9 @@ jest.mock('../Engine', () => ({
       setActiveNetwork: jest.fn(),
       getNetworkClientById: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
@@ -52,6 +55,12 @@ jest.mock('../../store', () => ({
                 ...existingNetworkConfiguration,
               },
             ),
+          },
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            multichainNetworkConfigurationsByChainId: {},
           },
         },
       },
@@ -160,7 +169,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       .spyOn(Engine.context.NetworkController, 'getNetworkClientById')
       .mockReturnValue({ configuration: { chainId: '0x1' } });
     const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.NetworkController,
+      Engine.context.MultichainNetworkController,
       'setActiveNetwork',
     );
     await wallet_switchEthereumChain({
@@ -202,7 +211,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         .mockReturnValue({ value: ['0x64'] });
 
       const spyOnSetActiveNetwork = jest.spyOn(
-        Engine.context.NetworkController,
+        Engine.context.MultichainNetworkController,
         'setActiveNetwork',
       );
       await wallet_switchEthereumChain({
@@ -234,7 +243,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         .spyOn(Engine.context.NetworkController, 'getNetworkClientById')
         .mockReturnValue({ configuration: { chainId: '0x1' } });
       const spyOnSetActiveNetwork = jest.spyOn(
-        Engine.context.NetworkController,
+        Engine.context.MultichainNetworkController,
         'setActiveNetwork',
       );
       jest

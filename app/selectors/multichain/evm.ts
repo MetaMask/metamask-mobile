@@ -7,7 +7,7 @@ import {
 } from '../accountsController';
 import { selectAllTokens } from '../tokensController';
 import { selectAccountsByChainId } from '../accountTrackerController';
-import { selectNetworkConfigurations } from '../networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
 import { hexToBN, toHex } from '@metamask/controller-utils';
@@ -61,7 +61,7 @@ export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
  */
 export const selectNativeTokensAcrossChains = createSelector(
   [
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
     selectedAccountNativeTokenCachedBalanceByChainId,
     selectCurrencyRates,
     selectCurrentCurrency,
@@ -176,7 +176,7 @@ export const selectAccountTokensAcrossChains = createSelector(
   [
     selectSelectedInternalAccount,
     selectAllTokens,
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
     selectNativeTokensAcrossChains,
   ],
   (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {

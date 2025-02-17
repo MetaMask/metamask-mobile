@@ -10,8 +10,8 @@ import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import {
-  selectNetworkImageSource,
-  selectNetworkName,
+  selectEvmNetworkImageSource,
+  selectEvmNetworkName,
 } from '../../../selectors/networkInfos';
 import {
   getLabelTextByAddress,
@@ -55,7 +55,7 @@ const AddressFrom = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  const networkName = useSelector(selectNetworkName);
+  const networkName = useSelector(selectEvmNetworkName);
 
   const useBlockieIcon = useSelector(
     // TODO: Replace "any" with type
@@ -74,7 +74,7 @@ const AddressFrom = ({
     }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const networkImage = useSelector(selectNetworkImageSource);
+  const networkImage = useSelector(selectEvmNetworkImageSource);
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 

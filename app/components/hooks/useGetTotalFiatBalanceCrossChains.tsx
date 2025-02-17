@@ -38,6 +38,7 @@ export const useGetTotalFiatBalanceCrossChains = (
     }[];
   },
 ) => {
+  // TODO: [SOLANA] Revisit this before shipping, `selectNetworkConfigurations` selector needs to most likely be replaced by a non evm supported version
   const allNetworks = useSelector(selectNetworkConfigurations);
   const currencyRates = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -57,8 +58,7 @@ export const useGetTotalFiatBalanceCrossChains = (
     ].map((singleChainTokenBalances) => {
       const { tokensWithBalances } = singleChainTokenBalances;
       const matchedChainSymbol =
-        allNetworks[singleChainTokenBalances.chainId as `0x${string}`]
-          .nativeCurrency;
+        allNetworks[singleChainTokenBalances.chainId].nativeCurrency;
 
       const tokenFiatBalances = tokensWithBalances.map(
         (token) => token.tokenBalanceFiat,

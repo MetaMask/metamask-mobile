@@ -4436,10 +4436,8 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^23.1.0":
+"@metamask/accounts-controller@file:../core/packages/accounts-controller":
   version "23.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-23.1.0.tgz#f399f0a92d280abb3ec222fe46fe3d86bb97bcfb"
-  integrity sha512-woIahBg0PqzfcP/O4iIk2yk1WGmUIA2a4qplok2OEV0a2ZAIENfyaysvDCXwC5RO8Ka53mX/cDn/lRd4rFNeLw==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@metamask/base-controller" "^8.0.0"
@@ -5049,6 +5047,14 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
+"@metamask/multichain-network-controller@file:../core/packages/multichain-network-controller":
+  version "0.0.0"
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/keyring-api" "^17.0.0"
+    "@metamask/utils" "^11.1.0"
+    "@solana/addresses" "^2.0.0"
+
 "@metamask/network-controller@^22.1.0":
   version "22.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-22.1.0.tgz#b4c81a31fc52147d12131bfb16c77c1c1cfbe43c"
@@ -5136,7 +5142,7 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     readable-stream "^3.6.2"
 
-"@metamask/permission-controller@^11.0.3", "@metamask/permission-controller@^11.0.5", "@metamask/permission-controller@^11.0.6":
+"@metamask/permission-controller@^11.0.3", "@metamask/permission-controller@^11.0.6":
   version "11.0.6"
   resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-11.0.6.tgz#4069f6ed29d514a7e897f177efc9f798bba8668a"
   integrity sha512-BGznKBEiSZMsF7TuyBUp5xt93nfhGHyl4xAs1rvJUNUWVSUtry+mb1A6H8bq82/T4ZrxNhrnx3ISYr99ZDo7rA==
@@ -5146,6 +5152,21 @@
     "@metamask/json-rpc-engine" "^10.0.3"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/utils" "^11.1.0"
+    "@types/deep-freeze-strict" "^1.1.0"
+    deep-freeze-strict "^1.1.1"
+    immer "^9.0.6"
+    nanoid "^3.3.8"
+
+"@metamask/permission-controller@^11.0.5":
+  version "11.0.5"
+  resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-11.0.5.tgz#c649ec0d0d07f25c4c241633433f6d10480dbc04"
+  integrity sha512-X2xtNPFIQfz/vo8TCWZvQ8tUfz/ELwKKEGF0Ej0BAUpavE+3QakLd5YcS828aCaZAcrC3676nX6BtabX9eF3fA==
+  dependencies:
+    "@metamask/base-controller" "^7.1.1"
+    "@metamask/controller-utils" "^11.4.5"
+    "@metamask/json-rpc-engine" "^10.0.2"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/utils" "^11.0.1"
     "@types/deep-freeze-strict" "^1.1.0"
     deep-freeze-strict "^1.1.1"
     immer "^9.0.6"
@@ -7227,7 +7248,7 @@
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.0.tgz#96116f2a912e0c02817345b3c10751069920d553"
   integrity sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==
 
-"@solana/addresses@2.0.0":
+"@solana/addresses@2.0.0", "@solana/addresses@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@solana/addresses/-/addresses-2.0.0.tgz#d1b01a38e0b48d7e4fea223821655a0c2b903c28"
   integrity sha512-8n3c/mUlH1/z+pM8e7OJ6uDSXw26Be0dgYiokiqblO66DGQ0d+7pqFUFZ5pEGjJ9PU2lDTSfY8rHf4cemOqwzQ==

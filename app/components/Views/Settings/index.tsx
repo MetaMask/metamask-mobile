@@ -19,6 +19,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -42,6 +43,8 @@ const Settings = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
+
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -231,12 +234,14 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.PERMISSIONS}
         />
       )}
-      <SettingsDrawer
-        description={strings('app_settings.contacts_desc')}
-        onPress={onPressContacts}
-        title={strings('app_settings.contacts_title')}
-        testID={SettingsViewSelectorsIDs.CONTACTS}
-      />
+      {isEvmSelected && (
+        <SettingsDrawer
+          description={strings('app_settings.contacts_desc')}
+          onPress={onPressContacts}
+          title={strings('app_settings.contacts_title')}
+          testID={SettingsViewSelectorsIDs.CONTACTS}
+        />
+      )}
       <SettingsDrawer
         title={strings('app_settings.networks_title')}
         description={strings('app_settings.networks_desc')}

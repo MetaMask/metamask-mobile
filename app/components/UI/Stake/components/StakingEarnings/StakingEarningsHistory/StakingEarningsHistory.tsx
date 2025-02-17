@@ -11,7 +11,7 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../../../selectors/currencyRateController';
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../../selectors/tokenRatesController';
 import { Hex } from '../../../../../../util/smart-transactions/smart-publish-hook';
 import {
@@ -42,7 +42,9 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
   const currentCurrency: string = useSelector(selectCurrentCurrency);
   const multiChainMarketData = useSelector(selectTokenMarketData);
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const {
     earningsHistory,
     isLoading: isLoadingEarningsHistory,

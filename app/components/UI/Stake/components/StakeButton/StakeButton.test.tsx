@@ -10,6 +10,8 @@ import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventB
 import { mockNetworkState } from '../../../../../util/test/network';
 import AppConstants from '../../../../../core/AppConstants';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
+import { RootState } from '../../../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockNavigate = jest.fn();
 
@@ -53,6 +55,9 @@ jest.mock('../../../../../core/Engine', () => ({
       }),
       findNetworkClientIdByChainId: () => 'mainnet',
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
   },
 }));
 
@@ -83,9 +88,15 @@ const STATE_MOCK = {
           chainId: '0x1',
         }),
       },
+      MultichainNetworkController: {
+        isEvmSelected: true,
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+        multichainNetworkConfigurationsByChainId: {},
+      },
     },
   },
-};
+} as unknown as RootState;
 
 const renderComponent = (state = STATE_MOCK) =>
   renderWithProvider(<StakeButton asset={MOCK_STAKED_ETH_ASSET} />, {
@@ -153,9 +164,15 @@ describe('StakeButton', () => {
               chainId: '0x89', // Polygon
             }),
           },
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+            multichainNetworkConfigurationsByChainId: {},
+          },
         },
       },
-    };
+    } as unknown as RootState;
     const { getByTestId } = renderComponent(UNSUPPORTED_NETWORK_STATE);
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
     await waitFor(() => {

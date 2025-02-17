@@ -4,6 +4,7 @@ import TokenValueStack from './TokenValueStack';
 import { Image } from 'react-native';
 import { TokenValueStackProps } from './TokenValueStack.types';
 import { renderFromWei } from '../../../../../../util/number';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -21,6 +22,15 @@ describe('TokenValueStack', () => {
 
     const { getByText, toJSON } = renderWithProvider(
       <TokenValueStack {...props} />,
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              ...backgroundState,
+            },
+          },
+        },
+      },
     );
 
     expect(

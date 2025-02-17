@@ -162,6 +162,7 @@ import {
   NotificationServicesPushController,
   NotificationServicesController,
 } from '@metamask/notification-services-controller';
+
 ///: END:ONLY_INCLUDE_IF
 import {
   AccountsController,
@@ -181,6 +182,19 @@ import {
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
 import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
+
+import {
+  MultichainNetworkController,
+  MultichainNetworkControllerActions,
+  MultichainNetworkControllerState,
+  MultichainNetworkControllerStateChange,
+  MultichainNetworkControllerNetworkDidChangeEvent,
+} from '@metamask/multichain-network-controller';
+
+// TODO: Remove this once the controller is updated with exporting this types
+type MultichainNetworkControllerEvents =
+  | MultichainNetworkControllerStateChange
+  | MultichainNetworkControllerNetworkDidChangeEvent;
 
 /**
  * Controllers that area always instantiated
@@ -254,7 +268,8 @@ type GlobalActions =
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
-  | RemoteFeatureFlagControllerActions;
+  | RemoteFeatureFlagControllerActions
+  | MultichainNetworkControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -293,6 +308,7 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
+  | MultichainNetworkControllerEvents
   | SnapKeyringEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
@@ -357,6 +373,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
+  MultichainNetworkController: MultichainNetworkController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   RatesController: RatesController;
@@ -408,6 +425,7 @@ export type EngineState = {
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
+  MultichainNetworkController: MultichainNetworkControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesControllerState;
   RatesController: RatesControllerState;

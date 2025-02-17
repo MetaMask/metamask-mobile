@@ -14,6 +14,7 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
@@ -97,12 +98,26 @@ const initialState = {
         selectedAddress: MOCK_SOLANA_ACCOUNT.address,
         shouldShowFiat: true,
       },
+      MultichainNetworkController: {
+        isEvmSelected: false,
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+        multichainNetworkConfigurationsByChainId: {
+          [SolScope.Mainnet]: {
+            chainId: SolScope.Mainnet,
+            name: 'Solana Mainnet',
+            nativeCurrency:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:solAddress',
+            isEvm: false,
+          },
+        },
+      },
     },
   },
+
   settings: {
     showTestNetworks: true,
   },
-};
+} as unknown as RootState;
 
 const Stack = createStackNavigator();
 const renderComponent = (state: Partial<RootState> = {}) =>
@@ -127,7 +142,7 @@ describe('NonEvmTokens', () => {
 
   it('should display the Solana token with correct balance', async () => {
     const { getByTestId, getByText } = renderComponent();
-    expect(getByText('Solana')).toBeDefined();
+    expect(getByText('SOL')).toBeDefined();
     const balanceText = getByTestId('fiat-balance-test-id');
     expect(balanceText.props.children).toBe('5.5 SOL');
   });

@@ -32,7 +32,10 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { selectProviderConfig } from '../../selectors/networkController';
+import {
+  selectEvmChainId,
+  selectProviderConfig,
+} from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -172,6 +175,7 @@ export const checkActiveAccountAndChainId = async ({
   );
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
+    const providerConfigChainId = selectEvmChainId(store.getState());
     const networkType = providerConfig.type as NetworkType;
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
@@ -180,7 +184,7 @@ export const checkActiveAccountAndChainId = async ({
     if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
-      activeChainId = providerConfig.chainId;
+      activeChainId = providerConfigChainId;
     }
 
     if (activeChainId && !activeChainId.startsWith('0x')) {

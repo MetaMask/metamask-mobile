@@ -173,7 +173,11 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
-import { selectSwapsChainFeatureFlags, selectSwapsQuotes, selectSwapsTopAggId } from '../../reducers/swaps';
+import {
+  selectSwapsChainFeatureFlags,
+  selectSwapsQuotes,
+  selectSwapsTopAggId,
+} from '../../reducers/swaps';
 import {
   SmartTransactionStatuses,
   ClientId,
@@ -203,7 +207,10 @@ import { setupCurrencyRateSync } from './controllers/RatesController/subscriptio
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
-import { getSmartTransactionMetricsProperties, getGasIncludedTransactionFees } from '../../util/smart-transactions';
+import {
+  getSmartTransactionMetricsProperties,
+  getGasIncludedTransactionFees,
+} from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
@@ -223,6 +230,7 @@ import {
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 import {
   SnapControllerClearSnapStateAction,
   SnapControllerGetSnapAction,
@@ -231,6 +239,7 @@ import {
   SnapControllerStateChangeEvent,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
+import { SolScope } from '@metamask/keyring-api';
 import {
   SnapKeyringAccountAssetListUpdatedEvent,
   SnapKeyringAccountBalancesUpdatedEvent,
@@ -363,6 +372,30 @@ export class Engine {
 
     networkController.initializeProvider();
 
+    const multichainNetworkController = new MultichainNetworkController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'MultichainNetworkController',
+        allowedActions: [
+          'NetworkController:setActiveNetwork',
+          'NetworkController:getState',
+        ],
+        allowedEvents: ['AccountsController:selectedAccountChange'],
+      }),
+      state: initialState.MultichainNetworkController ?? {
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+        multichainNetworkConfigurationsByChainId: {},
+        /*  multichainNetworkConfigurationsByChainId: {
+          [SolScope.Mainnet]: {
+            name: 'Solana Mainnet',
+            chainId: SolScope.Mainnet,
+            nativeCurrency: `${SolScope.Mainnet}/token:solAddress`,
+            isEvm: false,
+          },
+        }, */
+        isEvmSelected: true,
+      },
+    });
+
     const assetsContractController = new AssetsContractController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
@@ -389,6 +422,7 @@ export class Engine {
           SnapControllerStateChangeEvent,
           'KeyringController:accountRemoved',
           'KeyringController:stateChange',
+          'MultichainNetworkController:networkDidChange',
           SnapKeyringAccountAssetListUpdatedEvent,
           SnapKeyringAccountBalancesUpdatedEvent,
           SnapKeyringAccountTransactionsUpdatedEvent,
@@ -909,6 +943,7 @@ export class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+
     this.subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
@@ -1231,13 +1266,12 @@ export class Engine {
         networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
       hooks: {
-        publish: (transactionMeta) => {          
+        publish: (transactionMeta) => {
           const state = store.getState();
-          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-            state,
-          );
+          const shouldUseSmartTransaction =
+            selectShouldUseSmartTransaction(state);
           const swapsQuotes = selectSwapsQuotes(state);
-          // We can choose the top agg id for now. Once selection is enabled, we need 
+          // We can choose the top agg id for now. Once selection is enabled, we need
           // to look for a selected agg id.
           const swapsTopAggId = selectSwapsTopAggId(state);
           const selectedQuote = swapsQuotes?.[swapsTopAggId];
@@ -1251,7 +1285,7 @@ export class Engine {
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             controllerMessenger: this.controllerMessenger,
             featureFlags: selectSwapsChainFeatureFlags(state),
-            transactionFees
+            transactionFees,
           }) as Promise<{ transactionHash: string }>;
         },
       },
@@ -1549,6 +1583,7 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
+      MultichainNetworkController: multichainNetworkController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -2201,6 +2236,7 @@ export default {
       UserStorageController,
       NotificationServicesController,
       NotificationServicesPushController,
+      MultichainNetworkController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       SelectedNetworkController,
@@ -2240,6 +2276,7 @@ export default {
       UserStorageController,
       NotificationServicesController,
       NotificationServicesPushController,
+      MultichainNetworkController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       SelectedNetworkController,

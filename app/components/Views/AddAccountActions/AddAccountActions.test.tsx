@@ -14,6 +14,7 @@ import { MOCK_KEYRING_CONTROLLER } from '../../../selectors/keyringController/te
 import { Text } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import Logger from '../../../util/Logger';
+import { RootState } from '../../../reducers';
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -255,7 +256,7 @@ describe('AddAccountActions', () => {
             },
           },
         },
-      };
+      } as unknown as RootState;
 
       renderScreen(
         () => <AddAccountActions {...mockProps} />,
@@ -295,7 +296,7 @@ describe('AddAccountActions', () => {
             },
           },
         },
-      };
+      } as unknown as RootState;
 
       renderScreen(
         () => <AddAccountActions {...mockProps} />,

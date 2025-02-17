@@ -36,7 +36,6 @@ import TokenImportModal from './TokenImportModal';
 import {
   selectChainId,
   selectNetworkConfigurations,
-  selectProviderConfig,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -145,7 +144,6 @@ function TokenSelectModal({
   conversionRate,
   tokenExchangeRates,
   chainId,
-  providerConfig,
   networkConfigurations,
   balances,
 }) {
@@ -155,7 +153,7 @@ function TokenSelectModal({
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
-  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
+  const explorer = useBlockExplorer(networkConfigurations);
   const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] =
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();
@@ -552,10 +550,6 @@ TokenSelectModal.propTypes = {
    */
   chainId: PropTypes.string,
   /**
-   * Current network provider configuration
-   */
-  providerConfig: PropTypes.object,
-  /**
    * Network configurations
    */
   networkConfigurations: PropTypes.object,
@@ -569,7 +563,6 @@ const mapStateToProps = (state) => ({
   tokenExchangeRates: selectContractExchangeRates(state),
   balances: selectContractBalances(state),
   chainId: selectChainId(state),
-  providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
 });
 

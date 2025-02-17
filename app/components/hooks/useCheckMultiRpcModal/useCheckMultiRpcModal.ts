@@ -5,12 +5,14 @@ import { isObject } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { setMultiRpcMigrationModalOpen } from '../../../actions/security';
 import { selectShowMultiRpcModal } from '../../../selectors/preferencesController';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 const useCheckMultiRpcModal = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   const showMultiRpcModal = useSelector(selectShowMultiRpcModal);
 

@@ -38,7 +38,7 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -64,6 +64,7 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import NetworkPermissionsConnected from './NetworkPermissionsConnected';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -86,7 +87,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const nonTestnetNetworks = useSelector(
     (state: RootState) =>
-      Object.keys(selectNetworkConfigurations(state)).length + 1,
+      Object.keys(selectEvmNetworkConfigurationsByChainId(state)).length + 1,
   );
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
@@ -114,7 +115,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const [networkAvatars, setNetworkAvatars] = useState<
     ({ name: string; imageSource: string } | null)[]
   >([]);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
@@ -123,7 +126,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ? AccountPermissionsScreens.PermissionsSummary
         : initialScreen,
     );
-  const { accounts, ensByAccountAddress } = useAccounts({
+  const { evmAccounts: accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
   const previousPermittedAccounts = useRef<string[]>();
@@ -155,8 +158,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
 
-    const networks = Object.entries(networkConfigurations).map(
-      ([key, network]: [string, NetworkConfiguration]) => ({
+    const networks = Object.entries(networkConfigurations)
+      .filter(([_, network]) => !isNonEvmChainId(network.chainId))
+      .map(([key, network]: [string, NetworkConfiguration]) => ({
         id: key,
         name: network.name,
         rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
@@ -166,8 +170,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         imageSource: getNetworkImageSource({
           chainId: network?.chainId,
         }),
-      }),
-    );
+      }));
 
     const theNetworkAvatars: ({ name: string; imageSource: string } | null)[] =
       currentlyPermittedChains.map((selectedId) => {

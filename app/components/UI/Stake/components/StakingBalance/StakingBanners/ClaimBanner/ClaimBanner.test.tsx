@@ -31,6 +31,9 @@ jest.mock('../../../../../../../core/Engine', () => ({
     NetworkController: {
       setActiveNetwork: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
   },
 }));
 
@@ -104,7 +107,7 @@ describe('ClaimBanner', () => {
     fireEvent.press(claimButton);
 
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');
   });
 
@@ -120,7 +123,7 @@ describe('ClaimBanner', () => {
 
     expect(claimButton.props.disabled).toBe(true);
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();
     expect(mockAttemptPoolStakedClaimTransaction).toHaveBeenCalledTimes(1);
   });

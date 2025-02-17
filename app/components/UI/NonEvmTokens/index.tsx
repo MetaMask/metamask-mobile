@@ -4,7 +4,6 @@ import {
   selectMultichainDefaultToken,
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainConversionRate,
-  selectMultichainCurrentNetwork,
   selectMultichainShouldShowFiat,
 } from '../../../selectors/multichain';
 import { TokenList } from '../Tokens/TokenList';
@@ -12,12 +11,17 @@ import { TokenI } from '../Tokens/types';
 import { renderFiat } from '../../../util/number';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { Image } from 'react-native';
-import Engine from '../../../core/Engine/Engine';
+import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import {
+  MULTICHAIN_PROVIDER_CONFIGS,
   MULTICHAIN_TOKEN_IMAGES,
-  MultichainProviderConfig,
 } from '../../../core/Multichain/constants';
+import {
+  selectSelectedNonEvmNetworkChainId,
+  selectSelectedNonEvmNetworkSymbol,
+} from '../../../selectors/multichainNetworkController';
+import { CaipChainId } from '@metamask/utils';
 
 // We need this type to match ScrollableTabView's requirements
 interface NonEvmTokensProps {
@@ -36,7 +40,8 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const { symbol } = useSelector(selectMultichainDefaultToken);
   const conversionRate = useSelector(selectMultichainConversionRate);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
-  const networkConfig = useSelector(selectMultichainCurrentNetwork);
+  const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
+  const nonEvmTicker = useSelector(selectSelectedNonEvmNetworkSymbol);
 
   function getMultiChainFiatBalance(): string {
     if (conversionRate) {
@@ -51,19 +56,22 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const getTokenImage = () => {
     const imageSource =
       MULTICHAIN_TOKEN_IMAGES[
-        networkConfig.chainId as keyof typeof MULTICHAIN_TOKEN_IMAGES
+        nonEvmNetworkChainId as unknown as keyof typeof MULTICHAIN_TOKEN_IMAGES
       ];
     return imageSource ? Image.resolveAssetSource(imageSource).uri : '';
   };
+
+  const getDecimalsByChainId = (chainId: CaipChainId) =>
+    MULTICHAIN_PROVIDER_CONFIGS[chainId]?.decimal;
 
   // Format the token data to match TokenI interface
   const formattedTokens: TokenI[] = [
     {
       address: '', // Non-EVM chains don't use EVM-style addresses for native tokens
       aggregators: [],
-      decimals: (networkConfig.network as MultichainProviderConfig).decimal,
+      decimals: getDecimalsByChainId(nonEvmNetworkChainId),
       image: getTokenImage(),
-      name: networkConfig.nickname,
+      name: nonEvmTicker,
       symbol: defaultToken.symbol,
       balance: nativeTokenBalance || '0',
       balanceFiat: shouldShowFiat ? getMultiChainFiatBalance() : '',

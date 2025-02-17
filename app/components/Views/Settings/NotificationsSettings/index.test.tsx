@@ -5,22 +5,6 @@ import NotificationsSettings from '.';
 import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 
-
-let mockGetState: jest.Mock;
-jest.mock('../../../../store', () => {
-  mockGetState = jest.fn();
-  mockGetState.mockImplementation(() => ({
-    notifications: {},
-  }));
-
-  return {
-    store: {
-      getState: mockGetState,
-      dispatch: jest.fn(),
-    },
-  };
-});
-
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,
@@ -46,17 +30,17 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../util/notifications/services/NotificationService', () => ({
-  getAllPermissions: jest.fn(),
-}));
+jest.mock(
+  '../../../../util/notifications/services/NotificationService',
+  () => ({
+    getAllPermissions: jest.fn(),
+  }),
+);
 
 const setOptions = jest.fn();
 
 describe('NotificationsSettings', () => {
   it('render matches snapshot', () => {
-    mockGetState.mockImplementation(() => ({
-      notifications: {},
-    }));
     const { toJSON } = renderWithProvider(
       <NotificationsSettings
         navigation={

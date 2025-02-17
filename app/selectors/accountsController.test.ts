@@ -12,7 +12,7 @@ import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
   selectSelectedInternalAccountFormattedAddress,
-  hasCreatedBtcMainnetAccount,
+  selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
 } from './accountsController';
 import {
@@ -235,12 +235,12 @@ describe('Bitcoin Account Selectors', () => {
   describe('hasCreatedBtcMainnetAccount', () => {
     it('returns true when a BTC mainnet account exists', () => {
       const state = getStateWithAccount(btcMainnetAccount);
-      expect(hasCreatedBtcMainnetAccount(state)).toBe(true);
+      expect(selectHasCreatedBtcMainnetAccount(state)).toBe(true);
     });
 
     it('returns false when no BTC mainnet account exists', () => {
       const state = getStateWithAccount(btcTestnetAccount);
-      expect(hasCreatedBtcMainnetAccount(state)).toBe(false);
+      expect(selectHasCreatedBtcMainnetAccount(state)).toBe(false);
     });
   });
 

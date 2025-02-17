@@ -14,6 +14,7 @@ import {
   selectNativeCurrencyByChainId,
 } from './networkController';
 import { RootState } from '../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 describe('networkSelectors', () => {
   const mockState = {
@@ -52,6 +53,12 @@ describe('networkSelectors', () => {
           networksMetadata: {
             'custom-network': { status: 'active' },
           },
+        },
+        MultichainNetworkController: {
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+          multichainNetworkConfigurationsByChainId: {},
         },
       },
     },
