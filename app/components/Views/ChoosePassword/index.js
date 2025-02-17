@@ -63,7 +63,7 @@ import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { enableProfileSyncing } from '../../../actions/identity';
-import {MetricsEventBuilder} from '../../../core/Analytics/MetricsEventBuilder';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -73,7 +73,7 @@ const createStyles = (colors) =>
     wrapper: {
       flex: 1,
       marginBottom: 10,
-      marginTop: 15,
+      marginTop: 16,
     },
     scrollableWrapper: {
       flex: 1,
