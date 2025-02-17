@@ -2,7 +2,12 @@ import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/Ramp/types';
 import { selectChainId } from '../../selectors/networkController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectSelectedInternalAccount,
+  ///: END:ONLY_INCLUDE_IF
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../selectors/accountsController';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -17,6 +22,10 @@ import {
 import type { RootState } from '../';
 import { getDecimalChainId, isTestNet } from '../../util/networks';
 import { toHex } from '@metamask/controller-utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { MultichainNetworks } from '../../core/Multichain/constants';
+import { isBtcAccount, isSolanaAccount } from '../../core/Multichain/utils';
+///: END:ONLY_INCLUDE_IF
 
 export type { FiatOrder } from './types';
 
@@ -146,7 +155,25 @@ const ordersSelector = (state: RootState) =>
   (state.fiatOrders.orders as FiatOrdersState['orders']) || [];
 export const chainIdSelector: (state: RootState) => string = (
   state: RootState,
-) => getDecimalChainId(selectChainId(state));
+) => {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const selectedInternalAccount = selectSelectedInternalAccount(state);
+  if (selectedInternalAccount && isBtcAccount(selectedInternalAccount)) {
+    return MultichainNetworks.BITCOIN;
+  } else if (
+    selectedInternalAccount &&
+    isSolanaAccount(selectedInternalAccount)
+  ) {
+    return MultichainNetworks.SOLANA;
+  }
+  /**
+   * the chainId variable in the next lines is there to avoid a
+   * lint arrow-body-style error, it should be removed.
+   */
+  ///: END:ONLY_INCLUDE_IF
+  const chainId = getDecimalChainId(selectChainId(state));
+  return chainId;
+};
 export const selectedAddressSelector: (
   state: RootState,
 ) => string | undefined = (state: RootState) =>

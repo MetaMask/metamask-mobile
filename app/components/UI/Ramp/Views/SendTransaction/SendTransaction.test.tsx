@@ -12,6 +12,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { addTransaction } from '../../../../../util/transaction-controller';
 import SendTransaction from './SendTransaction';
 import APP_CONSTANTS from '../../../../../core/AppConstants';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 const { ACH_LIGHT, ACH_DARK } = APP_CONSTANTS.URLS.ICONS;
 
 const mockOrder = {
@@ -263,7 +264,10 @@ function render(Component: React.ComponentType, orders = mockedOrders) {
     {
       state: {
         engine: {
-          backgroundState,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          },
         },
         fiatOrders: {
           orders,

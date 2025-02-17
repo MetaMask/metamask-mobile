@@ -10,6 +10,7 @@ import { RampType, Region } from '../../types';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -20,7 +21,10 @@ function render(Component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          },
         },
       },
     },

@@ -12,6 +12,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { mockNetworkState } from '../../../../../util/test/network';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {
@@ -78,6 +79,7 @@ function render(Component: React.ComponentType, chainId?: `0x${string}`) {
         engine: {
           backgroundState: {
             ...backgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
             NetworkController: {
               ...mockNetworkState(
                 {
