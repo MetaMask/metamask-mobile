@@ -962,33 +962,66 @@ exports[`AssetOverview should render correctly 1`] = `
         >
           <View>
             <View
-              style={
-                {
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 16,
-                  "height": 32,
-                  "overflow": "hidden",
-                  "width": 32,
-                }
-              }
+              useNativeDriver={true}
             >
               <Image
+                fadeIn={true}
                 onError={[Function]}
-                resizeMode="contain"
+                onLoadEnd={[Function]}
                 source={
                   {
                     "uri": "",
                   }
                 }
                 style={
+                  [
+                    {
+                      "borderRadius": 12,
+                      "height": 24,
+                      "width": 24,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "borderRadius": 16,
+                      "height": 32,
+                      "overflow": "hidden",
+                      "width": 32,
+                    },
+                  ]
+                }
+              />
+              <View
+                collapsable={false}
+                style={
                   {
-                    "flex": 1,
-                    "height": undefined,
-                    "width": undefined,
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 1,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
                   }
                 }
-                testID="token-avatar-image"
-              />
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 16,
+                        "height": 32,
+                        "overflow": "hidden",
+                        "width": 32,
+                      },
+                      {
+                        "backgroundColor": "#eee",
+                      },
+                      undefined,
+                    ]
+                  }
+                />
+              </View>
             </View>
           </View>
           <View
@@ -1102,6 +1135,22 @@ exports[`AssetOverview should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+            testID="balance-test-id"
+          >
+            1 ETH
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
                 "color": "#6a737d",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
@@ -1112,12 +1161,50 @@ exports[`AssetOverview should render correctly 1`] = `
                 "textTransform": "uppercase",
               }
             }
-            testID="main-balance-test-id"
+            testID="secondary-balance-test-id"
           >
-            0 ETH
+            $1000
           </Text>
         </View>
       </TouchableOpacity>
+      <View
+        testID="staking-balance-container"
+      >
+        <View
+          style={
+            {
+              "paddingHorizontal": 16,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+          >
+            <View
+              style={
+                {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 50,
+                    },
+                    {
+                      "backgroundColor": "#E1E9EE",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
     </View>
     <View
       style={
@@ -1126,7 +1213,528 @@ exports[`AssetOverview should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-    />
+    >
+      <View
+        style={
+          {
+            "gap": 24,
+            "marginTop": 24,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "paddingTop": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 18,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            Your earnings
+          </Text>
+          <View>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "paddingVertical": 8,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Annual rate
+                </Text>
+                <TouchableOpacity
+                  accessibilityLabel="Annual rate tooltip"
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 24,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 24,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#9fa6ae"
+                    height={16}
+                    name="Info"
+                    style={
+                      {
+                        "height": 16,
+                        "width": 16,
+                      }
+                    }
+                    width={16}
+                  />
+                </TouchableOpacity>
+              </View>
+              <View
+                onLayout={[Function]}
+              >
+                <View
+                  style={
+                    {
+                      "position": "relative",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "borderRadius": 6,
+                          "height": 20,
+                          "width": 100,
+                        },
+                        {
+                          "backgroundColor": "#E1E9EE",
+                          "overflow": "hidden",
+                        },
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "paddingVertical": 8,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Lifetime rewards
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                  }
+                }
+              >
+                <View
+                  onLayout={[Function]}
+                >
+                  <View
+                    style={
+                      {
+                        "position": "relative",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "borderRadius": 6,
+                            "height": 20,
+                            "width": 100,
+                          },
+                          {
+                            "backgroundColor": "#E1E9EE",
+                            "overflow": "hidden",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <View
+                    style={
+                      {
+                        "position": "relative",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "borderRadius": 6,
+                            "height": 20,
+                            "marginTop": 5,
+                            "width": 100,
+                          },
+                          {
+                            "backgroundColor": "#E1E9EE",
+                            "overflow": "hidden",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "paddingVertical": 8,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Estimated annual earnings
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                  }
+                }
+              >
+                <View
+                  onLayout={[Function]}
+                >
+                  <View
+                    style={
+                      {
+                        "position": "relative",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "borderRadius": 6,
+                            "height": 20,
+                            "width": 100,
+                          },
+                          {
+                            "backgroundColor": "#E1E9EE",
+                            "overflow": "hidden",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <View
+                    style={
+                      {
+                        "position": "relative",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "borderRadius": 6,
+                            "height": 20,
+                            "marginTop": 5,
+                            "width": 100,
+                          },
+                          {
+                            "backgroundColor": "#E1E9EE",
+                            "overflow": "hidden",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                onPress={[Function]}
+                onPressIn={[Function]}
+                onPressOut={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "stretch",
+                    "backgroundColor": "transparent",
+                    "borderColor": "#0376c9",
+                    "borderRadius": 20,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="stake-earnings-history-button"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#0376c9",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  View earnings history
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 18,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 8,
+              }
+            }
+          >
+            Token details
+          </Text>
+          <View
+            style={
+              {
+                "paddingBottom": 8,
+                "paddingTop": 8,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                    "paddingVertical": 4,
+                  },
+                  {
+                    "paddingTop": 0,
+                  },
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Contract address
+              </Text>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#0376C91A",
+                    "borderRadius": 20,
+                    "flexDirection": "row",
+                    "marginLeft": 8,
+                    "paddingHorizontal": 8,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#0376c9",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  0x0000...0000
+                </Text>
+                <SvgMock
+                  color="#0376c9"
+                  height={16}
+                  name="Copy"
+                  style={
+                    {
+                      "height": 16,
+                      "marginLeft": 4,
+                      "width": 16,
+                    }
+                  }
+                  width={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "paddingVertical": 4,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Token decimal
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                18
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 18,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 8,
+              }
+            }
+          >
+            Market details
+          </Text>
+          <View
+            style={
+              {
+                "paddingBottom": 8,
+                "paddingTop": 8,
+              }
+            }
+          />
+        </View>
+      </View>
+    </View>
   </View>
 </View>
 `;
@@ -2241,9 +2849,9 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                 "lineHeight": 24,
               }
             }
-            testID="fiat-balance-test-id"
+            testID="balance-test-id"
           >
-            1500
+            1 ETH
           </Text>
           <Text
             accessibilityRole="text"
@@ -2259,12 +2867,50 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                 "textTransform": "uppercase",
               }
             }
-            testID="main-balance-test-id"
+            testID="secondary-balance-test-id"
           >
-            0 ETH
+            $1000
           </Text>
         </View>
       </TouchableOpacity>
+      <View
+        testID="staking-balance-container"
+      >
+        <View
+          style={
+            {
+              "paddingHorizontal": 16,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+          >
+            <View
+              style={
+                {
+                  "position": "relative",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 50,
+                    },
+                    {
+                      "backgroundColor": "#E1E9EE",
+                      "overflow": "hidden",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
     </View>
     <View
       style={

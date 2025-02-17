@@ -152,7 +152,7 @@ describe('Balance', () => {
   });
 
   if (!isPortfolioViewEnabled()) {
-    it('should render correctly with a fiat balance', () => {
+    it('should render correctly with main and secondary balance', () => {
       const wrapper = render(
         <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
       );
@@ -161,7 +161,7 @@ describe('Balance', () => {
   }
 
   if (!isPortfolioViewEnabled()) {
-    it('should render correctly without a fiat balance', () => {
+    it('should render correctly without a secondary balance', () => {
       const wrapper = render(
         <Balance
           asset={mockDAI}
