@@ -4,8 +4,8 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
   securityAlertResponse,
-  typedSignV1ConfirmationState,
   stakingDepositConfirmationState,
+  typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
@@ -42,16 +42,12 @@ jest.mock('@react-navigation/native', () => ({
     navigate: jest.fn(),
     addListener: jest.fn(),
     dispatch: jest.fn(),
+    setOptions: jest.fn(),
   }),
 }));
 
 describe('Confirm', () => {
-  it('renders flat confirmation', async () => {
-    const { getByTestId } = renderWithProvider(<Confirm />, {
-      state: stakingDepositConfirmationState,
-    });
-    expect(getByTestId('flat-confirmation-container')).toBeDefined();
-  });
+  // TODO: Add tests for flat confirmation
 
   it('renders modal confirmation', async () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
@@ -87,6 +83,13 @@ describe('Confirm', () => {
     expect(getByText('Hi, Alice!')).toBeDefined();
     expect(getAllByRole('button')).toHaveLength(2);
     expect(queryByText('This is a deceptive request')).toBeNull();
+  });
+
+  it('renders correct information for staking deposit', async () => {
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(getByText('0.0001 ETH')).toBeDefined();
   });
 
   it('renders blockaid banner if confirmation has blockaid error response', async () => {

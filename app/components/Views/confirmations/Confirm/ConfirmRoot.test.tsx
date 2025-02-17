@@ -24,19 +24,23 @@ describe('Confirm', () => {
     jest.clearAllMocks();
   });
 
-  it('renders flat confirmation', async () => {
-    renderWithProvider(<ConfirmRoot />, {
-      state: stakingDepositConfirmationState,
-    });
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CONFIRM_FLAT_PAGE);
-  });
+  // TODO: Add unit test for once we have any existing flat confirmation
 
-  it('renders modal confirmation', async () => {
+  it('navigates to modal confirmation', async () => {
     renderWithProvider(<ConfirmRoot />, {
       state: personalSignatureConfirmationState,
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenLastCalledWith(Routes.CONFIRM_MODAL);
+  });
+
+  it('navigates to standalone confirmation', async () => {
+    renderWithProvider(<ConfirmRoot />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
+      screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+    });
   });
 });

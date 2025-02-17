@@ -33,6 +33,13 @@ const styleSheet = (params: {
       paddingBottom: Device.isIphoneX() ? 20 : 0,
       maxHeight: '90%',
     },
+    standaloneContainer: {
+      backgroundColor: theme.colors.background.alternative,
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      height: '100%',
+    },
     scrollableSection: {
       padding: 4,
     },
