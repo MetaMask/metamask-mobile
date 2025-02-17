@@ -64,6 +64,8 @@ import {
   JsonSnapsRegistry,
   SnapController,
   SnapsRegistryMessenger,
+  SnapInterfaceController,
+  SnapInterfaceControllerMessenger,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -761,6 +763,20 @@ export class Engine {
           origin,
         );
       },
+      createInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:createInterface',
+      ),
+      getInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:getInterface',
+      ),
+      updateInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:updateInterface',
+      ),
+      requestUserApproval:
+        approvalController.addAndShowApprovalRequest.bind(approvalController),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
@@ -1053,6 +1069,27 @@ export class Engine {
       clientCryptography: {
         pbkdf2Sha512: pbkdf2,
       },
+    });
+
+    const snapInterfaceControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapInterfaceController',
+        allowedActions: [
+          'PhishingController:maybeUpdateState',
+          'PhishingController:testOrigin',
+          'ApprovalController:hasRequest',
+          'ApprovalController:acceptRequest',
+          'SnapController:get',
+        ],
+        allowedEvents: [
+          'NotificationServicesController:notificationsListUpdated',
+        ],
+      });
+
+    const snapInterfaceController = new SnapInterfaceController({
+      messenger:
+        snapInterfaceControllerMessenger as unknown as SnapInterfaceControllerMessenger,
+      state: initialState.SnapInterfaceController,
     });
 
     const authenticationController = new AuthenticationController.Controller({
@@ -1549,6 +1586,7 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
+      SnapInterfaceController: snapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -2178,6 +2216,7 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2217,6 +2256,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,
