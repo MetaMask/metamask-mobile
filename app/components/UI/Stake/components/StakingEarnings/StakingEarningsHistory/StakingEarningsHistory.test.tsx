@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import StakingEarningsHistory from './StakingEarningsHistory';
 import useStakingEarningsHistory from '../../../hooks/useStakingEarningsHistory';
-import { MOCK_STAKED_ETH_ASSET } from '../../../__mocks__/mockData';
+import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -82,7 +82,9 @@ describe('StakingEarningsHistory', () => {
 
   it('renders correctly with earnings history', () => {
     const { getByText } = renderWithProvider(
-      <StakingEarningsHistory asset={MOCK_STAKED_ETH_ASSET} />,
+      <StakingEarningsHistory
+        asset={{ ...MOCK_STAKED_ETH_MAINNET_ASSET, ticker: 'ETH' }}
+      />,
       {
         state: mockInitialState,
       },
@@ -125,7 +127,7 @@ describe('StakingEarningsHistory', () => {
     });
 
     const { getByText, queryByText } = renderWithProvider(
-      <StakingEarningsHistory asset={MOCK_STAKED_ETH_ASSET} />,
+      <StakingEarningsHistory asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       {
         state: mockInitialState,
       },
@@ -281,7 +283,7 @@ describe('StakingEarningsHistory', () => {
     });
 
     const { getByText, queryByText } = renderWithProvider(
-      <StakingEarningsHistory asset={MOCK_STAKED_ETH_ASSET} />,
+      <StakingEarningsHistory asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       {
         state: mockInitialState,
       },
@@ -303,7 +305,7 @@ describe('StakingEarningsHistory', () => {
 
   it('calls onTimePeriodChange and updates the selected time period', () => {
     const { getByText } = renderWithProvider(
-      <StakingEarningsHistory asset={MOCK_STAKED_ETH_ASSET} />,
+      <StakingEarningsHistory asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       {
         state: mockInitialState,
       },

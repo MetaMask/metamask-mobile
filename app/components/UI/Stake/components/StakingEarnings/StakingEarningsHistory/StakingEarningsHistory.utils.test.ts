@@ -1,6 +1,6 @@
 import {
-  MOCK_STAKED_ETH_ASSET,
-  MOCK_USDC_ASSET,
+  MOCK_STAKED_ETH_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
 } from '../../../__mocks__/mockData';
 import {
   getEntryTimePeriodGroupInfo,
@@ -97,36 +97,36 @@ describe('StakingEarningsHistory Utils', () => {
 
   describe('formatRewardsWei', () => {
     it('should format rewards value with special characters', () => {
-      const result = formatRewardsWei('1', MOCK_STAKED_ETH_ASSET);
+      const result = formatRewardsWei('1', MOCK_STAKED_ETH_MAINNET_ASSET);
       expect(result).toBe('< 0.00001');
     });
 
     it('should format rewards value with special characters when asset.isETH is false', () => {
-      const result = formatRewardsWei('1', MOCK_USDC_ASSET);
+      const result = formatRewardsWei('1', MOCK_USDC_MAINNET_ASSET);
       expect(result).toBe('< 0.00001');
     });
 
     it('should format rewards value without special characters', () => {
-      const result = formatRewardsWei('1', MOCK_STAKED_ETH_ASSET, true);
+      const result = formatRewardsWei('1', MOCK_STAKED_ETH_MAINNET_ASSET, true);
       expect(result).toBe('0.000000000000000001');
     });
 
     it('should format rewards value without special characters when asset.isETH is false', () => {
-      const result = formatRewardsWei('1', MOCK_USDC_ASSET, true);
+      const result = formatRewardsWei('1', MOCK_USDC_MAINNET_ASSET, true);
       expect(result).toBe('0.000001');
     });
   });
 
   describe('formatRewardsNumber', () => {
     it('should format short rewards number correctly', () => {
-      const result = formatRewardsNumber(1.456, MOCK_STAKED_ETH_ASSET);
+      const result = formatRewardsNumber(1.456, MOCK_STAKED_ETH_MAINNET_ASSET);
       expect(result).toBe('1.456');
     });
 
     it('should format long rewards number with 5 decimals', () => {
       const result = formatRewardsNumber(
         1.456234265436536,
-        MOCK_STAKED_ETH_ASSET,
+        MOCK_STAKED_ETH_MAINNET_ASSET,
       );
       expect(result).toBe('1.45623');
     });
@@ -136,7 +136,7 @@ describe('StakingEarningsHistory Utils', () => {
     it('should format rewards to fiat currency', () => {
       const result = formatRewardsFiat(
         '1000000000000000000',
-        MOCK_STAKED_ETH_ASSET,
+        MOCK_STAKED_ETH_MAINNET_ASSET,
         'usd',
         2000,
         1,
@@ -147,7 +147,7 @@ describe('StakingEarningsHistory Utils', () => {
     it('should format rewards to fiat currency when asset.isETH is false', () => {
       const result = formatRewardsFiat(
         '1000000',
-        MOCK_USDC_ASSET,
+        MOCK_USDC_MAINNET_ASSET,
         'usd',
         2000,
         1,

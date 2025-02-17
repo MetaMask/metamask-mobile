@@ -194,6 +194,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         )}
 
         <StakingButtons
+          asset={asset}
           style={styles.buttonsContainer}
           hasEthToUnstake={hasEthToUnstake}
           hasStakedPositions={hasStakedPositions}
