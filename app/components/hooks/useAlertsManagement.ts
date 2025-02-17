@@ -94,5 +94,5 @@ function sortAlertsBySeverity(alerts: Alert[]): Alert[] {
     [Severity.Warning]: 2,
     [Severity.Info]: 1,
   };
-  return alerts.sort((a, b) => severityOrder[b.severity] - severityOrder[a.severity]);
+  return [...alerts].sort((a, b) => severityOrder[b.severity] - severityOrder[a.severity]);
 }
