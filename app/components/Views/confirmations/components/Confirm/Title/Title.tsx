@@ -9,6 +9,7 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { isSIWESignatureRequest } from '../../../utils/signature';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
+import { useStandaloneConfirmation } from '../../../hooks/useStandaloneConfirmation';
 import styleSheet from './Title.styles';
 
 const getTitleAndSubTitle = (
@@ -42,11 +43,16 @@ const Title = () => {
   const { approvalRequest } = useApprovalRequest();
   const signatureRequest = useSignatureRequest();
   const { styles } = useStyles(styleSheet, {});
+  const { isStandaloneConfirmation } = useStandaloneConfirmation();
 
   const { title, subTitle } = getTitleAndSubTitle(
     approvalRequest?.type,
     signatureRequest,
   );
+
+  if (isStandaloneConfirmation) {
+    return null;
+  }
 
   return (
     <View style={styles.titleContainer}>
