@@ -70,7 +70,7 @@ describe('multichain network controller', () => {
     );
   });
 
-  it('should throw and log error when controller creation fails', () => {
+  it('throws and logs an error when controller creation fails', () => {
     const mockError = new Error('Test error');
     jest.spyOn(console, 'error').mockImplementation();
     multichainNetworkControllerClassMock.mockImplementation(() => {
