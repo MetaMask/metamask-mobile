@@ -1,4 +1,4 @@
-import { ControllerMessenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/base-controller';
 import {
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerMessenger,
@@ -24,7 +24,7 @@ describe('RemoteFeatureFlagController utils', () => {
 
   beforeEach(() => {
     messenger =
-      new ControllerMessenger() as unknown as RemoteFeatureFlagControllerMessenger;
+      new Messenger() as unknown as RemoteFeatureFlagControllerMessenger;
     jest.clearAllMocks();
   });
 

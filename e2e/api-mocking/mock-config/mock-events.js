@@ -34,8 +34,7 @@ export const mockEvents = {
       response: suggestedGasFeesApiGanache,
       responseCode: 200,
     },
-
-    remoteFeatureFlags: {
+    remoteFeatureFlagsOldConfirmations: {
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
       response: [
@@ -47,6 +46,22 @@ export const mockEvents = {
           },
         },
         { confirmation_redesign: { signatures: false } },
+      ],
+      responseCode: 200,
+    },
+
+    remoteFeatureFlagsReDesignedConfirmations: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          mobileMinimumVersions: {
+            appMinimumBuild: 1243,
+            appleMinimumOS: 6,
+            androidMinimumAPIVersion: 21,
+          },
+        },
+        { confirmation_redesign: { signatures: true } },
       ],
       responseCode: 200,
     },

@@ -1,9 +1,20 @@
-// eslint-disable-next-line import/no-namespace
-import * as AddressUtils from '../../../../util/address';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { personalSignatureConfirmationState } from '../../../../util/test/confirm-data-helpers';
+import { ApprovalType } from '@metamask/controller-utils';
+import { TransactionType } from '@metamask/transaction-controller';
+import { merge, cloneDeep } from 'lodash';
 
+// eslint-disable-next-line import/no-namespace
+import { isExternalHardwareAccount } from '../../../../util/address';
+import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import {
+  personalSignatureConfirmationState,
+  stakingDepositConfirmationState,
+} from '../../../../util/test/confirm-data-helpers';
 import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled';
+
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isExternalHardwareAccount: jest.fn(),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -21,24 +32,152 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 describe('useConfirmationRedesignEnabled', () => {
-  it('return true for personal sign request', async () => {
-    const { result } = renderHookWithProvider(
-      () => useConfirmationRedesignEnabled(),
-      {
-        state: personalSignatureConfirmationState,
-      },
-    );
-    expect(result?.current.isRedesignedEnabled).toBeTruthy();
+  describe('signature confirmations', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (isExternalHardwareAccount as jest.Mock).mockReturnValue(true);
+    });
+
+    it('returns true for personal sign request', async () => {
+      (isExternalHardwareAccount as jest.Mock).mockReturnValue(false);
+      const { result } = renderHookWithProvider(
+        useConfirmationRedesignEnabled,
+        {
+          state: personalSignatureConfirmationState,
+        },
+      );
+
+      expect(result.current.isRedesignedEnabled).toBe(true);
+    });
+
+    it('returns false for external accounts', async () => {
+      const { result } = renderHookWithProvider(
+        useConfirmationRedesignEnabled,
+        {
+          state: personalSignatureConfirmationState,
+        },
+      );
+
+      expect(result.current.isRedesignedEnabled).toBe(false);
+    });
+
+    it('returns false when remote flag is disabled', async () => {
+      const state = merge(personalSignatureConfirmationState, {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                confirmation_redesign: {
+                  signatures: false,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result } = renderHookWithProvider(
+        useConfirmationRedesignEnabled,
+        {
+          state,
+        },
+      );
+
+      expect(result.current.isRedesignedEnabled).toBe(false);
+    });
   });
 
-  it('return false for external accounts', async () => {
-    jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
-    const { result } = renderHookWithProvider(
-      () => useConfirmationRedesignEnabled(),
-      {
-        state: personalSignatureConfirmationState,
-      },
-    );
-    expect(result?.current.isRedesignedEnabled).toBeFalsy();
+  describe('transaction redesigned confirmations', () => {
+    describe('staking confirmations', () => {
+      describe('staking deposit', () => {
+        it('returns true when enabled', async () => {
+          const { result } = renderHookWithProvider(
+            useConfirmationRedesignEnabled,
+            {
+              state: stakingDepositConfirmationState,
+            },
+          );
+
+          expect(result.current.isRedesignedEnabled).toBe(true);
+        });
+
+        it('returns false when remote flag is disabled', async () => {
+          const withDisabledFlag = cloneDeep(stakingDepositConfirmationState);
+          withDisabledFlag.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.confirmation_redesign.staking_transactions =
+            false;
+          const { result } = renderHookWithProvider(
+            useConfirmationRedesignEnabled,
+            {
+              state: withDisabledFlag,
+            },
+          );
+
+          expect(result.current.isRedesignedEnabled).toBe(false);
+        });
+
+        it('returns false when transactionMeta is not present', async () => {
+          const withoutTransactions = cloneDeep(
+            stakingDepositConfirmationState,
+          );
+          withoutTransactions.engine.backgroundState.TransactionController.transactions =
+            [];
+
+          const { result } = renderHookWithProvider(
+            useConfirmationRedesignEnabled,
+            {
+              state: withoutTransactions,
+            },
+          );
+
+          expect(result.current.isRedesignedEnabled).toBe(false);
+        });
+
+        it('returns false when approval type is not transaction', async () => {
+          const approvalId =
+            stakingDepositConfirmationState.engine.backgroundState
+              .TransactionController.transactions[0].id;
+
+          const state = merge(stakingDepositConfirmationState, {
+            engine: {
+              backgroundState: {
+                ApprovalController: {
+                  pendingApprovals: {
+                    [approvalId]: {
+                      type: 'not_transaction' as ApprovalType,
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          const { result } = renderHookWithProvider(
+            useConfirmationRedesignEnabled,
+            {
+              state,
+            },
+          );
+
+          expect(result.current.isRedesignedEnabled).toBe(false);
+        });
+
+        it('only redesign if transactions is staking deposit', async () => {
+          const withBridgeTransaction = cloneDeep(
+            stakingDepositConfirmationState,
+          );
+          withBridgeTransaction.engine.backgroundState.TransactionController.transactions[0].type =
+            TransactionType.bridge;
+
+          const { result } = renderHookWithProvider(
+            useConfirmationRedesignEnabled,
+            {
+              state: withBridgeTransaction,
+            },
+          );
+
+          expect(result.current.isRedesignedEnabled).toBe(false);
+        });
+      });
+    });
   });
 });

@@ -16,7 +16,7 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 
 describe(SmokeConfirmations('Typed Sign V4'), () => {
   const testSpecificMock = {
-    GET: [mockEvents.GET.remoteFeatureFlags],
+    GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
   };
 
   beforeAll(async () => {

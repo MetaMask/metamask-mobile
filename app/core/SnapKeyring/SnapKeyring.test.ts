@@ -1,5 +1,5 @@
-import { ControllerMessenger } from '@metamask/base-controller';
-import { EthAccountType, EthScopes, KeyringEvent } from '@metamask/keyring-api';
+import { Messenger } from '@metamask/base-controller';
+import { EthAccountType, EthScope, KeyringEvent } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { snapKeyringBuilder } from './SnapKeyring';
 import {
@@ -15,7 +15,6 @@ const mockEndFlow = jest.fn();
 const mockGetAccounts = jest.fn();
 const mockSnapId: SnapId = 'snapId' as SnapId;
 const mockSnapName = 'mock-snap';
-const mockSnapController = jest.fn();
 const mockPersisKeyringHelper = jest.fn();
 const mockSetSelectedAccount = jest.fn();
 const mockRemoveAccountHelper = jest.fn();
@@ -35,7 +34,7 @@ const mockAccount = {
 };
 const mockInternalAccount: InternalAccount = {
   ...mockAccount,
-  scopes: [EthScopes.Namespace],
+  scopes: [EthScope.Eoa],
   metadata: {
     snap: {
       enabled: true,
@@ -55,7 +54,7 @@ const createControllerMessenger = ({
 }: {
   account?: InternalAccount;
 } = {}): SnapKeyringBuilderMessenger => {
-  const messenger = new ControllerMessenger<
+  const messenger = new Messenger<
     SnapKeyringBuilderAllowActions,
     never
   >().getRestricted({
@@ -109,7 +108,6 @@ const createControllerMessenger = ({
 const createSnapKeyringBuilder = () =>
   snapKeyringBuilder(
     createControllerMessenger(),
-    mockSnapController,
     mockPersisKeyringHelper,
     mockRemoveAccountHelper,
   );
