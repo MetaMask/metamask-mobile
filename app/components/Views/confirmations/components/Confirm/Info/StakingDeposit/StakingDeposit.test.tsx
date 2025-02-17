@@ -1,3 +1,5 @@
+import React from 'react';
+
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import StakingDeposit from './StakingDeposit';
