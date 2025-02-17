@@ -42,7 +42,6 @@ const mockAlerts = [
     message: ALERT_MESSAGE_MOCK,
     severity: Severity.Info,
     alertDetails: ALERT_DETAILS_MOCK,
-    action: ALERT_ACTION_MOCK,
   },
 ];
 
@@ -79,6 +78,7 @@ describe('AlertModal', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
       alertKey: 'alert3', // Info
+      title: undefined,
     });
     const { getByTestId: getByTestIdInfo } = render(<AlertModal />);
     const iconInfo = getByTestIdInfo('alert-modal-icon');

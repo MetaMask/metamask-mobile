@@ -72,7 +72,7 @@ const Content: React.FC<ContentProps> = ({ backgroundColor, selectedAlert, style
           {strings('alert_system.alert_modal.alert_details')}
         </Text>
         {selectedAlert.alertDetails?.map((detail, index) => (
-          <Text key={index} style={styles.detailsText} variant={TextVariant.BodyMD}>
+          <Text key={`details-${index}`} style={styles.detailsText} variant={TextVariant.BodyMD}>
             {'• ' + detail}
           </Text>
         ))}
@@ -196,7 +196,7 @@ const AlertModal = () => {
           />
         </View>
         <Buttons
-          hideAlertModal={hideAlertModal}
+          hideAlertModal={handleClose}
           action={selectedAlert.action}
           styles={styles}
           onHandleActionClick={handleActionClick}
