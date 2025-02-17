@@ -236,6 +236,7 @@ import {
   SnapKeyringAccountBalancesUpdatedEvent,
   SnapKeyringAccountTransactionsUpdatedEvent,
 } from '../SnapKeyring/constants';
+import { isTest } from '../../util/test/utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1079,7 +1080,7 @@ export class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       env: {
-        isAccountSyncingEnabled: Boolean(process.env.IS_TEST),
+        isAccountSyncingEnabled: Boolean(isTest),
       },
       config: {
         accountSyncing: {
@@ -1231,13 +1232,13 @@ export class Engine {
         networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
       hooks: {
-        publish: (transactionMeta) => {          
+        publish: (transactionMeta) => {
           const state = store.getState();
           const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
             state,
           );
           const swapsQuotes = selectSwapsQuotes(state);
-          // We can choose the top agg id for now. Once selection is enabled, we need 
+          // We can choose the top agg id for now. Once selection is enabled, we need
           // to look for a selected agg id.
           const swapsTopAggId = selectSwapsTopAggId(state);
           const selectedQuote = swapsQuotes?.[swapsTopAggId];

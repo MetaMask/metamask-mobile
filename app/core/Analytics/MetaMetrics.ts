@@ -518,6 +518,9 @@ class MetaMetrics implements IMetaMetrics {
           )}`,
         );
 
+      // When testing MetaMetrics + Segment, the client creation needs to be
+      // forced as locally isTest will always be true
+      // Ref: const segmentClient = createClient(config);
       const segmentClient = isTest ? undefined : createClient(config);
       segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin() });
 

@@ -9,6 +9,9 @@ process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.PORTFOLIO_VIEW = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 
+// Enables the unit tests dependent on the isTest flag
+process.env.METAMASK_ENVIRONMENT = 'production';
+
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
 
