@@ -53,6 +53,9 @@ jest.mock('../../../../../core/Engine', () => ({
       }),
       findNetworkClientIdByChainId: () => 'mainnet',
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
   },
 }));
 

@@ -76,6 +76,9 @@ jest.mock('../../../core/Engine', () => ({
         ],
       }),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
       setTokenNetworkFilter: jest.fn(),
@@ -322,7 +325,9 @@ describe('Network Selector', () => {
 
     fireEvent.press(polygonCell);
 
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+    expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).toBeCalled();
   });
 
   it('toggles the test networks switch correctly', () => {
@@ -401,7 +406,9 @@ describe('Network Selector', () => {
 
     fireEvent.press(gnosisCell);
 
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+    expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).toBeCalled();
   });
 
   it('changes to test network when another network cell is pressed', async () => {
@@ -469,7 +476,9 @@ describe('Network Selector', () => {
 
     fireEvent.press(sepoliaCell);
 
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+    expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).toBeCalled();
   });
 
   it('renders correctly with no network configurations', async () => {
