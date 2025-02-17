@@ -1,7 +1,11 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
-import { BtcAccountType } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  EthAccountType,
+  EthScope,
+} from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
 import {
@@ -85,7 +89,7 @@ describe('Accounts Controller Selectors', () => {
         address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
         id: expectedUuid2,
         options: {},
-        scopes: ['eip155'],
+        scopes: [EthScope.Eoa],
         metadata: {
           name: 'Account 2',
           importTime: 1684232000456,
@@ -100,7 +104,7 @@ describe('Accounts Controller Selectors', () => {
           'eth_signTypedData_v3',
           'eth_signTypedData_v4',
         ],
-        type: 'eip155:eoa',
+        type: EthAccountType.Eoa,
       });
     });
     it('throws an error if the selected account ID does not exist', () => {

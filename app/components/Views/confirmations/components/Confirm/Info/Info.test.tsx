@@ -10,6 +10,13 @@ import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareCo
 import Info from './Info';
 import { Text } from 'react-native';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: jest.fn(),
+  }),
+}));
+
 const MockText = Text;
 jest.mock('./QRInfo', () => () => <MockText>QR Scanning Component</MockText>);
 
