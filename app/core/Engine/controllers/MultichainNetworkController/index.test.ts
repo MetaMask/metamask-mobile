@@ -50,7 +50,7 @@ describe('multichain network controller', () => {
     );
   });
 
-  it('controller state should be initial state when initial state is passed in', () => {
+  it('it has initial state when initial state is passed in', () => {
     const initialMultichainNetworkControllerState: MultichainNetworkControllerState =
       {
         multichainNetworkConfigurationsByChainId: {},
