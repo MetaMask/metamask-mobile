@@ -1570,7 +1570,7 @@ class Amount extends PureComponent {
             <StyledButton
               type={'confirm'}
               containerStyle={styles.buttonNext}
-              disabled={!estimatedTotalGas}
+              disabled={!this.props.selectedAsset.tokenId && !estimatedTotalGas}
               onPress={this.onNext}
               testID={AmountViewSelectorsIDs.NEXT_BUTTON}
             >
