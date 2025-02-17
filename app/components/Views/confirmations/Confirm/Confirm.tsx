@@ -12,6 +12,7 @@ import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwa
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
+import { useStandaloneConfirmation } from '../hooks/useStandaloneConfirmation';
 import styleSheet from './Confirm.styles';
 
 const ConfirmWrapped = () => (
@@ -33,11 +34,20 @@ export const Confirm = () => {
   const { approvalRequest } = useApprovalRequest();
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
+  const { isStandaloneConfirmation } = useStandaloneConfirmation();
 
   const { styles } = useStyles(styleSheet, {});
 
   if (!isRedesignedEnabled) {
     return null;
+  }
+
+  if (isStandaloneConfirmation) {
+    return (
+      <View style={styles.standaloneContainer}>
+        <ConfirmWrapped styles={styles} />
+      </View>
+    );
   }
 
   if (isFlatConfirmation) {

@@ -2,6 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import StakeInputView from '../Views/StakeInputView/StakeInputView';
 import Routes from '../../../../constants/navigation/Routes';
+import { Confirm } from '../../../Views/confirmations/Confirm/Confirm';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
 import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
 import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeConfirmationView';
@@ -11,7 +12,6 @@ import GasImpactModal from '../components/GasImpactModal';
 import StakeEarningsHistoryView from '../Views/StakeEarningsHistoryView/StakeEarningsHistoryView';
 import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
 import EarnTokenList from '../components/EarnTokenList';
-import StakingDeposit from '../../../Views/confirmations/components/Confirm/Info/StakingDeposit/StakingDeposit';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -47,7 +47,7 @@ const StakeScreenStack = () => (
       />
       <Stack.Screen
         name={Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT}
-        component={StakingDeposit}
+        component={Confirm}
       />
     </Stack.Navigator>
   </StakeSDKProvider>
