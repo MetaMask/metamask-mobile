@@ -14,6 +14,7 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   AccountsControllerAccountRemovedEvent as AccountsControllerAccountRemovedEventType,
   AccountsControllerListMultichainAccountsAction as AccountsControllerListMultichainAccountsActionType,
+  AccountsControllerAccountAssetListUpdatedEvent as AccountsControllerAccountAssetListUpdatedEventType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/accounts-controller';
 
@@ -51,4 +52,6 @@ export const AccountsControllerAccountRenamedEvent: AccountsControllerAccountRen
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 export const AccountsControllerAccountRemovedEvent: AccountsControllerAccountRemovedEventType['type'] =
   'AccountsController:accountRemoved';
+export const AccountsControllerAccountAssetListUpdatedEvent: AccountsControllerAccountAssetListUpdatedEventType['type'] =
+  'AccountsController:accountAssetListUpdated';
 ///: END:ONLY_INCLUDE_IF

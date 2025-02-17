@@ -4,6 +4,7 @@ import { getGanachePort } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { SolScope } from '@metamask/keyring-api';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -435,6 +436,15 @@ class FixtureBuilder {
               isFetchingMetamaskNotifications: false,
               isUpdatingMetamaskNotificationsAccount: [],
               isCheckingAccountsPresence: false,
+            },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: SolScope.Mainnet,
+              multichainNetworkConfigurationsByChainId: {},
+              isEvmSelected: true,
+            },
+            MultichainAssetsController: {
+              accountsAssets: {},
+              assetsMetadata: {},
             },
           },
         },

@@ -1,11 +1,7 @@
 import React from 'react';
 import NonEvmTokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import {
-  MultichainNetworks,
-  MultichainNativeAssets,
-  Cryptocurrency,
-} from '@metamask/assets-controllers';
+import { Cryptocurrency } from '@metamask/assets-controllers';
 import { MULTICHAIN_PROVIDER_CONFIGS } from '../../../core/Multichain/constants';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import {
@@ -14,6 +10,8 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
+import { MultichainNativeAssets } from '../../../selectors/multichain';
 
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
@@ -46,7 +44,7 @@ const initialState = {
       },
       AccountTrackerController: {
         accountsByChainId: {
-          [MultichainNetworks.Solana]: {
+          [SolScope.Mainnet]: {
             [MOCK_SOLANA_ACCOUNT.address]: {
               balance: '5.5',
             },
@@ -76,16 +74,15 @@ const initialState = {
       },
       MultichainController: {
         selectedNetwork: {
-          chainId: MultichainNetworks.Solana,
-          nickname:
-            MULTICHAIN_PROVIDER_CONFIGS[MultichainNetworks.Solana].nickname,
+          chainId: SolScope.Mainnet,
+          nickname: MULTICHAIN_PROVIDER_CONFIGS[SolScope.Mainnet].nickname,
           isEvmNetwork: false,
         },
         defaultToken: {
           symbol: 'SOL',
           decimals: 9,
           isNative: true,
-          name: MULTICHAIN_PROVIDER_CONFIGS[MultichainNetworks.Solana].nickname,
+          name: MULTICHAIN_PROVIDER_CONFIGS[SolScope.Mainnet].nickname,
         },
         selectedAccountCachedBalance: '5.5',
       },

@@ -26,6 +26,7 @@ import {
   SnapKeyringAccountBalancesUpdatedEvent,
   SnapKeyringAccountTransactionsUpdatedEvent,
 } from '../../../SnapKeyring/constants';
+import { MultichainNetworkControllerNetworkDidChangeEvent } from '@metamask/multichain-network-controller';
 
 jest.mock('@sentry/react-native', () => ({
   withScope: jest.fn(),
@@ -52,6 +53,7 @@ describe('accountControllersUtils', () => {
         | KeyringControllerAccountRemovedEvent
         | KeyringControllerStateChangeEvent
         | SnapKeyringEvents
+        | MultichainNetworkControllerNetworkDidChangeEvent
       >();
       accountsControllerMessenger = globalMessenger.getRestricted({
         name: 'AccountsController',
@@ -62,6 +64,7 @@ describe('accountControllersUtils', () => {
           SnapKeyringAccountAssetListUpdatedEvent,
           SnapKeyringAccountBalancesUpdatedEvent,
           SnapKeyringAccountTransactionsUpdatedEvent,
+          'MultichainNetworkController:networkDidChange',
         ],
         allowedActions: [
           'KeyringController:getAccounts',
