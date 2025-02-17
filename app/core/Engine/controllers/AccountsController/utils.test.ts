@@ -20,6 +20,12 @@ import { AGREED, METRICS_OPT_IN } from '../../../../constants/storage';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { logAccountsControllerCreation } from './logger';
 import { SnapControllerStateChangeEvent } from '../SnapController/constants';
+import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
+import {
+  SnapKeyringAccountAssetListUpdatedEvent,
+  SnapKeyringAccountBalancesUpdatedEvent,
+  SnapKeyringAccountTransactionsUpdatedEvent,
+} from '../../../SnapKeyring/constants';
 
 jest.mock('@sentry/react-native', () => ({
   withScope: jest.fn(),
@@ -45,14 +51,17 @@ describe('accountControllersUtils', () => {
         | SnapStateChange
         | KeyringControllerAccountRemovedEvent
         | KeyringControllerStateChangeEvent
+        | SnapKeyringEvents
       >();
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       accountsControllerMessenger = globalMessenger.getRestricted({
         name: 'AccountsController',
         allowedEvents: [
           SnapControllerStateChangeEvent,
           'KeyringController:accountRemoved',
           'KeyringController:stateChange',
+          SnapKeyringAccountAssetListUpdatedEvent,
+          SnapKeyringAccountBalancesUpdatedEvent,
+          SnapKeyringAccountTransactionsUpdatedEvent,
         ],
         allowedActions: [
           'KeyringController:getAccounts',
