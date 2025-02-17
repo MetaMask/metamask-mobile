@@ -15,7 +15,7 @@ const styles = createStyles();
 export let createWebView: (jobId: string) => Promise<WebViewInterface>;
 export let removeWebView: (jobId: string) => void;
 
-type WebViewState = {
+interface WebViewState {
   ref?: WebView;
   listener?: (event: PostMessageEvent) => void;
   props: any;
@@ -55,25 +55,25 @@ export class SnapsExecutionWebView extends Component {
               this.webViews[jobId].listener = undefined;
             }
           },
-        }
+        };
         resolve(api);
-      }
+      };
 
       const onWebViewMessage = (data: WebViewMessageEvent) => {
         if (this.webViews[jobId]?.listener) {
           this.webViews[jobId].listener(data.nativeEvent as any);
         }
-      }
+      };
 
       const onWebViewError = (error: NativeSyntheticEvent<WebViewError>) => {
         reject(error);
-      }
+      };
 
       const setWebViewRef = (ref: WebView<{ any: any }>) => {
         if (this.webViews[jobId]) {
           this.webViews[jobId].ref = ref;
         }
-      }
+      };
 
       this.webViews[jobId] = {
         props: {
@@ -82,8 +82,8 @@ export class SnapsExecutionWebView extends Component {
           onWebViewMessage,
           ref: setWebViewRef
         }
-      }
-    })
+      };
+    });
 
     // Force re-render.
     this.forceUpdate();
