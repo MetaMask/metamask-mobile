@@ -8,6 +8,7 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
 import { NetworkAddedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkAddedBottomSheet.selectors';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -112,5 +113,77 @@ describe('NetworkDetails', () => {
       [props.networkConfiguration.chainId]: true,
     });
     expect(mockDispatch).toHaveBeenCalled();
+  });
+
+  it('should call setActiveNetwork when adding a new network', async () => {
+    const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
+
+    const approveButton = getByTestId(
+      NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+    );
+    fireEvent.press(approveButton);
+
+    const switchButton = getByTestId(
+      NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+    );
+
+    // Mock the addNetwork response to include networkClientId
+    (
+      Engine.context.NetworkController.addNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [{ networkClientId: 'test-network-id' }],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    await act(async () => {
+      fireEvent.press(switchButton);
+    });
+
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).toHaveBeenCalledWith('test-network-id');
+  });
+
+  it('should call setActiveNetwork when updating an existing network', async () => {
+    // Mock existing network configuration
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectNetworkName) return 'Ethereum Main Network';
+      if (selector === selectUseSafeChainsListValidation) return true;
+      if (selector === selectNetworkConfigurations)
+        return {
+          '0x1': {
+            chainId: '0x1',
+            // ... other network properties
+          },
+        };
+      return {};
+    });
+
+    const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
+
+    const approveButton = getByTestId(
+      NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+    );
+    fireEvent.press(approveButton);
+
+    const switchButton = getByTestId(
+      NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+    );
+
+    // Mock the updateNetwork response to include networkClientId
+    (
+      Engine.context.NetworkController.updateNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [{ networkClientId: 'existing-network-id' }],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    await act(async () => {
+      fireEvent.press(switchButton);
+    });
+
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).toHaveBeenCalledWith('existing-network-id');
   });
 });
