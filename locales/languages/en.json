@@ -3454,6 +3454,10 @@
       "stake_annual_rate_tooltip": "Annual rate tooltip"
     },
     "estimated_annual_rewards": "Estimated annual rewards",
+    "estimated_annual_reward": "Est. annual reward",
+    "reward_frequency": "Reward frequency",
+    "reward_frequency_tooltip": "Your staked balance updates every {{frequency}} to account for new rewards.",
+    "withdrawal_time": "Withdrawal time",
     "metamask_pool": "MetaMask Pool",
     "enter_amount": "Enter amount",
     "review": "Review",
