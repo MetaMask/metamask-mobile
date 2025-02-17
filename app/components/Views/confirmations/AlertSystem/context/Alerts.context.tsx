@@ -1,104 +1,70 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { Alert } from '../../types/confirm-alerts';
-import useConfirmationAlerts from '../../hooks/useConfirmationAlerts';
-import { useAlertsManagement } from '../../../../hooks/useAlertsManagement';
+import { Alert, Severity } from '../../types/alerts';
 
 export interface AlertsContextParams {
   alertModalVisible: boolean;
   alerts: Alert[];
-  alertKey?: string;
   dangerAlerts: Alert[];
   fieldAlerts: Alert[];
   generalAlerts: Alert[];
   hasAlerts: boolean;
   hasDangerAlerts: boolean;
-  hasUnconfirmedDangerAlerts: boolean;
-  hasUnconfirmedFieldDangerAlerts: boolean;
   hideAlertModal: () => void;
-  isAlertConfirmed: (key: string) => boolean;
-  setAlertConfirmed: (key: string, confirmed: boolean) => void;
-  setAlertKey: (key: string) => void;
   showAlertModal: () => void;
-  unconfirmedDangerAlerts: Alert[];
-  unconfirmedFieldDangerAlerts: Alert[];
 }
 
 const AlertsContext = React.createContext<AlertsContextParams>({
   alertModalVisible: true,
   alerts: [],
-  alertKey: undefined,
   dangerAlerts: [],
   fieldAlerts: [],
   generalAlerts: [],
   hasAlerts: false,
   hasDangerAlerts: false,
-  hasUnconfirmedDangerAlerts: false,
-  hasUnconfirmedFieldDangerAlerts: false,
   hideAlertModal: () => undefined,
-  isAlertConfirmed: () => false,
-  setAlertConfirmed: () => undefined,
-  setAlertKey: () => undefined,
   showAlertModal: () => undefined,
-  unconfirmedDangerAlerts: [],
-  unconfirmedFieldDangerAlerts: [],
 });
 
-export const AlertsContextProvider: React.FC = ({ children }) => {
-  const confirmationAlerts = useConfirmationAlerts();
-  const {
-    alerts,
-    alertKey,
-    dangerAlerts,
-    fieldAlerts,
-    generalAlerts,
-    hasAlerts,
-    hasDangerAlerts,
-    hasUnconfirmedDangerAlerts,
-    hasUnconfirmedFieldDangerAlerts,
-    isAlertConfirmed,
-    setAlertConfirmed,
-    setAlertKey,
-    unconfirmedDangerAlerts,
-    unconfirmedFieldDangerAlerts,
-  } = useAlertsManagement(confirmationAlerts);
+interface AlertsContextProviderProps {
+  alerts: Alert[];
+}
 
+export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ children, alerts }) => {
   const [alertModalVisible, setAlertModalVisible] = useState(false);
 
-  const contextValue = useMemo(() => ({
+  /**
+   * Sorted alerts by severity.
+   */
+  const alertsMemo = useMemo(() => sortAlertsBySeverity(alerts), [alerts]);
+
+  /**
+   * General alerts (alerts without a specific field).
+   */
+  const generalAlerts = useMemo(() => alertsMemo.filter(alertSelected => alertSelected.field === undefined), [alertsMemo]);
+
+  /**
+   * Field alerts (alerts with a specific field).
+   */
+  const fieldAlerts = useMemo(() => alertsMemo.filter(alertSelected => alertSelected.field !== undefined), [alertsMemo]);
+
+  /**
+   * Danger alerts.
+   */
+  const dangerAlerts = useMemo(() => alertsMemo.filter(
+    alertSelected => alertSelected.severity === Severity.Danger
+  ), [alertsMemo]);
+
+  const contextValue = {
     alertModalVisible,
-    alerts,
-    alertKey,
+    alerts: alertsMemo,
     dangerAlerts,
     fieldAlerts,
     generalAlerts,
-    hasAlerts,
-    hasDangerAlerts,
-    hasUnconfirmedDangerAlerts,
-    hasUnconfirmedFieldDangerAlerts,
+    hasAlerts: alertsMemo.length > 0,
+    hasDangerAlerts: dangerAlerts.length > 0,
     hideAlertModal: () => setAlertModalVisible(false),
-    isAlertConfirmed,
-    setAlertConfirmed,
-    setAlertKey: (key: string) => setAlertKey(key),
     showAlertModal: () => setAlertModalVisible(true),
-    unconfirmedDangerAlerts,
-    unconfirmedFieldDangerAlerts,
-  }), [
-    alertModalVisible,
-    alerts,
-    alertKey,
-    dangerAlerts,
-    fieldAlerts,
-    generalAlerts,
-    hasAlerts,
-    hasDangerAlerts,
-    hasUnconfirmedDangerAlerts,
-    hasUnconfirmedFieldDangerAlerts,
-    isAlertConfirmed,
-    setAlertConfirmed,
-    setAlertKey,
-    unconfirmedDangerAlerts,
-    unconfirmedFieldDangerAlerts,
-  ]);
+  };
 
   return (
     <AlertsContext.Provider value={contextValue}>
@@ -114,3 +80,17 @@ export const useAlerts = () => {
   }
   return context;
 };
+
+/**
+ * Sorts alerts by severity.
+ * @param alerts - Array of alerts to sort.
+ * @returns Sorted array of alerts.
+ */
+function sortAlertsBySeverity(alerts: Alert[]): Alert[] {
+  const severityOrder = {
+    [Severity.Danger]: 3,
+    [Severity.Warning]: 2,
+    [Severity.Info]: 1,
+  };
+  return [...alerts].sort((a, b) => severityOrder[b.severity] - severityOrder[a.severity]);
+}

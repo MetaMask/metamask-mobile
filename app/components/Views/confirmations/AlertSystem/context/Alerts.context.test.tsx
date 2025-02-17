@@ -1,8 +1,7 @@
 import React from 'react';
 import { act, renderHook } from '@testing-library/react-hooks';
-import { Severity, Alert } from '../../types/confirm-alerts';
+import { Severity, Alert } from '../../types/alerts';
 import { useAlerts, AlertsContextProvider, AlertsContextParams } from './Alerts.context';
-import useConfirmationAlerts from '../../hooks/useConfirmationAlerts';
 
 jest.mock('../../hooks/useConfirmationAlerts', () => ({
   __esModule: true,
@@ -34,14 +33,15 @@ describe('AlertsContext', () => {
 
   const alertsMock = [dangerAlertMock, warningAlertMock, infoAlertMock];
 
-    beforeEach(() => {
-      (useConfirmationAlerts as jest.Mock).mockReturnValue(alertsMock);
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    const renderHookWithProvider = (hook: () => AlertsContextParams) => renderHook(hook, {
-      wrapper: ({ children }) => <AlertsContextProvider>{children}</AlertsContextProvider>,
-    });
+  const renderHookWithProvider = (hook: () => AlertsContextParams) => renderHook(hook, {
+    wrapper: ({ children }) => <AlertsContextProvider alerts={alertsMock}>{children}</AlertsContextProvider>,
+  });
 
+  describe('useAlerts', () => {
     it('provides the correct context values', () => {
       const { result } = renderHookWithProvider(() => useAlerts());
 
@@ -51,29 +51,8 @@ describe('AlertsContext', () => {
       expect(result.current.generalAlerts).toBeDefined();
       expect(result.current.hasAlerts).toBeDefined();
       expect(result.current.hasDangerAlerts).toBeDefined();
-      expect(result.current.hasUnconfirmedDangerAlerts).toBeDefined();
-      expect(result.current.hasUnconfirmedFieldDangerAlerts).toBeDefined();
       expect(result.current.hideAlertModal).toBeDefined();
-      expect(result.current.isAlertConfirmed).toBeDefined();
-      expect(result.current.setAlertConfirmed).toBeDefined();
-      expect(result.current.setAlertKey).toBeDefined();
       expect(result.current.showAlertModal).toBeDefined();
-      expect(result.current.unconfirmedDangerAlerts).toBeDefined();
-      expect(result.current.unconfirmedFieldDangerAlerts).toBeDefined();
-    });
-
-    it('provides setAlertConfirmed and isAlertConfirmed functions', () => {
-      const { result } = renderHookWithProvider(() => useAlerts());
-
-      act(() => {
-        result.current.setAlertConfirmed(dangerAlertMock.key, true);
-      });
-      expect(result.current.isAlertConfirmed(dangerAlertMock.key)).toBe(true);
-
-      act(() => {
-        result.current.setAlertConfirmed(dangerAlertMock.key, false);
-      });
-      expect(result.current.isAlertConfirmed(dangerAlertMock.key)).toBe(false);
     });
 
     it('provides showAlertModal and hideAlertModal functions', () => {
@@ -92,19 +71,10 @@ describe('AlertsContext', () => {
       expect(result.current.alertModalVisible).toBe(false);
     });
 
-    it('provides setAlertKey function', () => {
-      const { result } = renderHookWithProvider(() => useAlerts());
-
-      act(() => {
-        result.current.setAlertKey('alert2');
-      });
-      expect(result.current.alertKey).toBe('alert2');
-    });
-
     it('context value is correct when there are no alerts', () => {
-      (useConfirmationAlerts as jest.Mock).mockReturnValue([]);
-
-      const { result } = renderHookWithProvider(() => useAlerts());
+      const { result } = renderHook(() => useAlerts(), {
+        wrapper: ({ children }) => <AlertsContextProvider alerts={[]}>{children}</AlertsContextProvider>,
+      });
 
       expect(result.current.alerts).toEqual([]);
       expect(result.current.dangerAlerts).toEqual([]);
@@ -112,17 +82,39 @@ describe('AlertsContext', () => {
       expect(result.current.generalAlerts).toEqual([]);
       expect(result.current.hasAlerts).toBe(false);
       expect(result.current.hasDangerAlerts).toBe(false);
-      expect(result.current.hasUnconfirmedDangerAlerts).toBe(false);
-      expect(result.current.hasUnconfirmedFieldDangerAlerts).toBe(false);
-      expect(result.current.unconfirmedDangerAlerts).toEqual([]);
-      expect(result.current.unconfirmedFieldDangerAlerts).toEqual([]);
     });
-});
+  });
 
-describe('AlertsContextProvider', () => {
-  it('should throw error is not wrapped in AlertsContextProvider', () => {
-    expect(() => {
-      useAlerts();
-    }).toThrow();
+  describe('useAlertsManagement', () => {
+    it('returns all alerts', () => {
+      const { result } = renderHookWithProvider(() => useAlerts());
+      expect(result.current.alerts).toEqual(alertsMock);
+      expect(result.current.hasAlerts).toEqual(true);
+    });
+
+    it('returns alerts ordered by severity', () => {
+      const { result } = renderHookWithProvider(() => useAlerts());
+      const orderedAlerts = result.current.alerts;
+      expect(orderedAlerts[0].severity).toEqual(Severity.Danger);
+    });
+
+    it('returns general alerts sorted by severity', () => {
+      const { result } = renderHookWithProvider(() => useAlerts());
+      const generalAlerts = result.current.generalAlerts;
+      expect(generalAlerts[0]?.severity).toEqual(Severity.Warning);
+    });
+
+    it('returns all alerts with field property', () => {
+      const { result } = renderHookWithProvider(() => useAlerts());
+      expect(result.current.fieldAlerts).toEqual([dangerAlertMock]);
+    });
+  });
+
+  describe('AlertsContextProvider', () => {
+    it('should throw error if not wrapped in AlertsContextProvider', () => {
+      expect(() => {
+        useAlerts();
+      }).toThrow();
+    });
   });
 });
