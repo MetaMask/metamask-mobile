@@ -245,10 +245,10 @@ import {
   SnapKeyringAccountBalancesUpdatedEvent,
   SnapKeyringAccountTransactionsUpdatedEvent,
 } from '../SnapKeyring/constants';
-import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
+import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -376,16 +376,19 @@ export class Engine {
 
     networkController.initializeProvider();
 
-    const multichainNetworkController = new MultichainNetworkController({
-      messenger: this.controllerMessenger.getRestricted({
+    const multichainNetworkControllerMessenger =
+      this.controllerMessenger.getRestricted({
         name: 'MultichainNetworkController',
         allowedActions: [
           'NetworkController:setActiveNetwork',
           'NetworkController:getState',
         ],
         allowedEvents: ['AccountsController:selectedAccountChange'],
-      }),
-      state: initialState.MultichainNetworkController,
+      });
+
+    const multichainNetworkController = createMultichainNetworkController({
+      messenger: multichainNetworkControllerMessenger,
+      initialState: initialState.MultichainNetworkController,
     });
 
     const assetsContractController = new AssetsContractController({
