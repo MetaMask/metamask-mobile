@@ -4,8 +4,15 @@ IOS_WORKFLOW_ID="build_ios_qa"
 OWNER="MetaMask"
 REPO="metamask-mobile"
 
-# Get tags with error checking
-TAGS_RESPONSE=$(curl -s "https://api.github.com/repos/$OWNER/$REPO/tags")
+# Check for GitHub token
+if [ -z "$GITHUB_TOKEN" ]; then
+    echo "Error: GITHUB_TOKEN is not set"
+    exit 1
+fi
+
+# Get tags with authentication
+TAGS_RESPONSE=$(curl -s -H "Authorization: token $GITHUB_ACCESS_TOKEN" \
+    "https://api.github.com/repos/$OWNER/$REPO/tags")
 if [ -z "$TAGS_RESPONSE" ] || [ "$TAGS_RESPONSE" = "null" ]; then
     echo "Error: Failed to fetch tags"
     echo "Response: $TAGS_RESPONSE"
