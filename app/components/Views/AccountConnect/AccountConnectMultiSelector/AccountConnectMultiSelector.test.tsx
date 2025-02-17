@@ -113,33 +113,6 @@ describe('AccountConnectMultiSelector', () => {
     ).toBeDefined();
   });
 
-  xit('handles select all checkbox correctly', () => {
-    const { getByText } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} />,
-      { state: { engine: { backgroundState } } },
-    );
-
-    const selectAllCheckbox = getByText('accounts.select_all');
-    fireEvent.press(selectAllCheckbox);
-
-    expect(mockOnSelectAddress).toHaveBeenCalledWith(['0x1234', '0x5678']);
-  });
-
-  xit('handles unselect all correctly', () => {
-    const { getByText } = renderWithProvider(
-      <AccountConnectMultiSelector
-        {...defaultProps}
-        selectedAddresses={['0x1234', '0x5678']}
-      />,
-      { state: { engine: { backgroundState } } },
-    );
-
-    const selectAllCheckbox = getByText('accounts.select_all');
-    fireEvent.press(selectAllCheckbox);
-
-    expect(mockOnSelectAddress).toHaveBeenCalledWith([]);
-  });
-
   it('shows update button when accounts are selected', () => {
     const { getByTestId } = renderWithProvider(
       <AccountConnectMultiSelector {...defaultProps} />,
@@ -151,30 +124,13 @@ describe('AccountConnectMultiSelector', () => {
     ).toBeDefined();
   });
 
-  xit('shows disconnect button when no accounts are selected', () => {
+  it('shows disconnect button when no accounts are selected', () => {
     const { getByTestId } = renderWithProvider(
       <AccountConnectMultiSelector {...defaultProps} selectedAddresses={[]} />,
       { state: { engine: { backgroundState } } },
     );
 
     expect(getByTestId(ConnectedAccountsSelectorsIDs.DISCONNECT)).toBeDefined();
-  });
-
-  xit('handles disconnect all action', () => {
-    const { getByTestId } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} selectedAddresses={[]} />,
-      { state: { engine: { backgroundState } } },
-    );
-
-    const disconnectButton = getByTestId(
-      ConnectedAccountsSelectorsIDs.DISCONNECT,
-    );
-    fireEvent.press(disconnectButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('Modal.RootModal', {
-      screen: 'Sheet.RevokeAllAccountPermissions',
-      params: expect.any(Object),
-    });
   });
 
   it('handles add account button press', () => {
@@ -208,19 +164,6 @@ describe('AccountConnectMultiSelector', () => {
 
     expect(mockOnPrimaryActionButtonPress).toHaveBeenCalled();
     expect(mockOnUserAction).not.toHaveBeenCalled();
-  });
-
-  xit('handles back button press', () => {
-    const { getByText } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} />,
-      { state: { engine: { backgroundState } } },
-    );
-
-    // Assuming SheetHeader renders a back button with text "back"
-    const backButton = getByText('back');
-    fireEvent.press(backButton);
-
-    expect(mockOnBack).toHaveBeenCalled();
   });
 
   it('disables update button when no changes are made', () => {
