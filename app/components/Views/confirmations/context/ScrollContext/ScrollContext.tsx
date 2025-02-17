@@ -81,6 +81,7 @@ export const ScrollContextProvider: React.FC<{
           style={styles.scrollButton}
           iconName={IconName.Arrow2Down}
           onPress={scrollToBottom}
+          testID="scroll-to-bottom-button"
         />
       )}
       <ScrollView

@@ -30,7 +30,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 describe('ScrollContext', () => {
-  it('should not disable confirm button if there is no scroll', () => {
+  it('does not disable confirm button if there is no scroll', () => {
     const { getByTestId } = renderWithProvider(
       <ScrollContextProvider
         scrollableSection={<Info />}
@@ -43,6 +43,19 @@ describe('ScrollContext', () => {
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
     ).toBe(false);
+  });
+
+  it('scroll button is not rendered if there is no scroll', () => {
+    const { queryByTestId } = renderWithProvider(
+      <ScrollContextProvider
+        scrollableSection={<Info />}
+        staticFooter={<Footer />}
+      />,
+      {
+        state: personalSignatureConfirmationState,
+      },
+    );
+    expect(queryByTestId('scroll-to-bottom-button')).toBeNull();
   });
 });
 
