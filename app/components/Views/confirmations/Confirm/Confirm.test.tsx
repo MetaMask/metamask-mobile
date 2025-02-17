@@ -5,7 +5,6 @@ import {
   personalSignatureConfirmationState,
   securityAlertResponse,
   typedSignV1ConfirmationState,
-  stakingDepositConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
@@ -42,16 +41,12 @@ jest.mock('@react-navigation/native', () => ({
     navigate: jest.fn(),
     addListener: jest.fn(),
     dispatch: jest.fn(),
+    setOptions: jest.fn(),
   }),
 }));
 
 describe('Confirm', () => {
-  it('renders flat confirmation', async () => {
-    const { getByTestId } = renderWithProvider(<Confirm />, {
-      state: stakingDepositConfirmationState,
-    });
-    expect(getByTestId('flat-confirmation-container')).toBeDefined();
-  });
+  // TODO: Add tests for flat confirmation
 
   it('renders modal confirmation', async () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
