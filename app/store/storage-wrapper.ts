@@ -33,11 +33,22 @@ class StorageWrapper {
    * Initializes the storage based on the environment (E2E test or production).
    */
   private constructor() {
-    /**
-     * The underlying storage implementation.
-     * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
-     */
-    this.storage = isTest ? ReadOnlyNetworkStore : new MMKV();
+    // isTest is true in non production builds so we need to fallback to
+    // AsyncStorage if it loads to load the network state
+    if (isTest) {
+      const networkStore = ReadOnlyNetworkStore;
+      if (
+        networkStore._state === undefined ||
+        networkStore._asyncState === undefined
+      ) {
+        this.storage = new MMKV();
+      } else {
+        this.storage = networkStore;
+      }
+      return;
+    }
+
+    this.storage = new MMKV();
   }
 
   /**
