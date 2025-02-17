@@ -758,7 +758,7 @@ workflows:
         inputs:
           - content: |
               #!/usr/bin/env bash
-              ./scripts/download-apk-for-e2e.sh
+              ./scripts/download-android-qa-app.sh
     - script@1:
         title: Download Production QA IPA
         inputs:
