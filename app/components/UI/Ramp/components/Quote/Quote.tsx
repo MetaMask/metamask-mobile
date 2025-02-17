@@ -27,7 +27,9 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../Base/RemoteImage';
-import TagColored from '../../../../../component-library/components-temp/TagColored';
+import TagColored, {
+  TagColor,
+} from '../../../../../component-library/components-temp/TagColored';
 import styleSheet from './Quote.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import { isBuyQuote } from '../../utils';
@@ -88,6 +90,8 @@ const Quote: React.FC<Props> = ({
   const fiatCode = fiat?.symbol ?? '';
   const fiatSymbol = fiat?.denomSymbol ?? '';
 
+  const shouldShowTags = previouslyUsedProvider || quote?.tags?.isBestRate;
+
   const expandedHeight = useSharedValue(0);
   const handleOnLayout = (event: LayoutChangeEvent) => {
     const { nativeEvent } = event;
@@ -126,12 +130,21 @@ const Quote: React.FC<Props> = ({
           topAccessoryGap={8}
           topAccessory={
             <>
-              {previouslyUsedProvider ? (
-                <TagColored>
-                  {strings('fiat_on_ramp_aggregator.previously_used')}
-                </TagColored>
-              ) : null}
+              {shouldShowTags && (
+                <View style={styles.tags}>
+                  {previouslyUsedProvider ? (
+                    <TagColored>
+                      {strings('fiat_on_ramp_aggregator.previously_used')}
+                    </TagColored>
+                  ) : null}
 
+                  {quote?.tags?.isBestRate ? (
+                    <TagColored color={TagColor.Success}>
+                      {strings('fiat_on_ramp_aggregator.best_rate')}
+                    </TagColored>
+                  ) : null}
+                </View>
+              )}
               <TouchableOpacity
                 onPress={highlighted ? showInfo : undefined}
                 disabled={!highlighted}
