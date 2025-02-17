@@ -38,7 +38,7 @@ describe('multichain network controller', () => {
     ).toBeInstanceOf(MultichainNetworkController);
   });
 
-  it('controller state should be default state when no initial state is passed in', () => {
+  it('it has default state when no initial state is passed in', () => {
     createMultichainNetworkController({
       messenger: multichainNetworkControllerMessenger,
     });
