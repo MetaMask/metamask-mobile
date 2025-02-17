@@ -8,15 +8,16 @@ import {
   waitForCondition,
   waitForKeychainUnlocked
 } from '../utils/wait.util';
-import { isE2E } from '../../../util/test/utils';
+import { isDetox } from '../../../util/test/utils';
 
 async function postInit(instance: SDKConnect, callback?: () => void) {
   if (!instance.state._initialized) {
     throw new Error(`SDKConnect::postInit() - not initialized`);
   }
 
-  if(isE2E) {
-    DevLogger.log(`SDKConnect::postInit() - SKIP -- E2E`);
+  // MMSDK is currently being skipped for Detox tests
+  if (isDetox) {
+    DevLogger.log(`SDKConnect::postInit() - SKIP -- Detox E2E`);
     instance.state._postInitialized = true;
     return;
   }
