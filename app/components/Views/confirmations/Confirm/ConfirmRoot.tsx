@@ -9,15 +9,14 @@ import { useStandaloneConfirmation } from '../hooks/useStandaloneConfirmation';
 export const ConfirmRoot = () => {
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const { isFlatConfirmation } = useFlatConfirmation();
-  const { isStandaloneConfirmation } = useStandaloneConfirmation();
+  const { isStandaloneConfirmation, navigationOpts } =
+    useStandaloneConfirmation();
   const navigation = useNavigation();
 
   useEffect(() => {
     if (isRedesignedEnabled) {
       if (isStandaloneConfirmation) {
-        navigation.navigate('StakeScreens', {
-          screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-        });
+        navigation.navigate(...navigationOpts);
         return;
       }
       navigation.navigate(

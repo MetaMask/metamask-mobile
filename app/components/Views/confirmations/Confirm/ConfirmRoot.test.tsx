@@ -38,6 +38,9 @@ describe('Confirm', () => {
     renderWithProvider(<ConfirmRoot />, {
       state: stakingDepositConfirmationState,
     });
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
+      screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+    });
   });
 });
