@@ -15,6 +15,8 @@ import {
   NavigationProp,
   ParamListBase,
 } from '@react-navigation/native';
+import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
+import { STAKE_INPUT_VIEW_ACTIONS } from '../../../Views/StakeInputView/StakeInputView.types';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -85,6 +87,7 @@ describe('StakingButtons', () => {
       style: {},
       hasStakedPositions: true,
       hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
     };
     const { getByText } = renderWithProvider(<StakingButtons {...props} />, {
       state: mockInitialState,
@@ -101,6 +104,7 @@ describe('StakingButtons', () => {
       style: {},
       hasStakedPositions: true,
       hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
     };
     const { getByText } = renderWithProvider(<StakingButtons {...props} />, {
       state: mockSepoliaNetworkState,
@@ -115,6 +119,10 @@ describe('StakingButtons', () => {
     ).toHaveBeenCalledWith('mainnet');
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
+      params: {
+        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        token: MOCK_ETH_MAINNET_ASSET,
+      },
     });
   });
 
@@ -126,6 +134,7 @@ describe('StakingButtons', () => {
       style: {},
       hasStakedPositions: true,
       hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
     };
     const { getByText } = renderWithProvider(<StakingButtons {...props} />, {
       state: mockSepoliaNetworkState,

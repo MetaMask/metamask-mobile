@@ -38,7 +38,7 @@ describe('multichain network controller', () => {
     ).toBeInstanceOf(MultichainNetworkController);
   });
 
-  it('controller state should be default state when no initial state is passed in', () => {
+  it('it has default state when no initial state is passed in', () => {
     createMultichainNetworkController({
       messenger: multichainNetworkControllerMessenger,
     });
@@ -50,7 +50,7 @@ describe('multichain network controller', () => {
     );
   });
 
-  it('controller state should be initial state when initial state is passed in', () => {
+  it('it has initial state when initial state is passed in', () => {
     const initialMultichainNetworkControllerState: MultichainNetworkControllerState =
       {
         multichainNetworkConfigurationsByChainId: {},
@@ -70,7 +70,7 @@ describe('multichain network controller', () => {
     );
   });
 
-  it('should throw and log error when controller creation fails', () => {
+  it('throws and logs an error when controller creation fails', () => {
     const mockError = new Error('Test error');
     jest.spyOn(console, 'error').mockImplementation();
     multichainNetworkControllerClassMock.mockImplementation(() => {

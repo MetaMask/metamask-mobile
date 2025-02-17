@@ -28,9 +28,9 @@ import { selectShowFiatInTestnets } from '../settings';
 export enum MultichainNativeAssets {
   Bitcoin = `${BtcScope.Mainnet}/slip44:0`,
   BitcoinTestnet = `${BtcScope.Testnet}/slip44:0`,
-  Solana = `${SolScope.Mainnet}/slip44:501`,
-  SolanaDevnet = `${SolScope.Devnet}/slip44:501`,
-  SolanaTestnet = `${SolScope.Testnet}/slip44:501`,
+  Solana = `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+  SolanaDevnet = `${SolScope.Devnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+  SolanaTestnet = `${SolScope.Testnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
 }
 
 /**
