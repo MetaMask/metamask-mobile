@@ -756,12 +756,12 @@ workflows:
     #  - _upload_apk_to_browserstack
      - _upload_ipa_to_browserstack
     steps:
-    - script@1:
-        title: Download Production QA APK
-        inputs:
-          - content: |
-              #!/usr/bin/env bash
-              ./scripts/download-android-qa-app.sh
+    # - script@1:
+    #     title: Download Production QA APK
+    #     inputs:
+    #       - content: |
+    #           #!/usr/bin/env bash
+    #           ./scripts/download-android-qa-app.sh
     - script@1:
         title: Download Production QA IPA
         inputs:
