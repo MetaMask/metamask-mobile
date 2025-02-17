@@ -13,7 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     dataRow: {
       paddingHorizontal: 0,
-      paddingBottom: 16,
+      paddingBottom: 8,
     },
     title: {
       color: theme.colors.text.default,
