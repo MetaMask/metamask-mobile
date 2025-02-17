@@ -104,11 +104,11 @@ if [[ -n "$APK_ARTIFACT" ]]; then
         
         # Create descriptive filename
         APK_FILENAME="MetaMask-${VERSION_NAME}-${VERSION_CODE}.apk"
-        
         # Download with specific filename
         wget -O "$APK_FILENAME" "$DOWNLOAD_URL"
         
         echo "Android APK downloaded: $APK_FILENAME"
+        envman add --key APK_FILE --value "$APK_FILENAME"
 
         # Set the APK path as environment variable
         export APK_PATH="$PWD/$APK_FILENAME"

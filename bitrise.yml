@@ -777,13 +777,13 @@ workflows:
               echo "Bitrise source directory: $BITRISE_SOURCE_DIR"
               ls -la $APK_PATH
               ls -la $BITRISE_SOURCE_DIR
-    # - deploy-to-bitrise-io@2.2.3:
-    #       is_always_run: false
-    #       is_skippable: true
-    #       inputs:
-    #         - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$UPGRADE_APK_PATH
-    # after_run:
-    #   - ''
+    - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: $BITRISE_SOURCE_DIR/$APK_FILE
+    #   after_run:
+    # #   - ''
   android_e2e_build:
     before_run:
       - code_setup
