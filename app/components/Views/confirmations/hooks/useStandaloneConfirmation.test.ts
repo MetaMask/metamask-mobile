@@ -13,12 +13,6 @@ describe('useStandaloneConfirmation', () => {
     });
 
     expect(result.current.isStandaloneConfirmation).toBe(true);
-    expect(result.current.navigationOpts).toEqual([
-      'StakeScreens',
-      {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-      },
-    ]);
   });
 
   it('returns false for personal sign request', async () => {

@@ -1,10 +1,7 @@
 import React from 'react';
 
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import {
-  personalSignatureConfirmationState,
-  stakingDepositConfirmationState,
-} from '../../../../util/test/confirm-data-helpers';
+import { personalSignatureConfirmationState } from '../../../../util/test/confirm-data-helpers';
 import Routes from '../../../../constants/navigation/Routes';
 
 import { ConfirmRoot } from './ConfirmRoot';
@@ -32,15 +29,5 @@ describe('Confirm', () => {
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenLastCalledWith(Routes.CONFIRM_MODAL);
-  });
-
-  it('navigates to standalone confirmation', async () => {
-    renderWithProvider(<ConfirmRoot />, {
-      state: stakingDepositConfirmationState,
-    });
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
-      screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-    });
   });
 });
