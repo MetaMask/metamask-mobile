@@ -350,5 +350,30 @@ describe('Tags Utils', () => {
 
       expect(tags).toBeUndefined();
     });
+
+    it('returns null and captures exception when an error occurs', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: Object.create(
+              {},
+              {
+                someProperty: {
+                  get: () => {
+                    throw new Error('Test error');
+                  },
+                },
+              },
+            ),
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeNull();
+    });
   });
 });
