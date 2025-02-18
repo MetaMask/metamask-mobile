@@ -6,7 +6,7 @@ import {
 } from '@metamask/transaction-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 
-import { isExternalHardwareAccount } from '../../../../util/address';
+import { isHardwareAccount } from '../../../../util/address';
 import {
   type ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
@@ -33,7 +33,7 @@ function isRedesignedSignature({
   return (
     confirmationRedesignFlags?.signatures &&
     // following condition will ensure that user is redirected to old designs for hardware wallets
-    !isExternalHardwareAccount(fromAddress) &&
+    !isHardwareAccount(fromAddress) &&
     approvalRequestType &&
     REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType)
   );
@@ -58,7 +58,7 @@ function isRedesignedTransaction({
     !isTransactionTypeRedesigned ||
     approvalRequestType !== ApprovalType.Transaction ||
     !transactionMetadata ||
-    isExternalHardwareAccount(fromAddress)
+    isHardwareAccount(fromAddress)
   ) {
     return false;
   }
