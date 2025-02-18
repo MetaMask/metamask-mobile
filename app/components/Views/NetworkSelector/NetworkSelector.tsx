@@ -222,7 +222,8 @@ const NetworkSelector = () => {
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
-    const { NetworkController, SelectedNetworkController } = Engine.context;
+    const { MultichainNetworkController, SelectedNetworkController } =
+      Engine.context;
     trace({
       name: TraceName.SwitchCustomNetwork,
       parentContext: parentSpan,
@@ -247,14 +248,15 @@ const NetworkSelector = () => {
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          await NetworkController.setActiveNetwork(networkClientId);
+          await MultichainNetworkController.setActiveNetwork(networkClientId);
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
       }
 
       setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isMultichainV1Enabled())) sheetRef.current?.dismissModal();
+      if (!(domainIsConnectedDapp && isMultichainV1Enabled()))
+        sheetRef.current?.dismissModal();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
@@ -358,7 +360,7 @@ const NetworkSelector = () => {
       op: TraceOperation.SwitchBuiltInNetwork,
     });
     const {
-      NetworkController,
+      MultichainNetworkController,
       AccountTrackerController,
       SelectedNetworkController,
     } = Engine.context;
@@ -374,7 +376,7 @@ const NetworkSelector = () => {
         ].networkClientId ?? type;
 
       setTokenNetworkFilter(networkConfiguration.chainId);
-      await NetworkController.setActiveNetwork(clientId);
+      await MultichainNetworkController.setActiveNetwork(clientId);
 
       closeRpcModal();
       AccountTrackerController.refresh();
