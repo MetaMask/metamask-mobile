@@ -1,5 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { createDeepEqualSelector } from '../util';
+import { RootState } from '../../reducers';
 
 /**
  * Get the Snap interfaces from the redux state.
@@ -8,7 +9,7 @@ import { createDeepEqualSelector } from '../util';
  * @returns the Snap interfaces.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getInterfaces = (state: any) =>
+const getInterfaces = (state: RootState) =>
   state?.engine?.backgroundState?.SnapInterfaceController.interfaces;
 
 /**
@@ -18,8 +19,8 @@ const getInterfaces = (state: any) =>
  * @param interfaceId - ID of a Snap interface.
  * @returns ID of a Snap Interface that can be used as input selector.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const selectInterfaceId = (_state: any, interfaceId: string) => interfaceId;
+const selectInterfaceId = (_state: RootState, interfaceId: string) =>
+  interfaceId;
 
 /**
  * Get a memoized version of the Snap interfaces.

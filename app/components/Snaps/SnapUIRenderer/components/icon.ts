@@ -2,10 +2,10 @@
 import { IconElement } from '@metamask/snaps-sdk/jsx';
 import { UIComponentFactory } from './types';
 import {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { IconColor } from '../utils';
 
 const ICON_NAMES = new Set(Object.values(IconName));
 

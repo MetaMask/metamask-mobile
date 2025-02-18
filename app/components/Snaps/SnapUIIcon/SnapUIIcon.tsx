@@ -1,7 +1,7 @@
 import React from 'react';
-import { IconColor } from '../SnapUIRenderer/utils';
 import { ViewStyle, StyleProp } from 'react-native';
 import {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon/Icon.types';

@@ -1,8 +1,8 @@
 import {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { IconColor } from '../utils';
 import { icon } from './icon';
 
 describe('Icon UIComponentFactory', () => {

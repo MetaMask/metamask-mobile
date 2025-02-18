@@ -1,7 +1,6 @@
 import React, { FunctionComponent } from 'react';
 import { useSelector } from 'react-redux';
 import { IconSize } from '../../../component-library/components/Icons/Icon';
-import { AvatarFaviconProps } from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.types';
 import { getAvatarFallbackLetter } from '../SnapUIRenderer/utils';
 import AvatarBase from '../../../component-library/components/Avatars/Avatar/foundation/AvatarBase';
 import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
@@ -33,7 +32,7 @@ type SnapIconProps = {
   borderWidth?: number;
   className?: string;
   badgeBackgroundColor?: BackgroundColor;
-} & AvatarFaviconProps;
+};
 
 export const SnapIcon: FunctionComponent<SnapIconProps> = ({
   snapId,
@@ -45,10 +44,10 @@ export const SnapIcon: FunctionComponent<SnapIconProps> = ({
   );
 
   const iconUrl = subjectMetadata.iconUrl;
-  const snapName = subjectMetadata.name;
+  const snapName = subjectMetadata.name ?? undefined;
 
   // We choose the first non-symbol char as the fallback icon.
-  const fallbackIcon = getAvatarFallbackLetter(snapName ?? undefined);
+  const fallbackIcon = getAvatarFallbackLetter(snapName);
 
   return iconUrl ? (
     <AvatarFavicon
