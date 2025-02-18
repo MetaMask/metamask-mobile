@@ -546,6 +546,8 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     before_run:
+      - setup
+      - prep_environment
       - download_production_qa_apk
       - _upload_apk_to_browserstack
     envs:
