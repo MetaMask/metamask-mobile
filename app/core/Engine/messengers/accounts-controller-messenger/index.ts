@@ -1,11 +1,11 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
+import { SnapControllerStateChangeEvent } from '../../controllers/SnapController/constants';
 import { BaseControllerMessenger } from '../../types';
 import {
   SnapKeyringAccountAssetListUpdatedEvent,
   SnapKeyringAccountBalancesUpdatedEvent,
   SnapKeyringAccountTransactionsUpdatedEvent,
 } from '../../../SnapKeyring/constants';
-import { SnapControllerStateChangeEvent } from '../../controllers/SnapController/constants';
 
 // Export the types
 export * from './types';
@@ -28,6 +28,7 @@ export function getAccountsControllerMessenger(
       SnapKeyringAccountAssetListUpdatedEvent,
       SnapKeyringAccountBalancesUpdatedEvent,
       SnapKeyringAccountTransactionsUpdatedEvent,
+      'MultichainNetworkController:networkDidChange',
     ],
     allowedActions: [
       'KeyringController:getAccounts',
