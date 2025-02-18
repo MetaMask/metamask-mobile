@@ -2,6 +2,7 @@
 // to allow easy testing of other parts of the app
 // but here we want to actually test storage-wrapper
 jest.unmock('./storage-wrapper');
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import StorageWrapper from './storage-wrapper';
 
 jest.mock('../util/test/utils', () => ({
@@ -103,6 +104,95 @@ describe('StorageWrapper', () => {
     expect(setItemSpy).toHaveBeenCalledWith('test-key', 'test-value');
     expect(getItemSpy).toHaveBeenCalledWith('test-key');
     expect(result).toBe('test-value');
+  });
+
+  it('falls back to AsyncStorage when ReadOnlyNetworkStore fails in test mode', async () => {
+    // Mock isTest to be true
+    jest.mock('../util/test/utils', () => ({
+      isTest: true
+    }));
+
+    const getItemSpy = jest.spyOn(AsyncStorage, 'getItem').mockResolvedValue('test-value');
+    const setItemSpy = jest.spyOn(AsyncStorage, 'setItem').mockResolvedValue(undefined);
+    const removeItemSpy = jest.spyOn(AsyncStorage, 'removeItem').mockResolvedValue(undefined);
+
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const StorageWrapperInstance = require('./storage-wrapper').default;
+      
+      // Force storage to be an object that throws errors
+      Object.defineProperty(StorageWrapperInstance, 'storage', {
+        value: {
+          getString: () => { throw new Error('Network store error'); },
+          set: () => { throw new Error('Network store error'); },
+          delete: () => { throw new Error('Network store error'); }
+        },
+        writable: true
+      });
+
+      // Test all methods
+      return Promise.all([
+        StorageWrapperInstance.getItem('test-key'),
+        StorageWrapperInstance.setItem('test-key', 'test-value'),
+        StorageWrapperInstance.removeItem('test-key')
+      ]).then(() => {
+        expect(getItemSpy).toHaveBeenCalledWith('test-key');
+        expect(setItemSpy).toHaveBeenCalledWith('test-key', 'test-value');
+        expect(removeItemSpy).toHaveBeenCalledWith('test-key');
+      });
+    });
+  });
+
+  it('falls back to AsyncStorage for setItem when ReadOnlyNetworkStore fails in test mode', async () => {
+    // Mock isTest to be true
+    jest.mock('../util/test/utils', () => ({
+      isTest: true
+    }));
+
+    const setItemSpy = jest.spyOn(AsyncStorage, 'setItem').mockResolvedValue(undefined);
+
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const StorageWrapperInstanceSetItem = require('./storage-wrapper').default;
+      
+      // Force storage to throw error on set
+      Object.defineProperty(StorageWrapperInstanceSetItem, 'storage', {
+        value: {
+          set: () => { throw new Error('Network store error'); }
+        },
+        writable: true
+      });
+
+      return StorageWrapperInstanceSetItem.setItem('test-key', 'test-value')
+        .then(() => {
+          expect(setItemSpy).toHaveBeenCalledWith('test-key', 'test-value');
+        });
+    });
+  });
+
+  it('throws error for setItem when not in test mode', async () => {
+    jest.resetModules();
+    
+    // Mock isTest to be false
+    jest.doMock('../util/test/utils', () => ({
+      isTest: false
+    }));
+
+    await jest.isolateModules(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const StorageWrapperInstanceSetItem = require('./storage-wrapper').default;
+      
+      // Force storage to throw error on set
+      Object.defineProperty(StorageWrapperInstanceSetItem, 'storage', {
+        value: {
+          set: () => { throw new Error('Network store error'); }
+        },
+        writable: true
+      });
+
+      await expect(StorageWrapperInstanceSetItem.setItem('test-key', 'test-value'))
+        .rejects.toThrow('Network store error');
+    });
   });
 
   describe('storage initialization', () => {
