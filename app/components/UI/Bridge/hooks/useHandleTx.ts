@@ -8,21 +8,23 @@ import { addHexPrefix } from '../../../../util/number';
 import { TransactionMeta, TransactionType, WalletDevice } from '@metamask/transaction-controller';
 import { selectGasFeeEstimates } from '../../../../selectors/confirmTransaction';
 import AppConstants from '../../../../core/AppConstants';
-import { ChainId } from '../types';
-
+import { TxData } from '../types';
 const DEFAULT_GAS_FEE_OPTION_LEGACY = AppConstants.GAS_OPTIONS.MEDIUM;
 
 async function getGasFeeEstimatesForTransaction(
-  transaction: any,
+  transaction: TxData,
   gasEstimates: any,
-  { chainId, isEIP1559Network }: { chainId: any, isEIP1559Network: any },
+  { chainId, isEIP1559Network }: { chainId: `0x${string}`, isEIP1559Network: boolean },
 ) {
   if (isEIP1559Network) {
     const transactionGasFeeEstimates = await getTransaction1559GasFeeEstimates(
-      transaction,
+      {
+        ...transaction,
+        chainId: transaction.chainId.toString() as `0x${string}`,
+        gasLimit: transaction.gasLimit?.toString() as string | undefined,
+      },
       chainId,
     );
-    delete transaction.gasPrice;
     return transactionGasFeeEstimates;
   }
 
@@ -43,14 +45,7 @@ export default function useHandleTx() {
 
   const handleTx = async ({ txType, txParams, fieldsToAddToTxMeta }: {
   txType: TransactionType.bridge | TransactionType.bridgeApproval;
-  txParams: {
-    chainId: ChainId;
-    to: string;
-    from: string;
-    value: string;
-    data: string;
-    gasLimit: number | null;
-  };
+  txParams: TxData;
   fieldsToAddToTxMeta: Omit<Partial<TransactionMeta>, 'status'>; // We don't add status, so omit it to fix the type error
   }) => {
     resetTransaction();
@@ -65,7 +60,7 @@ export default function useHandleTx() {
         ...{
           ...txParams,
           chainId: txParams.chainId.toString() as `0x${string}`,
-          gasLimit: txParams.gasLimit ? txParams.gasLimit.toString(16) : undefined,
+          gasLimit: txParams.gasLimit?.toString() as string | undefined
         },
         ...gasFeeEstimates,
       },
