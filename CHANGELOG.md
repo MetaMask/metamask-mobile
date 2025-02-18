@@ -9,40 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.41.0]
 
-### Uncategorized
-
-- bump semvar version to 7.41.0 && build version to 1557
-- bump semvar version to 7.41.0 && build version to 1554
-- fix(13491): update wallet creation flow styles ([#13501](https://github.com/MetaMask/metamask-mobile/pull/13501))
-- chore: UI improvements ([#13463](https://github.com/MetaMask/metamask-mobile/pull/13463))
-- fix(action): handle edge case of issue that can't be accessed by access token ([#13442](https://github.com/MetaMask/metamask-mobile/pull/13442))
-- chore: bump `@metamask/base-controller` to `^8.0.0` ([#13460](https://github.com/MetaMask/metamask-mobile/pull/13460))
-- chore: main stable sync 7.39.0 ([#13451](https://github.com/MetaMask/metamask-mobile/pull/13451))
-- chore: Rename ControllerMessenger to Messenger ([#13302](https://github.com/MetaMask/metamask-mobile/pull/13302))
-- fix(action): indicate working directory (again) ([#13425](https://github.com/MetaMask/metamask-mobile/pull/13425))
-- chore(deps): bump `elliptic` to `^6.6.0` ([#12979](https://github.com/MetaMask/metamask-mobile/pull/12979))
-- fix(action): indicate working directory ([#13419](https://github.com/MetaMask/metamask-mobile/pull/13419))
-- test(ramp): MMQA-195: add on-ramp e2e test cases ([#13265](https://github.com/MetaMask/metamask-mobile/pull/13265))
-- feat(action): Improve bug report creation ([#13397](https://github.com/MetaMask/metamask-mobile/pull/13397))
-- chore: Fix lint warnings output by `yarn lint:fix` ([#13400](https://github.com/MetaMask/metamask-mobile/pull/13400))
-- chore(ramp): upgrades ramp-sdk to 2.0.5 ([#13379](https://github.com/MetaMask/metamask-mobile/pull/13379))
-- build: add SENTRY_DEBUG_DEV ENV to turn off Sentry Logger ([#13407](https://github.com/MetaMask/metamask-mobile/pull/13407))
-- feat(ramp): sorts ramp quotes by price ([#13339](https://github.com/MetaMask/metamask-mobile/pull/13339))
-- feat(ramps): updates useQuotes interface to include some quotes metadata ([#13335](https://github.com/MetaMask/metamask-mobile/pull/13335))
-- chore: adding e2e for SIWE signatures ([#13353](https://github.com/MetaMask/metamask-mobile/pull/13353))
-- chore: cleanup and deduplicate notification types and constants ([#13381](https://github.com/MetaMask/metamask-mobile/pull/13381))
-- test: Add Stake e2e automation ([#13180](https://github.com/MetaMask/metamask-mobile/pull/13180))
-- chore(3663): removing the isMultichainVersion1Enabled feature flag, and corresponding dead code ([#12831](https://github.com/MetaMask/metamask-mobile/pull/12831))
-- chore(ramp): upgrade ramp-sdk to @2.0.4 ([#13318](https://github.com/MetaMask/metamask-mobile/pull/13318))
-- refactor: utils/signature and deprecate utils/signatures ([#13347](https://github.com/MetaMask/metamask-mobile/pull/13347))
-- chore: Bump selected-network-controller to v21 ([#13109](https://github.com/MetaMask/metamask-mobile/pull/13109))
-- chore: Revert "fix: SIWE detection on mobile by patching @spruceid+siwe" ([#13333](https://github.com/MetaMask/metamask-mobile/pull/13333))
-- chore: change cicd to commit ref hash ([#13303](https://github.com/MetaMask/metamask-mobile/pull/13303))
-- chore: move metrics identify to state listener ([#13203](https://github.com/MetaMask/metamask-mobile/pull/13203))
-- test: Add e2e for app restart after adding contact address ([#13273](https://github.com/MetaMask/metamask-mobile/pull/13273))
-
 ### Added
 
+- feat(action): Improve bug report creation ([#13397](https://github.com/MetaMask/metamask-mobile/pull/13397))
+- feat(ramp): sorts ramp quotes by price ([#13339](https://github.com/MetaMask/metamask-mobile/pull/13339))
+- feat(ramps): updates useQuotes interface to include some quotes metadata ([#13335](https://github.com/MetaMask/metamask-mobile/pull/13335))
 - feat: Add gas included swaps ([#13430](https://github.com/MetaMask/metamask-mobile/pull/13430))
 - feat: remove unused package ([#13395](https://github.com/MetaMask/metamask-mobile/pull/13395))
 - feat: Implement staking deposit `TokenHero` component ([#13418](https://github.com/MetaMask/metamask-mobile/pull/13418))
@@ -65,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix: typed sign message display in dark mode ([#13479](https://github.com/MetaMask/metamask-mobile/pull/13479))
+- fix(13491): update wallet creation flow styles ([#13501](https://github.com/MetaMask/metamask-mobile/pull/13501))
+- fix(action): indicate working directory ([#13419](https://github.com/MetaMask/metamask-mobile/pull/13419))
+- fix(action): handle edge case of issue that can't be accessed by access token ([#13442](https://github.com/MetaMask/metamask-mobile/pull/13442))
+- fix(action): indicate working directory (again) ([#13425](https://github.com/MetaMask/metamask-mobile/pull/13425))
 - fix: simulation Fiat precision and Fiat flickers different value before decimals are applied ([#13371](https://github.com/MetaMask/metamask-mobile/pull/13371))
 - fix: Permit Simulation loader and value modal UI/UX ([#13398](https://github.com/MetaMask/metamask-mobile/pull/13398))
 - fix: Fix missing `networkClientId` on estimating gas ([#13466](https://github.com/MetaMask/metamask-mobile/pull/13466))
