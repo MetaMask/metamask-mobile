@@ -1436,24 +1436,53 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
-                # Use APK_PATH if it exists (from download script), otherwise use build path
-
+               
+                # Use the downloaded APK path if it exists, otherwise fall back to default path
                 if [ -n "$UPLOAD_APK_PATH" ] && [ -f "$UPLOAD_APK_PATH" ]; then
+                    echo "Using downloaded APK from: $UPLOAD_APK_PATH"
                     APK_PATH="$UPLOAD_APK_PATH"
                 else
+                    echo "Using default APK path"
                     APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk"
                 fi
-
-                echo "Using APK path: $UPLOAD_APK_PATH"
-                echo "Using APK path: $APK_PATH"
+                
+                 # If BITRISE_GIT_BRANCH is set, use VERSION_NAME and VERSION_NUMBER from bitrise.yml
+                 # If not, use PRODUCTION values and set branch to qa-release
+                  
+                if [ -n "$BITRISE_GIT_BRANCH" ]; then
+                    # Use existing VERSION_NAME and VERSION_NUMBER from bitrise.yml
+                    echo "Using branch: $BITRISE_GIT_BRANCH"
+                    echo "Using version: $VERSION_NAME ($VERSION_NUMBER)"
+                else
+                    # No branch, use production values
+                    BITRISE_GIT_BRANCH="qa-release"
+                    VERSION_NAME="$PRODUCTION_BUILD_NAME" #  This value (PRODUCTION_BUILD_NAME) comes from the script to download the production build
+                    VERSION_NUMBER="$PRODUCTION_BUILD_NUMBER" # This value (PRODUCTION_BUILD_NUMBER) comes from the script to download the production build
+                    echo "Using qa-release with production version: $VERSION_NAME ($VERSION_NUMBER)"
+                fi
 
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_ANDROID_APP_URL
-                APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/"$CUSTOM_ID".apk
-                mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+
+                # Upload to app-automate
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                    -F "file=@$APK_PATH" \
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}' \
+                    | jq -j '.app_url' \
+                    | envman add --key BROWSERSTACK_ANDROID_APP_URL
+
+                # Upload to app-live
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X POST "https://api-cloud.browserstack.com/app-live/upload" \
+                    -F "file=@$APK_PATH" \
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}'
+
+                # Get recent apps
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X GET https://api-cloud.browserstack.com/app-automate/recent_apps \
+                    | jq > browserstack_uploaded_apps.json
+
       # - share-pipeline-variable@1:
       #     title: Persist BROWSERSTACK_ANDROID_APP_URL across all stages
       #     inputs:
@@ -1720,17 +1749,6 @@ workflows:
                 set -x
                 set -o pipefail
 
-                # If BITRISE_GIT_BRANCH is not set, use a default or derive it
-                if [ -z "$BITRISE_GIT_BRANCH" ]; then
-                    # You can derive it from the downloaded IPA name or set a default
-                    BITRISE_GIT_BRANCH="qa-release"
-                    VERSION_NAME=$RELEASE_VERSION_NAME
-                    VERSION_NUMBER=$RELEASE_VERSION_NUMBER
-                fi
-
-                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
-                CUSTOM_ID=${CUSTOM_ID////-}
-
                 # Use the downloaded IPA path if it exists, otherwise fall back to default path
                 if [ -n "$IPA_PATH" ] && [ -f "$IPA_PATH" ]; then
                     echo "Using downloaded IPA from: $IPA_PATH"
@@ -1739,6 +1757,24 @@ workflows:
                     echo "Using default IPA path"
                     UPLOAD_IPA_PATH="ios/build/output/$CUSTOM_ID.ipa"
                 fi
+
+                # If BITRISE_GIT_BRANCH is set, use VERSION_NAME and VERSION_NUMBER from bitrise.yml
+                 # If not, use PRODUCTION values and set branch to qa-release
+                  
+                if [ -n "$BITRISE_GIT_BRANCH" ]; then
+                    # Use existing VERSION_NAME and VERSION_NUMBER from bitrise.yml
+                    echo "Using branch: $BITRISE_GIT_BRANCH"
+                    echo "Using version: $VERSION_NAME ($VERSION_NUMBER)"
+                else
+                    # No branch, use production values
+                    BITRISE_GIT_BRANCH="qa-release"
+                    VERSION_NAME="$PRODUCTION_BUILD_NAME" #  This value (PRODUCTION_BUILD_NAME) comes from the script to download the production build
+                    VERSION_NUMBER="$PRODUCTION_BUILD_NUMBER" # This value (PRODUCTION_BUILD_NUMBER) comes from the script to download the production build
+                    echo "Using qa-release with production version: $VERSION_NAME ($VERSION_NUMBER)"
+                fi
+
+                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
+                CUSTOM_ID=${CUSTOM_ID////-}
 
                 # Upload to app-automate
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
