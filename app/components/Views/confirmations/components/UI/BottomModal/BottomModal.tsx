@@ -8,7 +8,6 @@ import styleSheet from './BottomModal.styles';
 
 const OPAQUE_GRAY = '#414141';
 interface BottomModalProps {
-  canCloseOnBackdropClick?: boolean;
   children: ReactChild;
   onClose?: () => void;
   hideBackground?: boolean;
@@ -20,7 +19,6 @@ interface BottomModalProps {
  * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
  */
 const BottomModal = ({
-  canCloseOnBackdropClick = true,
   children,
   hideBackground,
   onClose,
@@ -40,7 +38,7 @@ const BottomModal = ({
       animationInTiming={600}
       animationOutTiming={600}
       onBackButtonPress={onClose}
-      onBackdropPress={canCloseOnBackdropClick ? onClose : undefined}
+      onBackdropPress={onClose}
       onSwipeComplete={onClose}
       swipeDirection={'down'}
       propagateSwipe
