@@ -186,4 +186,41 @@ describe('NetworkDetails', () => {
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('existing-network-id');
   });
+
+  it('should call onUpdateNetworkFilter and setActiveNetwork when networkClientId is present', async () => {
+    const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
+
+    const approveButton = getByTestId(
+      NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+    );
+    fireEvent.press(approveButton);
+
+    const switchButton = getByTestId(
+      NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+    );
+
+    // Mock the addNetwork response to include networkClientId
+    (
+      Engine.context.NetworkController.addNetwork as jest.Mock
+    ).mockResolvedValue({
+      rpcEndpoints: [{ networkClientId: 'test-network-id' }],
+      defaultRpcEndpointIndex: 0,
+    });
+
+    await act(async () => {
+      fireEvent.press(switchButton);
+    });
+
+    // Verify onUpdateNetworkFilter was called (via setTokenNetworkFilter)
+    expect(
+      Engine.context.PreferencesController.setTokenNetworkFilter,
+    ).toHaveBeenCalledWith({
+      [props.networkConfiguration.chainId]: true,
+    });
+
+    // Verify setActiveNetwork was called with the networkClientId
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).toHaveBeenCalledWith('test-network-id');
+  });
 });
