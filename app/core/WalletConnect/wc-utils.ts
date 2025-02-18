@@ -48,7 +48,7 @@ export const parseWalletConnectUri = (uri: string): WCMultiVersionParams => {
   const result = {
     protocol,
     topic: requiredValues[0],
-    version: parseInt(requiredValues[1], 10),
+    version: Number.parseInt(requiredValues[1], 10),
     symKey: queryParams.symKey as string,
     relay: parseRelayParams(queryParams),
     bridge: queryParams.bridge as string,
