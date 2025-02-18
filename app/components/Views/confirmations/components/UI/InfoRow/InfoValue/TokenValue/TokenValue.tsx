@@ -10,11 +10,12 @@ import { shortenString } from '../../../../../../../../util/notifications';
 import TextWithTooltip from '../../../TextWithTooltip';
 
 interface TokenValueProps {
-  value: number | string | BigNumber;
+  label: string;
   decimals?: number;
+  value: number | string | BigNumber;
 }
 
-const TokenValue = ({ value, decimals }: TokenValueProps) => {
+const TokenValue = ({ label, decimals, value }: TokenValueProps) => {
   const tokenValue = calcTokenAmount(value, decimals);
 
   const tokenText = formatAmount('en-US', tokenValue);
@@ -22,6 +23,7 @@ const TokenValue = ({ value, decimals }: TokenValueProps) => {
 
   return (
     <TextWithTooltip
+      label={label}
       text={shortenString(tokenText, {
         truncatedCharLimit: 15,
         truncatedStartChars: 15,
