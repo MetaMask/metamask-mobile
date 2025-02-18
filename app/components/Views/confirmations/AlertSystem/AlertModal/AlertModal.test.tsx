@@ -2,9 +2,10 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { useAlerts } from '../context';
 import AlertModal from './AlertModal';
-import { Severity } from '../../types/confirm-alerts';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../component-library/components/Texts/Text';
+import { Severity } from '../../types/alerts';
+import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: jest.fn(),
@@ -12,6 +13,10 @@ jest.mock('../../../../../util/theme', () => ({
 
 jest.mock('../context', () => ({
   useAlerts: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useAlertsConfirmed', () => ({
+  useAlertsConfirmed: jest.fn(),
 }));
 
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -47,16 +52,25 @@ const mockAlerts = [
 
 describe('AlertModal', () => {
   const baseMockUseAlerts = {
-    isAlertConfirmed: jest.fn().mockReturnValue(false),
-    setAlertConfirmed: jest.fn(),
     alerts: mockAlerts,
     hideAlertModal: jest.fn(),
-    alertKey: 'alert1',
     alertModalVisible: true,
+  };
+
+  const baseMockUseAlertsConfirmed = {
+    alertKey: 'alert1',
+    isAlertConfirmed: jest.fn().mockReturnValue(false),
+    setAlertConfirmed: jest.fn(),
+    setAlertKey: jest.fn(),
+    unconfirmedDangerAlerts: [],
+    unconfirmedFieldDangerAlerts: [],
+    hasUnconfirmedDangerAlerts: false,
+    hasUnconfirmedFieldDangerAlerts: false,
   };
 
   beforeEach(() => {
     (useAlerts as jest.Mock).mockReturnValue(baseMockUseAlerts);
+    (useAlertsConfirmed as jest.Mock).mockReturnValue(baseMockUseAlertsConfirmed);
     jest.clearAllMocks();
   });
 
@@ -75,10 +89,9 @@ describe('AlertModal', () => {
     expect(icon).toBeDefined();
     expect(icon.props.name).toBe(IconName.Danger);
 
-    (useAlerts as jest.Mock).mockReturnValue({
-      ...baseMockUseAlerts,
+    (useAlertsConfirmed as jest.Mock).mockReturnValue({
+      ...baseMockUseAlertsConfirmed,
       alertKey: 'alert3', // Info
-      title: undefined,
     });
     const { getByTestId: getByTestIdInfo } = render(<AlertModal />);
     const iconInfo = getByTestIdInfo('alert-modal-icon');
@@ -86,13 +99,13 @@ describe('AlertModal', () => {
   });
 
   it('handles checkbox click correctly', async () => {
-    (useAlerts as jest.Mock).mockReturnValue({
-      ...baseMockUseAlerts,
-      alertKey: 'alert2'
+    (useAlertsConfirmed as jest.Mock).mockReturnValue({
+      ...baseMockUseAlertsConfirmed,
+      alertKey: 'alert2',
     });
     const setAlertConfirmed = jest.fn();
-    (useAlerts as jest.Mock).mockReturnValueOnce({
-      ...baseMockUseAlerts,
+    (useAlertsConfirmed as jest.Mock).mockReturnValueOnce({
+      ...baseMockUseAlertsConfirmed,
       setAlertConfirmed,
       alertKey: 'alert2',
     });
@@ -134,7 +147,6 @@ describe('AlertModal', () => {
     const hideAlertModal = jest.fn();
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
-      alertKey: 'alert2',
       hideAlertModal,
     });
     const { getByText } = render(<AlertModal />);
@@ -155,18 +167,18 @@ describe('AlertModal', () => {
   });
 
   it('does not render the checkbox if the severity is not Danger', () => {
-    (useAlerts as jest.Mock).mockReturnValue({
-      ...baseMockUseAlerts,
-      alertKey: 'alert1'
+    (useAlertsConfirmed as jest.Mock).mockReturnValue({
+      ...baseMockUseAlertsConfirmed,
+      alertKey: 'alert1',
     });
     const { queryByText } = render(<AlertModal />);
     expect(queryByText(CHECKBOX_LABEL)).toBeNull();
   });
 
   it('renders checkbox if the severity is Danger', async () => {
-    (useAlerts as jest.Mock).mockReturnValue({
-      ...baseMockUseAlerts,
-      alertKey: 'alert2'
+    (useAlertsConfirmed as jest.Mock).mockReturnValue({
+      ...baseMockUseAlertsConfirmed,
+      alertKey: 'alert2',
     });
     const { queryByText } = render(<AlertModal />);
     expect(queryByText(CHECKBOX_LABEL)).toBeDefined();
@@ -175,7 +187,6 @@ describe('AlertModal', () => {
   it('renders content component correctly', async () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
-      alertKey: 'alert1',
       alerts: [{
         ...mockAlerts[0],
         content: <Text>{'Mock content'}</Text>,
@@ -188,7 +199,6 @@ describe('AlertModal', () => {
   it('does not render checkbox if is a blocking alert', async () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
-      alertKey: 'alert2',
       alerts: [{
         ...mockAlerts[0],
         isBlocking: true,

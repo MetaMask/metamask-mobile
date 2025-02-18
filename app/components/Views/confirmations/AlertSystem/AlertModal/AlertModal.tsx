@@ -6,12 +6,13 @@ import BottomModal from '../../components/UI/BottomModal';
 import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import Icon, { IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
-import { Alert, Severity } from '../../types/confirm-alerts';
 import Text, { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { ThemeColors } from '@metamask/design-tokens';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './AlertModal.styles';
 import { strings } from '../../../../../../locales/i18n';
+import { Alert, Severity } from '../../types/alerts';
+import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 
 const getSeverityStyle = (severity: Severity, colors: ThemeColors) => {
   switch (severity) {
@@ -141,7 +142,8 @@ const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHan
 const AlertModal = () => {
   const { colors } = useTheme();
   const styles = (useStyles(styleSheet, {})).styles as Record<string, ViewStyle>;
-  const { isAlertConfirmed, setAlertConfirmed, alerts, hideAlertModal, alertKey, alertModalVisible } = useAlerts();
+  const { alerts, hideAlertModal, alertModalVisible } = useAlerts();
+  const {isAlertConfirmed, setAlertConfirmed, alertKey,} = useAlertsConfirmed(alerts);
 
   const handleClose = useCallback(
     () => {
