@@ -18,7 +18,7 @@ import {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './ScrollContext.styles';
 
@@ -80,6 +80,7 @@ export const ScrollContextProvider: React.FC<{
           size={ButtonIconSizes.Lg}
           style={styles.scrollButton}
           iconName={IconName.Arrow2Down}
+          iconColor={IconColor.Inverse}
           onPress={scrollToBottom}
           testID="scroll-to-bottom-button"
         />
