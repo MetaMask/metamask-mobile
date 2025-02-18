@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import TokenHero from '../../TokenHero';
+import GasFeesDetails from '../GasFeesDetails';
 import { getStakingDepositNavbar } from './Navbar';
 
 const StakingDeposit = () => {
@@ -18,6 +19,7 @@ const StakingDeposit = () => {
   return (
     <>
       <TokenHero />
+      <GasFeesDetails />
     </>
   );
 };

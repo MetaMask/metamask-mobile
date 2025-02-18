@@ -58,6 +58,7 @@ export function selectIsSolanaSupportEnabled(state: RootState) {
 export const selectMultichainIsEvm = createDeepEqualSelector(
   selectSelectedInternalAccount,
   (selectedAccount) => {
+    console.log("OGP - in selectMultichainIsEvm")
     // If no account selected, assume EVM for onboarding scenario
     if (!selectedAccount) {
       return true;
@@ -77,6 +78,7 @@ export function selectMultichainNetworkProviders(): MultichainProviderConfig[] {
   return Object.values(MULTICHAIN_PROVIDER_CONFIGS);
 }
 
+export const selectMultichainCurrentNetwork2 = () => {}
 export const selectMultichainCurrentNetwork = createDeepEqualSelector(
   [
     selectMultichainIsEvm,
