@@ -33,7 +33,7 @@ export const Confirm = () => {
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
 
-  const { styles } = useStyles(styleSheet, { isFlatConfirmation });
+  const { styles } = useStyles(styleSheet, {});
 
   if (!isRedesignedEnabled) {
     return null;

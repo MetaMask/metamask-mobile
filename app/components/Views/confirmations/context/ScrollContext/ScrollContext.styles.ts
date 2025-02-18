@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 4,
     },
     scrollable: {
-      minHeight: '75%',
+      paddingHorizontal: 16,
     },
     scrollButton: {
       backgroundColor: theme.colors.primary.default,

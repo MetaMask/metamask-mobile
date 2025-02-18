@@ -2,13 +2,9 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: {
-  vars: { isFlatConfirmation: boolean };
   theme: Theme;
 }) => {
-  const {
-    theme,
-    vars: { isFlatConfirmation },
-  } = params;
+  const { theme } = params;
 
   return StyleSheet.create({
     bottomSheetDialogSheet: {
@@ -24,10 +20,6 @@ const styleSheet = (params: {
       backgroundColor: theme.colors.background.alternative,
       justifyContent: 'space-between',
       paddingHorizontal: 16,
-    },
-    scrollView: {
-      paddingHorizontal: 16,
-      height: isFlatConfirmation ? '100%' : undefined,
     },
   });
 };
