@@ -540,6 +540,7 @@ workflows:
             - content: |
                 #!/usr/bin/env bash
                 ./scripts/download-android-qa-app.sh
+                # APK_PATH is already set by the download script using envman
   run_tag_upgrade_android:
     meta:
       bitrise.io:
@@ -1435,7 +1436,17 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
-                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+                # Use APK_PATH if it exists (from download script), otherwise use build path
+
+                if [ -n "$UPLOAD_APK_PATH" ] && [ -f "$UPLOAD_APK_PATH" ]; then
+                    APK_PATH="$UPLOAD_APK_PATH"
+                else
+                    APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk"
+                fi
+
+                echo "Using APK path: $UPLOAD_APK_PATH"
+                echo "Using APK path: $APK_PATH"
+
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_ANDROID_APP_URL
