@@ -154,7 +154,11 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
-import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
+import {
+  selectSwapsChainFeatureFlags,
+  selectSwapsQuotes,
+  selectSwapsTopAggId,
+} from '../../reducers/swaps';
 import {
   SmartTransactionStatuses,
   ClientId,
@@ -184,7 +188,10 @@ import { setupCurrencyRateSync } from './controllers/RatesController/subscriptio
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
-import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
+import {
+  getSmartTransactionMetricsProperties,
+  getGasIncludedTransactionFees,
+} from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
@@ -285,6 +292,7 @@ export class Engine {
       selectBasicFunctionalityEnabled(store.getState());
 
     const approvalController = new ApprovalController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
         allowedEvents: [],
@@ -298,6 +306,7 @@ export class Engine {
     });
 
     const preferencesController = new PreferencesController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
@@ -339,6 +348,7 @@ export class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AssetsContractController',
         allowedActions: [
@@ -367,6 +377,7 @@ export class Engine {
     const accountsController = controllersByName.AccountsController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const multichainBalancesControllerMessenger: MultichainBalancesControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'MultichainBalancesController',
@@ -393,6 +404,7 @@ export class Engine {
       });
 
     const multichainRatesController = createMultichainRatesController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: multichainRatesControllerMessenger,
       initialState: initialState.RatesController,
     });
@@ -407,6 +419,7 @@ export class Engine {
     const nftController = new NftController({
       chainId: getGlobalChainId(networkController),
       useIpfsSubdomains: false,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'NftController',
         allowedActions: [
@@ -447,6 +460,7 @@ export class Engine {
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
       state: initialState.TokensController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [
@@ -471,6 +485,7 @@ export class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
@@ -478,6 +493,7 @@ export class Engine {
       }),
     });
     const currencyRateController = new CurrencyRateController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
@@ -536,6 +552,7 @@ export class Engine {
 
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
       state: initialState.RemoteFeatureFlagController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
         allowedActions: [],
@@ -546,6 +563,7 @@ export class Engine {
     });
 
     const phishingController = new PhishingController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
         allowedActions: [],
@@ -581,7 +599,7 @@ export class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
-      name: 'SnapKeyringBuilder',
+      name: 'SnapKeyring',
       allowedActions: [
         'ApprovalController:addRequest',
         'ApprovalController:acceptRequest',
@@ -596,11 +614,11 @@ export class Engine {
         'AccountsController:setSelectedAccount',
         'AccountsController:getAccountByAddress',
         'AccountsController:setAccountName',
+        SnapControllerHandleRequestAction,
+        SnapControllerGetSnapAction,
       ],
       allowedEvents: [],
     });
-
-    const getSnapController = () => this.snapController;
 
     // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
     const persistAndUpdateAccounts = async () => {
@@ -611,7 +629,6 @@ export class Engine {
     additionalKeyrings.push(
       snapKeyringBuilder(
         snapKeyringBuildMessenger,
-        getSnapController,
         persistAndUpdateAccounts,
         (address) => this.removeAccount(address),
       ),
@@ -624,6 +641,7 @@ export class Engine {
         preferencesController,
       ),
       encryptor,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],
@@ -749,6 +767,7 @@ export class Engine {
     });
 
     const accountTrackerController = new AccountTrackerController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AccountTrackerController',
         allowedActions: [
@@ -837,6 +856,7 @@ export class Engine {
     });
 
     const selectedNetworkController = new SelectedNetworkController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SelectedNetworkController',
         allowedActions: [
@@ -908,6 +928,7 @@ export class Engine {
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -927,6 +948,7 @@ export class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
@@ -1007,6 +1029,7 @@ export class Engine {
 
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AuthenticationController',
         allowedActions: [
@@ -1057,6 +1080,7 @@ export class Engine {
         },
       },
       state: initialState.UserStorageController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
@@ -1090,6 +1114,7 @@ export class Engine {
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NotificationServicesController',
           allowedActions: [
@@ -1132,6 +1157,7 @@ export class Engine {
 
     const notificationServicesPushController =
       new NotificationServicesPushController.Controller({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: notificationServicesPushControllerMessenger,
         state: initialState.NotificationServicesPushController || {
           fcmToken: '',
@@ -1178,10 +1204,15 @@ export class Engine {
       getNetworkState: () => networkController.state,
       hooks: {
         publish: (transactionMeta) => {
-          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-            store.getState(),
-          );
-
+          const state = store.getState();
+          const shouldUseSmartTransaction =
+            selectShouldUseSmartTransaction(state);
+          const swapsQuotes = selectSwapsQuotes(state);
+          // We can choose the top agg id for now. Once selection is enabled, we need
+          // to look for a selected agg id.
+          const swapsTopAggId = selectSwapsTopAggId(state);
+          const selectedQuote = swapsQuotes?.[swapsTopAggId];
+          const transactionFees = getGasIncludedTransactionFees(selectedQuote);
           return submitSmartTransactionHook({
             transactionMeta,
             transactionController: this.transactionController,
@@ -1190,7 +1221,8 @@ export class Engine {
             approvalController,
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             controllerMessenger: this.controllerMessenger,
-            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
+            featureFlags: selectSwapsChainFeatureFlags(state),
+            transactionFees,
           }) as Promise<{ transactionHash: string }>;
         },
       },
@@ -1269,6 +1301,7 @@ export class Engine {
         ),
       trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
       state: initialState.SmartTransactionsController,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SmartTransactionsController',
         allowedActions: [
@@ -1303,6 +1336,7 @@ export class Engine {
       TokensController: tokensController,
       TokenListController: tokenListController,
       TokenDetectionController: new TokenDetectionController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
@@ -1350,6 +1384,7 @@ export class Engine {
         disabled: false,
       }),
       NftDetectionController: new NftDetectionController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftDetectionController',
           allowedEvents: [
@@ -1373,6 +1408,7 @@ export class Engine {
       PhishingController: phishingController,
       PreferencesController: preferencesController,
       TokenBalancesController: new TokenBalancesController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: [
@@ -1393,6 +1429,7 @@ export class Engine {
         state: initialState.TokenBalancesController,
       }),
       TokenRatesController: new TokenRatesController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenRatesController',
           allowedActions: [
@@ -1432,6 +1469,7 @@ export class Engine {
           swapsUtils.LINEA_CHAIN_ID,
           swapsUtils.BASE_CHAIN_ID,
         ],
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
@@ -1453,6 +1491,7 @@ export class Engine {
       RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
       SignatureController: new SignatureController({
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [
@@ -1487,6 +1526,7 @@ export class Engine {
         chainId: getGlobalChainId(networkController),
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
           allowedActions: ['NetworkController:getNetworkClientById'],

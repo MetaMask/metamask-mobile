@@ -1,5 +1,11 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { BaseControllerMessenger } from '../../types';
+import {
+  SnapKeyringAccountAssetListUpdatedEvent,
+  SnapKeyringAccountBalancesUpdatedEvent,
+  SnapKeyringAccountTransactionsUpdatedEvent,
+} from '../../../SnapKeyring/constants';
+import { SnapControllerStateChangeEvent } from '../../controllers/SnapController/constants';
 
 // Export the types
 export * from './types';
@@ -16,9 +22,12 @@ export function getAccountsControllerMessenger(
   return baseControllerMessenger.getRestricted({
     name: 'AccountsController',
     allowedEvents: [
-      'SnapController:stateChange',
       'KeyringController:accountRemoved',
       'KeyringController:stateChange',
+      SnapControllerStateChangeEvent,
+      SnapKeyringAccountAssetListUpdatedEvent,
+      SnapKeyringAccountBalancesUpdatedEvent,
+      SnapKeyringAccountTransactionsUpdatedEvent,
     ],
     allowedActions: [
       'KeyringController:getAccounts',

@@ -185,6 +185,7 @@ import {
   ActionConstraint,
   EventConstraint,
 } from '@metamask/base-controller';
+import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
 
 /**
  * Controllers that area always instantiated
@@ -296,7 +297,8 @@ type GlobalEvents =
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
-  | RemoteFeatureFlagControllerEvents;
+  | RemoteFeatureFlagControllerEvents
+  | SnapKeyringEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
