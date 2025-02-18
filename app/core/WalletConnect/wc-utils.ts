@@ -134,7 +134,7 @@ export const normalizeOrigin = (origin: string): string => {
     // Remove protocol and trailing slashes
     return origin.replace(/^https?:\/\//, '').replace(/\/$/, '');
   } catch (error) {
-    DevLogger.log(`WC::normalizeOrigin error:`, error);
+    DevLogger.log('WC::normalizeOrigin error:', error);
     return origin;
   }
 };
