@@ -14,14 +14,16 @@ import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertRespons
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
+import { useScrollContext } from '../../../context/ScrollContext';
 
 export const Footer = () => {
   const { onConfirm, onReject } = useConfirmActions();
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
-
-  const { styles } = useStyles(styleSheet, {});
+  const { isScrollToBottomNeeded } = useScrollContext();
+  const confirmDisabled = needsCameraPermission || isScrollToBottomNeeded;
+  const { styles } = useStyles(styleSheet, { confirmDisabled });
 
   const buttons = [
     {
