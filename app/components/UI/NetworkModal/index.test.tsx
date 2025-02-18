@@ -223,4 +223,70 @@ describe('NetworkDetails', () => {
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('test-network-id');
   });
+
+  describe('closeModal', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should handle adding new network correctly', async () => {
+      // Mock empty network configurations
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurations) return {};
+        return {};
+      });
+
+      const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
+
+      // Mock the addNetwork response
+      (
+        Engine.context.NetworkController.addNetwork as jest.Mock
+      ).mockResolvedValue({
+        rpcEndpoints: [{ networkClientId: 'new-network-id' }],
+        defaultRpcEndpointIndex: 0,
+      });
+
+      await act(async () => {
+        Engine.context.NetworkController.addNetwork.mockResolvedValueOnce({
+          rpcEndpoints: [{ networkClientId: 'new-network-id' }],
+          defaultRpcEndpointIndex: 0,
+        });
+        const approveButton = getByTestId(
+          NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+        );
+        fireEvent.press(approveButton);
+      });
+
+      await act(async () => {
+        const closeButton = getByTestId(
+          NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
+        );
+        fireEvent.press(closeButton);
+      });
+
+      // Verify network was added with correct parameters
+      expect(Engine.context.NetworkController.addNetwork).toHaveBeenCalledWith({
+        chainId: props.networkConfiguration.chainId,
+        blockExplorerUrls: [
+          props.networkConfiguration.rpcPrefs.blockExplorerUrl,
+        ],
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        name: props.networkConfiguration.nickname,
+        nativeCurrency: props.networkConfiguration.ticker,
+        rpcEndpoints: [
+          {
+            url: props.networkConfiguration.rpcUrl,
+            name: props.networkConfiguration.nickname,
+            type: 'custom',
+          },
+        ],
+      });
+
+      // Verify active network was set
+      expect(
+        Engine.context.MultichainNetworkController.setActiveNetwork,
+      ).toHaveBeenCalledWith('new-network-id');
+    });
+  });
 });
