@@ -4,6 +4,18 @@
 jest.unmock('./storage-wrapper');
 import StorageWrapper from './storage-wrapper';
 
+jest.mock('../util/test/utils', () => ({
+  isTest: true,
+  getFixturesServerPortInApp: () => 12345,
+  FIXTURE_SERVER_PORT: 12345
+}));
+
+jest.mock('../util/test/network-store', () => ({
+  _state: undefined,
+  _asyncState: undefined,
+  getState: jest.fn()
+}));
+
 describe('StorageWrapper', () => {
   it('return the value from Storage Wrapper', async () => {
     const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
@@ -91,5 +103,30 @@ describe('StorageWrapper', () => {
     expect(setItemSpy).toHaveBeenCalledWith('test-key', 'test-value');
     expect(getItemSpy).toHaveBeenCalledWith('test-key');
     expect(result).toBe('test-value');
+  });
+
+  describe('storage initialization', () => {
+    it('should fallback to MMKV when network store state is undefined', () => {
+      // Reset the module to test initialization
+      jest.isolateModules(() => {
+        const StorageWrapper = require('./storage-wrapper').default;
+        expect(StorageWrapper.storage.constructor.name).toBe('MMKV');
+      });
+    });
+
+    it('should use network store when state is available', () => {
+      jest.resetModules();
+      // Mock network store with valid state
+      jest.mock('../util/test/network-store', () => ({
+        _state: { test: 'test' },
+        _asyncState: { test: 'test' },
+        getState: jest.fn()
+      }));
+
+      jest.isolateModules(() => {
+        const StorageWrapper = require('./storage-wrapper').default;
+        expect(StorageWrapper.storage).toBe(require('../util/test/network-store'));
+      });
+    });
   });
 });
