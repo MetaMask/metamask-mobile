@@ -11,6 +11,7 @@ const styleSheet = (params: {
     theme,
     vars: { isFlatConfirmation },
   } = params;
+  const modalScrollWrapperHeight = Device.isIos() ? '75%' : '70%';
 
   return StyleSheet.create({
     flatContainer: {
@@ -40,8 +41,8 @@ const styleSheet = (params: {
       minHeight: '100%',
     },
     scrollWrapper: {
-      minHeight: isFlatConfirmation ? '100%' : '75%',
-      maxHeight: isFlatConfirmation ? '100%' : '75%',
+      minHeight: isFlatConfirmation ? '100%' : modalScrollWrapperHeight,
+      maxHeight: isFlatConfirmation ? '100%' : modalScrollWrapperHeight,
       margin: 0,
     },
   });
