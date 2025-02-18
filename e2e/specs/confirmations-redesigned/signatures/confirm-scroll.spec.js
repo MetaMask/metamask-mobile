@@ -3,7 +3,6 @@ import Assertions from '../../../utils/Assertions.js';
 import Browser from '../../../pages/Browser/BrowserView.js';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
 import PageSections from '../../../pages/Browser/Confirmations/PageSections.js';
-import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes.js';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
 import TestDApp from '../../../pages/Browser/TestDApp.js';
 import TestHelpers from '../../../helpers.js';
@@ -67,7 +66,7 @@ describe(SmokeConfirmationsRedesigned('Confirmations Page Scroll'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        await TestDApp.tapSeaportBulkSignButton.bind(TestDApp);
+        await TestDApp.tapPermitSignButton.bind(TestDApp);
         await Assertions.checkIfVisible(PageSections.ScrollButton);
       },
     );

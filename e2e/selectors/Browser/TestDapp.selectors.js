@@ -8,7 +8,7 @@ export const TestDappSelectorsWebIDs = {
   INCREASE_ALLOWANCE_BUTTON_ID: 'increaseTokenAllowance',
   NFT_TRANSFER_FROM_BUTTON_ID: 'transferFromButton',
   PERSONAL_SIGN: 'personalSign',
-  SEAPORT_BULK_ORDER: 'signSeaportBulkOrder',
+  PERMIT_SIGN: 'signPermit',
   SET_APPROVAL_FOR_ALL_NFT_BUTTON_ID: 'setApprovalForAllButton',
   SET_APPROVAL_FOR_ALL_ERC1155_BUTTON_ID: 'setApprovalForAllERC1155Button',
   SIGN_TYPE_DATA: 'signTypedData',
