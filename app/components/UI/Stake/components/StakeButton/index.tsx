@@ -27,6 +27,7 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
+import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -44,11 +45,17 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const onStakeButtonPress = async () => {
     if (!isStakingSupportedChain) {
-      const { NetworkController } = Engine.context;
-      await NetworkController.setActiveNetwork('mainnet');
+      const { MultichainNetworkController } = Engine.context;
+      await MultichainNetworkController.setActiveNetwork('mainnet');
     }
     if (isEligible) {
-      navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token: asset,
+          action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        },
+      });
     } else {
       const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
         tab.url.includes(AppConstants.STAKE.URL),

@@ -1,0 +1,459 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleView Snapshot renders correctly 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <RCTScrollView
+    style={
+      {
+        "flex": 0.9,
+      }
+    }
+  >
+    <View>
+      <View>
+        <View
+          collapsable={false}
+          onGestureHandlerEvent={[Function]}
+          onGestureHandlerStateChange={[Function]}
+          onLayout={[Function]}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderTopEndRadius": 8,
+              "borderTopStartRadius": 8,
+              "flex": 0,
+              "transform": [
+                {
+                  "translateY": 0,
+                },
+              ],
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+                "paddingVertical": 16,
+                "width": "100%",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "#848c96",
+                  "borderRadius": 4,
+                  "height": 5,
+                  "width": 48,
+                }
+              }
+            />
+          </View>
+          <RCTSafeAreaView>
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  {
+                    "paddingHorizontal": 16,
+                  }
+                }
+              >
+                <Text
+                  numberOfLines={2}
+                  style={
+                    [
+                      {
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 30,
+                        "fontWeight": "400",
+                        "marginVertical": 2,
+                      },
+                      undefined,
+                      undefined,
+                      {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontWeight": "600",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#141618",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "marginVertical": 0,
+                      },
+                      {
+                        "fontSize": 24,
+                        "marginBottom": 3,
+                      },
+                    ]
+                  }
+                />
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 30,
+                        "fontWeight": "400",
+                        "marginVertical": 2,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#141618",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "fontSize": 16,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "marginVertical": 0,
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  #
+                </Text>
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "paddingHorizontal": 16,
+                    },
+                    {
+                      "flexDirection": "row",
+                      "marginTop": 16,
+                    },
+                  ]
+                }
+              >
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={0.2}
+                  onPressOut={[Function]}
+                  style={
+                    [
+                      [
+                        {
+                          "borderRadius": 100,
+                          "justifyContent": "center",
+                          "padding": 15,
+                        },
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#0376c9",
+                          "borderWidth": 1,
+                          "padding": 8,
+                        },
+                        [
+                          {
+                            "alignItems": "center",
+                            "borderWidth": 1.5,
+                            "justifyContent": "center",
+                          },
+                          {
+                            "height": 54,
+                            "width": 54,
+                          },
+                        ],
+                      ],
+                      null,
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#0376c9",
+                        },
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    <Text
+                      allowFontScaling={false}
+                      style={
+                        [
+                          {
+                            "color": undefined,
+                            "fontSize": 24,
+                          },
+                          undefined,
+                          {
+                            "fontFamily": "anticon",
+                            "fontStyle": "normal",
+                            "fontWeight": "normal",
+                          },
+                          {},
+                        ]
+                      }
+                    >
+                      
+                    </Text>
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View />
+            <View
+              style={
+                {
+                  "paddingTop": 24,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "marginBottom": 8,
+                    "marginHorizontal": 16,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 30,
+                        "fontWeight": "400",
+                        "marginVertical": 2,
+                      },
+                      undefined,
+                      undefined,
+                      {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontWeight": "600",
+                      },
+                      undefined,
+                      {
+                        "color": "#141618",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#141618",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "fontSize": 16,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "marginVertical": 0,
+                      },
+                      {
+                        "paddingRight": 10,
+                      },
+                    ]
+                  }
+                >
+                  Asset contract
+                </Text>
+                <Text
+                  ellipsizeMode="middle"
+                  numberOfLines={1}
+                  onPress={[Function]}
+                  style={
+                    [
+                      {
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 30,
+                        "fontWeight": "400",
+                        "marginVertical": 2,
+                      },
+                      undefined,
+                      {
+                        "textAlign": "right",
+                      },
+                      undefined,
+                      undefined,
+                      false,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      false,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "fontSize": 16,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "color": "#0376c9",
+                      },
+                      undefined,
+                      undefined,
+                      {
+                        "marginVertical": 0,
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  0xABCD...CDEF
+                </Text>
+              </View>
+            </View>
+          </RCTSafeAreaView>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      {
+        "flex": 0.1,
+        "height": 4,
+        "paddingVertical": 15,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        [
+          [
+            {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            {
+              "backgroundColor": "#0376c9",
+              "minHeight": 50,
+            },
+            {
+              "flexDirection": "row",
+              "marginHorizontal": 16,
+            },
+          ],
+          null,
+        ]
+      }
+      testID="send-button"
+    >
+      <Text
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 15,
+            "fontWeight": "600",
+            "marginLeft": 8,
+          }
+        }
+      >
+        SEND
+      </Text>
+    </TouchableOpacity>
+  </View>
+</RCTSafeAreaView>
+`;

@@ -546,7 +546,7 @@ export function setupSentry() {
 
     Sentry.init({
       dsn,
-      debug: isDev,
+      debug: isDev && process.env.SENTRY_DEBUG_DEV !== 'false',
       environment,
       integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.

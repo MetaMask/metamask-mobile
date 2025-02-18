@@ -42,7 +42,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
         restartDevice: true,
         testSpecificMock: {
           GET: [
-            mockEvents.GET.securityAlertApiSupportedChains,
+            mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations,
             ...(testSpecificMock.GET ?? []),
           ],
           POST: [...(testSpecificMock.POST ?? [])],

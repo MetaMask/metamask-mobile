@@ -1,9 +1,10 @@
 import React, { memo } from 'react';
 import { Hex, isValidHexAddress } from '@metamask/utils';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { startCase } from 'lodash';
 
 import { strings } from '../../../../../../../locales/i18n';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import { NONE_DATE_VALUE } from '../../../utils/date';
 import {
   PRIMARY_TYPES_ORDER,
@@ -13,6 +14,7 @@ import {
 import Address from '../../UI/InfoRow/InfoValue/Address';
 import InfoDate from '../../UI/InfoRow/InfoValue/InfoDate';
 import InfoRow from '../../UI/InfoRow';
+import TokenValue from '../../UI/InfoRow/InfoValue/TokenValue';
 import DataTree from './DataTree';
 
 enum Field {
@@ -41,8 +43,23 @@ const FIELD_DATE_PRIMARY_TYPES: Record<string, string[]> = {
   [Field.ValidTo]: [...PRIMARY_TYPES_ORDER],
 };
 
+const FIELD_TOKEN_UTILS_PRIMARY_TYPES: Record<string, string[]> = {
+  [Field.Amount]: [...PRIMARY_TYPES_PERMIT],
+  [Field.BuyAmount]: [...PRIMARY_TYPES_ORDER],
+  [Field.EndAmount]: [...PRIMARY_TYPES_ORDER],
+  [Field.SellAmount]: [...PRIMARY_TYPES_ORDER],
+  [Field.StartAmount]: [...PRIMARY_TYPES_ORDER],
+  [Field.Value]: [...PRIMARY_TYPES_PERMIT],
+};
+
 function isDateField(label: string, primaryType?: PrimaryType) {
   return (FIELD_DATE_PRIMARY_TYPES[label] || [])?.includes(primaryType || '');
+}
+
+function isTokenValueField(label: string, primaryType?: PrimaryType) {
+  return (FIELD_TOKEN_UTILS_PRIMARY_TYPES[label] || [])?.includes(
+    primaryType || '',
+  );
 }
 
 const createStyles = (depth: number) =>
@@ -55,7 +72,7 @@ const createStyles = (depth: number) =>
     },
     dataRow: {
       paddingHorizontal: 0,
-      paddingBottom: 16,
+      paddingBottom: 8,
     },
   });
 
@@ -66,6 +83,7 @@ const DataField = memo(
     label,
     primaryType,
     type,
+    tokenDecimals,
     value,
   }: {
     chainId: string;
@@ -73,6 +91,7 @@ const DataField = memo(
     label: string;
     primaryType?: PrimaryType;
     type: string;
+    tokenDecimals?: number;
     value: string;
   }) => {
     const styles = createStyles(depth);
@@ -88,6 +107,14 @@ const DataField = memo(
         ) : (
           <InfoDate unixTimestamp={parseInt(value, 10)} />
         );
+    } else if (isTokenValueField(label, primaryType)) {
+      fieldDisplay = (
+        <TokenValue
+          label={startCase(label)}
+          value={value}
+          decimals={tokenDecimals}
+        />
+      );
     } else if (typeof value === 'object' && value !== null) {
       fieldDisplay = (
         <DataTree
@@ -95,6 +122,7 @@ const DataField = memo(
           chainId={chainId}
           depth={depth + 1}
           primaryType={primaryType}
+          tokenDecimals={tokenDecimals}
         />
       );
     } else {

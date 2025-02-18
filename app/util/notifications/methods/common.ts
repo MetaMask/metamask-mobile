@@ -11,6 +11,8 @@ import {
   USER_STORAGE_VERSION_KEY,
   OnChainRawNotification,
   OnChainRawNotificationsWithNetworkFields,
+  TRIGGER_TYPES,
+  INotification,
 } from '@metamask/notification-services-controller/notification-services';
 import {
   NOTIFICATION_CHAINS_ID,
@@ -18,12 +20,9 @@ import {
   NOTIFICATION_NETWORK_CURRENCY_SYMBOL,
   SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS,
 } from '@metamask/notification-services-controller/notification-services/ui';
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
-import { TRIGGER_TYPES } from '../constants';
-import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -335,8 +334,8 @@ export function shortenString(
 }
 
 export const sortNotifications = (
-  notifications: Notification[],
-): Notification[] => {
+  notifications: INotification[],
+): INotification[] => {
   if (!notifications) {
     return [];
   }
@@ -546,20 +545,4 @@ export function getAllUUIDs(userStorage: UserStorage): string[] {
     mapTrigger: triggerToId,
   });
   return uuids;
-}
-
-export function parseNotification(
-  remoteMessage: FirebaseMessagingTypes.RemoteMessage,
-) {
-  const notification = remoteMessage.data?.data;
-  const parsedNotification =
-    typeof notification === 'string' ? JSON.parse(notification) : notification;
-
-  const notificationData = {
-    type: parsedNotification?.type || parsedNotification?.data?.kind,
-    transaction: parsedNotification?.data,
-    duration: 5000,
-  };
-
-  return notificationData;
 }

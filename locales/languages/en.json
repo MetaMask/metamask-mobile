@@ -1304,8 +1304,8 @@
       "swap": "Swapping not supported for this account",
       "bridge": "Bridging not supported for this account",
       "send": "Sending not supported for this account",
-      "earn": "Earning not supported for this account",
-      "action": "This action is not supported for this account"
+      "action": "This action is not supported for this account",
+      "earn": "Earning not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Total Supply",
@@ -2840,9 +2840,12 @@
     "n_quotes": "{{numberOfQuotes}} quotes",
     "view_details": "View details",
     "estimated_gas_fee": "Estimated gas fee",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Max gas fee",
     "edit": "Edit",
     "quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Tap to Swap",
     "swipe_to_swap": "Swipe to swap",
     "swipe_to": "Swipe to",
@@ -2912,6 +2915,8 @@
     "high_recommendation": "Swaps are typically time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "recommended": "Recommended",
     "recommended_gas": "Recommended gas fee",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Estimated gas fees",
     "gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
     "gas_education_2_ethereum": "Ethereum network.",
@@ -3449,17 +3454,21 @@
       "stake_annual_rate_tooltip": "Annual rate tooltip"
     },
     "estimated_annual_rewards": "Estimated annual rewards",
+    "estimated_annual_reward": "Est. annual reward",
+    "reward_frequency": "Reward frequency",
+    "reward_frequency_tooltip": "Your staked balance updates every {{frequency}} to account for new rewards.",
+    "withdrawal_time": "Withdrawal time",
     "metamask_pool": "MetaMask Pool",
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
     "balance":"Balance",
     "stake_eth_and_earn":"Stake ETH and earn",
-    "stake_any_amount_of_eth":"Stake any amount of ETH",
+    "stake_any_amount_of_eth":"Stake any amount of ETH.",
     "no_minimum_required":"No minimum required.",
-    "earn_eth_rewards":"Earn ETH rewards",
+    "earn_eth_rewards":"Earn ETH rewards.",
     "earn_eth_rewards_description":"Start earning as soon as you stake. Rewards compound automatically.",
-    "flexible_unstaking":"Flexible unstaking",
+    "flexible_unstaking":"Flexible unstaking.",
     "flexible_unstaking_description":"Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
     "disclaimer":"Staking does not guarantee rewards, and involves risks including a loss of funds.",
     "learn_more":"Learn more",
@@ -3518,7 +3527,29 @@
     "estimated_unstaking_time": "1 to 11 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
-    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit."
+    "select_a_token": "Select a token",
+    "you_could_earn": "You could earn",
+    "per_year_on_your_tokens": "per year on your tokens",
+    "deposit": "Deposit",
+    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than {{percentOverDeposit}}% of your deposit.",
+    "view_earnings_history": "View earnings history",
+    "earnings_history_title": "{{ticker}} earnings",
+    "earnings_history_list_title": "Payout history",
+    "apr": "APR",
+    "interactive_chart": {
+        "timespan_buttons": {
+            "7D": "7D",
+            "1M": "1M",
+            "3M": "3M",
+            "6M": "6M"
+        }
+    },
+    "today": "Today",
+    "one_week_average": "1 week average",
+    "one_month_average": "1 month average",
+    "three_month_average": "3 month average",
+    "six_month_average": "6 month average",
+    "one_year_average": "1 year average"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3602,20 +3633,44 @@
   "confirm": {
     "reject": "Reject",
     "confirm": "Confirm",
+    "label": {
+      "account": "Account",
+      "balance": "Balance",
+      "interacting_with": "Interacting with",
+      "network": "Network",
+      "primary_type": "Primary type",
+      "request_from": "Request from",
+      "signing_in_with": "Signing in with",
+      "spender": "Spender"
+    },
     "title": {
-      "signature": "Signature request"
+      "signature": "Signature request",
+      "permit": "Spending cap request",
+      "permit_NFTs": "Withdrawal request",
+      "signature_siwe": "Sign-in request"
     },
     "sub_title": {
-      "signature": "Review request details before you confirm."
+      "permit": "This site wants permission to spend your tokens.",
+      "permit_NFTs": "This site wants permission to withdraw your NFTs.",
+      "signature": "Review request details before you confirm.",
+      "signature_siwe": "A site wants you to sign in to prove you own this account."
     },
-    "request_from": "Request from",
     "message": "Message",
-    "primary_type": "Primary type",
     "personal_sign_tooltip": "This site is asking for your signature",
     "details": "Details",
-    "account": "Account",
-    "balance": "Balance",
-    "network": "Network",
+    "qr_get_sign": "Get Signature",
+    "qr_scan_text": "Scan with your hardware wallet",
+    "siwe_message": {
+      "url": "URL",
+      "network" : "Network",
+      "account" : "Account",
+      "version" : "Version",
+      "chain_id" : "Chain ID",
+      "nonce" : "Nonce",
+      "issued" : "Issued",
+      "requestId": "Request ID",
+      "resources": "Resources"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft":  "Expect changes only if someone buys your NFTs.",
@@ -3647,5 +3702,10 @@
     "input_title": "Account name",
     "add_account_button": "Add account",
     "name_taken_message": "This account name already exists"
+  },
+    "smart_transactions_migration": {
+    "title": "Transactions just got smarter",
+    "link": "Higher success rates",
+    "description": " and MEV protection. Now on by default."
   }
 }

@@ -24,6 +24,7 @@ import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
+import Collectible from '../../Views/Collectible';
 import Send from '../../Views/confirmations/Send';
 import SendTo from '../../Views/confirmations/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -88,6 +89,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import BridgeView from '../../UI/Bridge';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -164,6 +166,11 @@ const WalletTabStackFlow = () => (
       name="AddAsset"
       component={AddAsset}
       options={AddAsset.navigationOptions}
+    />
+    <Stack.Screen
+      name="Collectible"
+      component={Collectible}
+      options={Collectible.navigationOptions}
     />
     <Stack.Screen
       name="ConfirmAddAsset"
@@ -707,6 +714,16 @@ const Swaps = () => (
   </Stack.Navigator>
 );
 
+const Bridge = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="BridgeView"
+      component={BridgeView}
+      options={BridgeView.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -811,6 +828,7 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
+    <Stack.Screen name="Bridge" component={Bridge} />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
     <Stack.Screen
       name="StakeModals"
@@ -823,7 +841,7 @@ const MainNavigator = () => (
       headerTitle={() => (
         <Image
           style={styles.headerLogo}
-          source={require('../../../images/metamask-name.png')}
+          source={require('../../../images/branding/metamask-name.png')}
           resizeMode={'contain'}
         />
       )}

@@ -19,6 +19,7 @@ const wallet_switchEthereumChain = async ({
   const {
     CurrencyRateController,
     NetworkController,
+    MultichainNetworkController,
     PermissionController,
     SelectedNetworkController,
   } = Engine.context;
@@ -64,7 +65,7 @@ const wallet_switchEthereumChain = async ({
       chainId: _chainId,
       controllers: {
         CurrencyRateController,
-        NetworkController,
+        MultichainNetworkController,
         PermissionController,
         SelectedNetworkController,
       },

@@ -51,8 +51,7 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
   });
 
   it('show nft detection modal after user switches to mainnet and taps allow when nftDetection toggle is off', async () => {
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    const testNftOnMainnet = "Life's A Joke #2875";
+    const testNftOnMainnet = 'LifesAJokeNFT';
 
     await withFixtures(
       {
@@ -78,9 +77,7 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
           NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );
 
-        await Assertions.checkIfVisible(
-          WalletView.nftIDInWallet(testNftOnMainnet),
-        );
+        await Assertions.checkIfTextIsDisplayed(testNftOnMainnet);
       },
     );
   });

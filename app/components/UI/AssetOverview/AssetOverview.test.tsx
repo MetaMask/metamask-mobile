@@ -17,6 +17,11 @@ import {
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+// eslint-disable-next-line import/no-namespace
+import * as transactions from '../../../util/transactions';
+import { mockNetworkState } from '../../../util/test/network';
+import Engine from '../../../core/Engine';
+import Routes from '../../../constants/navigation/Routes';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -101,6 +106,9 @@ jest.mock('../../../core/Engine', () => ({
       getNetworkConfigurationByChainId: jest
         .fn()
         .mockReturnValue(mockNetworkConfiguration),
+      setActiveNetwork: jest.fn().mockResolvedValue(undefined),
+    },
+    MultichainNetworkController: {
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
     },
   },
@@ -193,6 +201,76 @@ describe('AssetOverview', () => {
     expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
   });
 
+  it('should handle send button press for native asset when isETH is false', async () => {
+    const spyOnGetEther = jest.spyOn(transactions, 'getEther');
+
+    const nativeAsset = {
+      balance: '400',
+      balanceFiat: '1500',
+      chainId: '0x38',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
+      symbol: 'BNB',
+      name: 'Binance smart chain',
+      isETH: false,
+      nativeCurrency: 'BNB',
+      hasBalanceError: false,
+      decimals: 18,
+      address: '0x123',
+      aggregators: [],
+      image: '',
+      isNative: true,
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={nativeAsset}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      {
+        state: {
+          ...mockInitialState,
+          engine: {
+            ...mockInitialState.engine,
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              NetworkController: {
+                ...mockNetworkState({
+                  chainId: '0x38',
+                  id: 'bsc',
+                  nickname: 'Binance Smart Chain',
+                  ticker: 'BNB',
+                  blockExplorerUrl: 'https://bscscan.com',
+                }),
+              },
+              TokenRatesController: {
+                marketData: {
+                  '0x38': {
+                    [zeroAddress()]: { price: 0.005 },
+                  },
+                },
+              },
+              AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+              AccountTrackerController: {
+                accountsByChainId: {
+                  '0x38': {
+                    [nativeAsset.address]: { balance: '0x1' },
+                  },
+                },
+              } as const,
+            },
+          },
+        },
+      },
+    );
+
+    const sendButton = getByTestId('token-send-button');
+    fireEvent.press(sendButton);
+    expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+    expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
+  });
+
   it('should handle swap button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -264,5 +342,121 @@ describe('AssetOverview', () => {
 
     const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
     expect(buyButton).toBeNull();
+  });
+
+  describe('Portfolio view network switching', () => {
+    beforeEach(() => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      jest.useFakeTimers();
+      // Reset mocks before each test
+      jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should switch networks before sending when on different chain', async () => {
+      const differentChainAsset = {
+        ...asset,
+        chainId: '0x89', // Different chain (Polygon)
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={differentChainAsset}
+          displayBuyButton
+          displaySwapsButton
+          swapsIsLive
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      // Wait for all promises to resolve
+      await Promise.resolve();
+
+      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+    });
+
+    it('should switch networks before swapping when on different chain', async () => {
+      const differentChainAsset = {
+        ...asset,
+        chainId: '0x89', // Different chain (Polygon)
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={differentChainAsset}
+          displayBuyButton
+          displaySwapsButton
+          swapsIsLive
+        />,
+        { state: mockInitialState },
+      );
+
+      const swapButton = getByTestId('token-swap-button');
+      await fireEvent.press(swapButton);
+
+      // Wait for all promises to resolve
+      await Promise.resolve();
+
+      expect(navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+
+      expect(
+        Engine.context.NetworkController.getNetworkConfigurationByChainId,
+      ).toHaveBeenCalledWith('0x89');
+
+      // Fast-forward timers to trigger the swap navigation
+      jest.advanceTimersByTime(500);
+
+      expect(navigate).toHaveBeenCalledWith('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourceToken: differentChainAsset.address,
+          sourcePage: 'MainView',
+          chainId: '0x89',
+        },
+      });
+    });
+
+    it('should not switch networks when on same chain', async () => {
+      const sameChainAsset = {
+        ...asset,
+        chainId: MOCK_CHAIN_ID, // Same chain as current
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={sameChainAsset}
+          displayBuyButton
+          displaySwapsButton
+          swapsIsLive
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      // Wait for all promises to resolve
+      await Promise.resolve();
+
+      expect(
+        Engine.context.MultichainNetworkController.setActiveNetwork,
+      ).not.toHaveBeenCalled();
+    });
   });
 });
