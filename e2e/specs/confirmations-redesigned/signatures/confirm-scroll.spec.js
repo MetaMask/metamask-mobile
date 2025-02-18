@@ -49,7 +49,7 @@ describe(SmokeConfirmationsRedesigned('Confirmations Page Scroll'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        await TestDApp.tapPersonalSignButton.bind(TestDApp);
+        await TestDApp.tapPersonalSignButton();
         await Assertions.checkIfNotVisible(PageSections.ScrollButton);
       },
     );
@@ -88,7 +88,7 @@ describe(SmokeConfirmationsRedesigned('Confirmations Page Scroll'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        await TestDApp.tapPermitSignButton.bind(TestDApp);
+        await TestDApp.tapPermitSignButton();
         await Assertions.checkIfVisible(PageSections.ScrollButton);
       },
     );
