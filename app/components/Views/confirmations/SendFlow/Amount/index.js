@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import BigNumber from 'bignumber.js';
 import { fontStyles } from '../../../../../styles/common';
 import {
   StyleSheet,
@@ -167,6 +168,13 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
       fontSize: 12,
       color: colors.primary.default,
+      alignSelf: 'flex-end',
+      textTransform: 'uppercase',
+    },
+    maxTextDisabled: {
+      ...fontStyles.normal,
+      fontSize: 12,
+      color: colors.text.alternative,
       alignSelf: 'flex-end',
       textTransform: 'uppercase',
     },
@@ -1045,18 +1053,15 @@ class Amount extends PureComponent {
     this.setState({ assetsModalVisible: !assetsModalVisible });
   };
 
-  handleSelectedAssetBalance = (
-    selectedAsset,
-    renderableBalance,
-  ) => {
+  handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
     const { accounts, selectedAddress, contractBalances } = this.props;
     let currentBalance;
     if (renderableBalance) {
       currentBalance = `${renderableBalance} ${selectedAsset.symbol}`;
     } else if (isNativeToken(selectedAsset)) {
-      currentBalance = `${renderFromWei(
-        accounts[selectedAddress].balance,
-      )} ${selectedAsset.symbol}`;
+      currentBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${
+        selectedAsset.symbol
+      }`;
     } else {
       currentBalance = `${renderFromTokenMinimalUnit(
         contractBalances[selectedAsset.address],
@@ -1467,6 +1472,10 @@ class Amount extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const isEstimateedTotalGasValid = estimatedTotalGas
+      ? BigNumber(estimatedTotalGas).gt(0)
+      : false;
+
     return (
       <SafeAreaView
         edges={['bottom']}
@@ -1526,10 +1535,16 @@ class Amount extends PureComponent {
                 {!selectedAsset.tokenId && (
                   <TouchableOpacity
                     style={styles.actionMaxTouchable}
-                    disabled={!estimatedTotalGas}
+                    disabled={!isEstimateedTotalGasValid}
                     onPress={this.useMax}
                   >
-                    <Text style={styles.maxText}>
+                    <Text
+                      style={
+                        isEstimateedTotalGasValid
+                          ? styles.maxText
+                          : styles.maxTextDisabled
+                      }
+                    >
                       {strings('transaction.use_max')}
                     </Text>
                   </TouchableOpacity>
@@ -1575,7 +1590,10 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     accounts: selectAccounts(state),
-    contractExchangeRates: selectContractExchangeRatesByChainId(state, globalChainId),
+    contractExchangeRates: selectContractExchangeRatesByChainId(
+      state,
+      globalChainId,
+    ),
     contractBalances: selectContractBalances(state),
     collectibles: collectiblesSelector(state),
     collectibleContracts: collectibleContractsSelector(state),

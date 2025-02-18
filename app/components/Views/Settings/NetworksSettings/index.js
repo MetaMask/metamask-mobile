@@ -43,6 +43,7 @@ import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { getGlobalChainId } from '../../../../util/networks/global-network';
 
 const createStyles = (colors) =>
   StyleSheet.create({

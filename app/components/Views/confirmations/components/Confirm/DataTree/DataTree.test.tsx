@@ -91,4 +91,26 @@ describe('NoChangeSimulation', () => {
     expect(getByText('15 March 2022, 15:57')).toBeDefined();
     expect(getByText('None')).toBeDefined();
   });
+
+  it('should display types sign v3/v4 message correctly', async () => {
+    const { getByText, getAllByText } = renderWithProvider(
+      <DataTree
+        data={mockSanitizedTypedSignV3Message as unknown as DataTreeInput}
+        chainId="0x1"
+      />,
+      {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      },
+    );
+    expect(getAllByText('Name')).toHaveLength(2);
+    expect(getAllByText('Wallet')).toHaveLength(2);
+    expect(getByText('From')).toBeDefined();
+    expect(getByText('Cow')).toBeDefined();
+    expect(getByText('To')).toBeDefined();
+    expect(getByText('Bob')).toBeDefined();
+  });
 });
