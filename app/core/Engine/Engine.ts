@@ -1225,7 +1225,6 @@ export class Engine {
 
     const notificationServicesPushController =
       new NotificationServicesPushController.Controller({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: notificationServicesPushControllerMessenger,
         state: initialState.NotificationServicesPushController || {
           fcmToken: '',
