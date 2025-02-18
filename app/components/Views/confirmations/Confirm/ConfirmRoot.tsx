@@ -9,14 +9,12 @@ import { useStandaloneConfirmation } from '../hooks/useStandaloneConfirmation';
 export const ConfirmRoot = () => {
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const { isFlatConfirmation } = useFlatConfirmation();
-  const { isStandaloneConfirmation, navigationOpts } =
-    useStandaloneConfirmation();
+  const { isStandaloneConfirmation } = useStandaloneConfirmation();
   const navigation = useNavigation();
 
   useEffect(() => {
     if (isRedesignedEnabled) {
       if (isStandaloneConfirmation) {
-        navigation.navigate(...navigationOpts);
         return;
       }
       navigation.navigate(
@@ -28,7 +26,6 @@ export const ConfirmRoot = () => {
     isRedesignedEnabled,
     isStandaloneConfirmation,
     navigation,
-    navigationOpts,
   ]);
 
   return null;
