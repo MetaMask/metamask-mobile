@@ -8,10 +8,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
-import {
-  MOCK_ETH_MAINNET_ASSET,
-  MOCK_GET_VAULT_RESPONSE,
-} from '../../__mocks__/mockData';
+import { MOCK_ETH_MAINNET_ASSET } from '../../__mocks__/mockData';
 import { toWei } from '../../../../../util/number';
 import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
@@ -23,22 +20,7 @@ import {
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-
-function render(Component: React.ComponentType) {
-    return renderScreen(
-                        Component,
-                        {
-                        name: Routes.STAKING.STAKE,
-                        },
-                        {
-                        state: {
-                        engine: {
-                        backgroundState,
-                        },
-                        },
-                        },
-                        );
-}
+import { MOCK_VAULT_APY_AVERAGES } from '../../components/PoolStakingLearnMoreModal/mockVaultRewards';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -213,7 +195,7 @@ describe('StakeInputView', () => {
 
       fireEvent.press(getByText('2'));
 
-      expect(getByText(''0.06515 ETH'')).toBeTruthy();
+      expect(getByText('0.06515 ETH')).toBeTruthy();
     });
   });
 
