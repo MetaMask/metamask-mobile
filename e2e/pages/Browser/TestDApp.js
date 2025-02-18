@@ -96,6 +96,12 @@ class TestDApp {
       TestDappSelectorsWebIDs.ETHEREUM_SIGN,
     );
   }
+  get seaportBulkSignButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SEAPORT_BULK_ORDER,
+    );
+  }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get nftTransferFromTokensButton() {
     return Matchers.getElementByWebID(
@@ -197,6 +203,10 @@ class TestDApp {
 
   async tapEthereumSignButton() {
     await this.tapButton(this.ethereumSignButton);
+  }
+
+  async tapSeaportBulkSignButton() {
+    await this.tapButton(this.seaportBulkSignButton);
   }
 
   async tapERC20TransferButton() {

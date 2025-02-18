@@ -23,3 +23,6 @@ export const ConfirmationPageSectionsSelectorIDs = {
   MESSAGE_SECTION: 'message-section',
   STAKING_DETAILS_SECTION: 'staking-details-section',
 };
+
+export const ConfirmationPageScrollButton =
+  'confirmation-scroll-to-bottom-button';
