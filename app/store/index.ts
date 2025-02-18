@@ -29,11 +29,17 @@ const createStoreAndPersistor = async () => {
     parentContext: getUIStartupSpan(),
     op: TraceOperation.StoreInit,
   });
-  // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
-  const initialState = isTest
-    ? await ReadOnlyNetworkStore.getState()
-    : undefined;
-
+  // Checking for isTest status to load state from the network store
+  let initialState;
+  if (isTest) {
+    initialState = await ReadOnlyNetworkStore.getState();
+    // Fallback mechanism to avoid having the network store return an empty state
+    if (initialState._asyncState === undefined || initialState._state === undefined) {
+      initialState = undefined;
+    }
+  } else {
+    initialState = undefined;
+  }
   const sagaMiddleware = createSagaMiddleware();
 
   // Create the store and apply middlewares. In E2E tests, an optional initialState
