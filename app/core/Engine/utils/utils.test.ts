@@ -1,8 +1,9 @@
 import { accountsControllerInit } from '../controllers/accounts-controller';
-import { initModularizedControllers } from './utils';
+import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { NetworkController } from '@metamask/network-controller';
 import { mockControllerInitFunction } from './test-utils';
+import { AccountsController } from '@metamask/accounts-controller';
 
 describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
@@ -44,6 +45,26 @@ describe('initModularizedControllers', () => {
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
+      }),
+    ).not.toThrow();
+  });
+});
+
+describe('getControllerOrThrow', () => {
+  it('should throw when controller is not found', () => {
+    expect(() =>
+      getControllerOrThrow({
+        controller: undefined,
+        name: 'AccountsController',
+      }),
+    ).toThrow();
+  });
+
+  it('should not throw when controller is found', () => {
+    expect(() =>
+      getControllerOrThrow({
+        controller: jest.fn() as unknown as AccountsController,
+        name: 'AccountsController',
       }),
     ).not.toThrow();
   });

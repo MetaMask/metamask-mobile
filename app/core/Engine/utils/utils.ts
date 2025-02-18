@@ -76,7 +76,7 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
  * @param options.name - The name of the controller.
  * @returns The controller.
  */
-function getControllerOrThrow<Name extends ControllerName>({
+export function getControllerOrThrow<Name extends ControllerName>({
   controller,
   name,
 }: {
