@@ -10593,7 +10593,7 @@
     "@walletconnect/types" "^1.8.0"
     "@walletconnect/utils" "^1.8.0"
 
-"@walletconnect/core@2.18.0", "@walletconnect/core@^2.17.2":
+"@walletconnect/core@2.18.0":
   version "2.18.0"
   resolved "https://registry.yarnpkg.com/@walletconnect/core/-/core-2.18.0.tgz#749b57000823eceb1c667d38531e7eae206df349"
   integrity sha512-i/olu/IwYtBiWYqyfNUMxq4b6QS5dv+ZVVGmLT2buRwdH6MGETN0Bx3/z6rXJzd1sNd+QL07fxhSFxCekL57tA==
@@ -10688,7 +10688,7 @@
     "@walletconnect/safe-json" "^1.0.2"
     events "^3.3.0"
 
-"@walletconnect/jsonrpc-types@1.0.4", "@walletconnect/jsonrpc-types@^1.0.2", "@walletconnect/jsonrpc-types@^1.0.3", "@walletconnect/jsonrpc-types@^1.0.4":
+"@walletconnect/jsonrpc-types@1.0.4", "@walletconnect/jsonrpc-types@^1.0.2", "@walletconnect/jsonrpc-types@^1.0.3":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@walletconnect/jsonrpc-types/-/jsonrpc-types-1.0.4.tgz#ce1a667d79eadf2a2d9d002c152ceb68739c230c"
   integrity sha512-P6679fG/M+wuWg9TY8mh6xFSdYnFyFjwFelxyISxMDrlbXokorEVXYOxiqEbrU3x1BmBoCAJJ+vtEaEoMlpCBQ==
@@ -10742,10 +10742,10 @@
     randombytes "^2.1.0"
     tslib "1.14.1"
 
-"@walletconnect/react-native-compat@2.15.0":
-  version "2.15.0"
-  resolved "https://registry.yarnpkg.com/@walletconnect/react-native-compat/-/react-native-compat-2.15.0.tgz#d1ab300e80003ee968bbff3f0471a27f023dc027"
-  integrity sha512-dBH5MwKl6iyR15bMYYfBjOEZ0R4beuCUP7OclRalXM4Ej3ai+U52ZqRuwVSlqYbknjtBTvSgaQ2RVCsh7O/www==
+"@walletconnect/react-native-compat@2.18.0":
+  version "2.18.0"
+  resolved "https://registry.yarnpkg.com/@walletconnect/react-native-compat/-/react-native-compat-2.18.0.tgz#d104bffcf344056669c7dccc45976da0ff9f4b3d"
+  integrity sha512-4UzCQXtzJ11J9RZnGDXwLZlCOQ+CkNBJi5jfWFjLG7Kj0/ewpgoisfJjiCUjPGOrgzuvKtJk2RKNRmTvqV0vBQ==
   dependencies:
     events "3.3.0"
     fast-text-encoding "1.0.6"
