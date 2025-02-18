@@ -90,6 +90,7 @@ export const ScrollContextProvider: React.FC<{
         style={styles.scrollable}
         onContentSizeChange={checkScrollable}
         onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         <TouchableWithoutFeedback>
           <View ref={scrolledSectionRef} style={styles.scrollableSection}>
