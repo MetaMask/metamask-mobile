@@ -10,6 +10,7 @@ import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBann
 import Title from '../components/Confirm/Title';
 import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
 import useApprovalRequest from '../hooks/useApprovalRequest';
+import { useConfirmActions } from '../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import { useStandaloneConfirmation } from '../hooks/useStandaloneConfirmation';
@@ -35,6 +36,7 @@ export const Confirm = () => {
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const { isStandaloneConfirmation } = useStandaloneConfirmation();
+  const { onReject } = useConfirmActions();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -59,10 +61,7 @@ export const Confirm = () => {
   }
 
   return (
-    <BottomModal
-      canCloseOnBackdropClick={false}
-      testID="modal-confirmation-container"
-    >
+    <BottomModal onClose={onReject} testID="modal-confirmation-container">
       <View style={styles.modalContainer} testID={approvalRequest?.type}>
         <ConfirmWrapped />
       </View>
