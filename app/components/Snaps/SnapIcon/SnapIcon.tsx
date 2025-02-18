@@ -8,12 +8,12 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import Text from '../../../component-library/components/Texts/Text';
 import { RootState } from '../../../reducers';
 import { selectTargetSubjectMetadata } from '../../../selectors/snaps/permissionController';
+import { StyleSheet } from 'react-native';
 import {
-  AlignItems,
   BackgroundColor,
   JustifyContent,
-} from '../SnapUIRenderer/components/box.types';
-import { StyleSheet } from 'react-native';
+  AlignItems,
+} from '../../UI/Box/box.types';
 
 const styles = StyleSheet.create({
   icon: {

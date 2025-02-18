@@ -6,11 +6,11 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { SnapUIImage } from '../../UI/Snaps/SnapUIImage';
 import {
-  JustifyContent,
-  AlignItems,
   FlexDirection,
   TextAlign,
-} from '../SnapUIRenderer/components/box.types';
+  JustifyContent,
+  AlignItems,
+} from '../../UI/Box/box.types';
 
 interface SnapUICardProps {
   image?: string | undefined;

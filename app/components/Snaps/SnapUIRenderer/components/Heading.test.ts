@@ -1,7 +1,7 @@
 import { HeadingElement } from '@metamask/snaps-sdk/jsx';
 import { heading } from './heading';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import { FlexWrap } from './box.types';
+import { FlexWrap } from '../../../UI/Box/box.types';
 
 describe('heading UIComponentFactory', () => {
   it('transform HeadingElement into Text format with default size', () => {

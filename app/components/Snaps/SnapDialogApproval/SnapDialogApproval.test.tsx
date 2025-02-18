@@ -19,17 +19,6 @@ const store = mockStore({
   },
 });
 
-jest.mock('../../../Views/confirmations/hooks/useApprovalRequest');
-
-jest.mock('../../../../selectors/snaps/interfaceController', () => ({
-  getMemoizedInterface: () => ({
-    'custom-input': 'test-input',
-  }),
-  getInterface: () => ({
-    'custom-input': 'test-input',
-  }),
-}));
-
 const renderWithProvider = (component: React.ReactElement) =>
   render(<Provider store={store}>{component}</Provider>);
 

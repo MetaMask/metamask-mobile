@@ -11,7 +11,7 @@ import {
   FlexDirection,
   TextAlign,
   AlignItems,
-} from '../../Snaps/SnapUIRenderer/components/box.types';
+} from '../../UI/Box/box.types';
 
 describe('Box', () => {
   it('renders children correctly', () => {

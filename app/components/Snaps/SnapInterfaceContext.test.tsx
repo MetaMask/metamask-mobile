@@ -1,17 +1,17 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import React from 'react';
 import { UserInputEventType } from '@metamask/snaps-sdk';
-import Engine from '../../../../core/Engine/Engine';
-import { handleSnapRequest } from '../../../../core/Snaps/utils';
-import { mergeValue } from '../utils';
 import { HandlerType } from '@metamask/snaps-utils';
 import {
   SnapInterfaceContextProvider,
   useSnapInterfaceContext,
-} from '../../SnapInterfaceContext';
+} from './SnapInterfaceContext';
+import { mergeValue } from './SnapUIRenderer/utils';
+import { handleSnapRequest } from '../../core/Snaps/utils';
+import Engine from '../../core/Engine/Engine';
 
 // Mock setup
-jest.mock('../../../../../core/Engine/Engine', () => ({
+jest.mock('../../core/Engine/Engine', () => ({
   controllerMessenger: {},
   context: {
     SnapInterfaceController: {
@@ -19,8 +19,8 @@ jest.mock('../../../../../core/Engine/Engine', () => ({
     },
   },
 }));
-jest.mock('../../../../../core/Snaps/utils');
-jest.mock('../utils');
+jest.mock('../../core/Snaps/utils');
+jest.mock('../../utils');
 
 describe('SnapInterfaceContext', () => {
   const mockInitialState = {

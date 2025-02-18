@@ -4,9 +4,9 @@ import Text from '../Texts/Text';
 import { Box } from '../../../components/UI/Box/Box';
 import { RowVariant } from '../../../components/Snaps/SnapUIRenderer/components/row';
 import {
-  AlignItems,
   FlexDirection,
-} from '../../../components/Snaps/SnapUIRenderer/components/box.types';
+  AlignItems,
+} from '../../../components/UI/Box/box.types';
 
 export interface ConfirmInfoRowValueDoubleProps {
   left: ReactNode;

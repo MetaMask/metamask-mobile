@@ -1,7 +1,7 @@
 import { BoxElement } from '@metamask/snaps-sdk/jsx';
 import { box } from './box';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
-import { FlexDirection } from './box.types';
+import { FlexDirection } from '../../../UI/Box/box.types';
 
 describe('box UIComponentFactory', () => {
   const mockParams = {
@@ -41,7 +41,6 @@ describe('box UIComponentFactory', () => {
             fontWeight: 'normal',
             textAlign: 'left',
             variant: 'sBodyMD',
-            alignItems: 'center',
           },
         },
       ],
@@ -49,7 +48,7 @@ describe('box UIComponentFactory', () => {
         flexDirection: FlexDirection.Column,
         justifyContent: 'flex-start',
         color: TextColor.Default,
-        alignItems: 'center',
+        alignItems: undefined,
       },
     });
   });

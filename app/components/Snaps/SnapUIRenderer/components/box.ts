@@ -4,7 +4,11 @@ import { NonEmptyArray } from '@metamask/utils';
 import { mapToTemplate } from '../utils';
 import { UIComponent, UIComponentFactory } from './types';
 import { TextColor } from '../../../../component-library/components/Texts/Text/Text.types';
-import { AlignItems, FlexDirection, JustifyContent } from './box.types';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../UI/Box/box.types';
 
 function generateJustifyContent(alignment?: BoxProps['alignment']) {
   switch (alignment) {

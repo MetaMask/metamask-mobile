@@ -22,6 +22,19 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
     }
   }
 >
+  <SvgMock
+    color="#ffffff"
+    height={16}
+    name="Add"
+    style={
+      {
+        "height": 16,
+        "marginRight": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
   <Text
     accessibilityRole="text"
     style={

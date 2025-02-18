@@ -23,7 +23,6 @@ const ButtonPrimary = ({
   onPressOut,
   isDanger = false,
   label,
-  startIconName,
   endIconName,
   ...props
 }: ButtonPrimaryProps) => {
