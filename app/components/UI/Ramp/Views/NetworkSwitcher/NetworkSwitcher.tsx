@@ -42,7 +42,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 function NetworkSwitcher() {
   const navigation = useNavigation();
@@ -161,7 +160,7 @@ function NetworkSwitcher() {
         ({ chainId }) => chainId === networkConfiguration.chainId,
       );
 
-      if (config && !isNonEvmChainId(config?.chainId)) {
+      if (config) {
         const { rpcEndpoints, defaultRpcEndpointIndex } = config;
 
         const { networkClientId } =

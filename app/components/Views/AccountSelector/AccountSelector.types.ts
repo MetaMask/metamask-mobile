@@ -40,7 +40,7 @@ export interface AccountSelectorParams {
    */
   disablePrivacyMode?: boolean;
   /**
-   * Optional boolean to indicate if should navigate to add account actions sheet.
+   * Optional navigation screen to indicate if should navigate to add account actions sheet.
    */
   navigateToAddAccountActions?: AccountSelectorScreens.AddAccountActions;
 }

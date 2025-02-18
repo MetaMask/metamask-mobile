@@ -2,7 +2,7 @@ import Engine from '../Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
-import { selectNetworkConfigurations } from '../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import {
   validateChainId,
@@ -45,7 +45,9 @@ const wallet_switchEthereumChain = async ({
   }
   const _chainId = validateChainId(chainId);
   // TODO: [SOLANA] - This do not support non evm networks
-  const networkConfigurations = selectNetworkConfigurations(store.getState());
+  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
   const existingNetwork = findExistingNetwork(_chainId, networkConfigurations);
   if (existingNetwork) {
     const currentDomainSelectedNetworkClientId =

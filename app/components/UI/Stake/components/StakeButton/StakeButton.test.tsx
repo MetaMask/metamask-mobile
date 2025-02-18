@@ -98,7 +98,21 @@ const STATE_MOCK = {
         isEvmSelected: true,
         selectedMultichainNetworkChainId: SolScope.Mainnet,
 
-        multichainNetworkConfigurationsByChainId: {},
+        multichainNetworkConfigurationsByChainId: {
+          'bip122:000000000019d6689c085ae165831e93': {
+            chainId: 'bip122:000000000019d6689c085ae165831e93',
+            name: 'Bitcoin Mainnet',
+            nativeCurrency: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+            isEvm: false,
+          },
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            name: 'Solana Mainnet',
+            nativeCurrency:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            isEvm: false,
+          },
+        },
       },
     },
   },
@@ -183,7 +197,22 @@ describe('StakeButton', () => {
             isEvmSelected: true,
             selectedMultichainNetworkChainId: SolScope.Mainnet,
 
-            multichainNetworkConfigurationsByChainId: {},
+            multichainNetworkConfigurationsByChainId: {
+              'bip122:000000000019d6689c085ae165831e93': {
+                chainId: 'bip122:000000000019d6689c085ae165831e93',
+                name: 'Bitcoin Mainnet',
+                nativeCurrency:
+                  'bip122:000000000019d6689c085ae165831e93/slip44:0',
+                isEvm: false,
+              },
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                name: 'Solana Mainnet',
+                nativeCurrency:
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                isEvm: false,
+              },
+            },
           },
         },
       },

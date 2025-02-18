@@ -332,11 +332,6 @@
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
   },
-  "MultichainNetworkController": {
-    "isEvmSelected": true,
-    "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-    "multichainNetworkConfigurationsByChainId": {}
-  },
   "MultichainBalancesController": {
     "balances": {}
   },

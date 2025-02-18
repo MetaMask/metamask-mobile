@@ -5,7 +5,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
-//const mockStore = configureMockStore();
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
   privacy: { approvedHosts: [] },

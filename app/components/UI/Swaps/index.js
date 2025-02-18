@@ -67,8 +67,8 @@ import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
@@ -1025,8 +1025,8 @@ const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   tokenExchangeRates: selectContractExchangeRates(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  chainId: selectChainId(state),
+  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
+  chainId: selectEvmChainId(state),
   selectedNetworkClientId: selectSelectedNetworkClientId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),

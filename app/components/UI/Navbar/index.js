@@ -919,7 +919,7 @@ export function getWalletNavbarOptions(
   formattedAddress = getFormattedAddressFromInternalAccount(
     selectedInternalAccount,
   );
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+  ///: END:ONLY_INCLUDE_IF
 
   const onScanSuccess = (data, content) => {
     if (data.private_key) {

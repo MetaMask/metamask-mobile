@@ -77,7 +77,7 @@ const AccountPermissionsRevoke = ({
             .addProperties({
               number_of_accounts: accountsLength,
               number_of_accounts_connected: permittedAddresses.length,
-              number_of_networks: nonTestnetNetworks, // TODO: [SOLANA] - Should we remove Solana from metrics until it's supported?
+              number_of_networks: nonTestnetNetworks,
             })
             .build(),
         );

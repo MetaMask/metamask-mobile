@@ -34,8 +34,8 @@ import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
 
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -562,8 +562,8 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   tokenExchangeRates: selectContractExchangeRates(state),
   balances: selectContractBalances(state),
-  chainId: selectChainId(state),
-  networkConfigurations: selectNetworkConfigurations(state),
+  chainId: selectEvmChainId(state),
+  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
 });
 
 export default connect(mapStateToProps)(TokenSelectModal);

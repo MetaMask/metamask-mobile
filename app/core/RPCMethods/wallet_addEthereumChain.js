@@ -71,7 +71,6 @@ const wallet_addEthereumChain = async ({
   if (Object.values(actualChains).find((value) => value === chainId)) {
     throw rpcErrors.invalidParams(`May not specify default MetaMask chain.`);
   }
-  // TODO: [SOLANA] - This do not support non evm networks
   const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
     store.getState(),
   );
