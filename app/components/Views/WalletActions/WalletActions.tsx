@@ -47,7 +47,6 @@ const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
-  const goToBridge = useGoToBridge('TabBar');
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
@@ -212,6 +211,41 @@ const WalletActions = () => {
     chainId,
     createEventBuilder,
   ]);
+
+  const handleBridgeNavigation = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourcePage: 'MainView',
+        },
+      });
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Bridge',
+          tokenSymbol: '',
+          location: 'TabBar',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    chainId,
+    createEventBuilder,
+  ]);
+
+  const goToPortfolioBridge = useGoToBridge('TabBar');
+
+  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true'
+    ? handleBridgeNavigation
+    : goToPortfolioBridge;
 
   const sendIconStyle = useMemo(
     () => ({

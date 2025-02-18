@@ -185,8 +185,15 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+import {
+  TokenSearchDiscoveryController,
+  TokenSearchDiscoveryControllerState,
+} from '@metamask/token-search-discovery-controller';
+import {
+  TokenSearchDiscoveryControllerActions,
+  TokenSearchDiscoveryControllerEvents,
+} from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
 import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
-
 import {
   MultichainNetworkController,
   MultichainNetworkControllerActions,
@@ -268,6 +275,7 @@ type GlobalActions =
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
+  | TokenSearchDiscoveryControllerActions
   | MultichainNetworkControllerActions;
 
 type GlobalEvents =
@@ -308,6 +316,7 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
+  | TokenSearchDiscoveryControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents;
 
@@ -359,6 +368,7 @@ export type Controllers = {
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
@@ -405,6 +415,7 @@ export type EngineState = {
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsControllerState;
