@@ -82,6 +82,7 @@ export const ScrollContextProvider: React.FC<{
           iconName={IconName.Arrow2Down}
           iconColor={IconColor.Inverse}
           onPress={scrollToBottom}
+          scrollEventThrottle={16}
           testID="scroll-to-bottom-button"
         />
       )}
