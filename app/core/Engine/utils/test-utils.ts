@@ -2,7 +2,12 @@ import {
   BaseRestrictedControllerMessenger,
   ControllerInitRequest,
   BaseControllerMessenger,
+  ControllerInitFunction,
 } from '../types';
+import {
+  AccountsController,
+  AccountsControllerMessenger,
+} from '@metamask/accounts-controller';
 
 /**
  * Build a mock for the ControllerInitRequest.
@@ -19,3 +24,16 @@ export function buildControllerInitRequestMock(
       controllerMessenger as unknown as BaseRestrictedControllerMessenger,
   };
 }
+
+export const mockControllerInitFunction: ControllerInitFunction<
+  AccountsController,
+  AccountsControllerMessenger
+> = (request) => {
+  const { getController } = request;
+
+  getController('NetworkController');
+
+  return {
+    controller: jest.fn() as unknown as AccountsController,
+  };
+};
