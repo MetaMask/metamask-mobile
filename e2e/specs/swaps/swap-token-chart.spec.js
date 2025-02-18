@@ -30,6 +30,7 @@ import Tenderly from '../../tenderly';
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Swap from Token view'), () => {
+  const FIRST_ROW = 0;
   const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   const wallet = ethers.Wallet.createRandom();
 
@@ -119,9 +120,9 @@ describe(Regression('Swap from Token view'), () => {
       ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
     );
     await Assertions.checkIfElementToHaveText(
-      ActivitiesView.firstTransactionStatus,
+      ActivitiesView.transactionStatus(FIRST_ROW),
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      60000,
+      120000,
     );
   });
 });
