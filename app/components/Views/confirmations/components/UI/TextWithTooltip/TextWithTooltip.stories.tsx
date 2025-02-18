@@ -17,6 +17,7 @@ storiesOf('Confirmations / TextWithTooltip', module)
         Simple Text With Tooltip
       </Text>
       <TextWithTooltip
+        label={'some_dummy_label'}
         text={'some_dummy_value'}
         tooltip={'some_dummy_tooltip'}
       />

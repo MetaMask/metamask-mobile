@@ -70,7 +70,7 @@ const Message = () => {
       messageCollapsed={
         isSimulationSupported ? undefined : (
           <InfoRow
-            label={strings('confirm.primary_type')}
+            label={strings('confirm.label.primary_type')}
             style={styles.collpasedInfoRow}
           >
             {primaryType}
@@ -81,7 +81,7 @@ const Message = () => {
         <View>
           <Text style={styles.title}>{strings('confirm.message')}</Text>
           <InfoRow
-            label={strings('confirm.primary_type')}
+            label={strings('confirm.label.primary_type')}
             style={styles.dataRow}
           >
             {primaryType}
