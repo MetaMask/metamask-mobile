@@ -247,6 +247,7 @@ describe('NetworkDetails', () => {
       });
 
       await act(async () => {
+        //@ts-expect-error - mockResolvedValueOnce is a jest function in the jest environment
         Engine.context.NetworkController.addNetwork.mockResolvedValueOnce({
           rpcEndpoints: [{ networkClientId: 'new-network-id' }],
           defaultRpcEndpointIndex: 0,
