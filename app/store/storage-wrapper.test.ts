@@ -106,26 +106,58 @@ describe('StorageWrapper', () => {
   });
 
   describe('storage initialization', () => {
-    it('should fallback to MMKV when network store state is undefined', () => {
-      // Reset the module to test initialization
+    beforeEach(() => {
+      jest.resetModules();
+    });
+
+    it('should use MMKV when isTest=true and network store state is undefined', () => {
+      jest.doMock('../util/test/utils', () => ({
+        isTest: true,
+        getFixturesServerPortInApp: () => 12345,
+        FIXTURE_SERVER_PORT: 12345,
+      }));
+      jest.doMock('../util/test/network-store', () => ({
+        _state: undefined,
+        _asyncState: undefined,
+        getState: jest.fn()
+      }));
+
       jest.isolateModules(() => {
         const StorageWrapper = require('./storage-wrapper').default;
         expect(StorageWrapper.storage.constructor.name).toBe('MMKV');
       });
     });
 
-    it('should use network store when state is available', () => {
-      jest.resetModules();
-      // Mock network store with valid state
-      jest.mock('../util/test/network-store', () => ({
-        _state: { test: 'test' },
-        _asyncState: { test: 'test' },
+    it('should use ReadOnlyNetworkStore when isTest=true and state is available', () => {
+      const mockNetworkStore = {
+        _state: { valid: 'state' },
+        _asyncState: { valid: 'asyncState' },
         getState: jest.fn()
+      };
+      
+      jest.doMock('../util/test/utils', () => ({
+        isTest: true,
+        getFixturesServerPortInApp: () => 12345,
+        FIXTURE_SERVER_PORT: 12345,
+      }));
+      jest.doMock('../util/test/network-store', () => mockNetworkStore);
+
+      jest.isolateModules(() => {
+        const StorageWrapper = require('./storage-wrapper').default;
+        expect(StorageWrapper.storage).toBe(mockNetworkStore);
+      });
+    });
+
+    it('should use MMKV when isTest=false', () => {
+      jest.doMock('../util/test/utils', () => ({
+        isTest: false,
+        getFixturesServerPortInApp: () => 12345,
+        FIXTURE_SERVER_PORT: 12345,
       }));
 
       jest.isolateModules(() => {
         const StorageWrapper = require('./storage-wrapper').default;
-        expect(StorageWrapper.storage).toBe(require('../util/test/network-store'));
+        expect(StorageWrapper.storage.constructor.name).toBe('MMKV');
       });
     });
   });
