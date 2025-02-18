@@ -1016,7 +1016,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "maxHeight": 1314,
+                                "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001A",
@@ -1178,13 +1178,15 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "height": "70%",
+                                          "alignItems": "center",
+                                          "height": "100%",
+                                          "justifyContent": "center",
                                           "transform": [
                                             {
                                               "rotate": "0deg",
                                             },
                                           ],
-                                          "width": "70%",
+                                          "width": "100%",
                                         }
                                       }
                                       testID="shapes-background-animation"
@@ -2106,7 +2108,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "maxHeight": 1314,
+                                "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001A",
@@ -2149,11 +2151,14 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           </View>
                           <View
                             style={
-                              {
-                                "backgroundColor": "#ffffff",
-                                "flexDirection": "row",
-                                "padding": 16,
-                              }
+                              [
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "flexDirection": "row",
+                                  "padding": 16,
+                                },
+                                false,
+                              ]
                             }
                             testID="header"
                           >
@@ -3461,8 +3466,8 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "height": 1314,
-                                "maxHeight": 1314,
+                                "height": 1334,
+                                "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001A",
@@ -3485,11 +3490,14 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                         >
                           <View
                             style={
-                              {
-                                "backgroundColor": "#ffffff",
-                                "flexDirection": "row",
-                                "padding": 16,
-                              }
+                              [
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "flexDirection": "row",
+                                  "padding": 16,
+                                },
+                                false,
+                              ]
                             }
                             testID="header"
                           >
@@ -5199,7 +5207,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "maxHeight": 1314,
+                                "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001A",
@@ -5941,7 +5949,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "maxHeight": 1314,
+                                "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001A",
@@ -6683,7 +6691,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "maxHeight": 1314,
+                                "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001A",
@@ -7425,7 +7433,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "maxHeight": 1314,
+                                "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001A",

@@ -124,6 +124,7 @@ import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeCon
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 import { getTransaction1559GasFeeEstimates } from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { getTradeTxTokenFee } from '../../../util/smart-transactions';
 
 const LOG_PREFIX = 'Swaps';
@@ -153,6 +154,10 @@ const createStyles = (colors) =>
     alertBar: {
       paddingHorizontal: 20,
       marginVertical: 10,
+      width: '100%',
+    },
+    smartTransactionsMigrationBanner: {
+      paddingHorizontal: 20,
       width: '100%',
     },
     timerWrapper: {
@@ -1888,6 +1893,11 @@ function SwapsQuotesView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.topBar}>
+        {shouldUseSmartTransaction && (
+          <View style={styles.smartTransactionsMigrationBanner}>
+            <SmartTransactionsMigrationBanner />
+          </View>
+        )}
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
           <View style={styles.alertBar}>
             <Alert small type={AlertType.Info}>
