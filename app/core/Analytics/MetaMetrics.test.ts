@@ -16,6 +16,7 @@ import {
   ISegmentClient,
 } from './MetaMetrics.types';
 import { MetricsEventBuilder } from './MetricsEventBuilder';
+import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 
 jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
@@ -43,6 +44,7 @@ describe('MetaMetrics', () => {
     StorageWrapper.setItem = mockSet;
     StorageWrapper.clearAll = mockClear;
     TestMetaMetrics.resetInstance();
+    TestMetaMetrics.getInstance().setEventsPortionToTrack(1);
   });
 
   afterEach(() => {
@@ -307,6 +309,26 @@ describe('MetaMetrics', () => {
 
         // Only two events should be tracked, one anonymous and one non-anonymous
         expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('does not track event when eventsPortionToTrack is zero', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event = MetricsEventBuilder.createEventBuilder({
+          category: 'test event',
+        }).build();
+        metaMetrics.setEventsPortionToTrack(0);
+        metaMetrics.trackEvent(event);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // check if the event was tracked
+        expect(segmentMockClient.track).not.toHaveBeenCalledWith(event.name, {
+          anonymous: false,
+        });
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(0);
       });
     });
 

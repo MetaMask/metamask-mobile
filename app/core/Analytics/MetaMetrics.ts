@@ -39,10 +39,6 @@ import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 
-// in order to reduce the number of events sent to Segment
-// we only track 1% (.01) of the users' events
-const SEGMENT_EVENTS_PORTION_TO_TRACK = 0.01;
-
 /**
  * MetaMetrics using Segment as the analytics provider.
  *
@@ -181,6 +177,13 @@ class MetaMetrics implements IMetaMetrics {
    * @private
    */
   private deleteRegulationDate: DataDeleteDate;
+
+  /**
+   * Portion of events to randomly sample
+   *
+   * @private
+   */
+  private eventsPortionToTrack: number = 0.01;
 
   /**
    * Retrieve state of metrics from the preference
@@ -674,7 +677,7 @@ class MetaMetrics implements IMetaMetrics {
     );
 
     // early exit if not within portion range to track
-    if (metaMetricsIdRandomNumber > SEGMENT_EVENTS_PORTION_TO_TRACK) {
+    if (metaMetricsIdRandomNumber > this.eventsPortionToTrack) {
       return;
     }
 
@@ -799,6 +802,15 @@ class MetaMetrics implements IMetaMetrics {
    */
   getMetaMetricsId = async (): Promise<string | undefined> =>
     this.metametricsId ?? (await this.#getMetaMetricsId());
+
+  /**
+   * Set the portion of events to track
+   *
+   * @param portion - The portion of events to track
+   */
+  setEventsPortionToTrack = (portion: number) => {
+    this.eventsPortionToTrack = portion;
+  };
 }
 
 export default MetaMetrics;
