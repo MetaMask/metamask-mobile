@@ -45,7 +45,7 @@ export const Confirm = () => {
   if (isStandaloneConfirmation) {
     return (
       <View style={styles.standaloneContainer}>
-        <ConfirmWrapped styles={styles} />
+        <ConfirmWrapped />
       </View>
     );
   }
