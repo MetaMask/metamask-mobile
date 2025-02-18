@@ -123,6 +123,7 @@ describe('StorageWrapper', () => {
       }));
 
       jest.isolateModules(() => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
         const StorageWrapper = require('./storage-wrapper').default;
         expect(StorageWrapper.storage.constructor.name).toBe('MMKV');
       });
@@ -143,6 +144,7 @@ describe('StorageWrapper', () => {
       jest.doMock('../util/test/network-store', () => mockNetworkStore);
 
       jest.isolateModules(() => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
         const StorageWrapper = require('./storage-wrapper').default;
         expect(StorageWrapper.storage).toBe(mockNetworkStore);
       });
@@ -156,6 +158,7 @@ describe('StorageWrapper', () => {
       }));
 
       jest.isolateModules(() => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
         const StorageWrapper = require('./storage-wrapper').default;
         expect(StorageWrapper.storage.constructor.name).toBe('MMKV');
       });
