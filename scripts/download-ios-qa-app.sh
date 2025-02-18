@@ -124,8 +124,10 @@ if [[ -n "$IPA_ARTIFACT" ]]; then
     # Export version info
     export RELEASE_VERSION_NAME="$VERSION_NAME"
     export RELEASE_VERSION_NUMBER="$VERSION_CODE"
-    envman add --key RELEASE_VERSION_NUMBER --value "$VERSION_CODE"
-    envman add --key RELEASE_VERSION_NAME --value "$VERSION_NAME"
+
+   ## Bitrise environment variables
+    envman add --key PRODUCTION_BUILD_NUMBER --value "$VERSION_CODE"
+    envman add --key PRODUCTION_BUILD_NAME --value "$VERSION_NAME"
 
     if [[ -n "$DOWNLOAD_URL" && "$DOWNLOAD_URL" != "null" ]]; then
         echo "Downloading iOS IPA..."
