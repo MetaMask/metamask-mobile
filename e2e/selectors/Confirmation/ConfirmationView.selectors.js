@@ -22,7 +22,5 @@ export const ConfirmationPageSectionsSelectorIDs = {
   SIWE_SIGNING_ACCOUNT_INFO_SECTION: 'siwe-signing-account-info-section',
   MESSAGE_SECTION: 'message-section',
   STAKING_DETAILS_SECTION: 'staking-details-section',
+  SCROLL_BUTTON: 'scroll-to-bottom-button',
 };
-
-export const ConfirmationPageScrollButton =
-  'confirmation-scroll-to-bottom-button';

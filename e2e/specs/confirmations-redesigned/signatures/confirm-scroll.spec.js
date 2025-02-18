@@ -2,6 +2,7 @@
 import Assertions from '../../../utils/Assertions.js';
 import Browser from '../../../pages/Browser/BrowserView.js';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
+import FooterActions from '../../../pages/Browser/Confirmations/FooterActions.js';
 import PageSections from '../../../pages/Browser/Confirmations/PageSections.js';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
 import TestDApp from '../../../pages/Browser/TestDApp.js';
@@ -29,33 +30,7 @@ describe(SmokeConfirmationsRedesigned('Confirmations Page Scroll'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('should not display scroll button if the page has no scroll', async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
-          .build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-        testSpecificMock: {
-          GET: [mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations],
-        },
-      },
-      async () => {
-        await loginToApp();
-
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-
-        await TestDApp.tapPersonalSignButton();
-        await Assertions.checkIfNotVisible(PageSections.ScrollButton);
-      },
-    );
-  });
-
-  it('should display scroll button if the page has scroll', async () => {
+  it('should display scroll button only if the page has scroll', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -88,8 +63,13 @@ describe(SmokeConfirmationsRedesigned('Confirmations Page Scroll'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
+        await TestDApp.tapPersonalSignButton();
+        await Assertions.checkIfNotVisible(PageSections.ScrollButton);
+        await FooterActions.tapCancelButton();
+
         await TestDApp.tapPermitSignButton();
         await Assertions.checkIfVisible(PageSections.ScrollButton);
+        await FooterActions.tapCancelButton();
       },
     );
   });

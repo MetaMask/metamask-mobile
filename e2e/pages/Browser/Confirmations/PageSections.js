@@ -1,7 +1,4 @@
-import {
-  ConfirmationPageScrollButton,
-  ConfirmationPageSectionsSelectorIDs,
-} from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationPageSectionsSelectorIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
 import Matchers from '../../../utils/Matchers';
 
 class PageSections {
@@ -30,7 +27,9 @@ class PageSections {
   }
 
   get ScrollButton() {
-    return Matchers.getElementByID(ConfirmationPageScrollButton);
+    return Matchers.getElementByID(
+      ConfirmationPageSectionsSelectorIDs.SCROLL_BUTTON,
+    );
   }
 }
 

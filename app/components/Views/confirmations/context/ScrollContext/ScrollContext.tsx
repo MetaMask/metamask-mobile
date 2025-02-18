@@ -15,7 +15,7 @@ import {
   View,
 } from 'react-native';
 
-import { ConfirmationPageScrollButton } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -82,7 +82,7 @@ export const ScrollContextProvider: React.FC<{
           style={styles.scrollButton}
           iconName={IconName.Arrow2Down}
           onPress={scrollToBottom}
-          testID={ConfirmationPageScrollButton}
+          testID={ConfirmationPageSectionsSelectorIDs.SCROLL_BUTTON}
         />
       )}
       <ScrollView
