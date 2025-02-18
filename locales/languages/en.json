@@ -3666,7 +3666,6 @@
     },
     "request_from": "Request from",
     "staking_from": "Staking from",
-    "interacting_with": "Interacting with",
     "signing_in_with": "Signing in with",
     "message": "Message",
     "personal_sign_tooltip": "This site is asking for your signature",

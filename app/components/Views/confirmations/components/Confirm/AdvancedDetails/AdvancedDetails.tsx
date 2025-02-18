@@ -31,7 +31,7 @@ const AdvancedDetails = () => {
           />
         </InfoRow>
         <InfoRow
-          label={strings('confirm.interacting_with')}
+          label={strings('confirm.label.interacting_with')}
         >
           <Name
             type={NameType.EthereumAddress}
@@ -40,7 +40,7 @@ const AdvancedDetails = () => {
           />
         </InfoRow>
         <InfoRow
-          label={strings('confirm.network')}
+          label={strings('confirm.label.network')}
         >
           <View style={styles.networkContainer}>
             <Badge
