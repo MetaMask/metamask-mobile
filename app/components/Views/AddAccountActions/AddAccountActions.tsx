@@ -33,7 +33,7 @@ import {
   selectIsBitcoinTestnetSupportEnabled,
   selectIsSolanaSupportEnabled,
 } from '../../../selectors/multichain';
-import { MultichainNetworks } from '@metamask/assets-controllers';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
@@ -158,7 +158,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               actionTitle={strings('account_actions.add_solana_account')}
               iconName={IconName.Add}
               onPress={async () => {
-                await createSolanaAccount(MultichainNetworks.Solana);
+                await createSolanaAccount(SolScope.Mainnet);
               }}
               disabled={isLoading}
               testID={
@@ -173,7 +173,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               )}
               iconName={IconName.Add}
               onPress={async () => {
-                await createBitcoinAccount(MultichainNetworks.Bitcoin);
+                await createBitcoinAccount(BtcScope.Mainnet);
               }}
               disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
               testID={
@@ -188,7 +188,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               )}
               iconName={IconName.Add}
               onPress={async () => {
-                await createBitcoinAccount(MultichainNetworks.BitcoinTestnet);
+                await createBitcoinAccount(BtcScope.Testnet);
               }}
               disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
               testID={
