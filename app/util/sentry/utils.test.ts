@@ -1,5 +1,5 @@
 /* eslint-disable dot-notation */
-import { UserFeedback, captureUserFeedback } from '@sentry/react-native';
+import { UserFeedback, captureUserFeedback, init } from '@sentry/react-native';
 import {
   deriveSentryEnvironment,
   excludeEvents,
@@ -7,6 +7,7 @@ import {
   maskObject,
   sentryStateMask,
   AllProperties,
+  setupSentry
 } from './utils';
 import { DeepPartial } from '../test/renderWithProvider';
 import { RootState } from '../../reducers';
@@ -112,6 +113,23 @@ describe('deriveSentryEnvironment', () => {
   it('returns performance event null if empty', async () => {
     const eventExcluded = excludeEvents(null);
     expect(eventExcluded).toBe(null);
+  });
+
+  it('returns early when isTest is true or dsn is not provided', () => {
+    const mockInit = jest.spyOn({ init }, 'init');
+
+    // Test with isTest = true
+    setupSentry();
+    expect(mockInit).not.toHaveBeenCalled();
+
+    // Test with isTest = false but no DSN
+    jest.mock('../../util/test/utils', () => ({
+      isTest: false
+    }));
+    process.env.MM_SENTRY_DSN = undefined;
+
+    setupSentry();
+    expect(mockInit).not.toHaveBeenCalled();
   });
 });
 
