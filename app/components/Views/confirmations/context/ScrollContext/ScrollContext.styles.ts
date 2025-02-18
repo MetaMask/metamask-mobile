@@ -2,6 +2,8 @@ import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../util/theme/models';
 
+const BUTTON_WIDTH = 40;
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
@@ -17,6 +19,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 20,
       bottom: '16%',
       left: '50%',
+      transform: [{ translateX: -BUTTON_WIDTH / 2 }],
       padding: 20,
       position: 'absolute',
       zIndex: 1,
