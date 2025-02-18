@@ -6,6 +6,8 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareContext';
+// eslint-disable-next-line import/no-namespace
+import * as ScrollContextHook from '../../../context/ScrollContext/ScrollContext';
 import Footer from './index';
 
 const mockConfirmSpy = jest.fn();
@@ -57,6 +59,18 @@ describe('Footer', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       needsCameraPermission: true,
     } as unknown as QRHardwareHook.QRHardwareContextType);
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: personalSignatureConfirmationState,
+    });
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+    ).toBe(true);
+  });
+
+  it('confirm button is disabled if `isScrollToBottomNeeded` is true', () => {
+    jest.spyOn(ScrollContextHook, 'useScrollContext').mockReturnValue({
+      isScrollToBottomNeeded: true,
+    } as unknown as ScrollContextHook.ScrollContextType);
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
