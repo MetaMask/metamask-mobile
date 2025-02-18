@@ -53,6 +53,7 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import HeaderBase from '../../../component-library/components/HeaderBase';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
@@ -74,8 +75,8 @@ const trackEvent = (event, params = {}) => {
 
 const styles = StyleSheet.create({
   metamaskName: {
-    width: 122,
-    height: 15,
+    width: 70,
+    height: 35,
   },
   metamaskFox: {
     width: 40,
@@ -143,13 +144,19 @@ const styles = StyleSheet.create({
     top: 2,
     right: 10,
   },
+  headerLeftButton: {
+    marginHorizontal: 16,
+  },
+  headerRightButton: {
+    marginHorizontal: 16,
+  },
   addressCopyWrapper: {
     marginHorizontal: 4,
   },
 });
 
-const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
-const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
+const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
+const metamask_fox = require('../../../images/branding/fox.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
@@ -651,8 +658,8 @@ export function getOnboardingNavbarOptions(
       elevation: 0,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
@@ -688,8 +695,8 @@ export function getTransparentOnboardingNavbarOptions(themeColors) {
       elevation: 0,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
@@ -722,8 +729,8 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
       elevation: 0,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
@@ -756,36 +763,26 @@ export function getOptinMetricsNavbarOptions(themeColors) {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
-      height: 100,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
-
   return {
-    headerStyle: innerStyles.headerStyle,
-    title: null,
-    headerLeft: () => (
-      <View style={styles.optinHeaderLeft}>
-        <View style={styles.metamaskNameWrapper}>
-          <Image
-            source={metamask_fox}
-            style={styles.metamaskFox}
-            resizeMethod={'auto'}
-          />
-        </View>
-        <View style={styles.metamaskNameWrapper}>
-          <Image
-            source={metamask_name}
-            style={innerStyles.metamaskName}
-            resizeMethod={'auto'}
-          />
-        </View>
+    headerTitle: () => (
+      <View style={styles.metamaskNameTransparentWrapper}>
+        <Image
+          source={metamask_name}
+          style={innerStyles.metamaskName}
+          resizeMethod={'auto'}
+        />
       </View>
     ),
+    headerBackTitle: strings('navigation.back'),
+    headerRight: () => <View />,
+    headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };
 }
@@ -1326,62 +1323,40 @@ export function getNetworkNavbarOptions(
   contentOffset = 0,
   networkName = '',
 ) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerShadow: {
-      elevation: 2,
-      shadowColor: themeColors.background.primary,
-      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
-      shadowOffset: { height: 4, width: 0 },
-      shadowRadius: 8,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-  });
   return {
-    headerTitle: () => (
-      <NavbarTitle
-        disableNetwork={disableNetwork}
-        title={title}
-        translate={translate}
-        networkName={networkName}
-      />
-    ),
-    headerLeft: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        onPress={() => navigation.pop()}
-        style={styles.backButton}
-        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-      >
-        <IonicIcon
-          name={'ios-close'}
-          size={38}
-          style={innerStyles.headerIcon}
-        />
-      </TouchableOpacity>
-    ),
-    headerRight: onRightPress
-      ? () => (
-          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-            <MaterialCommunityIcon
-              name={'dots-horizontal'}
-              size={28}
-              style={innerStyles.headerIcon}
+    header: () => (
+      <HeaderBase
+        includesTopInset
+        startAccessory={
+          <ButtonIcon
+            style={styles.headerLeftButton}
+            onPress={() => navigation.pop()}
+            testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+            size={ButtonIconSizes.Lg}
+            iconName={IconName.ArrowLeft}
+            iconColor={IconColor.Default}
+          />
+        }
+        endAccessory={
+          onRightPress && (
+            <ButtonIcon
+              style={styles.headerRightButton}
+              onPress={onRightPress}
+              size={ButtonIconSizes.Lg}
+              iconName={IconName.MoreVertical}
+              iconColor={IconColor.Default}
             />
-          </TouchableOpacity>
-          // eslint-disable-next-line no-mixed-spaces-and-tabs
-        )
-      : () => <View />,
-    headerStyle: [
-      innerStyles.headerStyle,
-      contentOffset && innerStyles.headerShadow,
-    ],
+          )
+        }
+      >
+        <NavbarTitle
+          disableNetwork={disableNetwork}
+          title={title}
+          translate={translate}
+          networkName={networkName}
+        />
+      </HeaderBase>
+    ),
   };
 }
 
