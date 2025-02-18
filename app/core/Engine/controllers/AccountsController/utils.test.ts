@@ -65,6 +65,7 @@ describe('accountControllersUtils', () => {
           SnapKeyringAccountAssetListUpdatedEvent,
           SnapKeyringAccountBalancesUpdatedEvent,
           SnapKeyringAccountTransactionsUpdatedEvent,
+          'MultichainNetworkController:networkDidChange',
         ],
         allowedActions: [
           'KeyringController:getAccounts',

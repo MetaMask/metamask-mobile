@@ -439,9 +439,12 @@ class FixtureBuilder {
             },
             MultichainNetworkController: {
               selectedMultichainNetworkChainId: SolScope.Mainnet,
-
               multichainNetworkConfigurationsByChainId: {},
               isEvmSelected: true,
+            },
+            MultichainAssetsController: {
+              accountsAssets: {},
+              assetsMetadata: {},
             },
           },
         },

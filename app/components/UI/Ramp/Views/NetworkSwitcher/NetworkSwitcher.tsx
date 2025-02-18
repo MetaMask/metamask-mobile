@@ -146,11 +146,9 @@ function NetworkSwitcher() {
   }, [navigation]);
 
   const switchToMainnet = useCallback(
-    async (type: 'mainnet' | 'linea-mainnet') => {
+    (type: 'mainnet' | 'linea-mainnet') => {
       const { MultichainNetworkController } = Engine.context;
-
-      await MultichainNetworkController.setActiveNetwork(type);
-
+      MultichainNetworkController.setActiveNetwork(type);
       navigateToGetStarted();
     },
     [navigateToGetStarted],

@@ -5,11 +5,6 @@ import type {
 
 import Engine from '../../core/Engine';
 import { ResultType } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
-import { store } from '../../store';
-import { selectEvmChainId } from '../../selectors/networkController';
-import PPOMUtils from '../../lib/ppom/ppom-util';
-import { isNonEvmChainId } from '../../core/Multichain/utils';
-import { Hex } from '@metamask/utils';
 
 interface TransactionSecurityAlertResponseType {
   securityAlertResponses: Record<string, SecurityAlertResponse>;
@@ -18,19 +13,13 @@ interface TransactionSecurityAlertResponseType {
 export type TransactionType = TransactionMeta &
   TransactionSecurityAlertResponseType;
 
-export const isBlockaidSupportedOnCurrentChain = async (): Promise<boolean> => {
-  const chainId = selectEvmChainId(store.getState());
-  if (isNonEvmChainId(chainId)) return false;
-  return await PPOMUtils.isChainSupported(chainId as Hex);
-};
-
 export const isBlockaidPreferenceEnabled = (): boolean => {
   const { PreferencesController } = Engine.context;
   return PreferencesController.state.securityAlertsEnabled;
 };
 
 export const isBlockaidFeatureEnabled = async (): Promise<boolean> =>
-  (await isBlockaidSupportedOnCurrentChain()) && isBlockaidPreferenceEnabled();
+  isBlockaidPreferenceEnabled();
 
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,

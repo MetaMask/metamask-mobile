@@ -73,7 +73,7 @@ const useAccounts = ({
   );
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
     internalAccounts,
-    isTokenNetworkFilterEqualCurrentNetwork,
+    !isTokenNetworkFilterEqualCurrentNetwork,
     allChainIDs,
   );
   const totalFiatBalancesCrossChain = useGetTotalFiatBalanceCrossChains(

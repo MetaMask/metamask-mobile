@@ -248,7 +248,6 @@ const NetworkSelector = () => {
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
     const { MultichainNetworkController, SelectedNetworkController } =
       Engine.context;
-
     if (networkConfiguration) {
       const {
         name: nickname,
@@ -406,7 +405,6 @@ const NetworkSelector = () => {
         ].networkClientId ?? type;
 
       setTokenNetworkFilter(networkConfiguration.chainId);
-
       await MultichainNetworkController.setActiveNetwork(clientId);
 
       closeRpcModal();

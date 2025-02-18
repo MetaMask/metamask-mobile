@@ -49,10 +49,10 @@ const wallet_addEthereumChain = async ({
   const {
     CurrencyRateController,
     NetworkController,
+    MultichainNetworkController,
     ApprovalController,
     PermissionController,
     SelectedNetworkController,
-    MultichainNetworkController,
   } = Engine.context;
 
   const { origin } = req;
@@ -144,10 +144,9 @@ const wallet_addEthereumChain = async ({
       chainId,
       controllers: {
         CurrencyRateController,
-        NetworkController,
+        MultichainNetworkController,
         PermissionController,
         SelectedNetworkController,
-        MultichainNetworkController,
       },
       requestUserApproval,
       analytics,
@@ -258,10 +257,9 @@ const wallet_addEthereumChain = async ({
       chainId,
       controllers: {
         CurrencyRateController,
-        NetworkController,
+        MultichainNetworkController,
         PermissionController,
         SelectedNetworkController,
-        MultichainNetworkController,
       },
       requestUserApproval,
       analytics,

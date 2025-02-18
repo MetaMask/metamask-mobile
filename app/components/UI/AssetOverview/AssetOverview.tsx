@@ -197,10 +197,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        // TODO: What should happen if networkClientId is undefined?
-        if (networkClientId) {
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
-        }
+        await MultichainNetworkController.setActiveNetwork(
+          networkClientId as string,
+        );
       }
     }
     if ((asset.isETH || asset.isNative) && ticker) {
@@ -232,16 +231,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        // TODO: What should happen if networkClientId is undefined?
-        if (networkClientId) {
-          MultichainNetworkController.setActiveNetwork(networkClientId).then(
-            () => {
-              setTimeout(() => {
-                handleSwapNavigation();
-              }, 500);
-            },
-          );
-        }
+        MultichainNetworkController.setActiveNetwork(
+          networkClientId as string,
+        ).then(() => {
+          setTimeout(() => {
+            handleSwapNavigation();
+          }, 500);
+        });
       } else {
         handleSwapNavigation();
       }

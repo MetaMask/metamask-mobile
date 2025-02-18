@@ -1580,14 +1580,14 @@ export class NetworkSettings extends PureComponent {
     }, 1000);
   };
 
-  removeRpcUrl = () => {
+  removeRpcUrl = async () => {
     const { navigation, networkConfigurations, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
       compareSanitizedUrl(rpcUrl, providerConfig.rpcUrl) &&
       providerConfig.type === RPC
     ) {
-      this.switchToMainnet();
+      await this.switchToMainnet();
     }
 
     const entry = Object.entries(networkConfigurations).find(

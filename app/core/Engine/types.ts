@@ -42,6 +42,10 @@ import {
   RatesController,
   RatesControllerEvents,
   RatesControllerActions,
+  MultichainAssetsController,
+  MultichainAssetsControllerState,
+  MultichainAssetsControllerEvents,
+  MultichainAssetsControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
@@ -187,14 +191,8 @@ import {
   MultichainNetworkController,
   MultichainNetworkControllerActions,
   MultichainNetworkControllerState,
-  MultichainNetworkControllerStateChange,
-  MultichainNetworkControllerNetworkDidChangeEvent,
+  MultichainNetworkControllerEvents,
 } from '@metamask/multichain-network-controller';
-
-// TODO: Remove this once the controller is updated with exporting this types
-type MultichainNetworkControllerEvents =
-  | MultichainNetworkControllerStateChange
-  | MultichainNetworkControllerNetworkDidChangeEvent;
 
 /**
  * Controllers that area always instantiated
@@ -256,6 +254,7 @@ type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | RatesControllerActions
+  | MultichainAssetsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -293,6 +292,7 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | RatesControllerEvents
+  | MultichainAssetsControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -308,8 +308,8 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
-  | MultichainNetworkControllerEvents
-  | SnapKeyringEvents;
+  | SnapKeyringEvents
+  | MultichainNetworkControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -373,11 +373,12 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
-  MultichainNetworkController: MultichainNetworkController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   RatesController: RatesController;
+  MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
+  MultichainNetworkController: MultichainNetworkController;
 };
 
 /**
@@ -425,9 +426,10 @@ export type EngineState = {
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
-  MultichainNetworkController: MultichainNetworkControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesControllerState;
   RatesController: RatesControllerState;
+  MultichainAssetsController: MultichainAssetsControllerState;
   ///: END:ONLY_INCLUDE_IF
+  MultichainNetworkController: MultichainNetworkControllerState;
 };

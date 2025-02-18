@@ -1,7 +1,3 @@
-import {
-  MultichainNativeAssets,
-  MultichainNetworks,
-} from '@metamask/assets-controllers';
 import { RootState } from '../../reducers';
 import {
   selectIsBitcoinSupportEnabled,
@@ -13,6 +9,7 @@ import {
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
+  MultichainNativeAssets,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -416,14 +413,14 @@ describe('MultichainNonEvm Selectors', () => {
     it('returns true if account is non-EVM (bip122:*)', () => {
       const state = getNonEvmState();
       expect(selectMultichainDefaultToken(state)).toEqual({
-        symbol: MULTICHAIN_PROVIDER_CONFIGS[MultichainNetworks.Bitcoin].ticker,
+        symbol: MULTICHAIN_PROVIDER_CONFIGS[BtcScope.Mainnet].ticker,
       });
     });
 
     it('returns SOL if account is Solana', () => {
       const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
       expect(selectMultichainDefaultToken(state)).toEqual({
-        symbol: MULTICHAIN_PROVIDER_CONFIGS[MultichainNetworks.Solana].ticker,
+        symbol: MULTICHAIN_PROVIDER_CONFIGS[SolScope.Mainnet].ticker,
       });
     });
   });

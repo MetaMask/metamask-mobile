@@ -12,6 +12,7 @@ import {
   selectIsPopularNetwork,
 } from './networkController';
 import { PopularList } from '../util/networks/customNetworks';
+import { ChainId } from '@metamask/controller-utils';
 
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
@@ -92,6 +93,8 @@ export const getChainIdsToPoll = createDeepEqualSelector(
     return Object.keys(networkConfigurations).filter(
       (chainId) =>
         chainId === currentChainId ||
+        chainId === ChainId.mainnet ||
+        chainId === ChainId['linea-mainnet'] ||
         popularNetworksChainIds.includes(chainId as Hex),
     );
   },

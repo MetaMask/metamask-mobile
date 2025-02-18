@@ -220,7 +220,7 @@ const NetworkModals = (props: NetworkProps) => {
   }, [checkNetwork]);
 
   const closeModal = async () => {
-    const { NetworkController } = Engine.context;
+    const { NetworkController, MultichainNetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
 
@@ -267,10 +267,7 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (networkClientId) {
       onUpdateNetworkFilter();
-
-      await Engine.context.MultichainNetworkController.setActiveNetwork(
-        networkClientId,
-      );
+      await MultichainNetworkController.setActiveNetwork(networkClientId);
     }
 
     onClose();
@@ -296,7 +293,6 @@ const NetworkModals = (props: NetworkProps) => {
       updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
       {};
     onUpdateNetworkFilter();
-
     await MultichainNetworkController.setActiveNetwork(networkClientId);
   };
 
@@ -366,7 +362,6 @@ const NetworkModals = (props: NetworkProps) => {
         {};
 
       onUpdateNetworkFilter();
-
       MultichainNetworkController.setActiveNetwork(networkClientId);
     }
     onClose();

@@ -165,7 +165,6 @@ describe('useHandleNetworkSwitch', () => {
     expect(
       mockEngine.context.NetworkController.setProviderType,
     ).not.toBeCalledWith();
-
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).toBeCalled();

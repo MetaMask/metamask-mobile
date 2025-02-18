@@ -12,12 +12,9 @@ import {
 } from '../networkController';
 import { selectSelectedInternalAccount } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
-import {
-  MultichainNetworks,
-  NETWORK_ASSETS_MAP,
-} from '@metamask/assets-controllers';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
 import {
@@ -26,6 +23,30 @@ import {
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
 
+/**
+ * @deprecated TEMPORARY SOURCE OF TRUTH TBD
+ * Native asset of each non evm network.
+ */
+export enum MultichainNativeAssets {
+  Bitcoin = `${BtcScope.Mainnet}/slip44:0`,
+  BitcoinTestnet = `${BtcScope.Testnet}/slip44:0`,
+  Solana = `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+  SolanaDevnet = `${SolScope.Devnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+  SolanaTestnet = `${SolScope.Testnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+}
+
+/**
+ * @deprecated TEMPORARY SOURCE OF TRUTH TBD
+ * Maps network identifiers to their corresponding native asset types.
+ * Each network is mapped to an array containing its native asset for consistency.
+ */
+export const NETWORK_ASSETS_MAP: Record<string, MultichainNativeAssets[]> = {
+  [SolScope.Mainnet]: [MultichainNativeAssets.Solana],
+  [SolScope.Testnet]: [MultichainNativeAssets.SolanaTestnet],
+  [SolScope.Devnet]: [MultichainNativeAssets.SolanaDevnet],
+  [BtcScope.Mainnet]: [MultichainNativeAssets.Bitcoin],
+  [BtcScope.Testnet]: [MultichainNativeAssets.BitcoinTestnet],
+};
 /**
  * Get the state of the `bitcoinSupportEnabled` flag.
  *
@@ -69,10 +90,9 @@ export const selectMultichainDefaultToken = createDeepEqualSelector(
 export const selectMultichainIsBitcoin = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
   selectMultichainDefaultToken,
-  (isEvmSelected, token) =>
-    !isEvmSelected &&
-    token.symbol ===
-      MULTICHAIN_PROVIDER_CONFIGS[MultichainNetworks.Bitcoin].ticker,
+  (isEvm, token) =>
+    !isEvm &&
+    token.symbol === MULTICHAIN_PROVIDER_CONFIGS[BtcScope.Mainnet].ticker,
 );
 
 export const selectMultichainIsMainnet = createDeepEqualSelector(

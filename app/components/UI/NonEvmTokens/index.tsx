@@ -22,6 +22,7 @@ import {
   selectSelectedNonEvmNetworkSymbol,
 } from '../../../selectors/multichainNetworkController';
 import { CaipChainId } from '@metamask/utils';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 // We need this type to match ScrollableTabView's requirements
 interface NonEvmTokensProps {
@@ -42,6 +43,7 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
   const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
   const nonEvmTicker = useSelector(selectSelectedNonEvmNetworkSymbol);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   function getMultiChainFiatBalance(): string {
     if (conversionRate) {
@@ -87,11 +89,14 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
       setRefreshing(true);
 
       const { MultichainBalancesController } = Engine.context;
-
-      const actions = [MultichainBalancesController.updateBalances()];
-      await Promise.all(actions).catch((error) => {
-        Logger.error(error, 'Error while refreshing NonEvm tokens');
-      });
+      if (selectedAccount) {
+        const actions = [
+          MultichainBalancesController.updateBalance(selectedAccount?.id),
+        ];
+        await Promise.all(actions).catch((error) => {
+          Logger.error(error, 'Error while refreshing NonEvm tokens');
+        });
+      }
       setRefreshing(false);
     });
   };

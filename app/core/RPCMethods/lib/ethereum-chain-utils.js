@@ -299,7 +299,6 @@ export async function switchToNetwork({
       networkConfigurationId || networkConfiguration.networkType,
     );
   } else {
-    //TODO: [SOLANA] Add non evm support for dapp interaction
     await MultichainNetworkController.setActiveNetwork(
       networkConfigurationId || networkConfiguration.networkType,
     );

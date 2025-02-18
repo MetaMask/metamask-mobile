@@ -27,7 +27,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
@@ -58,7 +58,7 @@ const NetworkConnectMultiSelector = ({
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const currentChainId = useSelector(selectChainId);
+  const currentChainId = useSelector(selectEvmChainId);
 
   useEffect(() => {
     if (propSelectedChainIds && !isInitializedWithPermittedChains) {
