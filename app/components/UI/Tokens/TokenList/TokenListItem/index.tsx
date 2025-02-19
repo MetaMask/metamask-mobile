@@ -14,7 +14,7 @@ import {
   selectTicker,
   selectNetworkConfigurations,
   selectNetworkConfigurationByChainId,
-  selectEvmChainId,
+  selectChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectContractExchangeRates,
@@ -64,6 +64,7 @@ import {
   CustomNetworkImgMapping,
 } from '../../../../../util/networks/customNetworks';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
+import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -93,7 +94,9 @@ export const TokenListItem = React.memo(
     const { data: selectedChainTokenBalance } = useTokenBalancesController();
 
     const { type } = useSelector(selectProviderConfig);
-    const selectedChainId = useSelector(selectEvmChainId);
+    const selectedChainId = useSelector(selectChainId);
+    const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+
     const chainId = isPortfolioViewEnabled()
       ? (asset.chainId as Hex)
       : selectedChainId;
@@ -272,6 +275,10 @@ export const TokenListItem = React.memo(
     );
 
     const onItemPress = (token: TokenI) => {
+      if (!isEvmNetworkSelected) {
+        return;
+      }
+
       // if the asset is staked, navigate to the native asset details
       if (asset.isStaked) {
         return navigation.navigate('Asset', {

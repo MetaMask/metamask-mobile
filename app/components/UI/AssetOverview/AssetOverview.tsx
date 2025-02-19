@@ -10,7 +10,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
-  selectEvmChainId,
+  selectChainId,
   selectNativeCurrencyByChainId,
   selectSelectedNetworkClientId,
   selectTicker,
@@ -102,7 +102,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const tokenBalances = useSelector(selectContractBalances);
-  const selectedChainId = useSelector(selectEvmChainId);
+  const selectedChainId = useSelector(selectChainId);
 
   const selectedTicker = useSelector((state: RootState) => selectTicker(state));
 
@@ -187,9 +187,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const goToPortfolioBridge = useGoToBridge('TokenDetails');
 
-  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true'
-    ? handleBridgeNavigation
-    : goToPortfolioBridge;
+  const goToBridge =
+    process.env.MM_BRIDGE_UI_ENABLED === 'true'
+      ? handleBridgeNavigation
+      : goToPortfolioBridge;
 
   const onSend = async () => {
     if (isPortfolioViewEnabled()) {
