@@ -11,8 +11,8 @@ describe('SnapsExecutionWebView', () => {
 
   it('should create and remove WebViews correctly', async () => {
     const wrapper = shallow(<SnapsExecutionWebView />);
-    createWebView('foo')
-    createWebView('bar')
+    createWebView('foo');
+    createWebView('bar');
     wrapper.update();
     expect(wrapper.find('WebView')).toHaveLength(2);
 
