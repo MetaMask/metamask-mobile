@@ -576,18 +576,16 @@ workflows:
                     -F "file=@$UPLOAD_APK_PATH" \
                     -F 'data={"custom_id": "'$CUSTOM_ID'"}')
 
-                    # Extract app_url
-                PRODUCTION_APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
+                # Extract app_url
+                APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
 
-                # Get recent apps
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-                    -X GET https://api-cloud.browserstack.com/app-automate/recent_apps \
-                    | jq > browserstack_uploaded_apps.json
-
-                echo "Using qa-release with production version: $VERSION_NAME"
-                echo "BROWSERSTACK URL: $PRODUCTION_APP_URL"
-                echo "CUSTOM_ID: $CUSTOM_ID"
-                echo "Using qa-release with production version: $VERSION_NUMBER"
+                # Set the environment variable
+                envman add --key PRODUCTION_APP_URL --value "$APP_URL"
+                
+                # Debug output
+                echo "Response: $RESPONSE"
+                echo "APP_URL: $APP_URL"
+                echo "PRODUCTION_APP_URL: $PRODUCTION_APP_URL"
       - share-pipeline-variable@1:
           title: Persist PRODUCTION_APP_URL across all stages
           inputs:
@@ -1512,7 +1510,7 @@ workflows:
             - content: |
                 echo "PRODUCTION_BUILD_NAME: $PRODUCTION_BUILD_NAME"
                 echo "PRODUCTION_BUILD_NUMBER: $PRODUCTION_BUILD_NUMBER"
-                echo "PRODUCTION_APP_URL: $PRODUCTION_APP_URL"
+                echo "PRODUCTION_APP_URL from tag upgrade workflow: $PRODUCTION_APP_URL"
                 echo "BROWSERSTACK_ANDROID_APP_URL: $BROWSERSTACK_ANDROID_APP_URL"
       - script@1:
           title: Run Android E2E tests on Browserstack
