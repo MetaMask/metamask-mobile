@@ -26,13 +26,13 @@ const styles = StyleSheet.create({
   },
 });
 
-type SnapIconProps = {
+interface SnapIconProps {
   snapId: string;
   avatarSize?: IconSize;
   borderWidth?: number;
   className?: string;
   badgeBackgroundColor?: BackgroundColor;
-};
+}
 
 export const SnapIcon: FunctionComponent<SnapIconProps> = ({
   snapId,

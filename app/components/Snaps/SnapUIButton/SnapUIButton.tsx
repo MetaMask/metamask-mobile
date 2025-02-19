@@ -42,7 +42,6 @@ const SnapUIButton = ({
   label,
   name,
   children,
-  type = ButtonType.Button,
   variant = ButtonVariants.Primary,
   disabled = false,
   loading = false,

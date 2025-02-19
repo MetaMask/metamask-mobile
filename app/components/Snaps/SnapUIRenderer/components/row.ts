@@ -5,14 +5,12 @@ import { mapToTemplate } from '../utils';
 import { UIComponent, UIComponentFactory } from './types';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
-import { ViewProps } from 'react-native';
 
 export enum RowVariant {
   Default = 'default',
   Critical = 'critical',
   Warning = 'warning',
 }
-
 
 export const row: UIComponentFactory<RowElement> = ({
   element,

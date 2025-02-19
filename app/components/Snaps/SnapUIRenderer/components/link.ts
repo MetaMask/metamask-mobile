@@ -5,15 +5,15 @@ import { mapTextToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 
 export const link: UIComponentFactory<LinkElement> = ({
-  element,
+  element: e,
   ...params
 }) => ({
   element: 'SnapUILink',
   children: mapTextToTemplate(
-    getJsxChildren(element) as NonEmptyArray<string | JSXElement>,
+    getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
     params,
   ),
   props: {
-    href: element.props.href,
+    href: e.props.href,
   },
 });

@@ -19,8 +19,11 @@ import {
   DEFAULT_BUTTONPRIMARY_LABEL_COLOR,
   DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT,
 } from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.constants';
-import { FlexDirection, JustifyContent } from '../../UI/Box/box.types';
-import { AlignItems } from '../../UI/Box/box.types';
+import {
+  FlexDirection,
+  JustifyContent,
+  AlignItems,
+} from '../../UI/Box/box.types';
 
 const styles = StyleSheet.create({
   snapActionContainer: {
