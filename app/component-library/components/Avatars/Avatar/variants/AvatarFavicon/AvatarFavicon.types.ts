@@ -1,5 +1,6 @@
 // Third party dependencies.
 import { ImageSourcePropType } from 'react-native';
+
 // External dependencies.
 import { AvatarBaseProps } from '../../foundation/AvatarBase';
 
