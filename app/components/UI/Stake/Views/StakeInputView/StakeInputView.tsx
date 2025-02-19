@@ -43,7 +43,6 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     confirmationRedesignFlags?.staking_transactions;
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
-
   const {
     isEth,
     currentCurrency,
@@ -229,11 +228,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       />
       <View style={styles.rewardsRateContainer}>
         {isStablecoinLendingFeatureEnabled() ? (
-          <EarnTokenSelector
-            token={route.params.token}
-            apr={annualRewardRate}
-            balance={balanceValue}
-          />
+          <EarnTokenSelector token={route?.params?.token} />
         ) : (
           <EstimatedAnnualRewardsCard
             estimatedAnnualRewards={estimatedAnnualRewards}

@@ -3,7 +3,6 @@ import React from 'react';
 import { useStyles } from '../../../../../component-library/hooks';
 import { View } from 'react-native';
 import styleSheet from './EarnTokenSelector.styles';
-import { TokenI } from '../../../Tokens/types';
 import Text, {
   TextColor,
   TextVariant,
@@ -23,17 +22,19 @@ import BadgeWrapper from '../../../../../component-library/components/Badges/Bad
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
+import { TokenI } from '../../../Tokens/types';
 
 interface EarnTokenSelectorProps {
   token: TokenI;
-  apr: string;
-  balance?: string;
 }
 
-const EarnTokenSelector = ({ token, apr, balance }: EarnTokenSelectorProps) => {
+const EarnTokenSelector = ({ token }: EarnTokenSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkName = useSelector(selectNetworkName);
+  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
+  const tokenDetails = getTokenWithBalanceAndApr(token);
 
   const handlePress = () => {
     navigation.navigate('StakeModals', {
@@ -87,11 +88,11 @@ const EarnTokenSelector = ({ token, apr, balance }: EarnTokenSelectorProps) => {
   const renderEndAccessory = () => (
     <View style={styles.endAccessoryContainer}>
       <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-        {`${apr} APR`}
+        {`${tokenDetails.apr}% APR`}
       </Text>
-      {balance && (
+      {tokenDetails.tokenBalanceFormatted && (
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {balance}
+          {tokenDetails.tokenBalanceFormatted}
         </Text>
       )}
     </View>

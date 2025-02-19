@@ -264,7 +264,7 @@ exports[`EarnTokenSelector renders correctly 1`] = `
               }
             }
           >
-            10,100.00 USDC
+            6.84314 USDC
           </Text>
         </View>
       </View>

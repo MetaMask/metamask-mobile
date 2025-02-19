@@ -5,8 +5,16 @@ import EarnTokenSelector from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MOCK_USDC_MAINNET_ASSET } from '../../__mocks__/mockData';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { TokenI } from '../../../../UI/Tokens/types';
 
 const mockNavigate = jest.fn();
+
+const MOCK_APR_VALUES: { [symbol: string]: string } = {
+  Ethereum: '2.3',
+  USDC: '4.5',
+  USDT: '4.1',
+  DAI: '5.0',
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -18,11 +26,21 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Mock the useEarnTokenDetails hook
+jest.mock('../../hooks/useEarnTokenDetails', () => ({
+  useEarnTokenDetails: () => ({
+    getTokenWithBalanceAndApr: (token: TokenI) => ({
+      ...token,
+      apr: MOCK_APR_VALUES[token.symbol] || '0.0',
+      tokenBalanceFormatted: token.symbol === 'USDC' ? '6.84314 USDC' : '0',
+      balanceFiat: token.symbol === 'USDC' ? '$6.84' : '$0.00',
+    }),
+  }),
+}));
+
 describe('EarnTokenSelector', () => {
   const mockProps = {
     token: MOCK_USDC_MAINNET_ASSET,
-    apr: '4.5%',
-    balance: '10,100.00',
   };
 
   const mockInitialState = {
@@ -51,7 +69,7 @@ describe('EarnTokenSelector', () => {
       { state: mockInitialState },
     );
     expect(getByText('4.5% APR')).toBeDefined();
-    expect(getByText('10,100.00 USDC')).toBeDefined();
+    expect(getByText('6.84314 USDC')).toBeDefined();
   });
 
   it('navigates to earn token list when pressed', () => {
@@ -64,17 +82,5 @@ describe('EarnTokenSelector', () => {
     expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
       screen: 'EarnTokenList',
     });
-  });
-
-  it('renders without balance when not provided', () => {
-    const propsWithoutBalance = {
-      ...mockProps,
-      balance: undefined,
-    };
-    const { queryByText } = renderWithProvider(
-      <EarnTokenSelector {...propsWithoutBalance} />,
-      { state: mockInitialState },
-    );
-    expect(queryByText('10,100.00 USDC')).toBeNull();
   });
 });

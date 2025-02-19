@@ -50,6 +50,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: jest.fn(),
     }),
   };
 });
@@ -280,6 +281,7 @@ describe('EarnTokenList', () => {
           symbol: 'Ethereum',
           ticker: 'ETH',
           tokenBalanceFormatted: ' ETH',
+          apr: '2.3',
         },
       },
       screen: 'Stake',
@@ -321,6 +323,7 @@ describe('EarnTokenList', () => {
           symbol: 'USDC',
           ticker: 'USDC',
           tokenBalanceFormatted: 'tokenBalanceLoading',
+          apr: '4.5',
         },
       },
       screen: 'Stake',
