@@ -1,12 +1,11 @@
 import { toHex } from '@metamask/controller-utils';
-import { NetworkConfiguration } from '@metamask/network-controller';
 import Engine from '../../core/Engine';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import { isNonEvmChainId } from '../../core/Multichain/utils';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 /**
  * Switch to the given chain ID.
@@ -22,41 +21,29 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     return;
   }
 
-  const chainId = selectChainId(store.getState());
-  const networkConfigurations = selectNetworkConfigurations(store.getState());
+  const multichainNetworkController = Engine.context
+    .MultichainNetworkController as MultichainNetworkController;
+  const chainId = selectEvmChainId(store.getState());
+  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
 
   // If current network is the same as the one we want to switch to, do nothing
-  if (!isNonEvmChainId(switchToChainId)) {
-    if (chainId === toHex(switchToChainId)) {
-      return;
-    }
+  if (chainId === toHex(switchToChainId)) {
+    return;
   }
+
   const entry = Object.entries(networkConfigurations).find(
     ([, { chainId: configChainId }]) =>
       configChainId === toHex(switchToChainId),
   );
 
-  if (entry && !isNonEvmChainId(entry[1].chainId)) {
-    const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] =
-      entry as unknown as [string, NetworkConfiguration];
+  if (entry) {
+    const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] = entry;
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-    Engine.context.MultichainNetworkController.setActiveNetwork(
-      networkClientId,
-    );
+    multichainNetworkController.setActiveNetwork(networkClientId);
 
-    return nickname;
-  }
-  // If is already in the same non evm network, do nothing
-  if (chainId === switchToChainId) {
-    return;
-  }
-
-  if (entry && isNonEvmChainId(entry[1].chainId)) {
-    const [, { name: nickname }] = entry;
-    Engine.context.MultichainNetworkController.setActiveNetwork(
-      entry[1].chainId,
-    );
     return nickname;
   }
 };
