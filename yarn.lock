@@ -4641,7 +4641,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.4", "@metamask/controller-utils@^11.4.5", "@metamask/controller-utils@^11.5.0":
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.4", "@metamask/controller-utils@^11.5.0":
   version "11.5.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.5.0.tgz#27daa18c6d2b63189bdb21cd7c6550d81b5e2581"
   integrity sha512-WXR6f33YzT4RSb5HK6RKg9CrE4sJO1mMrrtPZgmvdFRxPm+KE5tPrnEgnlhjrVzRB0eZov76hd+jSutezqRAbg==
@@ -5226,7 +5226,7 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     readable-stream "^3.6.2"
 
-"@metamask/permission-controller@^11.0.3", "@metamask/permission-controller@^11.0.6":
+"@metamask/permission-controller@^11.0.3", "@metamask/permission-controller@^11.0.5", "@metamask/permission-controller@^11.0.6":
   version "11.0.6"
   resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-11.0.6.tgz#4069f6ed29d514a7e897f177efc9f798bba8668a"
   integrity sha512-BGznKBEiSZMsF7TuyBUp5xt93nfhGHyl4xAs1rvJUNUWVSUtry+mb1A6H8bq82/T4ZrxNhrnx3ISYr99ZDo7rA==
@@ -5236,21 +5236,6 @@
     "@metamask/json-rpc-engine" "^10.0.3"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/utils" "^11.1.0"
-    "@types/deep-freeze-strict" "^1.1.0"
-    deep-freeze-strict "^1.1.1"
-    immer "^9.0.6"
-    nanoid "^3.3.8"
-
-"@metamask/permission-controller@^11.0.5":
-  version "11.0.5"
-  resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-11.0.5.tgz#c649ec0d0d07f25c4c241633433f6d10480dbc04"
-  integrity sha512-X2xtNPFIQfz/vo8TCWZvQ8tUfz/ELwKKEGF0Ej0BAUpavE+3QakLd5YcS828aCaZAcrC3676nX6BtabX9eF3fA==
-  dependencies:
-    "@metamask/base-controller" "^7.1.1"
-    "@metamask/controller-utils" "^11.4.5"
-    "@metamask/json-rpc-engine" "^10.0.2"
-    "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/utils" "^11.0.1"
     "@types/deep-freeze-strict" "^1.1.0"
     deep-freeze-strict "^1.1.1"
     immer "^9.0.6"
