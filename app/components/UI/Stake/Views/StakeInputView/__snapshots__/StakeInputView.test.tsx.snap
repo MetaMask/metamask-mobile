@@ -600,7 +600,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  2.5%
+                                  3.3%
                                 </Text>
                                 <Text
                                   accessibilityRole="text"

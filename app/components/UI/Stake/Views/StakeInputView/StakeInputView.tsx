@@ -40,7 +40,6 @@ const StakeInputView = () => {
     confirmationRedesignFlags?.staking_transactions;
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
-
   const {
     isEth,
     currentCurrency,
@@ -59,7 +58,7 @@ const StakeInputView = () => {
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultData,
+    isLoadingVaultApyAverages,
     handleMax,
     balanceValue,
     isHighGasCostImpact,
@@ -229,7 +228,7 @@ const StakeInputView = () => {
               tooltip_name: 'MetaMask Pool Estimated Rewards',
             },
           })}
-          isLoading={isLoadingVaultData}
+          isLoading={isLoadingVaultApyAverages}
         />
       </View>
       <QuickAmounts

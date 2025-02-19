@@ -7,11 +7,11 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
-import { MOCK_GET_VAULT_RESPONSE } from '../../__mocks__/mockData';
 import { toWei } from '../../../../../util/number';
 import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
 import * as useStakingGasFee from '../../hooks/useStakingGasFee';
+import { MOCK_VAULT_APY_AVERAGES } from '../../components/PoolStakingLearnMoreModal/mockVaultRewards';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -123,9 +123,7 @@ jest.mock('../../hooks/useStakingGasFee', () => ({
   }),
 }));
 
-const mockVaultData = MOCK_GET_VAULT_RESPONSE;
 // Mock hooks
-
 jest.mock('../../hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: () => ({
@@ -136,15 +134,12 @@ jest.mock('../../hooks/useStakingEligibility', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useVaultData', () => ({
+jest.mock('../../hooks/useVaultApyAverages', () => ({
   __esModule: true,
   default: () => ({
-    vaultData: mockVaultData,
-    loading: false,
-    error: null,
-    refreshVaultData: jest.fn(),
-    annualRewardRate: '2.5%',
-    annualRewardRateDecimal: 0.025,
+    vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
+    isLoadingVaultApyAverages: false,
+    refreshVaultApyAverages: jest.fn(),
   }),
 }));
 
@@ -181,7 +176,7 @@ describe('StakeInputView', () => {
 
       fireEvent.press(screen.getByText('2'));
 
-      expect(screen.getByText('0.05 ETH')).toBeTruthy();
+      expect(screen.getByText('0.06515 ETH')).toBeTruthy();
     });
   });
 
@@ -224,7 +219,7 @@ describe('StakeInputView', () => {
       });
     });
 
-    it('navigates to gas impact modal when gas cost is 30% or more of deposit amount', () => {
+    it('navigates to gas impact modal when gas cost is 30% or more of deposit amount', async () => {
       jest.spyOn(useStakingGasFee, 'default').mockReturnValue({
         estimatedGasFeeWei: toWei('0.25'),
         isLoadingStakingGasFee: false,
@@ -243,9 +238,9 @@ describe('StakeInputView', () => {
         params: {
           amountFiat: '750',
           amountWei: '375000000000000000',
-          annualRewardRate: '2.5%',
-          annualRewardsETH: '0.00938 ETH',
-          annualRewardsFiat: '18.75 USD',
+          annualRewardRate: '3.3%',
+          annualRewardsETH: '0.01222 ETH',
+          annualRewardsFiat: '24.43 USD',
           estimatedGasFee: '0.25',
           estimatedGasFeePercentage: '66%',
         },
