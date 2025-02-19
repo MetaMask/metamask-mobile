@@ -16,7 +16,6 @@ import {
   ISegmentClient,
 } from './MetaMetrics.types';
 import { MetricsEventBuilder } from './MetricsEventBuilder';
-import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 
 jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
