@@ -586,9 +586,8 @@ workflows:
                 echo "BROWSERSTACK URL: $PRODUCTION_APP_URL"
                 echo "CUSTOM_ID: $CUSTOM_ID"
                 echo "Using qa-release with production version: $VERSION_NUMBER"
-
-    # after_run:
-    #   -  wdio_android_e2e_test
+    after_run:
+      -  wdio_android_e2e_test
   build_ios_multichain_permissions_e2e:
     after_run:
       - ios_e2e_build
