@@ -61,7 +61,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultData,
+    isLoadingVaultApyAverages,
     handleMax,
     balanceValue,
     isHighGasCostImpact,
@@ -241,7 +241,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
                 tooltip_name: 'MetaMask Pool Estimated Rewards',
               },
             })}
-            isLoading={isLoadingVaultData}
+            isLoading={isLoadingVaultApyAverages}
           />
         )}
       </View>
