@@ -48,7 +48,10 @@
     "connector": "于"
   },
   "autocomplete": {
-    "placeholder": "搜索或键入 URL"
+    "placeholder": "按网站或地址搜索",
+    "recents": "最近",
+    "favorites": "收藏",
+    "sites": "网站"
   },
   "navigation": {
     "back": "返回",
@@ -449,6 +452,7 @@
     "next": "下一步",
     "buy_asset": "购买{{asset}}",
     "no_tokens": "您没有任何代币！",
+    "show_tokens_without_balance": "显示没有余额的代币",
     "no_nfts_yet": "尚无 NFT",
     "nfts_autodetection_title": "NFT 检测",
     "nfts_autodetection_desc": "让 MetaMask 自动检测并显示您钱包中的 NFT。",
@@ -470,7 +474,7 @@
     "learn_more": "了解更多",
     "add_collectibles": "添加收藏品",
     "no_transactions": "您没有交易！",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "请切换网络以查看交易",
     "send_button": "发送",
     "deposit_button": "保证金",
     "copy_address": "复制",
@@ -722,6 +726,7 @@
     "connected_and_active": "已连接且处于活动状态。",
     "now_active": "现处于活动状态。",
     "network_added": "已成功添加",
+    "network_removed": "已成功去除",
     "network_deleted": "已成功删除",
     "network_permissions_updated": "网络许可已更新",
     "revoked": "已撤销。",
@@ -1264,16 +1269,19 @@
     "sell_button": "卖出",
     "receive_button": "接收",
     "portfolio_button": "投资组合",
+    "earn_button": "赚取",
     "add_collectible_button": "添加",
     "info": "信息",
     "swap": "兑换",
     "bridge": "跨链桥",
+    "earn": "赚取",
     "disabled_button": {
       "buy": "此账户不支持买入",
       "sell": "此账户不支持卖出",
       "swap": "此账户不支持兑换",
       "bridge": "此账户不支持跨链桥",
       "send": "此账户不支持发送",
+      "earn": "此账户不支持赚取",
       "action": "此账户不支持此操作"
     },
     "description": "描述",
@@ -1290,6 +1298,7 @@
     "bridge_description": "在不同网络间传送代币",
     "send_description": "向任何账户发送加密货币",
     "receive_description": "接收加密货币",
+    "earn_description": "通过您的代币赚取奖励",
     "chart_time_period": {
       "1d": "今天",
       "7d": "过去 7 天",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "链 ID",
     "network_rpc_url": "网络URL",
     "network_rpc_url_label": "网络 RPC（远程过程调用）URL",
+    "network_rpc_url_warning_punycode": "攻击者有时会通过对网站地址进行细微更改来模仿网站。在继续操作之前，请确保您正在与目标网络 URL 进行交互。Punycode 版本：",
     "new_default_network_url": "新的默认网络 URL",
     "current_label": "当前",
     "new_label": "新增",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "添加硬件钱包",
     "import_account": "导入账户",
     "add_bitcoin_account_testnet": "添加新的比特币账户（测试网）",
-    "add_bitcoin_account_mainnet": "添加新的比特币账户（测试版）"
+    "add_bitcoin_account_mainnet": "添加新的比特币账户（测试版）",
+    "add_solana_account": "添加新的 Solana 账户（测试版）"
   },
   "show_nft": {
     "show_nft_title": "显示NFT",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "签名请求"
     },
+    "sub_title": {
+      "signature": "在确认之前检查请求详情。"
+    },
     "request_from": "请求来自",
     "message": "消息",
+    "primary_type": "主要类型",
     "personal_sign_tooltip": "此网站要求您签名",
     "details": "详情",
     "account": "账户",
     "balance": "余额",
     "network": "网络",
     "simulation": {
-      "title": "预计变化",
+      "decoded_tooltip_bid_nft": "当接受出价时，NFT 将反映在您的钱包中。",
+      "decoded_tooltip_list_nft": "只有当有人购买您的 NFT 时才会发生变化。",
+      "info_permit": "您将授予支出者许可，才能从您的账户花费这些代币。",
+      "label_change_type_bidding": "您出价",
+      "label_change_type_listing": "您挂牌",
+      "label_change_type_nft_listing": "挂牌价格",
+      "label_change_type_permit": "支出上限",
+      "label_change_type_permit_nft": "提款",
+      "label_change_type_receive": "您收到",
+      "label_change_type_revoke": "撤销",
+      "label_change_type_transfer": "您发送",
       "personal_sign_info": "您正在登录某个网站，并且您的账户没有预期变化。",
-      "tooltip": "预期变化是指您完成该交易可能发生的变化。这只是预测，而不是保证。"
-    }
+      "title": "预计变化",
+      "tooltip": "预期变化是指您完成该交易可能发生的变化。这只是预测，而不是保证。",
+      "unavailable": "不可用"
+    },
+    "unlimited": "无限制",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",

@@ -207,51 +207,29 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     return [...nativeTokens, ...nonNativeTokens];
   };
 
-  const calculateTokenFiatBalances = (assets: TokenI[]) => {
-    const tokenFiatBalances: number[] = [];
-
-    for (const token of assets) {
+  const calculateFiatBalances = (assets: TokenI[]) =>
+    assets.map((token) => {
       const chainId = token.chainId as Hex;
-      const multiChainExchangeRates = debouncedMultiChainMarketData?.[chainId];
+      const multiChainExchangeRates = multiChainMarketData?.[chainId];
       const multiChainTokenBalances =
-        debouncedMultiChainTokenBalance?.[
-          selectedInternalAccountAddress as Hex
-        ]?.[chainId];
+        multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+          chainId
+        ];
       const nativeCurrency =
         networkConfigurationsByChainId[chainId].nativeCurrency;
       const multiChainConversionRate =
-        debouncedMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
+        multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
 
-      // Calculate fiat balance for the token
-      const fiatBalance =
-        token.isETH || token.isNative
-          ? parseFloat(token.balance) * multiChainConversionRate
-          : deriveBalanceFromAssetMarketDetails(
-              token,
-              multiChainTokenBalances || {},
-              multiChainExchangeRates || {},
-              multiChainConversionRate || 0,
-              currentCurrency || '',
-            ).balanceFiatCalculation;
-
-      // Add the calculated balance to the array
-      tokenFiatBalances.push(fiatBalance || 0);
-    }
-
-    const tokensWithBalances: typeof assets = [];
-
-    for (let i = 0; i < assets.length; i++) {
-      const token = assets[i];
-      const tokenWithBalance = {
-        ...token,
-        tokenFiatAmount: tokenFiatBalances[i],
-      };
-
-      tokensWithBalances.push(tokenWithBalance);
-    }
-
-    return tokensWithBalances;
-  };
+      return token.isETH || token.isNative
+        ? parseFloat(token.balance) * multiChainConversionRate
+        : deriveBalanceFromAssetMarketDetails(
+            token,
+            multiChainExchangeRates || {},
+            multiChainTokenBalances || {},
+            multiChainConversionRate || 0,
+            currentCurrency || '',
+          ).balanceFiatCalculation;
+    });
 
   const filterTokensByNetwork = (tokensToDisplay: TokenI[]): TokenI[] => {
     if (isAllNetworks && isPopularNetwork) {
@@ -286,7 +264,13 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
 
       const assets = categorizeTokens(filteredTokens);
 
-      const tokensWithBalances = calculateTokenFiatBalances(assets);
+      // Calculate fiat balances for tokens
+      const tokenFiatBalances = calculateFiatBalances(assets);
+
+      const tokensWithBalances = assets.map((token, i) => ({
+        ...token,
+        tokenFiatAmount: tokenFiatBalances[i],
+      }));
 
       const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
       endTrace({
@@ -368,10 +352,17 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
         AccountTrackerController,
         CurrencyRateController,
         TokenRatesController,
+        TokenBalancesController,
       } = Engine.context;
 
       const actions = [
         TokenDetectionController.detectTokens({
+          chainIds: isPortfolioViewEnabled()
+            ? (Object.keys(networkConfigurationsByChainId) as Hex[])
+            : [currentChainId],
+        }),
+
+        TokenBalancesController.updateBalances({
           chainIds: isPortfolioViewEnabled()
             ? (Object.keys(networkConfigurationsByChainId) as Hex[])
             : [currentChainId],

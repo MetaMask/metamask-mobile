@@ -305,6 +305,7 @@ enum EVENT_NAME {
   UNSTAKE_TRANSACTION_CONFIRMED = 'Unstake Transaction Confirmed',
   UNSTAKE_TRANSACTION_SUBMITTED = 'Unstake Transaction Submitted',
   VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS = 'Visited ETH Overview with Staked Positions',
+  EARN_TOKEN_LIST_ITEM_CLICKED = 'Earn Token List Item Clicked',
 
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
@@ -357,7 +358,7 @@ enum EVENT_NAME {
   RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
   SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
-
+  EARN_BUTTON_CLICKED = 'Earn Button Clicked',
   // Edit account name
   ACCOUNT_RENAMED = 'Account Renamed',
 
@@ -822,6 +823,7 @@ const events = {
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
+  EARN_BUTTON_CLICKED: generateOpt(EVENT_NAME.EARN_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
 
   // Edit account name
@@ -991,6 +993,9 @@ const events = {
   ),
   VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS: generateOpt(
     EVENT_NAME.VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS,
+  ),
+  EARN_TOKEN_LIST_ITEM_CLICKED: generateOpt(
+    EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
 };
 

@@ -55,11 +55,11 @@ import {
   isTestNet,
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
-  fetchEstimatedMultiLayerL1Fee,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
   getDecimalChainId,
 } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import Text from '../../../../Base/Text';
 import { removeFavoriteCollectible } from '../../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -134,10 +134,12 @@ import {
   // Pending updated multichain UX to specify the send chain.
   // eslint-disable-next-line no-restricted-syntax
   selectNetworkClientId,
-  selectProviderTypeByChainId
+  selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { updateTransactionToMaxValue } from './utils';
+import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
+import { isNativeToken } from '../../utils/generic';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -333,9 +335,9 @@ class Confirm extends PureComponent {
   );
 
   setNetworkNonce = async () => {
-    const { networkClientId, setNonce, setProposedNonce, transaction } =
+    const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
+    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -427,7 +429,7 @@ class Confirm extends PureComponent {
      * Ref.: https://github.com/MetaMask/metamask-mobile/pull/3989#issuecomment-1367558394
      */
     if (
-      selectedAsset.isETH ||
+      isNativeToken(selectedAsset) ||
       selectedAsset.tokenId ||
       !selectedAsset.address
     ) {
@@ -472,7 +474,7 @@ class Confirm extends PureComponent {
       navigation,
       providerType,
       isPaymentRequest,
-      setTransactionId
+      setTransactionId,
     } = this.props;
 
     const {
@@ -634,7 +636,7 @@ class Confirm extends PureComponent {
 
       if (
         maxValueMode &&
-        selectedAsset.isETH &&
+        isNativeToken(selectedAsset) &&
         !isEmpty(gasFeeEstimates) &&
         haveGasFeeMaxNativeChanged
       ) {
@@ -743,9 +745,10 @@ class Confirm extends PureComponent {
 
     let transactionValue, transactionValueFiat;
     const valueBN = hexToBN(value);
-    const parsedTicker = getTicker(ticker);
+    const symbol = ticker ?? selectedAsset?.symbol;
+    const parsedTicker = getTicker(symbol);
 
-    if (selectedAsset.isETH) {
+    if (isNativeToken(selectedAsset)) {
       transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
       transactionValueFiat = weiToFiat(
         valueBN,
@@ -891,7 +894,10 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (selectedAsset.isETH || selectedAsset.tokenId) {
+    if (
+      isNativeToken(selectedAsset) ||
+      selectedAsset.tokenId
+    ) {
       return insufficientBalanceMessage;
     }
 
@@ -1417,11 +1423,14 @@ class Confirm extends PureComponent {
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
           {this.state.transactionMeta?.id && (
-            <TransactionBlockaidBanner
-              transactionId={this.state.transactionMeta.id}
-              style={styles.blockaidBanner}
-              onContactUsClicked={this.onContactUsClicked}
-            />
+            <>
+              <TransactionBlockaidBanner
+                transactionId={this.state.transactionMeta.id}
+                style={styles.blockaidBanner}
+                onContactUsClicked={this.onContactUsClicked}
+              />
+              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
+            </>
           )}
           {!selectedAsset.tokenId ? (
             <View style={styles.amountWrapper}>
@@ -1589,7 +1598,8 @@ Confirm.contextType = ThemeContext;
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
   const chainId = transaction?.chainId;
-  const networkClientId = transaction?.networkClientId;
+  const networkClientId =
+    transaction?.networkClientId || selectNetworkClientId(state);
 
   return {
     accounts: selectAccounts(state),
@@ -1617,8 +1627,7 @@ const mapStateToProps = (state) => {
     ),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     transactionMetricsById: selectTransactionMetrics(state),
-    transactionMetadata:
-      selectCurrentTransactionMetadata(state),
+    transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };

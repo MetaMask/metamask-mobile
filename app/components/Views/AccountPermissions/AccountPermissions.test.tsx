@@ -5,6 +5,8 @@ import renderWithProvider, {
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import AccountPermissions from './AccountPermissions';
+import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { fireEvent } from '@testing-library/react-native';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -25,12 +27,6 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockedTrackEvent,
   }),
-}));
-
-jest.mock('../../../util/networks/index.js', () => ({
-  ...jest.requireActual('../../../util/networks/index.js'),
-  isMultichainVersion1Enabled: false,
-  isChainPermissionsFeatureEnabled: false,
 }));
 
 jest.mock('react-native-safe-area-context', () => {
@@ -69,5 +65,27 @@ describe('AccountPermissions', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  describe('AccountPermissionsConnected handlers', () => {
+    it('should handle manage permissions button press and navigate to permissions summary', () => {
+      const { getByTestId } = renderWithProvider(
+        <AccountPermissions
+          route={{
+            params: {
+              hostInfo: { metadata: { origin: 'test' } },
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      const managePermissionsButton = getByTestId(
+        ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
+      );
+      fireEvent.press(managePermissionsButton);
+
+      expect(getByTestId('permission-summary-container')).toBeDefined();
+    });
   });
 });

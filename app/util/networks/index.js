@@ -114,23 +114,6 @@ export const NetworkList = {
 
 const NetworkListKeys = Object.keys(NetworkList);
 
-export const SECURITY_PROVIDER_SUPPORTED_CHAIN_IDS_FALLBACK_LIST = [
-  NETWORKS_CHAIN_ID.MAINNET,
-  NETWORKS_CHAIN_ID.BSC,
-  NETWORKS_CHAIN_ID.BASE,
-  NETWORKS_CHAIN_ID.POLYGON,
-  NETWORKS_CHAIN_ID.ARBITRUM,
-  NETWORKS_CHAIN_ID.OPTIMISM,
-  NETWORKS_CHAIN_ID.AVAXCCHAIN,
-  NETWORKS_CHAIN_ID.LINEA_MAINNET,
-  NETWORKS_CHAIN_ID.SEPOLIA,
-  NETWORKS_CHAIN_ID.OPBNB,
-  NETWORKS_CHAIN_ID.ZKSYNC_ERA,
-  NETWORKS_CHAIN_ID.SCROLL,
-  NETWORKS_CHAIN_ID.BERACHAIN,
-  NETWORKS_CHAIN_ID.METACHAIN_ONE,
-];
-
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
   [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
@@ -488,11 +471,7 @@ export const getBlockExplorerTxUrl = (
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
 
-export const isMultichainVersion1Enabled =
-  process.env.MM_MULTICHAIN_V1_ENABLED === 'true';
-
-export const isChainPermissionsFeatureEnabled =
-  process.env.MM_CHAIN_PERMISSIONS === 'true';
+export const isChainPermissionsFeatureEnabled = true;
 
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';

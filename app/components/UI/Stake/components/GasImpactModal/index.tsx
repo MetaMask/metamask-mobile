@@ -126,7 +126,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
           </Text>
         </BottomSheetHeader>
         <Text style={styles.content}>
-          {strings('stake.gas_cost_impact_warning')}
+          {strings('stake.gas_cost_impact_warning', { percentOverDeposit: 30 })}
         </Text>
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}

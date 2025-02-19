@@ -112,7 +112,7 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        selectedNetworkClientId: 'mainnet',
+        selectedNetworkClientId: 'sepolia',
         networksMetadata: {
           mainnet: {
             status: 'available',
@@ -274,7 +274,6 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -298,7 +297,7 @@ describe('Amount', () => {
     expect(setMaxValueMode).toHaveBeenCalled();
   });
 
-  it('should proceed if balance is sufficient while on Native primary currency', async () => {
+  it('should proceed if balance is sufficient while on Native primary currency is ETH', async () => {
     const { getByText, getByTestId, toJSON } = renderComponent({
       ...initialState,
       engine: {
@@ -348,7 +347,6 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -360,6 +358,118 @@ describe('Amount', () => {
 
     const balanceText = getByText(/Balance:/);
     expect(balanceText.props.children).toBe('Balance: 5 ETH');
+
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
+    await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
+
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
+    fireEvent.changeText(textInput, '1');
+
+    const amountConversionValue = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
+    );
+    expect(amountConversionValue.props.children).toBe('$1.00');
+
+    await act(() => fireEvent.press(nextButton));
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should proceed if balance is sufficient while on Native primary currency is not ETH', async () => {
+    //  {"address": "0x0000000000000000000000000000000000000000", "aggregators": [], "balance": "0.2059", "balanceFiat": "$5.74", "chainId": "0xa86a", "decimals": 18, "image": "", "isETH": false, "isNative": true, "isStaked": false, "logo": "", "name": "AVAX", "stakedBalance": "0x0", "symbol": "AVAX", "ticker": "AVAX", "tokenFiatAmount": 5.746669}}
+
+    const { getByText, getByTestId, toJSON } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          NetworkController: {
+            selectedNetworkClientId: 'asd',
+            networksMetadata: {
+              mainnet: {
+                status: 'available',
+                EIPS: {
+                  '1559': true,
+                },
+              },
+            },
+            networkConfigurationsByChainId: {
+              '0xa86a': {
+                blockExplorerUrls: ['https://snowtrace.io'],
+                chainId: '0xa86a',
+                defaultRpcEndpointIndex: 0,
+                name: 'Avalanche',
+                nativeCurrency: 'AVAX',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'asd',
+                    type: 'Custom',
+                    url: 'http://localhost/v3/',
+                  },
+                ],
+              },
+            },
+          },
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates: {
+              AVAX: {
+                conversionRate: 1,
+              },
+            },
+          },
+          AccountTrackerController: {
+            accounts: {
+              [CURRENT_ACCOUNT]: {
+                balance: '4563918244F40000',
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0xa86a': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'AVAX',
+        selectedAsset: {
+          address: '',
+          isETH: false,
+          isNative: true,
+          logo: '../images/avalanche.png',
+          name: 'Avalanche',
+          symbol: 'AVAX',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const balanceText = getByText(/Balance:/);
+    expect(balanceText.props.children).toBe('Balance: 5 AVAX');
 
     const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
@@ -431,7 +541,6 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -515,7 +624,6 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -594,7 +702,6 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -666,7 +773,6 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -745,7 +851,6 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -820,7 +925,6 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -895,7 +999,6 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -961,7 +1064,6 @@ describe('Amount', () => {
           standard: 'ERC721',
           tokenId: '1850',
         },
-        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },

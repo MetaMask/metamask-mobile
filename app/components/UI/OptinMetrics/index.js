@@ -8,7 +8,6 @@ import {
   BackHandler,
   Alert,
   Linking,
-  InteractionManager,
   TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -40,6 +39,9 @@ import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
+import {
+    UserProfileProperty
+} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -95,6 +97,7 @@ const createStyles = ({ colors }) =>
       paddingVertical: 10,
     },
     wrapper: {
+      marginTop: 10,
       marginHorizontal: 20,
     },
     privacyPolicy: {
@@ -338,27 +341,7 @@ class OptinMetrics extends PureComponent {
       setDataCollectionForMarketing,
     } = this.props;
 
-    // Set marketing consent trait based on user selection
-    const dataCollectionForMarketingTraits = {
-      has_marketing_consent: Boolean(
-        this.props.isDataCollectionForMarketingEnabled,
-      ),
-    };
-
     await metrics.enable();
-
-    // Track the analytics preference event first
-    metrics.trackEvent(
-      metrics
-        .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-        .addProperties({
-          ...dataCollectionForMarketingTraits,
-          is_metrics_opted_in: true,
-          location: 'onboarding_metametrics',
-          updated_after_onboarding: false,
-        })
-        .build(),
-    );
 
     // Handle null case for marketing consent
     if (
@@ -368,14 +351,23 @@ class OptinMetrics extends PureComponent {
       setDataCollectionForMarketing(false);
     }
 
-    // consolidate device and user settings traits
-    const consolidatedTraits = {
-      ...dataCollectionForMarketingTraits,
-      is_metrics_opted_in: true,
-      ...generateDeviceAnalyticsMetaData(),
-      ...generateUserSettingsAnalyticsMetaData(),
-    };
-    await metrics.addTraitsToUser(consolidatedTraits);
+    // Track the analytics preference event first
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+        .addProperties({
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean( isDataCollectionForMarketingEnabled ),
+            is_metrics_opted_in: true,
+            location: 'onboarding_metametrics',
+            updated_after_onboarding: false,
+        })
+        .build(),
+    );
+
+    await metrics.addTraitsToUser({
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+    });
 
     // track onboarding events that were stored before user opted in
     // only if the user eventually opts in.

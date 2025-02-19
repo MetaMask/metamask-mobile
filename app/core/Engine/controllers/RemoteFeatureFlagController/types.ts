@@ -5,5 +5,6 @@ export interface RemoteFeatureFlagInitParamTypes {
   messenger: RemoteFeatureFlagControllerMessenger;
   disabled: boolean;
   getMetaMetricsId: () => string;
+  fetchInterval?: number;
 }
 

@@ -104,6 +104,7 @@ exports[`AssetOverview should render correctly 1`] = `
               "paddingTop": 2,
             }
           }
+          testID="loading-price-diff"
         >
           <View
             onLayout={[Function]}
@@ -1234,6 +1235,7 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
               "paddingTop": 2,
             }
           }
+          testID="loading-price-diff"
         >
           <View
             onLayout={[Function]}

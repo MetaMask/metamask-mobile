@@ -35,6 +35,12 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isPermissionsSettingsV1Enabled: true,
+}));
+
 const store = mockStore(initialState);
 
 describe('Settings', () => {
@@ -102,5 +108,12 @@ describe('Settings', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
     const lock = getByTestId(SettingsViewSelectorsIDs.LOCK);
     expect(lock).toBeDefined();
+  });
+  it('should render permissions settings button when enabled', () => {
+    const { getByTestId } = renderWithProvider(<Settings />);
+    const permissionsSettings = getByTestId(
+      SettingsViewSelectorsIDs.PERMISSIONS,
+    );
+    expect(permissionsSettings).toBeDefined();
   });
 });

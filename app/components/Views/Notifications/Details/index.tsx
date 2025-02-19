@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Notification } from '../../../../util/notifications';
+import { INotification } from '../../../../util/notifications';
 import { useTheme } from '../../../../util/theme';
 
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -10,7 +10,10 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
-import { hasNotificationComponents, NotificationComponentState } from '../../../../util/notifications/notification-states';
+import {
+  hasNotificationComponents,
+  NotificationComponentState,
+} from '../../../../util/notifications/notification-states';
 import Header from './Title';
 import { createStyles } from './styles';
 import ModalField from './Fields';
@@ -22,7 +25,7 @@ interface Props {
   navigation: NavigationProp<ParamListBase>;
   route: {
     params: {
-      notification: Notification;
+      notification: INotification;
     };
   };
 }
@@ -47,10 +50,8 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
     }
   }, [notification, markNotificationAsRead]);
 
-
   const state =
-    notification?.type &&
-    hasNotificationComponents(notification.type)
+    notification?.type && hasNotificationComponents(notification.type)
       ? NotificationComponentState[notification.type]?.createModalDetails?.(
           notification,
         )

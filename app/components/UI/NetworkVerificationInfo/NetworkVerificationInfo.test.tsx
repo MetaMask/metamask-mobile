@@ -1,6 +1,6 @@
 import React from 'react';
 import NetworkVerificationInfo from './NetworkVerificationInfo';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
@@ -85,7 +85,7 @@ describe('NetworkVerificationInfo', () => {
     ).toThrow('Unable to find an element with text');
   });
 
-  it('should render chainId on decimal', () => {
+  it('should render chainId as a decimal', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     const { getByText } = render(
       <NetworkVerificationInfo
@@ -94,6 +94,12 @@ describe('NetworkVerificationInfo', () => {
         onConfirm={() => undefined}
       />,
     );
+
+    // Accordion content is hidden by default, so we need to expand it
+    const accordionButton = getByText(
+      strings('spend_limit_edition.view_details'),
+    );
+    fireEvent.press(accordionButton);
 
     expect(getByText('10')).toBeTruthy();
   });
