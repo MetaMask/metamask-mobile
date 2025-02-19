@@ -287,7 +287,7 @@ class TransactionReview extends PureComponent {
   };
 
   fetchEstimatedL1Fee = async () => {
-    const { transaction, chainId } = this.props;
+    const { transaction, chainId, networkClientId } = this.props;
     if (!transaction?.transaction) {
       return;
     }
@@ -298,6 +298,7 @@ class TransactionReview extends PureComponent {
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
+        networkClientId,
       });
       this.setState({
         multiLayerL1FeeTotal: result,
@@ -715,6 +716,8 @@ class TransactionReview extends PureComponent {
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
   const chainId = transaction?.chainId;
+  const transactionMetadata = selectCurrentTransactionMetadata(state);
+  const networkClientId = transactionMetadata?.networkClientId;
 
   return {
     tokens: selectTokens(state),
@@ -731,7 +734,8 @@ const mapStateToProps = (state) => {
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-    transactionMetadata: selectCurrentTransactionMetadata(state),
+    transactionMetadata,
+    networkClientId,
   };
 };
 
