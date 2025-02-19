@@ -4,12 +4,14 @@ import AdvancedDetails from '../../AdvancedDetails/AdvancedDetails';
 import FlatNavHeader from '../../FlatNavHeader';
 import StakingDetails from '../../StakingDetails';
 import TokenHero from '../../TokenHero';
+import GasFeesDetails from '../GasFeesDetails';
 
 const StakingDeposit = () => (
   <>
     <FlatNavHeader title={strings('stake.stake')} />
     <TokenHero />
     <StakingDetails />
+    <GasFeesDetails />
     <AdvancedDetails />
   </>
 );
