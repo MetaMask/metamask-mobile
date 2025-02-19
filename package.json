@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.39.0",
+  "version": "7.40.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -212,6 +212,7 @@
     "@metamask/solana-wallet-snap": "^1.2.0",
     "@metamask/stake-sdk": "^1.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
+    "@metamask/token-search-discovery-controller": "^2.1.0",
     "@metamask/swaps-controller": "^12.1.0",
     "@metamask/transaction-controller": "^46.0.0",
     "@metamask/utils": "^11.1.0",
@@ -398,7 +399,7 @@
     "@metamask/mobile-provider": "^3.0.0",
     "@metamask/object-multiplex": "^1.1.0",
     "@metamask/providers": "^18.3.1",
-    "@metamask/test-dapp": "^8.9.0",
+    "@metamask/test-dapp": "^9.0.0",
     "@octokit/rest": "^21.0.0",
     "@open-rpc/mock-server": "^1.7.5",
     "@open-rpc/schema-utils-js": "^1.16.2",
