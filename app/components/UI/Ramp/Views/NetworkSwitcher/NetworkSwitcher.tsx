@@ -154,7 +154,7 @@ function NetworkSwitcher() {
   );
 
   const switchNetwork = useCallback(
-    async (networkConfiguration) => {
+    (networkConfiguration) => {
       const { MultichainNetworkController } = Engine.context;
       const config = Object.values(networkConfigurations).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
@@ -166,7 +166,7 @@ function NetworkSwitcher() {
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
-        await MultichainNetworkController.setActiveNetwork(networkClientId);
+        MultichainNetworkController.setActiveNetwork(networkClientId);
 
         navigateToGetStarted();
       }
