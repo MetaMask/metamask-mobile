@@ -8,9 +8,11 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import type { ThemeColors } from '@metamask/design-tokens';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { MetaMetricsEvents, IMetaMetricsEvent } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -27,21 +29,23 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { isTest } from '../../../util/test/utils';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { PerformanceRegressionSelectorIDs } from '../../../../e2e/selectors/PerformanceRegression.selectors';
-import { JsonMap } from '@segment/analytics-react-native';
 import { Dispatch } from 'redux';
 import {
   saveOnboardingEvent as SaveEvent,
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
 
-const IMAGE_3_RATIO = 215 / 315;
-const IMAGE_2_RATIO = 222 / 239;
-const IMAGE_1_RATIO = 285 / 203;
+const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
+const DEVICE_HEIGHT = Dimensions.get('window').height;
+const ANDROID_PADDING = DEVICE_HEIGHT > 800 ? 80 : 150;
+const IOS_PADDING = Device.isIphoneX() ? 80 : Device.isIphone5S() ? 160 : 150;
+const IMG_PADDING = Device.isAndroid() ? ANDROID_PADDING : IOS_PADDING;
 
-const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
-
+const carouselSize = {
+  width: DEVICE_WIDTH - IMG_PADDING,
+  height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_RATIO,
+};
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     scroll: {
@@ -78,21 +82,15 @@ const createStyles = (colors: ThemeColors) =>
       justifyContent: 'flex-end',
     },
     carouselImage: {},
-    // eslint-disable-next-line react-native/no-unused-styles
     carouselImage1: {
       marginTop: 30,
-      width: DEVICE_WIDTH - IMG_PADDING,
-      height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
+      ...carouselSize,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
     carouselImage2: {
-      width: DEVICE_WIDTH - IMG_PADDING,
-      height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO,
+      ...carouselSize,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
     carouselImage3: {
-      width: DEVICE_WIDTH - 60,
-      height: (DEVICE_WIDTH - 60) * IMAGE_3_RATIO,
+      ...carouselSize,
     },
     carouselImageWrapper: {
       flex: 1,
@@ -111,7 +109,7 @@ const createStyles = (colors: ThemeColors) =>
     solidCircle: {
       opacity: 1,
     },
-    progessContainer: {
+    progressContainer: {
       flexDirection: 'row',
       alignSelf: 'center',
       marginVertical: 36,
@@ -143,7 +141,7 @@ const carousel_images = [
 
 interface OnboardingCarouselProps {
   navigation: NavigationProp<ParamListBase>;
-  saveOnboardingEvent: (...eventArgs: [IMetaMetricsEvent]) => void;
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 /**
  * View that is displayed to first time (new) users
@@ -161,26 +159,36 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const styles = createStyles(colors);
 
   const track = useCallback(
-    (event: IMetaMetricsEvent, properties: JsonMap = {}) => {
-      trackOnboarding(event, properties, saveOnboardingEvent);
+    (event: ITrackingEvent) => {
+      trackOnboarding(event, saveOnboardingEvent);
     },
     [saveOnboardingEvent],
   );
 
   const onPressGetStarted = () => {
     navigation.navigate('Onboarding');
-    track(MetaMetricsEvents.ONBOARDING_STARTED);
+    track(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ONBOARDING_STARTED,
+      ).build(),
+    );
   };
 
   const renderTabBar = () => <View />;
 
   const onChangeTab = (obj: { i: number }) => {
     setCurrentTab(obj.i + 1);
-    track(MetaMetricsEvents.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
-      message_title: strings(`onboarding_carousel.title${[obj.i + 1]}`, {
-        locale: 'en',
-      }),
-    });
+    track(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT,
+      )
+        .addProperties({
+          message_title: strings(`onboarding_carousel.title${[obj.i + 1]}`, {
+            locale: 'en',
+          }),
+        })
+        .build(),
+    );
   };
 
   const updateNavBar = useCallback(() => {
@@ -189,7 +197,11 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 
   const initialize = useCallback(async () => {
     updateNavBar();
-    track(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+    track(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED,
+      ).build(),
+    );
     const newAppStartTime = await StorageWrapper.getItem('appStartTime');
     setAppStartTime(newAppStartTime);
   }, [updateNavBar, track]);
@@ -242,7 +254,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         <Text
                           style={styles.metricsData}
                           testID={
-                            PerformanceRegressionSelectorIDs.APP_START_TIME_ID
+                            OnboardingCarouselSelectorIDs.APP_START_TIME_ID
                           }
                         >
                           {appStartTime}
@@ -265,7 +277,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
               })}
             </ScrollableTabView>
 
-            <View style={styles.progessContainer}>
+            <View style={styles.progressContainer}>
               {[1, 2, 3].map((i) => (
                 <View
                   key={i}
@@ -295,7 +307,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
 };
 
 const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
-  saveOnboardingEvent: (...eventArgs: [IMetaMetricsEvent]) =>
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
     dispatch(SaveEvent(eventArgs)),
 });
 

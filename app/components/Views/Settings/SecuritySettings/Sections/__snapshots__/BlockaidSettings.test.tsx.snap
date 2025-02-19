@@ -45,7 +45,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
               "alignSelf": "flex-end",
             },
             {
-              "backgroundColor": "#bbc0c566",
+              "backgroundColor": "#BBC0C566",
               "borderRadius": 16,
             },
           ],
@@ -53,7 +53,7 @@ exports[`BlockaidSettings should render correctly 1`] = `
       }
       testID="security-alerts-toggle"
       thumbTintColor="#ffffff"
-      tintColor="#bbc0c566"
+      tintColor="#BBC0C566"
       value={true}
     />
   </View>,

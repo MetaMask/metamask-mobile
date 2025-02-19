@@ -10,7 +10,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
-import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
@@ -28,7 +28,6 @@ const initialState = {
 };
 
 jest.mock('../../../core/Engine', () => ({
-  ...jest.requireActual('../../../core/Engine'),
   context: {
     PreferencesController: {
       selectedAddress: `0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756`,
@@ -117,16 +116,16 @@ describe('AccountActions', () => {
     });
 
     expect(
-      getByTestId(AccountActionsModalSelectorsIDs.EDIT_ACCOUNT),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT),
     ).toBeDefined();
     expect(
-      getByTestId(AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN),
     ).toBeDefined();
     expect(
-      getByTestId(AccountActionsModalSelectorsIDs.SHARE_ADDRESS),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS),
     ).toBeDefined();
     expect(
-      getByTestId(AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY),
     ).toBeDefined();
   });
 
@@ -136,7 +135,7 @@ describe('AccountActions', () => {
     });
 
     fireEvent.press(
-      getByTestId(AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
@@ -153,7 +152,7 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.SHARE_ADDRESS));
+    fireEvent.press(getByTestId(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS));
 
     expect(Share.open).toHaveBeenCalledWith({
       message: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
@@ -166,7 +165,7 @@ describe('AccountActions', () => {
     });
 
     fireEvent.press(
-      getByTestId(AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -191,7 +190,7 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.EDIT_ACCOUNT));
+    fireEvent.press(getByTestId(AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT));
 
     expect(mockNavigate).toHaveBeenCalledWith('EditAccountName', {
       selectedAccount: {
@@ -219,7 +218,7 @@ describe('AccountActions', () => {
       );
 
       fireEvent.press(
-        getByTestId(AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
+        getByTestId(AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
       );
 
       const alertFnMock = Alert.alert as jest.MockedFn<typeof Alert.alert>;

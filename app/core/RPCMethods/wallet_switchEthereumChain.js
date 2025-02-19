@@ -1,6 +1,7 @@
 import Engine from '../Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import { selectNetworkConfigurations } from '../../selectors/networkController';
 import { store } from '../../store';
 import {
@@ -18,6 +19,7 @@ const wallet_switchEthereumChain = async ({
   const {
     CurrencyRateController,
     NetworkController,
+    MultichainNetworkController,
     PermissionController,
     SelectedNetworkController,
   } = Engine.context;
@@ -63,7 +65,7 @@ const wallet_switchEthereumChain = async ({
       chainId: _chainId,
       controllers: {
         CurrencyRateController,
-        NetworkController,
+        MultichainNetworkController,
         PermissionController,
         SelectedNetworkController,
       },
@@ -74,8 +76,9 @@ const wallet_switchEthereumChain = async ({
     });
 
     MetaMetrics.getInstance().trackEvent(
-      MetaMetricsEvents.NETWORK_SWITCHED,
-      analyticsParams,
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+        .addProperties(analyticsParams)
+        .build(),
     );
 
     res.result = null;

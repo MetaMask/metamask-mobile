@@ -1,34 +1,29 @@
-import { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   NotificationServicesController,
   NotificationServicesPushController,
 } from '@metamask/notification-services-controller';
-import { UserStorageMockttpController } from './user-storage/userStorageMockttpController';
+import { UserStorageMockttpController } from '../../identity/utils/user-storage/userStorageMockttpController';
 import { getDecodedProxiedURL } from './helpers';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
-const AuthMocks = AuthenticationController.Mocks;
 const NotificationMocks = NotificationServicesController.Mocks;
 const PushMocks = NotificationServicesPushController.Mocks;
 
 /**
- * E2E mock setup for notification APIs (Auth, UserStorage, Notifications, Push Notifications, Profile syncing)
+ * E2E mock setup for notification APIs (Notifications, Push Notifications)
  *
  * @param server - server obj used to mock our endpoints
  * @param userStorageMockttpController - optional controller to mock user storage endpoints
  */
 export async function mockNotificationServices(server) {
-  // Auth
-  mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
-  mockAPICall(server, AuthMocks.getMockAuthLoginResponse());
-  mockAPICall(server, AuthMocks.getMockAuthAccessTokenResponse());
-
   // Storage
   const userStorageMockttpControllerInstance =
     new UserStorageMockttpController();
 
-  userStorageMockttpControllerInstance.setupPath('accounts', server);
-  userStorageMockttpControllerInstance.setupPath('networks', server);
-  userStorageMockttpControllerInstance.setupPath('notifications', server);
+  userStorageMockttpControllerInstance.setupPath(
+    USER_STORAGE_FEATURE_NAMES.notifications,
+    server,
+  );
 
   // Notifications
   mockAPICall(server, NotificationMocks.getMockFeatureAnnouncementResponse());

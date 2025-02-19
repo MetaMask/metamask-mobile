@@ -1,9 +1,9 @@
 import Selectors from '../../helpers/Selectors';
-import { NOTIFICATION_TITLE } from '../testIDs/Components/Notification.testIds';
+import { ToastSelectorsIDs } from '../../../e2e/selectors/wallet/ToastModal.selectors';
 
 class NotificationModal {
   get title() {
-    return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
+    return Selectors.getElementByPlatform(ToastSelectorsIDs.NOTIFICATION_TITLE);
   }
 
   async waitForDisplay() {

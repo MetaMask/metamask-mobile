@@ -1,12 +1,9 @@
-import { Store } from 'redux';
+import { AnyAction } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
-import EngineService from '../core/EngineService';
-import { Authentication } from '../core';
-import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E, isTest } from '../util/test/utils';
 import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
@@ -14,21 +11,21 @@ import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
-import { AppStateEventProcessor } from '../core/AppStateEventListener';
 import getUIStartupSpan from '../core/Performance/UIStartup';
+import ReduxService, { ReduxStore } from '../core/redux';
+import { onPersistedDataLoaded } from '../actions/user';
 
-// TODO: Fix the Action type. It's set to `any` now because some of the
-// TypeScript reducers have invalid actions
-// TODO: Replace "any" with type
-export let store: Store<RootState, any>;
+// eslint-disable-next-line import/no-mutable-exports
+export let store: ReduxStore;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
 export let persistor: any;
 
 export const createStoreAndPersistor = async (preloadedState?: RootState) => {
   // TODO: Improve type safety by using real Action types instead of `any`
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
+  const pReducer = persistReducer<RootState, AnyAction>(
+    persistConfig,
+    rootReducer,
+  );
 
   trace({
     name: TraceName.StoreInit,
@@ -66,6 +63,8 @@ export const createStoreAndPersistor = async (preloadedState?: RootState) => {
     middleware: middlewares,
     preloadedState: initialState,
   });
+  // Set the store in the Redux class
+  ReduxService.store = store;
 
   sagaMiddleware.run(rootSaga);
 
@@ -73,39 +72,9 @@ export const createStoreAndPersistor = async (preloadedState?: RootState) => {
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
-    /**
-     * EngineService.initalizeEngine(store) with SES/lockdown:
-     * Requires ethjs nested patches (lib->src)
-     * - ethjs/ethjs-query
-     * - ethjs/ethjs-contract
-     * Otherwise causing the following errors:
-     * - TypeError: Cannot assign to read only property 'constructor' of object '[object Object]'
-     * - Error: Requiring module "node_modules/ethjs/node_modules/ethjs-query/lib/index.js", which threw an exception: TypeError:
-     * -  V8: Cannot assign to read only property 'constructor' of object '[object Object]'
-     * -  JSC: Attempted to assign to readonly property
-     * - node_modules/babel-runtime/node_modules/regenerator-runtime/runtime.js
-     * - V8: TypeError: _$$_REQUIRE(...) is not a constructor
-     * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
-     * - V8: SES_UNHANDLED_REJECTION
-     */
-
-    store.dispatch({
-      type: 'TOGGLE_BASIC_FUNCTIONALITY',
-      basicFunctionalityEnabled:
-        store.getState().settings.basicFunctionalityEnabled,
-    });
-    // Fetch feature flags only if basic functionality is enabled
-    store.getState().settings.basicFunctionalityEnabled &&
-      store.dispatch({
-        type: 'FETCH_FEATURE_FLAGS',
-      });
-
-    EngineService.initalizeEngine(store);
-
-    Authentication.init(store);
-    AppStateEventProcessor.init(store);
-    LockManagerService.init(store);
     endTrace({ name: TraceName.StoreInit });
+    // Signal that persisted data has been loaded
+    store.dispatch(onPersistedDataLoaded());
   };
 
   persistor = persistStore(store, null, onPersistComplete);

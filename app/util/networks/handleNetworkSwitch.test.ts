@@ -1,7 +1,7 @@
 import Engine from '../../core/Engine';
 import { SEPOLIA } from '../../constants/network';
 import { store } from '../../store';
-import handleNetworkSwitch from './handleNetworkSwitch';
+import { handleNetworkSwitch } from './handleNetworkSwitch';
 
 const mockEngine = Engine;
 const mockStore = jest.mocked(store);
@@ -14,6 +14,9 @@ jest.mock('../../core/Engine', () => ({
     NetworkController: {
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
+    },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
     },
   },
 }));
@@ -106,7 +109,7 @@ describe('useHandleNetworkSwitch', () => {
       mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).not.toBeCalled();
     expect(
-      mockEngine.context.NetworkController.setActiveNetwork,
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toBeCalled();
     expect(
       mockEngine.context.NetworkController.setProviderType,
@@ -123,7 +126,7 @@ describe('useHandleNetworkSwitch', () => {
       mockEngine.context.CurrencyRateController.updateExchangeRate,
     ).not.toBeCalled();
     expect(
-      mockEngine.context.NetworkController.setActiveNetwork,
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toBeCalled();
     expect(
       mockEngine.context.NetworkController.setProviderType,
@@ -137,7 +140,7 @@ describe('useHandleNetworkSwitch', () => {
     const nickname = handleNetworkSwitch('1338');
 
     expect(
-      mockEngine.context.NetworkController.setActiveNetwork,
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).toBeCalledWith('networkId1');
     expect(
       mockEngine.context.NetworkController.setProviderType,
@@ -153,7 +156,9 @@ describe('useHandleNetworkSwitch', () => {
     expect(
       mockEngine.context.NetworkController.setProviderType,
     ).not.toBeCalledWith();
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+    expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).toBeCalled();
     expect(networkType).toBe(SEPOLIA);
   });
 });

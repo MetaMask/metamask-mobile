@@ -21,6 +21,7 @@ import Networks, {
   isPrivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
+  isPortfolioViewEnabled,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -51,6 +52,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import {
+  selectIsAllNetworks,
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
@@ -66,7 +68,10 @@ import { updateIncomingTransactions } from '../../../../../util/transaction-cont
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectUseSafeChainsListValidation } from '../../../../../../app/selectors/preferencesController';
+import {
+  selectTokenNetworkFilter,
+  selectUseSafeChainsListValidation,
+} from '../../../../../../app/selectors/preferencesController';
 import withIsOriginalNativeToken from './withIsOriginalNativeToken';
 import { compose } from 'redux';
 import Icon, {
@@ -436,6 +441,16 @@ export class NetworkSettings extends PureComponent {
      * Matched object from third provider
      */
     matchedChainNetwork: PropTypes.object,
+
+    /**
+     * Checks if all networks are selected
+     */
+    isAllNetworks: PropTypes.bool,
+
+    /**
+     * Token network filter
+     */
+    tokenNetworkFilter: PropTypes.object,
   };
 
   state = {
@@ -888,7 +903,13 @@ export class NetworkSettings extends PureComponent {
     } = this.state;
 
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
-    const { navigation, networkOnboardedState, route } = this.props;
+    const {
+      navigation,
+      networkOnboardedState,
+      route,
+      isAllNetworks,
+      tokenNetworkFilter,
+    } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
 
     const shouldNetworkSwitchPopToWallet =
@@ -932,6 +953,21 @@ export class NetworkSettings extends PureComponent {
 
     if (!(await this.validateChainIdOnSubmit(formChainId, chainId, rpcUrl))) {
       return;
+    }
+
+    // Set tokenNetworkFilter
+    if (isPortfolioViewEnabled()) {
+      const { PreferencesController } = Engine.context;
+      if (!isAllNetworks) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      } else {
+        PreferencesController.setTokenNetworkFilter({
+          ...tokenNetworkFilter,
+          [chainId]: true,
+        });
+      }
     }
 
     await this.handleNetworkUpdate({
@@ -1529,7 +1565,7 @@ export class NetworkSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController } = Engine.context;
+    const { MultichainNetworkController } = Engine.context;
     const { networkConfigurations } = this.props;
 
     const { networkClientId } =
@@ -1537,10 +1573,9 @@ export class NetworkSettings extends PureComponent {
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    NetworkController.setActiveNetwork(networkClientId);
-
+    MultichainNetworkController.setActiveNetwork(networkClientId);
     setTimeout(async () => {
-      await updateIncomingTransactions();
+      await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);
   };
 
@@ -2271,7 +2306,9 @@ export class NetworkSettings extends PureComponent {
         showMultiBlockExplorerAddModal.isVisible ? (
           <ReusableModal
             style={
-              blockExplorerUrls.length > 0 ? styles.sheet : styles.sheetSmall
+              blockExplorerUrls.length > 0 || addMode
+                ? styles.sheet
+                : styles.sheetSmall
             }
             onDismiss={this.closeBlockExplorerModal}
             shouldGoBack={false}
@@ -2338,7 +2375,9 @@ export class NetworkSettings extends PureComponent {
 
         {isNetworkUiRedesignEnabled() && showMultiRpcAddModal.isVisible ? (
           <ReusableModal
-            style={rpcUrls.length > 0 ? styles.sheet : styles.sheetSmall}
+            style={
+              rpcUrls.length > 0 || addMode ? styles.sheet : styles.sheetSmall
+            }
             onDismiss={this.closeRpcModal}
             shouldGoBack={false}
           >
@@ -2563,6 +2602,8 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
   useSafeChainsListValidation: selectUseSafeChainsListValidation(state),
+  isAllNetworks: selectIsAllNetworks(state),
+  tokenNetworkFilter: selectTokenNetworkFilter(state),
 });
 
 export default compose(

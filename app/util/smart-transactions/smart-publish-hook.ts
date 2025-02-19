@@ -23,7 +23,7 @@ import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import { RAMPS_SEND } from '../../components/UI/Ramp/constants';
-import { ControllerMessenger } from '@metamask/base-controller';
+import { Messenger } from '@metamask/base-controller';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 
 export declare type Hex = `0x${string}`;
@@ -36,7 +36,7 @@ export interface SubmitSmartTransactionRequest {
   transactionMeta: TransactionMeta;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
-  controllerMessenger: ControllerMessenger<AllowedActions, AllowedEvents>;
+  controllerMessenger: Messenger<AllowedActions, AllowedEvents>;
   shouldUseSmartTransaction: boolean;
   approvalController: ApprovalController;
   featureFlags: {
@@ -53,9 +53,11 @@ export interface SubmitSmartTransactionRequest {
           expectedDeadline: number;
           maxDeadline: number;
           mobileReturnTxHashAsap: boolean;
+          batchStatusPollingInterval: number;
         }
       | Record<string, never>;
   };
+  transactionFees: Fees | undefined;
 }
 
 const LOG_PREFIX = 'STX publishHook';
@@ -75,6 +77,7 @@ class SmartTransactionHook {
       expectedDeadline?: number;
       maxDeadline?: number;
       mobileReturnTxHashAsap?: boolean;
+      batchStatusPollingInterval?: number;
     };
   };
   #shouldUseSmartTransaction: boolean;
@@ -84,6 +87,7 @@ class SmartTransactionHook {
   #transactionMeta: TransactionMeta;
   #txParams: TransactionParams;
   #controllerMessenger: SubmitSmartTransactionRequest['controllerMessenger'];
+  #transactionFees: Fees | undefined;
 
   #isDapp: boolean;
   #isSend: boolean;
@@ -94,6 +98,7 @@ class SmartTransactionHook {
 
   #shouldStartApprovalRequest: boolean;
   #shouldUpdateApprovalRequest: boolean;
+  #mobileReturnTxHashAsap: boolean;
 
   constructor(request: SubmitSmartTransactionRequest) {
     const {
@@ -104,6 +109,7 @@ class SmartTransactionHook {
       shouldUseSmartTransaction,
       approvalController,
       featureFlags,
+      transactionFees,
     } = request;
     this.#approvalId = undefined;
     this.#approvalEnded = false;
@@ -113,9 +119,12 @@ class SmartTransactionHook {
     this.#approvalController = approvalController;
     this.#shouldUseSmartTransaction = shouldUseSmartTransaction;
     this.#featureFlags = featureFlags;
+    this.#transactionFees = transactionFees;
     this.#chainId = transactionMeta.chainId;
     this.#txParams = transactionMeta.txParams;
     this.#controllerMessenger = controllerMessenger;
+    this.#mobileReturnTxHashAsap =
+      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap ?? false;
 
     const {
       isDapp,
@@ -143,11 +152,13 @@ class SmartTransactionHook {
       this.#isSend,
       this.#isSwapApproveTx,
       Boolean(approvalIdForPendingSwapApproveTx),
+      this.#mobileReturnTxHashAsap,
     );
     this.#shouldUpdateApprovalRequest = getShouldUpdateApprovalRequest(
       this.#isDapp,
       this.#isSend,
       this.#isSwapTransaction,
+      this.#mobileReturnTxHashAsap,
     );
   }
 
@@ -175,10 +186,26 @@ class SmartTransactionHook {
     );
 
     try {
-      const getFeesResponse = await this.#getFees();
+      let getFeesResponse;
+      if (
+        this.#transactionFees?.tradeTxFees ||
+        this.#transactionFees?.approvalTxFees
+      ) {
+        getFeesResponse = this.#transactionFees;
+      } else {
+        getFeesResponse = await this.#getFees();
+      }
       // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
       if (!getFeesResponse) {
         return useRegularTransactionSubmit;
+      }
+
+      const batchStatusPollingInterval =
+        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+      if (batchStatusPollingInterval) {
+        this.#smartTransactionsController.setStatusRefreshInterval(
+          batchStatusPollingInterval,
+        );
       }
 
       const submitTransactionResponse = await this.#signAndSubmitTransactions({
@@ -221,7 +248,9 @@ class SmartTransactionHook {
       );
       throw error;
     } finally {
-      this.#cleanup();
+      if (!this.#mobileReturnTxHashAsap) {
+        this.#cleanup();
+      }
     }
   }
 
@@ -262,10 +291,8 @@ class SmartTransactionHook {
     uuid: string,
   ) => {
     let transactionHash: string | undefined | null;
-    const mobileReturnTxHashAsap =
-      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap;
 
-    if (mobileReturnTxHashAsap && submitTransactionResponse?.txHash) {
+    if (this.#mobileReturnTxHashAsap && submitTransactionResponse?.txHash) {
       transactionHash = submitTransactionResponse.txHash;
     } else {
       transactionHash = await this.#waitForTransactionHash({
@@ -331,7 +358,6 @@ class SmartTransactionHook {
       signedTransactions,
       signedCanceledTransactions,
       txParams: this.#txParams,
-      // @ts-expect-error version mismatch between smart-transactions-controller and transaction-controller breaking type safety
       transactionMeta: this.#transactionMeta,
     });
   };
@@ -401,6 +427,7 @@ class SmartTransactionHook {
               smartTransaction,
             });
           }
+          this.#cleanup();
         }
       },
     );

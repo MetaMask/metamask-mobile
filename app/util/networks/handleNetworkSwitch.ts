@@ -1,11 +1,11 @@
 import { toHex } from '@metamask/controller-utils';
-import { NetworkController } from '@metamask/network-controller';
 import Engine from '../../core/Engine';
 import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 /**
  * Switch to the given chain ID.
@@ -21,8 +21,8 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     return;
   }
 
-  const networkController = Engine.context
-    .NetworkController as NetworkController;
+  const multichainNetworkController = Engine.context
+    .MultichainNetworkController as MultichainNetworkController;
   const chainId = selectChainId(store.getState());
   const networkConfigurations = selectNetworkConfigurations(store.getState());
 
@@ -37,20 +37,13 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   );
 
   if (entry) {
-    const [
-      ,
-      {
-        name: nickname,
-        rpcEndpoints,
-        defaultRpcEndpointIndex,
-      },
-    ] = entry;
+    const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] = entry;
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+    multichainNetworkController.setActiveNetwork(networkClientId);
 
-    networkController.setActiveNetwork(networkClientId);
     return nickname;
   }
 };
 
-export default handleNetworkSwitch;
+export { handleNetworkSwitch };

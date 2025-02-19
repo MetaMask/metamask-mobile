@@ -11,7 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import styles from './ProfileSyncing.styles';
 import { ProfileSyncingComponentProps } from './ProfileSyncing.types';
 import AppConstants from '../../../core/AppConstants';
-import { useProfileSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
+import { useProfileSyncing } from '../../../util/identity/hooks/useProfileSyncing';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
 function ProfileSyncingComponent({

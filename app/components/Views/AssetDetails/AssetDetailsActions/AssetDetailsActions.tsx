@@ -9,13 +9,14 @@ import { AvatarSize } from '../../../../component-library/components/Avatars/Ava
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
+  swapsIsLive: boolean | undefined;
   onBuy: () => void;
   goToSwaps: () => void;
   goToBridge: () => void;
@@ -26,6 +27,7 @@ export interface AssetDetailsActionsProps {
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
+  swapsIsLive,
   onBuy,
   goToSwaps,
   goToBridge,
@@ -61,7 +63,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
-            disabled={!canSignTransactions}
+            disabled={!canSignTransactions || !swapsIsLive}
             actionID={TokenOverviewSelectorsIDs.SWAP_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>

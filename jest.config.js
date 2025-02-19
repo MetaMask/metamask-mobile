@@ -6,9 +6,8 @@ process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 
 process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
+process.env.PORTFOLIO_VIEW = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
-
-process.env.REDESIGNED_SIGNATURE_REQUEST = 'true';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -41,9 +40,11 @@ const config = {
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
   moduleNameMapper: {
-    '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
-    '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
+    '\\.(svg)$': '<rootDir>/app/__mocks__/svgMock.js',
+    '\\.(png)$': '<rootDir>/app/__mocks__/pngMock.js',
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
+    '^@expo/vector-icons@expo/vector-icons$': 'react-native-vector-icons',
+    '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
   },
   // Disable jest cache
   cache: false,

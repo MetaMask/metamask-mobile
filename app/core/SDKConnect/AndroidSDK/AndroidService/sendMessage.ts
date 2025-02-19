@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Engine from '../../../Engine';
-import { Minimizer } from '../../../NativeModules';
+import { AccountsController } from '@metamask/accounts-controller';
 import Logger from '../../../../util/Logger';
-import { wait } from '../../utils/wait.util';
-import AndroidService from '../AndroidService';
+import Engine from '../../../Engine';
 import { METHODS_TO_DELAY, RPC_METHODS } from '../../SDKConnectConstants';
 import handleBatchRpcResponse from '../../handlers/handleBatchRpcResponse';
 import DevLogger from '../../utils/DevLogger';
-import { AccountsController } from '@metamask/accounts-controller';
+import { wait } from '../../utils/wait.util';
+import AndroidService from '../AndroidService';
 
 async function sendMessage(
   instance: AndroidService,
@@ -120,7 +119,6 @@ async function sendMessage(
     }
 
     DevLogger.log(`AndroidService::sendMessage empty --- goBack()`);
-    Minimizer.goBack();
   } catch (error) {
     Logger.log(error, `AndroidService:: error waiting for empty rpc queue`);
   }

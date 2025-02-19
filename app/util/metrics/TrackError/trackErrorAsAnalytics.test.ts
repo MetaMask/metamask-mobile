@@ -1,5 +1,6 @@
 import trackErrorAsAnalytics from './trackErrorAsAnalytics';
 import MetaMetrics from '../../../core/Analytics/MetaMetrics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
@@ -26,15 +27,17 @@ describe('trackErrorAsAnalytics', () => {
 
     trackErrorAsAnalytics(testEvent, errorMessage, otherInfo);
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-      { category: 'Error occurred' },
-      {
+    const expectedEvent = MetricsEventBuilder.createEventBuilder({
+      category: 'Error occurred',
+    })
+      .addProperties({
         error: true,
         type: testEvent,
         errorMessage,
         otherInfo,
-      },
-    );
+      })
+      .build();
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('calls trackEvent with event name string', async () => {
@@ -44,15 +47,17 @@ describe('trackErrorAsAnalytics', () => {
 
     trackErrorAsAnalytics(testEventName, errorMessage, otherInfo);
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-      { category: 'Error occurred' },
-      {
+    const expectedEvent = MetricsEventBuilder.createEventBuilder({
+      category: 'Error occurred',
+    })
+      .addProperties({
         error: true,
         type: testEventName,
         errorMessage,
         otherInfo,
-      },
-    );
+      })
+      .build();
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('calls trackEvent without otherInfo', async () => {
@@ -61,13 +66,15 @@ describe('trackErrorAsAnalytics', () => {
 
     trackErrorAsAnalytics(testEvent, errorMessage);
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-      { category: 'Error occurred' },
-      {
+    const expectedEvent = MetricsEventBuilder.createEventBuilder({
+      category: 'Error occurred',
+    })
+      .addProperties({
         error: true,
         type: testEvent,
         errorMessage,
-      },
-    );
+      })
+      .build();
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 });

@@ -7,7 +7,6 @@ import ErrorBoundary from '../ErrorBoundary';
 import { useAppTheme, ThemeContext } from '../../../util/theme';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 const Root = () => {
   const theme = useAppTheme();
@@ -16,11 +15,9 @@ const Root = () => {
     // <SafeAreaProvider>
       <ThemeContext.Provider value={theme}>
         <ToastContextWrapper>
-          <AssetPollingProvider>
             <ErrorBoundary view="Root">
               <App />
             </ErrorBoundary>
-          </AssetPollingProvider>
         </ToastContextWrapper>
       </ThemeContext.Provider>
     // </SafeAreaProvider>

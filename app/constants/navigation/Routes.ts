@@ -1,7 +1,6 @@
 const Routes = {
   WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
-  BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
@@ -103,6 +102,7 @@ const Routes = {
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     REVOKE_ALL_ACCOUNT_PERMISSIONS: 'RevokeAllAccountPermissions',
     CONNECTION_DETAILS: 'ConnectionDetails',
+    PERMITTED_NETWORKS_INFO_SHEET: 'PermittedNetworksInfoSheet',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
@@ -118,7 +118,6 @@ const Routes = {
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
-    URL_MODAL: 'BrowserUrlModal',
     VIEW: 'BrowserView',
   },
   WEBVIEW: {
@@ -139,6 +138,8 @@ const Routes = {
   EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
+  CONFIRM_FLAT_PAGE: 'Confirmation Flat Page',
+  CONFIRM_MODAL: 'Confirmation Modal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -150,11 +151,13 @@ const Routes = {
     STAKE_CONFIRMATION: 'StakeConfirmation',
     UNSTAKE: 'Unstake',
     UNSTAKE_CONFIRMATION: 'UnstakeConfirmation',
+    EARNINGS_HISTORY: 'EarningsHistory',
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
       MAX_INPUT: 'MaxInput',
       GAS_IMPACT: 'GasImpact',
+      EARN_TOKEN_LIST: 'EarnTokenList',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)

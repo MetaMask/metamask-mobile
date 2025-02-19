@@ -41,7 +41,6 @@ import AvatarNetwork from '../../../../component-library/components/Avatars/Avat
 import Routes from '../../../../constants/navigation/Routes';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
-import { NetworksTicker } from '@metamask/controller-utils';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
@@ -191,7 +190,7 @@ class NetworksSettings extends PureComponent {
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
-      await updateIncomingTransactions();
+      await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);
   };
 
@@ -204,7 +203,7 @@ class NetworksSettings extends PureComponent {
     ) {
       this.switchToMainnet();
     }
-    const { NetworkController } = Engine.context;
+    const { NetworkController, MultichainNetworkController } = Engine.context;
 
     const { networkConfigurations } = this.props;
     const entry = Object.entries(networkConfigurations).find(
@@ -227,7 +226,7 @@ class NetworksSettings extends PureComponent {
 
     if (this.networkToRemove === selectedNetworkClientId) {
       // if we delete selected network, switch to mainnet before removing the selected network
-      NetworkController.setActiveNetwork('mainnet');
+      MultichainNetworkController.setActiveNetwork('mainnet');
     }
 
     NetworkController.removeNetwork(chainId);

@@ -11,7 +11,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
@@ -25,7 +24,7 @@ import Engine from '../../../../core/Engine';
 
 // Internal dependencies.
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
-import { AccountListViewSelectorsIDs } from '../../../../../e2e/selectors/AccountListView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import AddAccountActions from '../../AddAccountActions';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {
@@ -34,8 +33,8 @@ import {
 } from './AccountConnectMultiSelector.types';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import Checkbox from '../../../../component-library/components/Checkbox';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -44,8 +43,6 @@ const AccountConnectMultiSelector = ({
   onSelectAddress,
   isLoading,
   onUserAction,
-  favicon,
-  secureIcon,
   isAutoScrollEnabled = true,
   urlWithProtocol,
   hostname,
@@ -103,50 +100,6 @@ const AccountConnectMultiSelector = ({
       },
     });
   }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
-
-  const renderSelectAllButton = useCallback(
-    () =>
-      Boolean(accounts.length) &&
-      !isMultichainVersion1Enabled && (
-        <Button
-          variant={ButtonVariants.Link}
-          onPress={() => {
-            if (isLoading) return;
-            const allSelectedAccountAddresses = accounts.map(
-              ({ address }) => address,
-            );
-            onSelectAddress(allSelectedAccountAddresses);
-          }}
-          style={{
-            ...styles.selectAllButton,
-            ...(isLoading && styles.disabled),
-          }}
-          label={strings('accounts.select_all')}
-          testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
-        />
-      ),
-    [accounts, isLoading, onSelectAddress, styles],
-  );
-
-  const renderUnselectAllButton = useCallback(
-    () =>
-      Boolean(accounts.length) &&
-      !isMultichainVersion1Enabled && (
-        <Button
-          variant={ButtonVariants.Link}
-          onPress={() => {
-            if (isLoading) return;
-            onSelectAddress([]);
-          }}
-          style={{
-            ...styles.selectAllButton,
-            ...(isLoading && styles.disabled),
-          }}
-          label={strings('accounts.unselect_all')}
-        />
-      ),
-    [accounts, isLoading, onSelectAddress, styles],
-  );
 
   const areAllAccountsSelected = accounts
     .map(({ address }) => address)
@@ -206,39 +159,14 @@ const AccountConnectMultiSelector = ({
     return (
       <View style={styles.ctaButtonsContainer}>
         <View style={styles.connectOrUpdateButtonContainer}>
-          {!isMultichainVersion1Enabled && (
-            <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('accounts.cancel')}
-              onPress={() => onUserAction(USER_INTENT.Cancel)}
-              size={ButtonSize.Lg}
-              style={styles.button}
-            />
-          )}
-          {!isMultichainVersion1Enabled && (
-            <View style={styles.buttonSeparator} />
-          )}
           {areAnyAccountsSelected && (
             <Button
               variant={ButtonVariants.Primary}
-              label={strings(
-                isMultichainVersion1Enabled
-                  ? 'networks.update'
-                  : 'accounts.connect_with_count',
-                {
-                  countLabel: selectedAddresses.length
-                    ? ` (${selectedAddresses.length})`
-                    : '',
-                },
-              )}
+              label={strings('networks.update')}
               onPress={() => {
-                if (!isMultichainVersion1Enabled) {
-                  onUserAction(USER_INTENT.Confirm);
-                } else {
-                  onPrimaryActionButtonPress
-                    ? onPrimaryActionButtonPress()
-                    : onUserAction(USER_INTENT.Confirm);
-                }
+                onPrimaryActionButtonPress
+                  ? onPrimaryActionButtonPress()
+                  : onUserAction(USER_INTENT.Confirm);
               }}
               size={ButtonSize.Lg}
               style={{
@@ -251,31 +179,30 @@ const AccountConnectMultiSelector = ({
             />
           )}
         </View>
-        {isMultichainVersion1Enabled &&
-          areNoAccountsSelected &&
-          showDisconnectAllButton && (
-            <View style={styles.disconnectAllContainer}>
-              <View style={styles.helpTextContainer}>
-                <HelpText severity={HelpTextSeverity.Error}>
-                  {strings('common.disconnect_you_from', {
-                    dappUrl: hostname,
-                  })}
-                </HelpText>
-              </View>
-              <View style={styles.disconnectAllButtonContainer}>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('accounts.disconnect')}
-                  onPress={toggleRevokeAllAccountPermissionsModal}
-                  isDanger
-                  size={ButtonSize.Lg}
-                  style={{
-                    ...styles.button,
-                  }}
-                />
-              </View>
+        {areNoAccountsSelected && showDisconnectAllButton && (
+          <View style={styles.disconnectAllContainer}>
+            <View style={styles.helpTextContainer}>
+              <HelpText severity={HelpTextSeverity.Error}>
+                {strings('common.disconnect_you_from', {
+                  dappUrl: hostname,
+                })}
+              </HelpText>
             </View>
-          )}
+            <View style={styles.disconnectAllButtonContainer}>
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('accounts.disconnect')}
+                testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
+                onPress={toggleRevokeAllAccountPermissionsModal}
+                isDanger
+                size={ButtonSize.Lg}
+                style={{
+                  ...styles.button,
+                }}
+              />
+            </View>
+          </View>
+        )}
       </View>
     );
   }, [
@@ -297,33 +224,15 @@ const AccountConnectMultiSelector = ({
       <SafeAreaView>
         <View style={styles.container}>
           <SheetHeader
-            title={
-              isMultichainVersion1Enabled
-                ? screenTitle
-                : strings('accounts.connect_accounts_title')
-            }
+            title={screenTitle || strings('accounts.connect_accounts_title')}
             onBack={onBack}
           />
           <View style={styles.body}>
-            {!isMultichainVersion1Enabled && (
-              <TagUrl
-                imageSource={favicon}
-                label={urlWithProtocol}
-                iconName={secureIcon}
-              />
-            )}
             <Text style={styles.description}>
-              {isMultichainVersion1Enabled
-                ? accounts?.length > 0 &&
-                  strings('accounts.select_accounts_description')
-                : strings('accounts.connect_description')}
+              {accounts?.length > 0 &&
+                strings('accounts.select_accounts_description')}
             </Text>
-            {isMultichainVersion1Enabled &&
-              accounts?.length > 0 &&
-              renderSelectAllCheckbox()}
-            {areAllAccountsSelected
-              ? renderUnselectAllButton()
-              : renderSelectAllButton()}
+            {accounts?.length > 0 && renderSelectAllCheckbox()}
           </View>
           <AccountSelectorList
             onSelectAccount={onSelectAccount}
@@ -334,6 +243,7 @@ const AccountConnectMultiSelector = ({
             isMultiSelect
             isRemoveAccountEnabled
             isAutoScrollEnabled={isAutoScrollEnabled}
+            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
           {connection?.originatorInfo?.apiVersion && (
             <View style={styles.sdkInfoContainer}>
@@ -353,7 +263,9 @@ const AccountConnectMultiSelector = ({
               onPress={() =>
                 setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
               }
-              testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
+              testID={
+                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
+              }
             />
           </View>
           <View style={styles.body}>{renderCtaButtons()}</View>
@@ -362,21 +274,15 @@ const AccountConnectMultiSelector = ({
     ),
     [
       accounts,
-      areAllAccountsSelected,
       ensByAccountAddress,
-      favicon,
       isAutoScrollEnabled,
       isLoading,
       onSelectAccount,
       renderCtaButtons,
-      renderSelectAllButton,
-      renderUnselectAllButton,
-      secureIcon,
       selectedAddresses,
       styles.addAccountButtonContainer,
       styles.body,
       styles.description,
-      urlWithProtocol,
       connection,
       styles.sdkInfoContainer,
       styles.container,

@@ -1,9 +1,7 @@
 import {
   AccountTrackerControllerState,
   CurrencyRateState,
-  NftDetectionController,
   NftControllerState,
-  TokenDetectionController,
   TokenListState,
   TokenRatesControllerState,
   TokensControllerState,
@@ -12,7 +10,6 @@ import {
 import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
-import { BaseState } from '@metamask/base-controller';
 import { KeyringControllerMemState } from '@metamask/keyring-controller';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { PhishingControllerState } from '@metamask/phishing-controller';
@@ -21,15 +18,16 @@ import { GasFeeController } from '@metamask/gas-fee-controller';
 import { PPOMState } from '@metamask/ppom-validator';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
+import { TokenSearchDiscoveryControllerState } from '@metamask/token-search-discovery-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapController } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
+
 export interface EngineState {
   engine: {
     backgroundState: {
       AccountTrackerController: AccountTrackerControllerState;
       AddressBookController: AddressBookControllerState;
-      AssetsContractController: BaseState;
       NftController: NftControllerState;
       TokenListController: TokenListState;
       CurrencyRateController: CurrencyRateState;
@@ -47,10 +45,9 @@ export interface EngineState {
       ///: END:ONLY_INCLUDE_IF
       GasFeeController: GasFeeController;
       TokensController: TokensControllerState;
-      TokenDetectionController: TokenDetectionController;
-      NftDetectionController: NftDetectionController;
       ApprovalController: ApprovalControllerState;
       AccountsController: AccountsControllerState;
+      TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
     };
   };
 }

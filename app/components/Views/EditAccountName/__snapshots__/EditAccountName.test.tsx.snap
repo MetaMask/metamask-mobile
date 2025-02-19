@@ -143,7 +143,7 @@ exports[`EditAccountName should render correctly 1`] = `
             editable={false}
             onBlur={[Function]}
             onFocus={[Function]}
-            placeholder="0x0"
+            placeholder="0x49a016E6736F9Ad381605c...72A6"
             style={
               {
                 "backgroundColor": "#ffffff",
@@ -203,9 +203,9 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -243,9 +243,9 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }

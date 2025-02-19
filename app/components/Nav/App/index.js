@@ -44,6 +44,7 @@ import { getVersion } from 'react-native-device-info';
 import {
   setCurrentBottomNavRoute,
   setCurrentRoute,
+  onNavigationReady,
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
@@ -108,8 +109,6 @@ import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
-import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
@@ -118,6 +117,7 @@ import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAs
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
+import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import NftOptions from '../../../components/Views/NftOptions';
@@ -144,6 +144,7 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import { Confirm } from '../../Views/confirmations/Confirm';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -431,6 +432,10 @@ const RootModalFlow = () => (
       component={ConnectionDetails}
     />
     <Stack.Screen
+      name={Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET}
+      component={PermittedNetworksInfoSheet}
+    />
+    <Stack.Screen
       name={Routes.SHEET.NETWORK_SELECTOR}
       component={NetworkSelector}
     />
@@ -576,6 +581,24 @@ const ConnectHardwareWalletFlow = () => (
   </Stack.Navigator>
 );
 
+const ConfirmRequest = () => (
+  <Stack.Navigator mode={'modal'}>
+    <Stack.Screen name={Routes.CONFIRM_FLAT_PAGE} component={Confirm} />
+  </Stack.Navigator>
+);
+
+const ConfirmDappRequest = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+    mode={'modal'}
+  >
+    <Stack.Screen name={Routes.CONFIRM_MODAL} component={Confirm} />
+  </Stack.Navigator>
+);
+
 const App = (props) => {
   const { userLoggedIn } = props;
   // FIXME: Remove this when the unit tests are resolved for rendering this component. This property is only used by unit tests at the moment. Tests break when this is removed.
@@ -589,11 +612,17 @@ const App = (props) => {
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
 
-  trace({
-    name: TraceName.NavInit,
-    parentContext: getUIStartupSpan(),
-    op: TraceOperation.NavInit,
-  });
+  const isFirstRender = useRef(true);
+
+  if (isFirstRender.current) {
+    trace({
+      name: TraceName.NavInit,
+      parentContext: getUIStartupSpan(),
+      op: TraceOperation.NavInit,
+    });
+
+    isFirstRender.current = false;
+  }
 
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
@@ -602,6 +631,13 @@ const App = (props) => {
       dispatch(setCurrentBottomNavRoute(route));
     }
   };
+
+  useEffect(() => {
+    if (prevNavigator.current || !navigator) return;
+
+    endTrace({ name: TraceName.NavInit });
+    endTrace({ name: TraceName.UIStartup });
+  }, [navigator]);
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
@@ -645,15 +681,9 @@ const App = (props) => {
         );
       }
     };
-    appTriggeredAuth()
-      .catch((error) => {
-        Logger.error(error, 'App: Error in appTriggeredAuth');
-      })
-      .finally(() => {
-        endTrace({ name: TraceName.NavInit });
-
-        endTrace({ name: TraceName.UIStartup });
-      });
+    appTriggeredAuth().catch((error) => {
+      Logger.error(error, 'App: Error in appTriggeredAuth');
+    });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -732,15 +762,7 @@ const App = (props) => {
 
   useEffect(() => {
     const initMetrics = async () => {
-      const metrics = MetaMetrics.getInstance();
-      await metrics.configure();
-      // identify user with the latest traits
-      // run only after the MetaMetrics is configured
-      const consolidatedTraits = {
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-      };
-      await metrics.addTraitsToUser(consolidatedTraits);
+      await MetaMetrics.getInstance().configure();
     };
 
     initMetrics().catch((err) => {
@@ -874,6 +896,11 @@ const App = (props) => {
     }
   };
 
+  /**
+   * Triggers when the navigation is ready
+   */
+  const onNavigationReadyHandler = () => dispatch(onNavigationReady());
+
   return supressRender ? null : (
     <>
       {
@@ -899,6 +926,7 @@ const App = (props) => {
           const currentRoute = findRouteNameFromNavigatorState(state.routes);
           triggerSetCurrentRoute(currentRoute);
         }}
+        onReady={onNavigationReadyHandler}
       >
         <Stack.Navigator
           initialRouteName={Routes.FOX_LOADER}
@@ -1007,6 +1035,16 @@ const App = (props) => {
             name={Routes.LOCK_SCREEN}
             component={LockScreen}
             options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen
+            name={Routes.CONFIRM_FLAT_PAGE}
+            component={ConfirmRequest}
+            options={{ animationEnabled: true }}
+          />
+          <Stack.Screen
+            name={Routes.CONFIRM_MODAL}
+            component={ConfirmDappRequest}
+            options={{ animationEnabled: true }}
           />
         </Stack.Navigator>
       </NavigationContainer>

@@ -10,20 +10,10 @@ import {
   LINEA_SEPOLIA,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import {
-  ChainId,
-  NetworkType,
-  convertHexToDecimal,
-  toHex,
-} from '@metamask/controller-utils';
-import { isStrictHexString } from '@metamask/utils';
-import Engine from '../../core/Engine';
+import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
-import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
-
-export { handleNetworkSwitch };
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
@@ -51,7 +41,6 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
   SEPOLIA_FAUCET,
 } from '../../constants/urls';
-import { getNonceLock } from '../../util/transaction-controller';
 
 /**
  * List of the supported networks
@@ -124,23 +113,6 @@ export const NetworkList = {
 };
 
 const NetworkListKeys = Object.keys(NetworkList);
-
-export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
-  NETWORKS_CHAIN_ID.MAINNET,
-  NETWORKS_CHAIN_ID.BSC,
-  NETWORKS_CHAIN_ID.BASE,
-  NETWORKS_CHAIN_ID.POLYGON,
-  NETWORKS_CHAIN_ID.ARBITRUM,
-  NETWORKS_CHAIN_ID.OPTIMISM,
-  NETWORKS_CHAIN_ID.AVAXCCHAIN,
-  NETWORKS_CHAIN_ID.LINEA_MAINNET,
-  NETWORKS_CHAIN_ID.SEPOLIA,
-  NETWORKS_CHAIN_ID.OPBNB,
-  NETWORKS_CHAIN_ID.ZKSYNC_ERA,
-  NETWORKS_CHAIN_ID.SCROLL,
-  NETWORKS_CHAIN_ID.BERACHAIN,
-  NETWORKS_CHAIN_ID.METACHAIN_ONE,
-];
 
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
@@ -228,7 +200,8 @@ export const getTestNetImageByChainId = (chainId) => {
 /**
  * A list of chain IDs for known testnets
  */
-const TESTNET_CHAIN_IDS = [
+export const TESTNET_CHAIN_IDS = [
+  ChainId[NetworkType.goerli],
   ChainId[NetworkType.sepolia],
   ChainId[NetworkType['linea-goerli']],
   ChainId[NetworkType['linea-sepolia']],
@@ -290,16 +263,6 @@ export function hasBlockExplorer(key) {
 
 export function isPrivateConnection(hostname) {
   return hostname === 'localhost' || regex.localNetwork.test(hostname);
-}
-
-/**
- * Set the value of safe chain validation using preference controller
- *
- * @param {boolean} value
- */
-export function toggleUseSafeChainsListValidation(value) {
-  const { PreferencesController } = Engine.context;
-  PreferencesController.setUseSafeChainsListValidation(value);
 }
 
 /**
@@ -368,14 +331,6 @@ export function isPrefixedFormattedHexString(value) {
   }
   return regex.prefixedFormattedHexString.test(value);
 }
-
-export const getNetworkNonce = async ({ from }) => {
-  const { nextNonce, releaseLock } = await getNonceLock(from);
-
-  releaseLock();
-
-  return nextNonce;
-};
 
 export function blockTagParamIndex(payload) {
   switch (payload.method) {
@@ -454,30 +409,6 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
 };
 
 /**
- * It returns an estimated L1 fee for a multi layer network.
- * Currently only for the Optimism network, but can be extended to other networks.
- *
- * @param {Object} eth
- * @param {Object} txMeta
- * @returns {String} Hex string gas fee, with no 0x prefix
- */
-export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
-  const chainId = txMeta.chainId;
-
-  const layer1GasFee =
-    await Engine.context.TransactionController.getLayer1GasFee({
-      transactionParams: txMeta.txParams,
-      chainId,
-    });
-
-  const layer1GasFeeNoPrefix = layer1GasFee.startsWith('0x')
-    ? layer1GasFee.slice(2)
-    : layer1GasFee;
-
-  return layer1GasFeeNoPrefix;
-};
-
-/**
  * Returns block explorer address url and title by network
  *
  * @param {string} networkType Network type
@@ -540,55 +471,12 @@ export const getBlockExplorerTxUrl = (
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
 
-/**
- * Convert the given value into a valid network ID. The ID is accepted
- * as either a number, a decimal string, or a 0x-prefixed hex string.
- *
- * @param value - The network ID to convert, in an unknown format.
- * @returns A valid network ID (as a decimal string)
- * @throws If the given value cannot be safely parsed.
- */
-export function convertNetworkId(value) {
-  if (typeof value === 'number' && !Number.isNaN(value)) {
-    return `${value}`;
-  } else if (isStrictHexString(value)) {
-    return `${convertHexToDecimal(value)}`;
-  } else if (typeof value === 'string' && /^\d+$/u.test(value)) {
-    return value;
-  }
-  throw new Error(`Cannot parse as a valid network ID: '${value}'`);
-}
-/**
- * This function is only needed to get the `networkId` to support the deprecated
- * `networkVersion` provider property and the deprecated `networkChanged` provider event.
- * @deprecated
- * @returns - network id of the current network
- */
-export const deprecatedGetNetworkId = async () => {
-  const ethQuery = Engine.controllerMessenger.call(
-    'NetworkController:getEthQuery',
-  );
-
-  if (!ethQuery) {
-    throw new Error('Provider has not been initialized');
-  }
-
-  return new Promise((resolve, reject) => {
-    ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(convertNetworkId(result));
-      }
-    });
-  });
-};
-
-export const isMultichainVersion1Enabled =
-  process.env.MM_MULTICHAIN_V1_ENABLED === '1';
-
-export const isChainPermissionsFeatureEnabled =
-  process.env.MM_CHAIN_PERMISSIONS === '1';
+export const isChainPermissionsFeatureEnabled = true;
 
 export const isPermissionsSettingsV1Enabled =
-  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === '1';
+  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
+
+export const isPortfolioViewEnabled = () =>
+  process.env.PORTFOLIO_VIEW === 'true';
+
+export const isMultichainV1Enabled = () => process.env.MULTICHAIN_V1 === 'true';

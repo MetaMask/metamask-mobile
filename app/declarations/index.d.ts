@@ -293,3 +293,5 @@ declare module '@metamask/react-native-actionsheet' {
   const ActionSheet;
   export default ActionSheet;
 }
+
+declare module '@metamask/react-native-search-api';

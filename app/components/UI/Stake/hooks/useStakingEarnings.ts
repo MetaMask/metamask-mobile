@@ -14,7 +14,8 @@ const useStakingEarnings = () => {
 
   const { currentCurrency, conversionRate } = useBalance();
 
-  const { pooledStakesData, isLoadingPooledStakesData } = usePooledStakes();
+  const { pooledStakesData, isLoadingPooledStakesData, hasStakedPositions } =
+    usePooledStakes();
 
   const lifetimeRewards = pooledStakesData?.lifetimeRewards ?? '0';
 
@@ -26,7 +27,7 @@ const useStakingEarnings = () => {
     2,
   );
 
-  const assets = pooledStakesData.assets ?? 0;
+  const assets = pooledStakesData?.assets ?? 0;
   const estimatedAnnualEarnings = new BigNumber(assets)
     .multipliedBy(annualRewardRateDecimal)
     .toFixed(0);
@@ -50,6 +51,7 @@ const useStakingEarnings = () => {
     estimatedAnnualEarningsETH,
     estimatedAnnualEarningsFiat,
     isLoadingEarningsData,
+    hasStakedPositions,
   };
 };
 

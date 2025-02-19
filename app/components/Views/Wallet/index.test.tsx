@@ -7,6 +7,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import Engine from '../../../core/Engine';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -61,6 +62,12 @@ jest.mock('../../../core/Engine', () => {
         ...mockAccountsControllerState,
         state: mockAccountsControllerState,
       },
+      PreferencesController: {
+        setTokenNetworkFilter: jest.fn(),
+      },
+      TokensController: {
+        addTokens: jest.fn(),
+      },
     },
   };
 });
@@ -91,6 +98,10 @@ const mockInitialState = {
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
+      TokensController: {
+        ...backgroundState.TokensController,
+        detectedTokens: [{ address: '0x123' }],
+      },
     },
   },
 };
@@ -116,7 +127,7 @@ jest.mock('react-native-scrollable-tab-view', () => {
   return ScrollableTabViewMock;
 });
 
-jest.mock('../../../util/notifications/hooks/useAccountSyncing', () => ({
+jest.mock('../../../util/identity/hooks/useAccountSyncing', () => ({
   useAccountSyncing: jest.fn().mockReturnValue({
     dispatchAccountSyncing: jest.fn(),
     error: undefined,
@@ -137,7 +148,6 @@ jest.mock('../../../util/address', () => ({
     },
   }),
 }));
-
 const render = (Component: React.ComponentType) =>
   renderScreen(
     Component,
@@ -150,6 +160,9 @@ const render = (Component: React.ComponentType) =>
   );
 
 describe('Wallet', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
   it('should render correctly', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     const wrapper = render(Wallet);
@@ -183,5 +196,14 @@ describe('Wallet', () => {
       WalletViewSelectorsIDs.ACCOUNT_ICON,
     );
     expect(accountPicker).toBeDefined();
+  });
+
+  it('Should add tokens to state automatically when there are detected tokens', () => {
+    const mockedAddTokens = jest.mocked(Engine.context.TokensController);
+
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
+    render(Wallet);
+
+    expect(mockedAddTokens.addTokens).toHaveBeenCalledTimes(1);
   });
 });

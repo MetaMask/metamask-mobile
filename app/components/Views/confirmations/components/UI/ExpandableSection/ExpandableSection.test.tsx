@@ -7,8 +7,8 @@ import InfoRow from '../InfoRow';
 import ExpandableSection from './ExpandableSection';
 
 describe('ExpandableSection', () => {
-  it('should match snapshot for simple ExpandableSection', async () => {
-    const container = render(
+  it('should render correctly for simple ExpandableSection', async () => {
+    const { getByText } = render(
       <ExpandableSection
         collapsedContent={
           <View>
@@ -23,7 +23,7 @@ describe('ExpandableSection', () => {
         expandedContentTitle={'Title'}
       />,
     );
-    expect(container).toMatchSnapshot();
+    expect(getByText('Open')).toBeDefined();
   });
 
   it('should display default content', async () => {
@@ -64,7 +64,7 @@ describe('ExpandableSection', () => {
     expect(getByText('Open')).toBeDefined();
     fireEvent.press(getByText('Open'));
     expect(getByText('Value-Text')).toBeDefined();
-    fireEvent.press(getByTestId('closeButtonTestId'));
+    fireEvent.press(getByTestId('collapseButtonTestID'));
     expect(getByText('Open')).toBeDefined();
   });
 });

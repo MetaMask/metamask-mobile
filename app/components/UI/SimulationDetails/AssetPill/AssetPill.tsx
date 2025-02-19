@@ -9,16 +9,13 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../../selectors/networkController';
 import { NetworkList } from '../../../../util/networks';
 import { useStyles } from '../../../hooks/useStyles';
 import Name from '../../Name/Name';
 import { NameType } from '../../Name/Name.types';
 import { AssetIdentifier, AssetType } from '../types';
 import styleSheet from './AssetPill.styles';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 
 interface AssetPillProperties extends ViewProps {
   asset: AssetIdentifier;
@@ -35,21 +32,26 @@ const getNetworkImage = (chainId: Hex) => {
   return network?.imageSource || null;
 };
 
-const NativeAssetPill: React.FC = () => {
+const NativeAssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
-  const ticker = useSelector(selectTicker);
-  const chainId = useSelector(selectChainId);
-  const imageSource = getNetworkImage(chainId);
+  const imageSource = getNetworkImage(asset.chainId);
+
+  const networkConfigurationsByChainId = useSelector(
+    selectNetworkConfigurations,
+  );
+
+  const { nativeCurrency } =
+    networkConfigurationsByChainId[asset.chainId] || {};
 
   return (
     <View style={styles.nativeAssetPill}>
       <AvatarNetwork
         testID="simulation-details-asset-pill-avatar-network"
         size={AvatarSize.Xs}
-        name={ticker}
+        name={nativeCurrency}
         imageSource={imageSource}
       />
-      <Text variant={TextVariant.BodyMD}>{ticker}</Text>
+      <Text variant={TextVariant.BodyMD}>{nativeCurrency}</Text>
     </View>
   );
 };
@@ -57,20 +59,17 @@ const NativeAssetPill: React.FC = () => {
 const AssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  // TODO: Remove global network selector usage once simulations refactored.
-  const chainId = useSelector(selectChainId);
-
   return (
     <View style={styles.assetPill}>
       {asset.type === AssetType.Native ? (
-        <NativeAssetPill />
+        <NativeAssetPill asset={asset} />
       ) : (
         <Name
           preferContractSymbol
           testID="simulation-details-asset-pill-name"
           type={NameType.EthereumAddress}
           value={asset.address}
-          variation={chainId}
+          variation={asset.chainId}
         />
       )}
     </View>

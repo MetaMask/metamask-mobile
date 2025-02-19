@@ -11,6 +11,7 @@ import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
 import {
   generateTransferData,
+  calcTokenAmount,
   decodeApproveData,
   decodeTransferData,
   getMethodData,
@@ -41,6 +42,8 @@ import {
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { TransactionType } from '@metamask/transaction-controller';
+import { Provider } from '@metamask/network-controller';
+import BigNumber from 'bignumber.js';
 
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
@@ -53,8 +56,6 @@ const ENGINE_MOCK = Engine as jest.MockedClass<any>;
 
 jest.mock('../../util/transaction-controller');
 
-ENGINE_MOCK.getGlobalEthQuery = () => null;
-
 const MOCK_ADDRESS1 = '0x0001';
 const MOCK_ADDRESS2 = '0x0002';
 const MOCK_ADDRESS3 = '0xb794f5ea0ba39494ce839613fffba74279579268';
@@ -63,6 +64,21 @@ const UNI_TICKER = 'UNI';
 const UNI_ADDRESS = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
 
 const MOCK_CHAIN_ID = '1';
+const MOCK_NETWORK_CLIENT_ID = 'testNetworkClientId';
+
+ENGINE_MOCK.context = {
+  NetworkController: {
+    findNetworkClientIdByChainId: () => MOCK_NETWORK_CLIENT_ID,
+    getNetworkClientById: () => ({
+      provider: {} as Provider,
+    }),
+  },
+  TokenListController: {
+    state: {
+      tokenList: {},
+    },
+  },
+};
 
 const spyOnQueryMethod = (returnValue: string | undefined) =>
   jest.spyOn(controllerUtilsModule, 'query').mockImplementation(
@@ -95,6 +111,52 @@ describe('Transactions utils :: generateTransferData', () => {
       '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001',
     );
   });
+});
+
+describe('Transactions utils :: calcTokenAmount', () => {
+  it.each([
+    // number values
+    [0, 5, '0'],
+    [123456, undefined, '123456'],
+    [123456, 5, '1.23456'],
+    [123456, 6, '0.123456'],
+    // Do not delete the following test. Testing decimal = 36 is important because it has broken
+    // BigNumber#div in the past when the value that was passed into it was not a BigNumber.
+    [123456, 36, '1.23456e-31'],
+    [3000123456789678, 6, '3000123456.789678'],
+    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+    [3000123456789123456789123456789, 3, '3.0001234567891233e+27'], // expected precision lost
+    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+    [3000123456789123456789123456789, 6, '3.0001234567891233e+24'], // expected precision lost
+    // string values
+    ['0', 5, '0'],
+    ['123456', undefined, '123456'],
+    ['123456', 5, '1.23456'],
+    ['123456', 6, '0.123456'],
+    ['3000123456789678', 6, '3000123456.789678'],
+    [
+      '3000123456789123456789123456789',
+      3,
+      '3.000123456789123456789123456789e+27',
+    ],
+    [
+      '3000123456789123456789123456789',
+      6,
+      '3.000123456789123456789123456789e+24',
+    ],
+    // BigNumber values
+    [new BigNumber('3000123456789678'), 6, '3000123456.789678'],
+    [
+      new BigNumber('3000123456789123456789123456789'),
+      6,
+      '3.000123456789123456789123456789e+24',
+    ],
+  ])(
+    'returns the value %s divided by 10^%s = %s',
+    (value, decimals, expected) => {
+      expect(calcTokenAmount(value, decimals).toString()).toBe(expected);
+    },
+  );
 });
 
 describe('Transactions utils :: decodeTransferData', () => {
@@ -304,17 +366,37 @@ describe('Transactions utils :: getMethodData', () => {
     const increaseAllowanceDataMock = `${INCREASE_ALLOWANCE_SIGNATURE}0000000000000000000000000000`;
     const setApprovalForAllDataMock = `${SET_APPROVAL_FOR_ALL_SIGNATURE}0000000000000000000000000000`;
     const approveDataMock = `${APPROVE_FUNCTION_SIGNATURE}000000000000000000000000`;
-    const invalidMethodData = await getMethodData(invalidData);
-    const transferMethodData = await getMethodData(transferData);
-    const deployMethodData = await getMethodData(deployData);
-    const transferFromMethodData = await getMethodData(transferFromData);
-    const randomMethodData = await getMethodData(randomData);
-    const approvalMethodData = await getMethodData(approveDataMock);
+    const invalidMethodData = await getMethodData(
+      invalidData,
+      MOCK_NETWORK_CLIENT_ID,
+    );
+    const transferMethodData = await getMethodData(
+      transferData,
+      MOCK_NETWORK_CLIENT_ID,
+    );
+    const deployMethodData = await getMethodData(
+      deployData,
+      MOCK_NETWORK_CLIENT_ID,
+    );
+    const transferFromMethodData = await getMethodData(
+      transferFromData,
+      MOCK_NETWORK_CLIENT_ID,
+    );
+    const randomMethodData = await getMethodData(
+      randomData,
+      MOCK_NETWORK_CLIENT_ID,
+    );
+    const approvalMethodData = await getMethodData(
+      approveDataMock,
+      MOCK_NETWORK_CLIENT_ID,
+    );
     const increaseAllowanceMethodData = await getMethodData(
       increaseAllowanceDataMock,
+      MOCK_NETWORK_CLIENT_ID,
     );
     const setApprovalForAllMethodData = await getMethodData(
       setApprovalForAllDataMock,
+      MOCK_NETWORK_CLIENT_ID,
     );
     expect(invalidMethodData).toEqual({});
     expect(transferMethodData.name).toEqual(TOKEN_METHOD_TRANSFER);
@@ -336,8 +418,11 @@ describe('Transactions utils :: getMethodData', () => {
     });
     const transferData =
       '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a';
-    await getMethodData(transferData);
-    expect(handleMethodData).toHaveBeenCalledWith('0x98765432');
+    await getMethodData(transferData, MOCK_NETWORK_CLIENT_ID);
+    expect(handleMethodData).toHaveBeenCalledWith(
+      '0x98765432',
+      MOCK_NETWORK_CLIENT_ID,
+    );
   });
 });
 

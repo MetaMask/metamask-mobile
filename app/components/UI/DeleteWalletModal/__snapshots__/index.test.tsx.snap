@@ -1,0 +1,516 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeleteWalletModal should render correctly 1`] = `
+<View
+  style={
+    {
+      "bottom": 0,
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#00000099",
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        {
+          "opacity": undefined,
+        },
+      ]
+    }
+  />
+  <View
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    style={
+      [
+        [
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ],
+        undefined,
+      ]
+    }
+  >
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    />
+    <Modal
+      animationType="none"
+      deviceHeight={null}
+      deviceWidth={null}
+      hardwareAccelerated={false}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      onRequestClose={[Function]}
+      onSwipeComplete={[Function]}
+      panResponderThreshold={4}
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeDirection="down"
+      swipeThreshold={100}
+      transparent={true}
+      visible={true}
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "backgroundColor": "#00000099",
+            "bottom": 0,
+            "height": 1334,
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+            "width": 750,
+          }
+        }
+      />
+      <View
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={
+          [
+            [
+              {
+                "margin": 37.5,
+                "transform": [
+                  {
+                    "translateY": 0,
+                  },
+                ],
+              },
+              {
+                "flex": 1,
+                "justifyContent": "center",
+              },
+              [
+                {
+                  "margin": 0,
+                  "width": "100%",
+                },
+                undefined,
+              ],
+              {
+                "margin": 0,
+              },
+            ],
+            {
+              "paddingBottom": 0,
+            },
+          ]
+        }
+      >
+        <View
+          collapsable={false}
+          deviceHeight={null}
+          deviceWidth={null}
+          hideModalContentWhileAnimating={false}
+          onBackdropPress={[Function]}
+          onModalHide={[Function]}
+          onModalWillHide={[Function]}
+          onModalWillShow={[Function]}
+          onMoveShouldSetResponder={[Function]}
+          onMoveShouldSetResponderCapture={[Function]}
+          onResponderEnd={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderReject={[Function]}
+          onResponderRelease={[Function]}
+          onResponderStart={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          onStartShouldSetResponderCapture={[Function]}
+          onSwipeComplete={[Function]}
+          panResponderThreshold={4}
+          pointerEvents="box-none"
+          scrollHorizontal={false}
+          scrollOffset={0}
+          scrollOffsetMax={0}
+          scrollTo={null}
+          statusBarTranslucent={false}
+          style={
+            {
+              "flex": 1,
+              "justifyContent": "center",
+              "left": 0,
+              "margin": 0,
+              "top": 0,
+              "transform": [
+                {
+                  "translateY": 1334,
+                },
+              ],
+              "width": "100%",
+            }
+          }
+          supportedOrientations={
+            [
+              "portrait",
+              "landscape",
+            ]
+          }
+          swipeDirection="down"
+          swipeThreshold={100}
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "column",
+                  "justifyContent": "center",
+                  "marginHorizontal": 24,
+                },
+                null,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 10,
+                    "width": "100%",
+                  },
+                  null,
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    },
+                    null,
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignSelf": "center",
+                      "justifyContent": "center",
+                      "padding": 24,
+                      "width": "100%",
+                    }
+                  }
+                  testID="delete-wallet-modal-container"
+                >
+                  <Text
+                    allowFontScaling={false}
+                    style={
+                      [
+                        {
+                          "color": "#d73847",
+                          "fontSize": 46,
+                        },
+                        {
+                          "alignSelf": "center",
+                          "color": "#d73847",
+                          "marginVertical": 10,
+                        },
+                        {
+                          "fontFamily": "FontAwesome",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
+                    }
+                  >
+                    
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontSize": 20,
+                          "fontWeight": "600",
+                          "lineHeight": 26,
+                          "marginHorizontal": 6,
+                          "textAlign": "center",
+                        },
+                        {
+                          "color": "#d73847",
+                          "marginHorizontal": 24,
+                        },
+                      ]
+                    }
+                  >
+                    Are you sure you want to erase your wallet?
+                  </Text>
+                  <Text
+                    style={
+                      {
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "lineHeight": 22,
+                        "marginTop": 20,
+                        "textAlign": "center",
+                      }
+                    }
+                  >
+                    <Text>
+                      Your current wallet, accounts and assets will be 
+                    </Text>
+                    <Text
+                      style={
+                        {
+                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontWeight": "600",
+                        }
+                      }
+                    >
+                      removed from this app permanently. 
+                    </Text>
+                    <Text>
+                      This action cannot be undone.
+                    </Text>
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 22,
+                          "marginTop": 20,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    <Text>
+                      You can ONLY recover this wallet with your 
+                    </Text>
+                    <Text
+                      style={
+                        {
+                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontWeight": "600",
+                        }
+                      }
+                    >
+                      Secret Recovery Phrase 
+                    </Text>
+                    <Text>
+                      MetaMask does not have your Secret Recovery Phrase.
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                      "paddingHorizontal": 16,
+                      "paddingVertical": 8,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={0.2}
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    [
+                      [
+                        {
+                          "borderRadius": 100,
+                          "justifyContent": "center",
+                          "padding": 15,
+                        },
+                        {
+                          "backgroundColor": "#d73847",
+                        },
+                        [
+                          {
+                            "margin": 8,
+                          },
+                          false,
+                        ],
+                      ],
+                      null,
+                    ]
+                  }
+                  testID="delete-modal-understand-continue"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#007aff",
+                          "fontSize": 17,
+                          "fontWeight": "500",
+                          "textAlign": "center",
+                        },
+                        null,
+                        [
+                          {
+                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontSize": 14,
+                            "fontWeight": "600",
+                            "textAlign": "center",
+                          },
+                          {
+                            "color": "#ffffff",
+                          },
+                          undefined,
+                        ],
+                        null,
+                      ]
+                    }
+                  >
+                    I understand, continue
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={0.2}
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    [
+                      [
+                        {
+                          "borderRadius": 100,
+                          "justifyContent": "center",
+                          "padding": 15,
+                        },
+                        {
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#6a737d",
+                          "borderWidth": 1,
+                        },
+                        [
+                          {
+                            "margin": 8,
+                          },
+                          false,
+                        ],
+                      ],
+                      null,
+                    ]
+                  }
+                  testID="delete-modal-cancel-button"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#007aff",
+                          "fontSize": 17,
+                          "fontWeight": "500",
+                          "textAlign": "center",
+                        },
+                        null,
+                        [
+                          {
+                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontSize": 14,
+                            "fontWeight": "600",
+                            "textAlign": "center",
+                          },
+                          {
+                            "color": "#6a737d",
+                          },
+                          undefined,
+                        ],
+                        null,
+                      ]
+                    }
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  </View>
+</View>
+`;

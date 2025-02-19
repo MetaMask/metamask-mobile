@@ -7,6 +7,7 @@ import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../../../util/device';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import {
@@ -27,6 +28,8 @@ import { isExternalHardwareAccount } from '../../../../../util/address';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
 import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import { selectSignatureRequestById } from '../../../../../selectors/signatureController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -94,6 +97,10 @@ class TypedSign extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * String representing the associated network
+     */
+    networkType: PropTypes.string,
   };
 
   state = {
@@ -108,8 +115,11 @@ class TypedSign extends PureComponent {
     } = this.props;
 
     metrics.trackEvent(
-      MetaMetricsEvents.SIGNATURE_REQUESTED,
-      getAnalyticsParams(messageParams, 'typed_sign'),
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SIGNATURE_REQUESTED,
+      )
+        .addProperties(getAnalyticsParams(messageParams, 'typed_sign'))
+        .build(),
     );
     addSignatureErrorListener(metamaskId, this.onSignatureError);
   };
@@ -125,8 +135,11 @@ class TypedSign extends PureComponent {
     const { metrics } = this.props;
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
       metrics.trackEvent(
-        MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        getAnalyticsParams(),
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+        )
+          .addProperties(getAnalyticsParams())
+          .build(),
       );
     }
     showWalletConnectNotification(this.props.messageParams, false, true);
@@ -235,6 +248,7 @@ class TypedSign extends PureComponent {
       showExpandedMessage,
       toggleExpandedMessage,
       messageParams: { from },
+      networkType,
     } = this.props;
     const { truncateMessage } = this.state;
     const messageWrapperStyles = [];
@@ -244,6 +258,7 @@ class TypedSign extends PureComponent {
     if (messageParams.version === 'V3') {
       domain = JSON.parse(messageParams.data).domain;
     }
+
     if (truncateMessage) {
       messageWrapperStyles.push(styles.truncatedMessageWrapper);
       if (Device.isIos()) {
@@ -271,6 +286,7 @@ class TypedSign extends PureComponent {
         type={typedSign[messageParams.version]}
         fromAddress={from}
         testID={SigningBottomSheetSelectorsIDs.TYPED_REQUEST}
+        networkType={networkType}
       >
         <View
           style={messageWrapperStyles}
@@ -286,8 +302,16 @@ class TypedSign extends PureComponent {
 
 TypedSign.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  securityAlertResponse: state.signatureRequest.securityAlertResponse,
-});
+const mapStateToProps = (state, ownProps) => {
+  const signatureRequest = selectSignatureRequestById(
+    state,
+    ownProps.messageParams.metamaskId,
+  );
+
+  return {
+    networkType: selectProviderTypeByChainId(state, signatureRequest?.chainId),
+    securityAlertResponse: state.signatureRequest.securityAlertResponse,
+  };
+};
 
 export default connect(mapStateToProps)(withMetricsAwareness(TypedSign));

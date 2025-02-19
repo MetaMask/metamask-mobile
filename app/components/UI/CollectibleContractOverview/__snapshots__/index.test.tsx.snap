@@ -30,7 +30,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
   <Component
     collectibleContract={
       {
-        "address": "0x123",
+        "address": "",
         "description": "description",
         "name": "name",
         "symbol": "symbol",

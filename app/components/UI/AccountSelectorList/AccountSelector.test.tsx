@@ -5,7 +5,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
-import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
 import {
@@ -17,6 +17,9 @@ import {
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { AccountSelectorListProps } from './AccountSelectorList.types';
+
+// eslint-disable-next-line import/no-namespace
+import * as Utils from '../../hooks/useAccounts/utils';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -125,6 +128,16 @@ const renderComponent = (
 
 describe('AccountSelectorList', () => {
   beforeEach(() => {
+    jest.spyOn(Utils, 'getAccountBalances').mockReturnValueOnce({
+      balanceETH: '1',
+      balanceFiat: '$3200.00',
+      balanceWeiHex: '',
+    });
+    jest.spyOn(Utils, 'getAccountBalances').mockReturnValueOnce({
+      balanceETH: '2',
+      balanceFiat: '$6400.00',
+      balanceWeiHex: '',
+    });
     onSelectAccount.mockClear();
     onRemoveImportedAccount.mockClear();
   });
@@ -140,10 +153,10 @@ describe('AccountSelectorList', () => {
 
     await waitFor(async () => {
       const businessAccountItem = await queryByTestId(
-        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
       const personalAccountItem = await queryByTestId(
-        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
+        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
@@ -183,7 +196,7 @@ describe('AccountSelectorList', () => {
       expect(accounts.length).toBe(1);
 
       const businessAccountItem = await queryByTestId(
-        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
@@ -251,7 +264,7 @@ describe('AccountSelectorList', () => {
 
     await waitFor(() => {
       const businessAccountItem = queryByTestId(
-        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
@@ -272,7 +285,7 @@ describe('AccountSelectorList', () => {
 
     await waitFor(() => {
       const businessAccountItem = queryByTestId(
-        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).queryByText(regex.eth(1))).toBeNull();

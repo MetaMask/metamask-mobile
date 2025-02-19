@@ -20,7 +20,7 @@ const useStakingInputHandlers = () => {
     handleKeypadChange,
     handleCurrencySwitch,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     currentCurrency,
     handleEthInput,
     handleFiatInput,
@@ -121,7 +121,7 @@ const useStakingInputHandlers = () => {
     handleKeypadChange,
     handleCurrencySwitch,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     currentCurrency,
     conversionRate,
     estimatedAnnualRewards,
@@ -135,6 +135,7 @@ const useStakingInputHandlers = () => {
     balanceValue,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
+    estimatedGasFeeWei,
   };
 };
 

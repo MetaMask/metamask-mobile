@@ -27,7 +27,7 @@ import styles from './ManageNetworks.styles';
 export default function ManageNetworksComponent() {
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const networkName = useSelector(selectNetworkName);
@@ -37,10 +37,14 @@ export default function ManageNetworksComponent() {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
 
-    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
-  }, [navigation, trackEvent, providerConfig]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(providerConfig.chainId),
+        })
+        .build(),
+    );
+  }, [navigation, trackEvent, providerConfig, createEventBuilder]);
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);

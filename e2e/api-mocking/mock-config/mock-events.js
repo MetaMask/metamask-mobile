@@ -29,8 +29,40 @@ export const mockEvents = {
      * @property {Object} response - Success response data.
      */
     suggestedGasFeesApiGanache: {
-      urlEndpoint: 'https://gas.api.cx.metamask.io/networks/1337/suggestedGasFees',
+      urlEndpoint:
+        'https://gas.api.cx.metamask.io/networks/1337/suggestedGasFees',
       response: suggestedGasFeesApiGanache,
+      responseCode: 200,
+    },
+    remoteFeatureFlagsOldConfirmations: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          mobileMinimumVersions: {
+            appMinimumBuild: 1243,
+            appleMinimumOS: 6,
+            androidMinimumAPIVersion: 21,
+          },
+        },
+        { confirmation_redesign: { signatures: false } },
+      ],
+      responseCode: 200,
+    },
+
+    remoteFeatureFlagsReDesignedConfirmations: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          mobileMinimumVersions: {
+            appMinimumBuild: 1243,
+            appleMinimumOS: 6,
+            androidMinimumAPIVersion: 21,
+          },
+        },
+        { confirmation_redesign: { signatures: true } },
+      ],
       responseCode: 200,
     },
   },
@@ -52,6 +84,31 @@ export const mockEvents = {
         priorityFee: '2',
         maxFee: '2.000855333',
       },
+    },
+
+    securityAlertApiValidate: {
+      urlEndpoint:
+        'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
+      response: {
+        block: 20733513,
+        result_type: 'Benign',
+        reason: '',
+        description: '',
+        features: [],
+      },
+      requestBody: {
+        jsonrpc: '2.0',
+        method: 'eth_sendTransaction',
+        origin: 'metamask',
+        params: [
+          {
+            from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+            to: '0x50587e46c5b96a3f6f9792922ec647f13e6efae4',
+            value: '0x0',
+          },
+        ],
+      },
+      responseCode: 201,
     },
   },
 };

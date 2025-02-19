@@ -2,6 +2,7 @@ import { NameType } from '../../UI/Name/Name.types';
 import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useERC20Tokens } from './useERC20Tokens';
+import { useNftNames } from './useNftName';
 
 export interface UseDisplayNameRequest {
   preferContractSymbol?: boolean;
@@ -72,22 +73,30 @@ export function useDisplayNames(
   const firstPartyContractNames = useFirstPartyContractNames(requests);
   const watchedNftNames = useWatchedNFTNames(requests);
   const erc20Tokens = useERC20Tokens(requests);
+  const nftNames = useNftNames(requests);
 
   return requests.map((_request, index) => {
     const watchedNftName = watchedNftNames[index];
     const firstPartyContractName = firstPartyContractNames[index];
     const erc20Token = erc20Tokens[index];
+    const { name: nftCollectionName, image: nftCollectionImage } =
+      nftNames[index] || {};
 
     const name =
-      watchedNftName || firstPartyContractName || erc20Token?.name;
+      watchedNftName ||
+      firstPartyContractName ||
+      erc20Token?.name ||
+      nftCollectionName;
 
-    const image = erc20Token?.image;
+    const image = erc20Token?.image || nftCollectionImage;
 
     return {
       contractDisplayName: erc20Token?.name,
       image,
       name,
-      variant: name ? DisplayNameVariant.Recognized : DisplayNameVariant.Unknown,
+      variant: name
+        ? DisplayNameVariant.Recognized
+        : DisplayNameVariant.Unknown,
     };
   });
 }

@@ -1,6 +1,5 @@
 // Third party dependencies.
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { Hex } from '@metamask/utils';
 
 // External dependencies.
 import { AvatarTokenProps } from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.types';
@@ -30,7 +29,7 @@ export interface Account {
   /**
    * Account address.
    */
-  address: Hex;
+  address: string;
   /**
    * Asset information associated with the account, which includes both the fiat balance and owned tokens.
    */

@@ -26,7 +26,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -39,9 +39,13 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
+  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import {
   selectChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
@@ -50,7 +54,12 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
-import { selectTokens } from '../../../selectors/tokensController';
+import {
+  selectAllDetectedTokensFlat,
+  selectDetectedTokens,
+  selectTokens,
+  selectTransformedTokens,
+} from '../../../selectors/tokensController';
 import {
   NavigationProp,
   ParamListBase,
@@ -61,14 +70,14 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
@@ -79,8 +88,8 @@ import {
   getMetamaskNotificationsUnreadCount,
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
-  selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 
@@ -88,6 +97,17 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectTokenNetworkFilter,
+  selectUseTokenDetection,
+} from '../../../selectors/preferencesController';
+import { TokenI } from '../../UI/Tokens/types';
+import { Hex } from '@metamask/utils';
+import { Token } from '@metamask/assets-controllers';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainIsEvm } from '../../../selectors/multichain';
+import NonEvmTokens from '../../UI/NonEvmTokens';
+///: END:ONLY_INCLUDE_IF
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -153,7 +173,7 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
 
@@ -176,13 +196,15 @@ const Wallet = ({
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
-  );
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   /**
    * An array that represents the user tokens
    */
   const tokens = useSelector(selectTokens);
+  /**
+   * An array that represents the user tokens by chainId and address
+   */
+  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
   /**
    * Current provider ticker
    */
@@ -222,6 +244,10 @@ const Wallet = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const isEvm = useSelector(selectMultichainIsEvm);
+  ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
     if (
@@ -300,6 +326,23 @@ const Wallet = ({
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
+  const isPopularNetworks = useSelector(selectIsPopularNetwork);
+  const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+
+  const allDetectedTokens = useSelector(
+    selectAllDetectedTokensFlat,
+  ) as TokenI[];
+  const currentDetectedTokens =
+    isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
+      ? allDetectedTokens
+      : detectedTokens;
+  const allNetworks = useSelector(selectNetworkConfigurations);
+  const selectedNetworkClientId = useSelector(selectNetworkClientId);
+
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
@@ -317,10 +360,32 @@ const Wallet = ({
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
-  }, [navigate, providerConfig.chainId, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(providerConfig.chainId),
+        })
+        .build(),
+    );
+  }, [navigate, providerConfig.chainId, trackEvent, createEventBuilder]);
+
+  /**
+   * Handle network filter called when app is mounted and tokenNetworkFilter is empty
+   */
+  const handleNetworkFilter = useCallback(() => {
+    // TODO: Come back possibly just add the chain id of the eth
+    // network as the default state instead of doing this
+    const { PreferencesController } = Engine.context;
+    if (Object.keys(tokenNetworkFilter).length === 0) {
+      PreferencesController.setTokenNetworkFilter({
+        [chainId]: true,
+      });
+    }
+  }, [chainId, tokenNetworkFilter]);
+
+  useEffect(() => {
+    handleNetworkFilter();
+  }, [chainId, handleNetworkFilter]);
 
   /**
    * Check to see if notifications are enabled
@@ -362,7 +427,14 @@ const Wallet = ({
     () => {
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
-        AccountTrackerController.refresh();
+
+        Object.values(networkConfigurations).forEach(
+          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
+            AccountTrackerController.refresh(
+              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
+            );
+          },
+        );
       });
     },
     /* eslint-disable-next-line */
@@ -370,10 +442,11 @@ const Wallet = ({
   );
 
   useEffect(() => {
+    if (!selectedInternalAccount) return;
     navigation.setOptions(
       getWalletNavbarOptions(
         walletRef,
-        selectedAddress || '',
+        selectedInternalAccount,
         accountName,
         accountAvatarType,
         networkName,
@@ -389,7 +462,7 @@ const Wallet = ({
     );
     /* eslint-disable-next-line */
   }, [
-    selectedAddress,
+    selectedInternalAccount,
     accountName,
     accountAvatarType,
     navigation,
@@ -401,6 +474,73 @@ const Wallet = ({
     isProfileSyncingEnabled,
     unreadNotificationCount,
     readNotificationCount,
+  ]);
+
+  useEffect(() => {
+    const importAllDetectedTokens = async () => {
+      // If autodetect tokens toggle is OFF, return
+      if (!isTokenDetectionEnabled) {
+        return;
+      }
+      const { TokensController } = Engine.context;
+      if (currentDetectedTokens.length > 0) {
+        if (isPortfolioViewEnabled()) {
+          // Group tokens by their `chainId` using a plain object
+          const tokensByChainId: Record<Hex, Token[]> = {};
+
+          for (const token of currentDetectedTokens) {
+            const tokenChainId: Hex =
+              (token as TokenI & { chainId: Hex }).chainId ?? chainId;
+
+            if (!tokensByChainId[tokenChainId]) {
+              tokensByChainId[tokenChainId] = [];
+            }
+
+            tokensByChainId[tokenChainId].push(token);
+          }
+
+          // Process grouped tokens in parallel
+          const importPromises = Object.entries(tokensByChainId).map(
+            async ([networkId, allTokens]) => {
+              const chainConfig = allNetworks[networkId as Hex];
+              const { defaultRpcEndpointIndex } = chainConfig;
+              const { networkClientId: networkInstanceId } =
+                chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+
+              await TokensController.addTokens(allTokens, networkInstanceId);
+            },
+          );
+
+          await Promise.all(importPromises);
+        } else {
+          await TokensController.addTokens(
+            currentDetectedTokens,
+            selectedNetworkClientId,
+          );
+        }
+
+        currentDetectedTokens.forEach(({ address, symbol }) =>
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+              .addProperties({
+                token_address: address,
+                token_symbol: symbol,
+                chain_id: getDecimalChainId(chainId),
+                source: 'detected',
+              })
+              .build(),
+          ),
+        );
+      }
+    };
+    importAllDetectedTokens();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isTokenDetectionEnabled,
+    allNetworks,
+    chainId,
+    currentDetectedTokens,
+    selectedNetworkClientId,
   ]);
 
   const renderTabBar = useCallback(
@@ -425,9 +565,11 @@ const Wallet = ({
   const onChangeTab = useCallback(
     async (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
-        trackEvent(MetaMetricsEvents.WALLET_TOKENS);
+        trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
-        trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
+        );
         // Call detect nfts
         const { NftDetectionController } = Engine.context;
         try {
@@ -442,6 +584,7 @@ const Wallet = ({
       trackEvent,
       hideNftFetchingLoadingIndicator,
       showNftFetchingLoadingIndicator,
+      createEventBuilder,
     ],
   );
 
@@ -451,6 +594,48 @@ const Wallet = ({
     });
   }, [navigation]);
 
+  function renderTokensContent(assets: Token[]) {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (!isEvm) {
+      return (
+        <ScrollableTabView
+          renderTabBar={renderTabBar}
+          onChangeTab={onChangeTab}
+        >
+          <NonEvmTokens
+            tabLabel={strings('wallet.tokens')}
+            key={'tokens-tab'}
+          />
+        </ScrollableTabView>
+      );
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    return (
+      <ScrollableTabView
+        renderTabBar={renderTabBar}
+        // eslint-disable-next-line react/jsx-no-bind
+        onChangeTab={onChangeTab}
+      >
+        <Tokens
+          tabLabel={strings('wallet.tokens')}
+          key={'tokens-tab'}
+          navigation={navigation}
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error - TODO: Consolidate into the correct type.
+          tokens={assets}
+        />
+        <CollectibleContracts
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error - TODO: Consolidate into the correct type.
+          tabLabel={strings('wallet.collectibles')}
+          key={'nfts-tab'}
+          navigation={navigation}
+        />
+      </ScrollableTabView>
+    );
+  }
+
   const renderContent = useCallback(() => {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -458,7 +643,9 @@ const Wallet = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let stakedBalance: any = 0;
 
-    const assets = [...(tokens || [])];
+    const assets = isPortfolioViewEnabled()
+      ? [...(tokensByChainIdAndAddress || [])]
+      : [...(tokens || [])];
 
     if (accountBalanceByChainId) {
       balance = renderFromWei(accountBalanceByChainId.balance);
@@ -481,6 +668,7 @@ const Wallet = ({
       } as any;
       assets.push(nativeAsset);
 
+      // TODO: Need to handle staked asset in multi chain
       if (
         accountBalanceByChainId.stakedBalance &&
         !hexToBN(accountBalanceByChainId.stakedBalance).isZero()
@@ -525,30 +713,8 @@ const Wallet = ({
           </View>
         ) : null}
         <>
-          {accountBalanceByChainId && <PortfolioBalance />}
-          <ScrollableTabView
-            renderTabBar={renderTabBar}
-            // eslint-disable-next-line react/jsx-no-bind
-            onChangeTab={onChangeTab}
-          >
-            <Tokens
-              tabLabel={strings('wallet.tokens')}
-              key={'tokens-tab'}
-              navigation={navigation}
-              // TODO - Consolidate into the correct type.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              tokens={assets}
-            />
-            <CollectibleContracts
-              // TODO - Extend component to support injected tabLabel prop.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              tabLabel={strings('wallet.collectibles')}
-              key={'nfts-tab'}
-              navigation={navigation}
-            />
-          </ScrollableTabView>
+          <PortfolioBalance />
+          {renderTokensContent(assets)}
         </>
       </View>
     );
@@ -567,6 +733,10 @@ const Wallet = ({
     conversionRate,
     currentCurrency,
     contractBalances,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    isEvm,
+    tokensByChainIdAndAddress,
+    ///: END:ONLY_INCLUDE_IF
   ]);
   const renderLoader = useCallback(
     () => (
@@ -594,7 +764,7 @@ const Wallet = ({
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
-        {selectedAddress ? renderContent() : renderLoader()}
+        {selectedInternalAccount ? renderContent() : renderLoader()}
 
         {renderOnboardingWizard()}
       </View>

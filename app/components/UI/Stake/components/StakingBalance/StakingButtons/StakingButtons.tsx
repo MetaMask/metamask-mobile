@@ -11,14 +11,21 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../../../selectors/networkController';
+import { EVENT_LOCATIONS } from '../../../constants/events';
+import useStakingChain from '../../../hooks/useStakingChain';
+import Engine from '../../../../../../core/Engine';
+import { STAKE_INPUT_VIEW_ACTIONS } from '../../../Views/StakeInputView/StakeInputView.types';
+import { TokenI } from '../../../../Tokens/types';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
+  asset: TokenI;
   hasStakedPositions: boolean;
   hasEthToUnstake: boolean;
 }
 
 const StakingButtons = ({
   style,
+  asset,
   hasStakedPositions,
   hasEthToUnstake,
 }: StakingButtonsProps) => {
@@ -26,34 +33,50 @@ const StakingButtons = ({
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const chainId = useSelector(selectChainId);
+  const { isStakingSupportedChain } = useStakingChain();
+  const { MultichainNetworkController } = Engine.context;
 
-  const onUnstakePress = () => {
+  const handleIsStakingSupportedChain = async () => {
+    if (!isStakingSupportedChain) {
+      await MultichainNetworkController.setActiveNetwork('mainnet');
+    }
+  };
+
+  const onUnstakePress = async () => {
+    await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_WITHDRAW_BUTTON_CLICKED)
-      .addProperties({
-        location: 'Token Details',
-        text: 'Unstake',
-        token_symbol: 'ETH',
-        chain_id: chainId,
-      })
-      .build()
+        .addProperties({
+          location: EVENT_LOCATIONS.TOKEN_DETAILS,
+          text: 'Unstake',
+          token_symbol: 'ETH',
+          chain_id: chainId,
+        })
+        .build(),
     );
   };
 
-  const onStakePress = () => {
-    navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
+  const onStakePress = async () => {
+    await handleIsStakingSupportedChain();
+    navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE,
+      params: {
+        token: asset,
+        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+      },
+    });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
-      .addProperties({
-        location: 'Token Details',
-        text: 'Stake',
-        token_symbol: 'ETH',
-        chain_id: chainId,
-      })
-      .build()
+        .addProperties({
+          location: EVENT_LOCATIONS.TOKEN_DETAILS,
+          text: 'Stake',
+          token_symbol: 'ETH',
+          chain_id: chainId,
+        })
+        .build(),
     );
   };
 
@@ -61,6 +84,7 @@ const StakingButtons = ({
     <View style={[styles.balanceButtonsContainer, style]}>
       {hasEthToUnstake && (
         <Button
+          testID={'unstake-button'}
           style={styles.balanceActionButton}
           variant={ButtonVariants.Secondary}
           label={strings('stake.unstake')}
@@ -68,6 +92,7 @@ const StakingButtons = ({
         />
       )}
       <Button
+        testID={'stake-more-button'}
         style={styles.balanceActionButton}
         variant={ButtonVariants.Secondary}
         label={

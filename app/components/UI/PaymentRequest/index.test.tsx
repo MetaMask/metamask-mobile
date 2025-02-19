@@ -39,6 +39,11 @@ const initialState = {
           },
         },
         tokens: [],
+        allTokens: {
+          '0x1': {
+            '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272': [],
+          },
+        },
       },
       NetworkController: {
         provider: {
@@ -50,7 +55,7 @@ const initialState = {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
         internalAccounts: {
           ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-          selectedAccount: {},
+          selectedAccount: '30786334-3935-4563-b064-363339643939',
         },
       },
       TokenListController: {

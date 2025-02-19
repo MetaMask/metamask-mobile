@@ -17,9 +17,16 @@
 #endif
 #endif
 
+#if DEBUG
+#include <EXDevLauncher/EXDevLauncherController.h>
+#endif
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
+
+  self.moduleName = @"MetaMask";
+
   [FIRApp configure];
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
 
@@ -36,18 +43,17 @@
   [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
   NSURL *jsCodeLocation;
 
-  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
+  RCTBridge *bridge = [self.reactDelegate createBridgeWithDelegate:self launchOptions:launchOptions];
+  RCTRootView *rootView = [self.reactDelegate createRootViewWithBridge:bridge
                                                    moduleName:@"MetaMask"
                                             initialProperties:@{@"foxCode": foxCode}];
 
-
-
+  self.initialProps = @{@"foxCode": foxCode};
 
   rootView.backgroundColor = [UIColor colorNamed:@"ThemeColors"];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-  UIViewController *rootViewController = [UIViewController new];
+  UIViewController *rootViewController = [self.reactDelegate createRootViewController];
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
@@ -61,6 +67,8 @@
 
   //Uncomment the following line to enable the splashscreen on ios
   //[RNSplashScreen show];
+
+  [super application:application didFinishLaunchingWithOptions:launchOptions];
 
   return YES;
 }
@@ -81,6 +89,11 @@
 
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
+  #if DEBUG
+  if ([EXDevLauncherController.sharedInstance onDeepLink:url options:options]) {
+    return true;
+  }
+  #endif
   return [RNBranch application:app openURL:url options:options];
 }
 
@@ -118,7 +131,7 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
 #if DEBUG
-  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@".expo/.virtual-metro-entry"];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif

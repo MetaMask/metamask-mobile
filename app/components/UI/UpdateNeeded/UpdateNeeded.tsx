@@ -32,31 +32,49 @@ export const createUpdateNeededNavDetails = createNavigationDetails(
 
 const UpdateNeeded = () => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const modalRef = useRef<ReusableModalRef | null>(null);
 
   useEffect(() => {
-    trackEvent(MetaMetricsEvents.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED, {
-      ...generateDeviceAnalyticsMetaData(),
-    });
-  }, [trackEvent]);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED,
+      )
+        .addProperties({
+          ...generateDeviceAnalyticsMetaData(),
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const dismissModal = (cb?: () => void): void =>
     modalRef?.current?.dismissModal(cb);
 
   const triggerClose = () =>
     dismissModal(() => {
-      trackEvent(MetaMetricsEvents.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED, {
-        ...generateDeviceAnalyticsMetaData(),
-      });
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.FORCE_UPGRADE_REMIND_ME_LATER_CLICKED,
+        )
+          .addProperties({
+            ...generateDeviceAnalyticsMetaData(),
+          })
+          .build(),
+      );
     });
 
   const openAppStore = useCallback(() => {
     const link = Platform.OS === 'ios' ? MM_APP_STORE_LINK : MM_PLAY_STORE_LINK;
     trackEvent(
-      MetaMetricsEvents.FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
-      { ...generateDeviceAnalyticsMetaData(), link },
+      createEventBuilder(
+        MetaMetricsEvents.FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED,
+      )
+        .addProperties({
+          ...generateDeviceAnalyticsMetaData(),
+          link,
+        })
+        .build(),
     );
 
     Linking.canOpenURL(link).then(
@@ -65,7 +83,7 @@ const UpdateNeeded = () => {
       },
       (err) => Logger.error(err, 'Unable to perform update'),
     );
-  }, [trackEvent]);
+  }, [trackEvent, createEventBuilder]);
 
   const onUpdatePressed = useCallback(() => {
     dismissModal(openAppStore);

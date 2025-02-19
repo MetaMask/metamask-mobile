@@ -4,7 +4,14 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import StakeButton from './index';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MOCK_STAKED_ETH_ASSET } from '../../__mocks__/mockData';
+import { MOCK_ETH_MAINNET_ASSET } from '../../__mocks__/mockData';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { mockNetworkState } from '../../../../../util/test/network';
+import AppConstants from '../../../../../core/AppConstants';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import Engine from '../../../../../core/Engine';
+import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
 
 const mockNavigate = jest.fn();
 
@@ -18,22 +25,26 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../constants', () => ({
-  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
-}));
+jest.mock('../../../../hooks/useMetrics');
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    STAKE_BUTTON_CLICKED: 'Stake Button Clicked',
-  },
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-  }),
-}));
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: jest.fn(),
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  enable: jest.fn(),
+  addTraitsToUser: jest.fn(),
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
+      setActiveNetwork: jest.fn(() => Promise.resolve()),
       getNetworkClientById: () => ({
         configuration: {
           chainId: '0x1',
@@ -44,23 +55,51 @@ jest.mock('../../../../../core/Engine', () => ({
       }),
       findNetworkClientIdByChainId: () => 'mainnet',
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
   },
 }));
 
 jest.mock('../../hooks/useStakingEligibility', () => ({
   __esModule: true,
-  default: () => ({
+  default: jest.fn(() => ({
     isEligible: true,
-    loading: false,
-    error: null,
-    refreshPooledStakingEligibility: jest
-      .fn()
-      .mockResolvedValueOnce({ isEligible: true }),
-  }),
+    isLoadingEligibility: false,
+    refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
+      isEligible: true,
+    }),
+    error: false,
+  })),
 }));
 
-const renderComponent = () =>
-  renderWithProvider(<StakeButton asset={MOCK_STAKED_ETH_ASSET} />);
+// Update the top-level mock to use a mockImplementation that we can change
+jest.mock('../../hooks/useStakingChain', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isStakingSupportedChain: true,
+  })),
+}));
+
+// Import the mock function to control it in tests
+const useStakingChain = jest.requireMock('../../hooks/useStakingChain').default;
+
+const STATE_MOCK = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: '0x1',
+        }),
+      },
+    },
+  },
+};
+
+const renderComponent = (state = STATE_MOCK) =>
+  renderWithProvider(<StakeButton asset={MOCK_ETH_MAINNET_ASSET} />, {
+    state,
+  });
 
 describe('StakeButton', () => {
   beforeEach(() => {
@@ -72,14 +111,83 @@ describe('StakeButton', () => {
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
 
-  it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
+  it('navigates to Web view when stake button is pressed and user is not eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: false }),
+      error: false,
+    });
     const { getByTestId } = renderComponent();
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        params: {
+          newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
+          timestamp: expect.any(Number),
+        },
+        screen: Routes.BROWSER.VIEW,
+      });
+    });
+  });
 
+  it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: true }),
+      error: false,
+    });
+    const { getByTestId } = renderComponent();
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
         screen: Routes.STAKING.STAKE,
+        params: {
+          token: MOCK_ETH_MAINNET_ASSET,
+          action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        },
+      });
+    });
+  });
+
+  it('navigates to Stake Input screen when on unsupported network', async () => {
+    // Update the mock for this specific test
+    useStakingChain.mockImplementation(() => ({
+      isStakingSupportedChain: false,
+    }));
+
+    const UNSUPPORTED_NETWORK_STATE = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: '0x89', // Polygon
+            }),
+          },
+        },
+      },
+    };
+    const spySetActiveNetwork = jest.spyOn(
+      Engine.context.MultichainNetworkController,
+      'setActiveNetwork',
+    );
+    const { getByTestId } = renderComponent(UNSUPPORTED_NETWORK_STATE);
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+    await waitFor(() => {
+      expect(spySetActiveNetwork).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token: MOCK_ETH_MAINNET_ASSET,
+          action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        },
       });
     });
   });

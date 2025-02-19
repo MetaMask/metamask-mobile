@@ -81,14 +81,14 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
             "alignSelf": "flex-start",
           },
           {
-            "backgroundColor": "#bbc0c566",
+            "backgroundColor": "#BBC0C566",
             "borderRadius": 16,
           },
         ],
       ]
     }
     thumbTintColor="#ffffff"
-    tintColor="#bbc0c566"
+    tintColor="#BBC0C566"
     value={false}
   />
 </View>

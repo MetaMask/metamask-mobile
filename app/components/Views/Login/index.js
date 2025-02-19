@@ -48,14 +48,13 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
+import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
@@ -74,6 +73,7 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import Fox from '../../../images/fantom.png';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -265,7 +265,11 @@ class Login extends PureComponent {
       parentContext: this.parentSpan,
     });
 
-    this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.LOGIN_SCREEN_VIEWED)
+        .build(),
+    );
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     const authData = await Authentication.getType();
@@ -415,7 +419,7 @@ class Login extends PureComponent {
         password: '',
         hasBiometricCredentials: false,
       });
-      field.setValue('');
+      field?.clear();
     } catch (e) {
       const error = e.toString();
       if (
@@ -486,7 +490,7 @@ class Login extends PureComponent {
         password: '',
         hasBiometricCredentials: false,
       });
-      field.setValue('');
+      field?.clear();
     } catch (error) {
       this.setState({ hasBiometricCredentials: true });
       Logger.log(error);
@@ -533,7 +537,11 @@ class Login extends PureComponent {
 
   handleDownloadStateLogs = () => {
     const { fullState } = this.props;
-    this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS)
+        .build(),
+    );
     downloadStateLogs(fullState, false);
   };
 
@@ -562,15 +570,11 @@ class Login extends PureComponent {
                 onLongPress={this.handleDownloadStateLogs}
                 activeOpacity={1}
               >
-                {Device.isAndroid() ? (
-                  <Image
-                    source={require('../../../images/fox.png')}
-                    style={styles.image}
-                    resizeMethod={'auto'}
-                  />
-                ) : (
-                  <AnimatedFox bgColor={colors.background.default} />
-                )}
+                <Image
+                  source={require('../../../images/branding/fox.png')}
+                  style={styles.image}
+                  resizeMethod={'auto'}
+                />
               </TouchableOpacity>
 
               <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>

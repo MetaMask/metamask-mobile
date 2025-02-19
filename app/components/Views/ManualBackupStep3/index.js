@@ -21,12 +21,14 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import OnboardingSuccess from '../OnboardingSuccess';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+      marginTop: 16,
     },
     actionView: {
       paddingTop: 40,
@@ -101,10 +103,6 @@ class ManualBackupStep3 extends PureComponent {
     setOnboardingWizardStep: PropTypes.func,
   };
 
-  track = (event, properties) => {
-    trackOnboarding(event, properties);
-  };
-
   updateNavBar = () => {
     const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -126,7 +124,11 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    this.track(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
+      ).build(),
+    );
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
 
@@ -172,7 +174,11 @@ class ManualBackupStep3 extends PureComponent {
       SEED_PHRASE_HINTS,
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
-    this.track(MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED);
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
+      ).build(),
+    );
   };
 
   done = async () => {

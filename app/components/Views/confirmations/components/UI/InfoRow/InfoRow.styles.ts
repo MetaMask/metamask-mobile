@@ -11,6 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
+      alignItems: 'center',
       flexWrap: 'wrap',
       paddingBottom: 8,
       paddingHorizontal: 8,
@@ -18,20 +19,26 @@ const styleSheet = (params: { theme: Theme }) => {
     labelContainer: {
       display: 'flex',
       flexDirection: 'row',
+      alignSelf: 'flex-start',
       alignItems: 'center',
-      marginTop: 8,
+      minHeight: 38,
+      paddingEnd: 4,
     },
     label: {
       color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
       fontWeight: '500',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     value: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
       fontSize: 14,
-      marginTop: 8,
+    },
+    valueComponent: {
+      marginLeft: 'auto',
     },
   });
 };

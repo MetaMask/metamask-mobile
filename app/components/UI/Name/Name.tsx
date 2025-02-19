@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TextProps, View } from 'react-native';
+import { TextProps, View, ViewStyle } from 'react-native';
 
 import { useStyles } from '../../../component-library/hooks';
 import Text, {
@@ -34,11 +34,12 @@ const NameLabel: React.FC<{
   );
 };
 
-const UnknownEthereumAddress: React.FC<{ address: string }> = ({ address }) => {
+const UnknownEthereumAddress: React.FC<{ address: string, style?: ViewStyle }> = ({ address, style }) => {
   const displayNameVariant = DisplayNameVariant.Unknown;
   const { styles } = useStyles(styleSheet, { displayNameVariant });
+
   return (
-    <View style={styles.base}>
+    <View style={[styles.base, style]}>
       <Icon name={IconName.Question} />
       <NameLabel displayNameVariant={displayNameVariant} ellipsizeMode="middle">
         {renderShortAddress(address, 5)}
@@ -52,12 +53,13 @@ const Name: React.FC<NameProperties> = ({
   type,
   value,
   variation,
+  style,
 }) => {
   if (type !== NameType.EthereumAddress) {
     throw new Error('Unsupported NameType: ' + type);
   }
 
-  const displayName = useDisplayName({
+  const { image, name, variant } = useDisplayName({
     preferContractSymbol,
     type,
     value,
@@ -65,18 +67,23 @@ const Name: React.FC<NameProperties> = ({
   });
 
   const { styles } = useStyles(styleSheet, {
-    displayNameVariant: displayName.variant,
+    displayNameVariant: variant,
   });
 
-  if (displayName.variant === DisplayNameVariant.Unknown) {
-    return <UnknownEthereumAddress address={value} />;
+  if (variant === DisplayNameVariant.Unknown) {
+    return <UnknownEthereumAddress address={value} style={style} />;
   }
 
   return (
-    <View style={styles.base}>
-      <Identicon address={value} diameter={16} imageUri={displayName.image} />
-      <NameLabel displayNameVariant={displayName.variant} ellipsizeMode="tail">
-        {displayName.name}
+    <View style={[styles.base, style]}>
+      <Identicon
+        address={value}
+        diameter={16}
+        imageUri={image}
+        customStyle={styles.image}
+      />
+      <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
+        {name}
       </NameLabel>
     </View>
   );

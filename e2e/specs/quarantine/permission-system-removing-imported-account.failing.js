@@ -3,10 +3,10 @@ import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
 import Browser from '../../pages/Browser/BrowserView';
-import AccountListView from '../../pages/AccountListView';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
@@ -14,10 +14,8 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
 import Accounts from '../../../wdio/helpers/Accounts';
-import { TestDApp } from '../../pages/Browser/TestDApp';
-
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import AddAccountModal from '../../pages/modals/AddAccountModal';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import Assertions from '../../utils/Assertions';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 
@@ -56,7 +54,7 @@ describe(
 
     it('should import account', async () => {
       await ConnectBottomSheet.tapImportAccountOrHWButton();
-      await AddAccountModal.tapImportAccount();
+      await AddAccountBottomSheet.tapImportAccount();
       await Assertions.checkIfVisible(ImportAccountView.container);
       await ImportAccountView.enterPrivateKey(accountPrivateKey.keys);
       await Assertions.checkIfVisible(SuccessImportAccountView.container);
@@ -97,8 +95,8 @@ describe(
       // Wait for page to load
       await WalletView.tapIdenticon();
       //await AccountListView.isVisible();
-      await AccountListView.longPressImportedAccount();
-      await AccountListView.tapYesToRemoveImportedAccountAlertButton();
+      await AccountListBottomSheet.longPressImportedAccount();
+      await AccountListBottomSheet.tapYesToRemoveImportedAccountAlertButton();
       //await AccountListView.accountNameNotVisible('Account 2');
     });
 

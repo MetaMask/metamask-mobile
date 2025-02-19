@@ -1,6 +1,7 @@
 import wallet_switchEthereumChain from './wallet_switchEthereumChain';
 import Engine from '../Engine';
 import { mockNetworkState } from '../../util/test/network';
+import MetaMetrics from '../Analytics/MetaMetrics';
 
 const existingNetworkConfiguration = {
   id: 'test-network-configuration-id',
@@ -12,11 +13,15 @@ const existingNetworkConfiguration = {
     blockExplorerUrl: 'https://explorer.test-chain.com',
   },
 };
+
 jest.mock('../Engine', () => ({
   context: {
     NetworkController: {
       setActiveNetwork: jest.fn(),
       getNetworkClientById: jest.fn(),
+    },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
@@ -56,6 +61,19 @@ jest.mock('../../store', () => ({
     })),
   },
 }));
+
+jest.mock('../Analytics/MetaMetrics');
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnThis(),
+});
+
+MetaMetrics.getInstance = jest.fn().mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: mockCreateEventBuilder,
+});
 
 const correctParams = {
   chainId: '0x1',
@@ -145,7 +163,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       .spyOn(Engine.context.NetworkController, 'getNetworkClientById')
       .mockReturnValue({ configuration: { chainId: '0x1' } });
     const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.NetworkController,
+      Engine.context.MultichainNetworkController,
       'setActiveNetwork',
     );
     await wallet_switchEthereumChain({
@@ -163,10 +181,10 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 
   describe('MM_CHAIN_PERMISSIONS is enabled', () => {
     beforeAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = 1;
+      process.env.MM_CHAIN_PERMISSIONS = 'true';
     });
     afterAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = 0;
+      process.env.MM_CHAIN_PERMISSIONS = 'false';
     });
     it('should not change network permissions and should switch without user approval when chain is already permitted', async () => {
       const spyOnGrantPermissionsIncremental = jest.spyOn(
@@ -187,7 +205,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         .mockReturnValue({ value: ['0x64'] });
 
       const spyOnSetActiveNetwork = jest.spyOn(
-        Engine.context.NetworkController,
+        Engine.context.MultichainNetworkController,
         'setActiveNetwork',
       );
       await wallet_switchEthereumChain({
@@ -219,7 +237,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         .spyOn(Engine.context.NetworkController, 'getNetworkClientById')
         .mockReturnValue({ configuration: { chainId: '0x1' } });
       const spyOnSetActiveNetwork = jest.spyOn(
-        Engine.context.NetworkController,
+        Engine.context.MultichainNetworkController,
         'setActiveNetwork',
       );
       jest

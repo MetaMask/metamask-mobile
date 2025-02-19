@@ -36,9 +36,9 @@ export interface AccountSelectorParams {
    */
   checkBalanceError?: UseAccountsParams['checkBalanceError'];
   /**
-   * Optional boolean to indicate if privacy mode is enabled.
+   * Optional boolean to indicate if privacy mode is disabled.
    */
-  privacyMode?: boolean;
+  disablePrivacyMode?: boolean;
 }
 
 /**

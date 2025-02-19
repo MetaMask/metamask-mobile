@@ -119,7 +119,7 @@ describe('ApproveTransactionHeader', () => {
       />,
       { state: mockInitialState },
     );
-    expect(getByText('http://metamask.github.io')).toBeDefined();
+    expect(getByText('https://metamask.github.io')).toBeDefined();
   });
 
   it('should get origin when present', () => {
@@ -136,7 +136,7 @@ describe('ApproveTransactionHeader', () => {
       />,
       { state: mockInitialState },
     );
-    expect(getByText('http://metamask.github.io')).toBeDefined();
+    expect(getByText('https://metamask.github.io')).toBeDefined();
   });
 
   it('should return origin to be null when not present', () => {
