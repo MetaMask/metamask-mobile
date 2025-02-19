@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import React, { Component, RefObject } from 'react';
+import React, { Component } from 'react';
 import { View, ScrollView, NativeSyntheticEvent } from 'react-native';
 import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
@@ -8,26 +8,32 @@ import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
 // @ts-expect-error Types are currently broken for this.
 import WebViewHTML from '@metamask/snaps-execution-environments/dist/browserify/webview/index.html';
+import { EmptyObject } from '@metamask/snaps-sdk';
 
 const styles = createStyles();
 
 // This is a hack to allow us to asynchronously await the creation of the WebView.
+// eslint-disable-next-line import/no-mutable-exports
 export let createWebView: (jobId: string) => Promise<WebViewInterface>;
+// eslint-disable-next-line import/no-mutable-exports
 export let removeWebView: (jobId: string) => void;
 
 interface WebViewState {
   ref?: WebView;
   listener?: (event: PostMessageEvent) => void;
-  props: any;
+  props: {
+    onWebViewMessage: (data: WebViewMessageEvent) => void;
+    onWebViewLoad: () => void;
+    onWebViewError: (error: NativeSyntheticEvent<WebViewError>) => void;
+    ref: (ref: WebView) => void;
+  };
 }
 
 // This is a class component because storing the references we are don't work in functional components.
 export class SnapsExecutionWebView extends Component {
   webViews: Record<string, WebViewState> = {};
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(props: any) {
+  constructor(props: EmptyObject) {
     super(props);
 
     createWebView = this.createWebView.bind(this);
@@ -69,7 +75,7 @@ export class SnapsExecutionWebView extends Component {
         reject(error);
       };
 
-      const setWebViewRef = (ref: WebView<{ any: any }>) => {
+      const setWebViewRef = (ref: WebView) => {
         if (this.webViews[jobId]) {
           this.webViews[jobId].ref = ref;
         }
