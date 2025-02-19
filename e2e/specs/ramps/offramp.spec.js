@@ -80,6 +80,6 @@ describe(SmokeRamps('Off-Ramp'), () => {
     await WalletActionsBottomSheet.tapSellButton();
     await BuildQuoteView.enterAmount('2');
     await BuildQuoteView.tapGetQuotesButton();
-    await (Assertions.checkIfTextIsDisplayed('No providers available') || Assertions.checkIfVisible(QuotesView.quotes));
+    await Assertions.checkIfVisible(QuotesView.quotes);
   });
 });
