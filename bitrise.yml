@@ -1483,12 +1483,11 @@ workflows:
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
                     -X GET https://api-cloud.browserstack.com/app-automate/recent_apps \
                     | jq > browserstack_uploaded_apps.json
-
-      # - share-pipeline-variable@1:
-      #     title: Persist BROWSERSTACK_ANDROID_APP_URL across all stages
-      #     inputs:
-      #       - variables: |-
-      #           BROWSERSTACK_ANDROID_APP_URL
+      - share-pipeline-variable@1:
+          title: Persist BROWSERSTACK_ANDROID_APP_URL across all stages
+          inputs:
+            - variables: |-
+                BROWSERSTACK_ANDROID_APP_URL
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
