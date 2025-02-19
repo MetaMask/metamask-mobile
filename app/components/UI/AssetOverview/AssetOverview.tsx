@@ -10,7 +10,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectSelectedNetworkClientId,
   selectTicker,
@@ -102,7 +102,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const tokenBalances = useSelector(selectContractBalances);
-  const selectedChainId = useSelector(selectChainId);
+  const selectedChainId = useSelector(selectEvmChainId);
 
   const selectedTicker = useSelector((state: RootState) => selectTicker(state));
 

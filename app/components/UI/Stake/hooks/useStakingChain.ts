@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { getDecimalChainId } from '../../../../util/networks';
 import { selectEvmChainId } from '../../../../selectors/networkController';
@@ -14,7 +14,7 @@ const useStakingChain = () => {
   };
 };
 
-export const useStakingChainByChainId = (chainId: Hex) => {
+export const useStakingChainByChainId = (chainId: Hex | CaipChainId) => {
   const isStakingSupportedChain = isSupportedChain(getDecimalChainId(chainId));
 
   return {

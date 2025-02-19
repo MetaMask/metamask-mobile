@@ -235,8 +235,8 @@ export const TokenListItem = React.memo(
 
           if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-          if (CustomNetworkImgMapping[chainId]) {
-            return CustomNetworkImgMapping[chainId];
+          if (CustomNetworkImgMapping[chainId as Hex]) {
+            return CustomNetworkImgMapping[chainId as Hex];
           }
 
           return ticker ? images[ticker] : undefined;
@@ -341,7 +341,7 @@ export const TokenListItem = React.memo(
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource(chainId)}
+                imageSource={networkBadgeSource(chainId as Hex)}
                 name={networkConfigurationByChainId?.name}
               />
             }
