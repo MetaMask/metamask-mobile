@@ -87,7 +87,6 @@ export const ScrollContextProvider: React.FC<ScrollContextProviderProps> = ({
           iconName={IconName.Arrow2Down}
           iconColor={IconColor.Inverse}
           onPress={scrollToBottom}
-          scrollEventThrottle={16}
           testID="scroll-to-bottom-button"
         />
       )}
@@ -96,6 +95,7 @@ export const ScrollContextProvider: React.FC<ScrollContextProviderProps> = ({
         style={styles.scrollable}
         onContentSizeChange={checkScrollable}
         onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         <TouchableWithoutFeedback>
           <View ref={scrolledSectionRef} style={styles.scrollableSection}>
