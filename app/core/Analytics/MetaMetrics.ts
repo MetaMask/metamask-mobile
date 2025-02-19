@@ -672,9 +672,17 @@ class MetaMetrics implements IMetaMetrics {
     }
 
     // generate a random number based on the metaMetricsId
-    const metaMetricsIdRandomNumber = generateDeterministicRandomNumber(
-      this.metametricsId ?? '',
-    );
+    let metaMetricsIdRandomNumber
+    try {
+      metaMetricsIdRandomNumber = generateDeterministicRandomNumber(
+        this.metametricsId ?? '',
+      );
+    } catch (error: any) {
+      // we should know if bad values are being passed in
+      Logger.error(error, 'Error generating random number for MetaMetrics ID with value: ' + this.metametricsId);
+      // exit since we only want 1% of events anyway
+      return
+    }
 
     // early exit if not within portion range to track
     if (metaMetricsIdRandomNumber > this.eventsPortionToTrack) {
