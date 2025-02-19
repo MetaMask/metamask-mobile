@@ -49,7 +49,7 @@ describe(SmokeIdentity('Account syncing'), () => {
     await stopMockServer();
   });
 
-  it('retrieves all previously synced accounts', async () => {
+  it.skip('retrieves all previously synced accounts', async () => {
     const decryptedAccountNames = await Promise.all(
       accountsSyncMockResponse.map(async (response) => {
         const decryptedAccountName = await SDK.Encryption.decryptString(

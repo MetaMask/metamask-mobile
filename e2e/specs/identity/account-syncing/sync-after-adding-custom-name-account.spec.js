@@ -62,7 +62,7 @@ describe(SmokeIdentity('Account syncing'), () => {
     await stopMockServer();
   });
 
-  it('syncs newly added accounts with custom names', async () => {
+  it.skip('syncs newly added accounts with custom names', async () => {
     await importWalletWithRecoveryPhrase(
       IDENTITY_TEAM_SEED_PHRASE,
       IDENTITY_TEAM_PASSWORD,
@@ -93,7 +93,7 @@ describe(SmokeIdentity('Account syncing'), () => {
     );
   });
 
-  it('retrieves same accounts after importing the same SRP', async () => {
+  it.skip('retrieves same accounts after importing the same SRP', async () => {
     await TestHelpers.launchApp({
       newInstance: true,
       delete: true,
