@@ -65,7 +65,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onCancel, onClose
         <View style={styles.checkboxContainer}>
           <Checkbox
             isChecked={confirmCheckbox}
-            onPressIn={handleConfirmCheckbox}
+            onPress={handleConfirmCheckbox}
             label={strings('alert_system.confirm_modal.checkbox_label')}
             style={styles.checkboxLabel}
             testID="confirm-alert-checkbox"
