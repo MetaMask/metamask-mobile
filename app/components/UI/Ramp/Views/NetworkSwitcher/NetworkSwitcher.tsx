@@ -144,8 +144,8 @@ function NetworkSwitcher() {
 
   const switchToMainnet = useCallback(
     (type: 'mainnet' | 'linea-mainnet') => {
-      const { NetworkController } = Engine.context;
-      NetworkController.setActiveNetwork(type);
+      const { MultichainNetworkController } = Engine.context;
+      MultichainNetworkController.setActiveNetwork(type);
       navigateToGetStarted();
     },
     [navigateToGetStarted],
@@ -153,7 +153,7 @@ function NetworkSwitcher() {
 
   const switchNetwork = useCallback(
     (networkConfiguration) => {
-      const { NetworkController } = Engine.context;
+      const { MultichainNetworkController } = Engine.context;
       const config = Object.values(networkConfigurations).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
       );
@@ -164,7 +164,7 @@ function NetworkSwitcher() {
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
-        NetworkController.setActiveNetwork(networkClientId);
+        MultichainNetworkController.setActiveNetwork(networkClientId);
         navigateToGetStarted();
       }
     },
