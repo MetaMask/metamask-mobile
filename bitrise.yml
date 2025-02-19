@@ -569,15 +569,18 @@ workflows:
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
                 echo "apk path: $UPLOAD_APK_PATH"
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
                     -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
                     -F "file=@$UPLOAD_APK_PATH" \
-                    -F 'data={"custom_id": "'$CUSTOM_ID'"}' \
-                    | jq -j '.app_url' \
-                    | envman add --key PRODUCTION_APP_URL
+                    -F 'data={"custom_id": "'$CUSTOM_ID'"}')
+
+                    # Extract app_url
+                APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
+                envman add --key PRODUCTION_APP_URL --value "$APP_URL"
 
                 echo "Using qa-release with production version: $VERSION_NAME"
                 echo "BROWSERSTACK URL: $PRODUCTION_APP_URL"
+                echo "CUSTOM_ID: $CUSTOM_ID"
                 echo "Using qa-release with production version: $VERSION_NUMBER"
 
     # after_run:
