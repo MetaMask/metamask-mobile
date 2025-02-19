@@ -33,23 +33,7 @@ class StorageWrapper {
    * Initializes the storage based on the environment (E2E test or production).
    */
   private constructor() {
-    // In non production builds we allow state to be loaded from the network
-    if (isTest) {
-      const networkStore = ReadOnlyNetworkStore;
-      // If the network state is not loaded, _state and _asyncState will be undefined
-      // so we need to use MMKV as a fallback
-      if (
-        networkStore._state === undefined ||
-        networkStore._asyncState === undefined
-      ) {
-        // Failed to fetch state from the network, use MMKV as a fallback
-        this.storage = new MMKV();
-      } else {
-        this.storage = networkStore;
-      }
-      return;
-    }
-
+    // TODO: ADD LOG here to explain why its always MMKV
     this.storage = new MMKV();
   }
 
