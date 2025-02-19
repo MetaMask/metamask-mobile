@@ -578,6 +578,11 @@ workflows:
                 APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
                 envman add --key PRODUCTION_APP_URL --value "$APP_URL"
 
+                # Get recent apps
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                    -X GET https://api-cloud.browserstack.com/app-automate/recent_apps \
+                    | jq > browserstack_uploaded_apps.json
+
                 echo "Using qa-release with production version: $VERSION_NAME"
                 echo "BROWSERSTACK URL: $PRODUCTION_APP_URL"
                 echo "CUSTOM_ID: $CUSTOM_ID"
@@ -1781,7 +1786,7 @@ workflows:
                     -F 'data={"custom_id": "'$CUSTOM_ID'"}' \
                     | jq -j '.app_url' \
                     | envman add --key BROWSERSTACK_IOS_APP_URL
-
+                echo "BROWSERSTACK_IOS_APP_URL: $BROWSERSTACK_IOS_APP_URL"
                 # Upload to app-live
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
                     -X POST "https://api-cloud.browserstack.com/app-live/upload" \
