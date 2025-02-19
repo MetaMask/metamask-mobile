@@ -112,6 +112,7 @@ export default {
         'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
     },
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
+    TERMS_OF_USE: 'https://metamask.io/terms',
     PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
     PROFILE_SYNC:
       'https://support.metamask.io/privacy-and-security/profile-privacy',
