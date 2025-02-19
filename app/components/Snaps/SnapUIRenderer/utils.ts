@@ -102,7 +102,7 @@ function generateKey(
  * @param {string} subjectName - Name of a subject.
  * @returns Single character, chosen from the first character or number, question mark otherwise.
  */
-export const getAvatarFallbackLetter = (subjectName?: string) =>
+export const getAvatarFallbackLetter = (subjectName?: string | null) =>
   subjectName?.match(/[a-z0-9]/iu)?.[0] ?? '?';
 
 export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
