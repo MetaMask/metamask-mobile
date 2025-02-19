@@ -23,7 +23,6 @@ const ButtonPrimary = ({
   onPressOut,
   isDanger = false,
   label,
-  endIconName,
   ...props
 }: ButtonPrimaryProps) => {
   const [pressed, setPressed] = useState(false);
