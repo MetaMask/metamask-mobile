@@ -29,6 +29,7 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import { StakeInputViewProps } from './StakeInputView.types';
 import { getStakeInputViewTitle } from './utils';
 import { isStablecoinLendingFeatureEnabled } from '../../constants';
+import EarnTokenSelector from '../../components/EarnTokenSelector';
 
 const StakeInputView = ({ route }: StakeInputViewProps) => {
   const navigation = useNavigation();
@@ -220,26 +221,29 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
             selected_provider: EVENT_PROVIDERS.CONSENSYS,
             text: 'Currency Switch Trigger',
             location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-            // We want to track the currency switching to. Not the current currency.
             currency_type: isEth ? 'fiat' : 'native',
           },
         })}
         currencyToggleValue={currencyToggleValue}
       />
       <View style={styles.rewardsRateContainer}>
-        <EstimatedAnnualRewardsCard
-          estimatedAnnualRewards={estimatedAnnualRewards}
-          onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
-            event: MetaMetricsEvents.TOOLTIP_OPENED,
-            properties: {
-              selected_provider: EVENT_PROVIDERS.CONSENSYS,
-              text: 'Tooltip Opened',
-              location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-              tooltip_name: 'MetaMask Pool Estimated Rewards',
-            },
-          })}
-          isLoading={isLoadingVaultApyAverages}
-        />
+        {isStablecoinLendingFeatureEnabled() ? (
+          <EarnTokenSelector token={route?.params?.token} />
+        ) : (
+          <EstimatedAnnualRewardsCard
+            estimatedAnnualRewards={estimatedAnnualRewards}
+            onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+              event: MetaMetricsEvents.TOOLTIP_OPENED,
+              properties: {
+                selected_provider: EVENT_PROVIDERS.CONSENSYS,
+                text: 'Tooltip Opened',
+                location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+                tooltip_name: 'MetaMask Pool Estimated Rewards',
+              },
+            })}
+            isLoading={isLoadingVaultApyAverages}
+          />
+        )}
       </View>
       <QuickAmounts
         amounts={percentageOptions}
@@ -249,7 +253,6 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
             properties: {
               location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
               amount: value,
-              // onMaxPress is called instead when it's defined and the max is clicked.
               is_max: false,
               mode: isEth ? 'native' : 'fiat',
             },
