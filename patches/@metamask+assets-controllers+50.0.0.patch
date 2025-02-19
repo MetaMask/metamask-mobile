@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
-index 6ccbe9c..417a55e 100644
+index a390e86..4d0346d 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 @@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -11,7 +11,7 @@ index 6ccbe9c..417a55e 100644
  Object.defineProperty(exports, "__esModule", { value: true });
  exports.NftController = exports.getDefaultNftControllerState = void 0;
  const address_1 = require("@ethersproject/address");
-@@ -53,7 +53,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -54,7 +54,7 @@ class NftController extends base_controller_1.BaseController {
       * @param options - The controller options.
       * @param options.chainId - The chain ID of the current network.
       * @param options.ipfsGateway - The configured IPFS gateway.
@@ -20,8 +20,8 @@ index 6ccbe9c..417a55e 100644
       * @param options.useIpfsSubdomains - Controls whether IPFS subdomains are used.
       * @param options.isIpfsGatewayEnabled - Controls whether IPFS is enabled or not.
       * @param options.onNftAdded - Callback that is called when an NFT is added. Currently used pass data
-@@ -61,7 +61,7 @@ class NftController extends base_controller_1.BaseController {
-      * @param options.messenger - The controller messenger.
+@@ -62,7 +62,7 @@ class NftController extends base_controller_1.BaseController {
+      * @param options.messenger - The messenger.
       * @param options.state - Initial state to set on this controller.
       */
 -    constructor({ chainId: initialChainId, ipfsGateway = controller_utils_1.IPFS_DEFAULT_GATEWAY_URL, openSeaEnabled = false, useIpfsSubdomains = true, isIpfsGatewayEnabled = true, onNftAdded, messenger, state = {}, }) {
@@ -29,7 +29,7 @@ index 6ccbe9c..417a55e 100644
          super({
              name: controllerName,
              metadata: nftControllerMetadata,
-@@ -76,14 +76,14 @@ class NftController extends base_controller_1.BaseController {
+@@ -77,14 +77,14 @@ class NftController extends base_controller_1.BaseController {
          _NftController_selectedAccountId.set(this, void 0);
          _NftController_chainId.set(this, void 0);
          _NftController_ipfsGateway.set(this, void 0);
@@ -46,7 +46,7 @@ index 6ccbe9c..417a55e 100644
          __classPrivateFieldSet(this, _NftController_useIpfsSubdomains, useIpfsSubdomains, "f");
          __classPrivateFieldSet(this, _NftController_isIpfsGatewayEnabled, isIpfsGatewayEnabled, "f");
          __classPrivateFieldSet(this, _NftController_onNftAdded, onNftAdded, "f");
-@@ -589,7 +589,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -590,7 +590,7 @@ class NftController extends base_controller_1.BaseController {
      }
  }
  exports.NftController = NftController;
@@ -55,7 +55,7 @@ index 6ccbe9c..417a55e 100644
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
      __classPrivateFieldSet(this, _NftController_chainId, chainId, "f");
  }, _NftController_onPreferencesControllerStateChange = 
-@@ -597,16 +597,16 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
+@@ -598,20 +598,20 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
   * Handles the state change of the preference controller.
   * @param preferencesState - The new state of the preference controller.
   * @param preferencesState.ipfsGateway - The configured IPFS gateway.
@@ -67,16 +67,21 @@ index 6ccbe9c..417a55e 100644
 +async function _NftController_onPreferencesControllerStateChange({ ipfsGateway, displayNftMedia, isIpfsGatewayEnabled, }) {
      const selectedAccount = this.messagingSystem.call('AccountsController:getSelectedAccount');
      __classPrivateFieldSet(this, _NftController_selectedAccountId, selectedAccount.id, "f");
-     __classPrivateFieldSet(this, _NftController_ipfsGateway, ipfsGateway, "f");
--    __classPrivateFieldSet(this, _NftController_openSeaEnabled, openSeaEnabled, "f");
-+    __classPrivateFieldSet(this, _NftController_displayNftMedia, displayNftMedia, "f");
-     __classPrivateFieldSet(this, _NftController_isIpfsGatewayEnabled, isIpfsGatewayEnabled, "f");
--    const needsUpdateNftMetadata = (isIpfsGatewayEnabled && ipfsGateway !== '') || openSeaEnabled;
-+    const needsUpdateNftMetadata = (isIpfsGatewayEnabled && ipfsGateway !== '') || displayNftMedia;
-     if (needsUpdateNftMetadata && selectedAccount) {
-         await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, selectedAccount);
-     }
-@@ -619,7 +619,7 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
+     // Get current state values
+     if (__classPrivateFieldGet(this, _NftController_ipfsGateway, "f") !== ipfsGateway ||
+-        __classPrivateFieldGet(this, _NftController_openSeaEnabled, "f") !== openSeaEnabled ||
++        __classPrivateFieldGet(this, _NftController_displayNftMedia, "f") !== displayNftMedia ||
+         __classPrivateFieldGet(this, _NftController_isIpfsGatewayEnabled, "f") !== isIpfsGatewayEnabled) {
+         __classPrivateFieldSet(this, _NftController_ipfsGateway, ipfsGateway, "f");
+-        __classPrivateFieldSet(this, _NftController_openSeaEnabled, openSeaEnabled, "f");
++        __classPrivateFieldSet(this, _NftController_displayNftMedia, displayNftMedia, "f");
+         __classPrivateFieldSet(this, _NftController_isIpfsGatewayEnabled, isIpfsGatewayEnabled, "f");
+-        const needsUpdateNftMetadata = (isIpfsGatewayEnabled && ipfsGateway !== '') || openSeaEnabled;
++        const needsUpdateNftMetadata = (isIpfsGatewayEnabled && ipfsGateway !== '') || displayNftMedia;
+         if (needsUpdateNftMetadata && selectedAccount) {
+             await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, selectedAccount);
+         }
+@@ -625,7 +625,7 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
      const oldSelectedAccountId = __classPrivateFieldGet(this, _NftController_selectedAccountId, "f");
      __classPrivateFieldSet(this, _NftController_selectedAccountId, internalAccount.id, "f");
      const needsUpdateNftMetadata = ((__classPrivateFieldGet(this, _NftController_isIpfsGatewayEnabled, "f") && __classPrivateFieldGet(this, _NftController_ipfsGateway, "f") !== '') ||
@@ -85,7 +90,7 @@ index 6ccbe9c..417a55e 100644
          oldSelectedAccountId !== internalAccount.id;
      if (needsUpdateNftMetadata) {
          await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, internalAccount);
-@@ -694,6 +694,7 @@ async function _NftController_getNftInformationFromApi(contractAddress, tokenId)
+@@ -700,6 +700,7 @@ async function _NftController_getNftInformationFromApi(contractAddress, tokenId)
              description: null,
              image: null,
              standard: null,
@@ -93,7 +98,7 @@ index 6ccbe9c..417a55e 100644
          };
      }
      // if we've reached this point, we have successfully fetched some data for nftInformation
-@@ -738,7 +739,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -744,7 +745,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              tokenURI: tokenURI ?? null,
          };
      }
@@ -102,7 +107,7 @@ index 6ccbe9c..417a55e 100644
      if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
          return {
              image: null,
-@@ -747,6 +748,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -753,6 +754,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              standard: standard || null,
              favorite: false,
              tokenURI: tokenURI ?? null,
@@ -110,15 +115,15 @@ index 6ccbe9c..417a55e 100644
          };
      }
      if (hasIpfsTokenURI) {
-@@ -785,6 +787,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -766,6 +768,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              standard: standard || null,
              favorite: false,
              tokenURI: tokenURI ?? null,
 +            error: 'URI import error',
          };
      }
- }, _NftController_getNftURIAndStandard = 
-@@ -840,10 +843,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
+     try {
+@@ -846,10 +849,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
      });
      const [blockchainMetadata, nftApiMetadata] = await Promise.all([
          (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_getNftInformationFromTokenURI).call(this, contractAddress, tokenId, networkClientId)),
@@ -141,7 +146,7 @@ index 6ccbe9c..417a55e 100644
      return {
          ...nftApiMetadata,
          name: blockchainMetadata?.name ?? nftApiMetadata?.name ?? null,
-@@ -985,6 +999,7 @@ async function _NftController_addIndividualNft(tokenAddress, tokenId, nftMetadat
+@@ -991,6 +1005,7 @@ async function _NftController_addIndividualNft(tokenAddress, tokenId, nftMetadat
                  tokenId: tokenId.toString(),
                  standard: nftMetadata.standard,
                  source,
@@ -150,7 +155,7 @@ index 6ccbe9c..417a55e 100644
          }
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
-index a34725f..21e9d20 100644
+index 7b0580e..e783176 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 @@ -108,6 +108,7 @@ export type NftMetadata = {

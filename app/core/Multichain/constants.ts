@@ -4,8 +4,12 @@ import {
   isBtcTestnetAddress,
   isSolanaAddress,
 } from './utils';
-import { MultichainNetworks } from '@metamask/assets-controllers';
-import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  BtcScope,
+  SolAccountType,
+  SolScope,
+} from '@metamask/keyring-api';
 import BTC from '../../images/bitcoin-logo.png';
 import SOL from '../../images/solana-logo.png';
 
@@ -13,11 +17,11 @@ export const EVM_IDENTIFIER = 'eip155';
 
 // Image imports for React Native rendering
 export const MULTICHAIN_TOKEN_IMAGES = {
-  [MultichainNetworks.Bitcoin]: BTC,
-  [MultichainNetworks.Solana]: SOL,
-  [MultichainNetworks.BitcoinTestnet]: BTC,
-  [MultichainNetworks.SolanaDevnet]: SOL,
-  [MultichainNetworks.SolanaTestnet]: SOL,
+  [BtcScope.Mainnet]: BTC,
+  [SolScope.Mainnet]: SOL,
+  [BtcScope.Testnet]: BTC,
+  [SolScope.Devnet]: SOL,
+  [SolScope.Testnet]: SOL,
 } as const;
 
 export interface ProviderConfigWithImageUrl {
@@ -39,27 +43,24 @@ export type MultichainProviderConfig = ProviderConfigWithImageUrl & {
 };
 
 export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
-  [BtcAccountType.P2wpkh]: MultichainNetworks.Bitcoin,
-  [SolAccountType.DataAccount]: MultichainNetworks.Solana,
+  [BtcAccountType.P2wpkh]: BtcScope.Mainnet,
+  [SolAccountType.DataAccount]: SolScope.Mainnet,
 } as const;
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP = {
-  [MultichainNetworks.Bitcoin]: 'https://blockstream.info/address',
-  [MultichainNetworks.BitcoinTestnet]:
-    'https://blockstream.info/testnet/address',
-  [MultichainNetworks.Solana]: 'https://explorer.solana.com/',
-  [MultichainNetworks.SolanaDevnet]:
-    'https://explorer.solana.com/?cluster=devnet',
-  [MultichainNetworks.SolanaTestnet]:
-    'https://explorer.solana.com/?cluster=testnet',
+  [BtcScope.Mainnet]: 'https://blockstream.info/address',
+  [BtcScope.Testnet]: 'https://blockstream.info/testnet/address',
+  [SolScope.Mainnet]: 'https://explorer.solana.com/',
+  [SolScope.Devnet]: 'https://explorer.solana.com/?cluster=devnet',
+  [SolScope.Testnet]: 'https://explorer.solana.com/?cluster=testnet',
 } as const;
 
 export const MULTICHAIN_PROVIDER_CONFIGS: Record<
   CaipChainId,
   MultichainProviderConfig
 > = {
-  [MultichainNetworks.Bitcoin]: {
-    chainId: MultichainNetworks.Bitcoin,
+  [BtcScope.Mainnet]: {
+    chainId: BtcScope.Mainnet,
     rpcUrl: '', // not used
     ticker: 'BTC',
     nickname: 'Bitcoin',
@@ -68,12 +69,12 @@ export const MULTICHAIN_PROVIDER_CONFIGS: Record<
     decimal: 8,
     rpcPrefs: {
       blockExplorerUrl:
-        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[MultichainNetworks.Bitcoin],
+        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[BtcScope.Mainnet],
     },
     isAddressCompatible: isBtcMainnetAddress,
   },
-  [MultichainNetworks.BitcoinTestnet]: {
-    chainId: MultichainNetworks.BitcoinTestnet,
+  [BtcScope.Testnet]: {
+    chainId: BtcScope.Testnet,
     rpcUrl: '', // not used
     ticker: 'BTC',
     nickname: 'Bitcoin (testnet)',
@@ -82,17 +83,15 @@ export const MULTICHAIN_PROVIDER_CONFIGS: Record<
     decimal: 8,
     rpcPrefs: {
       blockExplorerUrl:
-        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[
-          MultichainNetworks.BitcoinTestnet
-        ],
+        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[BtcScope.Testnet],
     },
     isAddressCompatible: isBtcTestnetAddress,
   },
   /**
    * Solana
    */
-  [MultichainNetworks.Solana]: {
-    chainId: MultichainNetworks.Solana,
+  [SolScope.Mainnet]: {
+    chainId: SolScope.Mainnet,
     rpcUrl: '', // not used
     ticker: 'SOL',
     nickname: 'Solana',
@@ -101,12 +100,12 @@ export const MULTICHAIN_PROVIDER_CONFIGS: Record<
     decimal: 9,
     rpcPrefs: {
       blockExplorerUrl:
-        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[MultichainNetworks.Solana],
+        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[SolScope.Mainnet],
     },
     isAddressCompatible: isSolanaAddress,
   },
-  [MultichainNetworks.SolanaDevnet]: {
-    chainId: MultichainNetworks.SolanaDevnet,
+  [SolScope.Devnet]: {
+    chainId: SolScope.Devnet,
     rpcUrl: '', // not used
     ticker: 'SOL',
     nickname: 'Solana (devnet)',
@@ -115,14 +114,12 @@ export const MULTICHAIN_PROVIDER_CONFIGS: Record<
     decimal: 9,
     rpcPrefs: {
       blockExplorerUrl:
-        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[
-          MultichainNetworks.SolanaDevnet
-        ],
+        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[SolScope.Devnet],
     },
     isAddressCompatible: isSolanaAddress,
   },
-  [MultichainNetworks.SolanaTestnet]: {
-    chainId: MultichainNetworks.SolanaTestnet,
+  [SolScope.Testnet]: {
+    chainId: SolScope.Testnet,
     rpcUrl: '', // not used
     ticker: 'SOL',
     nickname: 'Solana (testnet)',
@@ -131,9 +128,7 @@ export const MULTICHAIN_PROVIDER_CONFIGS: Record<
     decimal: 9,
     rpcPrefs: {
       blockExplorerUrl:
-        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[
-          MultichainNetworks.SolanaTestnet
-        ],
+        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[SolScope.Testnet],
     },
     isAddressCompatible: isSolanaAddress,
   },
