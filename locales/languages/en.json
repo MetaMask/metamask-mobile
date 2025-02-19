@@ -5,6 +5,12 @@
       "checkbox_label": "I have acknowledged the risk and still want to proceed",
       "got_it_btn": "Got it",
       "alert_details": "Alert Details"
+    },
+    "confirm_modal": {
+      "title": "High risk request",
+      "checkbox_label": "I have acknowledged the alert and still want to proceed",
+      "review_alerts": "Review all alerts",
+      "message": "We suggest you reject this request. If you continue, you might put your assets at risk."
     }
   },
   "blockaid_banner": {
