@@ -572,7 +572,7 @@ workflows:
 
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
                     -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-                    -F "file=@$UPLOAD_IPA_PATH" \
+                    -F "file=@$UPLOAD_APK_PATH" \
                     -F 'data={"custom_id": "'$CUSTOM_ID'"}' \
                     | jq -j '.app_url' \
                     | envman add --key PRODUCTION_APP_URL
