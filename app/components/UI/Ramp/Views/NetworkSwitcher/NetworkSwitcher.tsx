@@ -154,7 +154,7 @@ function NetworkSwitcher() {
   );
 
   const switchNetwork = useCallback(
-    (networkConfiguration) => {
+    async (networkConfiguration) => {
       const { MultichainNetworkController } = Engine.context;
       const config = Object.values(networkConfigurations).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
@@ -166,7 +166,7 @@ function NetworkSwitcher() {
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
-        MultichainNetworkController.setActiveNetwork(networkClientId);
+        await MultichainNetworkController.setActiveNetwork(networkClientId);
 
         navigateToGetStarted();
       }
@@ -175,7 +175,7 @@ function NetworkSwitcher() {
   );
 
   const handleNetworkPress = useCallback(
-    (networkConfiguration) => {
+    async (networkConfiguration) => {
       setIntent((prevIntent) => ({
         ...prevIntent,
         chainId: networkConfiguration.chainId,
@@ -187,7 +187,7 @@ function NetworkSwitcher() {
       };
 
       if (networkConfiguration.isAdded) {
-        switchNetwork(networkConfigurationWithHexChainId);
+        await switchNetwork(networkConfigurationWithHexChainId);
       } else {
         setNetworkToBeAdded(networkConfigurationWithHexChainId);
       }
@@ -196,7 +196,7 @@ function NetworkSwitcher() {
   );
 
   const handleIntentChainId = useCallback(
-    (chainId: string) => {
+    async (chainId: string) => {
       if (!isNetworkRampSupported(chainId, supportedNetworks)) {
         return;
       }
@@ -228,7 +228,7 @@ function NetworkSwitcher() {
       );
 
       if (networkConfiguration) {
-        handleNetworkPress(networkConfiguration);
+        await handleNetworkPress(networkConfiguration);
       }
     },
     [

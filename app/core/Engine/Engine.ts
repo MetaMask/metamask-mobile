@@ -418,7 +418,6 @@ export class Engine {
           SnapControllerStateChangeEvent,
           'KeyringController:accountRemoved',
           'KeyringController:stateChange',
-          'MultichainNetworkController:networkDidChange',
           SnapKeyringAccountAssetListUpdatedEvent,
           SnapKeyringAccountBalancesUpdatedEvent,
           SnapKeyringAccountTransactionsUpdatedEvent,
@@ -963,7 +962,6 @@ export class Engine {
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-
     this.subjectMetadataController = new SubjectMetadataController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',

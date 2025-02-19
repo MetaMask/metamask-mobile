@@ -100,7 +100,7 @@ import {
   isHardwareAccount,
 } from '../../../util/address';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectIsEIP1559Network,
   selectSelectedNetworkClientId,
   selectTicker,
@@ -2617,7 +2617,7 @@ SwapsQuotesView.propTypes = {
 
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
   networkClientId: selectSelectedNetworkClientId(state),
   ticker: selectTicker(state),
   balances: selectContractBalances(state),

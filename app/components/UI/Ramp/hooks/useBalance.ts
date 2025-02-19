@@ -53,6 +53,11 @@ export default function useBalance(asset?: Asset) {
 
   let balance, balanceFiat, balanceBN;
   if (assetAddress === NATIVE_ADDRESS) {
+    // Chain id should exist in accountsByChainId in AccountTrackerController at this point in time
+    if (!accountsByChainId[toHexadecimal(chainId)]) {
+      return defaultReturn;
+    }
+
     balance = renderFromWei(
       //@ts-expect-error - TODO: Ramps team
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
@@ -62,6 +67,7 @@ export default function useBalance(asset?: Asset) {
       //@ts-expect-error - TODO: Ramps team
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
+
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
   } else {
     const exchangeRate = tokenExchangeRates?.[assetAddress]?.price;

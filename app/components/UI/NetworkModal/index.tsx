@@ -357,12 +357,13 @@ const NetworkModals = (props: NetworkProps) => {
         ticker,
         blockExplorerUrl,
       );
+
       const { networkClientId } =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
         {};
 
       onUpdateNetworkFilter();
-      MultichainNetworkController.setActiveNetwork(networkClientId);
+      await MultichainNetworkController.setActiveNetwork(networkClientId);
     }
     onClose();
 
