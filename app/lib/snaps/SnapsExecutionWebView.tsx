@@ -67,7 +67,7 @@ export class SnapsExecutionWebView extends Component {
 
       const onWebViewMessage = (data: WebViewMessageEvent) => {
         if (this.webViews[jobId]?.listener) {
-          this.webViews[jobId].listener?.(data.nativeEvent as any);
+          this.webViews[jobId].listener?.(data.nativeEvent as unknown as PostMessageEvent);
         }
       };
 
