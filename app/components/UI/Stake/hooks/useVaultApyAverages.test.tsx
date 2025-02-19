@@ -4,6 +4,7 @@ import { act, waitFor } from '@testing-library/react-native';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { stakingApiService } from '../sdk/stakeSdkProvider';
 import useVaultApyAverages from './useVaultApyAverages';
+import { DEFAULT_VAULT_APY_AVERAGES } from '../constants';
 
 const mockInitialState = {
   settings: {},
@@ -51,7 +52,9 @@ describe('useVaultApyAverages', () => {
       await waitFor(async () => {
         expect(result.current.isLoadingVaultApyAverages).toBe(false);
         expect(result.current.error).toBe('Failed to fetch vault APY averages');
-        expect(result.current.vaultApyAverages).toStrictEqual({});
+        expect(result.current.vaultApyAverages).toStrictEqual(
+          DEFAULT_VAULT_APY_AVERAGES,
+        );
       });
     });
   });

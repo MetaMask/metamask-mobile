@@ -49,7 +49,6 @@ import {
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
@@ -606,15 +605,11 @@ class ResetPassword extends PureComponent {
         {loading ? (
           <View style={styles.loadingWrapper}>
             <View style={styles.foxWrapper}>
-              {Device.isAndroid() ? (
-                <Image
-                  source={require('../../../images/fox.png')}
-                  style={styles.image}
-                  resizeMethod={'auto'}
-                />
-              ) : (
-                <AnimatedFox bgColor={colors.background.default} />
-              )}
+              <Image
+                source={require('../../../images/branding/fox.png')}
+                style={styles.image}
+                resizeMethod={'auto'}
+              />
             </View>
             <ActivityIndicator size="large" color={colors.icon.default} />
             <Text variant={TextVariant.HeadingLG} style={styles.title}>

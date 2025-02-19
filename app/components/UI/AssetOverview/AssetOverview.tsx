@@ -96,7 +96,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
-  const goToBridge = useGoToBridge('TokenDetails');
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -177,6 +176,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     });
   }, [navigation, asset.address, asset.chainId]);
 
+  const handleBridgeNavigation = useCallback(() => {
+    navigation.navigate('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: asset.address,
+        sourcePage: 'MainView',
+        chainId: asset.chainId,
+      },
+    });
+  }, [navigation, asset.address, asset.chainId]);
+
+  const goToPortfolioBridge = useGoToBridge('TokenDetails');
+
+  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true'
+    ? handleBridgeNavigation
+    : goToPortfolioBridge;
+
   const onSend = async () => {
     if (isPortfolioViewEnabled()) {
       navigation.navigate(Routes.WALLET.HOME, {
@@ -187,7 +203,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       });
 
       if (asset.chainId !== selectedChainId) {
-        const { NetworkController } = Engine.context;
+        const { NetworkController, MultichainNetworkController } =
+          Engine.context;
         const networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
             asset.chainId as Hex,
@@ -198,7 +215,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        await NetworkController.setActiveNetwork(networkClientId as string);
+        await MultichainNetworkController.setActiveNetwork(
+          networkClientId as string,
+        );
       }
     }
     if ((asset.isETH || asset.isNative) && ticker) {
@@ -218,7 +237,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         },
       });
       if (asset.chainId !== selectedChainId) {
-        const { NetworkController } = Engine.context;
+        const { NetworkController, MultichainNetworkController } =
+          Engine.context;
         const networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
             asset.chainId as Hex,
@@ -229,13 +249,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        NetworkController.setActiveNetwork(networkClientId as string).then(
-          () => {
-            setTimeout(() => {
-              handleSwapNavigation();
-            }, 500);
-          },
-        );
+        MultichainNetworkController.setActiveNetwork(
+          networkClientId as string,
+        ).then(() => {
+          setTimeout(() => {
+            handleSwapNavigation();
+          }, 500);
+        });
       } else {
         handleSwapNavigation();
       }

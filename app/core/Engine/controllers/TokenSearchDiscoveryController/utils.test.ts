@@ -1,5 +1,4 @@
 import { createTokenSearchDiscoveryController } from './utils';
-import { ControllerMessenger } from '@metamask/base-controller';
 import Logger from '../../../../util/Logger';
 
 import {
@@ -35,8 +34,7 @@ describe('TokenSearchDiscoveryController utils', () => {
   let messenger: TokenSearchDiscoveryControllerMessenger;
 
   beforeEach(() => {
-    messenger =
-      new ControllerMessenger() as unknown as TokenSearchDiscoveryControllerMessenger;
+    messenger = {} as TokenSearchDiscoveryControllerMessenger;
   });
 
   describe('createTokenSearchDiscoveryController', () => {

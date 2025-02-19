@@ -76,22 +76,6 @@ exports[`SecuritySettings should render correctly 1`] = `
         >
           Protect your wallet
         </Text>
-        <View
-          style={
-            {
-              "marginTop": 16,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "height": 240,
-                "width": "100%",
-              }
-            }
-          />
-        </View>
         <Text
           accessibilityRole="text"
           style={
