@@ -1453,15 +1453,17 @@ workflows:
                     # Use existing VERSION_NAME and VERSION_NUMBER from bitrise.yml
                     echo "Using branch: $BITRISE_GIT_BRANCH"
                     echo "Using version: $VERSION_NAME ($VERSION_NUMBER)"
+                    CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 else
                     # No branch, use production values
                     BITRISE_GIT_BRANCH="qa-release"
                     VERSION_NAME="$PRODUCTION_BUILD_NAME" #  This value (PRODUCTION_BUILD_NAME) comes from the script to download the production build
                     VERSION_NUMBER="$PRODUCTION_BUILD_NUMBER" # This value (PRODUCTION_BUILD_NUMBER) comes from the script to download the production build
                     echo "Using qa-release with production version: $VERSION_NAME ($VERSION_NUMBER)"
+                    CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 fi
 
-                CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
+                
                 CUSTOM_ID=${CUSTOM_ID////-}
 
                 # Upload to app-automate
