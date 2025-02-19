@@ -559,8 +559,8 @@ workflows:
           title: Set Build Strings
           inputs:
             - content: |
-                envman add --key PRODUCTION_BUILD_STRING --value "MetaMask-QA v${PRODUCTION_BUILD_NAME} (${PRODUCTION_BUILD_NUMBER})"
-                envman add --key NEW_BUILD_STRING --value "MetaMask-QA v${PRODUCTION_BUILD_NAME} (${PRODUCTION_BUILD_NUMBER})"
+                envman add --key PRODUCTION_BUILD_STRING --value "MetaMask v${PRODUCTION_BUILD_NAME} (${PRODUCTION_BUILD_NUMBER})"
+                envman add --key NEW_BUILD_STRING --value "MetaMask v${PRODUCTION_BUILD_NAME} (${PRODUCTION_BUILD_NUMBER})"
                 envman add --key PRODUCTION_APP_URL --value "$BROWSERSTACK_ANDROID_APP_URL"
     after_run:
       -  wdio_android_e2e_test
