@@ -48,9 +48,9 @@ describe(SmokeRamps('On-Ramp Limits'), () => {
         await BuildQuoteView.enterAmount('0.001');
         await Assertions.checkIfVisible(BuildQuoteView.minLimitErrorMessage);
         await BuildQuoteView.tapKeypadDeleteButton(4);
-        await BuildQuoteView.enterAmount('9');
+        await BuildQuoteView.enterAmount('50');
         await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
-        await BuildQuoteView.tapKeypadDeleteButton(1);
+        await BuildQuoteView.tapKeypadDeleteButton(2);
         await BuildQuoteView.enterAmount('999');
         await Assertions.checkIfVisible(BuildQuoteView.insufficientBalanceErrorMessage);
         await BuildQuoteView.tapCancelButton();

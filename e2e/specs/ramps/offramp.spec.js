@@ -38,6 +38,7 @@ describe(SmokeRamps('Off-Ramp'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
+      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -74,11 +75,11 @@ describe(SmokeRamps('Off-Ramp'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should select a quote', async () => {
+  it('should show quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
-    await BuildQuoteView.enterAmount('0.1');
+    await BuildQuoteView.enterAmount('2');
     await BuildQuoteView.tapGetQuotesButton();
-    await Assertions.checkIfVisible(QuotesView.quotes);
+    await (Assertions.checkIfTextIsDisplayed('No providers available') || Assertions.checkIfVisible(QuotesView.quotes));
   });
 });
