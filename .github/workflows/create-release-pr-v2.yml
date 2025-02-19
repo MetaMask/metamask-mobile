@@ -27,7 +27,7 @@ jobs:
       semver-version: ${{ inputs.semver-version }}
       previous-version-tag: ${{ inputs.previous-version-tag }}
       #mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
-      mobile-build-version: '12347'
+      mobile-build-version: '12348'
       test-only: 'true'
       # Testing Documents
       release-sheet-google-document-id: '1_aJ-cqS5ngrXzAIly3HOyl7CY_lqIoV2T7_OU83AD50' # Release Testing Document
