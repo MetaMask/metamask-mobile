@@ -28,6 +28,9 @@ jest.mock('../../../../../../core/Engine', () => ({
     NetworkController: {
       setActiveNetwork: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
   },
 }));
 
@@ -112,7 +115,7 @@ describe('StakingButtons', () => {
     });
 
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
@@ -142,7 +145,7 @@ describe('StakingButtons', () => {
     });
 
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
