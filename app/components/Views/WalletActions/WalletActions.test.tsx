@@ -27,6 +27,9 @@ jest.mock('../../../core/Engine', () => ({
     NetworkController: {
       setActiveNetwork: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
   },
 }));
 
@@ -237,7 +240,7 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalled();
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();
   });
 
