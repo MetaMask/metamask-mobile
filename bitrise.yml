@@ -74,9 +74,8 @@ pipelines:
   paralellism_e2e_pipeline:
     workflows:
       ios_e2e_build: {}
-      android_e2e_build: {}
       run-tests:
-        depends_on: [ios_e2e_build, android_e2e_build]
+        depends_on: [ios_e2e_build]
         parallel: 5
       # report-results:
       #   depends_on: [run-tests]
@@ -278,7 +277,6 @@ workflows:
                 BRANCH_COMMIT_HASH
   run-tests:
     after_run:
-      - android_e2e_test
       - ios_e2e_test
   code_setup:
     before_run:
