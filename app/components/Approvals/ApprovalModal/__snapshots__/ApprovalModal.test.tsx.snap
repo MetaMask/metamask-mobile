@@ -27,6 +27,7 @@ exports[`ApprovalModal renders 1`] = `
   }
   swipeDirection="down"
   swipeThreshold={100}
+  testID="snap-dialog-approval"
   transparent={true}
   visible={true}
 >

@@ -23,15 +23,6 @@ export enum TextVariant {
 }
 
 /**
- * Font weights
- */
-export enum FontWeight {
-  Bold = 'bold',
-  Medium = 'medium',
-  Normal = 'normal',
-}
-
-/**
  * Text colors
  */
 export enum TextColor {
@@ -69,8 +60,4 @@ export interface TextProps extends RNTextProps {
    * Temporary prop to enable brand evolution fonts
    */
   isBrandEvolution?: boolean;
-  /**
-   * Optional font weight for the text
-   */
-  fontWeight?: FontWeight;
 }
