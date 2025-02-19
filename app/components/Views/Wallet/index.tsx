@@ -147,15 +147,8 @@ const createStyles = ({ colors, typography }: Theme) =>
       marginTop: 20,
       paddingHorizontal: 16,
     },
-    tabViewContainer: {
-      flex: 1,
-      flexDirection: 'column',
-    },
     carouselContainer: {
       marginTop: 12,
-    },
-    contentContainer: {
-      flex: 1,
     },
   });
 
