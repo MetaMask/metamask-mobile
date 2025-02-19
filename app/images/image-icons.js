@@ -14,7 +14,7 @@ import LINEA_MAINNET from './linea-mainnet-logo.png';
 import APE_TOKEN from './ape-token.png';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
-import FOX_LOGO from '../../app/images/branding/fox.png';
+import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 
 export default {
   PALM,
