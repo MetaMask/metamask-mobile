@@ -671,16 +671,13 @@ class MetaMetrics implements IMetaMetrics {
       return;
     }
 
-    // generate a random number based on the metaMetricsId
     let metaMetricsIdRandomNumber
     try {
       metaMetricsIdRandomNumber = generateDeterministicRandomNumber(
         this.metametricsId ?? '',
       );
     } catch (error) {
-      // we should know if bad values are being passed in
       Logger.error(error as Error, `Error generating random number for MetaMetrics ID with value ${this.metametricsId}`);
-      // exit since we only want 1% of events anyway
       return
     }
 
