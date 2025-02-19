@@ -65,6 +65,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
+import { isAssetFromSearch, selectSupportedSwapTokenAddresses } from '../../../selectors/tokenSearchDiscoveryDataController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -157,6 +158,7 @@ class Asset extends PureComponent {
     tokens: PropTypes.array,
     swapsIsLive: PropTypes.bool,
     swapsTokens: PropTypes.object,
+    searchDiscoverySwapsTokens: PropTypes.array,
     swapsTransactions: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it
@@ -519,7 +521,7 @@ class Asset extends PureComponent {
     const isAssetAllowed =
       asset.isETH ||
       asset.isNative ||
-      asset.address?.toLowerCase() in this.props.swapsTokens;
+      (isAssetFromSearch(asset) ? this.props.searchDiscoverySwapsTokens?.includes(asset.address?.toLowerCase()) : asset.address?.toLowerCase() in this.props.swapsTokens);
 
     const displaySwapsButton =
       isNetworkAllowed && isAssetAllowed && AppConstants.SWAPS.ACTIVE;
@@ -573,6 +575,7 @@ const mapStateToProps = (state, { route }) => ({
   swapsTokens: isPortfolioViewEnabled()
     ? swapsTokensMultiChainObjectSelector(state)
     : swapsTokensObjectSelector(state),
+  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddresses(state, route.params.chainId),
   swapsTransactions: selectSwapsTransactions(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),

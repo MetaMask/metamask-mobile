@@ -19,17 +19,16 @@ export interface AssetLoaderProps {
 
 export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { address, chainId } } }) => {
     const tokenResult = useSelector((state: RootState) => selectTokenDisplayData(state, chainId, address));
-    Logger.log('>>>>>>>>> tokenResult', tokenResult);
     const navigation = useNavigation();
 
     useEffect(() => {
-        if (!tokenResult) {
-            Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(chainId, address);
-        } else if (tokenResult.found) {
+        Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(chainId, address);
+        if (tokenResult?.found) {
             navigation.dispatch(
                 StackActions.replace(Routes.BROWSER.ASSET_VIEW, {
                     ...tokenResult.token,
-                    chainId
+                    chainId,
+                    isFromSearch: true,
                 })
             );
         }

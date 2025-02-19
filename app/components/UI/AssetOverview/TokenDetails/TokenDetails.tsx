@@ -30,6 +30,7 @@ import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
 import StakingEarnings from '../../Stake/components/StakingEarnings';
 import { isPortfolioViewEnabled } from '../../../../util/networks';
+import { isAssetFromSearch, selectTokenDisplayData } from '../../../../selectors/tokenSearchDiscoveryDataController';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -68,7 +69,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const tokenContractAddress = safeToChecksumAddress(asset.address);
   const tokenList = useSelector(selectTokenList);
 
-  const conversionRate = isPortfolioViewEnabled()
+  const conversionRate = isAssetFromSearch(asset) ? 1 : isPortfolioViewEnabled()
     ? conversionRateBySymbol
     : conversionRateLegacy;
   const tokenExchangeRates = isPortfolioViewEnabled()
@@ -78,7 +79,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   let tokenMetadata;
   let marketData;
 
-  if (asset.isETH) {
+  const tokenResult = useSelector((state: RootState) => selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex));
+
+  if (isAssetFromSearch(asset) && tokenResult?.found && tokenResult.price) {
+    marketData = tokenResult.price;
+    tokenMetadata = tokenResult.token;
+  } else if (asset.isETH) {
     marketData = tokenExchangeRates?.[zeroAddress() as Hex];
   } else if (tokenContractAddress) {
     tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
@@ -102,7 +108,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
     : {
         contractAddress: tokenContractAddress || null,
         tokenDecimal: tokenMetadata?.decimals || null,
-        tokenList: tokenMetadata?.aggregators.join(', ') || null,
+        tokenList: tokenMetadata?.aggregators?.join(', ') || null,
       };
 
   const marketDetails: MarketDetails = {

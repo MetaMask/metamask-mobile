@@ -69,6 +69,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
+import { isAssetFromSearch, selectTokenDisplayData } from '../../../selectors/tokenSearchDiscoveryDataController';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -391,10 +392,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     secondaryBalance = asset.balanceFiat || '';
   }
 
+  const tokenResult = useSelector((state: RootState) => selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex));
+
   let currentPrice = 0;
   let priceDiff = 0;
 
-  if (!isPortfolioViewEnabled()) {
+  if (isAssetFromSearch(asset) && tokenResult?.found) {
+    currentPrice = tokenResult.price?.price || 0;
+  } else if (!isPortfolioViewEnabled()) {
     if (asset.isETH) {
       currentPrice = conversionRate || 0;
     } else if (exchangeRate && conversionRate) {
