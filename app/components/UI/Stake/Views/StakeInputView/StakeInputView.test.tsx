@@ -7,11 +7,11 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
-import { MOCK_GET_VAULT_RESPONSE } from '../../__mocks__/mockData';
 import { toWei } from '../../../../../util/number';
 import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
 import * as useStakingGasFee from '../../hooks/useStakingGasFee';
+import { MOCK_VAULT_APY_AVERAGES } from '../../components/PoolStakingLearnMoreModal/mockVaultRewards';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -176,7 +176,7 @@ describe('StakeInputView', () => {
 
       fireEvent.press(screen.getByText('2'));
 
-      expect(screen.getByText('0.05 ETH')).toBeTruthy();
+      expect(screen.getByText('0.06515 ETH')).toBeTruthy();
     });
   });
 
