@@ -123,9 +123,7 @@ jest.mock('../../hooks/useStakingGasFee', () => ({
   }),
 }));
 
-const mockVaultData = MOCK_GET_VAULT_RESPONSE;
 // Mock hooks
-
 jest.mock('../../hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: () => ({
@@ -136,15 +134,12 @@ jest.mock('../../hooks/useStakingEligibility', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useVaultData', () => ({
+jest.mock('../../hooks/useVaultApyAverages', () => ({
   __esModule: true,
   default: () => ({
-    vaultData: mockVaultData,
-    loading: false,
-    error: null,
-    refreshVaultData: jest.fn(),
-    annualRewardRate: '2.5%',
-    annualRewardRateDecimal: 0.025,
+    vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
+    isLoadingVaultApyAverages: false,
+    refreshVaultApyAverages: jest.fn(),
   }),
 }));
 
@@ -224,7 +219,7 @@ describe('StakeInputView', () => {
       });
     });
 
-    it('navigates to gas impact modal when gas cost is 30% or more of deposit amount', () => {
+    it('navigates to gas impact modal when gas cost is 30% or more of deposit amount', async () => {
       jest.spyOn(useStakingGasFee, 'default').mockReturnValue({
         estimatedGasFeeWei: toWei('0.25'),
         isLoadingStakingGasFee: false,
@@ -243,9 +238,9 @@ describe('StakeInputView', () => {
         params: {
           amountFiat: '750',
           amountWei: '375000000000000000',
-          annualRewardRate: '2.5%',
-          annualRewardsETH: '0.00938 ETH',
-          annualRewardsFiat: '18.75 USD',
+          annualRewardRate: '3.3%',
+          annualRewardsETH: '0.01222 ETH',
+          annualRewardsFiat: '24.43 USD',
           estimatedGasFee: '0.25',
           estimatedGasFeePercentage: '66%',
         },
