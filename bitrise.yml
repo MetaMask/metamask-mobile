@@ -575,8 +575,7 @@ workflows:
                     -F 'data={"custom_id": "'$CUSTOM_ID'"}')
 
                     # Extract app_url
-                APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
-                envman add --key PRODUCTION_APP_URL --value "$APP_URL"
+                PRODUCTION_APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
 
                 # Get recent apps
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
@@ -584,7 +583,7 @@ workflows:
                     | jq > browserstack_uploaded_apps.json
 
                 echo "Using qa-release with production version: $VERSION_NAME"
-                echo "BROWSERSTACK URL: $APP_URL"
+                echo "BROWSERSTACK URL: $PRODUCTION_APP_URL"
                 echo "CUSTOM_ID: $CUSTOM_ID"
                 echo "Using qa-release with production version: $VERSION_NUMBER"
 
