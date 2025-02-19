@@ -30,10 +30,15 @@ export const ScrollContext = createContext<ScrollContextType>({
   isScrollToBottomNeeded: false,
 });
 
-export const ScrollContextProvider: React.FC<{
-  scrollableSection: ReactElement[] | ReactElement;
+export interface ScrollContextProviderProps {
+  scrollableSection: ReactElement | ReactElement[];
   staticFooter: ReactElement;
-}> = ({ scrollableSection, staticFooter }) => {
+}
+
+export const ScrollContextProvider: React.FC<ScrollContextProviderProps> = ({
+  scrollableSection,
+  staticFooter,
+}) => {
   const [hasScrolledToBottom, setScrolledToBottom] = useState(false);
   const [isScrollable, setIsScrollable] = useState(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
