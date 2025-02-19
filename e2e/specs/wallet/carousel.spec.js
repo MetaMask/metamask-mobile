@@ -12,6 +12,8 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
 const fixtureServer = new FixtureServer();
 
@@ -36,39 +38,78 @@ describe(SmokeCore('Carousel Tests'), () => {
   });
 
   it('should display carousel with correct slides', async () => {
-    await Assertions.checkIfVisible(WalletView.carouselContainer);
-    await Assertions.checkIfVisible(WalletView.carouselFirstSlide);
-    await Assertions.checkIfElementToHaveText(
+    const carouselContainer = await Matchers.getElementByID(
+      WalletView.carouselContainer,
+    );
+    const carouselFirstSlide = await Matchers.getElementByID(
+      WalletView.carouselFirstSlide,
+    );
+    const carouselFirstSlideTitle = await Matchers.getElementByID(
       WalletView.carouselFirstSlideTitle,
+    );
+    const carouselProgressDots = await Matchers.getElementByID(
+      WalletView.carouselProgressDots,
+    );
+
+    await Assertions.checkIfVisible(carouselContainer);
+    await Assertions.checkIfVisible(carouselFirstSlide);
+    await Assertions.checkIfElementToHaveText(
+      carouselFirstSlideTitle,
       'Bridge tokens',
     );
-    await Assertions.checkIfVisible(WalletView.carouselProgressDots);
+    await Assertions.checkIfVisible(carouselProgressDots);
   });
 
   it('should navigate between slides', async () => {
-    await TestHelpers.swipeLeft(WalletView.carouselContainer);
-    await Assertions.checkIfVisible(WalletView.carouselSecondSlide);
-    await Assertions.checkIfElementToHaveText(
+    const carouselContainer = await Matchers.getElementByID(
+      WalletView.carouselContainer,
+    );
+    const carouselSecondSlide = await Matchers.getElementByID(
+      WalletView.carouselSecondSlide,
+    );
+    const carouselSecondSlideTitle = await Matchers.getElementByID(
       WalletView.carouselSecondSlideTitle,
+    );
+    const carouselFirstSlideTitle = await Matchers.getElementByID(
+      WalletView.carouselFirstSlideTitle,
+    );
+
+    await Gestures.swipe(carouselContainer, 'left', 'slow', 0.7);
+    await Assertions.checkIfVisible(carouselSecondSlide);
+    await Assertions.checkIfElementToHaveText(
+      carouselSecondSlideTitle,
       'Get a MetaMask card',
     );
-    await TestHelpers.swipeRight(WalletView.carouselContainer);
+
+    await Gestures.swipe(carouselContainer, 'right', 'slow', 0.7);
     await Assertions.checkIfElementToHaveText(
-      WalletView.carouselFirstSlideTitle,
+      carouselFirstSlideTitle,
       'Bridge tokens',
     );
   });
 
   it('should dismiss a slide', async () => {
-    await WalletView.tapCarouselCloseButton();
-    await Assertions.checkIfElementToHaveText(
+    const carouselFirstSlideTitle = await Matchers.getElementByID(
       WalletView.carouselFirstSlideTitle,
+    );
+    const closeButton = await Matchers.getElementByID(
+      WalletView.carouselCloseButton,
+    );
+
+    await Gestures.tap(closeButton);
+    await Assertions.checkIfElementToHaveText(
+      carouselFirstSlideTitle,
       'Get a MetaMask card',
     );
   });
 
   it('should handle slide interactions', async () => {
-    await WalletView.tapCarouselSlide();
-    await Assertions.checkIfVisible(WalletView.container);
+    const carouselSlide = await Matchers.getElementByID(
+      WalletView.carouselSlide,
+    );
+    const container = await Matchers.getElementByID(WalletView.container);
+
+    await Gestures.tap(carouselSlide);
+    await Assertions.checkIfVisible(container);
   });
 });
