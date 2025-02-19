@@ -71,6 +71,15 @@ pipelines:
     stages:
       - create_build_qa_android: {}
       - app_upgrade_test_stage: {}
+  paralellism_e2e_pipeline:
+    workflows:
+      ios_e2e_build: {}
+      android_e2e_build: {}
+      run-tests:
+        depends_on: [ios_e2e_build, android_e2e_build]
+        parallel: 5
+      # report-results:
+      #   depends_on: [run-tests]
   multichain_permissions_e2e_pipeline:
     stages:
       - build_multichain_permissions_e2e_ios_android_stage: {}
@@ -267,6 +276,10 @@ workflows:
           inputs:
             - variables: |-
                 BRANCH_COMMIT_HASH
+  run-tests:
+    after_run:
+      - android_e2e_test
+      - ios_e2e_test
   code_setup:
     before_run:
       - setup
@@ -879,7 +892,7 @@ workflows:
                 fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release --shard=$((BITRISE_IO_PARALLEL_INDEX + 1))/$BITRISE_IO_PARALLEL_TOTAL"
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -1132,7 +1145,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release --shard=$((BITRISE_IO_PARALLEL_INDEX + 1))/$BITRISE_IO_PARALLEL_TOTAL"
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
