@@ -3,10 +3,26 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { SnapUIInput } from './SnapUIInput';
 import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
 
+// Mock the entire module
+jest.mock('../../../Snaps/SnapInterfaceContext');
+
 describe('SnapUIInput', () => {
   const mockHandleInputChange = jest.fn();
   const mockSetCurrentFocusedInput = jest.fn();
   const mockGetValue = jest.fn();
+
+  beforeEach(() => {
+    // Set up the mock implementation before each test
+    (useSnapInterfaceContext as jest.Mock).mockReturnValue({
+      handleInputChange: mockHandleInputChange,
+      getValue: mockGetValue,
+      setCurrentFocusedInput: mockSetCurrentFocusedInput,
+      focusedInput: null,
+    });
+
+    // Clear all mocks before each test
+    jest.clearAllMocks();
+  });
 
   it('renders with initial value', () => {
     mockGetValue.mockReturnValue('initial value');

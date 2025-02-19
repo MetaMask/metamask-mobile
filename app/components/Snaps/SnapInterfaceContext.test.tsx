@@ -6,7 +6,7 @@ import {
   SnapInterfaceContextProvider,
   useSnapInterfaceContext,
 } from './SnapInterfaceContext';
-import { mergeValue } from './SnapUIRenderer/utils';
+import { mergeValue } from '../Snaps/SnapUIRenderer/utils';
 import { handleSnapRequest } from '../../core/Snaps/utils';
 import Engine from '../../core/Engine/Engine';
 
@@ -20,7 +20,7 @@ jest.mock('../../core/Engine/Engine', () => ({
   },
 }));
 jest.mock('../../core/Snaps/utils');
-jest.mock('../../utils');
+jest.mock('../Snaps/SnapUIRenderer/utils');
 
 describe('SnapInterfaceContext', () => {
   const mockInitialState = {
@@ -83,13 +83,15 @@ describe('SnapInterfaceContext', () => {
     });
 
     it('handles input focus state', () => {
-      const { result } = renderHook(() => useSnapInterfaceContext(), {
+      const { result, rerender } = renderHook(() => useSnapInterfaceContext(), {
         wrapper,
       });
 
       act(() => {
         result.current.setCurrentFocusedInput('testInput');
       });
+
+      rerender();
 
       expect(result.current.focusedInput).toBe('testInput');
     });

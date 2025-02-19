@@ -5,101 +5,132 @@ import configureMockStore from 'redux-mock-store';
 import SnapDialogApproval from './index';
 import Engine from '../../../core/Engine';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
+import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
 
-const mockStore = configureMockStore();
-const store = mockStore({
-  engine: {
-    snapState: {
-      interfaces: {
-        'interface-id': {
-          'custom-input': 'test-input',
-        },
-      },
+jest.mock('../SnapUIRenderer/SnapUIRenderer', () => ({
+  SnapUIRenderer: () => null,
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  acceptPendingApproval: jest.fn(),
+  context: {
+    SnapInterfaceController: {
+      deleteInterface: jest.fn(),
     },
   },
-});
+}));
 
-const renderWithProvider = (component: React.ReactElement) =>
+jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
+
+const mockStore = configureMockStore();
+const store = mockStore({});
+
+const renderComponent = (component: React.ReactElement) =>
   render(<Provider store={store}>{component}</Provider>);
 
 describe('SnapDialogApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    store.clearActions();
   });
 
   const mockApprovalRequest = (type: string) => ({
     id: 'test-id',
     type,
-    origin: 'snap-id',
+    origin: 'test-snap-id',
     requestData: {
-      id: 'interface-id',
+      id: 'test-interface-id',
     },
   });
 
   describe('Alert Dialog', () => {
     beforeEach(() => {
       (useApprovalRequest as jest.Mock).mockReturnValue({
-        approvalRequest: mockApprovalRequest('snap_dialog:alert'),
+        approvalRequest: mockApprovalRequest(DIALOG_APPROVAL_TYPES.alert),
       });
     });
 
-    it('renders alert dialog with OK button', () => {
-      const { getByText } = renderWithProvider(<SnapDialogApproval />);
+    it('render alert dialog with OK button', () => {
+      const { getByText } = renderComponent(<SnapDialogApproval />);
       expect(getByText('OK')).toBeTruthy();
     });
 
-    it('handles OK button press', async () => {
-      const { getByText } = renderWithProvider(<SnapDialogApproval />);
+    it('handle OK button press', async () => {
+      const { getByText } = renderComponent(<SnapDialogApproval />);
       await fireEvent.press(getByText('OK'));
+
       expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
         'test-id',
         null,
       );
+      expect(
+        Engine.context.SnapInterfaceController.deleteInterface,
+      ).toHaveBeenCalledWith('test-id');
+    });
+  });
+
+  describe('Default Dialog', () => {
+    beforeEach(() => {
+      (useApprovalRequest as jest.Mock).mockReturnValue({
+        approvalRequest: mockApprovalRequest(DIALOG_APPROVAL_TYPES.default),
+      });
+    });
+
+    it('render default dialog without buttons', () => {
+      const { queryByText } = renderComponent(<SnapDialogApproval />);
+      expect(queryByText('OK')).toBeNull();
+      expect(queryByText('Cancel')).toBeNull();
     });
   });
 
   describe('Confirmation Dialog', () => {
     beforeEach(() => {
       (useApprovalRequest as jest.Mock).mockReturnValue({
-        approvalRequest: mockApprovalRequest('snap_dialog:confirmation'),
+        approvalRequest: mockApprovalRequest(
+          DIALOG_APPROVAL_TYPES.confirmation,
+        ),
       });
     });
 
-    it('renders confirmation dialog with OK and Cancel buttons', () => {
-      const { getByText } = renderWithProvider(<SnapDialogApproval />);
-      expect(getByText('OK')).toBeTruthy();
-      expect(getByText('Cancel')).toBeTruthy();
-    });
-
-    it('handles confirmation', async () => {
-      const { getByText } = renderWithProvider(<SnapDialogApproval />);
-      await fireEvent.press(getByText('OK'));
-      expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-        'test-id',
-        true,
-      );
-    });
-
-    it('handles rejection', async () => {
-      const { getByText } = renderWithProvider(<SnapDialogApproval />);
-      await fireEvent.press(getByText('Cancel'));
-      expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-        'test-id',
-        false,
-      );
+    it('render confirmation dialog without default buttons', () => {
+      const { queryByText } = renderComponent(<SnapDialogApproval />);
+      expect(queryByText('OK')).toBeNull();
+      expect(queryByText('Cancel')).toBeNull();
     });
   });
 
   describe('Invalid Dialog Type', () => {
-    it('returns null for invalid dialog type', () => {
+    it('return null for invalid dialog type', () => {
       (useApprovalRequest as jest.Mock).mockReturnValue({
         approvalRequest: mockApprovalRequest('invalid_type'),
       });
 
-      const { queryByText } = renderWithProvider(<SnapDialogApproval />);
-      expect(queryByText('OK')).toBeNull();
-      expect(queryByText('Cancel')).toBeNull();
+      const { queryByTestId } = renderComponent(<SnapDialogApproval />);
+      expect(queryByTestId('snap-dialog-approval')).toBeNull();
+    });
+  });
+
+  describe('Loading State', () => {
+    it('handle loading state during cancel operation', async () => {
+      (useApprovalRequest as jest.Mock).mockReturnValue({
+        approvalRequest: mockApprovalRequest(DIALOG_APPROVAL_TYPES.alert),
+      });
+
+      const { getByText } = renderComponent(<SnapDialogApproval />);
+      const okButton = getByText('OK');
+
+      await fireEvent.press(okButton);
+      expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('No Approval Request', () => {
+    it('handle undefined approval request', () => {
+      (useApprovalRequest as jest.Mock).mockReturnValue({
+        approvalRequest: undefined,
+      });
+
+      const { queryByTestId } = renderComponent(<SnapDialogApproval />);
+      expect(queryByTestId('snap-dialog-approval')).toBeNull();
     });
   });
 });

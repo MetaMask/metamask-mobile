@@ -6,11 +6,13 @@ import { getMemoizedInterface } from '../../../selectors/snaps/interfaceControll
 import { SnapInterfaceContextProvider } from '../SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../UI/TemplateRenderer';
-import { ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Container } from '@metamask/snaps-sdk/jsx';
 import { strings } from '../../../../locales/i18n';
 import styles from './SnapUIRenderer.styles';
+import { RootState } from '../../../reducers';
+import { TemplateRendererInput } from '../../UI/TemplateRenderer/types';
 
 interface SnapUIRendererProps {
   snapId: string;
@@ -28,7 +30,7 @@ const SnapUIRendererComponent = ({
   useFooter,
 }: SnapUIRendererProps) => {
   const interfaceState = useSelector(
-    (state) => getMemoizedInterface(state, interfaceId),
+    (state: RootState) => getMemoizedInterface(state, interfaceId),
     (oldState, newState) =>
       isEqual(oldState?.content ?? null, newState?.content ?? null),
   );
@@ -42,13 +44,13 @@ const SnapUIRendererComponent = ({
   const sections = useMemo(
     () =>
       content &&
-      mapToTemplate({
+      (mapToTemplate({
         map: {},
         element: content,
         useFooter,
         onCancel,
         t: strings,
-      }),
+      }) as TemplateRendererInput),
     [content, useFooter, onCancel],
   );
 
