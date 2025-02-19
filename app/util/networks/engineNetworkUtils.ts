@@ -1,8 +1,8 @@
-import Engine from '../../core/Engine';
 import { convertHexToDecimal } from '@metamask/controller-utils';
 import { NetworkClientId } from '@metamask/network-controller';
 import { TransactionParams } from '@metamask/transaction-controller';
-import { isStrictHexString } from '@metamask/utils';
+import { Hex, isStrictHexString } from '@metamask/utils';
+import Engine from '../../core/Engine';
 
 /**
  * Convert the given value into a valid network ID. The ID is accepted
@@ -43,15 +43,21 @@ export function toggleUseSafeChainsListValidation(value: boolean): void {
  */
 export const fetchEstimatedMultiLayerL1Fee = async (
   _: unknown,
-  { txParams, networkClientId }: {
-    txParams: TransactionParams,
-    networkClientId: NetworkClientId,
-  }
+  {
+    chainId,
+    networkClientId,
+    txParams,
+  }: {
+    chainId?: Hex;
+    txParams: TransactionParams;
+    networkClientId?: NetworkClientId;
+  },
 ) => {
   const layer1GasFee =
     await Engine.context.TransactionController.getLayer1GasFee({
-      transactionParams: txParams,
+      chainId,
       networkClientId,
+      transactionParams: txParams,
     });
 
   const layer1GasFeeNoPrefix = layer1GasFee?.startsWith('0x')
