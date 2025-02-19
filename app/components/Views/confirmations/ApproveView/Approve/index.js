@@ -45,7 +45,7 @@ import {
 } from '../../../../../core/GasPolling/GasPolling';
 import {
   selectNativeCurrencyByChainId,
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
   selectProviderTypeByChainId,
   selectRpcUrlByChainId,
 } from '../../../../../selectors/networkController';
@@ -976,7 +976,7 @@ const mapStateToProps = (state) => {
     addressBook: selectAddressBook(state),
     providerType: selectProviderTypeByChainId(state, chainId),
     providerRpcTarget: selectRpcUrlByChainId(state, chainId),
-    networkConfigurations: selectNetworkConfigurations(state),
+    networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
   };

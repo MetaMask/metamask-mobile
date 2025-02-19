@@ -75,7 +75,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import createStyles from './styles';
 import {
   selectNativeCurrencyByChainId,
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
   selectProviderTypeByChainId,
   selectRpcUrlByChainId,
 } from '../../../../../selectors/networkController';
@@ -1344,7 +1344,7 @@ const mapStateToProps = (state) => {
 
   return {
     ticker: selectNativeCurrencyByChainId(state, chainId),
-    networkConfigurations: selectNetworkConfigurations(state),
+    networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
     transaction: getNormalizedTxState(state),
     tokensLength: selectTokensLength(state),
     accountsLength: selectAccountsLength(state),

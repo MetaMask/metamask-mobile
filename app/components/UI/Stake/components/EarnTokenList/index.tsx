@@ -27,7 +27,7 @@ import { selectTokensBalances } from '../../../../../selectors/tokenBalancesCont
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -108,7 +108,9 @@ const EarnTokenList = () => {
     selectSelectedInternalAccountAddress,
   );
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   const currentCurrency = useSelector(selectCurrentCurrency);
 
