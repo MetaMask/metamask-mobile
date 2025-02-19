@@ -1,0 +1,73 @@
+Commit Message,Author,PR Link,Team,Change Type
+ci: update trigger map (#13506),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/13506,team-qa,Changed
+test(ramp): MMQA-195: add on-ramp e2e test cases (#13265),Iván,https://github.com/MetaMask/metamask-mobile/pull/13265,team-qa,Changed
+test: Add Stake e2e automation (#13180),Davide Brocchetto,https://github.com/MetaMask/metamask-mobile/pull/13180,team-qa,Changed
+test: Add e2e for app restart after adding contact address (#13273),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/13273,team-qa,Changed
+chore(runway): cherry-pick chore: main stable sync 7.39.0 (#13505),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13505,team-runway-bot,Ops
+chore(runway): cherry-pick fix: fix sort feature (#13493),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13493,team-runway-bot,Added
+chore(runway): cherry-pick fix: fix duplicate native entry after send flow (#13457),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13457,team-runway-bot,Ops
+chore(runway): cherry-pick fix: fiat estimates disabled in send flow (#13370),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13370,team-runway-bot,Ops
+chore(runway): cherry-pick fix: check isNative to determine if a token is a gas token (#13340),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13340,team-runway-bot,Ops
+chore(runway): cherry-pick feat: customize fetchInterval for remoteFeatureFlagController to 15min (#13342),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13342,team-runway-bot,Added
+chore(runway): cherry-pick fix: Currently keystone lib will throw `KeystoneError#Tx_canceled` which will crash the mobile app (#13320),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13320,team-runway-bot,Ops
+chore(runway): cherry-pick fix: prev network eth swap send main branch (#13300),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13300,team-runway-bot,Ops
+chore(runway): cherry-pick fix: metrics call during onboarding (#13299),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13299,team-runway-bot,Ops
+chore(runway): cherry-pick fix: bump @react-native-community/blur to v4.4.1 (#13298),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13298,team-runway-bot,Ops
+chore(runway): cherry-pick fix: Adjust browser display when multiple tabs are present (#13297),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13297,team-runway-bot,Ops
+chore: cherry-pick `13466` (#13467),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/13467,team-confirmations,Ops
+feat: Implement staking deposit `TokenHero` component (#13418),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/13418,team-confirmations,Added
+feat: Implement staking back navigation header  (#13416),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/13416,team-confirmations,Added
+chore: Fix lint warnings output by `yarn lint:fix` (#13400),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/13400,team-confirmations,Changed
+feat: Implement redesigned staking confirmation entry point (#13361),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/13361,team-confirmations,Added
+build: add SENTRY_DEBUG_DEV ENV to turn off Sentry Logger (#13407),digiwand,https://github.com/MetaMask/metamask-mobile/pull/13407,team-confirmations,Unknown
+feat: QR hardware signing in new designs (#13261),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/13261,team-confirmations,Added
+chore: adding e2e for SIWE signatures (#13353),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/13353,team-confirmations,Changed
+feat: SIWE signature related changes on personal signature page (#13329),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/13329,team-confirmations,Added
+fix: Fix redesigned e2e tests (#13364),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/13364,team-confirmations,Changed
+refactor: utils/signature and deprecate utils/signatures (#13347),digiwand,https://github.com/MetaMask/metamask-mobile/pull/13347,team-confirmations,Changed
+fix: fiat estimates disabled in send flow (#13359),Matthew Walsh,https://github.com/MetaMask/metamask-mobile/pull/13359,team-confirmations,Fixed
+fix: SIWE detection on mobile by patching @spruceid+siwe-parser (#13334),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/13334,team-confirmations,Fixed
+feat: Implement confirm layout (#13331),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/13331,team-confirmations,Added
+"chore: Revert ""fix: SIWE detection on mobile by patching @spruceid+siwe"" (#13333)",Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/13333,team-confirmations,Changed
+fix: SIWE detection on mobile by patching @spruceid+siwe-parser (#13314),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/13314,team-confirmations,Fixed
+feat: Adding token value field typed sign data tree. (#13223),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/13223,team-confirmations,Added
+chore: bump `@metamask/base-controller` to `^8.0.0` (#13460),cryptodev-2s,https://github.com/MetaMask/metamask-mobile/pull/13460,team-wallet-framework,Ops
+chore: Rename ControllerMessenger to Messenger (#13302),cryptodev-2s,https://github.com/MetaMask/metamask-mobile/pull/13302,team-wallet-framework,Changed
+chore(deps): bump `elliptic` to `^6.6.0` (#12979),Michele Esposito,https://github.com/MetaMask/metamask-mobile/pull/12979,team-wallet-framework,Ops
+chore: Bump selected-network-controller to v21 (#13109),Elliot Winkler,https://github.com/MetaMask/metamask-mobile/pull/13109,team-wallet-framework,Changed
+fix: fix duplicate native entry after send flow (#13413),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/13413,team-assets,Fixed
+feat: remove unused push notification environment variables (#13270),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/13270,team-assets,Added
+chore: cleanup and deduplicate notification types and constants (#13381),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/13381,team-assets,Changed
+fix(cherry-pick 7.40.0): revert NFT grid view (#13292) (#13358),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/13358,team-assets,Ops
+fix: revert NFT grid view (#13292),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/13292,team-assets,Fixed
+feat: update notification codeowners (#13269),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/13269,team-assets,Added
+fix: fix sort feature (#13277),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/13277,team-assets,Added
+chore: main stable sync 7.39.0 (#13451),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/13451,team-mobile-platform,Changed
+fix: update marketing traits when tracked settings change [PR 1/2] (#13254),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/13254,team-mobile-platform,Fixed
+feat: customize fetchInterval for remoteFeatureFlagController to 15min (#13341),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/13341,team-mobile-platform,Added
+chore: move metrics identify to state listener (#13203),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/13203,team-mobile-platform,Changed
+fix: bump @react-native-community/blur to v4.4.1 (#13293),João Loureiro,https://github.com/MetaMask/metamask-mobile/pull/13293,team-mobile-platform,Ops
+feat: allow override remote feature flags (#13156),João Loureiro,https://github.com/MetaMask/metamask-mobile/pull/13156,team-mobile-platform,Added
+fix: metrics call during onboarding (#13226),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/13226,team-mobile-platform,Fixed
+fix(action): indicate working directory (again) (#13425),Gauthier Petetin,https://github.com/MetaMask/metamask-mobile/pull/13425,team-extension-platform,Fixed
+fix(action): indicate working directory (#13419),Gauthier Petetin,https://github.com/MetaMask/metamask-mobile/pull/13419,team-extension-platform,Fixed
+feat(action): Improve bug report creation (#13397),Gauthier Petetin,https://github.com/MetaMask/metamask-mobile/pull/13397,team-extension-platform,Added
+chore(ramp): upgrades ramp-sdk to 2.0.5 (#13379),George Weiler,https://github.com/MetaMask/metamask-mobile/pull/13379,team-ramp,Changed
+feat(ramp): sorts ramp quotes by price (#13339),George Weiler,https://github.com/MetaMask/metamask-mobile/pull/13339,team-ramp,Added
+feat(ramps):  updates useQuotes interface to include some quotes metadata (#13335),George Weiler,https://github.com/MetaMask/metamask-mobile/pull/13335,team-ramp,Added
+chore(ramp): upgrade ramp-sdk to @2.0.4 (#13318),George Weiler,https://github.com/MetaMask/metamask-mobile/pull/13318,team-ramp,Changed
+feat: MultichainBalanceController (#12599),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/12599,Unknown,Added
+chore: chore/7.40.0-Changelog (#13286),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/13286,Unknown,Changed
+"chore(3663): removing the isMultichainVersion1Enabled feature flag, and corresponding dead code (#12831)",EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/12831,team-wallet-ux,Added
+cherry: fix send with custom nonce (#13365),Bryan Fullam,https://github.com/MetaMask/metamask-mobile/pull/13365,team-identity,Ops
+fix: use global network client Id in send confirmation screen (#13363),Bryan Fullam,https://github.com/MetaMask/metamask-mobile/pull/13363,team-identity,Fixed
+fix: check isNative to determine if a token is a gas token (#13315),Bryan Fullam,https://github.com/MetaMask/metamask-mobile/pull/13315,team-identity,Fixed
+feat: STAKE-808: graph with historic vault apy tooltip (#12804),Matthew Grainger,https://github.com/MetaMask/metamask-mobile/pull/12804,team-identity,Added
+feat: create release pr refs (#13317),jake-perkins,https://github.com/MetaMask/metamask-mobile/pull/13317,team-dev-ops,Added
+chore: change cicd to commit ref hash (#13303),jake-perkins,https://github.com/MetaMask/metamask-mobile/pull/13303,team-dev-ops,Changed
+feat: shared-platform rls process (#13280),jake-perkins,https://github.com/MetaMask/metamask-mobile/pull/13280,team-dev-ops,Added
+fix: Currently keystone lib will throw `KeystoneError#Tx_canceled` which will crash the mobile app (#13313),Xiaoming Wang,https://github.com/MetaMask/metamask-mobile/pull/13313,team-hardware-wallets,Fixed
+fix: send max main branch (#13279),infiniteflower,https://github.com/MetaMask/metamask-mobile/pull/13279,team-swaps-and-bridge,Fixed
+fix: prev network eth swap send main branch (#13283),infiniteflower,https://github.com/MetaMask/metamask-mobile/pull/13283,team-swaps-and-bridge,Fixed
+fix: Adjust browser display when multiple tabs are present (#13294),Ziad Saab,https://github.com/MetaMask/metamask-mobile/pull/13294,team-portfolio,Fixed
+feat: add user earning history graph and list on history button click (#12746),Nicholas Smith,https://github.com/MetaMask/metamask-mobile/pull/12746,team-stake,Added
