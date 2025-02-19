@@ -36,14 +36,13 @@ describe('ConfirmAlertModal', () => {
   });
 
   it('renders the ConfirmAlertModal correctly', () => {
-    const { getByText, getByTestId } = render(<ConfirmAlertModal {...baseProps} />);
+    const { getByText } = render(<ConfirmAlertModal {...baseProps} />);
     expect(getByText(CONFIRM_MODAL_TITLE_LABEL)).toBeDefined();
     expect(getByText(CONFIRM_MODAL_MESSAGE_LABEL)).toBeDefined();
     expect(getByText(REVIEW_ALERTS_LABEL)).toBeDefined();
     expect(getByText(CHECKBOX_LABEL)).toBeDefined();
     expect(getByText(REJECT_BTN)).toBeDefined();
     expect(getByText(CONFIRM_BTN)).toBeDefined();
-    expect(getByTestId('confirm-alert-modal-icon')).toBeDefined();
   });
 
   it('calls onCancel when the Cancel button is pressed', async () => {

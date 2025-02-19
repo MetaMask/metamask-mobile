@@ -42,7 +42,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onCancel, onClose
     <BottomModal onClose={onClose}>
       <View style={styles.modalContainer}>
         <View>
-          <Icon name={IconName.Danger} size={IconSize.Xl} color={colors.error.default} testID="confirm-alert-modal-icon"/>
+          <Icon name={IconName.Danger} size={IconSize.Xl} color={colors.error.default} />
         </View>
         <View style={styles.headerContainer}>
           <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
