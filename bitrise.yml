@@ -76,7 +76,7 @@ pipelines:
       ios_e2e_build: {}
       run-tests:
         depends_on: [ios_e2e_build]
-        parallel: 5
+        parallel: 10
       # report-results:
       #   depends_on: [run-tests]
   multichain_permissions_e2e_pipeline:
