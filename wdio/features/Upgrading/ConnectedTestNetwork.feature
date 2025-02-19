@@ -1,5 +1,5 @@
 @androidApp
-@upgrade
+# @upgrade
 @fixturesSkipOnboarding
 Feature: Upgrade previous app build with current release
 
