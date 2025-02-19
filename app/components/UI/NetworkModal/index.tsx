@@ -219,7 +219,7 @@ const NetworkModals = (props: NetworkProps) => {
   }, [checkNetwork]);
 
   const closeModal = async () => {
-    const { NetworkController } = Engine.context;
+    const { NetworkController, MultichainNetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
 
@@ -265,7 +265,7 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (networkClientId) {
       onUpdateNetworkFilter();
-      await NetworkController.setActiveNetwork(networkClientId);
+      await MultichainNetworkController.setActiveNetwork(networkClientId);
     }
 
     onClose();
@@ -275,7 +275,7 @@ const NetworkModals = (props: NetworkProps) => {
     existingNetwork: NetworkConfiguration,
     networkId: string,
   ) => {
-    const { NetworkController } = Engine.context;
+    const { NetworkController, MultichainNetworkController } = Engine.context;
     const updatedNetwork = await NetworkController.updateNetwork(
       existingNetwork.chainId,
       existingNetwork,
@@ -291,7 +291,7 @@ const NetworkModals = (props: NetworkProps) => {
       updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
       {};
     onUpdateNetworkFilter();
-    await NetworkController.setActiveNetwork(networkClientId);
+    await MultichainNetworkController.setActiveNetwork(networkClientId);
   };
 
   const handleNewNetwork = async (
@@ -337,7 +337,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const switchNetwork = async () => {
-    const { NetworkController } = Engine.context;
+    const { MultichainNetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     const existingNetwork = networkConfigurationByChainId[chainId];
 
@@ -360,7 +360,7 @@ const NetworkModals = (props: NetworkProps) => {
         {};
 
       onUpdateNetworkFilter();
-      NetworkController.setActiveNetwork(networkClientId);
+      MultichainNetworkController.setActiveNetwork(networkClientId);
     }
     onClose();
 
