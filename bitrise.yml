@@ -550,7 +550,6 @@ workflows:
       - setup
       - prep_environment
       - download_production_qa_apk
-      - _upload_apk_to_browserstack
     envs:
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - TEST_TYPE: 'upgrade'
@@ -576,6 +575,11 @@ workflows:
                     -F 'data={"custom_id": "'$CUSTOM_ID'"}' \
                     | jq -j '.app_url' \
                     | envman add --key PRODUCTION_APP_URL
+
+                echo "Using qa-release with production version: $VERSION_NAME"
+                echo "BITRISE URL: $PRODUCTION_APP_URL"
+                echo "Using qa-release with production version: $VERSION_NUMBER"
+
     after_run:
       -  wdio_android_e2e_test
   build_ios_multichain_permissions_e2e:
