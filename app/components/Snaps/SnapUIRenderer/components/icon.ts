@@ -20,11 +20,11 @@ export const icon: UIComponentFactory<IconElement> = ({ element }) => {
   const getIconColor = () => {
     switch (element.props.color) {
       case 'muted':
-        return IconColor.iconMuted;
+        return IconColor.Muted;
       case 'primary':
-        return IconColor.primaryDefault;
+        return IconColor.Primary;
       default:
-        return IconColor.iconDefault;
+        return IconColor.Default;
     }
   };
 

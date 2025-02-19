@@ -27,7 +27,7 @@ describe('Icon UIComponentFactory', () => {
       element: 'SnapUIIcon',
       props: {
         name: IconName.Danger,
-        color: IconColor.primaryDefault,
+        color: IconColor.Primary,
         size: IconSize.Md,
       },
     });
@@ -47,7 +47,7 @@ describe('Icon UIComponentFactory', () => {
       element: 'SnapUIIcon',
       props: {
         name: IconName.Danger, // Invalid names default to Danger
-        color: IconColor.iconDefault, // Default color
+        color: IconColor.Default, // Default color
         size: 'inherit', // Default size
       },
     });
@@ -68,7 +68,7 @@ describe('Icon UIComponentFactory', () => {
       element: 'SnapUIIcon',
       props: {
         name: IconName.Danger,
-        color: IconColor.iconMuted,
+        color: IconColor.Muted,
         size: 'inherit',
       },
     });

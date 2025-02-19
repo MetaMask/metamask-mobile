@@ -4,7 +4,6 @@ import { NonEmptyArray } from '@metamask/utils';
 import { mapTextToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 import {
-  FontWeight,
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text/Text.types';
@@ -48,12 +47,12 @@ function getTextColor(color: TextProps['props']['color']) {
 function getFontWeight(color: TextProps['props']['fontWeight']) {
   switch (color) {
     case 'bold':
-      return FontWeight.Bold;
+      return 'bold';
     case 'medium':
-      return FontWeight.Medium;
+      return 'medium';
     case 'regular':
     default:
-      return FontWeight.Normal;
+      return 'normal';
   }
 }
 

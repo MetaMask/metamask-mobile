@@ -8,7 +8,7 @@ import {
   FlexDirection,
   JustifyContent,
   TextAlign,
-} from '../../Snaps/SnapUIRenderer/components/box.types';
+} from './box.types';
 
 const getBoxStyles = (props: {
   display?: Display;
