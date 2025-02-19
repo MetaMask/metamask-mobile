@@ -203,6 +203,7 @@ const Quote: React.FC<Props> = ({
                   >
                     {isLoading ? (
                       <ActivityIndicator
+                        testID="buy-button-loading"
                         size={'small'}
                         color={colors.primary.inverse}
                       />
@@ -231,7 +232,11 @@ const Quote: React.FC<Props> = ({
                   {crypto?.symbol}
                 </>
               ) : (
-                `≈ ${renderFiat(amountOut, fiatCode, fiat?.decimals)}`
+                `≈ ${fiatSymbol} ${renderFiat(
+                  amountOut,
+                  fiatCode,
+                  fiat?.decimals,
+                )}`
               )}
             </Text>
           </ListItemColumn>
