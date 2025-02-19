@@ -27,11 +27,11 @@ jobs:
       semver-version: ${{ inputs.semver-version }}
       previous-version-tag: ${{ inputs.previous-version-tag }}
       #mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
-      mobile-build-version: '12349'
+      mobile-build-version: '12350'
       test-only: 'true'
       # Testing Documents
       release-sheet-google-document-id: '1_aJ-cqS5ngrXzAIly3HOyl7CY_lqIoV2T7_OU83AD50' # Release Testing Document
-      mobile-template-sheet-id: '1012668681'
+      mobile-template-sheet-id: '514823427'
 
     secrets:
       # This token needs read permissions to metamask-planning & write permissions to metamask-mobile
