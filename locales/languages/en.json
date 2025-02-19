@@ -3633,6 +3633,13 @@
   "confirm": {
     "reject": "Reject",
     "confirm": "Confirm",
+    "staking_footer": {
+      "part1": "By continuing, you agree to our ",
+      "terms_of_use": "Terms of Use",
+      "part2": " and ",
+      "risk_disclosure": "Risk Disclosure",
+      "part3": "."
+    },
     "label": {
       "account": "Account",
       "balance": "Balance",
