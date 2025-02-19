@@ -64,11 +64,13 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+const mockRemoveChannel = jest.fn();
+
 // Mock SDKConnect
 jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
   getInstance: () => ({
     getConnection: () => undefined,
-    removeChannel: jest.fn(),
+    removeChannel: mockRemoveChannel,
   }),
 }));
 
@@ -215,15 +217,6 @@ describe('AccountConnect', () => {
   });
 
   it('should handle cancel button press correctly', () => {
-    const mockRemoveChannel = jest.fn();
-
-    jest
-      .spyOn(require('../../../core/SDKConnect/SDKConnect'), 'getInstance')
-      .mockImplementation(() => ({
-        getConnection: () => undefined,
-        removeChannel: mockRemoveChannel,
-      }));
-
     const { getByTestId } = renderWithProvider(
       <AccountConnect
         route={{
