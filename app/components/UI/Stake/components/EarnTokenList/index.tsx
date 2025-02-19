@@ -1,5 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import React, { useMemo, useRef, useCallback } from 'react';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextColor,
@@ -17,17 +19,7 @@ import {
 import { selectAccountTokensAcrossChains } from '../../../../../selectors/multichain';
 import { TokenI } from '../../../Tokens/types';
 import { ScrollView } from 'react-native-gesture-handler';
-import BigNumber from 'bignumber.js';
-import { deriveBalanceFromAssetMarketDetails } from '../../../Tokens/util';
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
-import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { Hex } from '@metamask/utils';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -45,17 +37,10 @@ import Engine from '../../../../../core/Engine';
 import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 
 const isEmptyBalance = (token: { tokenBalanceFormatted: string }) =>
   parseFloat(token?.tokenBalanceFormatted) === 0;
-
-// Temporary: Will be replaced by actual API call in near future.
-export const MOCK_STABLECOIN_API_RESPONSE: { [key: string]: string } = {
-  USDC: '4.5',
-  USDT: '4.1',
-  DAI: '5.0',
-  Ethereum: '2.3',
-};
 
 // Temporary: Will be replaced by actual API call in near future.
 const MOCK_ESTIMATE_REWARDS = '$454';
@@ -84,10 +69,10 @@ const EarnTokenListSkeletonPlaceholder = () => (
 
 const EarnTokenList = () => {
   const { createEventBuilder, trackEvent } = useMetrics();
-
   const { styles } = useStyles(styleSheet, {});
-
   const { navigate } = useNavigation();
+  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const tokens = useSelector((state: RootState) =>
     isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
@@ -97,56 +82,6 @@ const EarnTokenList = () => {
     isEligible: isEligibleToStake,
     isLoadingEligibility: isLoadingStakingEligibility,
   } = useStakingEligibility();
-
-  const multiChainTokenBalance = useSelector(selectTokensBalances);
-
-  const multiChainMarketData = useSelector(selectTokenMarketData);
-
-  const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
-
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-
-  const currentCurrency = useSelector(selectCurrentCurrency);
-
-  const getTokenBalance = useCallback(
-    (token: TokenI) => {
-      const tokenChainId = token.chainId as Hex;
-
-      const nativeCurrency =
-        networkConfigurations?.[tokenChainId]?.nativeCurrency;
-
-      const { balanceValueFormatted, balanceFiat } =
-        deriveBalanceFromAssetMarketDetails(
-          token,
-          multiChainMarketData?.[tokenChainId] || {},
-          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-            tokenChainId
-          ] || {},
-          multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0,
-          currentCurrency || '',
-        );
-
-      return {
-        ...token,
-        tokenBalanceFormatted: balanceValueFormatted,
-        balanceFiat,
-      };
-    },
-    [
-      currentCurrency,
-      multiChainCurrencyRates,
-      multiChainMarketData,
-      multiChainTokenBalance,
-      networkConfigurations,
-      selectedInternalAccountAddress,
-    ],
-  );
 
   const supportedStablecoins = useMemo(() => {
     if (isLoadingStakingEligibility) return [];
@@ -164,7 +99,7 @@ const EarnTokenList = () => {
     );
 
     const eligibleTokensWithBalances = eligibleTokens?.map((token) =>
-      getTokenBalance(token),
+      getTokenWithBalanceAndApr(token),
     );
 
     // Tokens with a balance of 0 are placed at the end of the list.
@@ -174,7 +109,19 @@ const EarnTokenList = () => {
 
       return (fiatBalanceA === 0 ? 1 : 0) - (fiatBalanceB === 0 ? 1 : 0);
     });
-  }, [getTokenBalance, isEligibleToStake, isLoadingStakingEligibility, tokens]);
+  }, [
+    getTokenWithBalanceAndApr,
+    isEligibleToStake,
+    isLoadingStakingEligibility,
+    tokens,
+  ]);
+
+  const closeBottomSheetAndNavigate = useCallback(
+    (navigateFunc: () => void) => {
+      bottomSheetRef.current?.onCloseBottomSheet(navigateFunc);
+    },
+    [],
+  );
 
   const handleRedirectToInputScreen = async (token: TokenI) => {
     const { NetworkController } = Engine.context;
@@ -196,9 +143,11 @@ const EarnTokenList = () => {
       ? STAKE_INPUT_VIEW_ACTIONS.STAKE
       : STAKE_INPUT_VIEW_ACTIONS.LEND;
 
-    navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: { token, action },
+    closeBottomSheetAndNavigate(() => {
+      navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: { token, action },
+      });
     });
 
     trackEvent(
@@ -216,7 +165,7 @@ const EarnTokenList = () => {
   };
 
   return (
-    <BottomSheet>
+    <BottomSheet ref={bottomSheetRef}>
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingSM}>
           {strings('stake.select_a_token')}
@@ -242,11 +191,7 @@ const EarnTokenList = () => {
                       token={token}
                       onPress={handleRedirectToInputScreen}
                       primaryText={{
-                        value: `${new BigNumber(
-                          MOCK_STABLECOIN_API_RESPONSE[token.symbol],
-                        ).toFixed(1, BigNumber.ROUND_DOWN)}% ${strings(
-                          'stake.apr',
-                        )}`,
+                        value: `${token.apr}% APR`,
                         color: TextColor.Success,
                       }}
                       {...(!isEmptyBalance(token) && {

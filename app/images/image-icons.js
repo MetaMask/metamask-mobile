@@ -15,6 +15,7 @@ import APE_TOKEN from './ape-token.png';
 import SOLANA from './solana-logo.png';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
+import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 
 export default {
   PALM,
@@ -36,4 +37,5 @@ export default {
   'KAIA-MAINNET': KAIA_MAINNET,
   'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
   SOLANA,
+  FOX_LOGO,
 };
