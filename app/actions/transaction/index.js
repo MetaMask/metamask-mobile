@@ -157,3 +157,17 @@ export function setProposedNonce(proposedNonce) {
     proposedNonce,
   };
 }
+
+export function setMaxValueMode(maxValueMode) {
+  return {
+    type: 'SET_MAX_VALUE_MODE',
+    maxValueMode,
+  };
+}
+
+export function setTransactionValue(value) {
+  return {
+    type: 'SET_TRANSACTION_VALUE',
+    value,
+  };
+}

@@ -139,18 +139,12 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               >
                 <Image
                   resizeMethod="auto"
-                  source={
-                    {
-                      "default": {
-                        "uri": "MockImage",
-                      },
-                    }
-                  }
+                  source={1}
                   style={
                     {
-                      "height": 15,
+                      "height": 35,
                       "tintColor": "#141618",
-                      "width": 122,
+                      "width": 70,
                     }
                   }
                 />
@@ -375,6 +369,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                             style={
                               {
                                 "flex": 1,
+                                "marginTop": 16,
                                 "padding": 20,
                                 "paddingBottom": 0,
                                 "paddingTop": 0,
@@ -780,17 +775,19 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                     "fontSize": 24,
                                     "fontWeight": "600",
                                     "marginBottom": 24,
+                                    "marginTop": 24,
                                     "textAlign": "center",
                                   }
                                 }
                               >
                                 Secure your wallet
                               </Text>
-                              <View
+                              <Image
+                                source={1}
                                 style={
                                   {
-                                    "height": 240,
-                                    "width": "100%",
+                                    "height": 225,
+                                    "width": 200,
                                   }
                                 }
                               />
@@ -810,7 +807,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "lineHeight": 20,
-                                      "textAlign": "center",
+                                      "textAlign": "left",
                                     }
                                   }
                                 >

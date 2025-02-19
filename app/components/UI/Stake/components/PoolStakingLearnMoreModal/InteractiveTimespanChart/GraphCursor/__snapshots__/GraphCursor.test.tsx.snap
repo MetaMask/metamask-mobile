@@ -1,0 +1,82 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GraphCursor render matches snapshot 1`] = `
+<RNSVGGroup
+  fill={
+    {
+      "payload": 4278190080,
+      "type": 0,
+    }
+  }
+  matrix={
+    [
+      1,
+      0,
+      -0,
+      1,
+      73,
+      0,
+    ]
+  }
+>
+  <RNSVGGroup
+    fill={
+      {
+        "payload": 4278190080,
+        "type": 0,
+      }
+    }
+  >
+    <RNSVGLine
+      fill={
+        {
+          "payload": 4278190080,
+          "type": 0,
+        }
+      }
+      propList={
+        [
+          "stroke",
+          "strokeWidth",
+        ]
+      }
+      stroke={
+        {
+          "payload": 4280058420,
+          "type": 0,
+        }
+      }
+      strokeWidth={1}
+      x1={0}
+      x2={0}
+      y1={1}
+      y2="100%"
+    />
+    <RNSVGCircle
+      cx={0}
+      cy={33.17441726994484}
+      fill={
+        {
+          "payload": 4280058420,
+          "type": 0,
+        }
+      }
+      propList={
+        [
+          "fill",
+          "stroke",
+          "strokeWidth",
+        ]
+      }
+      r={5}
+      stroke={
+        {
+          "payload": 4280058420,
+          "type": 0,
+        }
+      }
+      strokeWidth={1}
+    />
+  </RNSVGGroup>
+</RNSVGGroup>
+`;

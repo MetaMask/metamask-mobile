@@ -4,8 +4,10 @@ import { getGanachePort } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { SolScope } from '@metamask/keyring-api';
 
-export const DEFAULT_FIXTURE_ACCOUNT = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+export const DEFAULT_FIXTURE_ACCOUNT =
+  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 
 const DAPP_URL = 'localhost';
 
@@ -435,6 +437,15 @@ class FixtureBuilder {
               isUpdatingMetamaskNotificationsAccount: [],
               isCheckingAccountsPresence: false,
             },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: SolScope.Mainnet,
+              multichainNetworkConfigurationsByChainId: {},
+              isEvmSelected: true,
+            },
+            MultichainAssetsController: {
+              accountsAssets: {},
+              assetsMetadata: {},
+            },
           },
         },
         privacy: {
@@ -447,7 +458,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
+              url: 'https://google.com',
               id: 1692550481062,
             },
           ],
@@ -627,6 +638,7 @@ class FixtureBuilder {
           selectedRegionAgg: null,
           selectedPaymentMethodAgg: null,
           getStartedAgg: false,
+          getStartedSell: false,
           authenticationUrls: [],
           activationKeys: [],
         },
@@ -696,8 +708,9 @@ class FixtureBuilder {
     const { providerConfig } = data;
 
     // Generate a unique key for the new network client ID
-    const newNetworkClientId = `networkClientId${Object.keys(networkController.networkConfigurationsByChainId).length + 1
-      }`;
+    const newNetworkClientId = `networkClientId${
+      Object.keys(networkController.networkConfigurationsByChainId).length + 1
+    }`;
 
     // Define the network configuration
     const networkConfig = {
@@ -776,6 +789,30 @@ class FixtureBuilder {
     return this;
   }
 
+  withRampsSelectedRegion(region = null) {
+    const defaultRegion = {
+      currencies: ['/currencies/fiat/xcd'],
+      emoji: '🇱🇨',
+      id: '/regions/lc',
+      name: 'Saint Lucia',
+      support: { buy: true, sell: true, recurringBuy: true },
+      unsupported: false,
+      recommended: false,
+      detected: false,
+    };
+
+    // Use the provided region or fallback to the default
+    this.fixture.state.fiatOrders.selectedRegionAgg = region ?? defaultRegion;
+    return this;
+  }
+  withRampsSelectedPaymentMethod() {
+    const paymentType = '/payments/debit-credit-card';
+
+    // Use the provided region or fallback to the default
+    this.fixture.state.fiatOrders.selectedPaymentMethodAgg = paymentType;
+    return this;
+  }
+
   /**
    * Adds chain switching permission for specific chains.
    * @param {string[]} chainIds - Array of chain IDs to permit (defaults to ['0x1']), other nexts like linea mainnet 0xe708
@@ -818,9 +855,10 @@ class FixtureBuilder {
     const fixtures = this.fixture.state.engine.backgroundState;
 
     // Generate a unique key for the new network client ID
-    const newNetworkClientId = `networkClientId${Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
-      .length + 1
-      }`;
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
 
     // Define the Ganache network configuration
     const ganacheNetworkConfig = {
@@ -856,9 +894,10 @@ class FixtureBuilder {
     const sepoliaConfig = CustomNetworks.Sepolia.providerConfig;
 
     // Generate a unique key for the new network client ID
-    const newNetworkClientId = `networkClientId${Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
-      .length + 1
-      }`;
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
 
     // Define the Sepolia network configuration
     const sepoliaNetworkConfig = {
@@ -908,8 +947,9 @@ class FixtureBuilder {
       } = network.providerConfig;
 
       // Generate a unique key for the new network client ID
-      const newNetworkClientId = `networkClientId${Object.keys(networkConfigurationsByChainId).length + 1
-        }`;
+      const newNetworkClientId = `networkClientId${
+        Object.keys(networkConfigurationsByChainId).length + 1
+      }`;
 
       // Define the network configuration
       const networkConfig = {
@@ -988,19 +1028,16 @@ class FixtureBuilder {
       allTokens: {
         [CHAIN_IDS.MAINNET]: {
           [DEFAULT_FIXTURE_ACCOUNT]: tokens,
-        }
-      }
+        },
+      },
     });
     return this;
   }
 
   withIncomingTransactionPreferences(incomingTransactionPreferences) {
-    merge(
-      this.fixture.state.engine.backgroundState.PreferencesController,
-      {
-        showIncomingTransactions: incomingTransactionPreferences,
-      },
-    );
+    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
+      showIncomingTransactions: incomingTransactionPreferences,
+    });
     return this;
   }
 

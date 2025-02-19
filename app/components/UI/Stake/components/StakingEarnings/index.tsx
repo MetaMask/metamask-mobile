@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { Hex } from '@metamask/utils';
 import Text, {
   TextColor,
   TextVariant,
@@ -15,16 +16,21 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import { strings } from '../../../../../../locales/i18n';
-import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
-import useStakingChain from '../../hooks/useStakingChain';
+import { useStakingChainByChainId } from '../../hooks/useStakingChain';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import useStakingEarnings from '../../hooks/useStakingEarnings';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
+import { TokenI } from '../../../Tokens/types';
+import StakingEarningsHistoryButton from './StakingEarningsHistoryButton/StakingEarningsHistoryButton';
 
-const StakingEarningsContent = () => {
+export interface StakingEarningsProps {
+  asset: TokenI;
+}
+
+const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const { openTooltipModal } = useTooltipModal();
@@ -39,20 +45,17 @@ const StakingEarningsContent = () => {
     hasStakedPositions,
   } = useStakingEarnings();
 
+  const { isStakingSupportedChain } = useStakingChainByChainId(
+    asset.chainId as Hex,
+  );
+
   const onDisplayAnnualRateTooltip = () =>
     openTooltipModal(
       strings('stake.annual_rate'),
       strings('tooltip_modal.reward_rate.tooltip'),
     );
 
-  const { isStakingSupportedChain } = useStakingChain();
-
-  if (
-    !isPooledStakingFeatureEnabled() ||
-    !isStakingSupportedChain ||
-    !hasStakedPositions
-  )
-    return <></>;
+  if (!isStakingSupportedChain || !hasStakedPositions) return <></>;
 
   return (
     <View style={styles.stakingEarningsContainer}>
@@ -176,14 +179,15 @@ const StakingEarningsContent = () => {
             )}
           </View>
         </View>
+        <StakingEarningsHistoryButton asset={asset} />
       </View>
     </View>
   );
 };
 
-export const StakingEarnings = () => (
+export const StakingEarnings = ({ asset }: StakingEarningsProps) => (
   <StakeSDKProvider>
-    <StakingEarningsContent />
+    <StakingEarningsContent asset={asset} />
   </StakeSDKProvider>
 );
 

@@ -1,15 +1,13 @@
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
-import type { SnapController } from '@metamask/snaps-controllers';
-import { SnapKeyringBuilderMessenger } from './types';
 import Logger from '../../util/Logger';
 import { showAccountNameSuggestionDialog } from './utils/showDialog';
+import { SnapKeyringBuilderMessenger } from './types';
 
 /**
  * Constructs a SnapKeyring builder with specified handlers for managing snap accounts.
  * - Here is the equivalent function on the extension: https://github.com/MetaMask/metamask-extension/blob/develop/app/scripts/lib/snap-keyring/snap-keyring.ts#L111
  *
  * @param controllerMessenger - The controller messenger instance.
- * @param getSnapController - A function that retrieves the Snap Controller instance.
  * @param persistKeyringHelper - A function that persists all keyrings in the vault.
  * @param removeAccountHelper - A function to help remove an account based on its address.
  * @returns The constructed SnapKeyring builder instance with the following methods:
@@ -21,13 +19,14 @@ import { showAccountNameSuggestionDialog } from './utils/showDialog';
  */
 export const snapKeyringBuilder = (
   controllerMessenger: SnapKeyringBuilderMessenger,
-  getSnapController: () => SnapController,
+
   persistKeyringHelper: () => Promise<void>,
   removeAccountHelper: (address: string) => Promise<unknown>,
 ): { (): SnapKeyring; type: string } => {
   const builder = () =>
-    new SnapKeyring(getSnapController(), {
-      addressExists: async (address) =>
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+    new SnapKeyring(controllerMessenger, {
+      addressExists: async (address: string) =>
         (
           await controllerMessenger.call('KeyringController:getAccounts')
         ).includes(address.toLowerCase()),

@@ -1,6 +1,6 @@
 import {
   ActionConstraint,
-  ControllerMessenger,
+  Messenger,
   EventConstraint,
   ExtractEventHandler,
 } from '@metamask/base-controller';
@@ -8,7 +8,7 @@ import {
 export class ExtendedControllerMessenger<
   Action extends ActionConstraint,
   Event extends EventConstraint,
-> extends ControllerMessenger<Action, Event> {
+> extends Messenger<Action, Event> {
   subscribeOnceIf<EventType extends Event['type']>(
     eventType: EventType,
     handler: ExtractEventHandler<Event, EventType>,

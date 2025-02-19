@@ -23,13 +23,14 @@ import { PersonalSignProps } from './types';
 import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import AppConstants from '../../../../../core/AppConstants';
-import { selectChainId } from '../../../../../selectors/networkController';
-import { store } from '../../../../../store';
 import Logger from '../../../../../util/Logger';
 import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
+import { selectSignatureRequestById } from '../../../../../selectors/signatureController';
+import { selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import { RootState } from '../../../../../reducers';
+import { Hex } from '@metamask/utils';
 
 /**
  * Converts a hexadecimal string to a utf8 string.
@@ -63,10 +64,21 @@ const PersonalSign = ({
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
+
   const { securityAlertResponse } = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (reduxState: any) => reduxState.signatureRequest,
+  );
+
+  const signatureRequest = useSelector((state: RootState) =>
+    selectSignatureRequestById(state, messageParams.metamaskId),
+  );
+
+  const { chainId } = signatureRequest ?? {};
+
+  const networkType = useSelector((state: RootState) =>
+    selectProviderTypeByChainId(state, chainId as Hex),
   );
 
   // TODO: Replace "any" with type
@@ -84,8 +96,6 @@ const PersonalSign = ({
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     const pageInfo = currentPageInformation || messageParams.meta || {};
-
-    const chainId = selectChainId(store.getState());
     const fallbackUrl = 'N/A';
 
     let urlHost = fallbackUrl;
@@ -100,9 +110,7 @@ const PersonalSign = ({
 
     let blockaidParams: Record<string, unknown> = {};
     if (securityAlertResponse) {
-      blockaidParams = getBlockaidMetricsParams(
-        securityAlertResponse as SecurityAlertResponse,
-      );
+      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
     }
 
     return {
@@ -113,7 +121,7 @@ const PersonalSign = ({
       ...pageInfo.analytics,
       ...blockaidParams,
     };
-  }, [currentPageInformation, messageParams, securityAlertResponse]);
+  }, [chainId, currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
@@ -259,6 +267,7 @@ const PersonalSign = ({
       fromAddress={messageParams.from}
       origin={messageParams.origin}
       testID={SigningBottomSheetSelectorsIDs.PERSONAL_REQUEST}
+      networkType={networkType}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>

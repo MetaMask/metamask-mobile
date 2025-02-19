@@ -6,6 +6,7 @@ module.exports = {
     '<rootDir>/e2e/specs/*.spec.js',
     '<rootDir>/e2e/specs/*/*.spec.js',
     '<rootDir>/e2e/specs/*/*/*.spec.js',
+    '<rootDir>/e2e/specs/*/*/*/*.spec.js',
   ],
   testTimeout: 250000,
   maxWorkers: process.env.CI ? 3 : 1,

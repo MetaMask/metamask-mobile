@@ -1,3 +1,4 @@
+import { Hex } from '@metamask/utils';
 import { TouchableOpacityProps } from 'react-native';
 
 export interface AddressElementProps extends TouchableOpacityProps {
@@ -25,4 +26,8 @@ export interface AddressElementProps extends TouchableOpacityProps {
    * Callback for icon press
    */
   onIconPress: () => void;
+  /**
+   * ID of the chain
+   */
+  chainId: Hex,
 }

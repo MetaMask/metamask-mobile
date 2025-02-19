@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import Avatar, {
@@ -9,23 +9,23 @@ import Avatar, {
 import Badge, {
   BadgeVariant,
 } from '../../../../../../../component-library/components/Badges/Badge';
+import Text from '../../../../../../../component-library/components/Texts/Text';
 import BadgeWrapper from '../../../../../../../component-library/components/Badges/BadgeWrapper';
-import { selectChainId } from '../../../../../../../selectors/networkController';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import styleSheet from './AccountNetworkInfoCollapsed.styles';
+import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 
 const AccountNetworkInfoCollapsed = () => {
-  const { approvalRequest } = useApprovalRequest();
-  const chainId = useSelector(selectChainId);
+  const signatureRequest = useSignatureRequest();
+  const chainId = signatureRequest?.chainId;
   const { networkName, networkImage } = useNetworkInfo(chainId);
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
-  const fromAddress = approvalRequest?.requestData?.from;
+  const fromAddress = signatureRequest?.messageParams?.from as string;
   const { accountName } = useAccountInfo(fromAddress);
   const { styles } = useStyles(styleSheet, {});
 

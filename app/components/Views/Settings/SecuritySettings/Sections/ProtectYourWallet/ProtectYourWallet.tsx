@@ -10,7 +10,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import SeedPhraseVideo from '../../../../../UI/SeedPhraseVideo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
@@ -58,16 +57,11 @@ const ProtectYourWallet = ({
     );
   };
 
-  const onBack = (): void => navigation.goBack();
-
   return (
     <View style={[styles.setting, styles.firstSetting]}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.protect_title')}
       </Text>
-      <View style={styles.video}>
-        <SeedPhraseVideo onClose={onBack} />
-      </View>
 
       <Text
         variant={TextVariant.BodyMD}

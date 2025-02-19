@@ -81,6 +81,32 @@ describe('Token Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('renders correctly with token chainId', () => {
+    const { getByText, toJSON } = render(
+      <Token
+        token={
+          {
+            address: '0xTokenAddress',
+            symbol: 'ABC',
+            decimals: 18,
+            aggregators: ['Aggregator1', 'Aggregator2', 'Aggregator3'],
+            // chainId is undefined
+            chainId: undefined,
+          } as unknown as TokenType & { chainId: `0x${string}` }
+        }
+        selected={false}
+        toggleSelected={jest.fn()}
+      />,
+    );
+
+    // Verifying key elements render
+    expect(getByText('0 ABC')).toBeTruthy();
+    expect(getByText('Token address:')).toBeTruthy();
+
+    // Snapshot test
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('expands token aggregator list on "show more" press', () => {
     const { getByText } = renderComponent();
 

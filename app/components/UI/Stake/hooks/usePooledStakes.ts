@@ -4,11 +4,11 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { selectChainId } from '../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
 import { PooledStake } from '@metamask/stake-sdk';
-import { useStakeContext } from './useStakeContext';
 import {
   selectPooledStakesData,
   setPooledStakes,
 } from '../../../../core/redux/slices/staking';
+import { stakingApiService } from '../sdk/stakeSdkProvider';
 
 export enum StakeAccountStatus {
   // These statuses are only used internally rather than displayed to a user
@@ -26,7 +26,6 @@ const usePooledStakes = () => {
   const { pooledStakesData, exchangeRate } = useSelector(
     selectPooledStakesData,
   );
-  const { stakingApiService } = useStakeContext();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +55,7 @@ const usePooledStakes = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [chainId, selectedAddress, stakingApiService, dispatch]);
+  }, [chainId, selectedAddress, dispatch]);
 
   useEffect(() => {
     fetchData();

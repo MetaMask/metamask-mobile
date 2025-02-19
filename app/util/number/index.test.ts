@@ -20,6 +20,7 @@ import {
   isBN,
   isDecimal,
   isNumber,
+  isNumberValue,
   isNumberScientificNotationWhenString,
   isZeroValue,
   limitToMaximumDecimalPlaces,
@@ -922,6 +923,42 @@ describe('Number utils :: isNumber', () => {
     expect(isNumber('.01')).toBe(false);
     expect(isNumber(undefined)).toBe(false);
     expect(isNumber(null)).toBe(false);
+  });
+});
+
+describe('Number utils :: isNumberValue', () => {
+  it('should return true for valid number types', () => {
+    expect(isNumberValue(1650.7)).toBe(true);
+    expect(isNumberValue(1000)).toBe(true);
+    expect(isNumberValue(0.0001)).toBe(true);
+    expect(isNumberValue(-0.0001)).toBe(true);
+    expect(isNumberValue(1)).toBe(true);
+    expect(isNumberValue(1e-10)).toBe(true);
+  });
+
+  it('should be a valid number string types', () => {
+    expect(isNumberValue('1650.7')).toBe(true);
+    expect(isNumberValue('1000')).toBe(true);
+    expect(isNumberValue('.01')).toBe(true);
+    expect(isNumberValue('0.0001')).toBe(true);
+    expect(isNumberValue('0001')).toBe(true);
+    expect(isNumberValue('-0.0001')).toBe(true);
+    expect(isNumberValue('1')).toBe(true);
+    expect(isNumberValue('1e-10')).toBe(true);
+  });
+
+  it('should not be a valid number ', () => {
+    expect(isNumberValue('..7')).toBe(false);
+    expect(isNumberValue('1..1')).toBe(false);
+    expect(isNumberValue('0..')).toBe(false);
+    expect(isNumberValue('a.0001')).toBe(false);
+    expect(isNumberValue('00a01')).toBe(false);
+    expect(isNumberValue('1,.')).toBe(false);
+    expect(isNumberValue('1,')).toBe(false);
+    expect(isNumberValue('.')).toBe(false);
+    expect(isNumberValue('a¡1')).toBe(false);
+    expect(isNumberValue(undefined)).toBe(false);
+    expect(isNumberValue(null)).toBe(false);
   });
 });
 

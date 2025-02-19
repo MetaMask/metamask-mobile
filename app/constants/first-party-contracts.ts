@@ -8,7 +8,10 @@ const FIRST_PARTY_CONTRACT_NAMES: Record<string, Record<Hex, Hex>> = {
   'MetaMask Validator Staking': {
     [NETWORKS_CHAIN_ID.MAINNET]: '0xDc71aFFC862fceB6aD32BE58E098423A7727bEbd',
   },
-  'MetaMask Pool Staking': {
+  'MetaMask Pooled Staking': {
+    [NETWORKS_CHAIN_ID.MAINNET]: '0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+  },
+  'MetaMask Third Party Staking': {
     [NETWORKS_CHAIN_ID.MAINNET]: '0x1f6692E78dDE07FF8da75769B6d7c716215bC7D0',
   },
   'MetaMask Pool Staking (v1)': {

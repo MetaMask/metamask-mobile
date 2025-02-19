@@ -37,7 +37,4 @@ export const createStyles = (colors: any) =>
     accessory: {
       marginTop: 16,
     },
-    video: {
-      marginTop: 16,
-    },
   });

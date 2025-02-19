@@ -60,7 +60,6 @@ import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
-import BrowserUrlModal from '../../Views/BrowserUrlModal';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
@@ -90,6 +89,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import BridgeView from '../../UI/Bridge';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -212,11 +212,10 @@ const BrowserFlow = () => (
       cardStyle: { backgroundColor: importedColors.transparent },
     }}
   >
-    <Stack.Screen name={Routes.BROWSER.VIEW} component={Browser} />
     <Stack.Screen
-      name={Routes.BROWSER.URL_MODAL}
-      component={BrowserUrlModal}
-      options={{ animationEnabled: false, headerShown: false }}
+      name={Routes.BROWSER.VIEW}
+      component={Browser}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -715,6 +714,16 @@ const Swaps = () => (
   </Stack.Navigator>
 );
 
+const Bridge = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="BridgeView"
+      component={BridgeView}
+      options={BridgeView.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -819,6 +828,7 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
+    <Stack.Screen name="Bridge" component={Bridge} />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
     <Stack.Screen
       name="StakeModals"
@@ -831,7 +841,7 @@ const MainNavigator = () => (
       headerTitle={() => (
         <Image
           style={styles.headerLogo}
-          source={require('../../../images/metamask-name.png')}
+          source={require('../../../images/branding/metamask-name.png')}
           resizeMode={'contain'}
         />
       )}

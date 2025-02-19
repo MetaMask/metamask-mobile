@@ -21,16 +21,13 @@ import {
 } from '../../../../../core/GasPolling/GasPolling';
 import { GasTransactionProps } from '../../../../../core/GasPolling/types';
 import { UpdateEIP1559Props, UpdateTx1559Options } from './types';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../../../selectors/networkController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { isHexString } from '@metamask/utils';
+import { selectNativeCurrencyByChainId } from '../../../../../selectors/networkController';
 
 const UpdateEIP1559Tx = ({
   gas,
@@ -270,14 +267,13 @@ const UpdateEIP1559Tx = ({
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapStateToProps = (state: any) => ({
+const mapStateToProps = (state: any, ownProps) => ({
   accounts: selectAccounts(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  ticker: selectTicker(state),
+  ticker: selectNativeCurrencyByChainId(state, ownProps.chainId),
   gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   primaryCurrency: state.settings.primaryCurrency,
-  chainId: selectChainId(state),
 });
 
 export default connect(mapStateToProps)(UpdateEIP1559Tx);

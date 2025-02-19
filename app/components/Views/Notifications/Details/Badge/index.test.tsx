@@ -2,11 +2,11 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { render } from '@testing-library/react-native';
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 
 import NotificationBadge from '.';
 import { createStyles } from '../styles';
 import { mockTheme } from '../../../../../util/theme';
-import { TRIGGER_TYPES } from '../../../../../util/notifications';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('@react-navigation/native');

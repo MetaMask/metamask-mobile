@@ -5,7 +5,7 @@ import {
 import { backgroundState } from '../../util/test/initial-root-state';
 import { RootState } from '../../reducers';
 import { useGetTotalFiatBalanceCrossChains } from './useGetTotalFiatBalanceCrossChains';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},

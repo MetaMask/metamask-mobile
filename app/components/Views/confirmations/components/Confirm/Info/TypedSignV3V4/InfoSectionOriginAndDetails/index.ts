@@ -1,0 +1,1 @@
+export { InfoSectionOriginAndDetails } from './InfoSectionOriginAndDetails';

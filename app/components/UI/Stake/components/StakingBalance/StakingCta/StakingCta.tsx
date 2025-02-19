@@ -13,6 +13,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../constants/events';
 
 interface StakingCtaProps extends Pick<ViewProps, 'style'> {
   estimatedRewardRate: string;
@@ -30,9 +31,9 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
         .addProperties({
-          selected_provider: 'consensys',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
           text: 'Learn More',
-          location: 'Token Details',
+          location: EVENT_LOCATIONS.TOKEN_DETAILS,
         })
         .build(),
     );

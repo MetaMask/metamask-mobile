@@ -1,0 +1,857 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
+<View
+  style={
+    {
+      "paddingBottom": 16,
+      "paddingHorizontal": 15,
+    }
+  }
+>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      {
+        "flex": 1,
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <SvgMock
+        color="#141618"
+        height={12}
+        name="ArrowDown"
+        style={
+          {
+            "height": 12,
+            "width": 12,
+          }
+        }
+        width={12}
+      />
+    </View>
+    <View
+      style={
+        {
+          "borderRadius": 30,
+          "marginHorizontal": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "backgroundColor": undefined,
+            "borderRadius": 12,
+            "flex": 0,
+          }
+        }
+      >
+        <View>
+          <Image
+            onError={[Function]}
+            source={
+              {
+                "uri": "",
+              }
+            }
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#f2f4f6",
+                  "borderRadius": 8,
+                  "justifyContent": "flex-start",
+                },
+                undefined,
+                {
+                  "height": 32,
+                  "width": 32,
+                },
+                undefined,
+                undefined,
+                undefined,
+              ]
+            }
+            testID="fallback-nft-ipfs"
+          />
+          <View
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "black",
+                    "marginTop": 16,
+                    "textAlign": "center",
+                  },
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 18,
+              "fontWeight": "400",
+            },
+          ]
+        }
+      >
+        AssetName
+      </Text>
+    </View>
+  </TouchableOpacity>
+  <View>
+    <View
+      style={
+        {
+          "flex": 1,
+          "flexDirection": "row",
+          "marginTop": 15,
+        }
+      }
+    >
+      <View
+        styles={
+          {
+            "flex": 1,
+            "flexDirection": "row",
+          }
+        }
+        testID="collectible-Collectible1-1"
+      >
+        <TouchableOpacity
+          onLongPress={[Function]}
+          onPress={[Function]}
+          testID="collectible-Collectible1-1"
+        >
+          <View
+            style={{}}
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": undefined,
+                  "borderRadius": 12,
+                  "flex": 0,
+                }
+              }
+            >
+              <View>
+                <Image
+                  onError={[Function]}
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#f2f4f6",
+                        "borderRadius": 8,
+                        "justifyContent": "flex-start",
+                      },
+                      {
+                        "height": 234.66666666666666,
+                        "width": 234.66666666666666,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                    ]
+                  }
+                  testID="fallback-nft-ipfs"
+                />
+                <View
+                  style={
+                    {
+                      "bottom": 0,
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "black",
+                          "marginTop": 16,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                     #1
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "bottom": 32,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="link"
+                    accessible={true}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignSelf": "center",
+                        "backgroundColor": "transparent",
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    suppressHighlighting={true}
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#0376c9",
+                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Show
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+      <View
+        styles={
+          {
+            "flex": 1,
+            "flexDirection": "row",
+          }
+        }
+        testID="collectible-Collectible2-2"
+      >
+        <TouchableOpacity
+          onLongPress={[Function]}
+          onPress={[Function]}
+          testID="collectible-Collectible2-2"
+        >
+          <View
+            style={
+              {
+                "marginHorizontal": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": undefined,
+                  "borderRadius": 12,
+                  "flex": 0,
+                }
+              }
+            >
+              <View>
+                <Image
+                  onError={[Function]}
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#f2f4f6",
+                        "borderRadius": 8,
+                        "justifyContent": "flex-start",
+                      },
+                      {
+                        "height": 234.66666666666666,
+                        "width": 234.66666666666666,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                    ]
+                  }
+                  testID="fallback-nft-ipfs"
+                />
+                <View
+                  style={
+                    {
+                      "bottom": 0,
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "black",
+                          "marginTop": 16,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                     #2
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "bottom": 32,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="link"
+                    accessible={true}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignSelf": "center",
+                        "backgroundColor": "transparent",
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    suppressHighlighting={true}
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#0376c9",
+                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Show
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+      <View
+        styles={
+          {
+            "flex": 1,
+            "flexDirection": "row",
+          }
+        }
+        testID="collectible-Collectible3-3"
+      >
+        <TouchableOpacity
+          onLongPress={[Function]}
+          onPress={[Function]}
+          testID="collectible-Collectible3-3"
+        >
+          <View
+            style={{}}
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": undefined,
+                  "borderRadius": 12,
+                  "flex": 0,
+                }
+              }
+            >
+              <View>
+                <Image
+                  onError={[Function]}
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#f2f4f6",
+                        "borderRadius": 8,
+                        "justifyContent": "flex-start",
+                      },
+                      {
+                        "height": 234.66666666666666,
+                        "width": 234.66666666666666,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                    ]
+                  }
+                  testID="fallback-nft-ipfs"
+                />
+                <View
+                  style={
+                    {
+                      "bottom": 0,
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "black",
+                          "marginTop": 16,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                     #3
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "bottom": 32,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="link"
+                    accessible={true}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignSelf": "center",
+                        "backgroundColor": "transparent",
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    suppressHighlighting={true}
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#0376c9",
+                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Show
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+          "flexDirection": "row",
+          "marginTop": 15,
+        }
+      }
+    >
+      <View
+        styles={
+          {
+            "flex": 1,
+            "flexDirection": "row",
+          }
+        }
+        testID="collectible-Collectible4-4"
+      >
+        <TouchableOpacity
+          onLongPress={[Function]}
+          onPress={[Function]}
+          testID="collectible-Collectible4-4"
+        >
+          <View
+            style={{}}
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": undefined,
+                  "borderRadius": 12,
+                  "flex": 0,
+                }
+              }
+            >
+              <View>
+                <Image
+                  onError={[Function]}
+                  source={
+                    {
+                      "uri": "",
+                    }
+                  }
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#f2f4f6",
+                        "borderRadius": 8,
+                        "justifyContent": "flex-start",
+                      },
+                      {
+                        "height": 234.66666666666666,
+                        "width": 234.66666666666666,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                    ]
+                  }
+                  testID="fallback-nft-ipfs"
+                />
+                <View
+                  style={
+                    {
+                      "bottom": 0,
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "black",
+                          "marginTop": 16,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                     #4
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "bottom": 32,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="link"
+                    accessible={true}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignSelf": "center",
+                        "backgroundColor": "transparent",
+                        "color": "#141618",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    suppressHighlighting={true}
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#0376c9",
+                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Show
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</View>
+`;

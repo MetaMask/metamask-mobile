@@ -3,6 +3,7 @@ import Engine from '../../../core/Engine';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+import { RootState } from '../../../reducers';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -36,6 +37,10 @@ describe('useTokenDetectionPolling', () => {
         },
         PreferencesController: {
           useTokenDetection: true,
+          tokenNetworkFilter: {
+            '0x1': true,
+            '0x89': true,
+          },
         },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
@@ -52,7 +57,7 @@ describe('useTokenDetectionPolling', () => {
         },
       },
     },
-  };
+  } as unknown as RootState;
 
   it('Should poll by current chain ids/address, and stop polling on dismount', async () => {
     const { unmount } = renderHookWithProvider(
@@ -255,6 +260,63 @@ describe('useTokenDetectionPolling', () => {
     );
     expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
       chainIds: [selectedChainId],
+      address: undefined,
+    });
+
+    unmount();
+    expect(
+      mockedTokenDetectionController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('should poll only for current network if selected one is not popular', () => {
+    const { unmount } = renderHookWithProvider(
+      () => useTokenDetectionPolling(),
+      {
+        state: {
+          ...state,
+          engine: {
+            ...state.engine,
+            backgroundState: {
+              ...state.engine.backgroundState,
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: '1',
+                  accounts: {
+                    '1': {
+                      address: undefined,
+                    },
+                  },
+                },
+              },
+              NetworkController: {
+                selectedNetworkClientId: 'selectedNetworkClientId',
+                networkConfigurationsByChainId: {
+                  '0x82750': {
+                    chainId: '0x82750',
+                    rpcEndpoints: [
+                      {
+                        networkClientId: 'selectedNetworkClientId',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    const mockedTokenDetectionController = jest.mocked(
+      Engine.context.TokenDetectionController,
+    );
+
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
+      chainIds: ['0x82750'],
       address: undefined,
     });
 

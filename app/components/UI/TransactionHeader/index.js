@@ -5,9 +5,7 @@ import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
 import { getHost, getUrlObj } from '../../../util/browser';
-import networkList, {
-  isMultichainVersion1Enabled,
-} from '../../../util/networks';
+import networkList from '../../../util/networks';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import { renderShortAddress } from '../../../util/address';
@@ -29,9 +27,9 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     domainLogo: {
-      width: isMultichainVersion1Enabled ? 32 : 56,
-      height: isMultichainVersion1Enabled ? 32 : 56,
-      borderRadius: isMultichainVersion1Enabled ? 16 : 32,
+      width: 56,
+      height: 56,
+      borderRadius: 32,
     },
     assetLogo: {
       alignItems: 'center',
@@ -197,7 +195,10 @@ const TransactionHeader = (props) => {
   };
 
   const renderDomainUrlContainer = () => (
-    <View style={styles.domanUrlContainer} testID={TransactionReviewSelectorsIDs.TRANSACTION_HEADER_ORIGIN}>
+    <View
+      style={styles.domanUrlContainer}
+      testID={TransactionReviewSelectorsIDs.TRANSACTION_HEADER_ORIGIN}
+    >
       {renderSecureIcon()}
       {renderTitle()}
     </View>
@@ -211,13 +212,15 @@ const TransactionHeader = (props) => {
       </Text>
     </View>
   );
-  const showOrigin = !INTERNAL_ORIGINS.includes(props.currentPageInformation.origin);
+  const showOrigin = !INTERNAL_ORIGINS.includes(
+    props.currentPageInformation.origin,
+  );
 
   return (
     <View style={styles.transactionHeader}>
       {renderTopIcon()}
-      {isMultichainVersion1Enabled || !showOrigin ? null : renderDomainUrlContainer()}
-      {isMultichainVersion1Enabled ? null : renderNetworkContainer()}
+      {!showOrigin ? null : renderDomainUrlContainer()}
+      {renderNetworkContainer()}
     </View>
   );
 };
