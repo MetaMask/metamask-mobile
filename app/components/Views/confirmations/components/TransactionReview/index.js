@@ -273,6 +273,10 @@ class TransactionReview extends PureComponent {
      * Object containing the current transaction metadata
      */
     transactionMetadata: PropTypes.object,
+    /**
+     * Network client id
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
