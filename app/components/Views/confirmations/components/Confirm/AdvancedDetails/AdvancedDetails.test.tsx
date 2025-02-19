@@ -20,7 +20,7 @@ describe('AdvancedDetails', () => {
     expect(getByText('0xDc477...0c164')).toBeDefined();
 
     expect(getByText('Interacting with')).toBeDefined();
-    expect(getByText('MetaMask Pooled Staking')).toBeDefined();
+    expect(getByText('Pooled Staking')).toBeDefined();
 
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
