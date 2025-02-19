@@ -40,13 +40,27 @@ const styleSheet = (params: {
       } as ViewStyle,
       style,
     ) as ViewStyle,
+
     button: {
       ...buttonStyle,
     },
+
+    linkText: {
+      textDecorationLine: 'underline',
+    },
+
     subsequentButton: {
       ...buttonStyle,
       marginLeft: buttonsAlignment === ButtonsAlignment.Horizontal ? 16 : 0,
       marginTop: buttonsAlignment === ButtonsAlignment.Vertical ? 16 : 0,
+    },
+
+    textContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+      marginBottom: 24,
+      paddingBottom: 16,
     },
   });
 };
