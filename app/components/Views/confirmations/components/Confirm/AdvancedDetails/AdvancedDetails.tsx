@@ -12,6 +12,7 @@ import { NameType } from '../../../../../UI/Name/Name.types';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import InfoRow from '../../UI/InfoRow';
 import InfoSectionAccordion from '../../UI/InfoSectionAccordion';
+import InfoRowDivider from '../InfoRowDivider';
 import styleSheet from './AdvancedDetails.styles';
 
 const AdvancedDetails = () => {
@@ -39,6 +40,7 @@ const AdvancedDetails = () => {
             variation={CHAIN_IDS.MAINNET}
           />
         </InfoRow>
+        <InfoRowDivider />
         <InfoRow
           label={strings('confirm.label.network')}
         >

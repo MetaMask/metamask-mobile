@@ -16,7 +16,8 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 16,
     },
     headerTitle: {
       color: theme.colors.text.default,
