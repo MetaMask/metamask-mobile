@@ -30,7 +30,7 @@ import ImageIcons from '../../../UI/ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
 import {
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import {
@@ -618,7 +618,7 @@ NetworksSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
-  networkConfigurations: selectNetworkConfigurations(state),
+  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
 });
 
 export default connect(mapStateToProps)(NetworksSettings);
