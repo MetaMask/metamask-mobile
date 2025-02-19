@@ -27,7 +27,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
 
-
   get tokenDetectionLinkButton() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
@@ -125,27 +124,45 @@ class WalletView {
   }
 
   get carouselContainer() {
-    return WalletViewSelectorsIDs.CAROUSEL_CONTAINER;
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
   }
 
   get carouselFirstSlide() {
-    return WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE;
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE);
   }
 
   get carouselFirstSlideTitle() {
-    return WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE;
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE,
+    );
   }
 
   get carouselSecondSlide() {
-    return WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE;
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE,
+    );
   }
 
   get carouselSecondSlideTitle() {
-    return WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE;
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE,
+    );
   }
 
   get carouselProgressDots() {
-    return WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS;
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
+    );
+  }
+
+  get carouselCloseButton() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_CLOSE_BUTTON,
+    );
+  }
+
+  get carouselSlide() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE);
   }
 
   async tapCurrentMainWalletAccountActions() {
@@ -272,11 +289,11 @@ class WalletView {
   }
 
   async tapCarouselCloseButton() {
-    await TestHelpers.tap(WalletViewSelectorsIDs.CAROUSEL_CLOSE_BUTTON);
+    await Gestures.tap(this.carouselCloseButton);
   }
 
   async tapCarouselSlide() {
-    await TestHelpers.tap(WalletViewSelectorsIDs.CAROUSEL_SLIDE);
+    await Gestures.tap(this.carouselSlide);
   }
 }
 

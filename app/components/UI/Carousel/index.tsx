@@ -22,6 +22,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { dismissBanner } from '../../../actions/banners/index';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 // Import banner images
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
@@ -249,7 +250,10 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
   };
 
   return (
-    <View style={[styles.container, style]}>
+    <View
+      style={[styles.container, style]}
+      testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
+    >
       <View style={styles.bannerContainer}>
         <ScrollableTabView
           renderTabBar={() => <View />}
@@ -266,7 +270,9 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
             <Pressable
               key={slide.id}
               testID={
-                index === 0 ? 'carousel-first-slide' : 'carousel-second-slide'
+                index === 0
+                  ? WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE
+                  : WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE
               }
               style={[
                 styles.slideContainer,
@@ -294,8 +300,8 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
                       style={styles.title}
                       testID={
                         index === 0
-                          ? 'carousel-first-slide-title'
-                          : 'carousel-second-slide-title'
+                          ? WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE
+                          : WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE
                       }
                     >
                       {slide.title}
@@ -310,7 +316,7 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
                 </View>
                 {!slide.undismissable && (
                   <TouchableOpacity
-                    testID="close-button"
+                    testID={WalletViewSelectorsIDs.CAROUSEL_CLOSE_BUTTON}
                     style={styles.closeButton}
                     onPress={() => handleClose(slide.id)}
                   >
@@ -323,7 +329,10 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
         </ScrollableTabView>
       </View>
       {!isSingleSlide && (
-        <View testID="progress-dots" style={styles.progressContainer}>
+        <View
+          testID={WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS}
+          style={styles.progressContainer}
+        >
           {visibleSlides.map((_, index) => (
             <View
               key={index}

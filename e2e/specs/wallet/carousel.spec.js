@@ -29,8 +29,11 @@ describe(SmokeCore('Carousel Tests'), () => {
     await loginToApp();
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.setTimeout(150000);
+    // Wait for the Carousel to be rendered
+    const carouselContainer = await WalletView.carouselContainer;
+    await Assertions.checkIfVisible(carouselContainer, 30000);
   });
 
   afterAll(async () => {
@@ -38,18 +41,10 @@ describe(SmokeCore('Carousel Tests'), () => {
   });
 
   it('should display carousel with correct slides', async () => {
-    const carouselContainer = await Matchers.getElementByID(
-      WalletView.carouselContainer,
-    );
-    const carouselFirstSlide = await Matchers.getElementByID(
-      WalletView.carouselFirstSlide,
-    );
-    const carouselFirstSlideTitle = await Matchers.getElementByID(
-      WalletView.carouselFirstSlideTitle,
-    );
-    const carouselProgressDots = await Matchers.getElementByID(
-      WalletView.carouselProgressDots,
-    );
+    const carouselContainer = await WalletView.carouselContainer;
+    const carouselFirstSlide = await WalletView.carouselFirstSlide;
+    const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
+    const carouselProgressDots = await WalletView.carouselProgressDots;
 
     await Assertions.checkIfVisible(carouselContainer);
     await Assertions.checkIfVisible(carouselFirstSlide);
@@ -61,18 +56,10 @@ describe(SmokeCore('Carousel Tests'), () => {
   });
 
   it('should navigate between slides', async () => {
-    const carouselContainer = await Matchers.getElementByID(
-      WalletView.carouselContainer,
-    );
-    const carouselSecondSlide = await Matchers.getElementByID(
-      WalletView.carouselSecondSlide,
-    );
-    const carouselSecondSlideTitle = await Matchers.getElementByID(
-      WalletView.carouselSecondSlideTitle,
-    );
-    const carouselFirstSlideTitle = await Matchers.getElementByID(
-      WalletView.carouselFirstSlideTitle,
-    );
+    const carouselContainer = await WalletView.carouselContainer;
+    const carouselSecondSlide = await WalletView.carouselSecondSlide;
+    const carouselSecondSlideTitle = await WalletView.carouselSecondSlideTitle;
+    const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
 
     await Gestures.swipe(carouselContainer, 'left', 'slow', 0.7);
     await Assertions.checkIfVisible(carouselSecondSlide);
@@ -89,13 +76,10 @@ describe(SmokeCore('Carousel Tests'), () => {
   });
 
   it('should dismiss a slide', async () => {
-    const carouselFirstSlideTitle = await Matchers.getElementByID(
-      WalletView.carouselFirstSlideTitle,
-    );
-    const closeButton = await Matchers.getElementByID(
-      WalletView.carouselCloseButton,
-    );
+    const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
+    const closeButton = await WalletView.carouselCloseButton;
 
+    await Assertions.checkIfVisible(closeButton);
     await Gestures.tap(closeButton);
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
@@ -104,11 +88,10 @@ describe(SmokeCore('Carousel Tests'), () => {
   });
 
   it('should handle slide interactions', async () => {
-    const carouselSlide = await Matchers.getElementByID(
-      WalletView.carouselSlide,
-    );
-    const container = await Matchers.getElementByID(WalletView.container);
+    const carouselSlide = await WalletView.carouselFirstSlide;
+    const container = await WalletView.container;
 
+    await Assertions.checkIfVisible(carouselSlide);
     await Gestures.tap(carouselSlide);
     await Assertions.checkIfVisible(container);
   });
