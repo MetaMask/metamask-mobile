@@ -1128,18 +1128,6 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
