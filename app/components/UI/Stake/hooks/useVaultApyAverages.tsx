@@ -7,6 +7,7 @@ import {
   setVaultApyAverages,
 } from '../../../../core/redux/slices/staking';
 import { stakingApiService } from '../sdk/stakeSdkProvider';
+import { DEFAULT_VAULT_APY_AVERAGES } from '../constants';
 
 const useVaultApyAverages = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +40,10 @@ const useVaultApyAverages = () => {
   }, [fetchVaultAprs]);
 
   return {
-    vaultApyAverages,
+    vaultApyAverages:
+      Object.keys(vaultApyAverages).length === 0
+        ? DEFAULT_VAULT_APY_AVERAGES
+        : vaultApyAverages,
     refreshVaultApyAverages: fetchVaultAprs,
     isLoadingVaultApyAverages: isLoading,
     error,
