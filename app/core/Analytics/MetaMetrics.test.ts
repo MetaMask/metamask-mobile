@@ -310,6 +310,25 @@ describe('MetaMetrics', () => {
         expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
       });
 
+      it('does not track event when metaMetricsId is an invalid UUID', async () => {
+        const invalidUUID = 'my invalid metametrics ID';
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? invalidUUID : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event = MetricsEventBuilder.createEventBuilder({
+          category: 'test event',
+        }).build();
+        metaMetrics.trackEvent(event);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        expect(segmentMockClient.track).not.toHaveBeenCalled();
+      });
+
       it('does not track event when eventsPortionToTrack is zero', async () => {
         const metaMetrics = TestMetaMetrics.getInstance();
         await metaMetrics.configure();
