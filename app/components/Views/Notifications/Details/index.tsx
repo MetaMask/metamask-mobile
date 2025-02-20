@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { INotification } from '../../../../util/notifications';
+import {
+  INotification,
+  isNotificationsFeatureEnabled,
+} from '../../../../util/notifications';
 import { useTheme } from '../../../../util/theme';
 
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -117,4 +120,12 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   );
 };
 
-export default NotificationsDetails;
+const NotificationDetailsContainer = (props: Props) => {
+  if (!isNotificationsFeatureEnabled()) {
+    return null;
+  }
+
+  return <NotificationsDetails {...props} />;
+};
+
+export default NotificationDetailsContainer;

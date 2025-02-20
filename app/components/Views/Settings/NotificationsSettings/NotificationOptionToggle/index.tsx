@@ -1,9 +1,8 @@
-import React, { useCallback } from 'react';
-import { ActivityIndicator, Platform, Switch, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, Switch, View } from 'react-native';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import { createStyles } from './styles';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import Text, {
   TextColor,
   TextVariant,
@@ -23,7 +22,14 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { useUpdateAccountSetting } from '../../../../../util/notifications/hooks/useUpdateAccountSetting';
+import { useAccountNotificationsToggle } from '../../../../../util/notifications/hooks/useSwitchNotifications';
+
+export const NOTIFICATION_OPTIONS_TOGGLE_TEST_ID = (testID: string) =>
+  `${testID}:notification_options_toggle`;
+export const NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID = (testID: string) =>
+  `${testID}:notification_options_toggle--loading`;
+export const NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID = (testID: string) =>
+  `${testID}:notification_options_toggle--switch`;
 
 interface NotificationOptionsToggleProps {
   address: string;
@@ -34,9 +40,34 @@ interface NotificationOptionsToggleProps {
   disabledSwitch?: boolean;
   isLoading?: boolean;
   isEnabled: boolean;
-  updateAndfetchAccountSettings: () => Promise<
-    Record<string, boolean> | undefined
-  >;
+  refetchNotificationAccounts: () => Promise<void>;
+  testID: string;
+}
+
+export function useUpdateAccountSetting(
+  address: string,
+  refetchAccountSettings: () => Promise<void>,
+) {
+  const { onToggle, error } = useAccountNotificationsToggle();
+
+  // Local states
+  const [loading, setLoading] = useState(false);
+
+  const toggleAccount = useCallback(
+    async (state: boolean) => {
+      setLoading(true);
+      try {
+        await onToggle([address], state);
+        await refetchAccountSettings();
+      } catch {
+        // Do nothing (we don't need to propagate this)
+      }
+      setLoading(false);
+    },
+    [address, onToggle, refetchAccountSettings],
+  );
+
+  return { toggleAccount, loading, error };
 }
 
 /**
@@ -48,11 +79,11 @@ const NotificationOptionToggle = ({
   title,
   icon,
   type,
-  testId,
   isEnabled,
   disabledSwitch,
   isLoading,
-  updateAndfetchAccountSettings,
+  refetchNotificationAccounts,
+  testID,
 }: NotificationOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
@@ -61,7 +92,7 @@ const NotificationOptionToggle = ({
 
   const { toggleAccount, loading: isUpdatingAccount } = useUpdateAccountSetting(
     address,
-    updateAndfetchAccountSettings,
+    refetchNotificationAccounts,
   );
 
   const loading = isLoading || isUpdatingAccount;
@@ -80,7 +111,10 @@ const NotificationOptionToggle = ({
   }, [isEnabled, toggleAccount, trackEvent, createEventBuilder]);
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      testID={NOTIFICATION_OPTIONS_TOGGLE_TEST_ID(testID)}
+    >
       {type === NotificationsToggleTypes.ACTIONS && icon ? (
         <Icon
           name={icon as IconName}
@@ -111,7 +145,9 @@ const NotificationOptionToggle = ({
       </View>
       <View style={styles.switchElement}>
         {loading ? (
-          <ActivityIndicator />
+          <ActivityIndicator
+            testID={NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID(testID)}
+          />
         ) : (
           <Switch
             style={styles.switch}
@@ -124,7 +160,7 @@ const NotificationOptionToggle = ({
             thumbColor={theme.brandColors.white}
             disabled={disabledSwitch}
             ios_backgroundColor={colors.border.muted}
-            {...generateTestId(Platform, testId)}
+            testID={NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID(testID)}
           />
         )}
       </View>
