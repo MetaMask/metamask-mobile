@@ -226,22 +226,6 @@ describe('Tags Utils', () => {
       expect(tags?.['wallet.transaction_count']).toStrictEqual(3);
     });
 
-    it('returns undefined if ApprovalController is not defined', () => {
-      const state = {
-        ...initialRootState,
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            ApprovalController: undefined,
-          },
-        },
-      } as unknown as RootState;
-
-      const tags = getTraceTags(state);
-
-      expect(tags).toBeUndefined();
-    });
-
     it('handles undefined pendingApprovals in ApprovalController', () => {
       const state = {
         ...initialRootState,
@@ -278,102 +262,53 @@ describe('Tags Utils', () => {
       expect(tags?.['wallet.pending_approval']).toBeUndefined();
     });
 
-    it('returns undefined if NftController.allNfts is not defined', () => {
+    it('continues execution when individual tag collection fails', () => {
       const state = {
         ...initialRootState,
         engine: {
           backgroundState: {
             ...backgroundState,
-            NftController: {
-              ...backgroundState.NftController,
-              allNfts: undefined,
+            AccountsController: {
+              get accounts() {
+                throw new Error('Test error');
+              },
             },
-          },
-        },
-      } as unknown as RootState;
-
-      const tags = getTraceTags(state);
-
-      expect(tags).toBeUndefined();
-    });
-
-    it('returns undefined if NotificationServicesController.metamaskNotificationsList is not defined', () => {
-      const state = {
-        ...initialRootState,
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            NotificationServicesController: {
-              metamaskNotificationsList: undefined,
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const tags = getTraceTags(state);
-
-      expect(tags).toBeUndefined();
-    });
-
-    it('returns undefined if TokensController.allTokens is not defined', () => {
-      const state = {
-        ...initialRootState,
-        engine: {
-          backgroundState: {
-            ...backgroundState,
             TokensController: {
-              allTokens: undefined,
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const tags = getTraceTags(state);
-
-      expect(tags).toBeUndefined();
-    });
-
-    it('returns undefined if TransactionController.transactions is not defined', () => {
-      const state = {
-        ...initialRootState,
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            TransactionController: {
-              transactions: undefined,
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const tags = getTraceTags(state);
-
-      expect(tags).toBeUndefined();
-    });
-
-    it('returns null and captures exception when an error occurs', () => {
-      const state = {
-        ...initialRootState,
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            AccountsController: Object.create(
-              {},
-              {
-                someProperty: {
-                  get: () => {
-                    throw new Error('Test error');
-                  },
+              allTokens: {
+                '0x1': {
+                  '0x1234': [{}, {}],
                 },
               },
-            ),
+            },
           },
         },
       } as unknown as RootState;
 
       const tags = getTraceTags(state);
 
-      expect(tags).toBeNull();
+      expect(tags?.['wallet.account_count']).toBeUndefined();
+      expect(tags?.['wallet.token_count']).toBeDefined();
+    });
+
+    it('handles missing controllers gracefully', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            ApprovalController: undefined,
+            NftController: undefined,
+            TokensController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeDefined();
+      expect(tags['wallet.pending_approval']).toBeUndefined();
+      expect(tags['wallet.nft_count']).toBeUndefined();
+      expect(tags['wallet.token_count']).toBeUndefined();
     });
   });
 });
