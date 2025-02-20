@@ -28,3 +28,6 @@ The Engine singleton is the core of the MetaMask Mobile app. It is responsible f
 
   - This allows the controller to be accessed via `Engine.context` when imported in other files
   - Add the controller entry to the object that `this.context` is initially set to
+
+- Assign files to CODEOWNERS
+  - Add both `app/core/Engine/controllers/<example-controller>` and `app/core/Engine/messengers/<example-controller-messenger>` to the `CODEOWNERS` file and assign to them to the appropriate team
