@@ -1,19 +1,27 @@
 import React, { PureComponent } from 'react';
 import {
+  Alert,
   TouchableOpacity,
   View,
   Image,
   StyleSheet,
   Text,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fontStyles } from '../../../styles/common';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  hasBlockExplorer,
+  findBlockExplorerForRpc,
+  getBlockExplorerName,
+  getDecimalChainId,
+} from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import { renderFromWei, renderFiat } from '../../../util/number';
@@ -24,23 +32,34 @@ import {
   toggleNetworkModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
+import {
+  getEtherscanAddressUrl,
+  getEtherscanBaseUrl,
+} from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
+import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import SettingsNotification from '../SettingsNotification';
+import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import {
   isDefaultAccountName,
   doENSReverseLookup,
 } from '../../../util/ENSUtils';
+import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
+import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { getLabelTextByAddress } from '../../../util/address';
 import {
@@ -49,8 +68,11 @@ import {
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
 import { scale } from 'react-native-size-matters';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
@@ -335,6 +357,18 @@ class DrawerView extends PureComponent {
      */
     keyrings: PropTypes.array,
     /**
+     * Action that toggles the network modal
+     */
+    toggleNetworkModal: PropTypes.func,
+    /**
+     * Action that shows the global alert
+     */
+    showAlert: PropTypes.func.isRequired,
+    /**
+     * Boolean that determines the status of the networks modal
+     */
+    networkModalVisible: PropTypes.bool.isRequired,
+    /**
      * Start transaction with asset
      */
     newAssetTransaction: PropTypes.func.isRequired,
@@ -343,9 +377,17 @@ class DrawerView extends PureComponent {
      */
     passwordSet: PropTypes.bool,
     /**
+     * Wizard onboarding state
+     */
+    wizard: PropTypes.object,
+    /**
      * Current provider ticker
      */
     ticker: PropTypes.string,
+    /**
+     * Network configurations
+     */
+    networkConfigurations: PropTypes.object,
     /**
      * Array of ERC20 assets
      */
@@ -364,6 +406,10 @@ class DrawerView extends PureComponent {
      */
     tokenBalances: PropTypes.object,
     /**
+     * Prompts protect wallet modal
+     */
+    protectWalletModalVisible: PropTypes.func,
+    /**
      * Callback to close drawer
      */
     onCloseDrawer: PropTypes.func,
@@ -375,6 +421,10 @@ class DrawerView extends PureComponent {
      * handles action for onboarding to a network
      */
     onboardNetworkAction: PropTypes.func,
+    /**
+     * returns switched network state
+     */
+    switchedNetwork: PropTypes.object,
     /**
      * updates when network is switched
      */
@@ -528,7 +578,7 @@ class DrawerView extends PureComponent {
   }
 
   updateAccountInfo = async () => {
-    const { selectedInternalAccount, chainId } = this.props;
+    const { providerConfig, selectedInternalAccount, chainId } = this.props;
     const { currentChainId, address, name } = this.state.account;
     const accountName = selectedInternalAccount.metadata.name;
     if (
@@ -568,6 +618,20 @@ class DrawerView extends PureComponent {
     );
   };
 
+  // NOTE: do we need this event?
+  trackOpenBrowserEvent = () => {
+    const { chainId } = this.props;
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_OPENED)
+        .addProperties({
+          source: 'In-app Navigation',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  };
+
   onReceive = () => {
     this.props.navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: QRTabSwitcherScreens.Receive,
@@ -591,8 +655,304 @@ class DrawerView extends PureComponent {
     );
   };
 
+  goToBrowser = () => {
+    this.props.navigation.navigate(Routes.BROWSER.HOME);
+    this.hideDrawer();
+    // Q: duplicated analytic event?
+    this.trackOpenBrowserEvent();
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_BROWSER)
+        .build(),
+    );
+  };
+
+  showWallet = () => {
+    this.props.navigation.navigate('WalletTabHome');
+    this.hideDrawer();
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
+        .build(),
+    );
+  };
+
+  onPressLock = async () => {
+    const { passwordSet } = this.props;
+    await Authentication.lockApp();
+    if (!passwordSet) {
+      this.props.navigation.navigate('OnboardingRootNav', {
+        screen: Routes.ONBOARDING.NAV,
+        params: { screen: 'Onboarding' },
+      });
+    } else {
+      this.props.navigation.replace(Routes.ONBOARDING.LOGIN, { locked: true });
+    }
+  };
+
+  lock = () => {
+    Alert.alert(
+      strings('drawer.lock_title'),
+      '',
+      [
+        {
+          text: strings('drawer.lock_cancel'),
+          onPress: () => null,
+          style: 'cancel',
+        },
+        {
+          text: strings('drawer.lock_ok'),
+          onPress: this.onPressLock,
+        },
+      ],
+      { cancelable: false },
+    );
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT)
+        .build(),
+    );
+  };
+
+  viewInEtherscan = () => {
+    const { providerConfig, networkConfigurations } = this.props;
+    if (providerConfig.type === RPC) {
+      const blockExplorer = findBlockExplorerForRpc(
+        providerConfig.rpcUrl,
+        networkConfigurations,
+      );
+      const url = `${blockExplorer}/address/${this.selectedChecksummedAddress}`;
+      const title = new URL(blockExplorer).hostname;
+      this.goToBrowserUrl(url, title);
+    } else {
+      const url = getEtherscanAddressUrl(
+        providerConfig.type,
+        this.selectedChecksummedAddress,
+      );
+      const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
+        'https://',
+        '',
+      );
+      this.goToBrowserUrl(url, etherscan_url);
+    }
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN)
+        .build(),
+    );
+  };
+
+  submitFeedback = () => {
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK)
+        .build(),
+    );
+    this.goToBrowserUrl(
+      'https://community.metamask.io/c/feature-requests-ideas/',
+      strings('drawer.request_feature'),
+    );
+  };
+
+  showHelp = () => {
+    this.props.navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: 'https://support.metamask.io',
+        timestamp: Date.now(),
+      },
+    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP)
+        .build(),
+    );
+    this.hideDrawer();
+  };
+
+  goToBrowserUrl(url, title) {
+    this.props.navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url,
+        title,
+      },
+    });
+    this.hideDrawer();
+  }
+
   hideDrawer = () => {
     this.props.onCloseDrawer();
+  };
+
+  hasBlockExplorer = (providerType) => {
+    const { networkConfigurations } = this.props;
+    if (providerType === RPC) {
+      const {
+        providerConfig: { rpcUrl },
+      } = this.props;
+      const blockExplorer = findBlockExplorerForRpc(
+        rpcUrl,
+        networkConfigurations,
+      );
+      if (blockExplorer) {
+        return true;
+      }
+    }
+    return hasBlockExplorer(providerType);
+  };
+
+  getIcon(name, size) {
+    const colors = this.context.colors || mockTheme.colors;
+
+    return (
+      <Icon name={name} size={size || 24} color={colors.icon.alternative} />
+    );
+  }
+
+  getFeatherIcon(name, size) {
+    const colors = this.context.colors || mockTheme.colors;
+
+    return (
+      <FeatherIcon
+        name={name}
+        size={size || 24}
+        color={colors.icon.alternative}
+      />
+    );
+  }
+
+  getMaterialIcon(name, size) {
+    const colors = this.context.colors || mockTheme.colors;
+
+    return (
+      <MaterialIcon
+        name={name}
+        size={size || 24}
+        color={colors.icon.alternative}
+      />
+    );
+  }
+
+  getImageIcon(name) {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />
+    );
+  }
+
+  getSelectedIcon(name, size) {
+    const colors = this.context.colors || mockTheme.colors;
+
+    return (
+      <Icon name={name} size={size || 24} color={colors.primary.default} />
+    );
+  }
+
+  getSelectedMaterialIcon(name, size) {
+    const colors = this.context.colors || mockTheme.colors;
+
+    return (
+      <MaterialIcon
+        name={name}
+        size={size || 24}
+        color={colors.primary.default}
+      />
+    );
+  }
+
+  getSelectedImageIcon(name) {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <Image
+        source={ICON_IMAGES[`selected-${name}`]}
+        style={styles.selectedMenuItemIconImage}
+      />
+    );
+  }
+
+  getSections = () => {
+    const {
+      providerConfig: { type, rpcUrl },
+      networkConfigurations,
+    } = this.props;
+    let blockExplorer, blockExplorerName;
+    if (type === RPC) {
+      blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations);
+      blockExplorerName = getBlockExplorerName(blockExplorer);
+    }
+    return [
+      [
+        {
+          name: strings('drawer.share_address'),
+          icon: this.getMaterialIcon('share-variant'),
+          action: this.onShare,
+        },
+        {
+          name:
+            (blockExplorer &&
+              `${strings('drawer.view_in')} ${blockExplorerName}`) ||
+            strings('drawer.view_in_etherscan'),
+          icon: this.getIcon('eye'),
+          action: this.viewInEtherscan,
+        },
+      ],
+      [
+        {
+          name: strings('drawer.help'),
+          icon: this.getIcon('comments'),
+          action: this.showHelp,
+        },
+        {
+          name: strings('drawer.request_feature'),
+          icon: this.getFeatherIcon('message-square'),
+          action: this.submitFeedback,
+        },
+        {
+          name: strings('drawer.lock'),
+          icon: this.getFeatherIcon('log-out'),
+          action: this.lock,
+          // ...generateTestId(Platform, DRAWER_VIEW_LOCK_ICON_ID),
+          testID: DRAWER_VIEW_LOCK_TEXT_ID,
+        },
+      ],
+    ];
+  };
+
+  copyAccountToClipboard = async () => {
+    await ClipboardManager.setString(this.selectedChecksummedAddress);
+    this.toggleReceiveModal();
+    InteractionManager.runAfterInteractions(() => {
+      this.props.showAlert({
+        isVisible: true,
+        autodismiss: 1500,
+        content: 'clipboard-alert',
+        data: { msg: strings('account_details.account_copied_to_clipboard') },
+      });
+    });
+  };
+
+  onShare = () => {
+    Share.open({
+      message: this.selectedChecksummedAddress,
+    })
+      .then(() => {
+        this.props.protectWalletModalVisible();
+      })
+      .catch((err) => {
+        Logger.log('Error while trying to share address', err);
+      });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(
+          MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS,
+        )
+        .build(),
+    );
   };
 
   onSecureWalletModalAction = () => {
@@ -676,6 +1036,8 @@ class DrawerView extends PureComponent {
       accounts,
       selectedInternalAccount,
       currentCurrency,
+      seedphraseBackedUp,
+      currentRoute,
       navigation,
       infoNetworkModalVisible,
     } = this.props;
@@ -796,6 +1158,81 @@ class DrawerView extends PureComponent {
               </View>
             </StyledButton>
           </View>
+          <View style={styles.menu}>
+            {this.getSections().map(
+              (section, i) =>
+                section?.length > 0 && (
+                  <View
+                    key={`section_${i}`}
+                    style={[
+                      styles.menuSection,
+                      i === 0 ? styles.noTopBorder : null,
+                    ]}
+                  >
+                    {section
+                      .filter((item) => {
+                        if (!item) return undefined;
+                        const { name = undefined } = item;
+                        if (
+                          name &&
+                          name.toLowerCase().indexOf('etherscan') !== -1
+                        ) {
+                          const type = providerConfig?.type;
+                          return (
+                            (type && this.hasBlockExplorer(type)) || undefined
+                          );
+                        }
+                        return true;
+                      })
+                      .map((item, j) => (
+                        <TouchableOpacity
+                          key={`item_${i}_${j}`}
+                          style={[
+                            styles.menuItem,
+                            item.routeNames &&
+                            item.routeNames.includes(currentRoute)
+                              ? styles.selectedRoute
+                              : null,
+                          ]}
+                          ref={
+                            item.name === strings('drawer.browser') &&
+                            this.browserSectionRef
+                          }
+                          onPress={() => item.action()} // eslint-disable-line
+                        >
+                          {item.icon
+                            ? item.routeNames &&
+                              item.routeNames.includes(currentRoute)
+                              ? item.selectedIcon
+                              : item.icon
+                            : null}
+                          <Text
+                            style={[
+                              styles.menuItemName,
+                              !item.icon ? styles.noIcon : null,
+                              item.routeNames &&
+                              item.routeNames.includes(currentRoute)
+                                ? styles.selectedName
+                                : null,
+                            ]}
+                            {...generateTestId(Platform, item.testID)}
+                            numberOfLines={1}
+                          >
+                            {item.name}
+                          </Text>
+                          {!seedphraseBackedUp && item.warning ? (
+                            <SettingsNotification isNotification isWarning>
+                              <Text style={styles.menuItemWarningText}>
+                                {item.warning}
+                              </Text>
+                            </SettingsNotification>
+                          ) : null}
+                        </TouchableOpacity>
+                      ))}
+                  </View>
+                ),
+            )}
+          </View>
         </ScrollView>
 
         <Modal
@@ -826,10 +1263,13 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   accounts: selectAccounts(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
+  networkConfigurations: selectNetworkConfigurations(state),
   currentCurrency: selectCurrentCurrency(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
+  networkModalVisible: state.modals.networkModalVisible,
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
+  wizard: state.wizard,
   ticker: selectTicker(state),
   tokens: selectTokens(state),
   tokenBalances: selectContractBalances(state),
@@ -844,6 +1284,7 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
+  protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
   onboardNetworkAction: (chainId) => dispatch(onboardNetworkAction(chainId)),
   networkSwitched: ({ networkUrl, networkStatus }) =>
     dispatch(networkSwitched({ networkUrl, networkStatus })),
