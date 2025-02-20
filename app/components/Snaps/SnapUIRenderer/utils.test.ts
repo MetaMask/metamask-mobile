@@ -5,7 +5,7 @@ import { JSXElement } from '@metamask/snaps-sdk/jsx';
 describe('SnapUIRenderer utils', () => {
   describe('mapToTemplate', () => {
     it('map basic text content', () => {
-      const element: JSXElement = {
+      const el: JSXElement = {
         type: 'Text',
         props: {
           children: 'Test Content',
@@ -15,7 +15,7 @@ describe('SnapUIRenderer utils', () => {
 
       const result = mapToTemplate({
         map: {},
-        element,
+        element: el,
         useFooter: false,
         onCancel: jest.fn(),
         t: strings,

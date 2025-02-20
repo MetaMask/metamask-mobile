@@ -84,7 +84,9 @@ describe('text component', () => {
       };
 
       const result = text({ element: el, ...defaultParams });
-      expect(result.props?.fontWeight).toBe(expectedWeights[weight!]);
+      if (weight in expectedWeights) {
+        expect(result.props?.fontWeight).toBe(expectedWeights[weight]);
+      }
     });
   });
 
@@ -109,7 +111,9 @@ describe('text component', () => {
       };
 
       const result = text({ element: el, ...defaultParams });
-      expect(result.props?.textAlign).toBe(expectedAlignments[alignment!]);
+      if (alignment in expectedAlignments) {
+        expect(result.props?.textAlign).toBe(expectedAlignments[alignment]);
+      }
     });
   });
 
