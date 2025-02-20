@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import Info from '../../components/Confirm/Info';
@@ -37,7 +38,9 @@ describe('ScrollContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    expect(queryByTestId('scroll-to-bottom-button')).toBeNull();
+    expect(
+      queryByTestId(ConfirmationPageSectionsSelectorIDs.SCROLL_BUTTON),
+    ).toBeNull();
   });
 });
 
