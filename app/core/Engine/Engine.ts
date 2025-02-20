@@ -2184,7 +2184,7 @@ export class Engine {
 
   async acceptPendingApproval(
     id: string,
-    requestData?: Json,
+    requestData?: Record<string, Json>,
     opts: AcceptOptions & { handleErrors?: boolean } = {
       waitForResult: false,
       deleteAfterResult: false,
@@ -2386,7 +2386,7 @@ export default {
 
   acceptPendingApproval: async (
     id: string,
-    requestData?: Json,
+    requestData?: Record<string, Json>,
     opts?: AcceptOptions & { handleErrors?: boolean },
   ) => instance?.acceptPendingApproval(id, requestData, opts),
 

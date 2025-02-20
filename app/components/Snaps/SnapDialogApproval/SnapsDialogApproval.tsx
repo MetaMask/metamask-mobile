@@ -30,7 +30,10 @@ const SnapDialogApproval = () => {
 
   const onCancel = async () => {
     if (!approvalRequest) return;
-    await Engine.acceptPendingApproval(approvalRequest.id, null as Json);
+    await Engine.acceptPendingApproval(
+      approvalRequest.id,
+      null as unknown as Record<string, Json>,
+    );
     await Engine.context.SnapInterfaceController.deleteInterface(
       approvalRequest.id,
     );
@@ -39,7 +42,10 @@ const SnapDialogApproval = () => {
   const onConfirm = async () => {
     setIsLoading(true);
     if (!approvalRequest) return;
-    await Engine.acceptPendingApproval(approvalRequest.id, true as Json);
+    await Engine.acceptPendingApproval(
+      approvalRequest.id,
+      true as unknown as Record<string, Json>,
+    );
     await Engine.context.SnapInterfaceController.deleteInterface(
       approvalRequest.id,
     );
@@ -50,7 +56,10 @@ const SnapDialogApproval = () => {
   const onReject = async () => {
     if (!approvalRequest) return;
 
-    await Engine.acceptPendingApproval(approvalRequest.id, false as Json);
+    await Engine.acceptPendingApproval(
+      approvalRequest.id,
+      false as unknown as Record<string, Json>,
+    );
     await Engine.context.SnapInterfaceController.deleteInterface(
       approvalRequest.id,
     );
@@ -59,6 +68,7 @@ const SnapDialogApproval = () => {
   if (
     approvalRequest?.type !== DIALOG_APPROVAL_TYPES.alert &&
     approvalRequest?.type !== DIALOG_APPROVAL_TYPES.confirmation &&
+    approvalRequest?.type !== DIALOG_APPROVAL_TYPES.prompt &&
     approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default
   )
     return null;
@@ -76,6 +86,7 @@ const SnapDialogApproval = () => {
         ];
 
       case DIALOG_APPROVAL_TYPES.confirmation:
+      case DIALOG_APPROVAL_TYPES.prompt:
         return [
           {
             variant: ButtonVariants.Secondary,
