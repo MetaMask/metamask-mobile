@@ -113,13 +113,12 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
           </Text>
         </View>
       );
-    } else {
-      return (
-        <Text variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT} color={color}>
-          {label}
-        </Text>
-      );
     }
+    return (
+      <Text variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT} color={color}>
+        {label}
+      </Text>
+    );
   };
 
   return (
