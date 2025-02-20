@@ -5171,15 +5171,15 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^0.21.0":
-  version "0.21.0"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.21.0.tgz#5477fc0d4ee9e01142f059e1fc5aaebf3cfc980d"
-  integrity sha512-FJ1QaXH8dQY24oea9z5CHu5MzcfbPa9qc6uJyiG+lruosZX77VJk4QzFNaoPwHITJRDcQsPBpT9F5nlhv41YDg==
+"@metamask/notification-services-controller@npm:@metamask-previews/notification-services-controller@0.21.0-preview-cc687932":
+  version "0.21.0-preview-cc687932"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/notification-services-controller/-/notification-services-controller-0.21.0-preview-cc687932.tgz#7dc5be01cba413b39d133d6f82bec0ebfec1e1b6"
+  integrity sha512-OgAc/LYTOEhh+xWEe1hgkssyPfMXbLAudckFdAyPAq40iHAs26qVmyqXc+v1eneBzhqO6VwEy1L6sVMGCOPBNw==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.5.0"
-    "@metamask/utils" "^11.1.0"
+    "@metamask/utils" "^11.2.0"
     bignumber.js "^9.1.2"
     firebase "^11.2.0"
     loglevel "^1.8.1"
@@ -5675,7 +5675,7 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/utils@^10.0.0", "@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^8.2.0", "@metamask/utils@^8.3.0", "@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1", "@metamask/utils@^9.3.0":
+"@metamask/utils@^10.0.0", "@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0", "@metamask/utils@^8.2.0", "@metamask/utils@^8.3.0", "@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1", "@metamask/utils@^9.3.0":
   version "11.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.2.0.tgz#f2b35cbe6536c56071b0971f97f2395b860885c4"
   integrity sha512-5Y4bd8Axvi2kJKjp6Jlbb9wyoTrSZxQjWvVGPevpErAc7SCUYUuW0QOOPVu7YmT+bzisTpnFnRE8LjtwYCKGAg==

@@ -13,7 +13,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
   <SvgMock
     color="#141618"
     height={24}
-    name="Arrow2Upright"
+    name="Sparkle"
     style={
       {
         "height": 24,
@@ -45,7 +45,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
         }
       }
     >
-      Assets Sent
+      Title
     </Text>
     <Text
       accessibilityRole="text"
@@ -61,7 +61,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
         }
       }
     >
-      Funds and NFT
+      Description
     </Text>
   </View>
   <RCTSwitch
@@ -87,6 +87,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
         ],
       ]
     }
+    testID="custom-notifications-row--switch"
     thumbTintColor="#ffffff"
     tintColor="#BBC0C566"
     value={false}
