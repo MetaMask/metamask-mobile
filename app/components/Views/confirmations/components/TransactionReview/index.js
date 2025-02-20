@@ -599,7 +599,7 @@ class TransactionReview extends PureComponent {
                       />
                     </View>
                     {shouldUseSmartTransaction && (
-                      <View style={styles.SmartTransactionsMigrationBanner}>
+                      <View style={styles.smartTransactionsMigrationBanner}>
                         <SmartTransactionsMigrationBanner />
                       </View>
                     )}
