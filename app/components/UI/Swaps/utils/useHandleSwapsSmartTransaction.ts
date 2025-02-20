@@ -107,8 +107,7 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
   const isEIP1559Network = useSelector(selectIsEIP1559Network);
   const approvalTransaction: TxParams = useSelector(selectSwapsApprovalTransaction);
 
-  const submitSwapsSmartTransactions = async () => {
-    // Approval tx (if one exists)
+  const submitSmartApprovalTransaction = async () => {
     let approvalTxUuid: string | undefined;
     if (approvalTransaction) {
       approvalTxUuid = await submitSmartTransaction({
@@ -122,9 +121,11 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
         gasEstimates,
       });
     }
+    return approvalTxUuid;
+  };
 
-    // Trade tx
-    const tradeTxUuid = await submitSmartTransaction({
+  const submitSmartTradeTransaction = async () => {
+    const tradeTxUuid: string = await submitSmartTransaction({
       unsignedTransaction: {...tradeTransaction, chainId},
       smartTransactionFees: {
         fees: [],
@@ -134,8 +135,8 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
       isEIP1559Network,
       gasEstimates,
     });
+    return tradeTxUuid;
   };
 
-
-  return { submitSwapsSmartTransactions };
+  return { submitSmartApprovalTransaction, submitSmartTradeTransaction };
 };

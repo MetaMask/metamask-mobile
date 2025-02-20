@@ -123,6 +123,7 @@ import {
 } from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
+import { useSwapsSmartTransactions } from './utils/useHandleSwapsSmartTransaction';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -528,6 +529,13 @@ function SwapsQuotesView({
     () => customGasEstimate || usedGasEstimate,
     [customGasEstimate, usedGasEstimate],
   );
+
+  const { submitSmartApprovalTransaction, submitSmartTradeTransaction } =
+    useSwapsSmartTransactions({
+      tradeTransaction: selectedQuote?.trade,
+      gasEstimates,
+    });
+
   const initialGasLimit = useMemo(() => {
     if (!selectedQuote) {
       return '0';
@@ -1041,7 +1049,7 @@ function SwapsQuotesView({
           ).toString(10),
         });
 
-        if (isHardwareAddress || shouldUseSmartTransaction) {
+        if (isHardwareAddress) {
           const { id: transactionId } = transactionMeta;
 
           Engine.controllerMessenger.subscribeOnceIf(
@@ -1070,7 +1078,6 @@ function SwapsQuotesView({
       selectedAddress,
       setRecipient,
       resetTransaction,
-      shouldUseSmartTransaction,
       chainId,
       networkClientId,
     ],
@@ -1090,22 +1097,25 @@ function SwapsQuotesView({
 
     let approvalTransactionMetaId;
 
-    if (approvalTransaction) {
-      approvalTransactionMetaId = await handleApprovalTransaction(
-        isHardwareAddress,
-      );
-
-      if (isHardwareAddress) {
-        setIsHandlingSwap(false);
-        navigation.dangerouslyGetParent()?.pop();
-        return;
+    if (shouldUseSmartTransaction) {
+      if (approvalTransaction) {
+        await submitSmartApprovalTransaction();
       }
-    }
 
-    if (
-      !shouldUseSmartTransaction ||
-      (shouldUseSmartTransaction && !approvalTransaction)
-    ) {
+      await submitSmartTradeTransaction();
+    } else {
+      if (approvalTransaction) {
+        approvalTransactionMetaId = await handleApprovalTransaction(
+          isHardwareAddress,
+        );
+
+        if (isHardwareAddress) {
+          setIsHandlingSwap(false);
+          navigation.dangerouslyGetParent()?.pop();
+          return;
+        }
+      }
+
       await handleSwapTransaction(approvalTransactionMetaId);
     }
 
@@ -1120,6 +1130,8 @@ function SwapsQuotesView({
     handleSwapTransaction,
     navigation,
     shouldUseSmartTransaction,
+    submitSmartApprovalTransaction,
+    submitSmartTradeTransaction,
   ]);
 
   const onEditQuoteTransactionsGas = useCallback(() => {
