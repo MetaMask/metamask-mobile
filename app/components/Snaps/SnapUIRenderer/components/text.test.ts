@@ -14,7 +14,7 @@ describe('text component', () => {
   };
 
   it('should render text with default props', () => {
-    const element: TextElement = {
+    const el: TextElement = {
       type: 'Text',
       props: {
         children: ['Hello World'],
@@ -22,7 +22,7 @@ describe('text component', () => {
       key: null,
     };
 
-    const result = text({ element, ...defaultParams });
+    const result = text({ element: el, ...defaultParams });
 
     expect(result).toEqual({
       element: 'Text',
@@ -47,18 +47,18 @@ describe('text component', () => {
     ];
 
     colors.forEach((color) => {
-      const element: TextElement = {
+      if (!color) return;
+
+      const el: TextElement = {
         type: 'Text',
         props: { color, children: ['Test'] },
         key: null,
       };
 
-      const result = text({ element, ...defaultParams });
+      const result = text({ element: el, ...defaultParams });
+      const capitalizedColor = color.charAt(0).toUpperCase() + color.slice(1);
       expect(result.props?.color).toBe(
-        TextColor[
-          (color!.charAt(0).toUpperCase() +
-            color!.slice(1)) as keyof typeof TextColor
-        ],
+        TextColor[capitalizedColor as keyof typeof TextColor],
       );
     });
   });
@@ -76,13 +76,14 @@ describe('text component', () => {
     };
 
     weights.forEach((weight) => {
-      const element: TextElement = {
+      if (!weight) return;
+      const el: TextElement = {
         type: 'Text',
         props: { fontWeight: weight, children: ['Test'] },
         key: null,
       };
 
-      const result = text({ element, ...defaultParams });
+      const result = text({ element: el, ...defaultParams });
       expect(result.props?.fontWeight).toBe(expectedWeights[weight!]);
     });
   });
@@ -100,25 +101,26 @@ describe('text component', () => {
     };
 
     alignments.forEach((alignment) => {
-      const element: TextElement = {
+      if (!alignment) return;
+      const el: TextElement = {
         type: 'Text',
         props: { alignment, children: ['Test'] },
         key: null,
       };
 
-      const result = text({ element, ...defaultParams });
+      const result = text({ element: el, ...defaultParams });
       expect(result.props?.textAlign).toBe(expectedAlignments[alignment!]);
     });
   });
 
   it('should handle different text sizes', () => {
-    const element: TextElement = {
+    const el: TextElement = {
       type: 'Text',
       props: { size: 'sm', children: ['Test'] },
       key: null,
     };
 
-    const result = text({ element, ...defaultParams });
+    const result = text({ element: el, ...defaultParams });
     expect(result.props?.variant).toBe(TextVariant.BodySM);
   });
 });
