@@ -7,6 +7,7 @@ import type {
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import type { RootState } from '../../../../reducers';
+import { DEFAULT_VAULT_APY_AVERAGES } from '../../../../components/UI/Stake/constants';
 
 interface PooledStakingState {
   pooledStakes: PooledStake;
@@ -22,7 +23,7 @@ export const initialState: PooledStakingState = {
   exchangeRate: '',
   vaultData: {} as VaultData,
   vaultApys: [],
-  vaultApyAverages: {} as VaultApyAverages,
+  vaultApyAverages: DEFAULT_VAULT_APY_AVERAGES,
   isEligible: false,
 };
 
