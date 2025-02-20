@@ -9,11 +9,12 @@ import {
 } from '../../../../../../component-library/components/Buttons/Button';
 import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
-import Text, { TextVariant } from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
-import { useScrollContext } from '../../../context/ScrollContext';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
@@ -25,15 +26,17 @@ export const Footer = () => {
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
-  const { isScrollToBottomNeeded } = useScrollContext();
-  const confirmDisabled = needsCameraPermission || isScrollToBottomNeeded;
+  const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const isStakingConfirmation = [
     TransactionType.stakingDeposit,
     TransactionType.stakingUnstake,
     TransactionType.stakingClaim,
   ].includes(transactionMetadata?.type as TransactionType);
-  const { styles } = useStyles(styleSheet, { confirmDisabled, isStakingConfirmation });
+  const { styles } = useStyles(styleSheet, {
+    confirmDisabled,
+    isStakingConfirmation,
+  });
 
   const buttons = [
     {
@@ -51,18 +54,48 @@ export const Footer = () => {
         ? strings('confirm.qr_get_sign')
         : strings('confirm.confirm'),
       size: ButtonSize.Lg,
-      style: [styles.confirmButton, confirmDisabled && styles.confirmButtonDisabled],
+      style: [confirmDisabled && styles.confirmButtonDisabled],
       onPress: onConfirm,
       testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     },
   ];
 
   return (
-    <BottomSheetFooter
-      buttonsAlignment={ButtonsAlignment.Horizontal}
-      buttonPropsArray={buttons}
-      style={styles.base}
-    />
+    <>
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+          buttonPropsArray={buttons}
+          style={styles.base}
+        />
+        {isStakingConfirmation && (
+          <View style={styles.textContainer}>
+            <Text variant={TextVariant.BodySM}>
+              {strings('confirm.staking_footer.part1')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySM}
+              style={styles.linkText}
+              onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
+            >
+              {strings('confirm.staking_footer.terms_of_use')}
+            </Text>
+            <Text variant={TextVariant.BodySM}>
+              {strings('confirm.staking_footer.part2')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySM}
+              style={styles.linkText}
+              onPress={() =>
+                Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
+              }
+            >
+              {strings('confirm.staking_footer.risk_disclosure')}
+            </Text>
+            <Text variant={TextVariant.BodySM}>
+              {strings('confirm.staking_footer.part3')}
+            </Text>
+          </View>
+        )}
+    </>
   );
 };
-

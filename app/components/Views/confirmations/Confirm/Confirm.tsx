@@ -16,16 +16,12 @@ import styleSheet from './Confirm.styles';
 const ConfirmWrapped = () => (
   <QRHardwareContextProvider>
     <Title />
-    <ScrollContextProvider
-      scrollableSection={
-        <>
-          {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
-          <SignatureBlockaidBanner />
-          <Info />
-        </>
-      }
-      staticFooter={<Footer />}
-    />
+    <ScrollContextProvider>
+      {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
+      <SignatureBlockaidBanner />
+      <Info />
+    </ScrollContextProvider>
+    <Footer />
   </QRHardwareContextProvider>
 );
 
