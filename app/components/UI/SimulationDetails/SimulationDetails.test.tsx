@@ -6,6 +6,7 @@ import {
   SimulationData,
   SimulationErrorCode,
   SimulationTokenStandard,
+  TransactionMeta,
 } from '@metamask/transaction-controller';
 
 import AnimatedSpinner from '../AnimatedSpinner';
@@ -21,6 +22,7 @@ const DUMMY_BALANCE_CHANGE = {
   previousBalance: '0xIGNORED' as Hex,
   newBalance: '0xIGNORED' as Hex,
 };
+const CHAIN_ID_MOCK = '0x123';
 const mockTransactionId = '0x1234567890';
 const simulationDataMock = {
   nativeBalanceChange: {
@@ -81,8 +83,12 @@ describe('SimulationDetails', () => {
 
     render(
       <SimulationDetails
-        simulationData={simulationDataMock}
-        transactionId={mockTransactionId}
+        transaction={
+          {
+            id: mockTransactionId,
+            simulationData: simulationDataMock,
+          } as TransactionMeta
+        }
         enableMetrics={false}
       />,
     );
@@ -95,11 +101,15 @@ describe('SimulationDetails', () => {
       expect(
         render(
           <SimulationDetails
-            simulationData={{
-              ...simulationDataMock,
-              error: { code: SimulationErrorCode.ChainNotSupported },
-            }}
-            transactionId={mockTransactionId}
+            transaction={
+              {
+                id: mockTransactionId,
+                simulationData: {
+                  ...simulationDataMock,
+                  error: { code: SimulationErrorCode.ChainNotSupported },
+                },
+              } as TransactionMeta
+            }
             enableMetrics={false}
           />,
         ).toJSON(),
@@ -110,11 +120,15 @@ describe('SimulationDetails', () => {
       expect(
         render(
           <SimulationDetails
-            simulationData={{
-              ...simulationDataMock,
-              error: { code: SimulationErrorCode.Disabled },
-            }}
-            transactionId={mockTransactionId}
+            transaction={
+              {
+                id: mockTransactionId,
+                simulationData: {
+                  ...simulationDataMock,
+                  error: { code: SimulationErrorCode.Disabled },
+                },
+              } as TransactionMeta
+            }
             enableMetrics={false}
           />,
         ).toJSON(),
@@ -126,11 +140,15 @@ describe('SimulationDetails', () => {
     it('if transaction will be reverted', () => {
       const { getByText } = render(
         <SimulationDetails
-          simulationData={{
-            ...simulationDataMock,
-            error: { code: SimulationErrorCode.Reverted },
-          }}
-          transactionId={mockTransactionId}
+          transaction={
+            {
+              id: mockTransactionId,
+              simulationData: {
+                ...simulationDataMock,
+                error: { code: SimulationErrorCode.Reverted },
+              },
+            } as TransactionMeta
+          }
           enableMetrics={false}
         />,
       );
@@ -141,11 +159,15 @@ describe('SimulationDetails', () => {
     it('if simulation is failed', () => {
       const { getByText } = render(
         <SimulationDetails
-          simulationData={{
-            ...simulationDataMock,
-            error: { code: SimulationErrorCode.InvalidResponse },
-          }}
-          transactionId={mockTransactionId}
+          transaction={
+            {
+              id: mockTransactionId,
+              simulationData: {
+                ...simulationDataMock,
+                error: { code: SimulationErrorCode.InvalidResponse },
+              },
+            } as TransactionMeta
+          }
           enableMetrics={false}
         />,
       );
@@ -159,8 +181,12 @@ describe('SimulationDetails', () => {
   it('renders if no balance change', () => {
     const { getByText } = render(
       <SimulationDetails
-        simulationData={simulationDataMock}
-        transactionId={mockTransactionId}
+        transaction={
+          {
+            id: mockTransactionId,
+            simulationData: simulationDataMock,
+          } as TransactionMeta
+        }
         enableMetrics={false}
       />,
     );
@@ -175,7 +201,7 @@ describe('SimulationDetails', () => {
         {
           amount: new BigNumber('0x1', 16).times(-1),
           fiatAmount: 10,
-          asset: { type: AssetType.Native },
+          asset: { type: AssetType.Native, chainId: CHAIN_ID_MOCK },
         },
         {
           amount: new BigNumber('0x123456', 16).times(1),
@@ -184,6 +210,7 @@ describe('SimulationDetails', () => {
             address: FIRST_PARTY_CONTRACT_ADDRESS_1_MOCK,
             tokenId: undefined,
             type: AssetType.ERC20,
+            chainId: CHAIN_ID_MOCK,
           },
         },
         {
@@ -193,6 +220,7 @@ describe('SimulationDetails', () => {
             address: FIRST_PARTY_CONTRACT_ADDRESS_2_MOCK,
             tokenId: undefined,
             type: AssetType.ERC20,
+            chainId: CHAIN_ID_MOCK,
           },
         },
       ],
@@ -200,8 +228,12 @@ describe('SimulationDetails', () => {
 
     const { getByTestId } = render(
       <SimulationDetails
-        simulationData={simulationDataMock}
-        transactionId={mockTransactionId}
+        transaction={
+          {
+            id: mockTransactionId,
+            simulationData: simulationDataMock,
+          } as TransactionMeta
+        }
         enableMetrics={false}
       />,
     );

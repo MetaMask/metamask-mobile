@@ -1,19 +1,23 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import StakingBalance from './StakingBalance';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Image } from 'react-native';
 import {
+  MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
-  MOCK_STAKED_ETH_ASSET,
+  MOCK_STAKED_ETH_MAINNET_ASSET,
 } from '../../__mocks__/mockData';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../../../util/networks';
+import { mockNetworkState } from '../../../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -94,8 +98,8 @@ jest.mock('../../hooks/useVaultData', () => ({
 jest.mock('../../hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
-    stakedBalanceWei: MOCK_STAKED_ETH_ASSET.balance,
-    stakedBalanceFiat: MOCK_STAKED_ETH_ASSET.balanceFiat,
+    stakedBalanceWei: MOCK_STAKED_ETH_MAINNET_ASSET.balance,
+    stakedBalanceFiat: MOCK_STAKED_ETH_MAINNET_ASSET.balanceFiat,
   }),
 }));
 
@@ -126,7 +130,7 @@ describe('StakingBalance', () => {
 
   it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
@@ -135,37 +139,88 @@ describe('StakingBalance', () => {
   it('should match the snapshot when portfolio view is enabled  ', () => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     const { toJSON } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('redirects to StakeInputView on stake button click', () => {
+  it('redirects to StakeInputView on stake button click', async () => {
     const { getByText } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+      <StakingBalance asset={MOCK_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
 
-    fireEvent.press(getByText(strings('stake.stake_more')));
+    await act(() => {
+      fireEvent.press(getByText(strings('stake.stake_more')));
+    });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
+      params: {
+        token: MOCK_ETH_MAINNET_ASSET,
+        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+      },
     });
   });
 
-  it('redirects to UnstakeInputView on unstake button click', () => {
+  it('redirects to UnstakeInputView on unstake button click', async () => {
     const { getByText } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
 
-    fireEvent.press(getByText(strings('stake.unstake')));
+    await act(() => {
+      fireEvent.press(getByText(strings('stake.unstake')));
+    });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
     });
+  });
+
+  it('should not render if asset chainId is not a staking supporting chain', () => {
+    const { queryByText, queryByTestId } = renderWithProvider(
+      <StakingBalance
+        asset={{ ...MOCK_STAKED_ETH_MAINNET_ASSET, chainId: '0x4' }}
+      />,
+      { state: mockInitialState },
+    );
+    expect(queryByTestId('staking-balance-container')).toBeNull();
+    expect(queryByText(strings('stake.stake_more'))).toBeNull();
+    expect(queryByText(strings('stake.unstake'))).toBeNull();
+    expect(queryByText(`${strings('stake.claim')} ETH`)).toBeNull();
+  });
+
+  it('should render claim link and action buttons if supported asset.chainId is not selected chainId', () => {
+    const { queryByText, queryByTestId } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      {
+        state: {
+          ...mockInitialState,
+          engine: {
+            ...mockInitialState.engine,
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              NetworkController: {
+                ...mockNetworkState({
+                  chainId: CHAIN_IDS.SEPOLIA,
+                  id: 'sepolia',
+                  nickname: 'Sepolia',
+                  ticker: 'ETH',
+                }),
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(queryByTestId('staking-balance-container')).toBeTruthy();
+    expect(queryByText(strings('stake.stake_more'))).toBeTruthy();
+    expect(queryByText(strings('stake.unstake'))).toBeTruthy();
+    expect(queryByText(`${strings('stake.claim')} ETH`)).toBeTruthy();
   });
 });

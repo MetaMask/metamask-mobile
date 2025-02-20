@@ -36,6 +36,7 @@ import {
 import {
   selectChainId,
   selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectNetworkClientId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
@@ -98,6 +99,7 @@ const DetectedTokens = () => {
   ) as TokenI[];
   const allNetworks = useSelector(selectNetworkConfigurations);
   const chainId = useSelector(selectChainId);
+  const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
@@ -108,7 +110,7 @@ const DetectedTokens = () => {
   const styles = createStyles(colors);
 
   const currentDetectedTokens =
-    isPortfolioViewEnabled() && isAllNetworks
+    isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
       ? allDetectedTokens
       : detectedTokens;
 

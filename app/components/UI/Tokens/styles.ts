@@ -26,6 +26,13 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       marginTop: 50,
     },
+    emptyTokensView: {
+      alignItems: 'center',
+      marginTop: 130,
+    },
+    emptyTokensViewText: {
+      fontFamily: 'EuclidCircularB-Medium',
+    },
     text: {
       fontSize: 20,
       color: colors.text.default,

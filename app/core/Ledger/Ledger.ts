@@ -251,4 +251,3 @@ export const unlockLedgerWalletAccount = async (index: number) => {
   }
 };
 
-

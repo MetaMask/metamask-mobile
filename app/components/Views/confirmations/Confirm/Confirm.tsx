@@ -3,33 +3,58 @@ import { View } from 'react-native';
 
 import { useStyles } from '../../../../component-library/hooks';
 import BottomModal from '../components/UI/BottomModal';
-import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
 import Footer from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
+import { ScrollContextProvider } from '../context/ScrollContext';
+import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
-import useConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
+import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
+import useApprovalRequest from '../hooks/useApprovalRequest';
+import { useConfirmActions } from '../hooks/useConfirmActions';
+import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
+import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import styleSheet from './Confirm.styles';
 
-const Confirm = () => {
+const ConfirmWrapped = () => (
+  <QRHardwareContextProvider>
+    <Title />
+    <ScrollContextProvider
+      scrollableSection={
+        <>
+          <SignatureBlockaidBanner />
+          <Info />
+        </>
+      }
+      staticFooter={<Footer />}
+    ></ScrollContextProvider>
+  </QRHardwareContextProvider>
+);
+
+export const Confirm = () => {
+  const { approvalRequest } = useApprovalRequest();
+  const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
+  const { onReject } = useConfirmActions();
+
   const { styles } = useStyles(styleSheet, {});
 
   if (!isRedesignedEnabled) {
     return null;
   }
 
+  if (isFlatConfirmation) {
+    return (
+      <View style={styles.flatContainer} testID="flat-confirmation-container">
+        <ConfirmWrapped />
+      </View>
+    );
+  }
+
   return (
-    <BottomModal>
-      <View style={styles.container}>
-        <View>
-          <Title />
-          <AccountNetworkInfo />
-          <Info />
-        </View>
-        <Footer />
+    <BottomModal onClose={onReject} testID="modal-confirmation-container">
+      <View style={styles.modalContainer} testID={approvalRequest?.type}>
+        <ConfirmWrapped />
       </View>
     </BottomModal>
   );
 };
-
-export default Confirm;

@@ -5,25 +5,33 @@ import AmountPill from './AmountPill';
 import {
   AssetIdentifier,
   AssetType,
-  NATIVE_ASSET_IDENTIFIER,
+  NativeAssetIdentifier,
   TokenAssetIdentifier,
 } from '../types';
 
 const TOKEN_ID_MOCK = '0xabc';
+const CHAIN_ID_MOCK = '0x123';
 
 const ERC20_ASSET_MOCK: TokenAssetIdentifier = {
   type: AssetType.ERC20,
   address: '0x456',
+  chainId: CHAIN_ID_MOCK,
 };
 const ERC721_ASSET_MOCK: TokenAssetIdentifier = {
   type: AssetType.ERC721,
   address: '0x123',
   tokenId: TOKEN_ID_MOCK,
+  chainId: CHAIN_ID_MOCK,
 };
 const ERC1155_ASSET_MOCK: TokenAssetIdentifier = {
   type: AssetType.ERC1155,
   address: '0x789',
   tokenId: TOKEN_ID_MOCK,
+  chainId: CHAIN_ID_MOCK,
+};
+const NATIVE_ASSET_MOCK: NativeAssetIdentifier = {
+  type: AssetType.Native,
+  chainId: CHAIN_ID_MOCK,
 };
 
 const renderAndExpect = (
@@ -83,7 +91,7 @@ describe('AmountPill', () => {
     it.each(nativeAndErc20Cases)(
       'renders the correct sign and amount for $amount',
       ({ amount, expected }) => {
-        renderAndExpect(NATIVE_ASSET_IDENTIFIER, amount, expected);
+        renderAndExpect(NATIVE_ASSET_MOCK, amount, expected);
       },
     );
   });

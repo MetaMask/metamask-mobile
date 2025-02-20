@@ -104,8 +104,6 @@ import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
-import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
@@ -142,6 +140,7 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user';
+import { Confirm } from '../../Views/confirmations/Confirm';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -621,15 +620,42 @@ const AppFlow = () => {
           options={{ animationEnabled: true }}
         />
       ) : null}
-
       <Stack.Screen
         name={Routes.LOCK_SCREEN}
         component={LockScreen}
         options={{ gestureEnabled: false }}
       />
+      <Stack.Screen
+        name={Routes.CONFIRM_FLAT_PAGE}
+        component={ConfirmRequest}
+        options={{ animationEnabled: true }}
+      />
+      <Stack.Screen
+        name={Routes.CONFIRM_MODAL}
+        component={ConfirmDappRequest}
+        options={{ animationEnabled: true }}
+      />
     </Stack.Navigator>
   );
 };
+
+const ConfirmRequest = () => (
+  <Stack.Navigator mode={'modal'}>
+    <Stack.Screen name={Routes.CONFIRM_FLAT_PAGE} component={Confirm} />
+  </Stack.Navigator>
+);
+
+const ConfirmDappRequest = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+    mode={'modal'}
+  >
+    <Stack.Screen name={Routes.CONFIRM_MODAL} component={Confirm} />
+  </Stack.Navigator>
+);
 
 const App: React.FC = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
@@ -639,6 +665,18 @@ const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
+
+  const isFirstRender = useRef(true);
+
+  if (isFirstRender.current) {
+    trace({
+      name: TraceName.NavInit,
+      parentContext: getUIStartupSpan(),
+      op: TraceOperation.NavInit,
+    });
+
+    isFirstRender.current = false;
+  }
 
   useEffect(() => {
     // End trace when first render is complete
@@ -754,15 +792,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const initMetrics = async () => {
-      const metrics = MetaMetrics.getInstance();
-      await metrics.configure();
-      // identify user with the latest traits
-      // run only after the MetaMetrics is configured
-      const consolidatedTraits = {
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-      };
-      await metrics.addTraitsToUser(consolidatedTraits);
+      await MetaMetrics.getInstance().configure();
     };
 
     initMetrics().catch((err) => {

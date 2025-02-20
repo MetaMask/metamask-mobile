@@ -9,6 +9,7 @@ import {
 import Logger from '../../../../util/Logger';
 
 import { RemoteFeatureFlagInitParamTypes } from './types';
+import AppConstants from '../../../AppConstants';
 
 const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
@@ -29,16 +30,20 @@ const getFeatureFlagAppDistribution = () => {
   }
 };
 
+export const isRemoteFeatureFlagOverrideActivated = process.env.OVERRIDE_REMOTE_FEATURE_FLAGS;
+
 export const createRemoteFeatureFlagController = ({
   state,
   messenger,
   disabled,
+  getMetaMetricsId,
+  fetchInterval = AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,
 }: RemoteFeatureFlagInitParamTypes) => {
-
   const remoteFeatureFlagController = new RemoteFeatureFlagController({
     messenger,
     state,
     disabled,
+    getMetaMetricsId,
     clientConfigApiService: new ClientConfigApiService({
       fetch,
       config: {
@@ -47,10 +52,13 @@ export const createRemoteFeatureFlagController = ({
         distribution: getFeatureFlagAppDistribution(),
       },
     }),
+    fetchInterval,
   });
 
   if (disabled) {
     Logger.log('Feature flag controller disabled');
+  } else if (isRemoteFeatureFlagOverrideActivated) {
+    Logger.log('Remote feature flags override activated');
   } else {
     remoteFeatureFlagController.updateRemoteFeatureFlags().then(() => {
       Logger.log('Feature flags updated');
@@ -58,4 +66,3 @@ export const createRemoteFeatureFlagController = ({
   }
   return remoteFeatureFlagController;
 };
-

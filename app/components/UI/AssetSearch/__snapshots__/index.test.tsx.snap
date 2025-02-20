@@ -6,7 +6,7 @@ exports[`AssetSearch should render correctly 1`] = `
     [
       {
         "alignItems": "center",
-        "borderColor": "#bbc0c5",
+        "borderColor": "#848c96",
         "borderRadius": 8,
         "borderWidth": 1,
         "color": "#141618",

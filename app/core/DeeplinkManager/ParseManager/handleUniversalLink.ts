@@ -1,19 +1,18 @@
+import { Platform } from 'react-native';
+import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
+import Routes from '../../../constants/navigation/Routes';
+import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
-import { Minimizer } from '../../NativeModules';
 import SDKConnect from '../../SDKConnect/SDKConnect';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
-import Logger from '../../../util/Logger';
 import DeeplinkManager from '../DeeplinkManager';
-import extractURLParams from './extractURLParams';
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import parseOriginatorInfo from '../parseOriginatorInfo';
 import Device from '../../../util/device';
-import { Platform } from 'react-native';
-import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../NavigationService';
+import extractURLParams from './extractURLParams';
 
 function handleUniversalLink({
   instance,
@@ -61,13 +60,9 @@ function handleUniversalLink({
         params.redirect &&
         origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
       ) {
-        if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-          NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          });
-        } else {
-          Minimizer.goBack();
-        }
+        NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        });
       } else if (params.channelId) {
         const protocolVersion = parseInt(params.v ?? '1', 10);
 

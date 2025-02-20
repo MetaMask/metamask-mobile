@@ -5,14 +5,14 @@ import { render } from '@testing-library/react-native';
 import InfoSection from './index';
 
 describe('InfoSection', () => {
-  it('should match snapshot for simple text value', async () => {
-    const container = render(
+  it('should render text passed correctly', async () => {
+    const { getByText } = render(
       <InfoSection>
         <View>
           <Text>Test</Text>
         </View>
       </InfoSection>,
     );
-    expect(container).toMatchSnapshot();
+    expect(getByText('Test')).toBeDefined();
   });
 });

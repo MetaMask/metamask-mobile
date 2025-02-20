@@ -8,10 +8,6 @@ import { View } from 'react-native';
 import Text from '../../../../component-library/components/Texts/Text';
 import { MOCK_POOL_STAKING_SDK } from '../__mocks__/mockData';
 
-jest.mock('../../Stake/constants', () => ({
-  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('../../../../core/Engine', () => ({
   context: {
     NetworkController: {

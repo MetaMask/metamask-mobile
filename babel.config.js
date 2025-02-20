@@ -20,6 +20,13 @@ module.exports = {
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
     {
+      test: [
+        './node_modules/**/@metamask/rpc-errors/**',
+        './node_modules/@metamask/rpc-errors/**',
+      ],
+      plugins: [['@babel/plugin-transform-classes', { loose: true }]],
+    },
+    {
       test: './app/lib/snaps',
       plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
     },

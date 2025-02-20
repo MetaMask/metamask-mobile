@@ -1,15 +1,14 @@
+import { Platform } from 'react-native';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
+import Routes from '../../../constants/navigation/Routes';
+import Device from '../../../util/device';
 import AppConstants from '../../AppConstants';
-import { Minimizer } from '../../NativeModules';
+import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import SDKConnect from '../../SDKConnect/SDKConnect';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
-import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
-import Device from '../../../util/device';
-import { Platform } from 'react-native';
-import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../NavigationService';
 
 jest.mock('../../NavigationService', () => ({
@@ -268,49 +267,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;
     });
 
-    it('should call Minimizer.goBack if params.redirect is truthy on android', () => {
-      params.redirect = 'true';
-      // Mock Device.isIos() to return true
-      jest.spyOn(Device, 'isIos').mockReturnValue(false);
-
-      // Set Platform.Version to '16' to ensure it's less than 17
-      Object.defineProperty(Platform, 'Version', { get: () => '16' });
-
-      handleMetaMaskDeeplink({
-        instance,
-        handled,
-        params,
-        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        wcURL,
-        url,
-      });
-
-      expect(handled).toHaveBeenCalled();
-      expect(Minimizer.goBack).toHaveBeenCalled();
-    });
-
-    it('should call Minimizer.goBack if params.redirect is truthy on ios <17', () => {
-      params.redirect = 'true';
-      // Mock Device.isIos() to return true
-      jest.spyOn(Device, 'isIos').mockReturnValue(true);
-
-      // Set Platform.Version to '16' to ensure it's less than 17
-      Object.defineProperty(Platform, 'Version', { get: () => '16' });
-
-      handleMetaMaskDeeplink({
-        instance,
-        handled,
-        params,
-        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        wcURL,
-        url,
-      });
-
-      expect(handled).toHaveBeenCalled();
-      expect(Minimizer.goBack).toHaveBeenCalled();
-    });
-
-    it('should displays RETURN_TO_DAPP_MODAL if params.redirect is truthy on ios >17', () => {
+    it('should displays RETURN_TO_DAPP_MODAL', () => {
       params.redirect = 'true';
       // Mock Device.isIos() to return true
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
@@ -328,13 +285,13 @@ describe('handleMetaMaskProtocol', () => {
       });
 
       expect(handled).toHaveBeenCalled();
+
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
           screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
         },
       );
-      expect(Minimizer.goBack).not.toHaveBeenCalled();
     });
 
     it('should call handleDeeplink when channel exists and params.redirect is falsy', () => {

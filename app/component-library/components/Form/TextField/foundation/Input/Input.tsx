@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { forwardRef, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { TextInput } from 'react-native';
 
 // External dependencies.
@@ -13,7 +13,7 @@ import styleSheet from './Input.styles';
 import { InputProps } from './Input.types';
 import { INPUT_TEST_ID } from './Input.constants';
 
-const Input = forwardRef<TextInput, InputProps>(
+const Input = React.forwardRef<TextInput, InputProps>(
   (
     {
       style,

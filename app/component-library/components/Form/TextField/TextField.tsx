@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { forwardRef, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { TextInput, View } from 'react-native';
 
 // External dependencies.
@@ -19,7 +19,7 @@ import {
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from './TextField.constants';
 
-const TextField = forwardRef<TextInput, TextFieldProps>(
+const TextField = React.forwardRef<TextInput, TextFieldProps>(
   (
     {
       style,
@@ -91,8 +91,8 @@ const TextField = forwardRef<TextInput, TextFieldProps>(
               onBlur={onBlurHandler}
               onFocus={onFocusHandler}
               {...props}
-              isStateStylesDisabled
               ref={ref}
+              isStateStylesDisabled
             />
           )}
         </View>

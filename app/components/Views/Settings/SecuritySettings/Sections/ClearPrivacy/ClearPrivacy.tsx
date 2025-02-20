@@ -16,6 +16,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import SDKConnect from '../../../../../../../app/core/SDKConnect/SDKConnect';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { ClearPrivacyModalSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/ClearPrivacyModal.selectors';
+
 
 const ClearPrivacy = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -40,7 +43,7 @@ const ClearPrivacy = () => {
       onRequestClose={() => setModalVisible(false)}
       onConfirmPress={clearApprovals}
     >
-      <View style={styles.modalView}>
+      <View style={styles.modalView} testID={ClearPrivacyModalSelectorsIDs.CONTAINER}>
         <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
           {strings('app_settings.clear_approvals_modal_title')}
         </Text>
@@ -66,6 +69,7 @@ const ClearPrivacy = () => {
       <View style={styles.accessory}>
         <Button
           variant={ButtonVariants.Secondary}
+          testID={SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
           label={strings('app_settings.clear_privacy_title')}

@@ -551,9 +551,9 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       style={
                                         {
                                           "color": "#0376c9",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
+                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -689,13 +689,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                                 "width": 51,
                                               },
                                               {
-                                                "backgroundColor": "#bbc0c566",
+                                                "backgroundColor": "#BBC0C566",
                                                 "borderRadius": 16,
                                               },
                                             ]
                                           }
                                           thumbTintColor="#ffffff"
-                                          tintColor="#bbc0c566"
+                                          tintColor="#BBC0C566"
                                           value={true}
                                         />
                                       </View>
@@ -908,13 +908,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                                 "width": 51,
                                               },
                                               {
-                                                "backgroundColor": "#bbc0c566",
+                                                "backgroundColor": "#BBC0C566",
                                                 "borderRadius": 16,
                                               },
                                             ]
                                           }
                                           thumbTintColor="#ffffff"
-                                          tintColor="#bbc0c566"
+                                          tintColor="#BBC0C566"
                                           value={false}
                                         />
                                       </View>
@@ -1129,9 +1129,9 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         style={
                                           {
                                             "color": "#0376c9",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
+                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                           }
@@ -1711,9 +1711,9 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       style={
                                         {
                                           "color": "#0376c9",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
+                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -1847,9 +1847,9 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         style={
                                           {
                                             "color": "#0376c9",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
+                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                           }
@@ -2972,9 +2972,9 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                       style={
                                         {
                                           "color": "#0376c9",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
+                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -3553,9 +3553,9 @@ exports[`Settings renders correctly 1`] = `
                                       style={
                                         {
                                           "color": "#0376c9",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
+                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -4134,9 +4134,9 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       style={
                                         {
                                           "color": "#0376c9",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 14,
-                                          "fontWeight": "400",
+                                          "fontWeight": "500",
                                           "letterSpacing": 0,
                                           "lineHeight": 22,
                                         }
@@ -4269,13 +4269,13 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                                 "width": 51,
                                               },
                                               {
-                                                "backgroundColor": "#bbc0c566",
+                                                "backgroundColor": "#BBC0C566",
                                                 "borderRadius": 16,
                                               },
                                             ]
                                           }
                                           thumbTintColor="#ffffff"
-                                          tintColor="#bbc0c566"
+                                          tintColor="#BBC0C566"
                                           value={true}
                                         />
                                       </View>
@@ -4488,13 +4488,13 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                                 "width": 51,
                                               },
                                               {
-                                                "backgroundColor": "#bbc0c566",
+                                                "backgroundColor": "#BBC0C566",
                                                 "borderRadius": 16,
                                               },
                                             ]
                                           }
                                           thumbTintColor="#ffffff"
-                                          tintColor="#bbc0c566"
+                                          tintColor="#BBC0C566"
                                           value={false}
                                         />
                                       </View>
@@ -4708,9 +4708,9 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         style={
                                           {
                                             "color": "#0376c9",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 14,
-                                            "fontWeight": "400",
+                                            "fontWeight": "500",
                                             "letterSpacing": 0,
                                             "lineHeight": 22,
                                           }

@@ -12,6 +12,9 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
 import { selectTokenNetworkFilter } from './preferencesController';
+import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
+import { PopularList } from '../util/networks/customNetworks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -50,6 +53,11 @@ const getDefaultProviderConfig = (): ProviderConfig => ({
   type: RpcEndpointType.Infura,
 });
 
+const getProviderType = (rpcEndpoint: RpcEndpoint): string =>
+  rpcEndpoint.type === RpcEndpointType.Custom
+    ? 'rpc'
+    : rpcEndpoint.networkClientId;
+
 // Helper function to create the provider config based on the network and endpoint
 export const createProviderConfig = (
   networkConfig: NetworkConfiguration,
@@ -69,10 +77,7 @@ export const createProviderConfig = (
     chainId,
     ticker: nativeCurrency,
     rpcPrefs: { ...(blockExplorerUrl && { blockExplorerUrl }) },
-    type:
-      rpcEndpoint.type === RpcEndpointType.Custom
-        ? 'rpc'
-        : rpcEndpoint.networkClientId,
+    type: getProviderType(rpcEndpoint),
     ...(rpcEndpoint.type === RpcEndpointType.Custom && {
       id: rpcEndpoint.networkClientId,
       nickname: name,
@@ -167,13 +172,47 @@ export const selectIsEIP1559Network = createSelector(
     ].EIPS[1559] === true,
 );
 
+// Selector to get the popular network configurations, this filter also testnet networks
+export const selectAllPopularNetworkConfigurations = createSelector(
+  selectNetworkConfigurations,
+  (networkConfigurations: Record<Hex, NetworkConfiguration>) => {
+    const popularNetworksChainIds = PopularList.map(
+      (popular) => popular.chainId,
+    );
+
+    return Object.keys(networkConfigurations)
+      .filter(
+        (chainId) =>
+          popularNetworksChainIds.includes(chainId as Hex) ||
+          chainId === CHAIN_IDS.MAINNET ||
+          chainId === CHAIN_IDS.LINEA_MAINNET,
+      )
+      .reduce((acc: Record<Hex, NetworkConfiguration>, chainId) => {
+        acc[chainId as Hex] = networkConfigurations[chainId as Hex];
+        return acc;
+      }, {});
+  },
+);
+
+export const selectIsPopularNetwork = createSelector(
+  selectChainId,
+  (chainId) =>
+    chainId === CHAIN_IDS.MAINNET ||
+    chainId === CHAIN_IDS.LINEA_MAINNET ||
+    PopularList.some((network) => network.chainId === chainId),
+);
+
 export const selectIsAllNetworks = createSelector(
+  selectAllPopularNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),
-  (tokenNetworkFilter) => {
+  (popularNetworkConfigurations, tokenNetworkFilter) => {
     if (Object.keys(tokenNetworkFilter).length === 1) {
       return false;
     }
-    return true;
+    const allNetworks = enableAllNetworksFilter(popularNetworkConfigurations);
+    return (
+      Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length
+    );
   },
 );
 
@@ -186,4 +225,26 @@ export const selectNativeCurrencyByChainId = createSelector(
   [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
   (networkConfigurations, chainId) =>
     networkConfigurations?.[chainId]?.nativeCurrency,
+);
+
+export const selectDefaultEndpointByChainId = createSelector(
+  selectNetworkConfigurations,
+  (_: RootState, chainId: Hex) => chainId,
+  (networkConfigurations, chainId) => {
+    const networkConfiguration = networkConfigurations[chainId as Hex];
+    return networkConfiguration?.rpcEndpoints?.[
+      networkConfiguration.defaultRpcEndpointIndex
+    ];
+  },
+);
+
+export const selectProviderTypeByChainId = createSelector(
+  selectDefaultEndpointByChainId,
+  (defaultEndpoint) =>
+    defaultEndpoint ? getProviderType(defaultEndpoint) : undefined,
+);
+
+export const selectRpcUrlByChainId = createSelector(
+  selectDefaultEndpointByChainId,
+  (defaultEndpoint) => defaultEndpoint?.url,
 );

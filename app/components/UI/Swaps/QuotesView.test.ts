@@ -17,6 +17,7 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
 import Engine from '../../../core/Engine';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -203,7 +204,14 @@ const mockInitialState: DeepPartial<RootState> = {
             defaultRpcEndpointIndex: 0,
             name: 'Ethereum Mainnet',
             nativeCurrency: 'ETH',
-            rpcEndpoints: [],
+            rpcEndpoints: [
+              {
+                name: 'Ethereum Mainnet',
+                networkClientId: 'mainnet',
+                type: RpcEndpointType.Infura,
+                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+              },
+            ],
           },
         },
       },

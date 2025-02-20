@@ -14,6 +14,7 @@ import {
 } from './tokensController';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../util/networks';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 describe('TokensController Selectors', () => {
   const mockToken = { address: '0xToken1', symbol: 'TOKEN1' };
@@ -310,8 +311,8 @@ describe('TokensController Selectors', () => {
 
   describe('getChainIdsToPoll', () => {
     const mockNetworkConfigurations = {
-      '1': { chainId: '1' },
-      '2': { chainId: '2' },
+      '0x1': { chainId: '0x1' } as unknown as NetworkConfiguration,
+      '0x2': { chainId: '0x2' } as unknown as NetworkConfiguration,
     };
 
     it('returns only the current chain ID if PORTFOLIO_VIEW is not set', () => {
@@ -323,13 +324,13 @@ describe('TokensController Selectors', () => {
       expect(chainIds).toStrictEqual(['0x1']);
     });
 
-    it('returns only the current chain ID if PORTFOLIO_VIEW is set', () => {
+    it('returns only the chainIds included in PopularList if PORTFOLIO_VIEW is set', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       const chainIds = getChainIdsToPoll.resultFunc(
         mockNetworkConfigurations,
         '0x1',
       );
-      expect(chainIds).toStrictEqual(['1', '2']);
+      expect(chainIds).toStrictEqual(['0x1']);
     });
   });
 });
