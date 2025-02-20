@@ -1,5 +1,6 @@
 // Internal dependencies.
 import { BottomSheetDialogProps } from './foundation/BottomSheetDialog/BottomSheetDialog.types';
+import { BottomSheetOverlayProps } from './foundation/BottomSheetOverlay/BottomSheetOverlay.types';
 
 /**
  * BottomSheet component props.
@@ -10,6 +11,11 @@ export interface BottomSheetProps extends BottomSheetDialogProps {
    * @default true
    */
   shouldNavigateBack?: boolean;
+  /**
+   * Optional prop to pass in props needed for the BottomSheetOverlay
+   * @default true
+   */
+  bottomSheetOverlayProps?: BottomSheetOverlayProps;
 }
 
 export type BottomSheetPostCallback = () => void;

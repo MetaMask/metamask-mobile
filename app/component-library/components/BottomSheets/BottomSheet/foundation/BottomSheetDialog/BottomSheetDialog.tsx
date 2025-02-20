@@ -59,7 +59,7 @@ const BottomSheetDialog = forwardRef<
       isInteractable = true,
       onClose,
       onOpen,
-      stylesDialogSheet = {},
+      style,
       ...props
     },
     ref,
@@ -72,7 +72,7 @@ const BottomSheetDialog = forwardRef<
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
       screenBottomPadding,
-      stylesDialogSheet,
+      style,
       isFullscreen,
     });
     // X and Y values start on top left of the DIALOG
@@ -107,8 +107,8 @@ const BottomSheetDialog = forwardRef<
         // Starts tracking vertical position of gesture
         ctx.startY = currentYOffset.value;
       },
-      onActive: (event, ctx) => {
-        const { translationY } = event;
+      onActive: (e, ctx) => {
+        const { translationY } = e;
         currentYOffset.value = ctx.startY + translationY;
         // If gesture Y value goes above the bottom of Dialog Y value(bottom of dialog),
         // which means the gesture is currently below the bottom of the dialog,
@@ -123,8 +123,8 @@ const BottomSheetDialog = forwardRef<
           currentYOffset.value = topOfDialogYValue.value;
         }
       },
-      onEnd: (event, ctx) => {
-        const { translationY, velocityY } = event;
+      onEnd: (e, ctx) => {
+        const { translationY, velocityY } = e;
         // finalYOffset is used to animate the Y position of the Dialog after the gesture event
         let finalYOffset: number;
         // Measuring dismissing swipe action

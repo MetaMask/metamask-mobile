@@ -27,10 +27,6 @@ export interface BottomSheetDialogProps extends ViewProps {
    * Optional callback that gets triggered when sheet is opened.
    */
   onOpen?: (hasPendingAction?: boolean) => void;
-  /**
-   * Optional sheet styles
-   */
-  stylesDialogSheet?: StyleProp<ViewStyle>;
 }
 
 export interface BottomSheetDialogRef {
@@ -44,6 +40,6 @@ export interface BottomSheetDialogRef {
 export interface BottomSheetDialogStyleSheetVars {
   maxSheetHeight: number;
   screenBottomPadding: number;
-  stylesDialogSheet: StyleProp<ViewStyle>;
+  style: StyleProp<ViewStyle>;
   isFullscreen: boolean;
 }

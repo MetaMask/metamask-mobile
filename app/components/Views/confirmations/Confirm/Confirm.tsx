@@ -46,7 +46,7 @@ export const Confirm = () => {
   return (
     <BottomSheet
       isInteractable={false}
-      stylesDialogSheet={styles.bottomSheetDialogSheet}
+      style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >
       <ConfirmWrapped />

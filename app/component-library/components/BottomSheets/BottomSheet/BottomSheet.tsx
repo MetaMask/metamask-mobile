@@ -9,7 +9,12 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { BackHandler, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  GestureResponderEvent,
+} from 'react-native';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -36,10 +41,11 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       children,
       onClose,
       onOpen,
-      stylesDialogSheet,
+      style,
       isInteractable = true,
       shouldNavigateBack = true,
       isFullscreen = false,
+      bottomSheetOverlayProps,
       ...props
     },
     ref,
@@ -63,6 +69,13 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       onClose?.(!!postCallback.current);
       postCallback.current?.();
     }, [navigation, onClose, shouldNavigateBack]);
+
+    const finalBottomSheetOverlayOnPressHandler = (
+      e: GestureResponderEvent,
+    ) => {
+      bottomSheetOverlayProps?.onPress?.(e);
+      isInteractable && bottomSheetDialogRef.current?.onCloseDialog();
+    };
 
     // Dismiss the sheet when Android back button is pressed.
     useEffect(() => {
@@ -98,9 +111,8 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       >
         <BottomSheetOverlay
           disabled={!isInteractable}
-          onPress={() => {
-            isInteractable && bottomSheetDialogRef.current?.onCloseDialog();
-          }}
+          {...bottomSheetOverlayProps}
+          onPress={finalBottomSheetOverlayOnPressHandler}
         />
         <BottomSheetDialog
           isInteractable={isInteractable}
@@ -108,7 +120,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           onOpen={onOpenCB}
           ref={bottomSheetDialogRef}
           isFullscreen={isFullscreen}
-          stylesDialogSheet={stylesDialogSheet}
+          style={style}
         >
           {children}
         </BottomSheetDialog>
