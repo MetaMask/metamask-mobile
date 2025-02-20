@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 
+import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -87,7 +88,7 @@ export const ScrollContextProvider: React.FC<ScrollContextProviderProps> = ({
           iconName={IconName.Arrow2Down}
           iconColor={IconColor.Inverse}
           onPress={scrollToBottom}
-          testID="scroll-to-bottom-button"
+          testID={ConfirmationPageSectionsSelectorIDs.SCROLL_BUTTON}
         />
       )}
       <ScrollView
