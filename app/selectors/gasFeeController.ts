@@ -1,6 +1,8 @@
 import { createSelector } from 'reselect';
-import { GasFeeState } from '@metamask/gas-fee-controller';
-import type { GasFeeEstimates } from '@metamask/gas-fee-controller';
+import {
+  GasFeeState,
+  type GasFeeEstimates,
+} from '@metamask/gas-fee-controller';
 import {
   TransactionMeta,
   mergeGasFeeEstimates,
@@ -10,7 +12,6 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectPendingApprovals } from './approvalController';
 import { selectTransactionMetadataById } from './transactionController';
-import { checkNetworkAndAccountSupports1559 } from './networkController';
 
 export enum GasEstimateTypes {
   feeMarket = 'fee-market',
@@ -23,14 +24,6 @@ export enum NetworkCongestionThresholds {
   notBusy = 0,
   stable = 0.33,
   busy = 0.9,
-}
-
-function getGasFeeControllerEstimateTypeByChainId(
-  state: RootState,
-  chainId: string,
-) {
-  return state.engine.backgroundState.GasFeeController
-    .gasFeeEstimatesByChainId?.[chainId]?.gasEstimateType;
 }
 
 function getGasFeeControllerEstimatesByChainId(
@@ -80,20 +73,7 @@ export const selectGasFeeControllerEstimateType = createSelector(
   (gasFeeControllerState: GasFeeState) => gasFeeControllerState.gasEstimateType,
 );
 
-const getTransactionGasFeeEstimateTypeByChainId = createSelector(
-  getTransactionGasFeeEstimatesByChainId,
-  (transactionGasFeeEstimates) => transactionGasFeeEstimates?.type,
-);
-
-export const getGasEstimateTypeByChainId = createSelector(
-  getGasFeeControllerEstimateTypeByChainId,
-  getTransactionGasFeeEstimateTypeByChainId,
-  (gasFeeControllerEstimateType, transactionGasFeeEstimateType) => {
-    return transactionGasFeeEstimateType ?? gasFeeControllerEstimateType;
-  },
-);
-
-export const getGasFeeEstimatesByChainId = createSelector(
+export const selectGasFeeEstimatesByChainId = createSelector(
   getGasFeeControllerEstimatesByChainId,
   getTransactionGasFeeEstimatesByChainId,
   (gasFeeControllerEstimates, transactionGasFeeEstimates) => {
@@ -107,36 +87,3 @@ export const getGasFeeEstimatesByChainId = createSelector(
     return gasFeeControllerEstimates;
   },
 );
-
-export function getIsGasEstimatesLoadingByChainId(
-  state: RootState,
-  { chainId, networkClientId }: { chainId: string; networkClientId: string },
-) {
-  const networkAndAccountSupports1559 = checkNetworkAndAccountSupports1559(
-    state,
-    networkClientId,
-  );
-  const gasEstimateType = getGasEstimateTypeByChainId(state, chainId);
-
-  // We consider the gas estimate to be loading if the gasEstimateType is
-  // 'NONE' or if the current gasEstimateType cannot be supported by the current
-  // network
-  const isEIP1559TolerableEstimateType =
-    gasEstimateType === GasEstimateTypes.feeMarket ||
-    gasEstimateType === GasEstimateTypes.ethGasPrice;
-  const isGasEstimatesLoading =
-    gasEstimateType === GasEstimateTypes.none ||
-    (networkAndAccountSupports1559 && !isEIP1559TolerableEstimateType) ||
-    (!networkAndAccountSupports1559 &&
-      gasEstimateType === GasEstimateTypes.feeMarket);
-
-  return isGasEstimatesLoading;
-}
-
-export function getIsNetworkBusyByChainId(state: RootState, chainId: string) {
-  const gasFeeEstimates = getGasFeeEstimatesByChainId(state, chainId);
-  return (
-    ((gasFeeEstimates as GasFeeEstimates)?.networkCongestion as number) >=
-    NetworkCongestionThresholds.busy
-  );
-}

@@ -1,18 +1,13 @@
-import { GasFeeEstimates } from '@metamask/gas-fee-controller';
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { hexToBN } from '@metamask/controller-utils';
+import { GasFeeEstimates } from '@metamask/gas-fee-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
-import { addHexes, decGWEIToHexWEI } from '../../../../util/conversions';
+import { addHexes, multiplyHexes } from '../../../../util/conversions';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
+import BigNumber from 'bignumber.js';
 
 const HEX_ZERO = '0x0';
-
-function multiplyHexes(hex1: Hex, hex2: Hex) {
-  return hexToBN(hex1 as Hex)
-    .mul(hexToBN(hex2 as Hex))
-    .toString(16);
-}
 
 export function useTransactionGasFeeEstimate(
   transactionMeta: TransactionMeta,
@@ -33,15 +28,15 @@ export function useTransactionGasFeeEstimate(
     transactionMeta.txParams?.maxPriorityFeePerGas || HEX_ZERO;
   const maxFeePerGas = transactionMeta.txParams?.maxFeePerGas || HEX_ZERO;
 
-  console.log('OGP- In useTransactionGasFeeEstimate - estimatedBaseFee', {
-    estimatedBaseFee,
-  });
-
   let gasEstimate: Hex;
+  const hexEstimatedBaseFee = new BigNumber(estimatedBaseFee || 0)
+    .times(1000000000)
+    .toString(16);
+
   if (supportsEIP1559) {
     // Minimum Total Fee = (estimatedBaseFee + maxPriorityFeePerGas) * gasLimit
     let minimumFeePerGas = addHexes(
-      estimatedBaseFee || HEX_ZERO,
+      hexEstimatedBaseFee || HEX_ZERO,
       maxPriorityFeePerGas,
     );
 

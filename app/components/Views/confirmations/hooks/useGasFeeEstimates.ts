@@ -1,30 +1,11 @@
-import { NetworkConfiguration } from '@metamask/network-controller';
 import isEqual from 'lodash/isEqual';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 
-import { selectSelectedNetworkClientId } from '../../../../selectors/networkController';
-import {
-  getGasEstimateTypeByChainId,
-  getGasFeeEstimatesByChainId,
-  getIsGasEstimatesLoadingByChainId,
-  getIsNetworkBusyByChainId,
-} from '../../../../selectors/gasFeeController';
+import { selectGasFeeEstimatesByChainId } from '../../../../selectors/gasFeeController';
 import usePolling from '../../../../components/hooks/usePolling';
 import { RootState } from '../../../../reducers';
-
 import Engine from '../../../../core/Engine';
-
-/**
- * @typedef {object} GasEstimates
- * @property {import(
- *   '@metamask/gas-fee-controller'
- * ).GasFeeState['gasFeeEstimates']} gasFeeEstimates - The estimate object
- * @property {object} gasEstimateType - The type of estimate provided
- * @property {boolean} isGasEstimateLoading - indicates whether the gas
- *  estimates are currently loading.
- * @property {boolean} isNetworkBusy - indicates whether the network is busy.
- */
 
 /**
  * Gets the current gasFeeEstimates from state and begins polling for new
@@ -35,36 +16,17 @@ import Engine from '../../../../core/Engine';
  * @param _networkClientId - The optional network client ID to get gas fee estimates for. Defaults to the currently selected network.
  * @returns {GasEstimates} GasEstimates object
  */
-export function useGasFeeEstimates(_networkClientId?: string) {
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
-  const networkClientId = _networkClientId ?? selectedNetworkClientId;
-
+export function useGasFeeEstimates(networkClientId: string) {
   const [chainId, setChainId] = useState('');
 
-  const gasEstimateType = useSelector((state: RootState) =>
-    getGasEstimateTypeByChainId(state, chainId),
-  );
   const gasFeeEstimates = useSelector(
-    (state: RootState) => getGasFeeEstimatesByChainId(state, chainId),
+    (state: RootState) => selectGasFeeEstimatesByChainId(state, chainId),
     isEqual,
   );
-  const isGasEstimatesLoading = useSelector((state: RootState) =>
-    getIsGasEstimatesLoadingByChainId(state, {
-      chainId,
-      networkClientId,
-    }),
-  );
-  const isNetworkBusy = useSelector((state: RootState) =>
-    getIsNetworkBusyByChainId(state, chainId),
-  );
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { NetworkController }: any = Engine.context;
+  const { NetworkController } = Engine.context;
 
   useEffect(() => {
     let isMounted = true;
-    // TODO - Replace any with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const networkConfig =
       NetworkController.getNetworkConfigurationByNetworkClientId(
         networkClientId,
@@ -77,22 +39,20 @@ export function useGasFeeEstimates(_networkClientId?: string) {
     return () => {
       isMounted = false;
     };
-  }, [networkClientId]);
+  }, [networkClientId, NetworkController]);
 
   usePolling({
-    startPolling: (input) =>
-      Engine.context.GasFeeController.startPolling({
-        networkClientId: input.networkClientId,
-      }),
+    startPolling: Engine.context.GasFeeController.startPolling.bind(
+      Engine.context.GasFeeController,
+    ),
     stopPollingByPollingToken:
-      Engine.context.GasFeeController.stopPollingByPollingToken,
+      Engine.context.GasFeeController.stopPollingByPollingToken.bind(
+        Engine.context.GasFeeController,
+      ),
     input: [{ networkClientId }],
   });
 
   return {
     gasFeeEstimates,
-    gasEstimateType,
-    isGasEstimatesLoading,
-    isNetworkBusy,
   };
 }

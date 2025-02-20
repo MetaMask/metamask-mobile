@@ -1,5 +1,5 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { hexToDecimal } from '../../../../util/conversions';
 
 export const useEIP1559TxFees = (
@@ -9,7 +9,6 @@ export const useEIP1559TxFees = (
   maxPriorityFeePerGas: string;
 } => {
   const hexMaxFeePerGas = transactionMeta?.txParams?.maxFeePerGas;
-
   const hexMaxPriorityFeePerGas =
     transactionMeta?.txParams?.maxPriorityFeePerGas;
 
