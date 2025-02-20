@@ -6970,7 +6970,7 @@
     redux-thunk "^2.4.2"
     reselect "^4.1.8"
 
-"@reown/walletkit@^1.2.0":
+"@reown/walletkit@^1.2.1":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@reown/walletkit/-/walletkit-1.2.2.tgz#eddbce3ade797a8368a8bb284065975dd7e59dea"
   integrity sha512-wEncKeW1ybw8vnKg7232XDtlAncK4SGXPt8Ax9J8U6++7iY4kVnngmT+FBEbo+fMRgjHKr9o6i2cLUnhBuqT1w==
@@ -10619,10 +10619,10 @@
     randombytes "^2.1.0"
     tslib "1.14.1"
 
-"@walletconnect/react-native-compat@2.18.0":
-  version "2.18.0"
-  resolved "https://registry.yarnpkg.com/@walletconnect/react-native-compat/-/react-native-compat-2.18.0.tgz#d104bffcf344056669c7dccc45976da0ff9f4b3d"
-  integrity sha512-4UzCQXtzJ11J9RZnGDXwLZlCOQ+CkNBJi5jfWFjLG7Kj0/ewpgoisfJjiCUjPGOrgzuvKtJk2RKNRmTvqV0vBQ==
+"@walletconnect/react-native-compat@2.18.1":
+  version "2.18.1"
+  resolved "https://registry.yarnpkg.com/@walletconnect/react-native-compat/-/react-native-compat-2.18.1.tgz#c40e7dd7fc32c4f01fd44c237907d1c2581bcf4b"
+  integrity sha512-S4lbtH4loRNnNErrS6ZOk+Ixl4yqtOO4HLLJ9tdi9o9Q7if5efcgpoFMb69WaKf+pMdUPJ1JjFmKTxIPNJCBUw==
   dependencies:
     events "3.3.0"
     fast-text-encoding "1.0.6"
