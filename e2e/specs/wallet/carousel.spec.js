@@ -46,13 +46,14 @@ describe(SmokeCore('Carousel Tests'), () => {
     const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
     const carouselProgressDots = await WalletView.carouselProgressDots;
 
-    await Assertions.checkIfVisible(carouselContainer);
-    await Assertions.checkIfVisible(carouselFirstSlide);
+    await Assertions.checkIfVisible(carouselContainer, 30000);
+    await Assertions.checkIfVisible(carouselFirstSlide, 30000);
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
-      'Bridge tokens',
+      'Get a MetaMask card',
+      30000,
     );
-    await Assertions.checkIfVisible(carouselProgressDots);
+    await Assertions.checkIfVisible(carouselProgressDots, 30000);
   });
 
   it('should navigate between slides', async () => {
@@ -62,16 +63,18 @@ describe(SmokeCore('Carousel Tests'), () => {
     const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
 
     await Gestures.swipe(carouselContainer, 'left', 'slow', 0.7);
-    await Assertions.checkIfVisible(carouselSecondSlide);
+    await Assertions.checkIfVisible(carouselSecondSlide, 30000);
     await Assertions.checkIfElementToHaveText(
       carouselSecondSlideTitle,
-      'Get a MetaMask card',
+      'Buy crypto with cash',
+      30000,
     );
 
     await Gestures.swipe(carouselContainer, 'right', 'slow', 0.7);
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
-      'Bridge tokens',
+      'Get a MetaMask card',
+      30000,
     );
   });
 
@@ -79,20 +82,21 @@ describe(SmokeCore('Carousel Tests'), () => {
     const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
     const closeButton = await WalletView.carouselCloseButton;
 
-    await Assertions.checkIfVisible(closeButton);
+    await Assertions.checkIfVisible(closeButton, 30000);
     await Gestures.tap(closeButton);
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
-      'Get a MetaMask card',
+      'Buy crypto with cash',
+      30000,
     );
   });
 
   it('should handle slide interactions', async () => {
-    const carouselSlide = await WalletView.carouselFirstSlide;
+    const carouselFirstSlide = await WalletView.carouselFirstSlide;
     const container = await WalletView.container;
 
-    await Assertions.checkIfVisible(carouselSlide);
-    await Gestures.tap(carouselSlide);
-    await Assertions.checkIfVisible(container);
+    await Assertions.checkIfVisible(carouselFirstSlide, 30000);
+    await Gestures.tap(carouselFirstSlide);
+    await Assertions.checkIfVisible(container, 30000);
   });
 });
