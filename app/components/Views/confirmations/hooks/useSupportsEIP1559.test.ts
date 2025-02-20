@@ -1,5 +1,6 @@
 import { TransactionEnvelopeType } from '@metamask/transaction-controller';
 import { cloneDeep, merge } from 'lodash';
+
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../util/test/confirm-data-helpers';
 import { useSupportsEIP1559 } from './useSupportsEIP1559';

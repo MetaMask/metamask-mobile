@@ -3,6 +3,7 @@ import {
   TransactionEnvelopeType,
   TransactionMeta,
 } from '@metamask/transaction-controller';
+
 import { selectIsEIP1559Network } from '../../../../selectors/networkController';
 
 export function useSupportsEIP1559(transactionMeta: TransactionMeta) {

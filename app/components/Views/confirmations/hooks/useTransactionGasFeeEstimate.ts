@@ -2,10 +2,10 @@ import { Hex } from '@metamask/utils';
 import { hexToBN } from '@metamask/controller-utils';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import BigNumber from 'bignumber.js';
 
 import { addHexes, multiplyHexes } from '../../../../util/conversions';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
-import BigNumber from 'bignumber.js';
 
 const HEX_ZERO = '0x0';
 

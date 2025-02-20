@@ -1,4 +1,5 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
+
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../util/test/confirm-data-helpers';
 import { useEIP1559TxFees } from './useEIP1559TxFees';

@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
+
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../util/test/confirm-data-helpers';
 import usePolling from '../../../../components/hooks/usePolling';

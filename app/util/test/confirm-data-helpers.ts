@@ -605,6 +605,11 @@ export const stakingDepositConfirmationState = {
         networkConfigurationsByChainId: {
           '0x1': {
             nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+              },
+            ],
           },
         },
         selectedNetworkClientId: 'mainnet',
