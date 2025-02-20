@@ -68,7 +68,6 @@ const SnapDialogApproval = () => {
   if (
     approvalRequest?.type !== DIALOG_APPROVAL_TYPES.alert &&
     approvalRequest?.type !== DIALOG_APPROVAL_TYPES.confirmation &&
-    approvalRequest?.type !== DIALOG_APPROVAL_TYPES.prompt &&
     approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default
   )
     return null;
