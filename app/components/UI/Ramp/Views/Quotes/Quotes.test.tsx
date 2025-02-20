@@ -171,7 +171,7 @@ describe('Quotes', () => {
       quotes: undefined,
     };
     render(Quotes);
-    expect(mockSetOptions).toBeCalledTimes(2);
+    expect(mockSetOptions).toBeCalledTimes(1);
   });
 
   it('navigates and tracks event on cancel button press', async () => {

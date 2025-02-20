@@ -571,10 +571,14 @@ function Quotes() {
   ]);
 
   useEffect(() => {
-    if (quotesByPriceWithoutError && quotesByPriceWithoutError.length > 0) {
+    if (
+      quotesByPriceWithoutError &&
+      quotesByPriceWithoutError.length > 0 &&
+      isExpanded
+    ) {
       setProviderId(quotesByPriceWithoutError[0].provider?.id);
     }
-  }, [quotesByPriceWithoutError]);
+  }, [isExpanded, quotesByPriceWithoutError]);
 
   if (sdkError) {
     if (!isExpanded) {
