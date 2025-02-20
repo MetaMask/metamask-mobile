@@ -9,7 +9,9 @@ import { v4 as uuidv4 } from 'uuid';
 const mockUpdateRemoteFeatureFlags = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@metamask/remote-feature-flag-controller', () => {
-  const originalModule = jest.requireActual('@metamask/remote-feature-flag-controller');
+  const originalModule = jest.requireActual(
+    '@metamask/remote-feature-flag-controller',
+  );
   return {
     ...originalModule,
     RemoteFeatureFlagController: jest.fn().mockImplementation((params) => ({
@@ -29,7 +31,6 @@ describe('RemoteFeatureFlagController utils', () => {
   });
 
   describe('createRemoteFeatureFlagController', () => {
-
     it('calls updateRemoteFeatureFlags when enabled', () => {
       createRemoteFeatureFlagController({
         state: undefined,
@@ -65,9 +66,8 @@ describe('RemoteFeatureFlagController utils', () => {
 
       // Ensure the constructor was called with fetchInterval
       expect(RemoteFeatureFlagController).toHaveBeenCalledWith(
-          expect.objectContaining({ fetchInterval })
+        expect.objectContaining({ fetchInterval }),
       );
     });
-
   });
 });
