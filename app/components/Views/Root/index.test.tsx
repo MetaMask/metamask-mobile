@@ -1,6 +1,10 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Root from './';
 
+jest.mock('../../../util/test/utils', () => ({
+  isTest: true,
+}));
+
 jest.mock('redux-persist', () => {
   const real = jest.requireActual('redux-persist');
   const mockPersistReducer = jest
