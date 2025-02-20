@@ -1460,13 +1460,9 @@ workflows:
                 set -x
                 set -o pipefail
                
-                
+                APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk"
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"                
                 CUSTOM_ID=${CUSTOM_ID////-}
-
-                APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk"
-                APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/"$CUSTOM_ID".apk
-                mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
 
                 # Upload to app-automate
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
@@ -1479,7 +1475,7 @@ workflows:
                 # Upload to app-live
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
                     -X POST "https://api-cloud.browserstack.com/app-live/upload" \
-                    -F "file=@$APK_PATH_FOR_APP_LIVE" \
+                    -F "file=@$APK_PATH" \
                     -F 'data={"custom_id": "'$CUSTOM_ID'"}'
 
                 # Get recent apps
@@ -1754,8 +1750,7 @@ workflows:
 
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                IPA_PATH=ios/build/output/MetaMask-QA.ipa
-                IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
+                IPA_PATH="ios/build/output/$CUSTOM_ID.ipa"
 
                 # Upload to app-automate
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
@@ -1768,7 +1763,7 @@ workflows:
                 # Upload to app-live
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
                     -X POST "https://api-cloud.browserstack.com/app-live/upload" \
-                    -F "file=@$IPA_PATH_FOR_APP_LIVE" \
+                    -F "file=@$IPA_PATH" \
                     -F 'data={"custom_id": "'$CUSTOM_ID'"}'
 
                 # Get recent apps
