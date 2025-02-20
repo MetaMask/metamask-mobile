@@ -100,8 +100,8 @@ describe('NavigationProvider', () => {
     );
 
     expect(traceCalls).toEqual([
-      { order: 'trace', name: TraceName.NavInit },
-      { order: 'endTrace', name: TraceName.NavInit },
+      { functionName: 'trace', name: TraceName.NavInit },
+      { functionName: 'endTrace', name: TraceName.NavInit },
     ]);
   });
 });
