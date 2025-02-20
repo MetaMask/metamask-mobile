@@ -68,7 +68,7 @@ import {
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
-import { getSnapsWebViewPromise } from '../../lib/snaps';
+import { createWebView, removeWebView } from '../../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
@@ -85,7 +85,12 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
+import {
+  Encryptor,
+  hmacSha512,
+  LEGACY_DERIVATION_OPTIONS,
+  pbkdf2,
+} from '../Encryptor';
 import {
   isMainnetByChainId,
   isTestNet,
@@ -139,7 +144,15 @@ import {
   SignatureController,
   SignatureControllerOptions,
 } from '@metamask/signature-controller';
-import { hasProperty, Hex, Json } from '@metamask/utils';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  Duration,
+  inMilliseconds,
+  ///: END:ONLY_INCLUDE_IF
+  hasProperty,
+  Hex,
+  Json,
+} from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
@@ -323,7 +336,6 @@ export class Engine {
       selectBasicFunctionalityEnabled(store.getState());
 
     const approvalController = new ApprovalController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
         allowedEvents: [],
@@ -644,7 +656,6 @@ export class Engine {
     );
 
     const phishingController = new PhishingController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
         allowedActions: [],
@@ -673,7 +684,7 @@ export class Engine {
 
     const hdKeyringBuilder = () =>
       new HDKeyring({
-        cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
+        cryptographicFunctions: { pbkdf2Sha512: pbkdf2, hmacSha512 },
       });
     hdKeyringBuilder.type = HDKeyring.type;
     additionalKeyrings.push(hdKeyringBuilder);
@@ -820,7 +831,7 @@ export class Engine {
           origin,
           target,
         ),
-      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
+      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2, hmacSha512 }),
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -1008,7 +1019,6 @@ export class Engine {
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -1028,14 +1038,14 @@ export class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
         allowedEvents: [],
       }),
       setupSnapProvider: setupSnapProvider.bind(this),
-      getWebView: () => getSnapsWebViewPromise,
+      createWebView,
+      removeWebView,
     });
 
     const snapControllerMessenger = this.controllerMessenger.getRestricted({
@@ -1044,6 +1054,7 @@ export class Engine {
         'ExecutionService:unhandledError',
         'ExecutionService:outboundRequest',
         'ExecutionService:outboundResponse',
+        'KeyringController:lock',
       ],
       allowedActions: [
         `${approvalController.name}:addRequest`,
@@ -1093,6 +1104,7 @@ export class Engine {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messenger: snapControllerMessenger as any,
+      maxIdleTime: inMilliseconds(5, Duration.Minute),
       detectSnapLocation,
       //@ts-expect-error types need to be aligned with snaps-controllers
       preinstalledSnaps: PREINSTALLED_SNAPS,
@@ -1104,6 +1116,7 @@ export class Engine {
       }),
       clientCryptography: {
         pbkdf2Sha512: pbkdf2,
+        hmacSha512,
       },
     });
 
