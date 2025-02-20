@@ -17,6 +17,7 @@ import {
   selectIsUpdatingMetamaskNotifications,
 } from '../../../selectors/notifications';
 import { usePushNotificationsToggle } from './usePushNotifications';
+import Logger from '../../Logger';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -88,18 +89,23 @@ export function useDisableNotifications() {
 
   const data = useSelector(selectIsMetamaskNotificationsEnabled);
   const loading = useSelector(selectIsUpdatingMetamaskNotifications);
-  const [error, setError] = useState<unknown>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
   const disableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
-    setError(null);
+    setError(undefined);
     await togglePushNotification(false);
-    await disableNotificationsHelper().catch((e) => setError(e));
+    await disableNotificationsHelper().catch((e) => {
+      Logger.error(e);
+      setError(`Failed to disable push notifications`);
+    });
   }, [togglePushNotification]);
 
   return {
     disableNotifications,
     loading: loading && pushLoading,
-    error,
+    // This will be fixed in a separate PR to converge the types correctly
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    error: error as any,
     data,
   };
 }
