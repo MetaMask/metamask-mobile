@@ -69,6 +69,8 @@ describe(SmokeConfirmationsRedesigned('Confirmations Page Scroll'), () => {
 
         await TestDApp.tapPermitSignButton();
         await Assertions.checkIfVisible(PageSections.ScrollButton);
+        await PageSections.tapScrollButton();
+        await Assertions.checkIfNotVisible(PageSections.ScrollButton);
         await FooterActions.tapCancelButton();
       },
     );
