@@ -14,7 +14,6 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.default,
       justifyContent: 'center',
       alignItems: 'center',
-      marginHorizontal: 16,
       borderRadius: 8,
       ...theme.shadows.size.sm,
       elevation: 11,
@@ -22,9 +21,8 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 24,
     },
     closeModalBtn: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
+      alignSelf: 'flex-end',
+      marginBottom: -32,
     },
     modalTitle: {
       color: theme.colors.text.default,
