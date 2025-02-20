@@ -99,7 +99,6 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
 
   // Estimated fee
   const estimatedFees = useMemo(() => {
-    // Logic for any network without L1 and L2 fee components
     let minimumFeePerGas = addHexes(
       decGWEIToHexWEI(estimatedBaseFee) || HEX_ZERO,
       decimalToHex(maxPriorityFeePerGas),
