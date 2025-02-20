@@ -14,6 +14,16 @@ const styleSheet = (params: { theme: Theme }) => {
     confirmButtonDisabled: {
       opacity: 0.5,
     },
+    linkText: {
+      textDecorationLine: 'underline',
+    },
+    textContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+      marginBottom: 24,
+      paddingBottom: 16,
+    },
   });
 };
 
