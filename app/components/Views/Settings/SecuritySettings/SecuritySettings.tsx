@@ -125,16 +125,12 @@ const Settings: React.FC = () => {
     enableProfileSyncing,
     disableProfileSyncing,
     loading: profileSyncLoading,
-    error: profileSyncError,
   } = useProfileSyncing();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
-  const {
-    disableNotifications,
-    loading: disableNotificationsLoading,
-    error: disableNotificationsError,
-  } = useDisableNotifications();
+  const { disableNotifications, loading: disableNotificationsLoading } =
+    useDisableNotifications();
 
   const browserHistory = useSelector(
     (state: RootState) => state.browser.history,
@@ -556,7 +552,6 @@ const Settings: React.FC = () => {
     : strings('app_settings.disabling_profile_sync');
 
   const modalLoading = profileSyncLoading || disableNotificationsLoading;
-  const modalError = profileSyncError || disableNotificationsError;
 
   return (
     <ScrollView
@@ -672,7 +667,6 @@ const Settings: React.FC = () => {
       <SwitchLoadingModal
         loading={modalLoading}
         loadingText={profileSyncModalMessage}
-        error={modalError}
       />
     </ScrollView>
   );
