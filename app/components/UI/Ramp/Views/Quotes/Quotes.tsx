@@ -747,7 +747,7 @@ function Quotes() {
                   quote={recommendedQuote}
                   onPress={() => handleOnQuotePress(recommendedQuote)}
                   onPressCTA={() => handleOnPressCTA(recommendedQuote, 0)}
-                  highlighted={recommendedQuote.provider.id === providerId}
+                  highlighted
                   showInfo={() => handleInfoPress(recommendedQuote)}
                   rampType={rampType}
                 />
