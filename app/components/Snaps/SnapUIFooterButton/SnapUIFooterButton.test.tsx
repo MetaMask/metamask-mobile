@@ -1,6 +1,6 @@
 import React from 'react';
 import { ButtonType } from '@metamask/snaps-sdk';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button/Button.types';
 import { SnapUIFooterButton } from './SnapUIFooterButton';
 
@@ -14,6 +14,7 @@ jest.mock('../SnapInterfaceContext', () => ({
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (selector: any) => mockUseSelector(selector),
 }));
 
@@ -38,7 +39,7 @@ describe('SnapUIFooterButton', () => {
   };
 
   it('renders button with snap branding when isSnapAction is true', () => {
-    render(<SnapUIFooterButton {...defaultProps} isSnapAction={true} />);
+    render(<SnapUIFooterButton {...defaultProps} isSnapAction />);
     expect(screen.getByText('Test Button')).toBeTruthy();
     expect(screen.getByText('?')).toBeTruthy();
   });
@@ -50,7 +51,7 @@ describe('SnapUIFooterButton', () => {
         hideSnapBranding: true,
       },
     });
-    render(<SnapUIFooterButton {...defaultProps} isSnapAction={true} />);
+    render(<SnapUIFooterButton {...defaultProps} isSnapAction />);
     expect(screen.getByText('Test Button')).toBeTruthy();
     expect(screen.queryByText('?')).toBeNull();
   });
