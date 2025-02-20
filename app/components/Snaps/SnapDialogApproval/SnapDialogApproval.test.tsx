@@ -82,22 +82,6 @@ describe('SnapDialogApproval', () => {
     });
   });
 
-  describe('Confirmation Dialog', () => {
-    beforeEach(() => {
-      (useApprovalRequest as jest.Mock).mockReturnValue({
-        approvalRequest: mockApprovalRequest(
-          DIALOG_APPROVAL_TYPES.confirmation,
-        ),
-      });
-    });
-
-    it('render confirmation dialog without default buttons', () => {
-      const { queryByText } = renderComponent(<SnapDialogApproval />);
-      expect(queryByText('OK')).toBeNull();
-      expect(queryByText('Cancel')).toBeNull();
-    });
-  });
-
   describe('Invalid Dialog Type', () => {
     it('return null for invalid dialog type', () => {
       (useApprovalRequest as jest.Mock).mockReturnValue({

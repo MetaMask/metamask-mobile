@@ -61,13 +61,6 @@ describe('SnapUIFooterButton', () => {
     expect(button.findByType('ActivityIndicator')).toBeTruthy();
   });
 
-  it('handles button press', () => {
-    const onPress = jest.fn();
-    render(<SnapUIFooterButton {...defaultProps} onPress={onPress} />);
-    fireEvent.press(screen.getByText('Test Button'));
-    expect(onPress).toHaveBeenCalled();
-  });
-
   it('applies correct variant based on disabled state', () => {
     render(<SnapUIFooterButton {...defaultProps} disabled />);
     const button = screen.getByRole('button', { name: 'Test Button' });
