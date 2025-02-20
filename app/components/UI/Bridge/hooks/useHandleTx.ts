@@ -9,11 +9,17 @@ import { TransactionMeta, TransactionType, WalletDevice } from '@metamask/transa
 import { selectGasFeeEstimates } from '../../../../selectors/confirmTransaction';
 import AppConstants from '../../../../core/AppConstants';
 import { TxData } from '../types';
+import { GasFeeEstimates } from '@metamask/gas-fee-controller';
+
+type GasEstimatesWithPrice = GasFeeEstimates & {
+  gasPrice?: string;
+};
+
 const DEFAULT_GAS_FEE_OPTION_LEGACY = AppConstants.GAS_OPTIONS.MEDIUM;
 
 async function getGasFeeEstimatesForTransaction(
   transaction: TxData,
-  gasEstimates: any,
+  gasEstimates: GasEstimatesWithPrice,
   { chainId, isEIP1559Network }: { chainId: `0x${string}`, isEIP1559Network: boolean },
 ) {
   if (isEIP1559Network) {
@@ -51,7 +57,7 @@ export default function useHandleTx() {
     resetTransaction();
     const gasFeeEstimates = await getGasFeeEstimatesForTransaction(
       txParams,
-      gasEstimates,
+      gasEstimates as GasEstimatesWithPrice,
       { chainId, isEIP1559Network },
     );
 
