@@ -18,7 +18,7 @@ import {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './ScrollContext.styles';
 
@@ -30,10 +30,15 @@ export const ScrollContext = createContext<ScrollContextType>({
   isScrollToBottomNeeded: false,
 });
 
-export const ScrollContextProvider: React.FC<{
-  scrollableSection: ReactElement[] | ReactElement;
+export interface ScrollContextProviderProps {
+  scrollableSection: ReactElement | ReactElement[];
   staticFooter: ReactElement;
-}> = ({ scrollableSection, staticFooter }) => {
+}
+
+export const ScrollContextProvider: React.FC<ScrollContextProviderProps> = ({
+  scrollableSection,
+  staticFooter,
+}) => {
   const [hasScrolledToBottom, setScrolledToBottom] = useState(false);
   const [isScrollable, setIsScrollable] = useState(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
@@ -80,6 +85,7 @@ export const ScrollContextProvider: React.FC<{
           size={ButtonIconSizes.Lg}
           style={styles.scrollButton}
           iconName={IconName.Arrow2Down}
+          iconColor={IconColor.Inverse}
           onPress={scrollToBottom}
           testID="scroll-to-bottom-button"
         />
@@ -89,6 +95,7 @@ export const ScrollContextProvider: React.FC<{
         style={styles.scrollable}
         onContentSizeChange={checkScrollable}
         onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         <TouchableWithoutFeedback>
           <View ref={scrolledSectionRef} style={styles.scrollableSection}>

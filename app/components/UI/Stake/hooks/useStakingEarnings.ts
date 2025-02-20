@@ -4,13 +4,27 @@ import {
   weiToFiatNumber,
 } from '../../../../util/number';
 import usePooledStakes from './usePooledStakes';
-import useVaultData from './useVaultData';
 import useBalance from './useBalance';
 import BigNumber from 'bignumber.js';
+import useVaultApyAverages from './useVaultApyAverages';
+import {
+  formatPercent,
+  CommonPercentageInputUnits,
+  PercentageOutputFormat,
+} from '../utils/value';
 
 const useStakingEarnings = () => {
-  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultData } =
-    useVaultData();
+  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
+
+  const annualRewardRatePercent = formatPercent(vaultApyAverages.oneWeek, {
+    inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+    outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+    fixed: 1,
+  });
+
+  const annualRewardRateDecimal = new BigNumber(vaultApyAverages.oneWeek)
+    .dividedBy(100)
+    .toNumber();
 
   const { currentCurrency, conversionRate } = useBalance();
 
@@ -42,10 +56,11 @@ const useStakingEarnings = () => {
     2,
   );
 
-  const isLoadingEarningsData = isLoadingVaultData || isLoadingPooledStakesData;
+  const isLoadingEarningsData =
+    isLoadingVaultApyAverages || isLoadingPooledStakesData;
 
   return {
-    annualRewardRate,
+    annualRewardRate: annualRewardRatePercent,
     lifetimeRewardsETH,
     lifetimeRewardsFiat,
     estimatedAnnualEarningsETH,
