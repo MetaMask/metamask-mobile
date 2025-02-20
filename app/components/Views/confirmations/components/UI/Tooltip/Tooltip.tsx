@@ -20,7 +20,7 @@ interface TooltipProps {
 
 const Tooltip = ({ content, title, tooltipTestId }: TooltipProps) => {
   const [open, setOpen] = useState(false);
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { title: title ?? '' });
 
   return (
     <View>
