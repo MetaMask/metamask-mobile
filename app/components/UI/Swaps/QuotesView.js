@@ -116,7 +116,11 @@ import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
-import { getTransaction1559GasFeeEstimates } from './utils/gas';
+import {
+  DEFAULT_GAS_FEE_OPTION_FEE_MARKET,
+  DEFAULT_GAS_FEE_OPTION_LEGACY,
+  getGasFeeEstimatesForTransaction,
+} from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 
@@ -126,9 +130,6 @@ const SLIPPAGE_BUCKETS = {
   MEDIUM: AppConstants.GAS_OPTIONS.MEDIUM,
   HIGH: AppConstants.GAS_OPTIONS.HIGH,
 };
-
-const DEFAULT_GAS_FEE_OPTION_LEGACY = AppConstants.GAS_OPTIONS.MEDIUM;
-const DEFAULT_GAS_FEE_OPTION_FEE_MARKET = AppConstants.GAS_OPTIONS.HIGH;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -340,29 +341,6 @@ const gasLimitWithMultiplier = (gasLimit, multiplier) => {
   if (!gasLimit || !multiplier) return;
   return new BigNumber(gasLimit).times(multiplier).integerValue();
 };
-
-async function getGasFeeEstimatesForTransaction(
-  transaction,
-  gasEstimates,
-  { chainId, isEIP1559Network },
-) {
-  if (isEIP1559Network) {
-    const transactionGasFeeEstimates = await getTransaction1559GasFeeEstimates(
-      transaction,
-      chainId,
-    );
-    delete transaction.gasPrice;
-    return transactionGasFeeEstimates;
-  }
-
-  return {
-    gasPrice: addHexPrefix(
-      decGWEIToHexWEI(
-        gasEstimates.gasPrice || gasEstimates[DEFAULT_GAS_FEE_OPTION_LEGACY],
-      ),
-    ),
-  };
-}
 
 async function addTokenToAssetsController(newToken) {
   const { TokensController } = Engine.context;
