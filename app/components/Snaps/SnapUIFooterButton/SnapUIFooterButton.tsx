@@ -101,7 +101,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
           color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
         />
       );
-    } else if (isSnapAction && !hideSnapBranding && !loading) {
+    } else if (isSnapAction && !hideSnapBranding) {
       return (
         <View style={localStyles.snapActionContainer}>
           <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
