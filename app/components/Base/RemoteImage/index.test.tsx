@@ -4,7 +4,6 @@ import RemoteImage from './';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
 import { act, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { isSolanaMainnet } from '../../../util/networks';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('react-redux', () => ({
