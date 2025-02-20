@@ -261,6 +261,14 @@ it('should Stake Claim ETH', async () => {
   await TokenOverview.tapClaimButton();
   await StakeConfirmView.tapConfirmButton();
   await TokenOverview.tapBackButton();
+  //Wait for transaction to complete
+  try {
+    await Assertions.checkIfTextIsDisplayed('Transaction #3 Complete!',30000);
+    await TestHelpers.delay(8000);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+       console.log(`Transaction complete didn't pop up: ${e}`);
+    }
   await TabBarComponent.tapActivity();
   await Assertions.checkIfVisible(ActivitiesView.title);
   await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);

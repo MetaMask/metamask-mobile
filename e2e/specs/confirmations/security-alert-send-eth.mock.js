@@ -49,7 +49,9 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
   it('should not show security alerts for benign requests', async () => {
     const testSpecificMock = {
-      GET: [mockEvents.GET.securityAlertApiSupportedChains],
+      GET: [
+        mockEvents.GET.remoteFeatureFlags,
+      ],
       POST: [mockEvents.POST.securityAlertApiValidate],
     };
 
@@ -67,7 +69,9 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
   it('should show security alerts for malicious request', async () => {
     const testSpecificMock = {
-      GET: [mockEvents.GET.securityAlertApiSupportedChains],
+      GET: [
+        mockEvents.GET.remoteFeatureFlags,
+      ],
       POST: [
         {
           ...mockEvents.POST.securityAlertApiValidate,
@@ -92,7 +96,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
   it('should show security alerts for error when validating request fails', async () => {
     const testSpecificMock = {
       GET: [
-        mockEvents.GET.securityAlertApiSupportedChains,
+        mockEvents.GET.remoteFeatureFlags,
         {
           urlEndpoint:
             'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
