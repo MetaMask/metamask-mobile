@@ -235,7 +235,7 @@ export const getPermittedChains = async (hostname: string): Promise<string[]> =>
 
   if (Array.isArray(caveat?.value)) {
     const chains = caveat.value
-      .filter((item: unknown): item is string => typeof item === 'string')
+      .filter((item: unknown): item is string => typeof item === 'string' && !isNaN(parseInt(item)))
       .map((chainId: string) => `${EVM_IDENTIFIER}:${parseInt(chainId)}`);
 
     return chains;
