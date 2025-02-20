@@ -25,8 +25,7 @@ import {
   getApprovedSessionMethods,
   getScopedPermissions,
   hideWCLoadingState,
-  parseWalletConnectUri,
-  showWCLoadingState
+  parseWalletConnectUri
 } from './wc-utils';
 
 import WalletConnect2Session from './WalletConnect2Session';
@@ -562,7 +561,7 @@ export class WC2Manager {
       if (rawParams.sessionTopic) {
         const { sessionTopic } = rawParams;
         this.sessions[sessionTopic]?.setDeeplink(true);
-        showWCLoadingState({ navigation: this.navigation });
+        // showWCLoadingState({ navigation: this.navigation });
         return;
       }
 
@@ -584,7 +583,7 @@ export class WC2Manager {
         const cleanUri = wcUri.startsWith('wc://')
           ? wcUri.replace('wc://', 'wc:')
           : wcUri;
-        showWCLoadingState({ navigation: this.navigation });
+        // showWCLoadingState({ navigation: this.navigation });
 
         const paired = await this.web3Wallet.core.pairing.pair({
           uri: cleanUri,
