@@ -18,9 +18,12 @@ import {
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
   nonEvmNetworkChainIdByAccountAddress,
+  lastSelectedAccountAddressInEvmNetwork,
+  lastSelectedAccountAddressByNonEvmNetworkChainId,
 } from '../utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import Engine from '../../Engine';
 
 // P2WPKH
 const MOCK_BTC_MAINNET_ADDRESS = 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
@@ -117,6 +120,16 @@ const mockSolAccount: InternalAccount = {
   },
   scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
 };
+
+// Add this at the top of the file with other imports
+jest.mock('../../Engine', () => ({
+  context: {
+    AccountsController: {
+      getSelectedAccount: jest.fn(),
+      getSelectedMultichainAccount: jest.fn(),
+    },
+  },
+}));
 
 describe('MultiChain utils', () => {
   describe('isEthAccount', () => {
@@ -229,6 +242,73 @@ describe('MultiChain utils', () => {
       expect(
         nonEvmNetworkChainIdByAccountAddress(MOCK_BTC_MAINNET_ADDRESS_2),
       ).toBe(BtcScope.Mainnet);
+    });
+  });
+
+  describe('lastSelectedAccountAddressInEvmNetwork', () => {
+    beforeEach(() => {
+      jest.resetModules();
+    });
+
+    it('returns the selected EVM account address', () => {
+      // @ts-expect-error - getSelectedAccount is mocked in the top of the file
+      Engine.context.AccountsController.getSelectedAccount.mockReturnValue({
+        address: MOCK_ETH_ADDRESS,
+      });
+
+      expect(lastSelectedAccountAddressInEvmNetwork()).toBe(MOCK_ETH_ADDRESS);
+    });
+
+    it('returns undefined when no account is selected', () => {
+      // @ts-expect-error - getSelectedAccount is mocked in the top of the file
+      Engine.context.AccountsController.getSelectedAccount.mockReturnValue(
+        undefined,
+      );
+
+      expect(lastSelectedAccountAddressInEvmNetwork()).toBeUndefined();
+    });
+  });
+
+  describe('lastSelectedAccountAddressByNonEvmNetworkChainId', () => {
+    beforeEach(() => {
+      jest.resetModules();
+    });
+
+    it('returns the selected non-EVM account address for Solana', () => {
+      // @ts-expect-error - getSelectedMultichainAccount is mocked in the top of the file
+      Engine.context.AccountsController.getSelectedMultichainAccount.mockImplementation(
+        (chainId: string) =>
+          chainId === SolScope.Mainnet ? { address: SOL_ADDRESS } : undefined,
+      );
+
+      expect(
+        lastSelectedAccountAddressByNonEvmNetworkChainId(SolScope.Mainnet),
+      ).toBe(SOL_ADDRESS);
+    });
+
+    it('returns the selected non-EVM account address for Bitcoin', () => {
+      // @ts-expect-error - getSelectedMultichainAccount is mocked in the top of the file
+      Engine.context.AccountsController.getSelectedMultichainAccount.mockImplementation(
+        (chainId: string) =>
+          chainId === BtcScope.Mainnet
+            ? { address: MOCK_BTC_MAINNET_ADDRESS }
+            : undefined,
+      );
+
+      expect(
+        lastSelectedAccountAddressByNonEvmNetworkChainId(BtcScope.Mainnet),
+      ).toBe(MOCK_BTC_MAINNET_ADDRESS);
+    });
+
+    it('returns undefined when no account is selected for the chain', () => {
+      // @ts-expect-error - getSelectedMultichainAccount is mocked in the top of the file
+      Engine.context.AccountsController.getSelectedMultichainAccount.mockReturnValue(
+        undefined,
+      );
+
+      expect(
+        lastSelectedAccountAddressByNonEvmNetworkChainId(SolScope.Mainnet),
+      ).toBeUndefined();
     });
   });
 });
