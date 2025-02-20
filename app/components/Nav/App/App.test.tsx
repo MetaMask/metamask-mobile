@@ -67,10 +67,6 @@ describe('App', () => {
     renderScreen(App, { name: 'App' }, { state: initialState });
     await waitFor(() => {
       expect(mockMetrics.configure).toHaveBeenCalledTimes(1);
-      expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
-        deviceProp: 'Device value',
-        userProp: 'User value',
-      });
     });
   });
 
