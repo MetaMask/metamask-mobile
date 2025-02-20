@@ -12,8 +12,8 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
-import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import { strings } from '../../../locales/i18n';
 
 const fixtureServer = new FixtureServer();
 
@@ -50,7 +50,7 @@ describe(SmokeCore('Carousel Tests'), () => {
     await Assertions.checkIfVisible(carouselFirstSlide, 30000);
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
-      'Get a MetaMask card',
+      strings('banner.card.title'),
       30000,
     );
     await Assertions.checkIfVisible(carouselProgressDots, 30000);
@@ -66,14 +66,14 @@ describe(SmokeCore('Carousel Tests'), () => {
     await Assertions.checkIfVisible(carouselSecondSlide, 30000);
     await Assertions.checkIfElementToHaveText(
       carouselSecondSlideTitle,
-      'Buy crypto with cash',
+      strings('banner.fund.title'),
       30000,
     );
 
     await Gestures.swipe(carouselContainer, 'right', 'slow', 0.7);
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
-      'Get a MetaMask card',
+      strings('banner.card.title'),
       30000,
     );
   });
@@ -86,7 +86,7 @@ describe(SmokeCore('Carousel Tests'), () => {
     await Gestures.tap(closeButton);
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
-      'Buy crypto with cash',
+      strings('banner.fund.title'),
       30000,
     );
   });
