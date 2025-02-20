@@ -243,6 +243,7 @@ const AccountConnectMultiSelector = ({
             isMultiSelect
             isRemoveAccountEnabled
             isAutoScrollEnabled={isAutoScrollEnabled}
+            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
           {connection?.originatorInfo?.apiVersion && (
             <View style={styles.sdkInfoContainer}>

@@ -200,7 +200,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               }
             }
           >
-            0.00321
+            0.01
              
             ETH
           </Text>
@@ -217,7 +217,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               }
             }
           >
-            $7.46
+            $26.21
           </Text>
         </View>
       </View>
@@ -1113,7 +1113,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     }
                     testID="label"
                   >
-                    2.5%
+                    2.6%
                   </Text>
                 </View>
               </View>
@@ -1224,7 +1224,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         }
                       }
                     >
-                      $5000
+                      $0.68
                     </Text>
                     <Text
                       accessibilityRole="text"
@@ -1239,7 +1239,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         }
                       }
                     >
-                      2.5 ETH
+                      0.00026 ETH
                     </Text>
                   </View>
                 </View>
