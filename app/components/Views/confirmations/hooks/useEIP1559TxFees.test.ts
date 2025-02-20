@@ -16,8 +16,8 @@ describe('useEIP1559TxFees', () => {
         state: stakingDepositConfirmationState,
       },
     );
-    expect(result.current.maxFeePerGas).toBe('1952008992');
-    expect(result.current.maxPriorityFeePerGas).toBe('500000000');
+    expect(result.current.maxFeePerGas).toBe('2220444448');
+    expect(result.current.maxPriorityFeePerGas).toBe('1305306368');
   });
 
   it('returns 0 if no transaction meta present', async () => {
