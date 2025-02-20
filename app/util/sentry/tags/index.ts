@@ -7,7 +7,7 @@ import { selectTransactions } from '../../../selectors/transactionController';
 import { selectPendingApprovals } from '../../../selectors/approvalController';
 
 export function getTraceTags(state: RootState) {
-  const tags: Record<string, unknown> = {};
+  const tags: Record<string, number | string | boolean> = {};
 
   try {
     tags['wallet.unlocked'] = state.user.userLoggedIn;
