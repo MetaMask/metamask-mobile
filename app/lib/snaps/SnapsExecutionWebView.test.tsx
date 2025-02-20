@@ -1,7 +1,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { createWebView, removeWebView, SnapsExecutionWebView } from './SnapsExecutionWebView';
+import {
+  createWebView,
+  removeWebView,
+  SnapsExecutionWebView,
+} from './SnapsExecutionWebView';
 
 describe('SnapsExecutionWebView', () => {
   it('should render correctly', () => {

@@ -85,7 +85,12 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, hmacSha512, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
+import {
+  Encryptor,
+  hmacSha512,
+  LEGACY_DERIVATION_OPTIONS,
+  pbkdf2,
+} from '../Encryptor';
 import {
   isMainnetByChainId,
   isTestNet,
@@ -141,9 +146,13 @@ import {
 } from '@metamask/signature-controller';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  Duration, inMilliseconds,
+  Duration,
+  inMilliseconds,
   ///: END:ONLY_INCLUDE_IF
-  hasProperty, Hex, Json } from '@metamask/utils';
+  hasProperty,
+  Hex,
+  Json,
+} from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
@@ -1108,7 +1117,7 @@ export class Engine {
       }),
       clientCryptography: {
         pbkdf2Sha512: pbkdf2,
-        hmacSha512
+        hmacSha512,
       },
     });
 

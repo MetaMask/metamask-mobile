@@ -67,7 +67,9 @@ export class SnapsExecutionWebView extends Component {
 
       const onWebViewMessage = (data: WebViewMessageEvent) => {
         if (this.webViews[jobId]?.listener) {
-          this.webViews[jobId].listener?.(data.nativeEvent as unknown as PostMessageEvent);
+          this.webViews[jobId].listener?.(
+            data.nativeEvent as unknown as PostMessageEvent,
+          );
         }
       };
 
@@ -86,8 +88,8 @@ export class SnapsExecutionWebView extends Component {
           onWebViewLoad,
           onWebViewError,
           onWebViewMessage,
-          ref: setWebViewRef
-        }
+          ref: setWebViewRef,
+        },
       };
     });
 
@@ -120,7 +122,6 @@ export class SnapsExecutionWebView extends Component {
               javaScriptEnabled
             />
           ))}
-
         </View>
       </ScrollView>
     );
