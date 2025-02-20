@@ -15,10 +15,14 @@ import {
   View,
 } from 'react-native';
 
+import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './ScrollContext.styles';
 
@@ -31,13 +35,11 @@ export const ScrollContext = createContext<ScrollContextType>({
 });
 
 export interface ScrollContextProviderProps {
-  scrollableSection: ReactElement | ReactElement[];
-  staticFooter: ReactElement;
+  children: ReactElement | ReactElement[];
 }
 
 export const ScrollContextProvider: React.FC<ScrollContextProviderProps> = ({
-  scrollableSection,
-  staticFooter,
+  children,
 }) => {
   const [hasScrolledToBottom, setScrolledToBottom] = useState(false);
   const [isScrollable, setIsScrollable] = useState(false);
@@ -87,7 +89,7 @@ export const ScrollContextProvider: React.FC<ScrollContextProviderProps> = ({
           iconName={IconName.Arrow2Down}
           iconColor={IconColor.Inverse}
           onPress={scrollToBottom}
-          testID="scroll-to-bottom-button"
+          testID={ConfirmationPageSectionsSelectorIDs.SCROLL_BUTTON}
         />
       )}
       <ScrollView
@@ -99,11 +101,10 @@ export const ScrollContextProvider: React.FC<ScrollContextProviderProps> = ({
       >
         <TouchableWithoutFeedback>
           <View ref={scrolledSectionRef} style={styles.scrollableSection}>
-            {scrollableSection}
+            {children}
           </View>
         </TouchableWithoutFeedback>
       </ScrollView>
-      {staticFooter}
     </ScrollContext.Provider>
   );
 };
