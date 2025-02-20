@@ -436,10 +436,6 @@ describe('captureSentryFeedback', () => {
       infuraAvailability: {
         isBlocked: false,
       },
-      navigation: {
-        currentBottomNavRoute: 'Wallet',
-        currentRoute: 'Login',
-      },
       networkOnboarded: {
         networkOnboardedState: {},
         networkState: {
@@ -510,7 +506,6 @@ describe('captureSentryFeedback', () => {
         inpageProvider: 'object',
         legalNotices: 'object',
         modals: 'object',
-        navigation: 'object',
         networkOnboarded: 'object',
         notification: 'object',
         onboarding: 'object',
@@ -551,7 +546,6 @@ describe('captureSentryFeedback', () => {
         infuraAvailability: 'object',
         inpageProvider: 'object',
         modals: 'object',
-        navigation: 'object',
         networkOnboarded: 'object',
         notification: 'object',
         onboarding: 'object',
@@ -588,7 +582,6 @@ describe('captureSentryFeedback', () => {
         inpageProvider: 'object',
         legalNotices: 'object',
         modals: 'object',
-        navigation: 'object',
         networkOnboarded: 'object',
         notification: 'object',
         onboarding: 'object',

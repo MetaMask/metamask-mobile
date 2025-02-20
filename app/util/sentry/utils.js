@@ -219,7 +219,6 @@ export const sentryStateMask = {
   inpageProvider: true,
   legalNotices: true,
   modals: true,
-  navigation: true,
   networkOnboarded: true,
   notification: true,
   onboarding: true,

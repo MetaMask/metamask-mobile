@@ -7,7 +7,6 @@ import { initialState as transactionMetrics } from '../../core/redux/slices/tran
 import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
-import { initialNavigationState } from '../../reducers/navigation';
 import { initialState as initialStakingState } from '../../core/redux/slices/staking';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { initialState as initialMultichainSettingsState } from '../../reducers/multichain';
@@ -36,7 +35,6 @@ const initialRootState: RootState = {
   swaps: undefined,
   fiatOrders: initialFiatOrdersState,
   infuraAvailability: undefined,
-  navigation: initialNavigationState,
   networkOnboarded: undefined,
   security: initialSecurityState,
   signatureRequest: undefined,

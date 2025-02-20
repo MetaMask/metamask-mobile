@@ -9,6 +9,13 @@ import {
   processOriginThrottlingRejection,
   validateOriginThrottling,
 } from './spam';
+import NavigationService from '../NavigationService';
+
+jest.mock('../NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
 
 const [BLOCKABLE_RPC_METHOD_MOCK] = BLOCKABLE_SPAM_RPC_METHODS;
 const SCAM_ORIGIN_MOCK = 'scam.origin';
@@ -138,7 +145,6 @@ describe('utils', () => {
             req: NOT_BLOCKABLE_RPC_REQUEST_MOCK,
             error: new Error('Some error'),
             store,
-            navigation: {} as { navigate: jest.Mock },
           }),
         ).not.toThrow();
       });
@@ -151,7 +157,6 @@ describe('utils', () => {
             req: RPC_REQUEST_MOCK,
             error,
             store,
-            navigation: {} as { navigate: jest.Mock },
           }),
         ).not.toThrow();
       });
@@ -169,16 +174,14 @@ describe('utils', () => {
           },
         },
       });
-      const navigation = { navigate: jest.fn() };
       const error = new Error('User rejected request');
       processOriginThrottlingRejection({
         req: RPC_REQUEST_MOCK,
         error,
         store,
-        navigation,
       });
 
-      expect(navigation.navigate).toHaveBeenCalledWith(
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
           screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
