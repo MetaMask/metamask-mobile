@@ -29,7 +29,6 @@ const SnapDialogApproval = () => {
   const { styles } = useStyles(stylesheet, {});
 
   const onCancel = async () => {
-    setIsLoading(true);
     if (!approvalRequest) return;
     await Engine.acceptPendingApproval(
       approvalRequest.id,
@@ -38,7 +37,32 @@ const SnapDialogApproval = () => {
     await Engine.context.SnapInterfaceController.deleteInterface(
       approvalRequest.id,
     );
+  };
+
+  const onConfirm = async () => {
+    setIsLoading(true);
+    if (!approvalRequest) return;
+    await Engine.acceptPendingApproval(
+      approvalRequest.id,
+      true as unknown as Record<string, Json>,
+    );
+    await Engine.context.SnapInterfaceController.deleteInterface(
+      approvalRequest.id,
+    );
+
     setIsLoading(false);
+  };
+
+  const onReject = async () => {
+    if (!approvalRequest) return;
+
+    await Engine.acceptPendingApproval(
+      approvalRequest.id,
+      false as unknown as Record<string, Json>,
+    );
+    await Engine.context.SnapInterfaceController.deleteInterface(
+      approvalRequest.id,
+    );
   };
 
   if (
@@ -61,6 +85,20 @@ const SnapDialogApproval = () => {
         ];
 
       case DIALOG_APPROVAL_TYPES.confirmation:
+        return [
+          {
+            variant: ButtonVariants.Secondary,
+            label: strings(TemplateConfirmation.CANCEL),
+            size: ButtonSize.Lg,
+            onPress: onReject,
+          },
+          {
+            variant: ButtonVariants.Primary,
+            label: strings(TemplateConfirmation.Ok),
+            size: ButtonSize.Lg,
+            onPress: onConfirm,
+          },
+        ];
       default:
         return [];
     }
@@ -75,6 +113,7 @@ const SnapDialogApproval = () => {
       isVisible={
         approvalRequest?.type === DIALOG_APPROVAL_TYPES.alert ||
         approvalRequest?.type === DIALOG_APPROVAL_TYPES.confirmation ||
+        approvalRequest?.type === DIALOG_APPROVAL_TYPES.prompt ||
         approvalRequest?.type === DIALOG_APPROVAL_TYPES.default
       }
       onCancel={onCancel}

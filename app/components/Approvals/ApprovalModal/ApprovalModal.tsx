@@ -21,7 +21,6 @@ const ApprovalModal = (props: ApprovalModalProps) => {
 
   return (
     <Modal
-      testID="snap-dialog-approval"
       isVisible={props.isVisible}
       animationIn="slideInUp"
       animationOut="slideOutDown"

@@ -1,20 +1,18 @@
 import React, { FunctionComponent } from 'react';
-import { ButtonType, SnapId } from '@metamask/snaps-sdk';
+import { ButtonType, SnapId, UserInputEventType } from '@metamask/snaps-sdk';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { IconSize } from '../../../component-library/components/Icons/Icon';
 import {
-  ButtonProps,
+  ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button/Button.types';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT } from '../../../component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.constants';
 import { SnapIcon } from '../SnapIcon/SnapIcon';
 import Text, {
-  TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useSelector } from 'react-redux';
 import { selectSnaps } from '../../../selectors/snaps/snapController';
-import SnapUIButton from '../SnapUIButton/SnapUIButton';
 import {
   DEFAULT_BUTTONPRIMARY_LABEL_COLOR,
   DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT,
@@ -24,8 +22,12 @@ import {
   JustifyContent,
   AlignItems,
 } from '../../UI/Box/box.types';
+import { DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT } from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
+import Button from '../../../component-library/components/Buttons/Button';
+import { useStyles } from '../../../component-library/hooks';
+import styleSheet from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.styles';
 
-const styles = StyleSheet.create({
+const localStyles = StyleSheet.create({
   snapActionContainer: {
     flexDirection: FlexDirection.Row,
     alignItems: AlignItems.center,
@@ -42,11 +44,17 @@ interface SnapUIFooterButtonProps {
   label: string;
   type: ButtonType;
   snapVariant: ButtonVariants;
+  disabled?: boolean;
+  loading?: boolean;
 }
 
-export const SnapUIFooterButton: FunctionComponent<
-  SnapUIFooterButtonProps & ButtonProps
-> = ({
+const COLORS = {
+  primary: TextColor.Info,
+  destructive: TextColor.Error,
+  disabled: TextColor.Muted,
+};
+
+export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   onCancel,
   name,
   children,
@@ -59,9 +67,23 @@ export const SnapUIFooterButton: FunctionComponent<
   label,
   ...props
 }) => {
-  const { snapId } = useSnapInterfaceContext();
+  const { handleEvent, snapId } = useSnapInterfaceContext();
   const snaps = useSelector(selectSnaps);
   const snapMetadata = snaps[snapId as SnapId];
+
+  const { styles } = useStyles(styleSheet, {
+    buttonsAlignment: DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
+  });
+
+  const handlePress = () => {
+    handleEvent({
+      event: UserInputEventType.ButtonClickEvent,
+      name,
+    });
+  };
+
+  const overriddenVariant = disabled ? 'disabled' : variant;
+  const color = COLORS[overriddenVariant as keyof typeof COLORS];
 
   const hideSnapBranding = snapMetadata.hideSnapBranding;
 
@@ -71,18 +93,17 @@ export const SnapUIFooterButton: FunctionComponent<
 
   const buttonVariant = hideSnapBranding ? variant : brandedButtonVariant;
 
-  const renderLabel = () => {
+  const buttonLabel = () => {
     if (loading) {
       return (
         <ActivityIndicator
           size="small"
-          color={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT}
+          color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
         />
       );
-    }
-    if (isSnapAction && !hideSnapBranding && !loading) {
+    } else if (isSnapAction && !hideSnapBranding && !loading) {
       return (
-        <View style={styles.snapActionContainer}>
+        <View style={localStyles.snapActionContainer}>
           <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
           <Text
             variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
@@ -92,30 +113,25 @@ export const SnapUIFooterButton: FunctionComponent<
           </Text>
         </View>
       );
-    }
-
-    if (!loading) {
-      return label;
-    }
-
-    if (!label) {
-      return children;
+    } else {
+      return (
+        <Text variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT} color={color}>
+          {label}
+        </Text>
+      );
     }
   };
 
   return (
-    <SnapUIButton
-      label={renderLabel()}
-      type={type}
-      snapVariant={snapVariant}
-      name={name ?? ''}
+    <Button
+      variant={buttonVariant}
+      onPress={handlePress}
       disabled={disabled}
       loading={loading}
-      variant={buttonVariant}
-      textVariant={TextVariant.BodyMD}
+      label={buttonLabel()}
+      size={ButtonSize.Lg}
+      style={styles.button}
       {...props}
-    >
-      {children}
-    </SnapUIButton>
+    />
   );
 };

@@ -1,4 +1,4 @@
-import { JSXElement } from '@metamask/snaps-sdk/jsx';
+import { JSXElement, TextElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
 import { mapTextToTemplate } from '../utils';
@@ -8,24 +8,7 @@ import {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text/Text.types';
 
-type TextProps = JSXElement & {
-  type: 'Text';
-  props: {
-    children: string | JSXElement[];
-    color?:
-      | 'default'
-      | 'alternative'
-      | 'muted'
-      | 'error'
-      | 'success'
-      | 'warning';
-    fontWeight?: 'bold' | 'medium' | 'regular';
-    size?: 'sm' | 'md';
-    alignment?: string;
-  };
-};
-
-function getTextColor(color: TextProps['props']['color']) {
+function getTextColor(color: TextElement['props']['color']) {
   switch (color) {
     case 'default':
       return TextColor.Default;
@@ -44,7 +27,7 @@ function getTextColor(color: TextProps['props']['color']) {
   }
 }
 
-function getFontWeight(color: TextProps['props']['fontWeight']) {
+function getFontWeight(color: TextElement['props']['fontWeight']) {
   switch (color) {
     case 'bold':
       return 'bold';
@@ -56,7 +39,7 @@ function getFontWeight(color: TextProps['props']['fontWeight']) {
   }
 }
 
-const alignText = (alignment: TextProps['props']['alignment']) => {
+const alignText = (alignment: TextElement['props']['alignment']) => {
   switch (alignment) {
     case 'start':
       return 'left';
@@ -69,7 +52,7 @@ const alignText = (alignment: TextProps['props']['alignment']) => {
   }
 };
 
-export const text: UIComponentFactory<TextProps> = ({
+export const text: UIComponentFactory<TextElement> = ({
   element: e,
   ...params
 }) => ({

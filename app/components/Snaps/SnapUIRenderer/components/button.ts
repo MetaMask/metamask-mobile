@@ -30,7 +30,10 @@ export const button: UIComponentFactory<ButtonElementProps> = ({
     name: e.props.name,
     disabled: e.props.disabled,
     loading: e.props.loading ?? false,
-    label: e.props.children,
+    label: mapTextToTemplate(
+      getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
+      params,
+    ),
     textVariant:
       e.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
   },
