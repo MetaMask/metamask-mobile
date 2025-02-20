@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import Icon, {
@@ -16,16 +16,18 @@ interface DisplayURLProps {
 }
 
 const DisplayURL = ({ url }: DisplayURLProps) => {
-  let urlObject;
+  const [isHTTP, setIsHTTP] = useState(false);
 
-  try {
-    urlObject = new URL(url);
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    Logger.error(e as Error, `DisplayURL: new URL(url) cannot parse ${url}`);
-  }
-
-  const isHTTP = urlObject?.protocol === 'http:';
+  useEffect(() => {
+    let urlObject;
+    try {
+      urlObject = new URL(url);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      Logger.error(e as Error, `DisplayURL: new URL(url) cannot parse ${url}`);
+    }
+    setIsHTTP(urlObject?.protocol === 'http:');
+  }, [url]);
 
   const urlWithoutProtocol = url?.replace(/https?:\/\//u, '');
 
