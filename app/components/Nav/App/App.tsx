@@ -512,6 +512,24 @@ const ConnectHardwareWalletFlow = () => (
   </Stack.Navigator>
 );
 
+const ConfirmRequest = () => (
+  <Stack.Navigator mode={'modal'}>
+    <Stack.Screen name={Routes.CONFIRM_FLAT_PAGE} component={Confirm} />
+  </Stack.Navigator>
+);
+
+const ConfirmDappRequest = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+    mode={'modal'}
+  >
+    <Stack.Screen name={Routes.CONFIRM_MODAL} component={Confirm} />
+  </Stack.Navigator>
+);
+
 const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
 
@@ -638,24 +656,6 @@ const AppFlow = () => {
     </Stack.Navigator>
   );
 };
-
-const ConfirmRequest = () => (
-  <Stack.Navigator mode={'modal'}>
-    <Stack.Screen name={Routes.CONFIRM_FLAT_PAGE} component={Confirm} />
-  </Stack.Navigator>
-);
-
-const ConfirmDappRequest = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-    mode={'modal'}
-  >
-    <Stack.Screen name={Routes.CONFIRM_MODAL} component={Confirm} />
-  </Stack.Navigator>
-);
 
 const App: React.FC = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);

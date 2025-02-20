@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import Routes from '../../../constants/navigation/Routes';
@@ -10,7 +9,6 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
-import Device from '../../../util/device';
 import NavigationService from '../../NavigationService';
 import extractURLParams from './extractURLParams';
 
