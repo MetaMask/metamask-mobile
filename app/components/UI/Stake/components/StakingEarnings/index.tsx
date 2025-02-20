@@ -14,7 +14,6 @@ import {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import { strings } from '../../../../../../locales/i18n';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
@@ -25,6 +24,9 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
 import { TokenI } from '../../../Tokens/types';
 import StakingEarningsHistoryButton from './StakingEarningsHistoryButton/StakingEarningsHistoryButton';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
+import { EVENT_LOCATIONS } from '../../constants/events';
 
 export interface StakingEarningsProps {
   asset: TokenI;
@@ -33,7 +35,7 @@ export interface StakingEarningsProps {
 const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const { openTooltipModal } = useTooltipModal();
+  const { navigate } = useNavigation();
 
   const {
     annualRewardRate,
@@ -50,10 +52,9 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   );
 
   const onDisplayAnnualRateTooltip = () =>
-    openTooltipModal(
-      strings('stake.annual_rate'),
-      strings('tooltip_modal.reward_rate.tooltip'),
-    );
+    navigate('StakeModals', {
+      screen: Routes.STAKING.MODALS.LEARN_MORE,
+    });
 
   if (!isStakingSupportedChain || !hasStakedPositions) return <></>;
 
@@ -83,7 +84,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
               onPress={withMetaMetrics(onDisplayAnnualRateTooltip, {
                 event: MetaMetricsEvents.TOOLTIP_OPENED,
                 properties: getTooltipMetricProperties(
-                  'Staking Earnings',
+                  EVENT_LOCATIONS.STAKING_EARNINGS,
                   'Annual Rate',
                 ),
               })}

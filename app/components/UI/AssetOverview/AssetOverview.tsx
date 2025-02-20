@@ -202,7 +202,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       });
 
       if (asset.chainId !== selectedChainId) {
-        const { NetworkController } = Engine.context;
+        const { NetworkController, MultichainNetworkController } =
+          Engine.context;
         const networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
             asset.chainId as Hex,
@@ -213,10 +214,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        await NetworkController.setActiveNetwork(networkClientId as string);
+        await MultichainNetworkController.setActiveNetwork(
+          networkClientId as string,
+        );
       }
     }
-    if (asset.isETH && ticker) {
+    if ((asset.isETH || asset.isNative) && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
     } else {
       dispatch(newAssetTransaction(asset));
@@ -233,7 +236,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         },
       });
       if (asset.chainId !== selectedChainId) {
-        const { NetworkController } = Engine.context;
+        const { NetworkController, MultichainNetworkController } =
+          Engine.context;
         const networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
             asset.chainId as Hex,
@@ -244,13 +248,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        NetworkController.setActiveNetwork(networkClientId as string).then(
-          () => {
-            setTimeout(() => {
-              handleSwapNavigation();
-            }, 500);
-          },
-        );
+        MultichainNetworkController.setActiveNetwork(
+          networkClientId as string,
+        ).then(() => {
+          setTimeout(() => {
+            handleSwapNavigation();
+          }, 500);
+        });
       } else {
         handleSwapNavigation();
       }

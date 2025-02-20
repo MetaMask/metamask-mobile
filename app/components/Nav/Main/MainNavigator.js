@@ -841,7 +841,7 @@ const MainNavigator = () => (
       headerTitle={() => (
         <Image
           style={styles.headerLogo}
-          source={require('../../../images/metamask-name.png')}
+          source={require('../../../images/branding/metamask-name.png')}
           resizeMode={'contain'}
         />
       )}

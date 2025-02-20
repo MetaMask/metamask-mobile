@@ -40,9 +40,8 @@ import {
 } from '../../UI/Ramp/routes/utils';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
-import Engine from '../../../core/Engine';
-import useStakingChain from '../../UI/Stake/hooks/useStakingChain';
 import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
+import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -53,7 +52,6 @@ const WalletActions = () => {
   const ticker = useSelector(selectTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
   const dispatch = useDispatch();
-  const { isStakingSupportedChain } = useStakingChain();
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -92,18 +90,17 @@ const WalletActions = () => {
   ]);
 
   const onEarn = useCallback(async () => {
-    if (!isStakingSupportedChain) {
-      await Engine.context.NetworkController.setActiveNetwork('mainnet');
-    }
-
     closeBottomSheetAndNavigate(() => {
-      navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
+      navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+      });
     });
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
         .addProperties({
           text: 'Earn',
-          location: 'TabBar',
+          location: STAKE_EVENT_LOCATIONS.WALLET_ACTIONS_BOTTOM_SHEET,
           chain_id_destination: getDecimalChainId(chainId),
         })
         .build(),
@@ -114,7 +111,6 @@ const WalletActions = () => {
     chainId,
     createEventBuilder,
     trackEvent,
-    isStakingSupportedChain,
   ]);
 
   const onBuy = useCallback(() => {
@@ -284,18 +280,17 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
-        {AppConstants.SWAPS.ACTIVE &&
-          isSwapsAllowed(chainId) && (
-            <WalletAction
-              actionType={WalletActionType.Swap}
-              iconName={IconName.SwapHorizontal}
-              onPress={goToSwaps}
-              actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-              iconStyle={styles.icon}
-              iconSize={AvatarSize.Md}
-              disabled={!canSignTransactions || !swapsIsLive}
-            />
-          )}
+        {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
+          <WalletAction
+            actionType={WalletActionType.Swap}
+            iconName={IconName.SwapHorizontal}
+            onPress={goToSwaps}
+            actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions || !swapsIsLive}
+          />
+        )}
         {isBridgeAllowed(chainId) && (
           <WalletAction
             actionType={WalletActionType.Bridge}

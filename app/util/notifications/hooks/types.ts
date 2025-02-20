@@ -1,6 +1,6 @@
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import type { Notification } from '../../../util/notifications/types/notification';
+import type { INotification } from '../../../util/notifications/types/notification';
 
 import { MarkAsReadNotificationsParam } from '../../../actions/notification/helpers';
 
@@ -16,7 +16,7 @@ export interface DisableMetametricsReturn {
 }
 export interface ListNotificationsReturn {
   listNotifications: () => Promise<string | undefined>;
-  notificationsData: readonly Notification[];
+  notificationsData: readonly INotification[];
   isLoading: boolean;
   error?: string;
 }

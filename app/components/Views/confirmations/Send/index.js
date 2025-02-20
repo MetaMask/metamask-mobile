@@ -822,7 +822,7 @@ const mapStateToProps = (state) => {
     tokenList: selectTokenList(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),
