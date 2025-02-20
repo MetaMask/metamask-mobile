@@ -4,15 +4,19 @@ import {
   BtcAccountType,
   SolAccountType,
   EthMethod,
-  EthScopes,
-  BtcScopes,
-  SolScopes,
+  EthScope,
+  BtcScope,
+  SolScope,
   KeyringAccountType,
   BtcMethod,
   SolMethod,
+  CaipChainId,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountsControllerState } from '@metamask/accounts-controller';
+import {
+  AccountId,
+  AccountsControllerState,
+} from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import {
   mockQrKeyringAddress,
@@ -21,7 +25,7 @@ import {
   mockSnapAddress2,
 } from './keyringControllerTestUtils';
 
-export function createMockUuidFromAddress(address: string): string {
+export function createMockUuidFromAddress(address: string): AccountId {
   const fakeShaFromAddress = Array.from(
     { length: 16 },
     (_, i) => address.charCodeAt(i) || 0,
@@ -36,18 +40,18 @@ export function createMockUuidFromAddress(address: string): string {
  * @param accountType - The type of account (ETH, BTC, or Solana)
  * @returns Array of scopes corresponding to the account type
  */
-function getAccountTypeScopes(accountType: KeyringAccountType): string[] {
+function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
   // Define scope mappings
   const scopeMappings = {
     // Ethereum account types
-    [EthAccountType.Eoa]: [EthScopes.Namespace],
-    [EthAccountType.Erc4337]: [EthScopes.Namespace],
+    [EthAccountType.Eoa]: [EthScope.Eoa],
+    [EthAccountType.Erc4337]: [EthScope.Testnet],
 
     // Bitcoin account types
-    [BtcAccountType.P2wpkh]: [BtcScopes.Namespace],
+    [BtcAccountType.P2wpkh]: [BtcScope.Mainnet],
 
     // Solana account types
-    [SolAccountType.DataAccount]: [SolScopes.Namespace],
+    [SolAccountType.DataAccount]: [SolScope.Mainnet],
   };
 
   const scopes = scopeMappings[accountType];
@@ -128,7 +132,7 @@ export function createMockSnapInternalAccount(
       EthMethod.SignTypedDataV4,
     ],
     type: EthAccountType.Eoa,
-    scopes: [EthScopes.Namespace],
+    scopes: [EthScope.Eoa],
   };
 }
 
@@ -137,7 +141,7 @@ export const MOCK_ACCOUNT_BIP122_P2WPKH: InternalAccount = {
   address: 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
   options: {},
   methods: [BtcMethod.SendBitcoin],
-  scopes: [BtcScopes.Mainnet],
+  scopes: [BtcScope.Mainnet],
   type: BtcAccountType.P2wpkh,
   metadata: {
     name: 'Bitcoin Account',
@@ -152,7 +156,7 @@ export const MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET: InternalAccount = {
   address: 'tb1q6rmsq3vlfdhjdhtkxlqtuhhlr6pmj09y6w43g8',
   options: {},
   methods: [BtcMethod.SendBitcoin],
-  scopes: [BtcScopes.Testnet],
+  scopes: [BtcScope.Testnet],
   type: BtcAccountType.P2wpkh,
   metadata: {
     name: 'Bitcoin Testnet Account',
@@ -180,7 +184,7 @@ export const MOCK_SOLANA_ACCOUNT: InternalAccount = {
       enabled: true,
     },
   },
-  scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
+  scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
 };
 
 export const MOCK_MULTICHAIN_NON_EVM_ACCOUNTS = {

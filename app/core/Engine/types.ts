@@ -42,6 +42,10 @@ import {
   RatesController,
   RatesControllerEvents,
   RatesControllerActions,
+  MultichainAssetsController,
+  MultichainAssetsControllerState,
+  MultichainAssetsControllerEvents,
+  MultichainAssetsControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
@@ -180,6 +184,21 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+import {
+  TokenSearchDiscoveryController,
+  TokenSearchDiscoveryControllerState,
+} from '@metamask/token-search-discovery-controller';
+import {
+  TokenSearchDiscoveryControllerActions,
+  TokenSearchDiscoveryControllerEvents,
+} from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
+import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
+import {
+  MultichainNetworkController,
+  MultichainNetworkControllerActions,
+  MultichainNetworkControllerState,
+  MultichainNetworkControllerEvents,
+} from '@metamask/multichain-network-controller';
 
 /**
  * Controllers that area always instantiated
@@ -241,6 +260,7 @@ type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | RatesControllerActions
+  | MultichainAssetsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -253,7 +273,9 @@ type GlobalActions =
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
-  | RemoteFeatureFlagControllerActions;
+  | RemoteFeatureFlagControllerActions
+  | TokenSearchDiscoveryControllerActions
+  | MultichainNetworkControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -277,6 +299,7 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | RatesControllerEvents
+  | MultichainAssetsControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -291,7 +314,10 @@ type GlobalEvents =
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
-  | RemoteFeatureFlagControllerEvents;
+  | RemoteFeatureFlagControllerEvents
+  | TokenSearchDiscoveryControllerEvents
+  | SnapKeyringEvents
+  | MultichainNetworkControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -341,6 +367,7 @@ export type Controllers = {
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
@@ -358,7 +385,9 @@ export type Controllers = {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   RatesController: RatesController;
+  MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
+  MultichainNetworkController: MultichainNetworkController;
 };
 
 /**
@@ -385,6 +414,7 @@ export type EngineState = {
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsControllerState;
@@ -409,5 +439,7 @@ export type EngineState = {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesControllerState;
   RatesController: RatesControllerState;
+  MultichainAssetsController: MultichainAssetsControllerState;
   ///: END:ONLY_INCLUDE_IF
+  MultichainNetworkController: MultichainNetworkControllerState;
 };

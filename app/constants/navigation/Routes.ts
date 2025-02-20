@@ -138,6 +138,8 @@ const Routes = {
   EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
+  CONFIRM_FLAT_PAGE: 'Confirmation Flat Page',
+  CONFIRM_MODAL: 'Confirmation Modal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -155,6 +157,7 @@ const Routes = {
       LEARN_MORE: 'LearnMore',
       MAX_INPUT: 'MaxInput',
       GAS_IMPACT: 'GasImpact',
+      EARN_TOKEN_LIST: 'EarnTokenList',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)

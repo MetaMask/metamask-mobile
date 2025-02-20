@@ -127,7 +127,6 @@ jest.mock('../../../../../util/ENSUtils', () => ({
 jest.mock('../../../../../lib/ppom/ppom-util', () => ({
   ...jest.requireActual('../../../../../lib/ppom/ppom-util'),
   validateRequest: jest.fn(),
-  isChainSupported: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => {
@@ -183,6 +182,24 @@ jest.mock('../../../../../core/redux/slices/transactionMetrics', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/transactionMetrics'),
   updateTransactionMetrics: jest.fn(),
   selectTransactionMetrics: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../../reducers/swaps', () => ({
+  swapsStateSelector: () => ({
+    featureFlags: {
+      smart_transactions: {
+        mobile_active: false
+      }
+    }
+  }),
+  swapsSmartTxFlagEnabled: () => false
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectSmartTransactionsBannerDismissed: () => false,
+  selectSmartTransactionsMigrationApplied: () => false,
+  selectSmartTransactionsOptInStatus: () => false,
+  selectUseTransactionSimulations: () => false,
 }));
 
 function render(
