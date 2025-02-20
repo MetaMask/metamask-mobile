@@ -47,7 +47,7 @@ let environment = Environment.Production;
 if (isInternalBuild) {
   environment = Environment.Staging;
 } else if (isDevelopment) {
-  environment = Environment.Staging;
+  environment = Environment.Development;
 }
 
 let context = Context.Mobile;
