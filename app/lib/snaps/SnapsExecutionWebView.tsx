@@ -112,6 +112,7 @@ export class SnapsExecutionWebView extends Component {
         <View style={styles.webview}>
           {Object.entries(this.webViews).map(([key, { props }]) => (
             <WebView
+              testID={key}
               key={key}
               ref={props.ref}
               source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}

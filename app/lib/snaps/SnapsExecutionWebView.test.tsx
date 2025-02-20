@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 import {
   createWebView,
@@ -9,19 +9,32 @@ import {
 
 describe('SnapsExecutionWebView', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<SnapsExecutionWebView />);
-    expect(wrapper).toBeDefined();
+    const wrapper = render(<SnapsExecutionWebView />);
+    expect(wrapper).toMatchInlineSnapshot(`
+      <RCTScrollView>
+        <View>
+          <View
+            style={
+              {
+                "height": 0,
+              }
+            }
+          />
+        </View>
+      </RCTScrollView>
+    `);
   });
 
   it('should create and remove WebViews correctly', async () => {
-    const wrapper = shallow(<SnapsExecutionWebView />);
+    const wrapper = render(<SnapsExecutionWebView />);
     createWebView('foo');
     createWebView('bar');
-    wrapper.update();
-    expect(wrapper.find('WebView')).toHaveLength(2);
-
+    wrapper.rerender(<SnapsExecutionWebView />);
+    expect(await wrapper.queryByTestId('foo')).toBeTruthy();
+    expect(await wrapper.queryByTestId('bar')).toBeTruthy();
     removeWebView('foo');
-    wrapper.update();
-    expect(wrapper.find('WebView')).toHaveLength(1);
+    wrapper.rerender(<SnapsExecutionWebView />);
+    expect(await wrapper.queryByTestId('foo')).toBeNull();
+    expect(await wrapper.queryByTestId('bar')).toBeTruthy();
   });
 });
