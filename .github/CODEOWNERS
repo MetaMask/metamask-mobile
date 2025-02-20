@@ -52,6 +52,7 @@ app/core/Engine/controllers/AccountsController   @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers
+app/components/UI/Bridge              @MetaMask/swaps-engineers
 
 # Notifications Team
 app/components/Views/Notifications @MetaMask/notifications
