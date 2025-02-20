@@ -30,10 +30,7 @@ const SnapDialogApproval = () => {
 
   const onCancel = async () => {
     if (!approvalRequest) return;
-    await Engine.acceptPendingApproval(
-      approvalRequest.id,
-      null as unknown as Record<string, Json>,
-    );
+    await Engine.acceptPendingApproval(approvalRequest.id, null as Json);
     await Engine.context.SnapInterfaceController.deleteInterface(
       approvalRequest.id,
     );
@@ -42,10 +39,7 @@ const SnapDialogApproval = () => {
   const onConfirm = async () => {
     setIsLoading(true);
     if (!approvalRequest) return;
-    await Engine.acceptPendingApproval(
-      approvalRequest.id,
-      true as unknown as Record<string, Json>,
-    );
+    await Engine.acceptPendingApproval(approvalRequest.id, true as Json);
     await Engine.context.SnapInterfaceController.deleteInterface(
       approvalRequest.id,
     );
@@ -56,10 +50,7 @@ const SnapDialogApproval = () => {
   const onReject = async () => {
     if (!approvalRequest) return;
 
-    await Engine.acceptPendingApproval(
-      approvalRequest.id,
-      false as unknown as Record<string, Json>,
-    );
+    await Engine.acceptPendingApproval(approvalRequest.id, false as Json);
     await Engine.context.SnapInterfaceController.deleteInterface(
       approvalRequest.id,
     );
