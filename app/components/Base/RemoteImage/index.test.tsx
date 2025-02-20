@@ -64,14 +64,16 @@ describe('RemoteImage', () => {
   });
 
   it('should render with Solana network badge when on Solana network', async () => {
-    // @ts-expect-error - isSolanaMainnet is mocked in the top of the file
-    isSolanaMainnet.mockReturnValue(true);
     // @ts-expect-error - useSelector is mocked in the top of the file
     useSelector.mockImplementation((selector) => {
       const mockState = {
         engine: {
           backgroundState: {
             ...backgroundState,
+            MultichainNetworkController: {
+              ...backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
           },
         },
       };

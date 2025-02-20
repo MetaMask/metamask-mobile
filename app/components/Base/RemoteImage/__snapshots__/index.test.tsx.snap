@@ -104,7 +104,7 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "#f2f4f6",
                 "borderColor": "#ffffff",
                 "borderRadius": 8,
                 "borderWidth": 1,
@@ -122,18 +122,21 @@ exports[`RemoteImage should render with Solana network badge when on Solana netw
               }
             }
           >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
+            <Text
+              accessibilityRole="text"
               style={
                 {
-                  "height": 16,
-                  "width": 16,
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 10,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": undefined,
                 }
               }
-              testID="network-avatar-image"
-            />
+            >
+              S
+            </Text>
           </View>
         </View>
       </View>
