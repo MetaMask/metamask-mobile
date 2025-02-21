@@ -64,7 +64,6 @@ export const Footer = () => {
       isDisabled: needsCameraPermission,
       label: confirmButtonLabel,
       size: ButtonSize.Lg,
-      style: [confirmDisabled && styles.confirmButtonDisabled],
       onPress: onConfirm,
       testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     },

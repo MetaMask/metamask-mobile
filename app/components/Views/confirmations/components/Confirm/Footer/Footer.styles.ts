@@ -11,9 +11,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 8,
       paddingTop: 16,
     },
-    confirmButtonDisabled: {
-      opacity: 0.5,
-    },
     linkText: {
       textDecorationLine: 'underline',
     },
