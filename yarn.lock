@@ -5698,10 +5698,10 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.1.0"
 
-"@metamask/transaction-controller@^46.0.0":
-  version "46.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-46.0.0.tgz#ae20c10e413a164e65aa6ea6d65b7512b1530673"
-  integrity sha512-okwyNFyLMmytHxMLK5JMe6ArLsiC5f3h2GA3kaAJaadSTZMe8Wj9YZeqGUKd67q+j5VxTc0fBVRLPA8LZnP1yA==
+"@metamask/transaction-controller@^45.0.0":
+  version "45.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-45.1.0.tgz#271f0a9575551bfd494ff79be70fb142d792a987"
+  integrity sha512-LyNjcZ6zbLAKgkCJbFK+e7oPespl8c4kGJXV8JKzLGOmdU1LORpNgeo61nUK7/0b/LVovFTCyJO8wjk7ESFI2Q==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"
