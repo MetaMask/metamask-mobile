@@ -2,6 +2,7 @@ import type { VaultDailyApy, VaultApyAverages } from '@metamask/stake-sdk';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import type { RootState } from '../../../../reducers';
+import { DEFAULT_VAULT_APY_AVERAGES } from '../../../../components/UI/Stake/constants';
 
 interface PooledStakingState {
   vaultApys: VaultDailyApy[];
@@ -10,7 +11,7 @@ interface PooledStakingState {
 
 export const initialState: PooledStakingState = {
   vaultApys: [],
-  vaultApyAverages: {} as VaultApyAverages,
+  vaultApyAverages: DEFAULT_VAULT_APY_AVERAGES,
 };
 
 export const name = 'staking';

@@ -263,21 +263,35 @@ describe(SmokeStake('Stake from Actions'), () => {
         fixtureServerPort: `${getFixturesServerPort()}`,
         mockServerPort: `${mockServerPort}`,
       },
-    });
-    await loginToApp();
-    await WalletView.tapOnStakedEthereum();
-    await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(3000);
-    await TokenOverview.tapClaimButton();
-    await StakeConfirmView.tapConfirmButton();
-    await TokenOverview.tapBackButton();
-    await TabBarComponent.tapActivity();
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
-    await Assertions.checkIfElementToHaveText(
-      ActivitiesView.transactionStatus(FIRST_ROW),
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      120000,
-    );
+    ],
+  };
+  await device.terminateApp();
+
+
+  const mockServerPort = getMockServerPort();
+  mockServer = await startMockServer(testSpecificMock, mockServerPort);
+
+  await TestHelpers.launchApp({
+    launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`,  mockServerPort: `${mockServerPort}`, },
+  });
+  await loginToApp();
+  await WalletView.tapOnStakedEthereum();
+  await TokenOverview.scrollOnScreen();
+  await TestHelpers.delay(3000);
+  await TokenOverview.tapClaimButton();
+  await StakeConfirmView.tapConfirmButton();
+  await TokenOverview.tapBackButton();
+  //Wait for transaction to complete
+  try {
+    await Assertions.checkIfTextIsDisplayed('Transaction #3 Complete!',30000);
+    await TestHelpers.delay(8000);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+       console.log(`Transaction complete didn't pop up: ${e}`);
+    }
+  await TabBarComponent.tapActivity();
+  await Assertions.checkIfVisible(ActivitiesView.title);
+  await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
+  await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
   });
 });

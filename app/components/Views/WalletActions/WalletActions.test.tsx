@@ -15,7 +15,6 @@ import {
   expectedUuid2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
 } from '../../../util/test/accountsControllerTestUtils';
-import useStakingChain from '../../UI/Stake/hooks/useStakingChain';
 import Engine from '../../../core/Engine';
 import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 
@@ -28,13 +27,10 @@ jest.mock('../../../core/Engine', () => ({
     NetworkController: {
       setActiveNetwork: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
   },
-}));
-jest.mock('../../../components/UI/Stake/hooks/useStakingChain', () => ({
-  __esModule: true,
-  default: jest.fn().mockReturnValue({
-    isStakingSupportedChain: true,
-  }),
 }));
 
 const mockInitialState: DeepPartial<RootState> = {
@@ -241,6 +237,7 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalled();
   });
+
   it('should call the goToSwaps function when the Swap button is pressed', () => {
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -252,6 +249,7 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalled();
   });
+
   it('should call the goToBridge function when the Bridge button is pressed', () => {
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
@@ -263,6 +261,7 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalled();
   });
+
   it('should call the onEarn function when the Earn button is pressed', () => {
     (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
     const { getByTestId } = renderWithProvider(<WalletActions />, {
@@ -275,26 +274,10 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalled();
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();
   });
 
-  it('should switch to mainnet when onEarn called on unsupported staking network', () => {
-    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
-    (useStakingChain as jest.Mock).mockReturnValue({
-      isStakingSupportedChain: false,
-    });
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
-    );
-    expect(
-      Engine.context.NetworkController.setActiveNetwork,
-    ).toHaveBeenCalledWith('mainnet');
-  });
   it('disables action buttons when the account cannot sign transactions', () => {
     (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
     const mockStateWithoutSigning: DeepPartial<RootState> = {

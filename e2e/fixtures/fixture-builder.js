@@ -4,6 +4,7 @@ import { getGanachePort } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { SolScope } from '@metamask/keyring-api';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -436,40 +437,50 @@ class FixtureBuilder {
               isUpdatingMetamaskNotificationsAccount: [],
               isCheckingAccountsPresence: false,
             },
-            EarnController: {
-              lastUpdated: 0,
-              pooled_staking: {
-                exchangeRate: '1',
-                isEligible: false,
-                pooledStakes: {
-                  account: '',
-                  assets: '0',
-                  exitRequests: [],
-                  lifetimeRewards: '0',
-                },
-                vaultData: {
-                  apy: '0',
-                  capacity: '0',
-                  feePercent: 0,
-                  totalAssets: '0',
-                  vaultAddress: '0x0000000000000000000000000000000000000000',
-                },
-              },
-              stablecoin_lending: {
-                vaults: [
-                  {
-                    chainId: 0,
-                    currentAPY: '0',
-                    liquidity: '0',
-                    name: '',
-                    supply: '0',
-                    symbol: '',
-                    tokenAddress: '',
-                    vaultAddress: '',
-                  },
-                ],
-              },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: SolScope.Mainnet,
+              multichainNetworkConfigurationsByChainId: {},
+              isEvmSelected: true,
             },
+            MultichainAssetsController: {
+              accountsAssets: {},
+              assetsMetadata: {},
+            },
+          EarnController: {
+          lastUpdated: 0,
+          pooled_staking: {
+          exchangeRate: '1',
+          isEligible: false,
+          pooledStakes: {
+          account: '',
+          assets: '0',
+          exitRequests: [],
+          lifetimeRewards: '0',
+          },
+          vaultData: {
+          apy: '0',
+          capacity: '0',
+          feePercent: 0,
+          totalAssets: '0',
+          vaultAddress: '0x0000000000000000000000000000000000000000',
+          },
+          },
+          stablecoin_lending: {
+          vaults: [
+                   {
+                   chainId: 0,
+                   currentAPY: '0',
+                   liquidity: '0',
+                   name: '',
+                   supply: '0',
+                   symbol: '',
+                   tokenAddress: '',
+                   vaultAddress: '',
+                   },
+                   ],
+          },
+          },
+          },
           },
         },
         privacy: {

@@ -4,16 +4,26 @@ import reducer, {
   selectVaultApys,
   selectVaultApyAverages,
 } from '.';
-import type { VaultApyAverages, VaultDailyApy } from '@metamask/stake-sdk';
+import {
+  MOCK_GET_POOLED_STAKES_API_RESPONSE,
+  MOCK_GET_VAULT_RESPONSE,
+} from '../../../../components/UI/Stake/__mocks__/mockData';
+import type {
+  PooledStake,
+  VaultDailyApy,
+  VaultData,
+  VaultApyAverages,
+} from '@metamask/stake-sdk';
 import type { RootState } from '../../../../reducers';
 import {
   MOCK_VAULT_APY_AVERAGES,
   MOCK_VAULT_APYS_ONE_YEAR,
 } from '../../../../components/UI/Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
+import { DEFAULT_VAULT_APY_AVERAGES } from '../../../../components/UI/Stake/constants';
 
 describe('PooledStaking', () => {
   const initialState = {
-    vaultApyAverages: {} as VaultApyAverages,
+    vaultApyAverages: DEFAULT_VAULT_APY_AVERAGES,
     vaultApys: [] as VaultDailyApy[],
   };
 
