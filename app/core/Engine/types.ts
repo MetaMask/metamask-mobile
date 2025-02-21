@@ -208,6 +208,7 @@ import {
   MultichainNetworkControllerState,
   MultichainNetworkControllerEvents,
 } from '@metamask/multichain-network-controller';
+import { BridgeController, BridgeControllerActions } from '@metamask/bridge-controller';
 
 /**
  * Controllers that area always instantiated
@@ -252,6 +253,7 @@ type GlobalActions =
   | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
+  | BridgeControllerActions
   | CurrencyRateControllerActions
   | GasFeeControllerActions
   | KeyringControllerActions
@@ -358,6 +360,7 @@ export type Controllers = {
   AddressBookController: AddressBookController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
+  BridgeController: BridgeController;
   CurrencyRateController: CurrencyRateController;
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
@@ -484,7 +487,9 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize = 'AccountsController';
+export type ControllersToInitialize =
+  | 'AccountsController'
+  | 'BridgeController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
