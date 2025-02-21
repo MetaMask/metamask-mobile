@@ -48,7 +48,7 @@ const createSignedTransactions = async (
 
 const submitSmartTransaction = async ({
   unsignedTransaction,
-  smartTransactionFees,
+  smartTransactionFees, // TODO need this, extension uses fetchSmartTransactionFees
   chainId,
   isEIP1559Network,
   gasEstimates,
@@ -83,6 +83,8 @@ const submitSmartTransaction = async ({
     smartTransactionFees.fees,
   );
 
+  console.log('HELLO 2 submitSmartTransaction', { unsignedTransactionWithGasFeeEstimates,signedTransactions });
+
   try {
     const response = await SmartTransactionsController.submitSignedTransactions({
       signedTransactions,
@@ -94,6 +96,7 @@ const submitSmartTransaction = async ({
     // Returns e.g.: { uuid: 'dP23W7c2kt4FK9TmXOkz1UM2F20' }
     return response.uuid;
   } catch (error) {
+    console.log('HELLO 3 submitSmartTransaction error', error);
     console.error(error);
   }
 };
@@ -125,6 +128,7 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
   };
 
   const submitSmartTradeTransaction = async () => {
+    console.log('HELLO 1 submitSmartTradeTransaction');
     const tradeTxUuid: string = await submitSmartTransaction({
       unsignedTransaction: {...tradeTransaction, chainId},
       smartTransactionFees: {
