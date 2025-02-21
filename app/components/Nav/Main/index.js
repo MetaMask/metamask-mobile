@@ -232,14 +232,22 @@ const Main = (props) => {
   const { toastRef } = useContext(ToastContext);
   const networkImage = useSelector(selectNetworkImageSource);
 
+  const hasNetworkChanged = useCallback(
+    (chainId, previousConfig, isEvmSelected) => {
+      if (!previousConfig) return false;
+
+      return isEvmSelected
+        ? chainId !== previousConfig.chainId ||
+            providerConfig.type !== previousConfig.type
+        : chainId !== previousConfig.chainId;
+    },
+    [providerConfig.type],
+  );
+
   // Show network switch confirmation.
   useEffect(() => {
     if (
-      previousProviderConfig.current && !isEvmSelected
-        ? chainId !== previousProviderConfig.current?.chainId
-        : chainId !== previousProviderConfig.current?.chainId ||
-          // This case is when for example we switch default infura ethereum mainnet to custom rpc infura network
-          providerConfig.type !== previousProviderConfig.current.type
+      hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
     ) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
@@ -263,6 +271,7 @@ const Main = (props) => {
     toastRef,
     chainId,
     isEvmSelected,
+    hasNetworkChanged,
   ]);
 
   // Show add network confirmation.
