@@ -84,7 +84,7 @@ const getStateChangeLabelMap = (
         ? strings('confirm.simulation.label_change_type_nft_listing')
         : strings('confirm.simulation.label_change_type_receive'),
     [DecodingDataChangeType.Approve]: strings('confirm.simulation.label_change_type_permit'),
-    [DecodingDataChangeType.Revoke]: strings('confirm.simulation.label_change_type_permit'),
+    [DecodingDataChangeType.Revoke]: strings('confirm.simulation.label_change_type_revoke'),
     [DecodingDataChangeType.Bidding]: strings('confirm.simulation.label_change_type_bidding'),
     [DecodingDataChangeType.Listing]: strings('confirm.simulation.label_change_type_listing'),
   }[changeType]);
@@ -125,6 +125,7 @@ const StateChangeRow = ({
         <SimulationValueDisplay
           modalHeaderText={changeType}
           tokenContract={contractAddress}
+          allowed={amount}
           value={amount}
           chainId={chainId}
           tokenId={tokenID}
