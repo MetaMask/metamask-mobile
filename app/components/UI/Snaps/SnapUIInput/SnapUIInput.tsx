@@ -36,7 +36,7 @@ export const SnapUIInput = ({ name, form, ...props }: SnapUIInputProps) => {
 
   const handleChange = (text: string) => {
     setValue(text);
-    handleInputChange(name, text ?? null, form);
+    handleInputChange(name, text, form);
   };
 
   const handleFocus = () => setCurrentFocusedInput(name);

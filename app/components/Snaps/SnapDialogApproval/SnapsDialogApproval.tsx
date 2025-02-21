@@ -85,7 +85,6 @@ const SnapDialogApproval = () => {
         ];
 
       case DIALOG_APPROVAL_TYPES.confirmation:
-      case DIALOG_APPROVAL_TYPES.prompt:
         return [
           {
             variant: ButtonVariants.Secondary,

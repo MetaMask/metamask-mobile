@@ -27,20 +27,6 @@ export const container: UIComponentFactory<BoxElement> = ({
     }),
   );
 
-  if (promptLegacyProps) {
-    templateChildren.push({
-      element: 'FormTextField',
-      key: 'snap-prompt-input',
-      props: {
-        style: { marginHorizontal: 4 },
-        value: promptLegacyProps.inputValue,
-        onChangeText: promptLegacyProps.onInputChange,
-        placeholder: promptLegacyProps.placeholder,
-        maxLength: 300,
-      },
-    });
-  }
-
   if (useFooter && onCancel && !children[1]) {
     templateChildren.push({
       props: {
