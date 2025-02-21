@@ -226,7 +226,6 @@ const NetworkModals = (props: NetworkProps) => {
 
     const existingNetwork = networkConfigurationByChainId[chainId];
     let networkClientId;
-    // TODO: [SOLANA]
 
     if (existingNetwork) {
       const updatedNetwork = await NetworkController.updateNetwork(
