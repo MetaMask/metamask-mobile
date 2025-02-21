@@ -601,6 +601,9 @@ export const stakingDepositConfirmationState = {
           mainnet: {
             EIPS: { 1559: true },
           },
+          sepolia: {
+            EIPS: { 1559: true },
+          },
         },
         networkConfigurationsByChainId: {
           '0x1': {
@@ -608,6 +611,14 @@ export const stakingDepositConfirmationState = {
             rpcEndpoints: [
               {
                 networkClientId: 'mainnet',
+              },
+            ],
+          },
+          '0xaa36a7': {
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'sepolia',
               },
             ],
           },
@@ -649,5 +660,8 @@ export const stakingDepositConfirmationState = {
         },
       } as unknown as GasFeeState,
     },
+  },
+  settings: {
+    showFiatOnTestnets: true,
   },
 };

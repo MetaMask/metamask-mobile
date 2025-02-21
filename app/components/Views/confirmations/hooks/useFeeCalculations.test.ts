@@ -42,7 +42,6 @@ describe('useFeeCalculations', () => {
     expect(result.current).toMatchInlineSnapshot(`
             {
               "estimatedFeeFiat": "< $0.01",
-              "estimatedFeeFiatWith18SignificantDigits": "0",
               "estimatedFeeNative": "0 ETH",
               "preciseNativeFeeInHex": "0x0",
             }
@@ -59,7 +58,6 @@ describe('useFeeCalculations', () => {
     expect(result.current).toMatchInlineSnapshot(`
         {
           "estimatedFeeFiat": "$0.34",
-          "estimatedFeeFiatWith18SignificantDigits": null,
           "estimatedFeeNative": "0.0001 ETH",
           "preciseNativeFeeInHex": "0x5572e9c22d00",
         }

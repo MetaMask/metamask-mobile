@@ -63,27 +63,17 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         }),
       );
 
-      let currentCurrencyFee, currentCurrencyFeeWith18SignificantDigits;
+      let currentCurrencyFee;
       if (decimalCurrentCurrencyFee === 0) {
         currentCurrencyFee = `< ${fiatFormatter(new BigNumber(0.01))}`;
-        currentCurrencyFeeWith18SignificantDigits = getValueFromWeiHex({
-          value: hexFee,
-          conversionRate: nativeConversionRateInBN,
-          fromCurrency: 'GWEI',
-          toCurrency: 'ETH',
-          numberOfDecimals: 18,
-          toDenomination: 'ETH',
-        });
       } else {
         currentCurrencyFee = fiatFormatter(
           new BigNumber(decimalCurrentCurrencyFee),
         );
-        currentCurrencyFeeWith18SignificantDigits = null;
       }
 
       return {
         currentCurrencyFee,
-        currentCurrencyFeeWith18SignificantDigits,
         nativeCurrencyFee,
         preciseNativeFeeInHex: add0x(hexFee),
       };
@@ -128,8 +118,6 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
 
   return {
     estimatedFeeFiat: estimatedFees.currentCurrencyFee,
-    estimatedFeeFiatWith18SignificantDigits:
-      estimatedFees.currentCurrencyFeeWith18SignificantDigits,
     estimatedFeeNative: estimatedFees.nativeCurrencyFee,
     preciseNativeFeeInHex: estimatedFees.preciseNativeFeeInHex,
   };
