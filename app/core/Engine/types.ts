@@ -42,6 +42,10 @@ import {
   RatesController,
   RatesControllerEvents,
   RatesControllerActions,
+  MultichainAssetsController,
+  MultichainAssetsControllerState,
+  MultichainAssetsControllerEvents,
+  MultichainAssetsControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
@@ -180,7 +184,26 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+import {
+  RestrictedMessenger,
+  ActionConstraint,
+  EventConstraint,
+} from '@metamask/base-controller';
+import {
+  TokenSearchDiscoveryController,
+  TokenSearchDiscoveryControllerState,
+} from '@metamask/token-search-discovery-controller';
+import {
+  TokenSearchDiscoveryControllerActions,
+  TokenSearchDiscoveryControllerEvents,
+} from '@metamask/token-search-discovery-controller/dist/token-search-discovery-controller.cjs';
 import { SnapKeyringEvents } from '@metamask/eth-snap-keyring';
+import {
+  MultichainNetworkController,
+  MultichainNetworkControllerActions,
+  MultichainNetworkControllerState,
+  MultichainNetworkControllerEvents,
+} from '@metamask/multichain-network-controller';
 
 /**
  * Controllers that area always instantiated
@@ -242,6 +265,7 @@ type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | RatesControllerActions
+  | MultichainAssetsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -254,7 +278,9 @@ type GlobalActions =
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
   | AssetsContractControllerActions
-  | RemoteFeatureFlagControllerActions;
+  | RemoteFeatureFlagControllerActions
+  | TokenSearchDiscoveryControllerActions
+  | MultichainNetworkControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -278,6 +304,7 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | RatesControllerEvents
+  | MultichainAssetsControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -293,7 +320,9 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
-  | SnapKeyringEvents;
+  | TokenSearchDiscoveryControllerEvents
+  | SnapKeyringEvents
+  | MultichainNetworkControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -306,7 +335,7 @@ export interface TransactionEventPayload {
  * Type definition for the controller messenger used in the Engine.
  * It extends the base ControllerMessenger with global actions and events.
  */
-export type ControllerMessenger = ExtendedControllerMessenger<
+export type BaseControllerMessenger = ExtendedControllerMessenger<
   GlobalActions,
   GlobalEvents
 >;
@@ -343,6 +372,7 @@ export type Controllers = {
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
@@ -360,7 +390,9 @@ export type Controllers = {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   RatesController: RatesController;
+  MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
+  MultichainNetworkController: MultichainNetworkController;
 };
 
 /**
@@ -387,6 +419,7 @@ export type EngineState = {
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsControllerState;
@@ -411,5 +444,127 @@ export type EngineState = {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesControllerState;
   RatesController: RatesControllerState;
+  MultichainAssetsController: MultichainAssetsControllerState;
   ///: END:ONLY_INCLUDE_IF
+  MultichainNetworkController: MultichainNetworkControllerState;
+};
+
+/** Controller names */
+export type ControllerName = keyof Controllers;
+
+/**
+ * Controller type
+ */
+export type Controller = Controllers[ControllerName];
+
+/** Map of controllers by name. */
+export type ControllerByName = {
+  [Name in ControllerName]: Controllers[Name];
+};
+
+/**
+ * A restricted version of the controller messenger
+ */
+export type BaseRestrictedControllerMessenger = RestrictedMessenger<
+  string,
+  ActionConstraint,
+  EventConstraint,
+  string,
+  string
+>;
+
+/**
+ * Specify controllers to initialize.
+ */
+export type ControllersToInitialize = 'AccountsController';
+
+/**
+ * Callback that returns a controller messenger for a specific controller.
+ */
+type ControllerMessengerCallback = (
+  baseControllerMessenger: BaseControllerMessenger,
+) => BaseRestrictedControllerMessenger;
+
+/**
+ * Persisted state for all controllers.
+ * e.g. `{ TransactionController: { transactions: [] } }`.
+ */
+type ControllerPersistedState = Partial<{
+  [Name in Exclude<
+    ControllerName,
+    (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
+  >]: Partial<ControllerByName[Name]['state']>;
+}>;
+
+/**
+ * Map of controller messengers by controller name.
+ */
+export type ControllerMessengerByControllerName = {
+  [key in ControllersToInitialize]: {
+    getMessenger: ControllerMessengerCallback;
+  };
+};
+
+/**
+ * Request to initialize and return a controller instance.
+ * Includes standard data and methods not coupled to any specific controller.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ControllerInitRequest<
+  ControllerMessengerType extends BaseRestrictedControllerMessenger,
+> = {
+  /**
+   * Controller messenger for the client.
+   * Used to generate controller for each controller.
+   */
+  controllerMessenger: ControllerMessengerType;
+
+  /**
+   * Retrieve a controller instance by name.
+   * Throws an error if the controller is not yet initialized.
+   *
+   * @param name - The name of the controller to retrieve.
+   */
+  getController<Name extends ControllerName>(
+    name: Name,
+  ): ControllerByName[Name];
+
+  /**
+   * The full persisted state for all controllers.
+   * Includes controller name properties.
+   * e.g. `{ TransactionController: { transactions: [] } }`.
+   */
+  persistedState: ControllerPersistedState;
+};
+
+/**
+ * Function to initialize a controller instance and return associated data.
+ */
+export type ControllerInitFunction<
+  ControllerType extends Controller,
+  ControllerMessengerType extends BaseRestrictedControllerMessenger,
+> = (request: ControllerInitRequest<ControllerMessengerType>) => {
+  controller: ControllerType;
+};
+
+/**
+ * Map of controller init functions by controller name.
+ */
+type ControllerInitFunctionByControllerName = {
+  [Name in ControllersToInitialize]: ControllerInitFunction<
+    ControllerByName[Name],
+    ReturnType<ControllerMessengerByControllerName[Name]['getMessenger']>
+  >;
+};
+
+/**
+ * Function to initialize the controllers in the engine.
+ */
+export type InitModularizedControllersFunction = (request: {
+  controllerInitFunctions: ControllerInitFunctionByControllerName;
+  persistedState: ControllerPersistedState;
+  existingControllersByName?: Partial<ControllerByName>;
+  baseControllerMessenger: BaseControllerMessenger;
+}) => {
+  controllersByName: ControllerByName;
 };

@@ -6,7 +6,7 @@ import {
 } from '@metamask/transaction-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 
-import { isExternalHardwareAccount } from '../../../../util/address';
+import { isHardwareAccount } from '../../../../util/address';
 import {
   type ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
@@ -24,16 +24,12 @@ const REDESIGNED_TRANSACTION_TYPES = [TransactionType.stakingDeposit];
 function isRedesignedSignature({
   approvalRequestType,
   confirmationRedesignFlags,
-  fromAddress,
 }: {
   approvalRequestType: ApprovalType;
   confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
-  fromAddress: string;
 }) {
   return (
     confirmationRedesignFlags?.signatures &&
-    // following condition will ensure that user is redirected to old designs for hardware wallets
-    !isExternalHardwareAccount(fromAddress) &&
     approvalRequestType &&
     REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType)
   );
@@ -42,10 +38,12 @@ function isRedesignedSignature({
 function isRedesignedTransaction({
   approvalRequestType,
   confirmationRedesignFlags,
+  fromAddress,
   transactionMetadata,
 }: {
   approvalRequestType: ApprovalType;
   confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
+  fromAddress: string;
   transactionMetadata?: TransactionMeta;
 }) {
   const isTransactionTypeRedesigned = REDESIGNED_TRANSACTION_TYPES.includes(
@@ -55,7 +53,8 @@ function isRedesignedTransaction({
   if (
     !isTransactionTypeRedesigned ||
     approvalRequestType !== ApprovalType.Transaction ||
-    !transactionMetadata
+    !transactionMetadata ||
+    isHardwareAccount(fromAddress)
   ) {
     return false;
   }
@@ -69,24 +68,24 @@ function isRedesignedTransaction({
 
 export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
+  const fromAddress = approvalRequest?.requestData?.from;
   const transactionMetadata = useTransactionMetadataRequest();
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
 
   const approvalRequestType = approvalRequest?.type as ApprovalType;
-  const fromAddress = approvalRequest?.requestData?.from;
 
   const isRedesignedEnabled = useMemo(
     () =>
       isRedesignedSignature({
         approvalRequestType,
         confirmationRedesignFlags,
-        fromAddress,
       }) ||
       isRedesignedTransaction({
         approvalRequestType,
         confirmationRedesignFlags,
+        fromAddress,
         transactionMetadata,
       }),
     [
