@@ -1,7 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { Text, View } from 'react-native';
-import Modal from 'react-native-modal';
-
+import { View } from 'react-native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
@@ -9,8 +7,9 @@ import {
   IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { useTheme } from '../../../../../../util/theme';
+import BottomModal from '../BottomModal';
 import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
@@ -21,8 +20,7 @@ interface TooltipProps {
 
 const Tooltip = ({ content, title, tooltipTestId }: TooltipProps) => {
   const [open, setOpen] = useState(false);
-  const { colors } = useTheme();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { title: title ?? '' });
 
   return (
     <View>
@@ -33,16 +31,9 @@ const Tooltip = ({ content, title, tooltipTestId }: TooltipProps) => {
         size={ButtonIconSizes.Sm}
         testID={tooltipTestId ?? 'tooltipTestId'}
       />
-      <Modal
-        isVisible={open}
-        onBackdropPress={() => setOpen(false)}
-        onBackButtonPress={() => setOpen(false)}
-        onSwipeComplete={() => setOpen(false)}
-        swipeDirection={'down'}
-        style={styles.modal}
-        propagateSwipe
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
+      <BottomModal
+        visible={open}
+        onClose={() => setOpen(false)}
       >
         <View style={styles.modalView}>
           <ButtonIcon
@@ -56,7 +47,7 @@ const Tooltip = ({ content, title, tooltipTestId }: TooltipProps) => {
           {title && <Text style={styles.modalTitle}>{title}</Text>}
           <Text style={styles.modalContent}>{content}</Text>
         </View>
-      </Modal>
+      </BottomModal>
     </View>
   );
 };

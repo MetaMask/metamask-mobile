@@ -10,7 +10,7 @@ import {
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
 
-import Confirm from './index';
+import { Confirm } from './Confirm';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -20,6 +20,13 @@ jest.mock('../../../../core/Engine', () => ({
         keyrings: [],
       },
       getOrAddQRKeyring: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
+    },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
   },
   controllerMessenger: {
