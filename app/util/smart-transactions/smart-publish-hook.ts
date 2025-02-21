@@ -57,7 +57,6 @@ export interface SubmitSmartTransactionRequest {
         }
       | Record<string, never>;
   };
-  transactionFees: Fees | undefined;
 }
 
 const LOG_PREFIX = 'STX publishHook';
@@ -87,7 +86,6 @@ class SmartTransactionHook {
   #transactionMeta: TransactionMeta;
   #txParams: TransactionParams;
   #controllerMessenger: SubmitSmartTransactionRequest['controllerMessenger'];
-  #transactionFees: Fees | undefined;
 
   #isDapp: boolean;
   #isSend: boolean;
@@ -109,7 +107,6 @@ class SmartTransactionHook {
       shouldUseSmartTransaction,
       approvalController,
       featureFlags,
-      transactionFees,
     } = request;
     this.#approvalId = undefined;
     this.#approvalEnded = false;
@@ -119,7 +116,6 @@ class SmartTransactionHook {
     this.#approvalController = approvalController;
     this.#shouldUseSmartTransaction = shouldUseSmartTransaction;
     this.#featureFlags = featureFlags;
-    this.#transactionFees = transactionFees;
     this.#chainId = transactionMeta.chainId;
     this.#txParams = transactionMeta.txParams;
     this.#controllerMessenger = controllerMessenger;
@@ -186,15 +182,7 @@ class SmartTransactionHook {
     );
 
     try {
-      let getFeesResponse;
-      if (
-        this.#transactionFees?.tradeTxFees ||
-        this.#transactionFees?.approvalTxFees
-      ) {
-        getFeesResponse = this.#transactionFees;
-      } else {
-        getFeesResponse = await this.#getFees();
-      }
+      const getFeesResponse = await this.#getFees();
       // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
       if (!getFeesResponse) {
         return useRegularTransactionSubmit;
