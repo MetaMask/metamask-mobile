@@ -382,29 +382,6 @@
     "description": "We now support multiple RPCs for a single network. Your most recent RPC has been selected as the default one to resolve conflicting information",
     "accept": "Accept"
   },
-  "nft_details": {
-    "bought_for": "Bought for",
-    "highest_floor_price": "Highest floor price",
-    "data_unavailable": "data unavailable",
-    "price_unavailable": "price unavailable",
-    "rank": "Rank",
-    "contract_address": "Contract address",
-    "token_id": "Token ID",
-    "token_symbol": "Token symbol",
-    "token_standard": "Token standard",
-    "date_created": "Date created",
-    "unique_token_holders": "Unique token holders",
-    "tokens_in_collection": "Tokens in collection",
-    "creator_address": "Creator address",
-    "last_sold": "Last sold",
-    "highest_current_bid": "Highest current bid",
-    "options": {
-      "view_on_os": "View on OpenSea",
-      "remove_nft": "Remove NFT"
-    },
-    "attributes": "Attributes",
-    "disclaimer": "Disclaimer: MetaMask pulls the media file from the source URL. This URL is sometimes changed by the marketplace the NFT was minted on."
-  },
   "qr_tab_switcher": {
     "scanner_tab": "Scan QR code",
     "receive_tab": "Your QR code"
@@ -3673,6 +3650,7 @@
     "details": "Details",
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
+    "sign_with_ledger": "Sign with Ledger",
     "siwe_message": {
       "url": "URL",
       "network" : "Network",
