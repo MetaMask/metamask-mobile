@@ -64,6 +64,8 @@ import {
   JsonSnapsRegistry,
   SnapController,
   SnapsRegistryMessenger,
+  SnapInterfaceController,
+  SnapInterfaceControllerMessenger,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -168,11 +170,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
-import {
-  selectSwapsChainFeatureFlags,
-  selectSwapsQuotes,
-  selectSwapsTopAggId,
-} from '../../reducers/swaps';
+import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import {
   SmartTransactionStatuses,
   ClientId,
@@ -202,10 +200,7 @@ import { setupCurrencyRateSync } from './controllers/RatesController/subscriptio
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
-import {
-  getSmartTransactionMetricsProperties,
-  getGasIncludedTransactionFees,
-} from '../../util/smart-transactions';
+import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
@@ -788,6 +783,20 @@ export class Engine {
           origin,
         );
       },
+      createInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:createInterface',
+      ),
+      getInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:getInterface',
+      ),
+      updateInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:updateInterface',
+      ),
+      requestUserApproval:
+        approvalController.addAndShowApprovalRequest.bind(approvalController),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
@@ -1083,6 +1092,27 @@ export class Engine {
       },
     });
 
+    const snapInterfaceControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapInterfaceController',
+        allowedActions: [
+          'PhishingController:maybeUpdateState',
+          'PhishingController:testOrigin',
+          'ApprovalController:hasRequest',
+          'ApprovalController:acceptRequest',
+          'SnapController:get',
+        ],
+        allowedEvents: [
+          'NotificationServicesController:notificationsListUpdated',
+        ],
+      });
+
+    const snapInterfaceController = new SnapInterfaceController({
+      messenger:
+        snapInterfaceControllerMessenger as unknown as SnapInterfaceControllerMessenger,
+      state: initialState.SnapInterfaceController,
+    });
+
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1259,15 +1289,10 @@ export class Engine {
       getNetworkState: () => networkController.state,
       hooks: {
         publish: (transactionMeta) => {
-          const state = store.getState();
-          const shouldUseSmartTransaction =
-            selectShouldUseSmartTransaction(state);
-          const swapsQuotes = selectSwapsQuotes(state);
-          // We can choose the top agg id for now. Once selection is enabled, we need
-          // to look for a selected agg id.
-          const swapsTopAggId = selectSwapsTopAggId(state);
-          const selectedQuote = swapsQuotes?.[swapsTopAggId];
-          const transactionFees = getGasIncludedTransactionFees(selectedQuote);
+          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+            store.getState(),
+          );
+
           return submitSmartTransactionHook({
             transactionMeta,
             transactionController: this.transactionController,
@@ -1276,8 +1301,7 @@ export class Engine {
             approvalController,
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             controllerMessenger: this.controllerMessenger,
-            featureFlags: selectSwapsChainFeatureFlags(state),
-            transactionFees,
+            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
           }) as Promise<{ transactionHash: string }>;
         },
       },
@@ -1572,6 +1596,7 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
+      SnapInterfaceController: snapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -2201,6 +2226,7 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2243,6 +2269,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,
