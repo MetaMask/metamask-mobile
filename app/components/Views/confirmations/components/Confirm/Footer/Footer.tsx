@@ -1,5 +1,5 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Linking, View } from 'react-native';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
@@ -16,6 +16,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
+import { useLedgerContext } from '../../../context/LedgerContext';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
@@ -26,6 +27,7 @@ export const Footer = () => {
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
+  const { isLedgerAccount } = useLedgerContext();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const isStakingConfirmation = [
@@ -37,6 +39,16 @@ export const Footer = () => {
     confirmDisabled,
     isStakingConfirmation,
   });
+
+  const confirmButtonLabel = useMemo(() => {
+    if (isQRSigningInProgress) {
+      return strings('confirm.qr_get_sign');
+    }
+    if (isLedgerAccount) {
+      return strings('confirm.sign_with_ledger');
+    }
+    return strings('confirm.confirm');
+  }, [isLedgerAccount, isQRSigningInProgress]);
 
   const buttons = [
     {
@@ -50,9 +62,7 @@ export const Footer = () => {
       variant: ButtonVariants.Primary,
       isDanger: securityAlertResponse?.result_type === ResultType.Malicious,
       isDisabled: needsCameraPermission,
-      label: isQRSigningInProgress
-        ? strings('confirm.qr_get_sign')
-        : strings('confirm.confirm'),
+      label: confirmButtonLabel,
       size: ButtonSize.Lg,
       style: [confirmDisabled && styles.confirmButtonDisabled],
       onPress: onConfirm,

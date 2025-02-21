@@ -5,23 +5,25 @@ import BottomSheet from '../../../../component-library/components/BottomSheets/B
 import { useStyles } from '../../../../component-library/hooks';
 import { Footer } from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
+import { LedgerContextProvider } from '../context/LedgerContext';
+import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
 import { ScrollContextProvider } from '../context/ScrollContext';
 import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
-import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import styleSheet from './Confirm.styles';
 
 const ConfirmWrapped = () => (
   <QRHardwareContextProvider>
-    <Title />
-    <ScrollContextProvider>
-      {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
-      <SignatureBlockaidBanner />
-      <Info />
-    </ScrollContextProvider>
-    <Footer />
+    <LedgerContextProvider>
+      <Title />
+      <ScrollContextProvider>
+        <SignatureBlockaidBanner />
+        <Info />
+      </ScrollContextProvider>
+      <Footer />
+    </LedgerContextProvider>
   </QRHardwareContextProvider>
 );
 
