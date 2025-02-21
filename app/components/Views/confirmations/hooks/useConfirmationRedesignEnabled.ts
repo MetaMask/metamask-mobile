@@ -24,16 +24,12 @@ const REDESIGNED_TRANSACTION_TYPES = [TransactionType.stakingDeposit];
 function isRedesignedSignature({
   approvalRequestType,
   confirmationRedesignFlags,
-  fromAddress,
 }: {
   approvalRequestType: ApprovalType;
   confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
-  fromAddress: string;
 }) {
   return (
     confirmationRedesignFlags?.signatures &&
-    // following condition will ensure that user is redirected to old designs for hardware wallets
-    !isHardwareAccount(fromAddress) &&
     approvalRequestType &&
     REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType)
   );
@@ -72,20 +68,19 @@ function isRedesignedTransaction({
 
 export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
+  const fromAddress = approvalRequest?.requestData?.from;
   const transactionMetadata = useTransactionMetadataRequest();
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
 
   const approvalRequestType = approvalRequest?.type as ApprovalType;
-  const fromAddress = approvalRequest?.requestData?.from;
 
   const isRedesignedEnabled = useMemo(
     () =>
       isRedesignedSignature({
         approvalRequestType,
         confirmationRedesignFlags,
-        fromAddress,
       }) ||
       isRedesignedTransaction({
         approvalRequestType,
