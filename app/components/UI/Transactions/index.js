@@ -274,11 +274,11 @@ class Transactions extends PureComponent {
       chainId,
     } = this.props;
     let blockExplorer;
-    if (type === RPC && !isNonEvmChainId(chainId)) {
+    if (type === RPC) {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
-    } else {
+    } else if (isNonEvmChainId(chainId)) {
       // TODO: [SOLANA] - block explorer needs to be implemented
       blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }

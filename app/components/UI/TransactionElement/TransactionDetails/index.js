@@ -215,11 +215,11 @@ class TransactionDetails extends PureComponent {
       chainId,
     } = this.props;
     let blockExplorer;
-    if (type === RPC && !isNonEvmChainId(chainId)) {
+    if (type === RPC) {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
-    } else {
+    } else if (isNonEvmChainId(chainId)) {
       blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
     this.setState({ rpcBlockExplorer: blockExplorer });

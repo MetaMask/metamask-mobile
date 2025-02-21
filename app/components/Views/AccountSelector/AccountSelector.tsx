@@ -72,7 +72,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   }, [dispatch, reloadAccounts]);
 
   const _onSelectAccount = useCallback(
-    async (address: string) => {
+    (address: string) => {
       Engine.setSelectedAddress(address);
       sheetRef.current?.onCloseBottomSheet();
       onSelectAccount?.(address);

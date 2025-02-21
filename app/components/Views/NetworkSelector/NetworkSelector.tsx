@@ -105,13 +105,10 @@ import {
   selectNonEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Logger from '../../../util/Logger';
-import {
-  selectHasCreatedBtcMainnetAccount,
-  selectHasCreatedSolanaMainnetAccount,
-} from '../../../selectors/accountsController';
+import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/accountsController';
 import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 
 interface infuraNetwork {
@@ -154,9 +151,6 @@ const NetworkSelector = () => {
     selectHasCreatedSolanaMainnetAccount,
   );
 
-  const isBtcAccountAlreadyCreated = useSelector(
-    selectHasCreatedBtcMainnetAccount,
-  );
   const safeAreaInsets = useSafeAreaInsets();
 
   const networkConfigurations = useSelector(
@@ -790,13 +784,6 @@ const NetworkSelector = () => {
         navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
       });
 
-      return;
-    }
-
-    if (!isBtcAccountAlreadyCreated && chainId === BtcScope.Mainnet) {
-      navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
-        navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
-      });
       return;
     }
 

@@ -28,7 +28,6 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  // TODO: [SOLANA] - before ship make sure this supports non evm networks
   const networkBlockExplorer = useMemo(() => {
     const hexChainId = toHex(props.chainId);
     return Object.values(networkConfigurations).find(

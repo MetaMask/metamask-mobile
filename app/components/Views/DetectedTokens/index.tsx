@@ -179,7 +179,6 @@ const DetectedTokens = () => {
             // Process all grouped tokens in parallel
             const ignorePromises = Object.entries(tokensToIgnoreByChainId).map(
               async ([networkId, tokens]) => {
-                // TODO: [SOLANA] - before ship make sure we support SLP tokens of solana
                 const chainConfig = allNetworks[networkId as Hex];
                 const { defaultRpcEndpointIndex } = chainConfig;
                 const { networkClientId: networkInstanceId } =

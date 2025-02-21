@@ -144,7 +144,7 @@ const AssetDetails = (props: Props) => {
     selectEvmNetworkConfigurationsByChainId,
   );
   const isAllNetworks = useSelector(selectIsAllNetworks);
-  // TODO: [SOLANA] - before ship make sure networkId route param variable supports Solana
+
   const tokenNetworkConfig = networkConfigurations[networkId]?.name;
 
   const tokensByChain = useMemo(

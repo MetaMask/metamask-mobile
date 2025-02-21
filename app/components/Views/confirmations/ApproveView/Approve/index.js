@@ -821,7 +821,6 @@ class Approve extends PureComponent {
     }
 
     if (!transaction.id) return null;
-    // TODO: [SOLANA] - before ship make sure ShowBlockExplorer componentsupports Solana
     return (
       <Modal
         isVisible={this.props.modalVisible && !isChangeInSimulationModalOpen}

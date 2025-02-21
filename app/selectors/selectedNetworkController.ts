@@ -81,7 +81,6 @@ const selectProviderNetworkImageSource = createSelector(
       chainId: providerConfig.chainId,
     }),
 );
-// TODO: [SOLANA] - This do not support non evm networks, need to revisit
 export const makeSelectNetworkName = () =>
   createSelector(
     [

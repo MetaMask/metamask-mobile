@@ -88,11 +88,7 @@ const AccountActions = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer = useMemo(() => {
-    if (
-      providerConfig?.rpcUrl &&
-      providerConfig.type === RPC &&
-      !isNonEvmChainId(chainId)
-    ) {
+    if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
       return findBlockExplorerForRpc(
         providerConfig.rpcUrl,
         networkConfigurations,
