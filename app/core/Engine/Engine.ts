@@ -399,6 +399,7 @@ export class Engine {
     });
 
     const accountsController = controllersByName.AccountsController;
+    const bridgeController = controllersByName.BridgeController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 
@@ -1353,6 +1354,7 @@ export class Engine {
         state: initialState.AddressBookController,
       }),
       AssetsContractController: assetsContractController,
+      BridgeController: bridgeController,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
