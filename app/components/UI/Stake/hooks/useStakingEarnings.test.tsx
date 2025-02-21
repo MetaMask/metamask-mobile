@@ -2,13 +2,14 @@ import { waitFor } from '@testing-library/react-native';
 import { renderHook } from '@testing-library/react-hooks';
 import useStakingEarnings from './useStakingEarnings';
 import usePooledStakes from './usePooledStakes';
-import useVaultData from './useVaultData';
 import useBalance from './useBalance';
+import useVaultApyAverages from './useVaultApyAverages';
+import { MOCK_VAULT_APY_AVERAGES } from '../components/PoolStakingLearnMoreModal/mockVaultRewards';
 
 // Mock dependencies
 jest.mock('./usePooledStakes');
-jest.mock('./useVaultData');
 jest.mock('./useBalance');
+jest.mock('./useVaultApyAverages');
 
 describe('useStakingEarnings', () => {
   afterEach(() => {
@@ -16,11 +17,11 @@ describe('useStakingEarnings', () => {
   });
 
   it('fetches and calculates staking earnings data correctly', async () => {
-    // Mock return values for useVaultData, useBalance, and usePooledStakes
-    (useVaultData as jest.Mock).mockReturnValue({
-      annualRewardRate: '2.5%',
-      annualRewardRateDecimal: 0.025,
-      isLoadingVaultData: false,
+    // Mock return values for useVaultApyAverages, useBalance, and usePooledStakes
+    (useVaultApyAverages as jest.Mock).mockReturnValue({
+      vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
+      isLoadingVaultApyAverages: false,
+      refreshVaultApyAverages: jest.fn(),
     });
 
     (useBalance as jest.Mock).mockReturnValue({
@@ -41,20 +42,20 @@ describe('useStakingEarnings', () => {
     // Wait for state updates
     await waitFor(() => {
       expect(result.current.isLoadingEarningsData).toBe(false);
-      expect(result.current.annualRewardRate).toBe('2.5%');
+      expect(result.current.annualRewardRate).toBe('3.3%');
       expect(result.current.lifetimeRewardsETH).toBe('5 ETH'); // Calculated by renderFromWei
       expect(result.current.lifetimeRewardsFiat).toBe('$15000'); // 5 ETH * 3000 USD/ETH
-      expect(result.current.estimatedAnnualEarningsETH).toBe('0.25 ETH'); // Calculated based on assets and annualRewardRateDecimal
-      expect(result.current.estimatedAnnualEarningsFiat).toBe('$750'); // No earnings in fiat
+      expect(result.current.estimatedAnnualEarningsETH).toBe('0.32576 ETH'); // Calculated based on assets and annualRewardRateDecimal
+      expect(result.current.estimatedAnnualEarningsFiat).toBe('$977.27'); // No earnings in fiat
     });
   });
 
   it('returns loading state when either vault or pooled stakes data is loading', async () => {
     // Mock return values for useVaultData and usePooledStakes
-    (useVaultData as jest.Mock).mockReturnValue({
-      annualRewardRate: '2.5%',
-      annualRewardRateDecimal: 0.025,
-      isLoadingVaultData: true, // Simulate loading
+    (useVaultApyAverages as jest.Mock).mockReturnValue({
+      vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
+      isLoadingVaultApyAverages: true, // Simulate loading
+      refreshVaultApyAverages: jest.fn(),
     });
 
     (usePooledStakes as jest.Mock).mockReturnValue({
@@ -72,10 +73,10 @@ describe('useStakingEarnings', () => {
 
   it('handles absence of pooled stakes data correctly', async () => {
     // Mock return values for useVaultData, useBalance, and usePooledStakes
-    (useVaultData as jest.Mock).mockReturnValue({
-      annualRewardRate: '2.5%',
-      annualRewardRateDecimal: 0.025,
-      isLoadingVaultData: false,
+    (useVaultApyAverages as jest.Mock).mockReturnValue({
+      vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
+      isLoadingVaultApyAverages: false,
+      refreshVaultApyAverages: jest.fn(),
     });
 
     (useBalance as jest.Mock).mockReturnValue({

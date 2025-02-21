@@ -55,6 +55,31 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "LoggingController": {
         "logs": {},
       },
+      "MultichainAssetsController": {
+        "accountsAssets": {},
+        "assetsMetadata": {},
+      },
+      "MultichainBalancesController": {
+        "balances": {},
+      },
+      "MultichainNetworkController": {
+        "isEvmSelected": true,
+        "multichainNetworkConfigurationsByChainId": {
+          "bip122:000000000019d6689c085ae165831e93": {
+            "chainId": "bip122:000000000019d6689c085ae165831e93",
+            "isEvm": false,
+            "name": "Bitcoin Mainnet",
+            "nativeCurrency": "bip122:000000000019d6689c085ae165831e93/slip44:0",
+          },
+          "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
+            "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+            "isEvm": false,
+            "name": "Solana Mainnet",
+            "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          },
+        },
+        "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      },
       "NetworkController": {
         "networkConfigurationsByChainId": {
           "0x1": {
@@ -191,6 +216,23 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "useTokenDetection": true,
         "useTransactionSimulations": true,
       },
+      "RatesController": {
+        "cryptocurrencies": [
+          "btc",
+          "sol",
+        ],
+        "fiatCurrency": "usd",
+        "rates": {
+          "btc": {
+            "conversionDate": 0,
+            "conversionRate": 0,
+          },
+          "sol": {
+            "conversionDate": 0,
+            "conversionRate": 0,
+          },
+        },
+      },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
@@ -309,6 +351,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "TokenRatesController": {
         "marketData": {},
+      },
+      "TokenSearchDiscoveryController": {
+        "lastSearchTimestamp": null,
+        "recentSearches": [],
       },
       "TransactionController": {
         "lastFetchedBlockNumbers": {},
