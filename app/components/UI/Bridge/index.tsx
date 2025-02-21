@@ -6,10 +6,12 @@ import {
 import ScreenView from '../../Base/ScreenView';
 import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text';
+import useHandleBridgeTx from './hooks/useHandleBridgeTx';
+import useHandleApprovalTx from './hooks/useHandleApprovalTx';
+import { ThemeColors } from '@metamask/design-tokens';
 
-const createStyles = (colors) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
-    container: { backgroundColor: colors.background.default },
     content: {
       flexGrow: 1,
       justifyContent: 'center',
@@ -21,11 +23,7 @@ const BridgeView = () => {
   const styles = createStyles(colors);
 
   return (
-    <ScreenView
-      style={styles.container}
-      contentContainerStyle={styles.screen}
-      keyboardShouldPersistTaps="handled"
-    >
+    <ScreenView>
       <View style={styles.content}>
         <Text>Bridge</Text>
       </View>
