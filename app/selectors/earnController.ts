@@ -12,10 +12,10 @@ export const selectPooledStakingEligibility = createSelector(
     earnControllerState.pooled_staking.isEligible,
 );
 
-export const selectPooledStakingVaultData = createDeepEqualSelector(
+export const selectPooledStakingVaultMetadata = createDeepEqualSelector(
   selectEarnControllerState,
   (earnControllerState: EarnControllerState) =>
-    earnControllerState.pooled_staking.vaultData,
+    earnControllerState.pooled_staking.vaultMetadata,
 );
 
 export const selectPoolStakesData = createDeepEqualSelector(
@@ -29,3 +29,10 @@ export const selectPooledStakingExchangeRate = createSelector(
   (earnControllerState: EarnControllerState) =>
     earnControllerState.pooled_staking.exchangeRate,
 );
+
+/**
+ * TODO:
+ * - Add pooled staking vaultApyAverages selector
+ * - Add select pooled staking vaultApy selector with formatted (3.2% string) and decimal (new BigNumber(apy).divideBy(100).toNumber()).
+ * - Add pooled staking vaultDailyApys selector
+ */

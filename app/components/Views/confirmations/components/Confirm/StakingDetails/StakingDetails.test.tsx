@@ -3,27 +3,36 @@ import React from 'react';
 import { RootState } from '../../../../../../reducers';
 import { decGWEIToHexWEI } from '../../../../../../util/conversions';
 import { stakingDepositConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
-import renderWithProvider, { DeepPartial } from '../../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../../util/test/renderWithProvider';
 import StakingDetails from './StakingDetails';
 
+// TODO: FIXME
 describe('TokenHero', () => {
   it('contains token and fiat values for staking deposit', async () => {
-    const state: DeepPartial<RootState> = merge({}, stakingDepositConfirmationState, {
-      engine: {
-        backgroundState: {
-          TransactionController: {
-            transactions: [
-              {
-                txParams: { value: `0x${decGWEIToHexWEI(10 ** 8)}` },
+    const state: DeepPartial<RootState> = merge(
+      {},
+      stakingDepositConfirmationState,
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  txParams: { value: `0x${decGWEIToHexWEI(10 ** 8)}` },
+                },
+              ],
+            },
+            EarnController: {
+              pooled_staking: {
+                vaultMetadata: { apy: '2.2' },
               },
-            ],
+            },
           },
         },
       },
-      staking: {
-        vaultData: {  apy: '2.2',  },
-      },
-    });
+    );
 
     const { getByText } = renderWithProvider(<StakingDetails />, { state });
 

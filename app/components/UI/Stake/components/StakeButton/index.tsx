@@ -50,7 +50,8 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       const { MultichainNetworkController } = Engine.context;
       await MultichainNetworkController.setActiveNetwork('mainnet');
     }
-    if (isEligible) {
+
+    if (isEligibleForPooledStaking) {
       navigation.navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
         params: {

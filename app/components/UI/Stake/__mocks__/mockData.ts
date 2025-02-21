@@ -13,30 +13,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { DeepPartial } from '../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../reducers';
 
-export const MOCK_STAKED_ETH_ASSET = {
-  decimals: 18,
-  address: '0x0000000000000000000000000000000000000000',
-  chainId: '0x1',
-  balance: '4.9999 ETH',
-  balanceFiat: '$13,292.20',
-  name: 'Staked Ethereum',
-  symbol: 'Ethereum',
-  ticker: 'ETH',
-  isETH: true,
-} as TokenI;
-
-export const MOCK_USDC_ASSET = {
-  decimals: 6,
-  address: '0xUSDC000000000000000000000000000000000000',
-  chainId: '0x1',
-  balance: '200.9999 USDC',
-  balanceFiat: '$200.98',
-  name: 'USD Coin',
-  symbol: 'USD Coin',
-  ticker: 'USDC',
-  isETH: false,
-} as TokenI;
-
 export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   accounts: [
     {
@@ -224,38 +200,37 @@ export const MOCK_SUPPORTED_EARN_TOKENS_WITH_FIAT_BALANCE = [
   },
 ];
 
-
 // @metamask/earn-controller mock data
 export const MOCK_POOLED_STAKES_DATA = {
-account: '0x1234',
-lifetimeRewards: '100',
-assets: '1000',
-exitRequests: [],
+  account: '0x1234',
+  lifetimeRewards: '100',
+  assets: '1000',
+  exitRequests: [],
 };
 
 export const MOCK_VAULT_DATA = {
-apy: '5.5',
-capacity: '1000000',
-feePercent: 10,
-totalAssets: '500000',
-vaultAddress: '0xabcd',
+  apy: '5.5',
+  capacity: '1000000',
+  feePercent: 10,
+  totalAssets: '500000',
+  vaultAddress: '0xabcd',
 };
 
 export const MOCK_EXCHANGE_RATE = '1.5';
 
 export const MOCK_EARN_CONTROLLER_STATE: DeepPartial<RootState> = {
-engine: {
-backgroundState: {
-EarnController: {
-lastUpdated: 0,
-pooled_staking: {
-isEligible: true,
-pooledStakes: MOCK_POOLED_STAKES_DATA,
-vaultData: MOCK_VAULT_DATA,
-exchangeRate: MOCK_EXCHANGE_RATE,
-},
-stablecoin_lending: {},
-},
-},
-},
+  engine: {
+    backgroundState: {
+      EarnController: {
+        lastUpdated: 0,
+        pooled_staking: {
+          isEligible: true,
+          pooledStakes: MOCK_POOLED_STAKES_DATA,
+          vaultMetadata: MOCK_VAULT_DATA,
+          exchangeRate: MOCK_EXCHANGE_RATE,
+        },
+        stablecoin_lending: {},
+      },
+    },
+  },
 };

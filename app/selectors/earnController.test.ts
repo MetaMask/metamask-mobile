@@ -1,7 +1,7 @@
 import {
   selectPooledStakingEligibility,
   selectPooledStakingExchangeRate,
-  selectPooledStakingVaultData,
+  selectPooledStakingVaultMetadata,
   selectPoolStakesData,
 } from './earnController';
 import { RootState } from '../reducers';
@@ -26,7 +26,7 @@ describe('Earn Controller Selectors', () => {
   describe('selectPooledStakingVaultData', () => {
     it('returns selected pooled-staking vault data', () => {
       expect(
-        selectPooledStakingVaultData(
+        selectPooledStakingVaultMetadata(
           MOCK_EARN_CONTROLLER_STATE as unknown as RootState,
         ),
       ).toStrictEqual(MOCK_VAULT_DATA);

@@ -4,16 +4,7 @@ import reducer, {
   selectVaultApys,
   selectVaultApyAverages,
 } from '.';
-import {
-  MOCK_GET_POOLED_STAKES_API_RESPONSE,
-  MOCK_GET_VAULT_RESPONSE,
-} from '../../../../components/UI/Stake/__mocks__/mockData';
-import type {
-  PooledStake,
-  VaultDailyApy,
-  VaultData,
-  VaultApyAverages,
-} from '@metamask/stake-sdk';
+import type { VaultDailyApy } from '@metamask/stake-sdk';
 import type { RootState } from '../../../../reducers';
 import {
   MOCK_VAULT_APY_AVERAGES,
