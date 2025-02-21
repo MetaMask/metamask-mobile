@@ -112,20 +112,20 @@ function renderInterface(
       interfaceId={MOCK_INTERFACE_ID}
       useFooter={useFooter}
       onCancel={onCancel}
-      PERF_DEBUG={true}
+      PERF_DEBUG
     />,
     { state: storeState as unknown as RootState },
   );
 
   const reducer = (
-    storeState: any,
+    reducerState: RootState,
     action: PayloadAction<{ content: JSXElement; state: FormState }>,
   ) => {
     if (action.type === 'updateInterface') {
       return {
         engine: {
           backgroundState: {
-            ...storeState.backgroundState,
+            ...reducerState.engine.backgroundState,
             SnapInterfaceController: {
               interfaces: {
                 [MOCK_INTERFACE_ID]: {
@@ -141,11 +141,12 @@ function renderInterface(
         },
       };
     }
-    return storeState;
+    return reducerState;
   };
 
   const { store } = result;
 
+  // @ts-expect-error Mock reducer doesn't fully match the type.
   store.replaceReducer(reducer);
 
   const updateInterface = (

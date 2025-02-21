@@ -84,7 +84,7 @@ describe('footer', () => {
     expect(Array.isArray(result.children)).toBe(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[0]).toEqual({
-      element: 'BottomSheetFooter',
+      element: 'SnapUIFooterButton',
       key: 'default-button',
       props: {
         isSnapAction: false,

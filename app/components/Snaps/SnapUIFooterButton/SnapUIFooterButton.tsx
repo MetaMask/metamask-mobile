@@ -82,6 +82,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
     });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const handlePress = isSnapAction ? handleSnapAction : onCancel!;
 
   const overriddenVariant = disabled ? 'disabled' : variant;
