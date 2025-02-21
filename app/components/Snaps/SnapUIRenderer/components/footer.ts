@@ -33,7 +33,7 @@ const getDefaultButtons = (
   // If onCancel is omitted by the caller we assume that it is safe to not display the default footer.
   if (children.length === 1 && onCancel) {
     return {
-      element: 'BottomSheetFooter',
+      element: 'SnapUIFooterButton',
       key: 'default-button',
       props: {
         onCancel,

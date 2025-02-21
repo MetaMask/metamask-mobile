@@ -75,12 +75,14 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
     buttonsAlignment: DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
   });
 
-  const handlePress = () => {
+  const handleSnapAction = () => {
     handleEvent({
       event: UserInputEventType.ButtonClickEvent,
       name,
     });
   };
+
+  const handlePress = isSnapAction ? handleSnapAction : onCancel!;
 
   const overriddenVariant = disabled ? 'disabled' : variant;
   const color = COLORS[overriddenVariant as keyof typeof COLORS];

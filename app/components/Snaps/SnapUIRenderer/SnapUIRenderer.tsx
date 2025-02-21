@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Box } from '../../UI/Box/Box';
 import { isEqual } from 'lodash';
@@ -6,7 +6,7 @@ import { getMemoizedInterface } from '../../../selectors/snaps/interfaceControll
 import { SnapInterfaceContextProvider } from '../SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../UI/TemplateRenderer';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Container } from '@metamask/snaps-sdk/jsx';
 import { strings } from '../../../../locales/i18n';
@@ -16,11 +16,21 @@ import { TemplateRendererInput } from '../../UI/TemplateRenderer/types';
 
 interface SnapUIRendererProps {
   snapId: string;
-  isLoading: boolean;
+  isLoading?: boolean;
   interfaceId: string;
-  onCancel: () => void;
+  onCancel?: () => void;
   useFooter: boolean;
+  PERF_DEBUG?: boolean; // DO NOT USE IN PRODUCTION
 }
+
+// Component for tracking the number of re-renders
+// DO NOT USE IN PRODUCTION
+const PerformanceTracker = () => {
+  const rendersRef = useRef(0);
+  rendersRef.current += 1;
+
+  return <View testID="performance" data-renders={rendersRef.current} />;
+};
 
 const SnapUIRendererComponent = ({
   snapId,
@@ -28,6 +38,7 @@ const SnapUIRendererComponent = ({
   interfaceId,
   onCancel,
   useFooter,
+  PERF_DEBUG,
 }: SnapUIRendererProps) => {
   const interfaceState = useSelector(
     (state: RootState) => getMemoizedInterface(state, interfaceId),
@@ -68,6 +79,7 @@ const SnapUIRendererComponent = ({
         context={context}
       >
         <TemplateRenderer sections={sections} />
+        {PERF_DEBUG && <PerformanceTracker />}
       </SnapInterfaceContextProvider>
     </Box>
   );
