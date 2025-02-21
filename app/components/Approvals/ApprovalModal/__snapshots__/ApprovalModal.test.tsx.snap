@@ -116,21 +116,9 @@ exports[`ApprovalModal renders 1`] = `
     swipeDirection="down"
     swipeThreshold={100}
   >
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "letterSpacing": 0,
-          "lineHeight": 22,
-        }
-      }
-    >
+    <div>
       test
-    </Text>
+    </div>
   </View>
 </Modal>
 `;
