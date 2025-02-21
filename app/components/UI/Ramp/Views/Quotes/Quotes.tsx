@@ -578,7 +578,7 @@ function Quotes() {
         setProviderId(recommendedQuote.provider?.id);
       }
     }
-  }, [isExpanded, quotesByPriceWithoutError]);
+  }, [isExpanded, quotesByPriceWithoutError, recommendedQuote]);
 
   if (sdkError) {
     if (!isExpanded) {
