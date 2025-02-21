@@ -425,11 +425,8 @@ export class WC2Manager {
         {
           eth_accounts: {},
         },
-        // { id: undefined }, // Don't set id here, it will be set after session is created, identify via origin.
       );
-      // Permissions approved.
     } catch (err) {
-      // Failed permissions request - reject session
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -438,54 +435,60 @@ export class WC2Manager {
     }
 
     try {
-      // use Permission controller
       const approvedAccounts = await getPermittedAccounts(origin);
-      // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-      const chainId = selectEvmChainId(store.getState());
-      DevLogger.log(
-        `WC2::session_proposal getPermittedAccounts for id=${id} hostname=${url}, chainId=${chainId}`,
-        approvedAccounts,
+      const walletChainIdHex = selectEvmChainId(store.getState());
+      const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
+      const chains = await getPermittedChains(origin);
+      const accountsPerChains = chains.map(
+        (chain) => `${chain}:${approvedAccounts}`,
       );
 
-      const chains = await getPermittedChains(origin);
-      const accountsPerChains = chains.map(chain => `${chain}:${approvedAccounts}`);
-
-      const eip155 =  {
-        chains,
-        methods: getApprovedSessionMethods({ origin }),
-        events: ['chainChanged', 'accountsChanged'],
-        accounts: accountsPerChains
+      const namespaces = {
+        eip155: {
+          chains,
+          methods: getApprovedSessionMethods({ origin }),
+          events: ['chainChanged', 'accountsChanged'],
+          accounts: accountsPerChains,
+        },
       };
-      DevLogger.log(`WC2::session_proposal eip155`, eip155);
-
-
-
-      const namespaces = await getScopedPermissions({ origin });
       DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
+
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
         namespaces,
       });
 
-      const deeplink =
-        typeof this.deeplinkSessions[activeSession.pairingTopic] !==
-        'undefined';
+      const deeplink = !!this.deeplinkSessions[activeSession.pairingTopic];
       const session = new WalletConnect2Session({
         session: activeSession,
-        channelId: '' + proposal.id,
+        channelId: `${proposal.id}`,
         deeplink,
         web3Wallet: this.web3Wallet,
         navigation: this.navigation,
       });
 
       this.sessions[activeSession.topic] = session;
+
+      // Immediately notify dapp of wallet's active chain
+      await session.updateSession({
+        chainId: walletChainIdDecimal,
+        accounts: approvedAccounts,
+      });
+      await this.web3Wallet.emitSessionEvent({
+        topic: activeSession.topic,
+        event: {
+          name: 'chainChanged',
+          data: walletChainIdHex,
+        },
+        chainId: `eip155:${walletChainIdDecimal}`,
+      });
+
       if (deeplink) {
         session.redirect('onSessionProposal');
       }
     } catch (err) {
       console.error(`invalid wallet status`, err);
     } finally {
-      // Cleanup state
       store.dispatch(
         updateWC2Metadata({
           url: '',
@@ -497,9 +500,7 @@ export class WC2Manager {
     }
   }
 
-  private async onSessionRequest(
-    requestEvent: WalletKitTypes.SessionRequest,
-  ) {
+  private async onSessionRequest(requestEvent: WalletKitTypes.SessionRequest) {
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
@@ -518,8 +519,8 @@ export class WC2Manager {
           response: {
             id: requestEvent.id,
             jsonrpc: '2.0',
-            error: { code: 1, message: ERROR_MESSAGES.INVALID_ID }
-          }
+            error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
+          },
         });
 
         return;
