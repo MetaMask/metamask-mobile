@@ -1,3 +1,4 @@
+import { hexToBN } from '@metamask/controller-utils';
 import { ETH, GWEI, WEI } from './custom-gas';
 import {
   conversionUtil,
@@ -224,4 +225,8 @@ export function sumHexWEIsToRenderableEth(hexWEIs) {
       numberOfDecimals: 6,
     }),
   );
+}
+
+export function multiplyHexes(hex1, hex2) {
+  return hexToBN(hex1).mul(hexToBN(hex2)).toString(16);
 }
