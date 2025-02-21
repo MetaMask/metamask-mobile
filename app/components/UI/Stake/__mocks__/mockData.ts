@@ -12,6 +12,7 @@ import { TOKENS_WITH_DEFAULT_OPTIONS } from '../testUtils/testUtils.types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { DeepPartial } from '../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../reducers';
+import { DEFAULT_VAULT_APY_AVERAGES } from '../constants';
 
 export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   accounts: [
@@ -228,6 +229,8 @@ export const MOCK_EARN_CONTROLLER_STATE: DeepPartial<RootState> = {
           pooledStakes: MOCK_POOLED_STAKES_DATA,
           vaultMetadata: MOCK_VAULT_DATA,
           exchangeRate: MOCK_EXCHANGE_RATE,
+          vaultApyAverages: DEFAULT_VAULT_APY_AVERAGES,
+          vaultDailyApys: [],
         },
         stablecoin_lending: {},
       },

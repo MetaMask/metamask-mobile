@@ -205,10 +205,10 @@ import {
   MultichainNetworkControllerEvents,
 } from '@metamask/multichain-network-controller';
 import {
-    EarnController,
-    EarnControllerState,
-    EarnControllerEvents,
-    EarnControllerActions,
+  EarnController,
+  EarnControllerState,
+  EarnControllerEvents,
+  EarnControllerActions,
 } from '@metamask/earn-controller';
 
 /**
@@ -289,7 +289,6 @@ type GlobalActions =
   | MultichainNetworkControllerActions
   | EarnControllerActions;
 
-
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
@@ -332,7 +331,6 @@ type GlobalEvents =
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
   | EarnControllerEvents;
-
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -488,7 +486,7 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize = 'AccountsController';
+export type ControllersToInitialize = 'AccountsController' | 'EarnController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
