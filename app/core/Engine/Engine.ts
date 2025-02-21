@@ -394,6 +394,150 @@ export class Engine {
       chainId: getGlobalChainId(networkController),
     });
 
+    const gasFeeController = new GasFeeController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'GasFeeController',
+        allowedActions: [
+          `${networkController.name}:getNetworkClientById`,
+          `${networkController.name}:getEIP1559Compatibility`,
+          `${networkController.name}:getState`,
+        ],
+        allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
+      }),
+      getProvider: () =>
+        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
+        networkController.getProviderAndBlockTracker().provider,
+      getCurrentNetworkEIP1559Compatibility: async () =>
+        (await networkController.getEIP1559Compatibility()) ?? false,
+      getCurrentNetworkLegacyGasAPICompatibility: () => {
+        const chainId = getGlobalChainId(networkController);
+        return (
+          isMainnetByChainId(chainId) ||
+          chainId === addHexPrefix(swapsUtils.BSC_CHAIN_ID) ||
+          chainId === addHexPrefix(swapsUtils.POLYGON_CHAIN_ID)
+        );
+      },
+      clientId: AppConstants.SWAPS.CLIENT_ID,
+      legacyAPIEndpoint:
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
+      EIP1559APIEndpoint:
+        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
+    });
+
+
+    const additionalKeyrings = [];
+    const qrKeyringBuilder = () => {
+      const keyring = new QRHardwareKeyring();
+      // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
+      keyring.forgetDevice();
+      return keyring;
+    };
+    qrKeyringBuilder.type = QRHardwareKeyring.type;
+
+    additionalKeyrings.push(qrKeyringBuilder);
+
+    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
+    const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
+    ledgerKeyringBuilder.type = LedgerKeyring.type;
+
+    additionalKeyrings.push(ledgerKeyringBuilder);
+
+    const hdKeyringBuilder = () =>
+      new HDKeyring({
+        cryptographicFunctions: { pbkdf2Sha512: pbkdf2, hmacSha512 },
+      });
+    hdKeyringBuilder.type = HDKeyring.type;
+    additionalKeyrings.push(hdKeyringBuilder);
+
+    this.keyringController = new KeyringController({
+      removeIdentity: preferencesController.removeIdentity.bind(
+        preferencesController,
+      ),
+      encryptor,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'KeyringController',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      state: initialKeyringState || initialState.KeyringController,
+      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
+      keyringBuilders: additionalKeyrings,
+    });
+
+    this.transactionController = new TransactionController({
+      disableHistory: true,
+      disableSendFlowHistory: true,
+      disableSwaps: true,
+      // @ts-expect-error TransactionController is missing networkClientId argument in type
+      getCurrentNetworkEIP1559Compatibility:
+        networkController.getEIP1559Compatibility.bind(networkController),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      getExternalPendingTransactions: (address: string) =>
+        this.smartTransactionsController.getTransactions({
+          addressFrom: address,
+          status: SmartTransactionStatuses.PENDING,
+        }),
+      getGasFeeEstimates:
+        gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
+      // but only breaking change is Node version and bumped dependencies
+      getNetworkClientRegistry:
+        networkController.getNetworkClientRegistry.bind(networkController),
+      getNetworkState: () => networkController.state,
+      hooks: {
+        publish: (transactionMeta) => {
+          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+            store.getState(),
+          );
+
+          return submitSmartTransactionHook({
+            transactionMeta,
+            transactionController: this.transactionController,
+            smartTransactionsController: this.smartTransactionsController,
+            shouldUseSmartTransaction,
+            approvalController,
+            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+            controllerMessenger: this.controllerMessenger,
+            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
+          }) as Promise<{ transactionHash: string }>;
+        },
+      },
+      incomingTransactions: {
+        isEnabled: () => {
+          const currentHexChainId = getGlobalChainId(networkController);
+
+          const showIncomingTransactions =
+            preferencesController?.state?.showIncomingTransactions;
+
+          return Boolean(
+            hasProperty(showIncomingTransactions, currentChainId) &&
+              showIncomingTransactions?.[currentHexChainId],
+          );
+        },
+        updateTransactions: true,
+      },
+      isSimulationEnabled: () =>
+        preferencesController.state.useTransactionSimulations,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TransactionController',
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          `${approvalController.name}:addRequest`,
+          `${networkController.name}:getNetworkClientById`,
+          `${networkController.name}:findNetworkClientIdByChainId`,
+        ],
+        allowedEvents: [`NetworkController:stateChange`],
+      }),
+      pendingTransactions: {
+        isResubmitEnabled: () => false,
+      },
+      sign: this.keyringController.signTransaction.bind(
+        this.keyringController,
+      ) as unknown as TransactionControllerOptions['sign'],
+      state: initialState.TransactionController,
+    });
+
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
@@ -401,7 +545,9 @@ export class Engine {
         BridgeStatusController: bridgeStatusControllerInit,
       },
       persistedState: initialState as EngineState,
-      existingControllersByName: {},
+      existingControllersByName: {
+        TransactionController: this.transactionController,
+      },
       baseControllerMessenger: this.controllerMessenger,
     });
 
@@ -565,35 +711,7 @@ export class Engine {
       },
     });
 
-    const gasFeeController = new GasFeeController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'GasFeeController',
-        allowedActions: [
-          `${networkController.name}:getNetworkClientById`,
-          `${networkController.name}:getEIP1559Compatibility`,
-          `${networkController.name}:getState`,
-        ],
-        allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
-      }),
-      getProvider: () =>
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        networkController.getProviderAndBlockTracker().provider,
-      getCurrentNetworkEIP1559Compatibility: async () =>
-        (await networkController.getEIP1559Compatibility()) ?? false,
-      getCurrentNetworkLegacyGasAPICompatibility: () => {
-        const chainId = getGlobalChainId(networkController);
-        return (
-          isMainnetByChainId(chainId) ||
-          chainId === addHexPrefix(swapsUtils.BSC_CHAIN_ID) ||
-          chainId === addHexPrefix(swapsUtils.POLYGON_CHAIN_ID)
-        );
-      },
-      clientId: AppConstants.SWAPS.CLIENT_ID,
-      legacyAPIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
-      EIP1559APIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
-    });
+
 
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
       state: initialState.RemoteFeatureFlagController,
@@ -626,31 +744,6 @@ export class Engine {
       }),
     });
     phishingController.maybeUpdateState();
-
-    const additionalKeyrings = [];
-
-    const qrKeyringBuilder = () => {
-      const keyring = new QRHardwareKeyring();
-      // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
-      keyring.forgetDevice();
-      return keyring;
-    };
-    qrKeyringBuilder.type = QRHardwareKeyring.type;
-
-    additionalKeyrings.push(qrKeyringBuilder);
-
-    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
-    const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
-    ledgerKeyringBuilder.type = LedgerKeyring.type;
-
-    additionalKeyrings.push(ledgerKeyringBuilder);
-
-    const hdKeyringBuilder = () =>
-      new HDKeyring({
-        cryptographicFunctions: { pbkdf2Sha512: pbkdf2, hmacSha512 },
-      });
-    hdKeyringBuilder.type = HDKeyring.type;
-    additionalKeyrings.push(hdKeyringBuilder);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
@@ -691,21 +784,6 @@ export class Engine {
 
     ///: END:ONLY_INCLUDE_IF
 
-    this.keyringController = new KeyringController({
-      removeIdentity: preferencesController.removeIdentity.bind(
-        preferencesController,
-      ),
-      encryptor,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'KeyringController',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-      state: initialKeyringState || initialState.KeyringController,
-      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
-      keyringBuilders: additionalKeyrings,
-    });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     /**
@@ -1271,79 +1349,6 @@ export class Engine {
         },
       });
     ///: END:ONLY_INCLUDE_IF
-
-    this.transactionController = new TransactionController({
-      disableHistory: true,
-      disableSendFlowHistory: true,
-      disableSwaps: true,
-      // @ts-expect-error TransactionController is missing networkClientId argument in type
-      getCurrentNetworkEIP1559Compatibility:
-        networkController.getEIP1559Compatibility.bind(networkController),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      getExternalPendingTransactions: (address: string) =>
-        this.smartTransactionsController.getTransactions({
-          addressFrom: address,
-          status: SmartTransactionStatuses.PENDING,
-        }),
-      getGasFeeEstimates:
-        gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
-      // but only breaking change is Node version and bumped dependencies
-      getNetworkClientRegistry:
-        networkController.getNetworkClientRegistry.bind(networkController),
-      getNetworkState: () => networkController.state,
-      hooks: {
-        publish: (transactionMeta) => {
-          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-            store.getState(),
-          );
-
-          return submitSmartTransactionHook({
-            transactionMeta,
-            transactionController: this.transactionController,
-            smartTransactionsController: this.smartTransactionsController,
-            shouldUseSmartTransaction,
-            approvalController,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-            controllerMessenger: this.controllerMessenger,
-            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
-          }) as Promise<{ transactionHash: string }>;
-        },
-      },
-      incomingTransactions: {
-        isEnabled: () => {
-          const currentHexChainId = getGlobalChainId(networkController);
-
-          const showIncomingTransactions =
-            preferencesController?.state?.showIncomingTransactions;
-
-          return Boolean(
-            hasProperty(showIncomingTransactions, currentChainId) &&
-              showIncomingTransactions?.[currentHexChainId],
-          );
-        },
-        updateTransactions: true,
-      },
-      isSimulationEnabled: () =>
-        preferencesController.state.useTransactionSimulations,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'TransactionController',
-        allowedActions: [
-          'AccountsController:getSelectedAccount',
-          `${approvalController.name}:addRequest`,
-          `${networkController.name}:getNetworkClientById`,
-          `${networkController.name}:findNetworkClientIdByChainId`,
-        ],
-        allowedEvents: [`NetworkController:stateChange`],
-      }),
-      pendingTransactions: {
-        isResubmitEnabled: () => false,
-      },
-      sign: this.keyringController.signTransaction.bind(
-        this.keyringController,
-      ) as unknown as TransactionControllerOptions['sign'],
-      state: initialState.TransactionController,
-    });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
