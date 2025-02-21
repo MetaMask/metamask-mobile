@@ -571,12 +571,12 @@ function Quotes() {
   ]);
 
   useEffect(() => {
-    if (
-      quotesByPriceWithoutError &&
-      quotesByPriceWithoutError.length > 0 &&
-      isExpanded
-    ) {
-      setProviderId(quotesByPriceWithoutError[0].provider?.id);
+    if (quotesByPriceWithoutError && quotesByPriceWithoutError.length > 0) {
+      if (isExpanded) {
+        setProviderId(quotesByPriceWithoutError[0].provider?.id);
+      } else if (recommendedQuote) {
+        setProviderId(recommendedQuote.provider?.id);
+      }
     }
   }, [isExpanded, quotesByPriceWithoutError]);
 
@@ -751,7 +751,7 @@ function Quotes() {
                   quote={recommendedQuote}
                   onPress={() => handleOnQuotePress(recommendedQuote)}
                   onPressCTA={() => handleOnPressCTA(recommendedQuote, 0)}
-                  highlighted
+                  highlighted={recommendedQuote.provider.id === providerId}
                   showInfo={() => handleInfoPress(recommendedQuote)}
                   rampType={rampType}
                 />
