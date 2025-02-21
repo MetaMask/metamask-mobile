@@ -97,10 +97,10 @@ const PermitSimulation = () => {
           <>
             {tokenDetails.map(
               (
-                { allowed: tokenDetailAllowed, token, amount }: { allowed: number, token: string; amount: string },
+                { allowed: tokenDetailAllowed, token, amount }: { allowed: string, token: string; amount: string },
                 i: number,
               ) => {
-                const tokenContract = safeToChecksumAddress(tokenDetailAllowed);
+                const tokenContract = safeToChecksumAddress(token);
 
                 return (
                   <View style={styles.permitValues} key={`${token}-${i}`}>
