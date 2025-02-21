@@ -161,3 +161,25 @@ export const mergeValue = <Type extends State>(
   }
   return { ...state, [name]: value };
 };
+
+/**
+ * Registry of element types that are used within Field element.
+ */
+export const FIELD_ELEMENT_TYPES = [
+  'FileInput',
+  'Input',
+  'Dropdown',
+  'RadioGroup',
+  'Checkbox',
+  'Selector',
+];
+
+/**
+ * Search for the element that is considered to be primary child element of a Field.
+ *
+ * @param children - Children elements specified within Field element.
+ * @returns Number, representing index of a primary field in the array of children elements.
+ */
+export const getPrimaryChildElementIndex = (children: JSXElement[]) => {
+  return children.findIndex((c) => FIELD_ELEMENT_TYPES.includes(c.type));
+};

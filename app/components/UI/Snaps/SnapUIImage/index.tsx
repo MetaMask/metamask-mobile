@@ -20,6 +20,7 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
     [value],
   );
 
+  // TODO: This doesn't work if the height/width isn't set
   return (
     <Image
       testID="snaps-ui-image"

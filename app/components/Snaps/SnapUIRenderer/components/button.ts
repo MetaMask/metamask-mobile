@@ -17,28 +17,23 @@ interface ButtonElementProps extends ButtonElement {
 }
 
 export const button: UIComponentFactory<ButtonElementProps> = ({
-  element: e,
+  element,
   ...params
 }) => ({
   element: 'SnapUIButton',
   props: {
-    // type not used in mobile
-    type: e.type,
-    // form not used in mobile
-    form: e.props.form,
-    variant: e.props.variant,
-    name: e.props.name,
-    disabled: e.props.disabled,
-    loading: e.props.loading ?? false,
-    label: mapTextToTemplate(
-      getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-      params,
-    ),
+    type: element.props.type,
+    // This differs from the extension implementation because we don't have proper form support on RN
+    form: element.props.form ?? params.form,
+    variant: element.props.variant,
+    name: element.props.name,
+    disabled: element.props.disabled,
+    loading: element.props.loading ?? false,
     textVariant:
-      e.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
+      element.props.size === 'sm' ? TextVariant.BodySMMedium : TextVariant.BodyMDMedium,
   },
   children: mapTextToTemplate(
-    getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
+    getJsxChildren(element) as NonEmptyArray<string | JSXElement>,
     params,
   ),
 });

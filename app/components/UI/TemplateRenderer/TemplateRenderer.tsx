@@ -30,7 +30,7 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
     return null;
   } else if (typeof sections === 'string') {
     // React native can't render strings directly, so adding Text element
-    return <Text key={random()}>{sections}</Text>;
+    return <Text color='inherit' key={random()}>{sections}</Text>;
   } else if (
     sections &&
     typeof sections === 'object' &&

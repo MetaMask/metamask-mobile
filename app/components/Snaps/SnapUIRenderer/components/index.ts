@@ -10,6 +10,10 @@ import { footer } from './footer';
 import { container } from './container';
 import { heading } from './heading';
 import { link } from './link';
+import { image } from './image';
+import { form } from './form';
+import { icon } from './icon';
+import { field } from './field';
 
 export const COMPONENT_MAPPING = {
   Box: box,
@@ -24,4 +28,8 @@ export const COMPONENT_MAPPING = {
   Container: container,
   Heading: heading,
   Link: link,
+  Image: image,
+  Form: form,
+  Field: field,
+  Icon: icon,
 };

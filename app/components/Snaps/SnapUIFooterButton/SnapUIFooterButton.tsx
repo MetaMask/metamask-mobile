@@ -64,7 +64,6 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   type,
   variant = ButtonVariants.Primary,
   snapVariant,
-  label,
   ...props
 }) => {
   const { handleEvent, snapId } = useSnapInterfaceContext();
@@ -112,20 +111,21 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
             variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
             color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
           >
-            {label}
+            {children}
           </Text>
         </View>
       );
     }
     return (
       <Text variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT} color={color}>
-        {label}
+        {children}
       </Text>
     );
   };
 
   return (
     <Button
+      {...props}
       variant={buttonVariant}
       onPress={handlePress}
       disabled={disabled}
@@ -133,7 +133,6 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       label={buttonLabel()}
       size={ButtonSize.Lg}
       style={styles.button}
-      {...props}
     />
   );
 };
