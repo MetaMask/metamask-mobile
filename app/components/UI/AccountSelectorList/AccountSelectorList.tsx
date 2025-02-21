@@ -139,17 +139,17 @@ const AccountSelectorList = ({
             onPress: async () => {
               // TODO: Refactor account deletion logic to make more robust.
               const selectedAddressOverride = selectedAddresses?.[0];
-              const account = accounts?.find(
+              const account = accounts.find(
                 ({ isSelected: isAccountSelected, address: accountAddress }) =>
                   selectedAddressOverride
                     ? safeToChecksumAddress(selectedAddressOverride) ===
                       safeToChecksumAddress(accountAddress)
                     : isAccountSelected,
               ) as Account;
-              let nextActiveAddress = account?.address;
+              let nextActiveAddress = account.address;
               if (isSelected) {
                 const nextActiveIndex = index === 0 ? 1 : index - 1;
-                nextActiveAddress = accounts?.[nextActiveIndex]?.address;
+                nextActiveAddress = accounts[nextActiveIndex]?.address;
               }
               // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
               // If needed, place Engine.setSelectedAddress in onRemoveImportedAccount callback.
@@ -200,7 +200,7 @@ const AccountSelectorList = ({
     }) => {
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
-      const ensName = ensByAccountAddress?.[address];
+      const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
@@ -277,7 +277,7 @@ const AccountSelectorList = ({
 
   const onContentSizeChanged = useCallback(() => {
     // Handle auto scroll to account
-    if (!accounts?.length || !isAutoScrollEnabled) return;
+    if (!accounts.length || !isAutoScrollEnabled) return;
     if (accountsLengthRef.current !== accounts.length) {
       const selectedAddressOverride = selectedAddresses?.[0];
       const account = accounts.find(({ isSelected, address }) =>

@@ -5611,7 +5611,7 @@
   resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-1.0.0.tgz#44f599a0b9a785a03c5c40a2dffd9f463045de0e"
   integrity sha512-AjpQq2fstCpqcgMuIAW1VLaKdUmmdR5zQCJz1KgaXVkp9MFCa3GWfrgfZynN2S+h+39hst/2KNHHOeJrGWYGGw==
 
-"@metamask/superstruct@^3.1.0":
+"@metamask/superstruct@^3.0.0", "@metamask/superstruct@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/superstruct/-/superstruct-3.1.0.tgz#148f786a674fba3ac885c1093ab718515bf7f648"
   integrity sha512-N08M56HdOgBfRKkrgCMZvQppkZGcArEop3kixNEtVbJKm6P9Cfg0YkI6X0s1g78sNrj2fWUwvJADdZuzJgFttA==
@@ -5675,10 +5675,55 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/utils@^10.0.0", "@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^8.2.0", "@metamask/utils@^8.3.0", "@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1", "@metamask/utils@^9.3.0":
+"@metamask/utils@^10.0.0":
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-10.0.1.tgz#a765f96c20e35fc51c068fb9f88a3332b40b215e"
+  integrity sha512-zHgAitJtRwviVVFnRUA2PLRMaAwatr3jiHgiH7mPicJaeSK4ma01aGR4fHy0iy5tlVo1ZiioTmJ1Hbp8FZ6pSg==
+  dependencies:
+    "@ethereumjs/tx" "^4.2.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@noble/hashes" "^1.3.1"
+    "@scure/base" "^1.1.3"
+    "@types/debug" "^4.1.7"
+    debug "^4.3.4"
+    pony-cause "^2.1.10"
+    semver "^7.5.4"
+    uuid "^9.0.1"
+
+"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0":
   version "11.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.2.0.tgz#f2b35cbe6536c56071b0971f97f2395b860885c4"
   integrity sha512-5Y4bd8Axvi2kJKjp6Jlbb9wyoTrSZxQjWvVGPevpErAc7SCUYUuW0QOOPVu7YmT+bzisTpnFnRE8LjtwYCKGAg==
+  dependencies:
+    "@ethereumjs/tx" "^4.2.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@noble/hashes" "^1.3.1"
+    "@scure/base" "^1.1.3"
+    "@types/debug" "^4.1.7"
+    debug "^4.3.4"
+    pony-cause "^2.1.10"
+    semver "^7.5.4"
+    uuid "^9.0.1"
+
+"@metamask/utils@^8.2.0", "@metamask/utils@^8.3.0":
+  version "8.5.0"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-8.5.0.tgz#ddd0d4012d5191809404c97648a837ea9962cceb"
+  integrity sha512-I6bkduevXb72TIM9q2LRO63JSsF9EXduh3sBr9oybNX2hNNpr/j1tEjXrsG0Uabm4MJ1xkGAQEMwifvKZIkyxQ==
+  dependencies:
+    "@ethereumjs/tx" "^4.2.0"
+    "@metamask/superstruct" "^3.0.0"
+    "@noble/hashes" "^1.3.1"
+    "@scure/base" "^1.1.3"
+    "@types/debug" "^4.1.7"
+    debug "^4.3.4"
+    pony-cause "^2.1.10"
+    semver "^7.5.4"
+    uuid "^9.0.1"
+
+"@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1", "@metamask/utils@^9.3.0":
+  version "9.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-9.3.0.tgz#4726bd7f5d6a43ea8425b6d663ab9207f617c2d1"
+  integrity sha512-w8CVbdkDrVXFJbfBSlDfafDR6BAkpDmv1bC1UJVCoVny5tW2RKAdn9i68Xf7asYT4TnUhl/hN4zfUiKQq9II4g==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/superstruct" "^3.1.0"
