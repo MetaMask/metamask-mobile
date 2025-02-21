@@ -2,7 +2,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
@@ -102,27 +102,15 @@ export const PopularList = [
     },
   },
 ];
-// TODO: [SOLANA] - Replace this by constants of multichain network controller
-export const NON_EVM_NETWORKS = [
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  {
-    chainId: SolScope.Mainnet as CaipChainId,
-    nickname: 'Solana',
-    ticker: 'SOL',
-    imageSource: require('../../images/solana-logo.png'),
-    blockExplorers: {
-      urls: ['https://explorer.solana.com'],
-      defaultIndex: 0,
-    },
-  },
-  ///: END:ONLY_INCLUDE_IF
-];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
-  const network = NON_EVM_NETWORKS.find(
-    (nonEvmNetwork) => nonEvmNetwork.chainId === chainId,
-  );
-  return network?.imageSource;
+  if (chainId === SolScope.Mainnet) {
+    return require('../../images/solana-logo.png');
+  }
+  if (chainId === BtcScope.Mainnet) {
+    return require('../../images/bitcoin-logo.png');
+  }
+  return undefined;
 };
 
 export const INFURA_TESTNET_CHAIN_IDS = {

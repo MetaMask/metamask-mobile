@@ -13,16 +13,14 @@ import { selectCurrentCurrency } from '../../../selectors/currencyRateController
 import { Image } from 'react-native';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import {
-  MULTICHAIN_PROVIDER_CONFIGS,
-  MULTICHAIN_TOKEN_IMAGES,
-} from '../../../core/Multichain/constants';
+import { MULTICHAIN_TOKEN_IMAGES } from '../../../core/Multichain/constants';
 import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../../../selectors/multichainNetworkController';
 import { CaipChainId } from '@metamask/utils';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { BtcScope } from '@metamask/keyring-api';
 
 // We need this type to match ScrollableTabView's requirements
 interface NonEvmTokensProps {
@@ -63,8 +61,15 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
     return imageSource ? Image.resolveAssetSource(imageSource).uri : '';
   };
 
+  /**
+   * IMPORTANT!
+   * We will need to align this decimals once we support SLP and SPL tokens
+   * For now we will only support BTC (8 decimals) and SOL (9 decimals)
+   * @param chainId
+   * @returns decimals if it's solana or btc
+   */
   const getDecimalsByChainId = (chainId: CaipChainId) =>
-    MULTICHAIN_PROVIDER_CONFIGS[chainId]?.decimal;
+    chainId === BtcScope.Mainnet ? 8 : 9;
 
   // Format the token data to match TokenI interface
   const formattedTokens: TokenI[] = [

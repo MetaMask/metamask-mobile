@@ -2,11 +2,16 @@ import { MultichainNetworkControllerState } from '@metamask/multichain-network-c
 import { RootState } from '../../reducers';
 import { createSelector } from 'reselect';
 import { CaipChainId } from '@metamask/utils';
-import { MULTICHAIN_PROVIDER_CONFIGS } from '../../core/Multichain/constants';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 
-const getNonEvmNetworkSymbolByChainId = (chainId: CaipChainId) => {
-  const network = MULTICHAIN_PROVIDER_CONFIGS[chainId];
-  return network?.ticker;
+export const getNonEvmNetworkSymbolByChainId = (chainId: CaipChainId) => {
+  if (BtcScope.Mainnet === chainId) {
+    return 'BTC';
+  }
+  if (SolScope.Mainnet === chainId) {
+    return 'SOL';
+  }
+  return undefined;
 };
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>

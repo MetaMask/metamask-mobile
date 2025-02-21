@@ -2,7 +2,6 @@ import React from 'react';
 import NonEvmTokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { Cryptocurrency } from '@metamask/assets-controllers';
-import { MULTICHAIN_PROVIDER_CONFIGS } from '../../../core/Multichain/constants';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import {
   MOCK_SOLANA_ACCOUNT,
@@ -71,20 +70,6 @@ const initialState = {
         },
         fiatCurrency: 'usd',
         cryptocurrencies: ['sol' as Cryptocurrency],
-      },
-      MultichainController: {
-        selectedNetwork: {
-          chainId: SolScope.Mainnet,
-          nickname: MULTICHAIN_PROVIDER_CONFIGS[SolScope.Mainnet].nickname,
-          isEvmNetwork: false,
-        },
-        defaultToken: {
-          symbol: 'SOL',
-          decimals: 9,
-          isNative: true,
-          name: MULTICHAIN_PROVIDER_CONFIGS[SolScope.Mainnet].nickname,
-        },
-        selectedAccountCachedBalance: '5.5',
       },
       CurrencyRateController: {
         currentCurrency: 'USD',

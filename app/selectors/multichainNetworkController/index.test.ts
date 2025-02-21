@@ -7,7 +7,6 @@ import {
   selectSelectedNonEvmNativeCurrency,
   selectSelectedNonEvmNetworkSymbol,
 } from './index';
-import { MULTICHAIN_PROVIDER_CONFIGS } from '../../core/Multichain/constants';
 import { RootState } from '../../reducers';
 
 describe('Multichain Network Controller Selectors', () => {
@@ -109,24 +108,20 @@ describe('Multichain Network Controller Selectors', () => {
   });
 
   describe('selectSelectedNonEvmNetworkSymbol', () => {
-    it('should return the selected network symbol from provider configs', () => {
-      // Mock the MULTICHAIN_PROVIDER_CONFIGS
-      jest.mock('../../core/Multichain/constants', () => ({
-        MULTICHAIN_PROVIDER_CONFIGS: {
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-            ticker: 'SOL',
-          },
-        },
+    it('should return the selected network symbol', () => {
+      jest.mock('../../core/Multichain/utils', () => ({
+        getNonEvmNetworkSymbolByChainId: jest.fn().mockReturnValue('SOL'),
       }));
 
       const result = selectSelectedNonEvmNetworkSymbol(mockState);
-      expect(result).toBe(
-        MULTICHAIN_PROVIDER_CONFIGS['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp']
-          ?.ticker,
-      );
+      expect(result).toBe('SOL');
     });
 
-    it('should return undefined when network is not in provider configs', () => {
+    it('should return undefined when network symbol is not found', () => {
+      jest.mock('../../core/Multichain/utils', () => ({
+        getNonEvmNetworkSymbolByChainId: jest.fn().mockReturnValue(undefined),
+      }));
+
       const modifiedState = {
         ...mockState,
         engine: {

@@ -1778,7 +1778,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": 1,
-                "name": "Solana",
+                "name": "Solana Mainnet",
                 "variant": "Network",
               }
             }
@@ -1792,7 +1792,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="celldisplay"
-            title="Solana"
+            title="Solana Mainnet"
           >
             <View
               style={
@@ -1852,7 +1852,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Solana
+                  Solana Mainnet
                 </Text>
               </View>
               <View

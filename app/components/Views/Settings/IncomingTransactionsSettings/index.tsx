@@ -30,8 +30,9 @@ import NetworkCell from '../../../UI/NetworkCell/NetworkCell';
 import { MAINNET, LINEA_MAINNET } from '../../../../../app/constants/network';
 import { INCOMING_TRANSACTIONS_SUPPORTED_CHAIN_IDS } from '@metamask/transaction-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { NON_EVM_NETWORKS } from '../../../../util/networks/customNetworks';
 import images from 'images/image-icons';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
+import { SolScope } from '@metamask/keyring-api';
 
 const IncomingTransactionsSettings = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -43,6 +44,10 @@ const IncomingTransactionsSettings = () => {
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
+  );
+
+  const nonEvmNetworkConfigurations = useSelector(
+    selectNonEvmNetworkConfigurationsByChainId,
   );
 
   const toggleEnableIncomingTransactions = (
@@ -111,24 +116,24 @@ const IncomingTransactionsSettings = () => {
     return [...mainnetNetworks, ...otherNetworks].map(renderNetwork);
   };
 
-  const renderNonEvmNetworks = () => {
-    if (NON_EVM_NETWORKS.length === 0) return null;
-
-    return NON_EVM_NETWORKS.map((network) => (
-      <NetworkCell
-        key={network.chainId}
-        name={network.nickname}
-        chainId={network.chainId}
-        imageSource={images.SOLANA}
-        //TODO: [SOLANA] Disabled for now. When activity view supports non evm, we should enable this
-        showIncomingTransactionsNetworks={{
-          [network.chainId]: false,
-        }}
-        toggleEnableIncomingTransactions={() => null}
-        testID={'solana-incoming-transactions-toggle'}
-      />
-    ));
-  };
+  const renderNonEvmNetworks = () =>
+    Object.values(nonEvmNetworkConfigurations)
+      // TODO: - [SOLANA] - Remove this filter once we want to show non evm like BTC
+      .filter((network) => network.chainId === SolScope.Mainnet)
+      .map((network) => (
+        <NetworkCell
+          key={network.chainId}
+          name={network.name}
+          chainId={network.chainId}
+          imageSource={images.SOLANA}
+          //TODO: [SOLANA] Disabled for now. When activity view supports non evm, we should enable this
+          showIncomingTransactionsNetworks={{
+            [network.chainId]: false,
+          }}
+          toggleEnableIncomingTransactions={() => null}
+          testID={'solana-incoming-transactions-toggle'}
+        />
+      ));
 
   const renderOtherNetworks = () => {
     const NetworksTyped = Networks as NetworksI;
@@ -165,7 +170,11 @@ const IncomingTransactionsSettings = () => {
       </Text>
       <View style={styles.transactionsContainer}>
         {renderRpcNetworks()}
-        {renderNonEvmNetworks()}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          renderNonEvmNetworks()
+          ///: END:ONLY_INCLUDE_IF
+        }
         {showTestNetworks && renderOtherNetworks()}
       </View>
     </View>

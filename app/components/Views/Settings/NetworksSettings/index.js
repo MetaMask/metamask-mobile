@@ -44,8 +44,8 @@ import { updateIncomingTransactions } from '../../../../util/transaction-control
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
-import { NON_EVM_NETWORKS } from '../../../../util/networks/customNetworks';
 import { SolScope } from '@metamask/keyring-api';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -136,6 +136,10 @@ class NetworksSettings extends PureComponent {
      * Current network provider configuration
      */
     providerConfig: PropTypes.object,
+    /**
+     * Non evm network configurations
+     */
+    nonEvmNetworkConfigurations: PropTypes.object,
   };
 
   actionSheet = null;
@@ -442,13 +446,10 @@ class NetworksSettings extends PureComponent {
   }
 
   renderSolanaMainnet() {
-    if (!NON_EVM_NETWORKS.length) {
-      return null;
-    }
     // TODO: [SOLANA] - Please revisit this since it's supported on a constant array in mobile and should come from multichain network controller
-    const { nickname: solanaMainnetName } = NON_EVM_NETWORKS.find(
-      (network) => network.chainId === SolScope.Mainnet,
-    );
+    const { name: solanaMainnetName } = Object.values(
+      this.props.nonEvmNetworkConfigurations,
+    ).find((network) => network.chainId === SolScope.Mainnet);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -619,6 +620,8 @@ NetworksSettings.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
+  nonEvmNetworkConfigurations:
+    selectNonEvmNetworkConfigurationsByChainId(state),
 });
 
 export default connect(mapStateToProps)(NetworksSettings);

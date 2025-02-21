@@ -73,10 +73,7 @@ import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal'
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
-import {
-  NON_EVM_NETWORKS,
-  PopularList,
-} from '../../../util/networks/customNetworks';
+import { PopularList } from '../../../util/networks/customNetworks';
 import NetworkSearchTextInput from './NetworkSearchTextInput';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
@@ -103,7 +100,10 @@ import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectNonEvmNetworkConfigurationsByChainId,
+} from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
@@ -162,6 +162,11 @@ const NetworkSelector = () => {
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+
+  const nonEvmNetworkConfigurations = useSelector(
+    selectNonEvmNetworkConfigurationsByChainId,
+  );
+
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const route =
@@ -799,28 +804,29 @@ const NetworkSelector = () => {
     sheetRef.current?.dismissModal();
   };
 
-  const renderNonEvmNetworks = () => {
-    if (NON_EVM_NETWORKS.length === 0) return null;
-    return NON_EVM_NETWORKS.map((network) => (
-      <Cell
-        key={network.chainId}
-        variant={CellVariant.Select}
-        title={network.nickname}
-        avatarProps={{
-          variant: AvatarVariant.Network,
-          name: 'Solana',
-          imageSource: images.SOLANA,
-          size: avatarSize,
-        }}
-        isSelected={!isEvmSelected && !browserEvmChainId}
-        onPress={() => onNonEvmNetworkChange(SolScope.Mainnet)}
-        style={
-          browserEvmChainId ? styles.networkCellDisabled : styles.networkCell
-        }
-        disabled={!!browserEvmChainId}
-      />
-    ));
-  };
+  const renderNonEvmNetworks = () =>
+    Object.values(nonEvmNetworkConfigurations)
+      // TODO: - [SOLANA] - Remove this filter once we want to show non evm like BTC
+      .filter((network) => network.chainId === SolScope.Mainnet)
+      .map((network) => (
+        <Cell
+          key={network.chainId}
+          variant={CellVariant.Select}
+          title={network.name}
+          avatarProps={{
+            variant: AvatarVariant.Network,
+            name: 'Solana',
+            imageSource: images.SOLANA,
+            size: avatarSize,
+          }}
+          isSelected={!isEvmSelected && !browserEvmChainId}
+          onPress={() => onNonEvmNetworkChange(SolScope.Mainnet)}
+          style={
+            browserEvmChainId ? styles.networkCellDisabled : styles.networkCell
+          }
+          disabled={!!browserEvmChainId}
+        />
+      ));
 
   const renderTestNetworksSwitch = () => (
     <View style={styles.switchContainer}>
@@ -981,7 +987,11 @@ const NetworkSelector = () => {
       {renderMainnet()}
       {renderLineaMainnet()}
       {renderRpcNetworks()}
-      {renderNonEvmNetworks()}
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        renderNonEvmNetworks()
+        ///: END:ONLY_INCLUDE_IF
+      }
       {isNetworkUiRedesignEnabled() &&
         searchString.length === 0 &&
         renderPopularNetworksTitle()}

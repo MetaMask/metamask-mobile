@@ -1,9 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 /* eslint-disable arrow-body-style */
-import {
-  MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET,
-  MULTICHAIN_PROVIDER_CONFIGS,
-} from '../../core/Multichain/constants';
+import { MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET } from '../../core/Multichain/constants';
 import { RootState } from '../../reducers';
 import {
   selectChainId,
@@ -85,14 +82,6 @@ export const selectMultichainDefaultToken = createDeepEqualSelector(
     const symbol = isEvmSelected ? evmProviderConfig.ticker : nonEvmTicker;
     return { symbol };
   },
-);
-
-export const selectMultichainIsBitcoin = createDeepEqualSelector(
-  selectIsEvmNetworkSelected,
-  selectMultichainDefaultToken,
-  (isEvm, token) =>
-    !isEvm &&
-    token.symbol === MULTICHAIN_PROVIDER_CONFIGS[BtcScope.Mainnet].ticker,
 );
 
 export const selectMultichainIsMainnet = createDeepEqualSelector(
