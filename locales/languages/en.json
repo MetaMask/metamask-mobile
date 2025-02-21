@@ -382,29 +382,6 @@
     "description": "We now support multiple RPCs for a single network. Your most recent RPC has been selected as the default one to resolve conflicting information",
     "accept": "Accept"
   },
-  "nft_details": {
-    "bought_for": "Bought for",
-    "highest_floor_price": "Highest floor price",
-    "data_unavailable": "data unavailable",
-    "price_unavailable": "price unavailable",
-    "rank": "Rank",
-    "contract_address": "Contract address",
-    "token_id": "Token ID",
-    "token_symbol": "Token symbol",
-    "token_standard": "Token standard",
-    "date_created": "Date created",
-    "unique_token_holders": "Unique token holders",
-    "tokens_in_collection": "Tokens in collection",
-    "creator_address": "Creator address",
-    "last_sold": "Last sold",
-    "highest_current_bid": "Highest current bid",
-    "options": {
-      "view_on_os": "View on OpenSea",
-      "remove_nft": "Remove NFT"
-    },
-    "attributes": "Attributes",
-    "disclaimer": "Disclaimer: MetaMask pulls the media file from the source URL. This URL is sometimes changed by the marketplace the NFT was minted on."
-  },
   "qr_tab_switcher": {
     "scanner_tab": "Scan QR code",
     "receive_tab": "Your QR code"
@@ -2612,6 +2589,7 @@
     "one_more_option": "1 more option",
     "more_options": "{{count}} more options",
     "previously_used": "Previously used",
+    "best_rate": "Best rate",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
     "terms_of_service": "Terms of Service",
@@ -3508,6 +3486,8 @@
     "unstake_input_banner_description":"On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.",
     "max": "Max",
     "staking_from": "Staking from",
+    "advanced_details": "Advanced details",
+    "ethereum_mainnet": "Ethereum Mainnet",
     "interacting_with": "Interacting with",
     "12_hours": "12 hours",
     "terms_of_service": "Terms of service",
@@ -3633,6 +3613,13 @@
   "confirm": {
     "reject": "Reject",
     "confirm": "Confirm",
+    "staking_footer": {
+      "part1": "By continuing, you agree to our ",
+      "terms_of_use": "Terms of Use",
+      "part2": " and ",
+      "risk_disclosure": "Risk Disclosure",
+      "part3": "."
+    },
     "label": {
       "account": "Account",
       "balance": "Balance",
@@ -3655,11 +3642,15 @@
       "signature": "Review request details before you confirm.",
       "signature_siwe": "A site wants you to sign in to prove you own this account."
     },
+    "request_from": "Request from",
+    "staking_from": "Staking from",
+    "signing_in_with": "Signing in with",
     "message": "Message",
     "personal_sign_tooltip": "This site is asking for your signature",
     "details": "Details",
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
+    "sign_with_ledger": "Sign with Ledger",
     "siwe_message": {
       "url": "URL",
       "network" : "Network",

@@ -1525,7 +1525,7 @@ workflows:
             - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: ios/build/output/MetaMask.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@1.6.1:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -1684,7 +1684,7 @@ workflows:
             - pipeline_intermediate_files: ios/build/output/MetaMask-Flask.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: ios/build/output/MetaMask-Flask.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@1.6.1:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
