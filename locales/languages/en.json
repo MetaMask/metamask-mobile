@@ -382,29 +382,6 @@
     "description": "We now support multiple RPCs for a single network. Your most recent RPC has been selected as the default one to resolve conflicting information",
     "accept": "Accept"
   },
-  "nft_details": {
-    "bought_for": "Bought for",
-    "highest_floor_price": "Highest floor price",
-    "data_unavailable": "data unavailable",
-    "price_unavailable": "price unavailable",
-    "rank": "Rank",
-    "contract_address": "Contract address",
-    "token_id": "Token ID",
-    "token_symbol": "Token symbol",
-    "token_standard": "Token standard",
-    "date_created": "Date created",
-    "unique_token_holders": "Unique token holders",
-    "tokens_in_collection": "Tokens in collection",
-    "creator_address": "Creator address",
-    "last_sold": "Last sold",
-    "highest_current_bid": "Highest current bid",
-    "options": {
-      "view_on_os": "View on OpenSea",
-      "remove_nft": "Remove NFT"
-    },
-    "attributes": "Attributes",
-    "disclaimer": "Disclaimer: MetaMask pulls the media file from the source URL. This URL is sometimes changed by the marketplace the NFT was minted on."
-  },
   "qr_tab_switcher": {
     "scanner_tab": "Scan QR code",
     "receive_tab": "Your QR code"
@@ -2842,12 +2819,9 @@
     "n_quotes": "{{numberOfQuotes}} quotes",
     "view_details": "View details",
     "estimated_gas_fee": "Estimated gas fee",
-    "gas_fee": "Gas fee",
-    "included": "included",
     "max_gas_fee": "Max gas fee",
     "edit": "Edit",
     "quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
-    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Tap to Swap",
     "swipe_to_swap": "Swipe to swap",
     "swipe_to": "Swipe to",
@@ -2917,8 +2891,6 @@
     "high_recommendation": "Swaps are typically time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "recommended": "Recommended",
     "recommended_gas": "Recommended gas fee",
-    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
-    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Estimated gas fees",
     "gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
     "gas_education_2_ethereum": "Ethereum network.",
@@ -3674,6 +3646,7 @@
     "details": "Details",
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
+    "sign_with_ledger": "Sign with Ledger",
     "siwe_message": {
       "url": "URL",
       "network" : "Network",

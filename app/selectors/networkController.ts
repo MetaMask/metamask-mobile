@@ -281,3 +281,18 @@ export const selectRpcUrlByChainId = createSelector(
   selectDefaultEndpointByChainId,
   (defaultEndpoint) => defaultEndpoint?.url,
 );
+
+export const checkNetworkAndAccountSupports1559 = createSelector(
+  selectNetworkControllerState,
+  (_state: RootState, networkClientId: string) => networkClientId,
+  (networkControllerState: NetworkState, networkClientId: string) => {
+    const selectedNetworkClientId =
+      networkControllerState.selectedNetworkClientId;
+
+    return (
+      networkControllerState.networksMetadata?.[
+        networkClientId ?? selectedNetworkClientId
+      ]?.EIPS[1559] === true
+    );
+  },
+);
