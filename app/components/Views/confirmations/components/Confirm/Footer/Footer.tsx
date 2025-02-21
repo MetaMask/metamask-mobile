@@ -74,38 +74,38 @@ export const Footer = () => {
     <>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
-          buttonPropsArray={buttons}
-          style={styles.base}
-        />
-        {isStakingConfirmation && (
-          <View style={styles.textContainer}>
-            <Text variant={TextVariant.BodySM}>
-              {strings('confirm.staking_footer.part1')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.linkText}
-              onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
-            >
-              {strings('confirm.staking_footer.terms_of_use')}
-            </Text>
-            <Text variant={TextVariant.BodySM}>
-              {strings('confirm.staking_footer.part2')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.linkText}
-              onPress={() =>
-                Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
-              }
-            >
-              {strings('confirm.staking_footer.risk_disclosure')}
-            </Text>
-            <Text variant={TextVariant.BodySM}>
-              {strings('confirm.staking_footer.part3')}
-            </Text>
-          </View>
-        )}
+        buttonPropsArray={buttons}
+        style={styles.base}
+      />
+      {isStakingConfirmation && (
+        <View style={styles.textContainer}>
+          <Text variant={TextVariant.BodySM}>
+            {strings('confirm.staking_footer.part1')}
+          </Text>
+          <Text
+            variant={TextVariant.BodySM}
+            style={styles.linkText}
+            onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
+          >
+            {strings('confirm.staking_footer.terms_of_use')}
+          </Text>
+          <Text variant={TextVariant.BodySM}>
+            {strings('confirm.staking_footer.part2')}
+          </Text>
+          <Text
+            variant={TextVariant.BodySM}
+            style={styles.linkText}
+            onPress={() =>
+              Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
+            }
+          >
+            {strings('confirm.staking_footer.risk_disclosure')}
+          </Text>
+          <Text variant={TextVariant.BodySM}>
+            {strings('confirm.staking_footer.part3')}
+          </Text>
+        </View>
+      )}
     </>
   );
 };
