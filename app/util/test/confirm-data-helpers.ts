@@ -5,11 +5,14 @@ import {
   SignatureRequestStatus,
   SignatureRequestType,
 } from '@metamask/signature-controller';
+import { GasFeeState } from '@metamask/gas-fee-controller';
 import { Hex } from '@metamask/utils';
-import { TransactionControllerState } from '@metamask/transaction-controller';
+import {
+  TransactionControllerState,
+  TransactionEnvelopeType,
+} from '@metamask/transaction-controller';
 
 import { backgroundState } from './initial-root-state';
-
 export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
     confirmation_redesign: {
@@ -460,7 +463,8 @@ export const typedSignV4NFTConfirmationState = {
       },
       SignatureController: {
         signatureRequests: {
-          'c5067710-87cf-11ef-916c-71f266571322': typedSignV4NFTSignatureRequest,
+          'c5067710-87cf-11ef-916c-71f266571322':
+            typedSignV4NFTSignatureRequest,
         },
       },
     },
@@ -561,21 +565,103 @@ export const stakingDepositConfirmationState = {
               data: '0xf9609f08000000000000000000000000dc47789de4ceff0e8fe9d15d728af7f17550c1640000000000000000000000000000000000000000000000000000000000000000',
               from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
               gas: '0x1a5bd',
-              maxFeePerGas: '0x74594b20',
-              maxPriorityFeePerGas: '0x1dcd6500',
+              maxFeePerGas: '0x84594b20',
+              maxPriorityFeePerGas: '0x4dcd6500',
               to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
               value: '0x5af3107a4000',
+              type: TransactionEnvelopeType.feeMarket,
             },
             type: 'stakingDeposit',
             userEditedGasLimit: false,
             userFeeLevel: 'medium',
             verifiedOnBlockchain: false,
+            gasFeeEstimates: {
+              high: {
+                maxFeePerGas: '0xd0f5f04a',
+                maxPriorityFeePerGas: '0x77359400',
+              },
+              low: {
+                maxFeePerGas: '0x274d76df',
+                maxPriorityFeePerGas: '0x47be0d',
+              },
+              medium: {
+                maxFeePerGas: '0x559ab26a',
+                maxPriorityFeePerGas: '0x1dcd6500',
+              },
+              type: 'fee-market',
+            },
           },
         ],
       } as unknown as TransactionControllerState,
       RemoteFeatureFlagController: {
         ...confirmationRedesignRemoteFlagsState,
       },
+      NetworkController: {
+        networksMetadata: {
+          mainnet: {
+            EIPS: { 1559: true },
+          },
+          sepolia: {
+            EIPS: { 1559: true },
+          },
+        },
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+              },
+            ],
+          },
+          '0xaa36a7': {
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'sepolia',
+              },
+            ],
+          },
+        },
+        selectedNetworkClientId: 'mainnet',
+      },
+      GasFeeController: {
+        gasFeeEstimatesByChainId: {
+          '0x1': {
+            gasEstimateType: 'fee-market',
+            gasFeeEstimates: {
+              baseFeeTrend: 'down',
+              estimatedBaseFee: '0.657622129',
+              high: {
+                maxWaitTimeEstimate: 30000,
+                minWaitTimeEstimate: 15000,
+                suggestedMaxFeePerGas: '3.554606064',
+                suggestedMaxPriorityFeePerGas: '2',
+              },
+              historicalBaseFeeRange: ['0.570409997', '0.742901351'],
+              historicalPriorityFeeRange: ['0.0001', '40.023291076'],
+              latestPriorityFeeRange: ['0.001014498', '3'],
+              low: {
+                maxWaitTimeEstimate: 60000,
+                minWaitTimeEstimate: 15000,
+                suggestedMaxFeePerGas: '0.750628835',
+                suggestedMaxPriorityFeePerGas: '0.006017503',
+              },
+              medium: {
+                maxWaitTimeEstimate: 45000,
+                minWaitTimeEstimate: 15000,
+                suggestedMaxFeePerGas: '1.65994205',
+                suggestedMaxPriorityFeePerGas: '0.5',
+              },
+              networkCongestion: 0.10665,
+              priorityFeeTrend: 'up',
+            },
+          },
+        },
+      } as unknown as GasFeeState,
     },
+  },
+  settings: {
+    showFiatOnTestnets: true,
   },
 };

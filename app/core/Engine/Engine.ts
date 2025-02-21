@@ -64,6 +64,8 @@ import {
   JsonSnapsRegistry,
   SnapController,
   SnapsRegistryMessenger,
+  SnapInterfaceController,
+  SnapInterfaceControllerMessenger,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -157,28 +159,7 @@ import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  AccountsControllerSetSelectedAccountAction,
-  AccountsControllerGetAccountByAddressAction,
-  AccountsControllerSetAccountNameAction,
-  AccountsControllerListMultichainAccountsAction,
-  AccountsControllerAccountRemovedEvent,
-  AccountsControllerAccountAssetListUpdatedEvent,
-
-  ///: END:ONLY_INCLUDE_IF
-  AccountsControllerGetAccountAction,
-  AccountsControllerGetSelectedAccountAction,
-  AccountsControllerListAccountsAction,
-  AccountsControllerUpdateAccountMetadataAction,
-  AccountsControllerSelectedEvmAccountChangeEvent,
-  AccountsControllerSelectedAccountChangeEvent,
-  AccountsControllerAccountAddedEvent,
-  AccountsControllerAccountRenamedEvent,
-} from './controllers/AccountsController/constants';
-import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { createAccountsController } from './controllers/AccountsController/utils';
-import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
+import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
@@ -189,11 +170,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
-import {
-  selectSwapsChainFeatureFlags,
-  selectSwapsQuotes,
-  selectSwapsTopAggId,
-} from '../../reducers/swaps';
+import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import {
   SmartTransactionStatuses,
   ClientId,
@@ -223,15 +200,12 @@ import { setupCurrencyRateSync } from './controllers/RatesController/subscriptio
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
-import {
-  getSmartTransactionMetricsProperties,
-  getGasIncludedTransactionFees,
-} from '../../util/smart-transactions';
+import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
 import {
-  ControllerMessenger,
+  BaseControllerMessenger,
   EngineState,
   EngineContext,
   TransactionEventPayload,
@@ -246,20 +220,16 @@ import {
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
+import { initModularizedControllers } from './utils';
+import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import {
   SnapControllerClearSnapStateAction,
   SnapControllerGetSnapAction,
   SnapControllerGetSnapStateAction,
   SnapControllerHandleRequestAction,
-  SnapControllerStateChangeEvent,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
-import {
-  SnapKeyringAccountAssetListUpdatedEvent,
-  SnapKeyringAccountBalancesUpdatedEvent,
-  SnapKeyringAccountTransactionsUpdatedEvent,
-} from '../SnapKeyring/constants';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
@@ -290,7 +260,7 @@ export class Engine {
   /**
    * The global controller messenger.
    */
-  controllerMessenger: ControllerMessenger;
+  controllerMessenger: BaseControllerMessenger;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -422,29 +392,16 @@ export class Engine {
       chainId: getGlobalChainId(networkController),
     });
 
-    // Create AccountsController
-    const accountsControllerMessenger: AccountsControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'AccountsController',
-        allowedEvents: [
-          SnapControllerStateChangeEvent,
-          'KeyringController:accountRemoved',
-          'KeyringController:stateChange',
-          SnapKeyringAccountAssetListUpdatedEvent,
-          SnapKeyringAccountBalancesUpdatedEvent,
-          SnapKeyringAccountTransactionsUpdatedEvent,
-          'MultichainNetworkController:networkDidChange',
-        ],
-        allowedActions: [
-          'KeyringController:getAccounts',
-          'KeyringController:getKeyringsByType',
-          'KeyringController:getKeyringForAccount',
-        ],
-      });
-    const accountsController = createAccountsController({
-      messenger: accountsControllerMessenger,
-      initialState: initialState.AccountsController,
+    const { controllersByName } = initModularizedControllers({
+      controllerInitFunctions: {
+        AccountsController: accountsControllerInit,
+      },
+      persistedState: initialState as EngineState,
+      existingControllersByName: {},
+      baseControllerMessenger: this.controllerMessenger,
     });
+
+    const accountsController = controllersByName.AccountsController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 
@@ -452,11 +409,11 @@ export class Engine {
       this.controllerMessenger.getRestricted({
         name: 'MultichainAssetsController',
         allowedEvents: [
-          AccountsControllerAccountAddedEvent,
-          AccountsControllerAccountRemovedEvent,
-          AccountsControllerAccountAssetListUpdatedEvent,
+          'AccountsController:accountAdded',
+          'AccountsController:accountRemoved',
+          'AccountsController:accountAssetListUpdated',
         ],
-        allowedActions: [AccountsControllerListMultichainAccountsAction],
+        allowedActions: ['AccountsController:listMultichainAccounts'],
       });
 
     const multichainAssetsController = createMultichainAssetsController({
@@ -468,13 +425,13 @@ export class Engine {
       this.controllerMessenger.getRestricted({
         name: 'MultichainBalancesController',
         allowedEvents: [
-          AccountsControllerAccountAddedEvent,
-          AccountsControllerAccountRemovedEvent,
+          'AccountsController:accountAdded',
+          'AccountsController:accountRemoved',
           'AccountsController:accountBalancesUpdated',
           'MultichainAssetsController:stateChange',
         ],
         allowedActions: [
-          AccountsControllerListMultichainAccountsAction,
+          'AccountsController:listMultichainAccounts',
           SnapControllerHandleRequestAction,
         ],
       });
@@ -511,8 +468,8 @@ export class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
-          AccountsControllerGetAccountAction,
-          AccountsControllerGetSelectedAccountAction,
+          'AccountsController:getAccount',
+          'AccountsController:getSelectedAccount',
           'AssetsContractController:getERC721AssetName',
           'AssetsContractController:getERC721AssetSymbol',
           'AssetsContractController:getERC721TokenURI',
@@ -523,7 +480,7 @@ export class Engine {
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
-          AccountsControllerSelectedEvmAccountChangeEvent,
+          'AccountsController:selectedEvmAccountChange',
         ],
       }),
       state: initialState.NftController,
@@ -551,15 +508,15 @@ export class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           'NetworkController:getNetworkClientById',
-          AccountsControllerGetAccountAction,
-          AccountsControllerGetSelectedAccountAction,
+          'AccountsController:getAccount',
+          'AccountsController:getSelectedAccount',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
           'NetworkController:stateChange',
           'TokenListController:stateChange',
-          AccountsControllerSelectedEvmAccountChangeEvent,
+          'AccountsController:selectedEvmAccountChange',
         ],
       }),
     });
@@ -703,9 +660,9 @@ export class Engine {
         'PhishingController:testOrigin',
         'PhishingController:maybeUpdateState',
         'KeyringController:getAccounts',
-        AccountsControllerSetSelectedAccountAction,
-        AccountsControllerGetAccountByAddressAction,
-        AccountsControllerSetAccountNameAction,
+        'AccountsController:setSelectedAccount',
+        'AccountsController:getAccountByAddress',
+        'AccountsController:setAccountName',
         SnapControllerHandleRequestAction,
         SnapControllerGetSnapAction,
       ],
@@ -825,6 +782,20 @@ export class Engine {
           origin,
         );
       },
+      createInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:createInterface',
+      ),
+      getInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:getInterface',
+      ),
+      updateInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:updateInterface',
+      ),
+      requestUserApproval:
+        approvalController.addAndShowApprovalRequest.bind(approvalController),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
@@ -862,15 +833,15 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'AccountTrackerController',
         allowedActions: [
-          AccountsControllerGetSelectedAccountAction,
-          AccountsControllerListAccountsAction,
+          'AccountsController:getSelectedAccount',
+          'AccountsController:listAccounts',
           'PreferencesController:getState',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
         ],
         allowedEvents: [
-          AccountsControllerSelectedEvmAccountChangeEvent,
-          AccountsControllerSelectedAccountChangeEvent,
+          'AccountsController:selectedEvmAccountChange',
+          'AccountsController:selectedAccountChange',
         ],
       }),
       state: initialState.AccountTrackerController ?? { accounts: {} },
@@ -1120,6 +1091,27 @@ export class Engine {
       },
     });
 
+    const snapInterfaceControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapInterfaceController',
+        allowedActions: [
+          'PhishingController:maybeUpdateState',
+          'PhishingController:testOrigin',
+          'ApprovalController:hasRequest',
+          'ApprovalController:acceptRequest',
+          'SnapController:get',
+        ],
+        allowedEvents: [
+          'NotificationServicesController:notificationsListUpdated',
+        ],
+      });
+
+    const snapInterfaceController = new SnapInterfaceController({
+      messenger:
+        snapInterfaceControllerMessenger as unknown as SnapInterfaceControllerMessenger,
+      state: initialState.SnapInterfaceController,
+    });
+
     const authenticationController = new AuthenticationController.Controller({
       state: initialState.AuthenticationController,
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1187,8 +1179,8 @@ export class Engine {
           'AuthenticationController:performSignIn',
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
-          AccountsControllerListAccountsAction,
-          AccountsControllerUpdateAccountMetadataAction,
+          'AccountsController:listAccounts',
+          'AccountsController:updateAccountMetadata',
           'NetworkController:getState',
           'NetworkController:addNetwork',
           'NetworkController:removeNetwork',
@@ -1197,8 +1189,8 @@ export class Engine {
         allowedEvents: [
           'KeyringController:unlock',
           'KeyringController:lock',
-          AccountsControllerAccountAddedEvent,
-          AccountsControllerAccountRenamedEvent,
+          'AccountsController:accountAdded',
+          'AccountsController:accountRenamed',
           'NetworkController:networkRemoved',
         ],
       }),
@@ -1296,15 +1288,10 @@ export class Engine {
       getNetworkState: () => networkController.state,
       hooks: {
         publish: (transactionMeta) => {
-          const state = store.getState();
-          const shouldUseSmartTransaction =
-            selectShouldUseSmartTransaction(state);
-          const swapsQuotes = selectSwapsQuotes(state);
-          // We can choose the top agg id for now. Once selection is enabled, we need
-          // to look for a selected agg id.
-          const swapsTopAggId = selectSwapsTopAggId(state);
-          const selectedQuote = swapsQuotes?.[swapsTopAggId];
-          const transactionFees = getGasIncludedTransactionFees(selectedQuote);
+          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+            store.getState(),
+          );
+
           return submitSmartTransactionHook({
             transactionMeta,
             transactionController: this.transactionController,
@@ -1313,8 +1300,7 @@ export class Engine {
             approvalController,
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             controllerMessenger: this.controllerMessenger,
-            featureFlags: selectSwapsChainFeatureFlags(state),
-            transactionFees,
+            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
           }) as Promise<{ transactionHash: string }>;
         },
       },
@@ -1337,7 +1323,7 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
-          AccountsControllerGetSelectedAccountAction,
+          'AccountsController:getSelectedAccount',
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
           `${networkController.name}:findNetworkClientIdByChainId`,
@@ -1431,7 +1417,7 @@ export class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
-            AccountsControllerGetSelectedAccountAction,
+            'AccountsController:getSelectedAccount',
             'NetworkController:getNetworkClientById',
             'NetworkController:getNetworkConfigurationByNetworkClientId',
             'NetworkController:getState',
@@ -1440,7 +1426,7 @@ export class Engine {
             'TokenListController:getState',
             'TokensController:getState',
             'TokensController:addDetectedTokens',
-            AccountsControllerGetAccountAction,
+            'AccountsController:getAccount',
           ],
           allowedEvents: [
             'KeyringController:lock',
@@ -1449,7 +1435,7 @@ export class Engine {
             'NetworkController:networkDidChange',
             'TokenListController:stateChange',
             'TokensController:stateChange',
-            AccountsControllerSelectedEvmAccountChangeEvent,
+            'AccountsController:selectedEvmAccountChange',
           ],
         }),
         trackMetaMetricsEvent: () =>
@@ -1486,7 +1472,7 @@ export class Engine {
             'NetworkController:getState',
             'NetworkController:getNetworkClientById',
             'PreferencesController:getState',
-            AccountsControllerGetSelectedAccountAction,
+            'AccountsController:getSelectedAccount',
           ],
         }),
         disabled: false,
@@ -1524,13 +1510,13 @@ export class Engine {
             'TokensController:getState',
             'NetworkController:getNetworkClientById',
             'NetworkController:getState',
-            AccountsControllerGetAccountAction,
-            AccountsControllerGetSelectedAccountAction,
+            'AccountsController:getAccount',
+            'AccountsController:getSelectedAccount',
           ],
           allowedEvents: [
             'TokensController:stateChange',
             'NetworkController:stateChange',
-            AccountsControllerSelectedEvmAccountChangeEvent,
+            'AccountsController:selectedEvmAccountChange',
           ],
         }),
         tokenPricesService: codefiTokenApiV2,
@@ -1609,6 +1595,7 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
+      SnapInterfaceController: snapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -2238,6 +2225,7 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2280,6 +2268,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,

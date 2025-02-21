@@ -286,4 +286,16 @@ class NotificationsService {
   };
 }
 
-export default new NotificationsService();
+const NotificationService = new NotificationsService();
+
+export default NotificationService;
+
+export async function requestPushPermissions() {
+  const result = await NotificationService.getAllPermissions(true);
+  return result.permission === 'authorized';
+}
+
+export async function hasPushPermission() {
+  const result = await NotificationService.getAllPermissions(false);
+  return result.permission === 'authorized';
+}

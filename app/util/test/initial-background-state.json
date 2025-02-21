@@ -218,6 +218,9 @@
     "snaps": {},
     "unencryptedSnapStates": {}
   },
+  "SnapInterfaceController": {
+    "interfaces": {}
+  },
   "SnapsRegistry": {
     "database": null,
     "databaseUnavailable": false,
