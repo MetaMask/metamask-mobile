@@ -40,7 +40,9 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
 
   const getFeesFromHex = useCallback(
     (hexFee: string) => {
-      const nativeConversionRateInBN = new BigNumber(nativeConversionRate || 1);
+      const nativeConversionRateInBN = new BigNumber(
+        nativeConversionRate as number,
+      );
       const nativeCurrencyFee = `${
         getValueFromWeiHex({
           value: hexFee,
@@ -63,13 +65,32 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         }),
       );
 
+      // This is used to check if the fee is less than $0.01 - more precise than decimalCurrentCurrencyFee
+      // Because decimalCurrentCurrencyFee is rounded to 2 decimal places
+      const preciseCurrentCurrencyFee = Number(
+        getValueFromWeiHex({
+          value: hexFee,
+          conversionRate: nativeConversionRateInBN,
+          fromCurrency: 'GWEI',
+          toCurrency: 'ETH',
+          numberOfDecimals: 3,
+          toDenomination: 'ETH',
+        }),
+      );
+
       let currentCurrencyFee;
       if (decimalCurrentCurrencyFee === 0) {
+        currentCurrencyFee = '$0.00';
+      } else if (preciseCurrentCurrencyFee < 0.01) {
         currentCurrencyFee = `< ${fiatFormatter(new BigNumber(0.01))}`;
       } else {
         currentCurrencyFee = fiatFormatter(
           new BigNumber(decimalCurrentCurrencyFee),
         );
+      }
+
+      if (!nativeConversionRate) {
+        currentCurrencyFee = null;
       }
 
       return {

@@ -54,4 +54,23 @@ describe('GasFeesDetails', () => {
     });
     expect(queryByText('$0.34')).toBeNull();
   });
+
+  it('hides fiat if nativeConversionRate is undefined', async () => {
+    const clonedStakingDepositConfirmationState = cloneDeep(
+      stakingDepositConfirmationState,
+    );
+
+    // No type is exported for CurrencyRate, so we need to cast it to the correct type
+    clonedStakingDepositConfirmationState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
+      null as unknown as {
+        conversionDate: number;
+        conversionRate: number;
+        usdConversionRate: number;
+      };
+
+    const { queryByText } = renderWithProvider(<GasFeesDetails />, {
+      state: clonedStakingDepositConfirmationState,
+    });
+    expect(queryByText('$0.34')).toBeNull();
+  });
 });
