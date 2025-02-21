@@ -21,6 +21,8 @@ describe('Multichain Network Controller Selectors', () => {
             'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
               name: 'Solana Mainnet',
               nativeCurrency: 'solana:sol/token:sol',
+              ticker: 'SOL',
+              decimals: 9,
             },
           },
         },
@@ -109,19 +111,11 @@ describe('Multichain Network Controller Selectors', () => {
 
   describe('selectSelectedNonEvmNetworkSymbol', () => {
     it('should return the selected network symbol', () => {
-      jest.mock('../../core/Multichain/utils', () => ({
-        getNonEvmNetworkSymbolByChainId: jest.fn().mockReturnValue('SOL'),
-      }));
-
       const result = selectSelectedNonEvmNetworkSymbol(mockState);
       expect(result).toBe('SOL');
     });
 
     it('should return undefined when network symbol is not found', () => {
-      jest.mock('../../core/Multichain/utils', () => ({
-        getNonEvmNetworkSymbolByChainId: jest.fn().mockReturnValue(undefined),
-      }));
-
       const modifiedState = {
         ...mockState,
         engine: {

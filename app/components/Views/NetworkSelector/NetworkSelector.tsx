@@ -293,7 +293,10 @@ const NetworkSelector = () => {
       );
     }
   };
-
+  /**
+   * This is used to check if the network has multiple RPC endpoints
+   * We need to check if the network is non-EVM because we don't support multiple RPC endpoints for EVM networks and the rpc is handled by the snap
+   */
   const showRpcSelector = Object.values(networkConfigurations)
     .filter(
       (network: NetworkConfiguration | MultichainNetworkConfiguration) =>

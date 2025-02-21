@@ -3,16 +3,8 @@ import { RootState } from '../../reducers';
 import { createSelector } from 'reselect';
 import { CaipChainId } from '@metamask/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-
-export const getNonEvmNetworkSymbolByChainId = (chainId: CaipChainId) => {
-  if (BtcScope.Mainnet === chainId) {
-    return 'BTC';
-  }
-  if (SolScope.Mainnet === chainId) {
-    return 'SOL';
-  }
-  return undefined;
-};
+import imageIcons from '../../images/image-icons';
+import { ImageSourcePropType } from 'react-native';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -29,10 +21,53 @@ export const selectSelectedNonEvmNetworkChainId = createSelector(
     multichainNetworkControllerState.selectedMultichainNetworkChainId,
 );
 
+/**
+ * This selector is used to get the non-EVM network configurations by chain ID.
+ * It extends the network configurations with additional data for non-EVM networks that doens't have a source of truth source yet.
+ *
+ * @param state - The root state object.
+ * @returns An object where the keys are chain IDs and the values are network configurations.
+ */
 export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
   selectMultichainNetworkControllerState,
-  (multichainNetworkControllerState: MultichainNetworkControllerState) =>
-    multichainNetworkControllerState.multichainNetworkConfigurationsByChainId,
+  (multichainNetworkControllerState: MultichainNetworkControllerState) => {
+    const extendedNonEvmData: Record<
+      CaipChainId,
+      {
+        decimals: number;
+        imageSource: ImageSourcePropType;
+        ticker: string;
+      }
+    > = {
+      [SolScope.Mainnet]: {
+        decimals: 9,
+        imageSource: imageIcons.SOLANA,
+        ticker: 'SOL',
+      },
+      [BtcScope.Mainnet]: {
+        decimals: 8,
+        imageSource: imageIcons.BTC,
+        ticker: 'BTC',
+      },
+    };
+    return Object.fromEntries(
+      Object.entries(
+        multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
+          {},
+      ).map(([key, network]) => [
+        key,
+        { ...network, ...extendedNonEvmData[network.chainId] },
+      ]),
+    );
+  },
+);
+
+export const selectSelectedNonEvmNetworkDecimals = createSelector(
+  selectNonEvmNetworkConfigurationsByChainId,
+  selectSelectedNonEvmNetworkChainId,
+  (nonEvmNetworkConfigurationsByChainId, selectedMultichainNetworkChainId) =>
+    nonEvmNetworkConfigurationsByChainId[selectedMultichainNetworkChainId]
+      ?.decimals,
 );
 
 export const selectSelectedNonEvmNetworkName = createSelector(
@@ -57,6 +92,8 @@ export const selectSelectedNonEvmNativeCurrency = createSelector(
 
 export const selectSelectedNonEvmNetworkSymbol = createSelector(
   selectSelectedNonEvmNetworkChainId,
-  (selectedMultichainNetworkChainId) =>
-    getNonEvmNetworkSymbolByChainId(selectedMultichainNetworkChainId),
+  selectNonEvmNetworkConfigurationsByChainId,
+  (selectedMultichainNetworkChainId, nonEvmNetworkConfigurationsByChainId) =>
+    nonEvmNetworkConfigurationsByChainId[selectedMultichainNetworkChainId]
+      ?.ticker,
 );

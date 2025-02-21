@@ -20,10 +20,7 @@ import {
 import { Hex } from '@metamask/utils';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import {
-  getNonEvmNetworkSymbolByChainId,
-  selectIsEvmNetworkSelected,
-} from '../multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
 import { BtcScope, SolAccountType, SolScope } from '@metamask/keyring-api';
 
 function getEvmState(
@@ -164,6 +161,8 @@ function getNonEvmState(
                 urls: ['https://solscan.io'],
                 defaultIndex: 0,
               },
+              ticker: 'SOL',
+              decimals: 9,
             },
             [BtcScope.Mainnet]: {
               chainId: BtcScope.Mainnet,
@@ -174,6 +173,8 @@ function getNonEvmState(
                 urls: [],
                 defaultIndex: 0,
               },
+              ticker: 'BTC',
+              decimals: 8,
             },
             [BtcScope.Testnet]: {
               chainId: BtcScope.Testnet,
@@ -399,14 +400,14 @@ describe('MultichainNonEvm Selectors', () => {
     it('returns true if account is non-EVM (bip122:*)', () => {
       const state = getNonEvmState();
       expect(selectMultichainDefaultToken(state)).toEqual({
-        symbol: getNonEvmNetworkSymbolByChainId(BtcScope.Mainnet),
+        symbol: 'BTC',
       });
     });
 
     it('returns SOL if account is Solana', () => {
       const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
       expect(selectMultichainDefaultToken(state)).toEqual({
-        symbol: getNonEvmNetworkSymbolByChainId(SolScope.Mainnet),
+        symbol: 'SOL',
       });
     });
   });

@@ -16,6 +16,7 @@ import SOLANA from './solana-logo.png';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
+import BTC from './bitcoin-logo.png';
 
 export default {
   PALM,
@@ -38,4 +39,5 @@ export default {
   'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
   SOLANA,
   FOX_LOGO,
+  BTC,
 };
