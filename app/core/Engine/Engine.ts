@@ -217,6 +217,7 @@ import {
 import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
+import { bridgeControllerInit } from './controllers/bridge-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import {
   SnapControllerClearSnapStateAction,
@@ -390,6 +391,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        BridgeController: bridgeControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName: {},
