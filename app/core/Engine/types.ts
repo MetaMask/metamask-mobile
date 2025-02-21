@@ -489,7 +489,8 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
  */
 export type ControllersToInitialize =
   | 'AccountsController'
-  | 'BridgeController';
+  | 'BridgeController'
+  | 'BridgeStatusController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
