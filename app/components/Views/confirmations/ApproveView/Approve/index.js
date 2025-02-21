@@ -634,6 +634,8 @@ class Approve extends PureComponent {
           [{ text: 'OK' }],
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
       } else {
         metrics.trackEvent(
           metrics
