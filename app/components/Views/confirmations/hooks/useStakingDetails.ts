@@ -21,7 +21,7 @@ export const useStakingDetails = () => {
 
     const nativeFiatRate = useSelector(
       (state: RootState) => selectConversionRateByChainId(state, (transactionMeta as TransactionMeta).chainId)
-    ) as number
+    ) as number;
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     const fiatAmount = weiToFiatNumber(txValueWei || '0', nativeFiatRate || 0, 2).toString();
@@ -32,4 +32,4 @@ export const useStakingDetails = () => {
     );
 
     return { apr, annualRewardsFiat, annualRewardsETH };
-  }
+  };
