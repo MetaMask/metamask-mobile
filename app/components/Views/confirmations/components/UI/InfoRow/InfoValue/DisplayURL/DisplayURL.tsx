@@ -7,7 +7,7 @@ import Icon, {
   IconSize,
 } from '../../../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../../../component-library/components/Texts/Text';
-import Logger from '../../../../../../../../util/Logger';
+// import Logger from '../../../../../../../../util/Logger';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import styleSheet from './DisplayURL.styles';
 
@@ -23,8 +23,9 @@ const DisplayURL = ({ url }: DisplayURLProps) => {
     try {
       urlObject = new URL(url);
     } catch (e) {
-      // eslint-disable-next-line no-console
-      Logger.error(e as Error, `DisplayURL: new URL(url) cannot parse ${url}`);
+      // Commenting out the line below till issue of missing protocol in origin is addressed
+      // https://github.com/MetaMask/metamask-mobile/issues/13580#issuecomment-2671458216
+      // Logger.error(e as Error, `DisplayURL: new URL(url) cannot parse ${url}`);
     }
     setIsHTTP(urlObject?.protocol === 'http:');
   }, [url]);

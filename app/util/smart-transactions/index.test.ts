@@ -9,7 +9,7 @@ import {
   type GasIncludedQuote,
 } from './index';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import type { ControllerMessenger } from '../../core/Engine';
+import type { BaseControllerMessenger } from '../../core/Engine';
 
 describe('Smart Transactions utils', () => {
   describe('getTransactionType', () => {
@@ -374,7 +374,7 @@ describe('Smart Transactions utils', () => {
   });
   describe('getSmartTransactionMetricsProperties', () => {
     let smartTransactionsController: SmartTransactionsController;
-    let controllerMessenger: ControllerMessenger;
+    let controllerMessenger: BaseControllerMessenger;
 
     beforeEach(() => {
       smartTransactionsController = {
@@ -382,7 +382,7 @@ describe('Smart Transactions utils', () => {
       } as unknown as SmartTransactionsController;
       controllerMessenger = {
         subscribe: jest.fn(),
-      } as unknown as ControllerMessenger;
+      } as unknown as BaseControllerMessenger;
     });
 
     it('returns empty object if transactionMeta is undefined', async () => {
