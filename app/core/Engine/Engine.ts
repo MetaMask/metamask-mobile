@@ -235,6 +235,7 @@ import {
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
+import { bridgeStatusControllerInit } from './controllers/bridge-status-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -397,6 +398,7 @@ export class Engine {
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
         BridgeController: bridgeControllerInit,
+        BridgeStatusController: bridgeStatusControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName: {},

@@ -209,6 +209,7 @@ import {
   MultichainNetworkControllerEvents,
 } from '@metamask/multichain-network-controller';
 import { BridgeController, BridgeControllerActions } from '@metamask/bridge-controller';
+import { BridgeStatusController } from '@metamask/bridge-status-controller';
 
 /**
  * Controllers that area always instantiated
@@ -361,6 +362,7 @@ export type Controllers = {
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   BridgeController: BridgeController;
+  BridgeStatusController: BridgeStatusController;
   CurrencyRateController: CurrencyRateController;
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
