@@ -566,7 +566,10 @@ class Approve extends PureComponent {
                 assetType: 'ETH',
               });
             } else {
-              throw transactionMeta.error;
+              Logger.error(
+                transactionMeta.error,
+                'error while trying to finish a transaction (Approve)',
+              );
             }
           },
           (transactionMeta) => transactionMeta.id === transaction.id,
