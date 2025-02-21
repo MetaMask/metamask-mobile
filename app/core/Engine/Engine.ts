@@ -407,7 +407,7 @@ export class Engine {
 
     const accountsController = controllersByName.AccountsController;
     const bridgeController = controllersByName.BridgeController;
-
+    const bridgeStatusController = controllersByName.BridgeStatusController;
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 
     const multichainAssetsControllerMessenger =
@@ -1417,6 +1417,7 @@ export class Engine {
       }),
       AssetsContractController: assetsContractController,
       BridgeController: bridgeController,
+      BridgeStatusController: bridgeStatusController,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
