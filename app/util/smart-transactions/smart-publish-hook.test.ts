@@ -166,11 +166,11 @@ function withRequest<ReturnValue>(
     .spyOn(smartTransactionsController, 'getFees')
     .mockResolvedValue({
       tradeTxFees: {
+        cancelFees: [],
         feeEstimate: 42000000000000,
+        fees: [{ maxFeePerGas: 12843636951, maxPriorityFeePerGas: 2853145236 }],
         gasLimit: 21000,
         gasUsed: 21000,
-        cancelFees: [],
-        fees: [{ maxFeePerGas: 12843636951, maxPriorityFeePerGas: 2853145236 }],
       },
       approvalTxFees: null,
     });
@@ -185,7 +185,6 @@ function withRequest<ReturnValue>(
     transactionMeta: {
       ...defaultTransactionMeta,
     },
-    transactionFees: undefined,
     smartTransactionsController,
     controllerMessenger: messenger,
     transactionController: createTransactionControllerMock(),
@@ -695,32 +694,6 @@ describe('submitSmartTransactionHook', () => {
       await submitSmartTransactionHook(request);
 
       expect(setStatusRefreshIntervalSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  it('uses provided transaction fees instead of fetching new ones if provided', async () => {
-    withRequest(async ({ request, getFeesSpy }) => {
-      const transactionFees = {
-        tradeTxFees: {
-          feeEstimate: 41000000000000,
-          gasLimit: 21000,
-          gasUsed: 21000,
-          cancelFees: [],
-          fees: [{ maxFeePerGas: 13843636951, maxPriorityFeePerGas: 2953145236 }],
-        },
-        approvalTxFees: null,
-      };
-      request.transactionFees = transactionFees;
-      await submitSmartTransactionHook(request);
-      expect(getFeesSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  it('fetches new fees if no transaction fees provided', async () => {
-    withRequest(async ({ request, getFeesSpy }) => {
-      request.transactionFees = undefined;
-      await submitSmartTransactionHook(request);
-      expect(getFeesSpy).toHaveBeenCalled();
     });
   });
 });
