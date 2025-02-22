@@ -76,7 +76,6 @@ const VerifyContractDetails = ({
     });
   }, [contractAddress, tokenAddress, savedContactListToArray]);
 
-  // TODO: [SOLANA] - before ship make sure block explorer supports Solana
   const showBlockExplorerIcon = useCallback(() => {
     if (providerType === RPC && isEvmSelected) {
       return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);

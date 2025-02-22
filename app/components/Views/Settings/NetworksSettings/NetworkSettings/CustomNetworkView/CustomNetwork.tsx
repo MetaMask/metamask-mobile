@@ -43,7 +43,6 @@ const CustomNetwork = ({
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
   const { safeChains } = useSafeChains();
-  // TODO: [SOLANA] - before ship make sure this supports non evm networks
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {
       const isAdded = Object.values(networkConfigurations).some(
