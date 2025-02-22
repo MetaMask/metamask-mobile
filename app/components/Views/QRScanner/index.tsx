@@ -5,7 +5,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import { isValidAddress } from 'ethereumjs-util';
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
   TextVariant,
@@ -46,6 +46,7 @@ const QRScanner = ({
   onScanError?: (error: string) => void;
   origin?: string;
 }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
   const navigation = useNavigation();
 
   const mountedRef = useRef<boolean>(true);
@@ -57,6 +58,7 @@ const QRScanner = ({
 
   const end = useCallback(() => {
     mountedRef.current = false;
+    setIsProcessing(false);
     navigation.goBack();
   }, [mountedRef, navigation]);
 
@@ -98,6 +100,10 @@ const QRScanner = ({
 
   const onBarCodeRead = useCallback(
     async (response) => {
+      if (isProcessing) {
+        return;
+      }
+      setIsProcessing(true);
       let content = response.data;
       /**
        * Barcode read triggers multiple times
