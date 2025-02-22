@@ -324,7 +324,8 @@ const Wallet = ({
   const name = useSelector(selectNetworkName);
 
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
-
+  // eslint-disable-next-line no-console
+  console.log('NETWORK NAME', networkName);
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
@@ -342,6 +343,7 @@ const Wallet = ({
       : detectedTokens;
   const allNetworks = useSelector(selectNetworkConfigurations);
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
+  // eslint-disable-next-line no-console
 
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off

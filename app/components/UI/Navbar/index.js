@@ -592,9 +592,15 @@ export function getSendFlowTitle(
     title !== 'send.send_to' && !route?.params?.isPaymentRequest;
 
   const titleToRender = title;
-
+  const REMOVE_GNS_DESIGN = process.env.MM_REMOVE_GNS_DESIGN === '0';
+  const showSelectedNetwork = REMOVE_GNS_DESIGN;
   return {
-    headerTitle: () => <NavbarTitle title={titleToRender} disableNetwork />,
+    headerTitle: () => (
+      <NavbarTitle
+        title={titleToRender}
+        showSelectedNetwork={!showSelectedNetwork}
+      />
+    ),
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity

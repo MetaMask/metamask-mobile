@@ -6,13 +6,20 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddressList from '../AddressList';
-import Text from '../../../../Base/Text';
+import Text from '../../../../../component-library/components/Texts/Text';
+import { IconSize } from '../../../../../component-library/components/Icons/Icon';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
+import PickerBase from '../../../../../component-library/components/Pickers/PickerBase';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { handleNetworkSwitch } from '../../../../../util/networks/handleNetworkSwitch';
+import { createAccountSelectorNavDetails } from '../../../../../components/Views/AccountSelector';
 import {
   isENS,
   isValidHexAddress,
@@ -46,8 +53,13 @@ import {
   // eslint-disable-next-line no-restricted-syntax
   selectChainId,
   selectNativeCurrencyByChainId,
-  selectProviderTypeByChainId
+  selectProviderTypeByChainId,
+  selectNetworkConfigurations,
 } from '../../../../../selectors/networkController';
+import {
+  // selectNetworkName, // possibly use this instead of networkConfigurations
+  selectNetworkImageSource,
+} from '../../../../../selectors/networkInfos';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccountFormattedAddress,
@@ -144,6 +156,14 @@ class SendFlow extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Network name
+     */
+    networkName: PropTypes.string,
+    /**
+     * Network image source
+     */
+    networkImageSource: PropTypes.string,
   };
 
   addressToInputRef = React.createRef();
@@ -331,9 +351,6 @@ class SendFlow extends PureComponent {
   };
 
   renderBuyEth = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
     if (!this.props.isNativeTokenBuySupported) {
       return null;
     }
@@ -389,8 +406,8 @@ class SendFlow extends PureComponent {
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
       : matchingAccount
-        ? matchingAccount.metadata.name
-        : null;
+      ? matchingAccount.metadata.name
+      : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
@@ -482,7 +499,13 @@ class SendFlow extends PureComponent {
   };
 
   render = () => {
-    const { ticker, addressBook, globalChainId } = this.props;
+    const {
+      ticker,
+      addressBook,
+      globalChainId,
+      networkName,
+      networkImageSource,
+    } = this.props;
     const {
       toAccount,
       toSelectedAddressReady,
@@ -523,7 +546,28 @@ class SendFlow extends PureComponent {
         style={styles.wrapper}
         {...generateTestId(Platform, SendViewSelectorsIDs.CONTAINER_ID)}
       >
-        <View style={styles.imputWrapper}>
+        <View style={styles.accountSelectorWrapper}>
+          <PickerBase
+            iconSize={IconSize.Xs}
+            style={styles.base}
+            dropdownIconStyle={styles.dropDownIcon}
+          >
+            <View style={styles.row}>
+              <View style={styles.avatarWrapper}>
+                <Avatar
+                  variant={AvatarVariant.Network}
+                  size={AvatarSize.Xs}
+                  name={networkName}
+                  imageSource={networkImageSource}
+                  // testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER}
+                  accessibilityLabel={networkName}
+                />
+              </View>
+              <Text>{networkName}</Text>
+            </View>
+          </PickerBase>
+        </View>
+        <View style={styles.inputWrapper}>
           <SendFlowAddressFrom
             chainId={globalChainId}
             fromAccountBalanceState={this.fromAccountBalanceState}
@@ -704,6 +748,9 @@ const mapStateToProps = (state) => {
       getRampNetworks(state),
     ),
     ambiguousAddressEntries: state.user.ambiguousAddressEntries,
+    networkName:
+      selectNetworkConfigurations(state)?.[globalChainId]?.name || '',
+    networkImageSource: selectNetworkImageSource(state),
   };
 };
 

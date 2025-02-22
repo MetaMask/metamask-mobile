@@ -24,6 +24,7 @@ const createStyles = (colors, layout = 'horizontal') => {
   const isVerticalLayout = layout === 'vertical';
   return StyleSheet.create({
     wrapper: {
+      marginTop: 12,
       flexDirection: isVerticalLayout ? 'column' : 'row',
       marginHorizontal: 8,
       minHeight: isVerticalLayout ? 82 : 52,
@@ -144,7 +145,7 @@ const createStyles = (colors, layout = 'horizontal') => {
       color: colors.primary.default,
     },
     borderOpaque: {
-      borderColor: colors.border.default,
+      borderColor: colors.border.muted,
     },
     borderHighlighted: {
       borderColor: colors.primary.default,
@@ -237,7 +238,7 @@ export const AddressTo = (props) => {
     displayExclamation,
     isConfirmScreen = false,
     isFromAddressBook = false,
-    layout = 'horizontal',
+    layout = 'vertical',
   } = props;
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors, layout);
@@ -314,7 +315,7 @@ export const AddressTo = (props) => {
   return (
     <View style={styles.wrapper}>
       <View style={styles.label}>
-        <Text style={styles.labelText}>To:</Text>
+        <Text style={styles.labelText}>To</Text>
       </View>
       {!addressToReady ? (
         <View
@@ -564,7 +565,7 @@ export const AddressFrom = (props) => {
     fromAccountName,
     fromAccountBalance,
     fromAccountAddress,
-    layout = 'horizontal',
+    layout = 'vertical',
   } = props;
   const { colors } = useTheme();
   const styles = createStyles(colors, layout);
@@ -572,7 +573,7 @@ export const AddressFrom = (props) => {
   return (
     <View style={styles.wrapper}>
       <View style={styles.label}>
-        <Text style={styles.labelText}>From:</Text>
+        <Text style={styles.labelText}>From</Text>
       </View>
       <View
         style={[
