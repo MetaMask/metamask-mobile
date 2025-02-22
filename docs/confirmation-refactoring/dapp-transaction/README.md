@@ -34,7 +34,7 @@ This is covered already in document for refactoring Approve flow [here](https://
 
 ### Other Code Improvements:
 
-Most of these points are covered in previous documents, but addding these here also as these are application to DAPP transaction related components also:
+Most of these points are covered in previous documents, but adding these here also as these are application to DAPP transaction related components also:
 
 1. Code to start / stop gas polling is duplicated at couple of places and should be moved to a re-usable hook.
 2. As detailed in refactoring send flow document, a lot of components have logic to `updateNavBar` as [here](https://github.com/MetaMask/metamask-mobile/blob/e3f89a49a672b7c74419b4c6c9fc34a3ae9be023/app/components/Views/Approval/index.js#L121). This can be refactored out into a reusable hook.
