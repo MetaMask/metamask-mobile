@@ -16,6 +16,7 @@ import Button from '../../../../UI/Button';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ADD_FAVORITES_OPTION,
+  EXPAND_OPTION,
   MENU_ID,
   NEW_TAB_OPTION,
   OPEN_FAVORITES_OPTION,
@@ -50,6 +51,7 @@ interface OptionsProps {
   sessionENSNames: SessionENSNames;
   favicon: ImageSourcePropType;
   icon: MutableRefObject<ImageSourcePropType | undefined>;
+  onExpand: () => void;
 }
 
 /**
@@ -68,6 +70,7 @@ const Options = ({
   sessionENSNames,
   favicon,
   icon,
+  onExpand
 }: OptionsProps) => {
   // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -93,6 +96,7 @@ const Options = ({
       createEventBuilder(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER).build(),
     );
   };
+
   /**
    * Go to favorites page
    */
@@ -287,7 +291,7 @@ const Options = ({
         {renderShareOption()}
         <Button onPress={openInBrowser} style={styles.option}>
           <View style={styles.optionIconWrapper}>
-            <Icon name="expand" size={16} style={styles.optionIcon} />
+            <Icon name="external-link" size={16} style={styles.optionIcon} />
           </View>
           <Text
             style={styles.optionText}
@@ -295,6 +299,18 @@ const Options = ({
             {...generateTestId(Platform, OPEN_IN_BROWSER_OPTION)}
           >
             {strings('browser.open_in_browser')}
+          </Text>
+        </Button>
+        <Button onPress={onExpand} style={styles.option}>
+          <View style={styles.optionIconWrapper}>
+            <Icon name="expand" size={16} style={styles.optionIcon} />
+          </View>
+          <Text
+            style={styles.optionText}
+            numberOfLines={2}
+            {...generateTestId(Platform, EXPAND_OPTION)}
+          >
+            {strings('browser.expand')}
           </Text>
         </Button>
       </React.Fragment>

@@ -1020,6 +1020,7 @@ enum DESCRIPTION {
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
   DAPP_GO_TO_FAVORITES = 'Go to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
+  DAPP_EXPAND = 'Expand',
   // Wallet
   WALLET_TOKENS = 'Tokens',
   WALLET_COLLECTIBLES = 'Collectibles',
@@ -1139,6 +1140,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.DAPP_VIEW,
     ACTIONS.DAPP_VIEW,
     DESCRIPTION.DAPP_OPEN_IN_BROWSER,
+  ),
+  DAPP_EXPAND: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.DAPP_EXPAND,
   ),
   DAPP_GO_TO_FAVORITES: generateOpt(
     EVENT_NAME.DAPP_VIEW,

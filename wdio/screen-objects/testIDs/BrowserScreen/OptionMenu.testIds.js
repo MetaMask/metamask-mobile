@@ -12,4 +12,6 @@ export const SHARE_OPTION = 'browser-options-menu-share';
 
 export const OPEN_IN_BROWSER_OPTION = 'browser-options-menu-open-in-browser';
 
+export const EXPAND_OPTION = 'browser-options-menu-expand';
+
 export const SWITCH_NETWORK_OPTION = 'browser-options-switch-browser';

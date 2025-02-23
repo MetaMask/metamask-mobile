@@ -151,6 +151,14 @@ const styleSheet = ({ theme: { colors, shadows } }: { theme: Theme }) => {
       right: 16,
       borderRadius: 4,
     },
+    unexpandButton: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      backgroundColor: colors.primary.muted,
+      borderRadius: 20,
+      padding: 5,
+    }
   });
 };
 

@@ -12,8 +12,10 @@ import {
   ImageSourcePropType,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import { isEqual } from 'lodash';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { isEqual, set } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import { connect, useSelector } from 'react-redux';
@@ -146,6 +148,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const [blockedUrl, setBlockedUrl] = useState<string>();
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
   const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
   const webviewRef = useRef<WebView>(null);
@@ -436,6 +439,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       newTab(newTabUrl);
     },
     [dismissTextSelectionIfNeeded, newTab, toggleOptionsIfNeeded],
+  );
+
+  const expandBrowser = useCallback(
+    () => {
+      toggleOptionsIfNeeded();
+      setIsExpanded(true);
+    },
+    [toggleOptionsIfNeeded],
   );
 
   /**
@@ -1007,6 +1018,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   };
 
   /**
+  * Hide the header and the controls 
+  */
+  const onExpand = () => {
+    expandBrowser();
+  };
+
+  /**
    * Show the different tabs
    */
   const triggerShowTabs = () => {
@@ -1170,6 +1188,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       />
     ) : null;
 
+
+    const renderUnExpandButton = () => (
+      <TouchableWithoutFeedback onPress={() => {
+        setIsExpanded(false);
+      }}>
+        <View style={styles.unexpandButton}>
+          <Icon name="compress" size={24} color="colors.primary" />
+        </View>
+      </TouchableWithoutFeedback>
+    );
+
   /**
    * Handle autocomplete selection
    */
@@ -1312,7 +1341,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           style={styles.wrapper}
           {...(Device.isAndroid() ? { collapsable: false } : {})}
         >
-          <BrowserUrlBar
+          {!isExpanded && <BrowserUrlBar
             ref={urlBarRef}
             connectionType={connectionType}
             onSubmitEditing={onSubmitEditing}
@@ -1324,7 +1353,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             activeUrl={resolvedUrlRef.current}
             setIsUrlBarFocused={setIsUrlBarFocused}
             isUrlBarFocused={isUrlBarFocused}
-          />
+          />}
           <View style={styles.wrapper}>
             {renderProgressBar()}
             <View style={styles.webview}>
@@ -1399,6 +1428,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             <Options
               toggleOptions={toggleOptions}
               onNewTabPress={onNewTabPress}
+              onExpand={onExpand}
               toggleOptionsIfNeeded={toggleOptionsIfNeeded}
               activeUrl={resolvedUrlRef.current}
               isHomepage={isHomepage}
@@ -1411,8 +1441,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               icon={iconRef}
             />
           )}
-
-          {renderBottomBar()}
+          {isExpanded && renderUnExpandButton()}
+          {!isExpanded && renderBottomBar()}
           {isTabActive && renderOnboardingWizard()}
         </View>
       </KeyboardAvoidingView>
