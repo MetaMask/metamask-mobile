@@ -96,7 +96,12 @@ describe('Confirm', () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
     });
-    expect(getByText('0.0001 ETH')).toBeDefined();
+    expect(getByText('APR')).toBeDefined();
+    expect(getByText('Est. annual reward')).toBeDefined();
+    expect(getByText('Reward frequency')).toBeDefined();
+    expect(getByText('Withdrawal time')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Advanced details')).toBeDefined();
   });
 
   it('renders blockaid banner if confirmation has blockaid error response', async () => {
