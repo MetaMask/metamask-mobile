@@ -123,7 +123,7 @@ import {
 } from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
-import { useSwapsSmartTransactions } from './utils/useHandleSwapsSmartTransaction';
+import { useSwapsSmartTransactions } from './utils/useSwapsSmartTransaction';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -530,11 +530,10 @@ function SwapsQuotesView({
     [customGasEstimate, usedGasEstimate],
   );
 
-  const { submitSmartApprovalTransaction, submitSmartTradeTransaction } =
-    useSwapsSmartTransactions({
-      tradeTransaction: selectedQuote?.trade,
-      gasEstimates,
-    });
+  const { submitSwapsSmartTransaction } = useSwapsSmartTransactions({
+    tradeTransaction: selectedQuote?.trade,
+    gasEstimates,
+  });
 
   const initialGasLimit = useMemo(() => {
     if (!selectedQuote) {
@@ -1098,11 +1097,7 @@ function SwapsQuotesView({
     let approvalTransactionMetaId;
 
     if (shouldUseSmartTransaction) {
-      if (approvalTransaction) {
-        await submitSmartApprovalTransaction();
-      }
-
-      await submitSmartTradeTransaction();
+      await submitSwapsSmartTransaction();
     } else {
       if (approvalTransaction) {
         approvalTransactionMetaId = await handleApprovalTransaction(
@@ -1130,8 +1125,7 @@ function SwapsQuotesView({
     handleSwapTransaction,
     navigation,
     shouldUseSmartTransaction,
-    submitSmartApprovalTransaction,
-    submitSmartTradeTransaction,
+    submitSwapsSmartTransaction,
   ]);
 
   const onEditQuoteTransactionsGas = useCallback(() => {

@@ -11,8 +11,6 @@ import { Hex } from '@metamask/utils';
 interface TemporarySmartTransactionGasFees {
   maxFeePerGas: string;
   maxPriorityFeePerGas: string;
-  gas: string;
-  value: string;
 }
 
 const createSignedTransactions = async (
@@ -48,7 +46,7 @@ const createSignedTransactions = async (
 
 const submitSmartTransaction = async ({
   unsignedTransaction,
-  smartTransactionFees, // TODO need this, extension uses fetchSmartTransactionFees
+  smartTransactionFees,
   chainId,
   isEIP1559Network,
   gasEstimates,
@@ -110,30 +108,53 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
   const isEIP1559Network = useSelector(selectIsEIP1559Network);
   const approvalTransaction: TxParams = useSelector(selectSwapsApprovalTransaction);
 
-  const submitSmartApprovalTransaction = async () => {
+  // We don't need to await on the approval tx to be confirmed on chain. We can simply submit both the approval and trade tx at the same time.
+  // Sentinel will batch them for us and ensure they are executed in the correct order.
+  const submitSwapsSmartTransaction = async () => {
+    // Calc fees
+    const smartTransactionFees = await Engine.context.SmartTransactionsController.getFees(tradeTransaction, approvalTransaction);
+
+    // Approval transaction (if it exists)
     let approvalTxUuid: string | undefined;
-    if (approvalTransaction) {
+    if (approvalTransaction && smartTransactionFees.approvalTxFees) {
+      const approvalGas = decimalToHex(smartTransactionFees.approvalTxFees.gasLimit).toString() || '0';
+
       approvalTxUuid = await submitSmartTransaction({
-        unsignedTransaction: {...approvalTransaction, chainId},
+        unsignedTransaction: {
+          ...approvalTransaction,
+          chainId,
+          value: '0x0',
+          gas: approvalGas,
+        },
         smartTransactionFees: {
-          fees: [],
-          cancelFees: [],
+          fees: smartTransactionFees.approvalTxFees.fees.map((fee) => ({
+            maxFeePerGas: fee.maxFeePerGas.toString(),
+            maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
+          })),
+          cancelFees: smartTransactionFees.approvalTxFees.cancelFees.map((fee) => ({
+            maxFeePerGas: fee.maxFeePerGas.toString(),
+            maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
+          })),
         },
         chainId,
         isEIP1559Network,
         gasEstimates,
       });
     }
-    return approvalTxUuid;
-  };
 
-  const submitSmartTradeTransaction = async () => {
-    console.log('HELLO 1 submitSmartTradeTransaction');
-    const tradeTxUuid: string = await submitSmartTransaction({
-      unsignedTransaction: {...tradeTransaction, chainId},
+    // Trade transaction
+    const tradeGas = decimalToHex(smartTransactionFees.tradeTxFees?.gasLimit || 0).toString();
+    const tradeTxUuid = await submitSmartTransaction({
+      unsignedTransaction: {...tradeTransaction, chainId, gas: tradeGas},
       smartTransactionFees: {
-        fees: [],
-        cancelFees: [],
+        fees: smartTransactionFees.tradeTxFees?.fees.map((fee) => ({
+          maxFeePerGas: fee.maxFeePerGas.toString(),
+          maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
+        })) || [],
+        cancelFees: smartTransactionFees.tradeTxFees?.cancelFees.map((fee) => ({
+          maxFeePerGas: fee.maxFeePerGas.toString(),
+          maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
+        })) || [],
       },
       chainId,
       isEIP1559Network,
@@ -142,5 +163,5 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
     return tradeTxUuid;
   };
 
-  return { submitSmartApprovalTransaction, submitSmartTradeTransaction };
+  return { submitSwapsSmartTransaction };
 };
