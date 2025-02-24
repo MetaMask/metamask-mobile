@@ -54,8 +54,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 describe('Confirm', () => {
-  // TODO: Add tests for flat confirmation
-
   it('renders modal confirmation', async () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: typedSignV1ConfirmationState,
