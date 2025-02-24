@@ -398,6 +398,7 @@ export const unrestrictedMethods = Object.freeze([
   'metamask_logWeb3ShimUsage',
   'wallet_switchEthereumChain',
   'wallet_addEthereumChain',
+  'wallet_swapAsset',
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   'wallet_getAllSnaps',
   'wallet_getSnaps',

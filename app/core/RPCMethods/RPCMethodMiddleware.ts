@@ -11,13 +11,25 @@ import {
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import { ChainId, NetworkType } from '@metamask/controller-utils';
+import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import {
   PermissionController,
   permissionRpcMethods,
 } from '@metamask/permission-controller';
-import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
-import { polyfillGasPrice } from './utils';
+import {
+  CaipAccountAddress,
+  CaipAccountId,
+  CaipChainId,
+  CaipNamespace,
+  CaipReference,
+  parseCaipAccountId,
+} from '@metamask/utils';
+import {
+  blockTagParamIndex,
+  getAllNetworks,
+  getNetworkNameFromProviderConfig,
+} from '../../util/networks';
+import { polyfillGasPrice, validateParams } from './utils';
 import {
   processOriginThrottlingRejection,
   validateOriginThrottling,
@@ -32,13 +44,20 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { selectProviderConfig } from '../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
+import { swapsLivenessSelector } from '../../reducers/swaps/index.js';
+import { isSwapsAllowed } from '../../components/UI/Swaps/utils/index.js';
+import { fromWei } from '../../util/number/index.js';
 import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
+import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import Routes from '../../constants/navigation/Routes';
 import { endTrace, trace, TraceName } from '../../util/trace';
 import {
@@ -399,6 +418,141 @@ export const getRpcMethodMiddleware = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcMethods: any = {
+      wallet_swapAsset: async () => {
+        const accounts = await getPermittedAccounts(origin);
+
+        const permittedAccounts = accounts.map(safeToChecksumAddress);
+        const { fromToken, toToken, userAddress } = req.params[0];
+        const selectedAddress = selectSelectedInternalAccountFormattedAddress(
+          store.getState(),
+        );
+        // Implement on utils repo a interface for this
+        let parsedCaip10UserAddress: {
+          address: CaipAccountAddress;
+          chainId: CaipChainId;
+          chain: { namespace: CaipNamespace; reference: CaipReference };
+        };
+        try {
+          parsedCaip10UserAddress = parseCaipAccountId(
+            userAddress as CaipAccountId,
+          );
+        } catch (error) {
+          throw rpcErrors.invalidParams('Invalid caip-10 user address');
+        }
+        if (parsedCaip10UserAddress.chain.namespace !== 'eip155') {
+          throw new Error('Only support Ethereum addresses at the moment');
+        }
+
+        const dappConnectedAccount = permittedAccounts.find((address) => {
+          if (!address) return undefined;
+          return (
+            safeToChecksumAddress(address) ===
+            safeToChecksumAddress(parsedCaip10UserAddress.address)
+          );
+        });
+
+        if (!dappConnectedAccount) {
+          throw rpcErrors.invalidParams(
+            'The swap could not be completed as requested',
+          );
+        }
+
+        // This condition is only needed until we support multiple source tokens swap
+        if (fromToken.length > 1) {
+          throw rpcErrors.methodNotSupported(
+            'Currently we de not support multiple tokens swap',
+          );
+        }
+
+        validateParams(fromToken[0], ['address'], 'fromToken');
+        validateParams(toToken, ['address'], 'toToken');
+
+        // Implement on utils repo a interface for this
+        let parsedCaip10FromTokenAddress: {
+          address: CaipAccountAddress;
+          chainId: CaipChainId;
+          chain: { namespace: CaipNamespace; reference: CaipReference };
+        };
+        try {
+          parsedCaip10FromTokenAddress = parseCaipAccountId(
+            fromToken[0].address,
+          );
+        } catch (error) {
+          throw rpcErrors.invalidParams('Invalid caip-10 fromToken address');
+        }
+
+        if (parsedCaip10FromTokenAddress.chain.namespace !== 'eip155') {
+          throw new Error('Only support Ethereum addresses at the moment');
+        }
+
+        // Implement on utils repo a interface for this
+        let parsedCaip10ToTokenAddress: {
+          address: CaipAccountAddress;
+          chainId: CaipChainId;
+          chain: { namespace: CaipNamespace; reference: CaipReference };
+        };
+        try {
+          parsedCaip10ToTokenAddress = parseCaipAccountId(toToken.address);
+        } catch (error) {
+          throw rpcErrors.invalidParams('Invalid caip-10 toToken address');
+        }
+
+        if (parsedCaip10ToTokenAddress.chain.namespace !== 'eip155') {
+          throw new Error('Only support Ethereum addresses at the moment');
+        }
+
+        if (
+          parsedCaip10FromTokenAddress.chainId !==
+          parsedCaip10ToTokenAddress.chainId
+        ) {
+          throw rpcErrors.methodNotSupported(
+            'Cross-chain swaps are currently not supported. Both fromToken and toToken must be on the same blockchain.',
+          );
+        }
+
+        const chainId = selectChainId(store.getState());
+
+        if (chainId !== toHex(parsedCaip10FromTokenAddress.chain.reference)) {
+          throw rpcErrors.invalidParams(
+            `Invalid parameters: active chainId is different than the one provided.`,
+          );
+        }
+
+        const checksummedDappConnectedAccount =
+          safeToChecksumAddress(dappConnectedAccount);
+
+        if (selectedAddress !== checksummedDappConnectedAccount) {
+          Engine.setSelectedAddress(checksummedDappConnectedAccount);
+        }
+
+        // switch to the chain id asked from the dapp
+        // validate if swaps is enable on that   network
+        const swapsIsLive = swapsLivenessSelector(store.getState());
+        const isSwappable = isSwapsAllowed(chainId) && swapsIsLive;
+
+        if (!isSwappable) {
+          const providerConfig = selectProviderConfig(store.getState());
+
+          const networkName = getNetworkNameFromProviderConfig(providerConfig);
+
+          Alert.alert(`Swap is not available on this chain ${networkName}`);
+          throw rpcErrors.methodNotSupported(
+            `Swap is not available on this chain ${networkName}`,
+          );
+        }
+        //If value is not defined by the dapp it defaults to 0
+        const decimalWei = parseInt(fromToken[0].value ?? 0, 16);
+        const tokenAmount = fromWei(decimalWei);
+
+        navigation.navigate('Swaps', {
+          screen: 'SwapsAmountView',
+          params: {
+            sourceToken: parsedCaip10FromTokenAddress.address,
+            destinationToken: parsedCaip10ToTokenAddress.address,
+            amount: tokenAmount,
+          },
+        });
+      },
       wallet_getPermissions: async () =>
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
