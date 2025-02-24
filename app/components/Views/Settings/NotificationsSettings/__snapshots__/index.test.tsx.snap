@@ -22,6 +22,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
           "marginTop": 16,
         }
       }
+      testID="main-notification-toggle"
     >
       <Text
         accessibilityRole="text"
@@ -61,6 +62,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
             ],
           ]
         }
+        testID="main-notification-toggle--switch"
         thumbTintColor="#ffffff"
         tintColor="#BBC0C566"
         value={false}
@@ -101,6 +103,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
               "lineHeight": 22,
             }
           }
+          testID="main-notification-toggle--learn-more-button"
         >
           Learn how we protect your privacy while using this feature.
         </Text>

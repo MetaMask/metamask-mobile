@@ -4586,7 +4586,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.2", "@metamask/base-controller@^7.0.3", "@metamask/base-controller@^7.1.0", "@metamask/base-controller@^7.1.1":
+"@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.2", "@metamask/base-controller@^7.0.3", "@metamask/base-controller@^7.1.1":
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.1.1.tgz#837216ee099563b2106202fa0ed376dc909dfbb9"
   integrity sha512-4nbA6RL9y0SdHdn4MmMTREX6ISJL7OGHn0GXXszv0tp1fdjsn+SBs28uu1a9ceg1J7R/lO6JH7jAAz8zRtt8Nw==
@@ -5399,14 +5399,14 @@
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
-"@metamask/remote-feature-flag-controller@^1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.3.0.tgz#b83fc08c413b229b24046c84e2599d4dab2bafd8"
-  integrity sha512-h5DnnqbFxLsm8N98rrlVwUpQvvH03epb+1YhRMghIKa5WtjyoERV2wp0MuSH8l2Or4+ccx8eLv/X2bsnmtujGw==
+"@metamask/remote-feature-flag-controller@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.5.0.tgz#3a5078d698c1e603e51c4d3f155ce9d228ae07ea"
+  integrity sha512-r+t/t3jKjpsVdoOVWWt6ulZHRhQn8gAMLID1l0QvQgmzQy87ayTDU7WAnyw+jFyO4z+OA/uCwj4EwN+M2rPXgA==
   dependencies:
-    "@metamask/base-controller" "^7.1.0"
-    "@metamask/utils" "^11.0.1"
-    cockatiel "^3.1.2"
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/utils" "^11.2.0"
     uuid "^8.3.2"
 
 "@metamask/rpc-errors@7.0.2", "@metamask/rpc-errors@^6.2.1", "@metamask/rpc-errors@^7.0.0", "@metamask/rpc-errors@^7.0.2":
@@ -5650,9 +5650,9 @@
     validate-npm-package-name "^5.0.0"
 
 "@metamask/solana-wallet-snap@^1.6.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.6.0.tgz#3b5a2f69d4cfd8b9817c7ef06c6737c365a89b69"
-  integrity sha512-KMyi5BOUVO1Tl1ypnDzVfhYkgQwJxkRgGb43lrVdncpHCtruholGuEw5d5LhNOJORcDKTfzaD1+wfcT2M2C8lA==
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.7.0.tgz#218a4f3a6cead9c3074b603fc0c26097ca04b975"
+  integrity sha512-sugayOl93m19e9rEnkZj3sy1QXpUqt9k3SfHUosOHSWAdT+tHtz8tGzy8Chgz9vECuZGwT7jotvbJ1PYBpOsjA==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"
@@ -9836,6 +9836,11 @@
   version "2.0.40"
   resolved "https://registry.yarnpkg.com/@types/hammerjs/-/hammerjs-2.0.40.tgz#ded0240b6ea1ad7afc1e60374c49087aaea5dbd8"
   integrity sha512-VbjwR1fhsn2h2KXAY4oy1fm7dCxaKy0D+deTb8Ilc3Eo3rc5+5eA4rfYmZaHgNJKxVyI0f6WIXzO2zLkVmQPHA==
+
+"@types/he@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@types/he/-/he-1.2.3.tgz#c33ca3096f30cbd5d68d78211572de3f9adff75a"
+  integrity sha512-q67/qwlxblDzEDvzHhVkwc1gzVWxaNxeyHUBF4xElrvjL11O+Ytze+1fGpBHlr/H9myiBUaUXNnNPmBHxxfAcA==
 
 "@types/hoist-non-react-statics@^3.3.1":
   version "3.3.5"
@@ -18856,9 +18861,9 @@ html-element-map@^1.0.0:
     call-bind "^1.0.2"
 
 html-entities@^2.1.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/html-entities/-/html-entities-2.4.0.tgz#edd0cee70402584c8c76cc2c0556db09d1f45061"
-  integrity sha512-igBTJcNNNhvZFRtm8uA6xMY6xYleeDwn3PeBCkDz7tHttv4F2hsDI2aPgNERWzvRcNYHNT3ymRaQzllmXj4YsQ==
+  version "2.5.2"
+  resolved "https://registry.yarnpkg.com/html-entities/-/html-entities-2.5.2.tgz#201a3cf95d3a15be7099521620d19dfb4f65359f"
+  integrity sha512-K//PSRMQk4FZ78Kyau+mZurHn3FH0Vwr+H36eE0rPbeYkRRi9YxceYPhuN60UwWorxyKHhqoAJl2OFKa4BVtaA==
 
 html-escaper@^2.0.0:
   version "2.0.2"
