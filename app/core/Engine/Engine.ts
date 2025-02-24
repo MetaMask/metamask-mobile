@@ -43,6 +43,7 @@ import {
   TransactionController,
   TransactionMeta,
   TransactionControllerOptions,
+  TransactionControllerMessenger,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
@@ -1329,7 +1330,7 @@ export class Engine {
           `${networkController.name}:findNetworkClientIdByChainId`,
         ],
         allowedEvents: [`NetworkController:stateChange`],
-      }),
+      }) as unknown as TransactionControllerMessenger,
       pendingTransactions: {
         isResubmitEnabled: () => false,
       },
