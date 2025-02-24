@@ -30,7 +30,8 @@ const InfoRowOrigin = () => {
         label={strings('confirm.request_from')}
         tooltip={strings('confirm.personal_sign_tooltip')}
       >
-        <DisplayURL url={approvalRequest.origin} />
+        {/* TODO: request from url below will only work for signatures */}
+        <DisplayURL url={approvalRequest?.requestData?.meta?.url} />
       </InfoRow>
       {isSIWEMessage && (
         <InfoRow
