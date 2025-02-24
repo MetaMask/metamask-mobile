@@ -1116,10 +1116,10 @@ function SwapsQuotesView({
       }
 
       await handleSwapTransaction(approvalTransactionMetaId);
-    }
 
-    setIsHandlingSwap(false);
-    navigation.dangerouslyGetParent()?.pop();
+      setIsHandlingSwap(false);
+      navigation.dangerouslyGetParent()?.pop();
+    }
   }, [
     selectedQuote,
     selectedAddress,
@@ -2347,7 +2347,7 @@ function SwapsQuotesView({
         animateOnChange={animateOnGasChange}
       />
       <SwapsSTXStatusModal
-        isVisible
+        isVisible={isSwapsSTXStatusModalVisible}
         dismiss={() => {
           setIsSwapsSTXStatusModalVisible(false);
         }}
