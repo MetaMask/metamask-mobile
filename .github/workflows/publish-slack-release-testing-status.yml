@@ -10,7 +10,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: MetaMask/github-tools/.github/workflows/publish-slack-release-testing-status.yml@e79e0af6dc5d258222f6122eaa2ef41154058e41
+    uses: MetaMask/github-tools/.github/workflows/publish-slack-release-testing-status.yml@557025430e5f4d9a581083cabb02b9546d989afc
     with:
       platform: 'mobile'
       google-document-id: '1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ' # Release Testing Document
