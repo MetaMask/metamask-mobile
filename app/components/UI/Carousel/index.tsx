@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -216,7 +216,7 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
     [hasRendered, trackEvent, createEventBuilder],
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (visibleSlides.length > 0) {
       handleRenderSlides(visibleSlides);
     }

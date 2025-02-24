@@ -17,7 +17,7 @@ import useAnalytics from './useAnalytics';
 import { hexToBN, toHexadecimal } from '../../../../util/number';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../selectors/networkController';
 import { Token } from '@metamask/assets-controllers';
 
 function useHandleSuccessfulOrder() {
@@ -27,7 +27,7 @@ function useHandleSuccessfulOrder() {
   const dispatchThunk = useThunkDispatch();
   const trackEvent = useAnalytics();
   const accountsByChainId = useSelector(selectAccountsByChainId);
-  const chainIdFromProvider = useSelector(selectChainId);
+  const chainIdFromProvider = useSelector(selectEvmChainId);
 
   const addTokenToTokensController = useCallback(
     async (token: CryptoCurrency) => {
