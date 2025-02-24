@@ -81,8 +81,6 @@ const submitSmartTransaction = async ({
     smartTransactionFees.fees,
   );
 
-  console.log('HELLO 2 submitSmartTransaction', { unsignedTransactionWithGasFeeEstimates,signedTransactions });
-
   try {
     const response = await SmartTransactionsController.submitSignedTransactions({
       signedTransactions,
@@ -94,11 +92,9 @@ const submitSmartTransaction = async ({
     // Returns e.g.: { uuid: 'dP23W7c2kt4FK9TmXOkz1UM2F20' }
     return response.uuid;
   } catch (error) {
-    console.log('HELLO 3 submitSmartTransaction error', error);
     console.error(error);
   }
 };
-
 
 export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { tradeTransaction: Quote['trade'], gasEstimates: {
   gasPrice: string;
@@ -141,6 +137,7 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
         gasEstimates,
       });
     }
+
 
     // Trade transaction
     const tradeGas = decimalToHex(smartTransactionFees.tradeTxFees?.gasLimit || 0).toString();

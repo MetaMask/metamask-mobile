@@ -124,6 +124,7 @@ import {
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { useSwapsSmartTransactions } from './utils/useSwapsSmartTransaction';
+import { SwapsSTXStatusModal } from './SwapsSTXStatusModal';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -427,6 +428,8 @@ function SwapsQuotesView({
   const [isHandlingSwap, setIsHandlingSwap] = useState(false);
   const [multiLayerL1ApprovalFeeTotal, setMultiLayerL1ApprovalFeeTotal] =
     useState(null);
+  const [isSwapsSTXStatusModalVisible, setIsSwapsSTXStatusModalVisible] =
+    useState(false);
 
   /* Selected quote, initially topAggId (see effects) */
   const [selectedQuoteId, setSelectedQuoteId] = useState(null);
@@ -1098,6 +1101,7 @@ function SwapsQuotesView({
 
     if (shouldUseSmartTransaction) {
       await submitSwapsSmartTransaction();
+      setIsSwapsSTXStatusModalVisible(true);
     } else {
       if (approvalTransaction) {
         approvalTransactionMetaId = await handleApprovalTransaction(
@@ -2341,6 +2345,12 @@ function SwapsQuotesView({
         sourceAmount={sourceAmount}
         checkEnoughEthBalance={checkEnoughEthBalance}
         animateOnChange={animateOnGasChange}
+      />
+      <SwapsSTXStatusModal
+        isVisible
+        dismiss={() => {
+          setIsSwapsSTXStatusModalVisible(false);
+        }}
       />
     </ScreenView>
   );
