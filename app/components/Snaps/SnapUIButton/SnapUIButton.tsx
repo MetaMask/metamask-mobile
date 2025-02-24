@@ -9,6 +9,9 @@ import { TextColor } from '../../../component-library/components/Texts/Text';
 export type SnapUIButtonProps = {
   name?: string;
   loading?: boolean;
+  type?: ButtonType;
+  form?: string;
+  variant: keyof typeof COLORS;
 };
 
 const COLORS = {
@@ -27,8 +30,6 @@ export const SnapUIButton: FunctionComponent<
   variant = 'primary',
   disabled = false,
   loading = false,
-  className = '',
-  textVariant,
   ...props
 }) => {
   const { handleEvent } = useSnapInterfaceContext();
@@ -52,14 +53,14 @@ export const SnapUIButton: FunctionComponent<
 
   const color = COLORS[overriddenVariant as keyof typeof COLORS];
 
+  // TODO: Support sizing the text
   return (
     <ButtonLink
+      {...props}
       id={name}
       onPress={handlePress}
       color={color}
       disabled={disabled}
-      // TODO: The variant prop does not exist.
-      variant={textVariant}
       label={loading ? (
         <Icon
           name={IconName.Loading}
@@ -68,7 +69,6 @@ export const SnapUIButton: FunctionComponent<
       ) : (
         children
       )}
-      {...props}
     />
   );
 };

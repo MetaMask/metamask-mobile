@@ -63,6 +63,7 @@ const generateHash = memoize((component: JSXElement) => {
   const children = getChildrenForHash(component);
   return remove0x(
     bytesToHex(
+      // TODO: Benchmark
       sha256(
         JSON.stringify({
           type,
@@ -126,7 +127,8 @@ export const mapTextToTemplate = (
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
     if (typeof e === 'string') {
-      return unescapeFn(e);
+      // React Native cannot render strings directly, so we map to an element where we control the props.
+      return ({ ...params, element: 'Text', children: unescapeFn(e), props: { color: 'inherit' } }) ;
     }
     return mapToTemplate({ ...params, element: e });
   }) as NonEmptyArray<UIComponent | string>;
