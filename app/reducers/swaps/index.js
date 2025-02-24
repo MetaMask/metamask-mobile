@@ -3,7 +3,7 @@ import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress } from '../../util/address';
 import { toLowerCaseEquals } from '../../util/general';
 import { lte } from '../../util/lodash';
-import { selectChainId } from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import {
   selectAllTokens,
   selectTokens,
@@ -54,7 +54,7 @@ function addMetadata(chainId, tokens, tokenList) {
 }
 
 // * Selectors
-const chainIdSelector = selectChainId;
+const chainIdSelector = selectEvmChainId;
 const swapsStateSelector = (state) => state.swaps;
 /**
  * Returns the swaps liveness state
@@ -261,7 +261,7 @@ export const swapsTokensObjectSelector = createSelector(
       result[token.address] = undefined;
     }
     return result;
-  }
+  },
 );
 
 /**

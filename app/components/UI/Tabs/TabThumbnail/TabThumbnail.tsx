@@ -52,7 +52,7 @@ const TabThumbnail = ({
     tabTitle,
   );
   const activeAddress = permittedAccountsByHostname[0];
-  const { accounts } = useAccounts({});
+  const { evmAccounts: accounts } = useAccounts({});
   const selectedAccount = accounts.find(
     (account) => account.address.toLowerCase() === activeAddress?.toLowerCase(),
   );

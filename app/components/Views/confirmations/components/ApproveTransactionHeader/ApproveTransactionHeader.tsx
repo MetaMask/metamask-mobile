@@ -9,8 +9,8 @@ import { BadgeVariant } from '../../../../../component-library/components/Badges
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
-  selectNetworkImageSource,
-  selectNetworkName,
+  selectEvmNetworkImageSource,
+  selectEvmNetworkName,
 } from '../../../../../selectors/networkInfos';
 import {
   getLabelTextByAddress,
@@ -48,7 +48,7 @@ const ApproveTransactionHeader = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  const networkName = useSelector(selectNetworkName);
+  const networkName = useSelector(selectEvmNetworkName);
 
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
@@ -66,15 +66,16 @@ const ApproveTransactionHeader = ({
     setIsOriginDeepLink(isOriginDeepLinkVal);
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const networkImage = useSelector(selectNetworkImageSource);
+  const networkImage = useSelector(selectEvmNetworkImageSource);
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress) ?? undefined;
 
-  const showOrigin = origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
+  const showOrigin =
+    origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
 
   return (
     <View style={styles.transactionHeader}>
-      { showOrigin ? (
+      {showOrigin ? (
         <ApprovalTagUrl
           from={from}
           origin={origin}
