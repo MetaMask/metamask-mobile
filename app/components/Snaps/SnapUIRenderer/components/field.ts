@@ -8,7 +8,6 @@ import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
 import { checkbox as checkboxFn } from './checkbox';
 import { UIComponentFactory, UIComponentParams } from './types';
-//import { constructInputProps } from './input';
 
 export const field: UIComponentFactory<FieldElement> = ({
   element: e,
@@ -57,7 +56,6 @@ export const field: UIComponentFactory<FieldElement> = ({
           id: input.props.name,
           placeholder: input.props.placeholder,
           label: e.props.label,
-          // ...constructInputProps(input.props),
           name: input.props.name,
           form,
           error: e.props.error !== undefined,

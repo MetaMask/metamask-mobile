@@ -10,6 +10,9 @@ import {
   Form,
   Field,
   Checkbox,
+  Section,
+  Row,
+  Value,
 } from '@metamask/snaps-sdk/jsx';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -320,7 +323,10 @@ describe('SnapUIRenderer', () => {
             Field({ label: 'My Input', children: Input({ name: 'input' }) }),
             Field({
               label: 'My Checkbox',
-              children: Checkbox({ name: 'checkbox', label: 'This is a checkbox' }),
+              children: Checkbox({
+                name: 'checkbox',
+                label: 'This is a checkbox',
+              }),
             }),
             Button({ type: 'submit', name: 'submit', children: 'Submit' }),
           ],
@@ -429,6 +435,31 @@ describe('SnapUIRenderer', () => {
         snapId: MOCK_SNAP_ID,
       },
     );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders complex nested components', () => {
+    const { toJSON, getRenderCount } = renderInterface(
+      Container({
+        children: [
+          Box({
+            children: [
+              Section({
+                children: Row({
+                  label: 'Key',
+                  children: Value({ value: 'Value', extra: 'Extra' }),
+                }),
+              }),
+            ],
+          }),
+          Footer({ children: Button({ children: 'Foo' }) }),
+        ],
+      }),
+      { useFooter: true },
+    );
+
+    expect(getRenderCount()).toBe(1);
 
     expect(toJSON()).toMatchSnapshot();
   });

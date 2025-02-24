@@ -24,21 +24,22 @@ function getElement(
   return safeComponentList[component];
 }
 
-function renderElement(element: TemplateRendererComponent) {
-  const Element = getElement(element);
-  const propsAsComponents = element.propComponents
-    ? getPropComponents(element.propComponents)
+function renderElement(section: TemplateRendererComponent) {
+  const Element = getElement(section);
+  const propsAsComponents = section.propComponents
+    ? getPropComponents(section.propComponents)
     : {};
   return (
-    <Element {...element.props} {...propsAsComponents}>
-      {Array.isArray(element.children)
-        ? element.children.map((child) => (
+    <Element {...section.props} {...propsAsComponents}>
+      {Array.isArray(section.children)
+        ? section.children.map((child) => (
+            // eslint-disable-next-line no-use-before-define
             <TemplateRenderer
               key={typeof child === 'string' ? `${random()}` : child.key}
               sections={child}
             />
           ))
-        : element.children}
+        : section.children}
     </Element>
   );
 }
