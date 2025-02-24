@@ -13,15 +13,13 @@ import ButtonLink from '../../../../../component-library/components/Buttons/Butt
 import styleSheet from './ConfirmAlertModal.styles';
 
 export interface ConfirmAlertModalProps {
-  /** Callback function that is called when the cancel button is clicked. */
-  onCancel: () => void;
-  /** The function to be executed when the modal needs to be closed. */
-  onClose: () => void;
-  /** Callback function that is called when the submit button is clicked. */
-  onSubmit: () => void;
+  /** Callback function that is called when the reject button is clicked. */
+  onReject: () => void;
+  /** Callback function that is called when the confirm button is clicked. */
+  onConfirm: () => void;
 }
 
-const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onCancel, onClose, onSubmit }) => {
+const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfirm }) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const { showAlertModal } = useAlerts();
@@ -33,13 +31,15 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onCancel, onClose
   }, [confirmCheckbox]);
 
   const handleConfirm = useCallback(async () => {
-    onSubmit();
-    onClose();
-  }, [onSubmit, onClose]);
+    onConfirm();
+  }, [onConfirm]);
 
+  const handleReject = useCallback(() => {
+    onReject();
+  }, [onReject]);
 
   return (
-    <BottomModal onClose={onClose}>
+    <BottomModal onClose={handleReject}>
       <View style={styles.modalContainer}>
         <View>
           <Icon name={IconName.Danger} size={IconSize.Xl} color={colors.error.default} />
@@ -73,7 +73,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onCancel, onClose
         </View>
         <View style={styles.buttonsContainer}>
           <Button
-            onPress={onCancel}
+            onPress={handleReject}
             label={strings('confirm.reject')}
             style={styles.footerButton}
             size={ButtonSize.Lg}
