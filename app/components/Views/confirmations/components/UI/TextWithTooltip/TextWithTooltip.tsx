@@ -12,12 +12,14 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import BottomModal from '../BottomModal';
 import styleSheet from './TextWithTooltip.styles';
 interface TextWithTooltipProps {
+  label: string;
   text: string;
   tooltip: string;
   tooltipTestId?: string;
 }
 
 const TextWithTooltip = ({
+  label,
   text,
   tooltip,
   tooltipTestId,
@@ -35,15 +37,17 @@ const TextWithTooltip = ({
           <View style={styles.container}>
             <View style={styles.tooltipHeader}>
               <ButtonIcon
+                style={styles.backIcon}
                 iconColor={IconColor.Default}
                 size={ButtonIconSizes.Sm}
                 onPress={() => setTooltipVisible(false)}
                 iconName={IconName.ArrowLeft}
                 testID={tooltipTestId ?? 'tooltipTestId'}
               />
+              <Text style={styles.text}>{label}</Text>
             </View>
             <View style={styles.tooltipContext}>
-              <Text style={styles.tooltipText}>{tooltip}</Text>
+              <Text style={styles.text}>{tooltip}</Text>
             </View>
           </View>
         </BottomModal>

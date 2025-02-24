@@ -19,13 +19,11 @@ const REJECT_BTN = 'Reject';
 const REVIEW_ALERTS_LABEL = 'Review all alerts';
 
 describe('ConfirmAlertModal', () => {
-  const mockOnCancel = jest.fn();
-  const mockOnClose = jest.fn();
-  const mockOnSubmit = jest.fn();
+  const mockOnReject = jest.fn();
+  const mockOnConfirm = jest.fn();
   const baseProps: ConfirmAlertModalProps = {
-    onCancel: mockOnCancel,
-    onClose: mockOnClose,
-    onSubmit: mockOnSubmit,
+    onReject: mockOnReject,
+    onConfirm: mockOnConfirm,
   };
 
   beforeEach(() => {
@@ -45,15 +43,15 @@ describe('ConfirmAlertModal', () => {
     expect(getByText(CONFIRM_BTN)).toBeDefined();
   });
 
-  it('calls onCancel when the Cancel button is pressed', async () => {
+  it('calls onReject when the Cancel button is pressed', async () => {
     const { getByText } = render(<ConfirmAlertModal {...baseProps} />);
     await act(async () => {
       fireEvent.press(getByText(REJECT_BTN));
     });
-    expect(mockOnCancel).toHaveBeenCalled();
+    expect(mockOnReject).toHaveBeenCalled();
   });
 
-  it('calls onSubmit and onClose when the Confirm button is pressed and checkbox is checked', async () => {
+  it('calls onConfirm when the Confirm button is pressed and checkbox is checked', async () => {
     const { getByText, getByTestId } = render(<ConfirmAlertModal {...baseProps} />);
     await act(async () => {
       fireEvent.press(getByTestId('confirm-alert-checkbox'));
@@ -61,8 +59,7 @@ describe('ConfirmAlertModal', () => {
     await act(async () => {
       fireEvent.press(getByText(CONFIRM_BTN));
     });
-    expect(mockOnSubmit).toHaveBeenCalled();
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockOnConfirm).toHaveBeenCalled();
   });
 
   it('calls showAlertModal when the "Review all alerts" link is pressed', async () => {

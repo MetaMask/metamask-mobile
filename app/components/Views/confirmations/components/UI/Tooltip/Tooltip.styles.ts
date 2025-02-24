@@ -3,8 +3,8 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../styles/common';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: { theme: Theme, vars: { title: string } }) => {
+  const { theme, vars } = params;
 
   return StyleSheet.create({
     modal: {
@@ -14,7 +14,6 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.default,
       justifyContent: 'center',
       alignItems: 'center',
-      marginHorizontal: 16,
       borderRadius: 8,
       ...theme.shadows.size.sm,
       elevation: 11,
@@ -22,9 +21,8 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 24,
     },
     closeModalBtn: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
+      alignSelf: 'flex-end',
+      marginBottom: vars.title ? -30 : 0,
     },
     modalTitle: {
       color: theme.colors.text.default,
