@@ -111,7 +111,6 @@
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/levelup/semver": "^5.7.2",
     "@metamask/react-native-payments/validator": "^13.7.0",
-    "**/@metamask/utils": "^11.0.1",
     "**/minimist": "1.2.6",
     "d3-color": "3.1.0",
     "tough-cookie": "4.1.3",

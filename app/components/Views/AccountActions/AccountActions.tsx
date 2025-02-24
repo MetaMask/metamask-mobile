@@ -18,6 +18,7 @@ import BottomSheet, {
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
+  findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
   getBlockExplorerName,
 } from '../../../util/networks';
@@ -28,6 +29,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { RPC } from '../../../constants/network';
 import {
+  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
@@ -54,6 +56,7 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -77,6 +80,7 @@ const AccountActions = () => {
   }, []);
 
   const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
 
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
@@ -90,8 +94,18 @@ const AccountActions = () => {
         networkConfigurations,
       );
     }
+    if (isNonEvmChainId(chainId)) {
+      // TODO: [SOLANA] - block explorer needs to be implemented
+      return findBlockExplorerForNonEvmChainId(chainId);
+    }
+
     return null;
-  }, [networkConfigurations, providerConfig.rpcUrl, providerConfig.type]);
+  }, [
+    networkConfigurations,
+    providerConfig.rpcUrl,
+    providerConfig.type,
+    chainId,
+  ]);
 
   const blockExplorerName = getBlockExplorerName(blockExplorer);
 

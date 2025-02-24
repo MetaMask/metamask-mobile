@@ -20,7 +20,7 @@ import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { useTheme } from '../../../../util/theme';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectTicker,
 } from '../../../../selectors/networkController';
 import {
@@ -546,7 +546,7 @@ const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   ticker: selectTicker(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
   primaryCurrency: state.settings.primaryCurrency,
 });
 
