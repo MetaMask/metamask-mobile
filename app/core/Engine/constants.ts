@@ -50,6 +50,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'UserStorageController:stateChange',
   'NotificationServicesController:stateChange',
   'NotificationServicesPushController:stateChange',
+  'SnapInterfaceController:stateChange',
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerStateChangeEvent,
