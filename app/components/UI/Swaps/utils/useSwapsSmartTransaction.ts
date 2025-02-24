@@ -169,14 +169,12 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
       gasEstimates,
     });
 
-    if (tradeTxUuid) {
-      await SmartTransactionsController.updateSmartTransaction({
-        uuid: tradeTxUuid,
-        origin: ORIGIN_METAMASK,
-        type: TransactionType.swap,
-        creationTime: Date.now(),
-      });
-    }
+    await SmartTransactionsController.updateSmartTransaction({
+      uuid: tradeTxUuid,
+      origin: ORIGIN_METAMASK,
+      type: TransactionType.swap,
+      creationTime: Date.now(),
+    });
 
     return tradeTxUuid;
   };
