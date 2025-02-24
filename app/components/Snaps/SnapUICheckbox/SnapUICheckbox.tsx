@@ -64,7 +64,7 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
           {...props}
         />
       {error && (
-        <HelpText severity={HelpTextSeverity.Error} style={{ marginTop: 1 }}>
+        <HelpText severity={HelpTextSeverity.Error} style={{ marginTop: 4 }}>
           {error}
         </HelpText>
       )}
