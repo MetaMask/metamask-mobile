@@ -53,7 +53,7 @@ export interface BoxProps extends ViewProps {
   textAlign?: TextAlign;
   gap?: number;
   color?: TextColor;
-  backgroundColor: string;
+  backgroundColor?: string;
   ref?: React.Ref<View>;
   testID?: string;
 }
