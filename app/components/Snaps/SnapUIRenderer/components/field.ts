@@ -99,9 +99,6 @@ export const field: UIComponentFactory<FieldElement> = ({
     }
 
     default:
-      return {
-        element: 'Box',
-      };
-    //throw new Error(`Invalid Field child: ${child.type}`);
+      throw new Error(`Invalid Field child: ${child.type}`);
   }
 };

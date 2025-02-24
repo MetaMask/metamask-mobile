@@ -13,6 +13,8 @@ import {
   Section,
   Row,
   Value,
+  Card,
+  Image as ImageComponent,
 } from '@metamask/snaps-sdk/jsx';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -439,6 +441,28 @@ describe('SnapUIRenderer', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('supports fields with multiple components', () => {
+    const { toJSON, getByTestId, getByText } = renderInterface(
+      Box({
+        children: Form({
+          name: 'form',
+          children: [
+            Field({
+              label: 'My Input',
+              children: [
+                ImageComponent({ src: '<svg />' }),
+                Input({ name: 'input' }),
+                Button({ type: 'submit', name: 'submit', children: 'Submit' }),
+              ],
+            }),
+          ],
+        }),
+      }),
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders complex nested components', () => {
     const { toJSON, getRenderCount } = renderInterface(
       Container({
@@ -446,10 +470,19 @@ describe('SnapUIRenderer', () => {
           Box({
             children: [
               Section({
-                children: Row({
-                  label: 'Key',
-                  children: Value({ value: 'Value', extra: 'Extra' }),
-                }),
+                children: [
+                  Row({
+                    label: 'Key',
+                    children: Value({ value: 'Value', extra: 'Extra' }),
+                  }),
+                  Card({
+                    image: '<svg />',
+                    title: 'CardTitle',
+                    description: 'CardDescription',
+                    value: 'CardValue',
+                    extra: 'CardExtra',
+                  }),
+                ],
               }),
             ],
           }),
