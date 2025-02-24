@@ -2,6 +2,7 @@ import React, { useContext, useMemo, useState } from 'react';
 import { Alert, Severity } from '../../types/alerts';
 
 export interface AlertsContextParams {
+  alertKey: string;
   alertModalVisible: boolean;
   alerts: Alert[];
   dangerAlerts: Alert[];
@@ -10,10 +11,12 @@ export interface AlertsContextParams {
   hasAlerts: boolean;
   hasDangerAlerts: boolean;
   hideAlertModal: () => void;
+  setAlertKey: (key: string) => void;
   showAlertModal: () => void;
 }
 
 const AlertsContext = React.createContext<AlertsContextParams>({
+  alertKey: '',
   alertModalVisible: true,
   alerts: [],
   dangerAlerts: [],
@@ -22,6 +25,7 @@ const AlertsContext = React.createContext<AlertsContextParams>({
   hasAlerts: false,
   hasDangerAlerts: false,
   hideAlertModal: () => undefined,
+  setAlertKey: () => undefined,
   showAlertModal: () => undefined,
 });
 
@@ -31,6 +35,7 @@ interface AlertsContextProviderProps {
 
 export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ children, alerts }) => {
   const [alertModalVisible, setAlertModalVisible] = useState(false);
+  const [alertKey, setAlertKey] = useState(alerts[0]?.key);
 
   /**
    * Sorted alerts by severity.
@@ -55,6 +60,7 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
   ), [alertsMemo]);
 
   const contextValue = useMemo(() => ({
+    alertKey,
     alertModalVisible,
     alerts: alertsMemo,
     dangerAlerts,
@@ -63,8 +69,9 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
     hasAlerts: alertsMemo.length > 0,
     hasDangerAlerts: dangerAlerts.length > 0,
     hideAlertModal: () => setAlertModalVisible(false),
+    setAlertKey: (key: string) => setAlertKey(key),
     showAlertModal: () => setAlertModalVisible(true),
-  }), [alertModalVisible, alertsMemo, dangerAlerts, fieldAlerts, generalAlerts]);
+  }), [alertKey, alertModalVisible, alertsMemo, dangerAlerts, fieldAlerts, generalAlerts]);
 
   return (
     <AlertsContext.Provider value={contextValue}>
