@@ -33,7 +33,7 @@ function renderElement(section: TemplateRendererComponent) {
     <Element {...section.props} {...propsAsComponents}>
       {Array.isArray(section.children)
         ? section.children.map((child) => (
-            // eslint-disable-next-line no-use-before-define
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             <TemplateRenderer
               key={typeof child === 'string' ? `${random()}` : child.key}
               sections={child}
