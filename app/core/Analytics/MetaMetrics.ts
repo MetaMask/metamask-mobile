@@ -183,7 +183,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @private
    */
-  private eventsPortionToTrack: number = 0.01;
+  private eventsPortionToTrack: number = __DEV__ ? 1 : 0.01;
 
   /**
    * Retrieve state of metrics from the preference
@@ -603,6 +603,21 @@ class MetaMetrics implements IMetaMetrics {
    * and user traits are updated with the latest ones
    */
   addTraitsToUser = (userTraits: UserTraits): Promise<void> => {
+    let metaMetricsIdRandomNumber
+    try {
+      metaMetricsIdRandomNumber = generateDeterministicRandomNumber(
+        this.metametricsId ?? '',
+      );
+    } catch (error) {
+      Logger.error(error as Error, `Error generating random number for MetaMetrics ID with value ${this.metametricsId}`);
+      return Promise.resolve();
+    }
+
+    // early exit if not within portion range to track
+    if (metaMetricsIdRandomNumber > this.eventsPortionToTrack) {
+      return Promise.resolve();
+    }
+
     if (this.enabled) {
       return this.#identify(userTraits);
     }
@@ -671,6 +686,7 @@ class MetaMetrics implements IMetaMetrics {
       return;
     }
 
+    // same routine also done in addTraitsToUser
     let metaMetricsIdRandomNumber
     try {
       metaMetricsIdRandomNumber = generateDeterministicRandomNumber(
