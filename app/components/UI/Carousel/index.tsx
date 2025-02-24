@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, FC } from 'react';
 import {
   View,
   StyleSheet,
@@ -180,7 +180,7 @@ const createStyles = (colors: Theme['colors']) =>
     },
   });
 
-export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
+export const Carousel: FC<CarouselProps> = ({ onClick, style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const [hasRendered, setHasRendered] = useState(false);
