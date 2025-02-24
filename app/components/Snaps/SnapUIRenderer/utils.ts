@@ -10,6 +10,9 @@ import {
 } from '@metamask/utils';
 import { COMPONENT_MAPPING } from './components';
 import { unescape as unescapeFn } from 'he';
+import { FormState, InterfaceState, State } from '@metamask/snaps-sdk';
+import { UIComponent } from './components/types';
+import { Theme } from '../../../util/theme/models';
 
 export interface MapToTemplateParams {
   map: Record<string, number>;
@@ -19,6 +22,7 @@ export interface MapToTemplateParams {
   onCancel?: () => void;
   onConfirm?: () => void;
   t?: (key: string) => string;
+  theme: Theme;
 }
 
 /**
@@ -132,9 +136,6 @@ export const mapTextToTemplate = (
     }
     return mapToTemplate({ ...params, element: e });
   }) as NonEmptyArray<UIComponent | string>;
-
-import { FormState, InterfaceState, State } from '@metamask/snaps-sdk';
-import { UIComponent } from './components/types';
 
 /**
  * Merge a new input value in the interface state.

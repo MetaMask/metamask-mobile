@@ -19,6 +19,7 @@ import { ConfirmInfoRowValueDouble } from '../../../component-library/components
 import { SnapUIIcon } from '../../Snaps/SnapUIIcon/SnapUIIcon';
 import { SnapUIButton } from '../../Snaps/SnapUIButton/SnapUIButton';
 import { SnapUICheckbox } from '../../Snaps/SnapUICheckbox/SnapUICheckbox';
+import InfoRow from '../../Views/confirmations/components/UI/InfoRow';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -42,6 +43,7 @@ export const safeComponentList = {
   ConfirmInfoRowValueDouble,
   SnapUIButton,
   SnapUICheckbox,
+  InfoRow,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;

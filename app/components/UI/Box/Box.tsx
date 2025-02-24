@@ -18,6 +18,7 @@ const getBoxStyles = (props: {
   textAlign?: TextAlign;
   gap?: number;
   color?: TextColor;
+  backgroundColor?: string;
 }) => {
   const {
     display,
@@ -27,6 +28,7 @@ const getBoxStyles = (props: {
     textAlign,
     color,
     gap,
+    backgroundColor,
   } = props;
   return StyleSheet.create({
     dynamicStyles: {
@@ -37,6 +39,7 @@ const getBoxStyles = (props: {
       ...(textAlign && { textAlign }),
       ...(color && { color }),
       ...(gap && { gap }),
+      ...(backgroundColor && { backgroundColor })
     },
   });
 };
@@ -50,6 +53,7 @@ export interface BoxProps extends ViewProps {
   textAlign?: TextAlign;
   gap?: number;
   color?: TextColor;
+  backgroundColor: string;
   ref?: React.Ref<View>;
   testID?: string;
 }

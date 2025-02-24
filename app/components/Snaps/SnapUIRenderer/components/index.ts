@@ -14,6 +14,7 @@ import { image } from './image';
 import { form } from './form';
 import { icon } from './icon';
 import { field } from './field';
+import { section } from './section';
 
 export const COMPONENT_MAPPING = {
   Box: box,
@@ -32,4 +33,5 @@ export const COMPONENT_MAPPING = {
   Form: form,
   Field: field,
   Icon: icon,
+  Section: section,
 };
