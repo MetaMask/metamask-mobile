@@ -102,14 +102,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
 import {
   selectIsEvmNetworkSelected,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectNonEvmNetworkConfigurationsByChainId,
+  ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
+import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
+import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/accountsController';
+///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Logger from '../../../util/Logger';
-import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/accountsController';
-import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 
 interface infuraNetwork {
   name: string;
@@ -147,19 +151,22 @@ const NetworkSelector = () => {
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const isSolanaAccountAlreadyCreated = useSelector(
     selectHasCreatedSolanaMainnetAccount,
   );
-
+  ///: END:ONLY_INCLUDE_IF
   const safeAreaInsets = useSafeAreaInsets();
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
   );
+  ///: END:ONLY_INCLUDE_IF
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
@@ -780,7 +787,7 @@ const NetworkSelector = () => {
       });
     });
   };
-
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const onNonEvmNetworkChange = async (chainId: CaipChainId) => {
     if (!isSolanaAccountAlreadyCreated && chainId === SolScope.Mainnet) {
       navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
@@ -793,7 +800,8 @@ const NetworkSelector = () => {
     await Engine.context.MultichainNetworkController.setActiveNetwork(chainId);
     sheetRef.current?.dismissModal();
   };
-
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const renderNonEvmNetworks = () =>
     Object.values(nonEvmNetworkConfigurations)
       // TODO: - [SOLANA] - Remove this filter once we want to show non evm like BTC
@@ -817,7 +825,7 @@ const NetworkSelector = () => {
           disabled={!!browserEvmChainId}
         />
       ));
-
+  ///: END:ONLY_INCLUDE_IF
   const renderTestNetworksSwitch = () => (
     <View style={styles.switchContainer}>
       <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>

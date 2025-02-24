@@ -44,8 +44,10 @@ import { updateIncomingTransactions } from '../../../../util/transaction-control
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
+///: END:ONLY_INCLUDE_IF
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -136,10 +138,12 @@ class NetworksSettings extends PureComponent {
      * Current network provider configuration
      */
     providerConfig: PropTypes.object,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     /**
      * Non evm network configurations
      */
     nonEvmNetworkConfigurations: PropTypes.object,
+    ///: END:ONLY_INCLUDE_IF
   };
 
   actionSheet = null;
@@ -445,6 +449,7 @@ class NetworksSettings extends PureComponent {
     );
   }
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   renderSolanaMainnet() {
     // TODO: [SOLANA] - Please revisit this since it's supported on a constant array in mobile and should come from multichain network controller
     const { name: solanaMainnetName } = Object.values(
@@ -477,7 +482,7 @@ class NetworksSettings extends PureComponent {
       </View>
     );
   }
-
+  ///: END:ONLY_INCLUDE_IF
   handleSearchTextChange = (text) => {
     this.setState({ searchString: text });
     const defaultNetwork = getAllNetworks().map((networkType, i) => {
@@ -581,7 +586,11 @@ class NetworksSettings extends PureComponent {
               </Text>
               {this.renderMainnet()}
               {this.renderLineaMainnet()}
-              {this.renderSolanaMainnet()}
+              {
+                ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+                this.renderSolanaMainnet()
+                ///: END:ONLY_INCLUDE_IF
+              }
               {this.renderRpcNetworksView()}
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.test_network_name')}
@@ -620,8 +629,10 @@ NetworksSettings.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   nonEvmNetworkConfigurations:
     selectNonEvmNetworkConfigurationsByChainId(state),
+  ///: END:ONLY_INCLUDE_IF
 });
 
 export default connect(mapStateToProps)(NetworksSettings);

@@ -30,9 +30,11 @@ import NetworkCell from '../../../UI/NetworkCell/NetworkCell';
 import { MAINNET, LINEA_MAINNET } from '../../../../../app/constants/network';
 import { INCOMING_TRANSACTIONS_SUPPORTED_CHAIN_IDS } from '@metamask/transaction-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { SolScope } from '@metamask/keyring-api';
 import images from 'images/image-icons';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
-import { SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 
 const IncomingTransactionsSettings = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -45,10 +47,11 @@ const IncomingTransactionsSettings = () => {
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
   );
+  ///: END:ONLY_INCLUDE_IF
 
   const toggleEnableIncomingTransactions = (
     hexChainId: Hex | CaipChainId,
@@ -115,7 +118,7 @@ const IncomingTransactionsSettings = () => {
 
     return [...mainnetNetworks, ...otherNetworks].map(renderNetwork);
   };
-
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const renderNonEvmNetworks = () =>
     Object.values(nonEvmNetworkConfigurations)
       // TODO: - [SOLANA] - Remove this filter once we want to show non evm like BTC
@@ -134,7 +137,7 @@ const IncomingTransactionsSettings = () => {
           testID={'solana-incoming-transactions-toggle'}
         />
       ));
-
+  ///: END:ONLY_INCLUDE_IF
   const renderOtherNetworks = () => {
     const NetworksTyped = Networks as NetworksI;
     const getOtherNetworks = () => getAllNetworks().slice(2);
