@@ -41,7 +41,6 @@ interface SnapUIFooterButtonProps {
   variant?: ButtonVariants;
   isSnapAction?: boolean;
   onCancel?: () => void;
-  label: string;
   type: ButtonType;
   snapVariant: ButtonVariants;
   disabled?: boolean;

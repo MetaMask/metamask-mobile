@@ -39,7 +39,7 @@ const getBoxStyles = (props: {
       ...(textAlign && { textAlign }),
       ...(color && { color }),
       ...(gap && { gap }),
-      ...(backgroundColor && { backgroundColor })
+      ...(backgroundColor && { backgroundColor }),
     },
   });
 };

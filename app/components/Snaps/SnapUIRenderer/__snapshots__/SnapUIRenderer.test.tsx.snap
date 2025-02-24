@@ -33,43 +33,54 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
       }
     >
       <View
-        className="snap-ui-renderer__input"
         style={
-          [
-            {
-              "paddingVertical": 16,
-              "width": "100%",
-            },
-            undefined,
-            undefined,
-          ]
-        }
-      >
-        <TextInput
-          editable={true}
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onFocus={[Function]}
-          style={
-            [
-              {
-                "borderRadius": 4,
-                "borderWidth": 1,
-                "fontSize": 16,
-                "height": 44,
-                "paddingHorizontal": 12,
-              },
-              {
-                "borderColor": "#bbc0c5",
-              },
-              undefined,
-              false,
-              false,
-            ]
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#848c96",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "opacity": 1,
+            "paddingHorizontal": 16,
           }
-          testID="form-text-field"
-          value="bar"
-        />
+        }
+        testID="textfield"
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoFocus={false}
+            editable={true}
+            id="input"
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "transparent",
+                "borderWidth": 1,
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "height": 24,
+                "letterSpacing": 0,
+                "opacity": 1,
+                "paddingVertical": 0,
+              }
+            }
+            testID="input"
+            value="bar"
+          />
+        </View>
       </View>
     </View>
   </View>
@@ -113,82 +124,104 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
       }
     >
       <View
-        className="snap-ui-renderer__input"
         style={
-          [
-            {
-              "paddingVertical": 16,
-              "width": "100%",
-            },
-            undefined,
-            undefined,
-          ]
-        }
-      >
-        <TextInput
-          editable={true}
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onFocus={[Function]}
-          style={
-            [
-              {
-                "borderRadius": 4,
-                "borderWidth": 1,
-                "fontSize": 16,
-                "height": 44,
-                "paddingHorizontal": 12,
-              },
-              {
-                "borderColor": "#bbc0c5",
-              },
-              undefined,
-              false,
-              false,
-            ]
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#848c96",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "opacity": 1,
+            "paddingHorizontal": 16,
           }
-          testID="form-text-field"
-          value=""
-        />
+        }
+        testID="textfield"
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoFocus={false}
+            editable={true}
+            id="input"
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "transparent",
+                "borderWidth": 1,
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "height": 24,
+                "letterSpacing": 0,
+                "opacity": 1,
+                "paddingVertical": 0,
+              }
+            }
+            testID="input"
+            value=""
+          />
+        </View>
       </View>
       <View
-        className="snap-ui-renderer__input"
         style={
-          [
-            {
-              "paddingVertical": 16,
-              "width": "100%",
-            },
-            undefined,
-            undefined,
-          ]
-        }
-      >
-        <TextInput
-          editable={true}
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onFocus={[Function]}
-          style={
-            [
-              {
-                "borderRadius": 4,
-                "borderWidth": 1,
-                "fontSize": 16,
-                "height": 44,
-                "paddingHorizontal": 12,
-              },
-              {
-                "borderColor": "#bbc0c5",
-              },
-              undefined,
-              false,
-              false,
-            ]
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#848c96",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "opacity": 1,
+            "paddingHorizontal": 16,
           }
-          testID="form-text-field"
-          value=""
-        />
+        }
+        testID="textfield"
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoFocus={false}
+            editable={true}
+            id="input2"
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "transparent",
+                "borderWidth": 1,
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "height": 24,
+                "letterSpacing": 0,
+                "opacity": 1,
+                "paddingVertical": 0,
+              }
+            }
+            testID="input"
+            value=""
+          />
+        </View>
       </View>
     </View>
   </View>
@@ -232,82 +265,104 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
       }
     >
       <View
-        className="snap-ui-renderer__input"
         style={
-          [
-            {
-              "paddingVertical": 16,
-              "width": "100%",
-            },
-            undefined,
-            undefined,
-          ]
-        }
-      >
-        <TextInput
-          editable={true}
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onFocus={[Function]}
-          style={
-            [
-              {
-                "borderRadius": 4,
-                "borderWidth": 1,
-                "fontSize": 16,
-                "height": 44,
-                "paddingHorizontal": 12,
-              },
-              {
-                "borderColor": "#bbc0c5",
-              },
-              undefined,
-              false,
-              false,
-            ]
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#848c96",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "opacity": 1,
+            "paddingHorizontal": 16,
           }
-          testID="form-text-field"
-          value="bar"
-        />
+        }
+        testID="textfield"
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoFocus={false}
+            editable={true}
+            id="input"
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "transparent",
+                "borderWidth": 1,
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "height": 24,
+                "letterSpacing": 0,
+                "opacity": 1,
+                "paddingVertical": 0,
+              }
+            }
+            testID="input"
+            value="bar"
+          />
+        </View>
       </View>
       <View
-        className="snap-ui-renderer__input"
         style={
-          [
-            {
-              "paddingVertical": 16,
-              "width": "100%",
-            },
-            undefined,
-            undefined,
-          ]
-        }
-      >
-        <TextInput
-          editable={true}
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onFocus={[Function]}
-          style={
-            [
-              {
-                "borderRadius": 4,
-                "borderWidth": 1,
-                "fontSize": 16,
-                "height": 44,
-                "paddingHorizontal": 12,
-              },
-              {
-                "borderColor": "#bbc0c5",
-              },
-              undefined,
-              false,
-              false,
-            ]
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#848c96",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "opacity": 1,
+            "paddingHorizontal": 16,
           }
-          testID="form-text-field"
-          value="foo"
-        />
+        }
+        testID="textfield"
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoFocus={false}
+            editable={true}
+            id="input2"
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "transparent",
+                "borderWidth": 1,
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "height": 24,
+                "letterSpacing": 0,
+                "opacity": 1,
+                "paddingVertical": 0,
+              }
+            }
+            testID="input"
+            value="foo"
+          />
+        </View>
       </View>
     </View>
   </View>
@@ -355,7 +410,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
         fontWeight="normal"
         style={
           {
-            "color": "#141618",
+            "color": "inherit",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -369,7 +424,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "inherit",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -427,7 +482,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
         fontWeight="normal"
         style={
           {
-            "color": "#141618",
+            "color": "inherit",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -441,7 +496,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "inherit",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -532,7 +587,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMD"
+        textVariant="sBodyMDMedium"
       >
         <View
           style={
@@ -587,7 +642,21 @@ exports[`SnapUIRenderer renders footers 1`] = `
               }
             }
           >
-            Foo
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Foo
+            </Text>
           </Text>
         </View>
       </TouchableOpacity>
@@ -640,43 +709,54 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
       }
     >
       <View
-        className="snap-ui-renderer__input"
         style={
-          [
-            {
-              "paddingVertical": 16,
-              "width": "100%",
-            },
-            undefined,
-            undefined,
-          ]
-        }
-      >
-        <TextInput
-          editable={true}
-          onBlur={[Function]}
-          onChangeText={[Function]}
-          onFocus={[Function]}
-          style={
-            [
-              {
-                "borderRadius": 4,
-                "borderWidth": 1,
-                "fontSize": 16,
-                "height": 44,
-                "paddingHorizontal": 12,
-              },
-              {
-                "borderColor": "#bbc0c5",
-              },
-              undefined,
-              false,
-              false,
-            ]
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#848c96",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "opacity": 1,
+            "paddingHorizontal": 16,
           }
-          testID="form-text-field"
-          value="a"
-        />
+        }
+        testID="textfield"
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoFocus={false}
+            editable={true}
+            id="input"
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "transparent",
+                "borderWidth": 1,
+                "color": "#141618",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "height": 24,
+                "letterSpacing": 0,
+                "opacity": 1,
+                "paddingVertical": 0,
+              }
+            }
+            testID="input"
+            value="a"
+          />
+        </View>
       </View>
     </View>
   </View>
@@ -724,7 +804,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         fontWeight="normal"
         style={
           {
-            "color": "#141618",
+            "color": "inherit",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -738,7 +818,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "inherit",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -829,7 +909,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMD"
+        textVariant="sBodyMDMedium"
       >
         <View
           style={
@@ -884,7 +964,21 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               }
             }
           >
-            Foo
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Foo
+            </Text>
           </Text>
         </View>
       </TouchableOpacity>

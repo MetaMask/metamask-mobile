@@ -42,7 +42,7 @@ const SnapUIRendererComponent = ({
   PERF_DEBUG,
 }: SnapUIRendererProps) => {
   const theme = useTheme();
-  
+
   const interfaceState = useSelector(
     (state: RootState) => getMemoizedInterface(state, interfaceId),
     (oldState, newState) =>

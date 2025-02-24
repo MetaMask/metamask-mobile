@@ -53,16 +53,16 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
       flexDirection={FlexDirection.Column}
     >
       {fieldLabel && <Label>{fieldLabel}</Label>}
-        <Checkbox
-          onPress={handleChange}
-          isChecked={value}
-          label={label}
-          inputProps={{
-            borderColor: BorderColor.borderMuted,
-          }}
-          isDisabled={disabled}
-          {...props}
-        />
+      <Checkbox
+        onPress={handleChange}
+        isChecked={value}
+        label={label}
+        checkboxStyle={{
+          borderColor: BorderColor.borderMuted,
+        }}
+        isDisabled={disabled}
+        {...props}
+      />
       {error && (
         <HelpText severity={HelpTextSeverity.Error} style={{ marginTop: 4 }}>
           {error}

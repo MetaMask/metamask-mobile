@@ -33,8 +33,14 @@ export const SnapUICard: FunctionComponent<SnapUICardProps> = ({
     justifyContent={JustifyContent.spaceBetween}
     alignItems={AlignItems.center}
   >
-    <Box gap={16} flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
-      {image && <SnapUIImage width={32} height={32} borderRadius={999} value={image} />}
+    <Box
+      gap={16}
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+    >
+      {image && (
+        <SnapUIImage width={32} height={32} borderRadius={999} value={image} />
+      )}
       <Box flexDirection={FlexDirection.Column}>
         <Text variant={TextVariant.BodyMDMedium} ellipsizeMode="tail">
           {title}

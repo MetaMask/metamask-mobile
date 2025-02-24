@@ -31,7 +31,9 @@ export const button: UIComponentFactory<ButtonElementProps> = ({
     loading: element.props.loading ?? false,
     // TODO: This prop is currently not used.
     textVariant:
-      element.props.size === 'sm' ? TextVariant.BodySMMedium : TextVariant.BodyMDMedium,
+      element.props.size === 'sm'
+        ? TextVariant.BodySMMedium
+        : TextVariant.BodyMDMedium,
   },
   children: mapTextToTemplate(
     getJsxChildren(element) as NonEmptyArray<string | JSXElement>,

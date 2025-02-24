@@ -23,6 +23,11 @@ const onPress = (href: string) => {
 
 // TODO: This component should show a modal for links when not using preinstalled Snaps
 export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => (
-  <ButtonLink testID="snaps-ui-link" color={TextColor.Info} onPress={() => onPress(href)} label={children} />
+  <ButtonLink
+    testID="snaps-ui-link"
+    color={TextColor.Info}
+    onPress={() => onPress(href)}
+    label={children}
+  />
 );
 ///: END:ONLY_INCLUDE_IF

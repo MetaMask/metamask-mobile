@@ -29,29 +29,34 @@ function renderElement(element: TemplateRendererComponent) {
   const propsAsComponents = element.propComponents
     ? getPropComponents(element.propComponents)
     : {};
-    return (
-      <Element {...element.props} {...propsAsComponents}>
-        {Array.isArray(element.children)
-          ? element.children.map((child) => (
-              <TemplateRenderer
-                key={typeof child === 'string' ? `${random()}` : child.key}
-                sections={child}
-              />
-            ))
-          : element.children}
-      </Element>
-    );
+  return (
+    <Element {...element.props} {...propsAsComponents}>
+      {Array.isArray(element.children)
+        ? element.children.map((child) => (
+            <TemplateRenderer
+              key={typeof child === 'string' ? `${random()}` : child.key}
+              sections={child}
+            />
+          ))
+        : element.children}
+    </Element>
+  );
 }
 
-function getPropComponents(components: Record<string, TemplateRendererComponent>) {
-  return Object.entries(components).reduce<Record<string, ReactNode>>((accumulator, [key, component]) => {
-    if (component) {
-      accumulator[key] = Array.isArray(component)
-        ? component.map(renderElement)
-        : renderElement(component);
-    }
-    return accumulator;
-  }, {});
+function getPropComponents(
+  components: Record<string, TemplateRendererComponent>,
+) {
+  return Object.entries(components).reduce<Record<string, ReactNode>>(
+    (accumulator, [key, component]) => {
+      if (component) {
+        accumulator[key] = Array.isArray(component)
+          ? component.map(renderElement)
+          : renderElement(component);
+      }
+      return accumulator;
+    },
+    {},
+  );
 }
 
 const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
@@ -98,9 +103,15 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
             } else {
               // Otherwise render the element.
               const Element = getElement(child);
-              const propsAsComponents = child.propComponents ? getPropComponents(child.propComponents) : {};
+              const propsAsComponents = child.propComponents
+                ? getPropComponents(child.propComponents)
+                : {};
               allChildren.push(
-                <Element key={child.key} {...child.props} {...propsAsComponents}>
+                <Element
+                  key={child.key}
+                  {...child.props}
+                  {...propsAsComponents}
+                >
                   {child?.children}
                 </Element>,
               );

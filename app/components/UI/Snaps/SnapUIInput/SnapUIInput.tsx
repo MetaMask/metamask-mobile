@@ -1,8 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
 import { TextInput } from 'react-native';
-import TextField, { TextFieldSize } from '../../../../component-library/components/Form/TextField';
-import HelpText, { HelpTextSeverity } from '../../../../component-library/components/Form/HelpText';
+import TextField, {
+  TextFieldSize,
+} from '../../../../component-library/components/Form/TextField';
+import HelpText, {
+  HelpTextSeverity,
+} from '../../../../component-library/components/Form/HelpText';
 import Label from '../../../../component-library/components/Form/Label';
 
 export interface SnapUIInputProps {
@@ -12,7 +16,13 @@ export interface SnapUIInputProps {
   error?: string;
 }
 
-export const SnapUIInput = ({ name, form, label, error, ...props }: SnapUIInputProps) => {
+export const SnapUIInput = ({
+  name,
+  form,
+  label,
+  error,
+  ...props
+}: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =
     useSnapInterfaceContext();
 
@@ -48,22 +58,22 @@ export const SnapUIInput = ({ name, form, label, error, ...props }: SnapUIInputP
 
   return (
     <>
-    {label && <Label>{label}</Label>}
-     <TextField
-      {...props}
-      size={TextFieldSize.Lg}
-      ref={inputRef}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      id={name}
-      value={value}
-      onChangeText={handleChange}
-    />
-          {error && (
+      {label && <Label>{label}</Label>}
+      <TextField
+        {...props}
+        size={TextFieldSize.Lg}
+        ref={inputRef}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        id={name}
+        value={value}
+        onChangeText={handleChange}
+      />
+      {error && (
         <HelpText severity={HelpTextSeverity.Error} style={{ marginTop: 4 }}>
           {error}
         </HelpText>
-      )}</>
-   
+      )}
+    </>
   );
 };

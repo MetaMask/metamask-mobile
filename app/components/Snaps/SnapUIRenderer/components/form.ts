@@ -9,7 +9,7 @@ export const form: UIComponentFactory<FormElement> = ({
   element,
   ...params
 }) => ({
-    // The Form is just a Box that does nothing on mobile.
+  // The Form is just a Box that does nothing on mobile.
   element: 'Box',
   children: getJsxChildren(element).map((children) =>
     mapToTemplate({
@@ -20,6 +20,6 @@ export const form: UIComponentFactory<FormElement> = ({
   ) as NonEmptyArray<UIComponent>,
   props: {
     flexDirection: FlexDirection.Column,
-    gap: 2
+    gap: 8,
   },
 });

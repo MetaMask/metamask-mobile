@@ -127,12 +127,16 @@ export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
 
 export const mapTextToTemplate = (
   elements: NonEmptyArray<JSXElement | string>,
-  params: Pick<MapToTemplateParams, 'map' | 'useFooter' | 'onCancel'>,
+  params: Pick<MapToTemplateParams, 'map' | 'useFooter' | 'onCancel' | 'theme'>,
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
     if (typeof e === 'string') {
       // React Native cannot render strings directly, so we map to an element where we control the props.
-      return ({ ...params, element: 'Text', children: unescapeFn(e), props: { color: 'inherit' } }) ;
+      return {
+        element: 'Text',
+        children: unescapeFn(e),
+        props: { color: 'inherit' },
+      };
     }
     return mapToTemplate({ ...params, element: e });
   }) as NonEmptyArray<UIComponent | string>;

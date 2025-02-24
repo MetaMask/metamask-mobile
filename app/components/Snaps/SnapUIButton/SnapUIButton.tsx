@@ -3,7 +3,9 @@ import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { ButtonLinkProps } from '../../../component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.types';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 
 export type SnapUIButtonProps = {
@@ -42,10 +44,10 @@ export const SnapUIButton: FunctionComponent<
 
     // TODO: Verify ordering here
     if (type === ButtonType.Submit) {
-        handleEvent({
-            event: UserInputEventType.FormSubmitEvent,
-            name: form,
-          });
+      handleEvent({
+        event: UserInputEventType.FormSubmitEvent,
+        name: form,
+      });
     }
   };
 
@@ -61,14 +63,16 @@ export const SnapUIButton: FunctionComponent<
       onPress={handlePress}
       color={color}
       disabled={disabled}
-      label={loading ? (
-        <Icon
-          name={IconName.Loading}
-          // style={{ animation: 'spin 1.2s linear infinite' }}
-        />
-      ) : (
-        children
-      )}
+      label={
+        loading ? (
+          <Icon
+            name={IconName.Loading}
+            // style={{ animation: 'spin 1.2s linear infinite' }}
+          />
+        ) : (
+          children
+        )
+      }
     />
   );
 };

@@ -229,7 +229,7 @@ describe('SnapUIRenderer', () => {
       Box({ children: Input({ name: 'input' }) }),
     );
 
-    const input = getByTestId('form-text-field');
+    const input = getByTestId('input');
     fireEvent.changeText(input, 'a');
 
     expect(
@@ -264,7 +264,7 @@ describe('SnapUIRenderer', () => {
       { state: { input: 'bar' } },
     );
 
-    const input = getByTestId('form-text-field');
+    const input = getByTestId('input');
     expect(input).toBeDefined();
     expect(input.props.value).toStrictEqual('bar');
 
@@ -275,14 +275,14 @@ describe('SnapUIRenderer', () => {
     const { toJSON, getAllByTestId, updateInterface, getRenderCount } =
       renderInterface(Box({ children: Input({ name: 'input' }) }));
 
-    const inputs = getAllByTestId('form-text-field');
+    const inputs = getAllByTestId('input');
     expect(inputs).toHaveLength(1);
 
     updateInterface(
       Box({ children: [Input({ name: 'input' }), Input({ name: 'input2' })] }),
     );
 
-    const inputsAfterRerender = getAllByTestId('form-text-field');
+    const inputsAfterRerender = getAllByTestId('input');
     expect(inputsAfterRerender).toHaveLength(2);
 
     expect(getRenderCount()).toBe(2);
@@ -299,7 +299,7 @@ describe('SnapUIRenderer', () => {
       { input: 'bar', input2: 'foo' },
     );
 
-    const inputsAfterRerender = getAllByTestId('form-text-field');
+    const inputsAfterRerender = getAllByTestId('input');
     expect(inputsAfterRerender[0].props.value).toStrictEqual('bar');
     expect(inputsAfterRerender[1].props.value).toStrictEqual('foo');
 
