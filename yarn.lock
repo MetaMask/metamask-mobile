@@ -5552,7 +5552,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-8.9.0.tgz#bac680e8f0007b3a11440f7e311674d6457d37ed"
   integrity sha512-N/WfmdrzJm+xbpuqJsfMrlrAhiNDsllIpwt9gDDeEKDlQAfJnMtT9xvOvBJbXY7zgMdtGZuD+KY64jNKabbuVQ==
 
-"@metamask/transaction-controller@^45.1.0":
+"@metamask/transaction-controller@^45.0.0":
   version "45.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-45.1.0.tgz#271f0a9575551bfd494ff79be70fb142d792a987"
   integrity sha512-LyNjcZ6zbLAKgkCJbFK+e7oPespl8c4kGJXV8JKzLGOmdU1LORpNgeo61nUK7/0b/LVovFTCyJO8wjk7ESFI2Q==
