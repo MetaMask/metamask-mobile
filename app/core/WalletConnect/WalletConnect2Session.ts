@@ -1,33 +1,28 @@
-import Client, { SingleEthereumTypes } from '@walletconnect/se-sdk';
 import { WalletDevice } from '@metamask/transaction-controller';
-import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
+import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import { SessionTypes } from '@walletconnect/types';
-import { Platform, Linking, ImageSourcePropType } from 'react-native';
+import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
-import Device from '../../util/device';
-import Logger from '../../util/Logger';
-import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
-import Engine from '../Engine';
-import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
-import DevLogger from '../SDKConnect/utils/DevLogger';
-import METHODS_TO_REDIRECT from './wc-config';
-import { Minimizer } from '../NativeModules';
-import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectChainId
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import { addTransaction } from '../../util/transaction-controller';
-import { getPermittedAccounts } from '../Permissions';
-import { hideWCLoadingState, showWCLoadingState } from './wc-utils';
-import { getDefaultNetworkByChainId } from '../../util/networks';
-import { ERROR_MESSAGES } from './WalletConnectV2';
+import Device from '../../util/device';
+import Logger from '../../util/Logger';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
+import { addTransaction } from '../../util/transaction-controller';
+import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
+import { Minimizer } from '../NativeModules';
+import { getPermittedAccounts } from '../Permissions';
+import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
+import DevLogger from '../SDKConnect/utils/DevLogger';
+import { ERROR_MESSAGES } from './WalletConnectV2';
+import METHODS_TO_REDIRECT from './wc-config';
+import { checkWCPermissions, getScopedPermissions, hideWCLoadingState, normalizeOrigin } from './wc-utils';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -43,7 +38,7 @@ interface BackgroundBridgeFactory {
 class WalletConnect2Session {
   private backgroundBridge: BackgroundBridge;
   private navigation?: NavigationContainerRef;
-  private web3Wallet: Client;
+  private web3Wallet: IWalletKit;
   private deeplink: boolean;
   // timeoutRef is used on android to prevent automatic redirect on switchChain and wait for wallet_addEthereumChain.
   // If addEthereumChain is not received after 3 seconds, it will redirect.
@@ -51,7 +46,7 @@ class WalletConnect2Session {
   private requestsToRedirect: { [request: string]: boolean } = {};
   private topicByRequestId: { [requestId: string]: string } = {};
   private requestByRequestId: {
-    [requestId: string]: SingleEthereumTypes.SessionRequest;
+    [requestId: string]: WalletKitTypes.SessionRequest;
   } = {};
 
   public session: SessionTypes.Struct;
@@ -67,7 +62,7 @@ class WalletConnect2Session {
       create: (options: any) => new BackgroundBridge(options),
     },
   }: {
-    web3Wallet: Client;
+    web3Wallet: IWalletKit;
     channelId: string;
     session: SessionTypes.Struct;
     deeplink: boolean;
@@ -88,7 +83,7 @@ class WalletConnect2Session {
     const icons = session.peer.metadata.icons;
 
     DevLogger.log(
-      `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic}`,
+      `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${url} name=${name} icons=${icons}`,
     );
 
     this.backgroundBridge = backgroundBridgeFactory.create({
@@ -230,10 +225,13 @@ class WalletConnect2Session {
     }
 
     try {
-      await this.web3Wallet.approveRequest({
-        id: parseInt(id),
+      await this.web3Wallet.respondSessionRequest({
         topic,
-        result,
+        response: {
+          id: parseInt(id),
+          jsonrpc: '2.0',
+          result,
+        },
       });
     } catch (err) {
       console.warn(
@@ -253,7 +251,7 @@ class WalletConnect2Session {
   };
 
   private handleSwitchEthereumChain = async (
-    initialRequest: SingleEthereumTypes.SessionRequest,
+    initialRequest: WalletKitTypes.SessionRequest,
   ) => {
     try {
       const params = initialRequest.params.request.params as unknown[];
@@ -291,10 +289,13 @@ class WalletConnect2Session {
     };
 
     try {
-      await this.web3Wallet.rejectRequest({
-        id: parseInt(id),
+      await this.web3Wallet.respondSessionRequest({
         topic,
-        error: errorResponse,
+        response: {
+          id: parseInt(id),
+          jsonrpc: '2.0',
+          error: errorResponse,
+        },
       });
     } catch (err) {
       console.warn(
@@ -320,13 +321,14 @@ class WalletConnect2Session {
         );
         return;
       }
+      const origin = normalizeOrigin(this.session.peer.metadata.url);
+      DevLogger.log(`WC2::updateSession origin=${origin} - chainId=${chainId} - accounts=${accounts}`);
 
       if (accounts.length === 0) {
         console.warn(
           `WC2::updateSession invalid accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
-        const approvedAccounts =
-          await this.getApprovedAccountsFromPermissions();
+        const approvedAccounts = await getPermittedAccounts(origin);
         if (approvedAccounts.length > 0) {
           DevLogger.log(
             `WC2::updateSession found approved accounts`,
@@ -352,10 +354,12 @@ class WalletConnect2Session {
         );
       }
 
+      const namespaces = await getScopedPermissions({ origin });
+      DevLogger.log(`WC2::updateSession updating with eip155 namespace`, namespaces);
+
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
-        chainId,
-        accounts,
+        namespaces
       });
     } catch (err) {
       console.warn(
@@ -365,29 +369,7 @@ class WalletConnect2Session {
     }
   };
 
-  private async getApprovedAccountsFromPermissions(): Promise<string[]> {
-    const permissionController = (
-      Engine.context as {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        PermissionController: PermissionController<any, any>;
-      }
-    ).PermissionController;
-
-    DevLogger.log(
-      `WC2::updateSession permissionController.state=${JSON.stringify(
-        permissionController.state,
-      )}`,
-    );
-
-    const origin = this.session.peer.metadata.url;
-    return await getPermittedAccounts(origin);
-  }
-
-  handleRequest = async (requestEvent: SingleEthereumTypes.SessionRequest) => {
-    DevLogger.log(
-      `WalletConnect2Session::handleRequest id=${requestEvent.id} topic=${requestEvent.topic} method=${requestEvent.params.request.method}`,
-      requestEvent,
-    );
+  handleRequest = async (requestEvent: WalletKitTypes.SessionRequest) => {
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
     this.requestByRequestId[requestEvent.id] = requestEvent;
 
@@ -399,76 +381,44 @@ class WalletConnect2Session {
     hideWCLoadingState({ navigation: this.navigation });
     const verified = requestEvent.verifyContext?.verified;
     const hostname = verified?.origin;
-    const origin = WALLET_CONNECT_ORIGIN + hostname; // allow correct origin for analytics with eth_sendTransaction
+    const origin = normalizeOrigin(hostname);
 
     let method = requestEvent.params.request.method;
-    const chainId = parseInt(requestEvent.params.chainId);
+    const caip2ChainId = requestEvent.params.chainId; // 'eip155:1'
 
     // TODO: Replace "any" with type
     const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(
-      `WalletConnect2Session::handleRequest chainId=${chainId} method=${method}`,
-      JSON.stringify(methodParams, null, 2),
+      `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method} origin=${origin}`,
     );
 
-    // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-    const selectedChainId = parseInt(selectChainId(store.getState()));
+    try {
+      const allowed = await checkWCPermissions({ origin, caip2ChainId });
+      DevLogger.log(`WC2::handleRequest caip2ChainId=${caip2ChainId} is allowed=${allowed}`);
 
-    if (selectedChainId !== chainId) {
-      DevLogger.log(
-        `rejectRequest due to invalid chainId ${chainId} (selectedChainId=${selectedChainId})`,
-      );
-      await this.web3Wallet.rejectRequest({
-        id: requestEvent.id,
-        topic: this.session.topic,
-        error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
-      });
-      return;
-    }
-
-    // Specific logic to prevent automatic redirect on switchChain and let the dapp call wallet_addEthereumChain on error.
-    if (method.toLowerCase() === RPC_WALLET_SWITCHETHEREUMCHAIN.toLowerCase()) {
-      // extract first chainId param from request array
-      const params = requestEvent.params.request.params as [
-        { chainId?: string },
-      ];
-      const _chainId = params[0]?.chainId;
-      DevLogger.log(
-        `formatting chainId=>${chainId} ==> 0x${chainId.toString(16)}`,
-      );
-
-      const networkConfigurations = selectNetworkConfigurations(
-        store.getState(),
-      );
-      const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);
-      const existingEntry = Object.entries(networkConfigurations).find(
-        ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
-      );
-      DevLogger.log(
-        `rpcMiddleWare -- check for auto rejection (_chainId=${_chainId}) networkConfigurations=${JSON.stringify(
-          networkConfigurations,
-        )} existingEntry=${existingEntry} existingNetworkDefault=${existingNetworkDefault}`,
-      );
-      if (!existingEntry && !existingNetworkDefault) {
-        DevLogger.log(
-          `SKIP rpcMiddleWare -- auto rejection is detected (_chainId=${_chainId})`,
-        );
-        await this.web3Wallet.rejectRequest({
-          id: requestEvent.id,
-          topic: requestEvent.topic,
-          error: { code: 32603, message: ERROR_MESSAGES.INVALID_CHAIN },
+      if(!allowed) {
+        DevLogger.log(`WC2::handleRequest caip2ChainId=${caip2ChainId} is not allowed`);
+        await this.web3Wallet.respondSessionRequest({
+          topic: this.session.topic,
+          response: {
+            id: requestEvent.id,
+            jsonrpc: '2.0',
+            error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
+          },
         });
-
-        showWCLoadingState({ navigation: this.navigation });
-        this.timeoutRef = setTimeout(() => {
-          DevLogger.log(`wc2::timeoutRef redirecting...`);
-          hideWCLoadingState({ navigation: this.navigation });
-          // Redirect or do nothing if timer gets cleared upon receiving wallet_addEthereumChain after automatic reject
-          this.redirect('handleRequestTimeout');
-        }, 3000);
         return;
       }
+    } catch (error) {
+      DevLogger.log(`WC2::handleRequest caip2ChainId=${caip2ChainId} is not allowed`);
+      await this.web3Wallet.respondSessionRequest({
+        topic: this.session.topic,
+        response: {
+          id: requestEvent.id,
+          jsonrpc: '2.0',
+          error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
+        },
+      });
     }
 
     // Manage redirects
@@ -500,7 +450,7 @@ class WalletConnect2Session {
   };
 
   private async handleSendTransaction(
-    requestEvent: SingleEthereumTypes.SessionRequest,
+    requestEvent: WalletKitTypes.SessionRequest,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     methodParams: any,
     origin: string,

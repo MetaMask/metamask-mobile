@@ -4,6 +4,9 @@ import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
+import { PermissionKeys } from './specifications';
+import { normalizeOrigin } from '../WalletConnect/wc-utils';
+import { EVM_IDENTIFIER } from '../Multichain/constants';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -214,4 +217,29 @@ export const getPermittedAccounts = async (
     }
     throw error;
   }
+};
+
+/**
+ * Get permitted chains for the given the host.
+ *
+ * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
+ * @returns An array containing permitted chains for the specified host.
+ */
+export const getPermittedChains = async (hostname: string): Promise<string[]> => {
+  const { PermissionController } = Engine.context;
+  const caveat = PermissionController.getCaveat(
+    normalizeOrigin(hostname),
+    PermissionKeys.permittedChains,
+    CaveatTypes.restrictNetworkSwitching
+  );
+
+  if (Array.isArray(caveat?.value)) {
+    const chains = caveat.value
+      .filter((item: unknown): item is string => typeof item === 'string' && !isNaN(parseInt(item)))
+      .map((chainId: string) => `${EVM_IDENTIFIER}:${parseInt(chainId)}`);
+
+    return chains;
+  }
+
+  return [];
 };
