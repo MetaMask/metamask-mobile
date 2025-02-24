@@ -170,7 +170,11 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
-import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
+import {
+  selectSwapsChainFeatureFlags,
+  selectSwapsQuotes,
+  selectSwapsTopAggId,
+} from '../../reducers/swaps';
 import {
   SmartTransactionStatuses,
   ClientId,
@@ -200,7 +204,10 @@ import { setupCurrencyRateSync } from './controllers/RatesController/subscriptio
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
-import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
+import {
+  getSmartTransactionMetricsProperties,
+  getGasIncludedTransactionFees,
+} from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
@@ -1287,10 +1294,15 @@ export class Engine {
       getNetworkState: () => networkController.state,
       hooks: {
         publish: (transactionMeta) => {
-          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-            store.getState(),
-          );
-
+          const state = store.getState();
+          const shouldUseSmartTransaction =
+            selectShouldUseSmartTransaction(state);
+          const swapsQuotes = selectSwapsQuotes(state);
+          // We can choose the top agg id for now. Once selection is enabled, we need
+          // to look for a selected agg id.
+          const swapsTopAggId = selectSwapsTopAggId(state);
+          const selectedQuote = swapsQuotes?.[swapsTopAggId];
+          const transactionFees = getGasIncludedTransactionFees(selectedQuote);
           return submitSmartTransactionHook({
             transactionMeta,
             transactionController: this.transactionController,
@@ -1299,7 +1311,8 @@ export class Engine {
             approvalController,
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             controllerMessenger: this.controllerMessenger,
-            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
+            featureFlags: selectSwapsChainFeatureFlags(state),
+            transactionFees,
           }) as Promise<{ transactionHash: string }>;
         },
       },
