@@ -52,7 +52,8 @@ describe('PersonalSign', () => {
       ),
     ).toHaveLength(2);
     expect(getByText('URL')).toBeDefined();
-    expect(getAllByText('metamask.github.io')).toHaveLength(2);
+    expect(getAllByText('metamask.github.io')).toBeDefined();
+    expect(getAllByText('https://metamask.github.io')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getAllByText('Ethereum Mainnet')).toHaveLength(2);
     expect(getByText('Account')).toBeDefined();
