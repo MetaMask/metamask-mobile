@@ -39,6 +39,8 @@ async function upsertStatusCheck(
 ): Promise<void> {
   const octokit = getOctokitInstance();
 
+  console.log(`Upserting status check: ${statusCheckName} with status ${status} for commit ${commitHash}`);
+
   // List existing checks
   const listResponse = await octokit.rest.checks.listForRef({
     owner,
