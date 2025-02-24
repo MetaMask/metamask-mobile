@@ -63,11 +63,11 @@ const Title = () => {
   const { styles } = useStyles(styleSheet, {});
   const { isStandaloneConfirmation } = useStandaloneConfirmation();
 
-  const { title, subTitle } = getTitleAndSubTitle(approvalRequest, signatureRequest);
-
   if (isStandaloneConfirmation) {
     return null;
   }
+
+  const { title, subTitle } = getTitleAndSubTitle(approvalRequest, signatureRequest);
 
   return (
     <View style={styles.titleContainer}>
