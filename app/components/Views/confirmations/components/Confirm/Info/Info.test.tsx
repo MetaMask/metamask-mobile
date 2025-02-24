@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
@@ -8,7 +9,6 @@ import {
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareContext';
 import Info from './Info';
-import { Text } from 'react-native';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -28,6 +28,13 @@ jest.mock('../../../../../../core/Engine', () => ({
         keyrings: [],
       },
       getOrAddQRKeyring: jest.fn(),
+    },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
     },
   },
   controllerMessenger: {
