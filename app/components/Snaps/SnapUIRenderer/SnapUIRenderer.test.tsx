@@ -442,7 +442,7 @@ describe('SnapUIRenderer', () => {
   });
 
   it('supports fields with multiple components', () => {
-    const { toJSON, getByTestId, getByText } = renderInterface(
+    const { toJSON } = renderInterface(
       Box({
         children: Form({
           name: 'form',
