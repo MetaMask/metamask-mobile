@@ -861,13 +861,6 @@ class Transactions extends PureComponent {
             descriptionText={strings('transaction.speedup_tx_message')}
           />
         )}
-
-        <RetryModal
-          onCancelPress={() => this.toggleRetry(undefined)}
-          onConfirmPress={this.retry}
-          retryIsOpen={this.state.retryIsOpen}
-          errorMsg={this.state.errorMsg}
-        />
       </View>
     );
   };
@@ -885,6 +878,12 @@ class Transactions extends PureComponent {
           {(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
             this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
         </View>
+        <RetryModal
+          onCancelPress={() => this.toggleRetry(undefined)}
+          onConfirmPress={this.retry}
+          retryIsOpen={this.state.retryIsOpen}
+          errorMsg={this.state.errorMsg}
+        />
       </PriceChartProvider>
     );
   };

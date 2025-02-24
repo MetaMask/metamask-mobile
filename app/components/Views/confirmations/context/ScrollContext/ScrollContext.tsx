@@ -15,10 +15,14 @@ import {
   View,
 } from 'react-native';
 
+import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './ScrollContext.styles';
 
@@ -30,10 +34,13 @@ export const ScrollContext = createContext<ScrollContextType>({
   isScrollToBottomNeeded: false,
 });
 
-export const ScrollContextProvider: React.FC<{
-  scrollableSection: ReactElement[] | ReactElement;
-  staticFooter: ReactElement;
-}> = ({ scrollableSection, staticFooter }) => {
+export interface ScrollContextProviderProps {
+  children: ReactElement | ReactElement[];
+}
+
+export const ScrollContextProvider: React.FC<ScrollContextProviderProps> = ({
+  children,
+}) => {
   const [hasScrolledToBottom, setScrolledToBottom] = useState(false);
   const [isScrollable, setIsScrollable] = useState(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
@@ -80,8 +87,9 @@ export const ScrollContextProvider: React.FC<{
           size={ButtonIconSizes.Lg}
           style={styles.scrollButton}
           iconName={IconName.Arrow2Down}
+          iconColor={IconColor.Inverse}
           onPress={scrollToBottom}
-          testID="scroll-to-bottom-button"
+          testID={ConfirmationPageSectionsSelectorIDs.SCROLL_BUTTON}
         />
       )}
       <ScrollView
@@ -89,14 +97,14 @@ export const ScrollContextProvider: React.FC<{
         style={styles.scrollable}
         onContentSizeChange={checkScrollable}
         onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         <TouchableWithoutFeedback>
           <View ref={scrolledSectionRef} style={styles.scrollableSection}>
-            {scrollableSection}
+            {children}
           </View>
         </TouchableWithoutFeedback>
       </ScrollView>
-      {staticFooter}
     </ScrollContext.Provider>
   );
 };

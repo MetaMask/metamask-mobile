@@ -1,5 +1,5 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Linking, View } from 'react-native';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
@@ -8,12 +8,14 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
-import Text, { TextVariant } from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
-import { useScrollContext } from '../../../context/ScrollContext';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
+import { useLedgerContext } from '../../../context/LedgerContext';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
@@ -24,15 +26,28 @@ const Footer = () => {
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
-  const { isScrollToBottomNeeded } = useScrollContext();
-  const confirmDisabled = needsCameraPermission || isScrollToBottomNeeded;
+  const { isLedgerAccount } = useLedgerContext();
+  const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const isStakingConfirmation = [
     TransactionType.stakingDeposit,
     TransactionType.stakingUnstake,
     TransactionType.stakingClaim,
   ].includes(transactionMetadata?.type as TransactionType);
-  const { styles } = useStyles(styleSheet, { confirmDisabled, isStakingConfirmation });
+  const { styles } = useStyles(styleSheet, {
+    confirmDisabled,
+    isStakingConfirmation,
+  });
+
+  const confirmButtonLabel = useMemo(() => {
+    if (isQRSigningInProgress) {
+      return strings('confirm.qr_get_sign');
+    }
+    if (isLedgerAccount) {
+      return strings('confirm.sign_with_ledger');
+    }
+    return strings('confirm.confirm');
+  }, [isLedgerAccount, isQRSigningInProgress]);
 
   return (
     <View>
@@ -49,11 +64,7 @@ const Footer = () => {
         <View style={styles.buttonDivider} />
         <Button
           onPress={onConfirm}
-          label={
-            isQRSigningInProgress
-              ? strings('confirm.qr_get_sign')
-              : strings('confirm.confirm')
-          }
+          label={confirmButtonLabel}
           style={styles.confirmButton}
           size={ButtonSize.Lg}
           testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
@@ -65,9 +76,7 @@ const Footer = () => {
       </View>
       {isStakingConfirmation && (
         <View style={styles.textContainer}>
-          <Text
-            variant={TextVariant.BodySM}
-          >
+          <Text variant={TextVariant.BodySM}>
             {strings('confirm.staking_footer.part1')}
           </Text>
           <Text
@@ -77,21 +86,19 @@ const Footer = () => {
           >
             {strings('confirm.staking_footer.terms_of_use')}
           </Text>
-          <Text
-            variant={TextVariant.BodySM}
-          >
+          <Text variant={TextVariant.BodySM}>
             {strings('confirm.staking_footer.part2')}
           </Text>
           <Text
             variant={TextVariant.BodySM}
             style={styles.linkText}
-            onPress={() => Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)}
+            onPress={() =>
+              Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
+            }
           >
             {strings('confirm.staking_footer.risk_disclosure')}
           </Text>
-          <Text
-            variant={TextVariant.BodySM}
-          >
+          <Text variant={TextVariant.BodySM}>
             {strings('confirm.staking_footer.part3')}
           </Text>
         </View>
