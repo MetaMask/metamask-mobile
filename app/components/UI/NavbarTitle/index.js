@@ -1,9 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { scale } from 'react-native-size-matters';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -113,9 +111,6 @@ class NavbarTitle extends PureComponent {
       networkName,
     } = this.props;
     let name = null;
-    const color =
-      (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
-      null;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
