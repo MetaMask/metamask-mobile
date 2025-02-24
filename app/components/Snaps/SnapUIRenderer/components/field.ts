@@ -3,7 +3,6 @@ import {
   InputElement,
   JSXElement,
   CheckboxElement,
-  SelectorElement,
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
@@ -12,12 +11,12 @@ import { UIComponentFactory, UIComponentParams } from './types';
 //import { constructInputProps } from './input';
 
 export const field: UIComponentFactory<FieldElement> = ({
-  element,
+  element: e,
   form,
   ...params
 }) => {
   // For fields we don't render the Input itself, we just adapt SnapUIInput.
-  const children = getJsxChildren(element);
+  const children = getJsxChildren(e);
   const primaryChildIndex = getPrimaryChildElementIndex(
     children as JSXElement[],
   );
@@ -25,19 +24,17 @@ export const field: UIComponentFactory<FieldElement> = ({
 
   switch (child.type) {
     case 'Input': {
-      const getLeftAccessory = () => {
-        return mapToTemplate({
+      const getLeftAccessory = () =>
+        mapToTemplate({
           ...params,
           element: children[0] as JSXElement,
         });
-      };
 
-      const getRightAccessory = (accessoryIndex: number) => {
-        return mapToTemplate({
+      const getRightAccessory = (accessoryIndex: number) =>
+        mapToTemplate({
           ...params,
           element: children[accessoryIndex] as JSXElement,
         });
-      };
 
       const input = child as InputElement;
 
@@ -59,12 +56,12 @@ export const field: UIComponentFactory<FieldElement> = ({
         props: {
           id: input.props.name,
           placeholder: input.props.placeholder,
-          label: element.props.label,
+          label: e.props.label,
           // ...constructInputProps(input.props),
           name: input.props.name,
           form,
-          error: element.props.error !== undefined,
-          helpText: element.props.error,
+          error: e.props.error !== undefined,
+          helpText: e.props.error,
           disabled: child.props.disabled,
         },
         propComponents: {
@@ -95,9 +92,9 @@ export const field: UIComponentFactory<FieldElement> = ({
         element: 'SnapUICheckbox',
         props: {
           ...checkboxMapped.props,
-          fieldLabel: element.props.label,
+          fieldLabel: e.props.label,
           form,
-          error: element.props.error,
+          error: e.props.error,
           disabled: child.props.disabled,
         },
       };

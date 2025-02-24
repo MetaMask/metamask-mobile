@@ -70,6 +70,7 @@ export const SnapUIInput = ({
         onChangeText={handleChange}
       />
       {error && (
+                // eslint-disable-next-line react-native/no-inline-styles
         <HelpText severity={HelpTextSeverity.Error} style={{ marginTop: 4 }}>
           {error}
         </HelpText>

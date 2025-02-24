@@ -66,7 +66,7 @@ const SnapUIRendererComponent = ({
         t: strings,
         theme,
       }) as TemplateRendererInput),
-    [content, useFooter, onCancel],
+    [content, useFooter, onCancel, theme],
   );
 
   if (isLoading || !content) {

@@ -7,20 +7,19 @@ function generateBorderRadius(
   switch (borderRadius) {
     default:
     case 'none':
-      return '0';
+      return 0;
 
     case 'medium':
-      return '6px';
+      return 6;
 
-    case 'full':
-      return '50%';
+    // TODO: Support Full border radius (50%)
   }
 }
 
-export const image: UIComponentFactory<ImageElement> = ({ element }) => ({
+export const image: UIComponentFactory<ImageElement> = ({ element: e }) => ({
   element: 'SnapUIImage',
   props: {
-    value: element.props.src,
-    borderRadius: generateBorderRadius(element.props.borderRadius),
+    value: e.props.src,
+    borderRadius: generateBorderRadius(e.props.borderRadius),
   },
 });

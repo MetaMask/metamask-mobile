@@ -3,12 +3,13 @@ import { UIComponentFactory, UIComponentParams } from './types';
 import { box } from './box';
 
 export const section: UIComponentFactory<SectionElement> = ({
-  element,
+  element: e,
   theme,
   ...params
 }) => {
   const { children, props } = box({
-    element,
+    element: e,
+    theme,
     ...params,
   } as unknown as UIComponentParams<BoxElement>);
 
@@ -17,8 +18,8 @@ export const section: UIComponentFactory<SectionElement> = ({
     children,
     props: {
       ...props,
-      padding: 4,
-      gap: 2,
+      padding: 16,
+      gap: 8,
       // This is meant to be the inverse color of the container background.
       // TODO: Support multiple background colors.
       backgroundColor: theme.colors.background.alternative,

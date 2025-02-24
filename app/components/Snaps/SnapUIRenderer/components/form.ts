@@ -6,15 +6,15 @@ import { UIComponent, UIComponentFactory } from './types';
 import { FlexDirection } from '../../../UI/Box/box.types';
 
 export const form: UIComponentFactory<FormElement> = ({
-  element,
+  element: e,
   ...params
 }) => ({
   // The Form is just a Box that does nothing on mobile.
   element: 'Box',
-  children: getJsxChildren(element).map((children) =>
+  children: getJsxChildren(e).map((children) =>
     mapToTemplate({
       element: children as JSXElement,
-      form: element.props.name,
+      form: e.props.name,
       ...params,
     }),
   ) as NonEmptyArray<UIComponent>,

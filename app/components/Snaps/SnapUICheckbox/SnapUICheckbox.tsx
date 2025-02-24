@@ -1,13 +1,13 @@
 import React, { FunctionComponent, useEffect, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import { BorderColor, Display, FlexDirection } from '../../UI/Box/box.types';
+import { BorderColor, FlexDirection } from '../../UI/Box/box.types';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { HelpTextSeverity } from '../../../component-library/components/Form/HelpText/HelpText.types';
 import HelpText from '../../../component-library/components/Form/HelpText';
 import Label from '../../../component-library/components/Form/Label';
 import { Box } from '../../UI/Box/Box';
 
-export type SnapUICheckboxProps = {
+export interface SnapUICheckboxProps {
   name: string;
   fieldLabel?: string;
   // This variant is ignored on mobile.
@@ -16,7 +16,7 @@ export type SnapUICheckboxProps = {
   error?: string;
   form?: string;
   disabled?: boolean;
-};
+}
 
 export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
   name,
@@ -46,12 +46,7 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
   };
 
   return (
-    <Box
-      //className={classnames('snap-ui-renderer__checkbox', {
-      //  'snap-ui-renderer__field': label !== undefined,
-      // })}
-      flexDirection={FlexDirection.Column}
-    >
+    <Box flexDirection={FlexDirection.Column}>
       {fieldLabel && <Label>{fieldLabel}</Label>}
       <Checkbox
         onPress={handleChange}
@@ -64,6 +59,7 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
         {...props}
       />
       {error && (
+        // eslint-disable-next-line react-native/no-inline-styles
         <HelpText severity={HelpTextSeverity.Error} style={{ marginTop: 4 }}>
           {error}
         </HelpText>

@@ -187,6 +187,5 @@ export const FIELD_ELEMENT_TYPES = [
  * @param children - Children elements specified within Field element.
  * @returns Number, representing index of a primary field in the array of children elements.
  */
-export const getPrimaryChildElementIndex = (children: JSXElement[]) => {
-  return children.findIndex((c) => FIELD_ELEMENT_TYPES.includes(c.type));
-};
+export const getPrimaryChildElementIndex = (children: JSXElement[]) =>
+  children.findIndex((c) => FIELD_ELEMENT_TYPES.includes(c.type));
