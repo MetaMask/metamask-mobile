@@ -24,6 +24,36 @@ function getElement(
   return safeComponentList[component];
 }
 
+function renderElement(element: TemplateRendererComponent) {
+  const Element = getElement(element);
+  const propsAsComponents = element.propComponents
+    ? getPropComponents(element.propComponents)
+    : {};
+    return (
+      <Element {...element.props} {...propsAsComponents}>
+        {Array.isArray(element.children)
+          ? element.children.map((child) => (
+              <TemplateRenderer
+                key={typeof child === 'string' ? `${random()}` : child.key}
+                sections={child}
+              />
+            ))
+          : element.children}
+      </Element>
+    );
+}
+
+function getPropComponents(components: Record<string, TemplateRendererComponent>) {
+  return Object.entries(components).reduce<Record<string, ReactNode>>((accumulator, [key, component]) => {
+    if (component) {
+      accumulator[key] = Array.isArray(component)
+        ? component.map(renderElement)
+        : renderElement(component);
+    }
+    return accumulator;
+  }, {});
+}
+
 const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
   if (!sections) {
     // If sections is null eject early by returning null
@@ -36,21 +66,7 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
     typeof sections === 'object' &&
     !Array.isArray(sections)
   ) {
-    // If dealing with a single entry, then render a single object without key
-    const Element = getElement(sections);
-    const children = sections.children;
-    return (
-      <Element {...sections.props}>
-        {Array.isArray(children)
-          ? children.map((child) => (
-              <TemplateRenderer
-                key={typeof child === 'string' ? `${random()}` : child.key}
-                sections={child}
-              />
-            ))
-          : children}
-      </Element>
-    );
+    return renderElement(sections);
   }
 
   // The last case is dealing with an array of objects
@@ -82,8 +98,9 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
             } else {
               // Otherwise render the element.
               const Element = getElement(child);
+              const propsAsComponents = child.propComponents ? getPropComponents(child.propComponents) : {};
               allChildren.push(
-                <Element key={child.key} {...child.props}>
+                <Element key={child.key} {...child.props} {...propsAsComponents}>
                   {child?.children}
                 </Element>,
               );
