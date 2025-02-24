@@ -84,11 +84,11 @@ export interface RPCMethodsMiddleParameters {
   channelId?: string; // Used for remote connections
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getProviderState: (origin: string) => {
+  getProviderState: (origin: string) => Promise<{
     isUnlocked: boolean;
     chainId: string;
     networkVersion: string;
-  };
+  }>;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;

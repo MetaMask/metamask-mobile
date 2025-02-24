@@ -249,7 +249,7 @@ export class SDKConnect {
     DevLogger.log(`SDKConnect::refreshChannel channelId=${channelId}`);
     // Force enitting updated accounts
 
-    // @ts-ignore FIXME: notifySelectedAddressChanged expects a selectedAddress argument
+    // @ts-expect-error FIXME: notifySelectedAddressChanged expects a selectedAddress argument
     session.backgroundBridge?.notifySelectedAddressChanged();
   }
 

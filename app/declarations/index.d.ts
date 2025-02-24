@@ -295,3 +295,8 @@ declare module '@metamask/react-native-actionsheet' {
 }
 
 declare module '@metamask/react-native-search-api';
+
+// Resolve BackgroundBridge import errors related to TS
+declare module '@metamask/eth-json-rpc-filters';
+declare module '@metamask/eth-json-rpc-filters/subscriptionManager';
+declare module 'pump';
