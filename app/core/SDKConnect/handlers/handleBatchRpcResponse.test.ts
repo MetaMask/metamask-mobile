@@ -119,7 +119,6 @@ describe('handleBatchRpcResponse', () => {
     expect(backgroundBridge.onMessage).toHaveBeenCalledWith({
       name: 'metamask-provider',
       data: nextRpc,
-      origin: 'sdk',
     });
   });
 

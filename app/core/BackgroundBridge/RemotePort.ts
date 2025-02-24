@@ -2,7 +2,7 @@
 const EventEmitter = require('events').EventEmitter;
 
 class RemotePort extends EventEmitter {
-  constructor(sendMessage: () => void) {
+  constructor(sendMessage: (params: unknown) => void) {
     super();
     this.sendMessage = sendMessage;
   }

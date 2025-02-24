@@ -36,7 +36,6 @@ describe('connectToChannel', () => {
   const mockUpdateSDKLoadingState = jest.fn();
   const mockApproveHost = jest.fn();
   const mockGetKeyInfo = jest.fn();
-  const mockGetApprovedHosts = jest.fn();
   const mockIsApproved = jest.fn();
   const mockDisapproveChannel = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -84,7 +83,6 @@ describe('connectToChannel', () => {
       updateOriginatorInfos: mockUpdateSDKLoadingState,
       _approveHost: mockApproveHost,
       disapproveChannel: mockDisapproveChannel,
-      getApprovedHosts: mockGetApprovedHosts,
       revalidateChannel: mockRevalidateChannel,
       isApproved: mockIsApproved,
       removeChannel: mockRemoveChannel,

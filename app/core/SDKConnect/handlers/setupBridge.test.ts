@@ -32,6 +32,7 @@ describe('setupBridge', () => {
   });
 
   it('should returns existing backgroundBridge if it already exists', () => {
+    // @ts-expect-error - For testing purposes
     const existingBridge = new BackgroundBridge();
     connection.backgroundBridge = existingBridge;
 
@@ -75,18 +76,6 @@ describe('setupBridge', () => {
     expect(BackgroundBridge).toHaveBeenCalledWith(
       expect.objectContaining({
         sendMessage: expect.any(Function),
-      }),
-    );
-  });
-
-  it('should setup backgroundBridge with correct getApprovedHosts', () => {
-    connection.backgroundBridge = undefined;
-
-    setupBridge({ originatorInfo, connection });
-
-    expect(BackgroundBridge).toHaveBeenCalledWith(
-      expect.objectContaining({
-        getApprovedHosts: expect.any(Function),
       }),
     );
   });

@@ -136,10 +136,7 @@ class WalletConnect2Session {
         }),
       isMMSDK: false,
       isMainFrame: true,
-      getApprovedHosts: undefined,
       isRemoteConn: false,
-      sendMessage: undefined,
-      remoteConnHost: undefined,
     });
 
     this.checkPendingRequests();
@@ -491,7 +488,6 @@ class WalletConnect2Session {
         method,
         params: methodParams,
       },
-      origin,
     });
   };
 

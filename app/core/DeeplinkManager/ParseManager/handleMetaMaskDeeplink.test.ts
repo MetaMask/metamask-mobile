@@ -47,7 +47,6 @@ describe('handleMetaMaskProtocol', () => {
 
   const handled = jest.fn();
 
-
   let url = '';
 
   let params = {
@@ -72,13 +71,12 @@ describe('handleMetaMaskProtocol', () => {
       connectToChannel: mockConnectToChannel,
       revalidateChannel: mockRevalidateChannel,
       reconnect: mockReconnect,
-      getApprovedHosts: mockGetApprovedHosts,
       bindAndroidSDK: mockBindAndroidSDK,
       state: {
         navigation: {
           navigate: mockNavigate,
         },
-      }
+      },
     }));
 
     mockWC2ManagerGetInstance.mockResolvedValue({
@@ -291,7 +289,6 @@ describe('handleMetaMaskProtocol', () => {
       });
     });
 
-
     it('should call handleDeeplink when channel exists and params.redirect is falsy', () => {
       origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       params.channelId = 'ABC';
@@ -321,7 +318,6 @@ describe('handleMetaMaskProtocol', () => {
           connectToChannel: mockConnectToChannel,
           revalidateChannel: mockRevalidateChannel,
           reconnect: mockReconnect,
-          getApprovedHosts: mockGetApprovedHosts,
           bindAndroidSDK: mockBindAndroidSDK,
           state: {
             navigation: {

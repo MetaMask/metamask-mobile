@@ -4,9 +4,6 @@ import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { DappClient } from './dapp-sdk-types';
 
 const getDefaultBridgeParams = (clientInfo: DappClient) => ({
-  getApprovedHosts: (host: string) => ({
-    [host]: true,
-  }),
   remoteConnHost:
     clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
   getRpcMethodMiddleware: ({

@@ -1,8 +1,6 @@
 import AppConstants from '../../AppConstants';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import getRpcMethodMiddleware, {
-  RPCMethodsMiddleParameters,
-} from '../../RPCMethods/RPCMethodMiddleware';
+import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -25,7 +23,6 @@ export const setupBridge = ({
   }
 
   const backgroundBridge = new BackgroundBridge({
-    webview: null,
     isMMSDK: true,
     channelId: connection.channelId,
     url:
@@ -42,11 +39,8 @@ export const setupBridge = ({
         Logger.error(err, 'Connection::sendMessage failed to send');
       });
     },
-    getApprovedHosts: () => connection.getApprovedHosts('backgroundBridge'),
     remoteConnHost: connection.host,
-    getRpcMethodMiddleware: ({
-      getProviderState,
-    }: RPCMethodsMiddleParameters) => {
+    getRpcMethodMiddleware: ({ getProviderState }) => {
       DevLogger.log(
         `getRpcMethodMiddleware hostname=${connection.host} url=${originatorInfo.url} `,
       );

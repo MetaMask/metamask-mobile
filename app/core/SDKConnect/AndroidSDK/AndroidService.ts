@@ -233,9 +233,12 @@ export default class AndroidService extends EventEmitter2 {
               `AndroidService::clients_connected error failed sending jsonrpc error to client`,
             );
           });
-          SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          });
+          SDKConnect.getInstance().state.navigation?.navigate(
+            Routes.MODAL.ROOT_MODAL_FLOW,
+            {
+              screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+            },
+          );
           return;
         }
 
@@ -451,7 +454,6 @@ export default class AndroidService extends EventEmitter2 {
     const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
 
     const bridge = new BackgroundBridge({
-      webview: null,
       channelId: clientInfo.clientId,
       isMMSDK: true,
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,

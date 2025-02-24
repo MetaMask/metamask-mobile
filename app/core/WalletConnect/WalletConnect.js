@@ -186,7 +186,8 @@ class WalletConnect {
               });
 
               const { NetworkController } = Engine.context;
-              const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId);
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(chainId);
 
               const trx = await addTransaction(payload.params[0], {
                 deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -231,7 +232,6 @@ class WalletConnect {
           this.backgroundBridge.onMessage({
             name: 'walletconnect-provider',
             data: payload,
-            origin: this.hostname,
           });
         }
       }
@@ -333,7 +333,6 @@ class WalletConnect {
     this.hostname = new URL(this.url.current).hostname;
 
     this.backgroundBridge = new BackgroundBridge({
-      webview: null,
       url: this.url.current,
       isWalletConnect: true,
       wcWalletConnector: this.walletConnector,
@@ -342,7 +341,7 @@ class WalletConnect {
         rejectRequest: this.rejectRequest,
         updateSession: this.updateSession,
       },
-      getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+      getRpcMethodMiddleware: ({ getProviderState }) =>
         getRpcMethodMiddleware({
           hostname: WALLET_CONNECT_ORIGIN + this.hostname,
           getProviderState,

@@ -51,7 +51,9 @@ export const handleConnectionMessage = async ({
   // Check if message has already been processed
   const rpcQueueManager = connection.rpcQueueManager;
   if (message.id && rpcQueueManager.getId(message.id)) {
-    DevLogger.log(`Connection::onMessage rpcId=${message.id} already processed`);
+    DevLogger.log(
+      `Connection::onMessage rpcId=${message.id} already processed`,
+    );
     return;
   }
 
@@ -222,7 +224,6 @@ export const handleConnectionMessage = async ({
     connection.backgroundBridge?.onMessage({
       name: 'metamask-provider',
       data: processedRpc,
-      origin: 'sdk',
     });
   }
 

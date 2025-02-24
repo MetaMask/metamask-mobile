@@ -94,7 +94,6 @@ export default class DeeplinkProtocolService {
     const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
 
     const bridge = new BackgroundBridge({
-      webview: null,
       channelId: clientInfo.clientId,
       isMMSDK: true,
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,

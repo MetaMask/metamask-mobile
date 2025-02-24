@@ -65,7 +65,6 @@ describe('Connection', () => {
   const mockTrigger = 'deeplink';
   const mockLastAuthorized = 123456789;
   const mockApproveHost = jest.fn();
-  const mockGetApprovedHosts = jest.fn();
   const mockDisapprove = jest.fn();
   const mockRevalidate = jest.fn();
   const mockIsApproved = jest.fn();
@@ -89,7 +88,6 @@ describe('Connection', () => {
       isApproved: mockIsApproved,
       approveHost: mockApproveHost,
       disapprove: mockDisapprove,
-      getApprovedHosts: mockGetApprovedHosts,
       revalidate: mockRevalidate,
       updateOriginatorInfos: mockUpdateOriginatorInfos,
       socketServerUrl: mockSocketServerUrl,
@@ -109,7 +107,6 @@ describe('Connection', () => {
       expect(connection.trigger).toBe(mockTrigger);
       expect(connection.lastAuthorized).toBe(mockLastAuthorized);
       expect(connection.approveHost).toBe(mockApproveHost);
-      expect(connection.getApprovedHosts).toBe(mockGetApprovedHosts);
       expect(connection.disapprove).toBe(mockDisapprove);
       expect(connection.revalidate).toBe(mockRevalidate);
       expect(connection.isApproved).toBe(mockIsApproved);

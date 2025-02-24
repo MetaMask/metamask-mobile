@@ -148,7 +148,6 @@ function getMinimalOptions() {
     isWalletConnect: false,
     // For MM SDK
     isMMSDK: false,
-    getApprovedHosts: jest.fn(),
     setApprovedHosts: jest.fn(),
     approveHost: jest.fn(),
     injectHomePageScripts: jest.fn(),
@@ -1125,9 +1124,10 @@ describe('getRpcMethodMiddleware', () => {
         expectedError.message,
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(((response as JsonRpcFailure).error as JsonRpcError<any>).data.cause.message).toBe(
-        expectedError.message,
-      );
+      expect(
+        ((response as JsonRpcFailure).error as JsonRpcError<any>).data.cause
+          .message,
+      ).toBe(expectedError.message);
     });
 
     it('returns a JSON-RPC error if an error is thrown after approval', async () => {

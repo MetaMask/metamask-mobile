@@ -94,7 +94,6 @@ export const handleBatchRpcResponse = async ({
     backgroundBridge?.onMessage({
       name: 'metamask-provider',
       data: nextRpc,
-      origin: 'sdk',
     });
   }
   return isLastRpc || hasError;

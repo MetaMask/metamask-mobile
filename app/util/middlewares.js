@@ -18,7 +18,7 @@ const USER_REJECTED_ERROR_CODE = 4001;
 /**
  * Returns a middleware that appends the DApp origin to request
  * @param {{ origin: string }} opts - The middleware options
- * @returns {Function}
+ * @returns {JsonRpcMiddleware<JsonRpcParams, Json>}
  */
 export function createOriginMiddleware(opts) {
   return function originMiddleware(
@@ -65,7 +65,7 @@ export function containsUserRejectedError(errorMessage, errorCode) {
 /**
  * Returns a middleware that logs RPC activity
  * @param {{ origin: string }} opts - The middleware options
- * @returns {Function}
+ * @returns {JsonRpcMiddleware<JsonRpcParams, Json>}
  */
 export function createLoggerMiddleware(opts) {
   return function loggerMiddleware(

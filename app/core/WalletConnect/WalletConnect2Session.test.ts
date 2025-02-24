@@ -37,7 +37,6 @@ jest.mock('../BackgroundBridge/BackgroundBridge', () =>
   jest.fn().mockImplementation(() => ({
     onMessage: jest.fn(),
     onDisconnect: jest.fn(),
-    setupProviderConnection: jest.fn(),
   })),
 );
 
