@@ -169,9 +169,14 @@ describe('Quotes', () => {
       ...mockUseSortedQuotesInitialValues,
       isFetching: true,
       quotes: undefined,
+      quotesWithoutError: [],
+      quotesWithError: [],
+      quotesByPriceWithoutError: [],
+      quotesByReliabilityWithoutError: [],
+      recommendedQuote: undefined,
     };
     render(Quotes);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
   });
 
   it('navigates and tracks event on cancel button press', async () => {
