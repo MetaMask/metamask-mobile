@@ -45,9 +45,9 @@ import {
 } from '../../../../../core/GasPolling/GasPolling';
 import {
   selectNativeCurrencyByChainId,
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
   selectProviderTypeByChainId,
-  selectRpcUrlByChainId
+  selectRpcUrlByChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectConversionRateByChainId,
@@ -83,6 +83,7 @@ import {
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 import Routes from '../../../../../constants/navigation/Routes';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -825,7 +826,6 @@ class Approve extends PureComponent {
     }
 
     if (!transaction.id) return null;
-
     return (
       <Modal
         isVisible={this.props.modalVisible && !isChangeInSimulationModalOpen}
@@ -853,7 +853,7 @@ class Approve extends PureComponent {
             savedContactListToArray={savedContactListToArray}
             addressNickname={addressNickname}
           />
-        ) : this.state.isBlockExplorerVisible ? (
+        ) : this.state.isBlockExplorerVisible && !isNonEvmChainId(chainId) ? (
           <ShowBlockExplorer
             setIsBlockExplorerVisible={this.setIsBlockExplorerVisible}
             type={providerType}
@@ -980,7 +980,7 @@ const mapStateToProps = (state) => {
     addressBook: selectAddressBook(state),
     providerType: selectProviderTypeByChainId(state, chainId),
     providerRpcTarget: selectRpcUrlByChainId(state, chainId),
-    networkConfigurations: selectNetworkConfigurations(state),
+    networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
   };
