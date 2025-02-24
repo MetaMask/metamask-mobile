@@ -15,6 +15,12 @@ interface DisplayURLProps {
   url: string;
 }
 
+function extractHostname(url: string) {
+  // eslint-disable-next-line no-useless-escape
+  const match = url.match(/^(?:https?:\/\/)?([^\/:]+)/);
+  return match ? match[1] : null;
+}
+
 const DisplayURL = ({ url }: DisplayURLProps) => {
   const [isHTTP, setIsHTTP] = useState(false);
 
@@ -28,7 +34,7 @@ const DisplayURL = ({ url }: DisplayURLProps) => {
     setIsHTTP(urlObject?.protocol === 'http:');
   }, [url]);
 
-  const urlWithoutProtocol = url?.replace(/https?:\/\//u, '');
+  const hostName = extractHostname(url);
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -44,7 +50,7 @@ const DisplayURL = ({ url }: DisplayURLProps) => {
           <Text style={styles.warningText}>HTTP</Text>
         </View>
       )}
-      <Text style={styles.value}>{urlWithoutProtocol}</Text>
+      <Text style={styles.value}>{hostName}</Text>
     </View>
   );
 };
