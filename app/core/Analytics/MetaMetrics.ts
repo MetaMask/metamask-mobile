@@ -2,7 +2,6 @@ import {
   createClient,
   GroupTraits,
   JsonMap,
-  SegmentClient,
   UserTraits,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
@@ -528,7 +527,7 @@ class MetaMetrics implements IMetaMetrics {
 
       const segmentClient = isE2E ? undefined : createClient(config);
 
-      this.instance = new MetaMetrics(segmentClient as SegmentClient);
+      this.instance = new MetaMetrics(segmentClient as ISegmentClient);
     }
     return this.instance;
   }
@@ -556,7 +555,7 @@ class MetaMetrics implements IMetaMetrics {
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
 
-      (this.segmentClient as unknown as SegmentClient).add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
+      this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
 
       this.#isConfigured = true;
 

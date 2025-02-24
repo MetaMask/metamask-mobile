@@ -7,8 +7,9 @@ import {
   TrackEventType,
   UserTraits,
   EventType,
-  SegmentClient,
+  SegmentClient, GroupEventType,
 } from '@segment/analytics-react-native';
+import {AliasEventType} from '@segment/analytics-react-native/src/types';
 
 class MockSegmentClient {
   userInfo = {
@@ -20,31 +21,62 @@ class MockSegmentClient {
 
 const mockAnalytics = new MockSegmentClient() as unknown as SegmentClient;
 
+const mockUserId = '6D796265-7374-4953-6D65-74616D61736B';
+
 describe('MetaMetricsPrivacySegmentPlugin', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('is an enrichment plugin', () => {
-    const plugin = new MetaMetricsPrivacySegmentPlugin('test');
+    const plugin = new MetaMetricsPrivacySegmentPlugin(mockUserId);
     expect(plugin.type).toBe(PluginType.enrichment);
   });
 
-  it('sets our custom anonymousId for all events', async () => {
+  it('sets custom anonymousId for track events', async () => {
     const trackEvent: TrackEventType = {
       event: 'event_name',
       type: EventType.TrackEvent,
     };
-    const identifyEvent: IdentifyEventType = {
-      type: EventType.IdentifyEvent,
-    };
 
-    const plugin = new MetaMetricsPrivacySegmentPlugin('test');
+    const plugin = new MetaMetricsPrivacySegmentPlugin(mockUserId);
     plugin.configure(mockAnalytics);
 
-    await plugin.execute(trackEvent);
-    await plugin.execute(identifyEvent);
+    const processedEvent = await plugin.execute(trackEvent);
+
+    expect(processedEvent).toStrictEqual({...trackEvent, userId: mockUserId, anonymousId: METAMETRICS_ANONYMOUS_ID});
 
     expect(mockAnalytics.userInfo.set).toHaveBeenCalledTimes(1);
     expect(mockAnalytics.userInfo.set).toHaveBeenCalledWith({
       anonymousId: METAMETRICS_ANONYMOUS_ID,
     });
+  });
+
+  it('does not set custom anonymousId for non track events', async () => {
+    const identifyEvent: IdentifyEventType = {
+      type: EventType.IdentifyEvent,
+    };
+    const aliasEvent: AliasEventType = {
+      previousId: 'previous_id',
+      type: EventType.AliasEvent
+    };
+    const groupEvent: GroupEventType = {
+      groupId: 'group_id',
+      type: EventType.GroupEvent
+    };
+
+    const plugin = new MetaMetricsPrivacySegmentPlugin(mockUserId);
+    plugin.configure(mockAnalytics);
+
+    const processedIdentEvent = await plugin.execute(identifyEvent);
+    const processedAliasEvent = await plugin.execute(aliasEvent);
+    const processedGroupEvent = await plugin.execute(groupEvent);
+
+    expect(processedIdentEvent).toStrictEqual(identifyEvent);
+    expect(processedAliasEvent).toStrictEqual(aliasEvent);
+    expect(processedGroupEvent).toStrictEqual(groupEvent);
+
+    expect(mockAnalytics.userInfo.set).not.toHaveBeenCalled();
   });
 
   it('uses anonymousId as userId for anonymous track events', async () => {
@@ -54,17 +86,17 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
       properties: { anonymous: true },
     };
 
-    const plugin = new MetaMetricsPrivacySegmentPlugin('test');
+    const plugin = new MetaMetricsPrivacySegmentPlugin(mockUserId);
     plugin.configure(mockAnalytics);
 
-    const result = await plugin.execute(event);
+    const processedEvent = await plugin.execute(event);
 
-    expect(result.userId).toBe(METAMETRICS_ANONYMOUS_ID);
-    expect((result as TrackEventType).properties?.anonymous).toBeUndefined();
+    expect(processedEvent.userId).toBe(METAMETRICS_ANONYMOUS_ID);
+    expect((processedEvent as TrackEventType).properties?.anonymous).toBeUndefined();
   });
 
   it('does not replace userId for non-anonymous track events', async () => {
-    const expectedUserId = '6D796265-7374-4953-6D65-74616D61736B';
+    const expectedUserId = '65746865-724D-496E-696E-674C6F766573';
 
     const event: TrackEventType = {
       event: 'Non-anonymous Event',
@@ -73,7 +105,7 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
       properties: { anonymous: false },
     };
 
-    const plugin = new MetaMetricsPrivacySegmentPlugin('test');
+    const plugin = new MetaMetricsPrivacySegmentPlugin(mockUserId);
     plugin.configure(mockAnalytics);
 
     const result = await plugin.execute(event);
@@ -83,7 +115,7 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
   });
 
   it('does not replace userId for non-track events', async () => {
-    const expectedUserId = '6D796265-7374-4953-6D65-74616D61736B';
+    const expectedUserId = '65746865-724D-496E-696E-674C6F766573';
 
     const identifyEvent: IdentifyEventType = {
       type: EventType.IdentifyEvent,
@@ -91,7 +123,7 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
       userId: expectedUserId,
     };
 
-    const plugin = new MetaMetricsPrivacySegmentPlugin('test');
+    const plugin = new MetaMetricsPrivacySegmentPlugin(mockUserId);
     plugin.configure(mockAnalytics);
 
     const result = await plugin.execute(identifyEvent);
