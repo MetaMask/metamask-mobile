@@ -566,7 +566,10 @@ class Approve extends PureComponent {
                 assetType: 'ETH',
               });
             } else {
-              throw transactionMeta.error;
+              Logger.error(
+                transactionMeta.error,
+                'error while trying to finish a transaction (Approve)',
+              );
             }
           },
           (transactionMeta) => transactionMeta.id === transaction.id,
@@ -631,6 +634,8 @@ class Approve extends PureComponent {
           [{ text: 'OK' }],
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
       } else {
         metrics.trackEvent(
           metrics

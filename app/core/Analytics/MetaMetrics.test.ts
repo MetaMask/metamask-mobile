@@ -43,6 +43,7 @@ describe('MetaMetrics', () => {
     StorageWrapper.setItem = mockSet;
     StorageWrapper.clearAll = mockClear;
     TestMetaMetrics.resetInstance();
+    TestMetaMetrics.getInstance().setEventsPortionToTrack(1);
   });
 
   afterEach(() => {
@@ -307,6 +308,45 @@ describe('MetaMetrics', () => {
 
         // Only two events should be tracked, one anonymous and one non-anonymous
         expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+      });
+
+      it('does not track event when metaMetricsId is an invalid UUID', async () => {
+        const invalidUUID = 'my invalid metametrics ID';
+        mockGet.mockImplementation(async (key: string) =>
+          key === METAMETRICS_ID ? invalidUUID : '',
+        );
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event = MetricsEventBuilder.createEventBuilder({
+          category: 'test event',
+        }).build();
+        metaMetrics.trackEvent(event);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        expect(segmentMockClient.track).not.toHaveBeenCalled();
+      });
+
+      it('does not track event when eventsPortionToTrack is zero', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        await metaMetrics.configure();
+        await metaMetrics.enable();
+        const event = MetricsEventBuilder.createEventBuilder({
+          category: 'test event',
+        }).build();
+        metaMetrics.setEventsPortionToTrack(0);
+        metaMetrics.trackEvent(event);
+
+        const { segmentMockClient } =
+          global as unknown as GlobalWithSegmentClient;
+
+        // check if the event was tracked
+        expect(segmentMockClient.track).not.toHaveBeenCalledWith(event.name, {
+          anonymous: false,
+        });
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(0);
       });
     });
 
