@@ -110,12 +110,12 @@ describe('AlertsContext', () => {
     });
 
     it('initializes with the correct alert key', () => {
-      const { result } = renderHook(() => useAlerts());
+      const { result } = renderHookWithProvider(() => useAlerts());
       expect(result.current.alertKey).toBe(dangerAlertMock.key);
     });
 
     it('sets a new alert key', () => {
-      const { result } = renderHook(() => useAlerts());
+      const { result } = renderHookWithProvider(() => useAlerts());
 
       act(() => {
         result.current.setAlertKey(warningAlertMock.key);

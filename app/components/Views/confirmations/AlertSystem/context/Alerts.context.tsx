@@ -35,7 +35,6 @@ interface AlertsContextProviderProps {
 
 export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ children, alerts }) => {
   const [alertModalVisible, setAlertModalVisible] = useState(false);
-  const [alertKey, setAlertKey] = useState(alerts[0]?.key);
 
   /**
    * Sorted alerts by severity.
@@ -58,6 +57,10 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
   const dangerAlerts = useMemo(() => alertsMemo.filter(
     alertSelected => alertSelected.severity === Severity.Danger
   ), [alertsMemo]);
+
+  const initialAlertKey = fieldAlerts[0]?.key ?? '';
+
+  const [alertKey, setAlertKey] = useState(initialAlertKey);
 
   const contextValue = useMemo(() => ({
     alertKey,
