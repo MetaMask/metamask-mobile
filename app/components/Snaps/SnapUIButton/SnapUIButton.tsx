@@ -61,6 +61,7 @@ export const SnapUIButton: FunctionComponent<
       {...props}
       id={name}
       onPress={handlePress}
+      // @ts-expect-error This prop is not part of the type but it works.
       color={color}
       disabled={disabled}
       label={

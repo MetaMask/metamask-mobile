@@ -25,6 +25,7 @@ const onPress = (href: string) => {
 export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => (
   <ButtonLink
     testID="snaps-ui-link"
+    // @ts-expect-error This prop is not part of the type but it works.
     color={TextColor.Info}
     onPress={() => onPress(href)}
     label={children}
