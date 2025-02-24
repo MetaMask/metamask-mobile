@@ -1,10 +1,4 @@
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Animated, {
@@ -23,7 +17,6 @@ import {
   SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
 import { Provider } from '@consensys/on-ramp-sdk/dist/API';
-
 import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
 import Timer from './Timer';
@@ -35,10 +28,6 @@ import Row from '../../components/Row';
 import Quote from '../../components/Quote';
 import InfoAlert from '../../components/InfoAlert';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
-
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   ButtonSize,
   ButtonVariants,
@@ -71,7 +60,6 @@ import { isBuyQuote } from '../../utils';
 import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from '../../../../../../e2e/selectors/Ramps/Quotes.selectors';
 
-const HIGHLIGHTED_QUOTES_COUNT = 2;
 export interface QuotesParams {
   amount: number | string;
   asset: CryptoCurrency;
@@ -866,39 +854,20 @@ function Quotes() {
                 <LoadingQuotes />
               ) : (
                 quotesByPriceWithoutError.map((quote, index) => (
-                  <Fragment key={quote.provider.id}>
-                    {index === HIGHLIGHTED_QUOTES_COUNT &&
-                      quotesByPriceWithoutError.length > 1 && (
-                        <Row>
-                          <Text variant={TextVariant.BodyLGMedium}>
-                            {quotesByPriceWithoutError.length === 2
-                              ? strings(
-                                  'fiat_on_ramp_aggregator.one_more_option',
-                                )
-                              : strings(
-                                  'fiat_on_ramp_aggregator.more_options',
-                                  {
-                                    count: quotesByPriceWithoutError.length - 1,
-                                  },
-                                )}
-                          </Text>
-                        </Row>
+                  <Row key={quote.provider.id}>
+                    <Quote
+                      isLoading={isQuoteLoading}
+                      previouslyUsedProvider={ordersProviders.includes(
+                        quote.provider.id,
                       )}
-                    <Row>
-                      <Quote
-                        isLoading={isQuoteLoading}
-                        previouslyUsedProvider={ordersProviders.includes(
-                          quote.provider.id,
-                        )}
-                        quote={quote}
-                        onPress={() => handleOnQuotePress(quote)}
-                        onPressCTA={() => handleOnPressCTA(quote, index)}
-                        highlighted={quote.provider.id === providerId}
-                        showInfo={() => handleInfoPress(quote)}
-                        rampType={rampType}
-                      />
-                    </Row>
-                  </Fragment>
+                      quote={quote}
+                      onPress={() => handleOnQuotePress(quote)}
+                      onPressCTA={() => handleOnPressCTA(quote, index)}
+                      highlighted={quote.provider.id === providerId}
+                      showInfo={() => handleInfoPress(quote)}
+                      rampType={rampType}
+                    />
+                  </Row>
                 ))
               )}
             </ScreenLayout.Content>
