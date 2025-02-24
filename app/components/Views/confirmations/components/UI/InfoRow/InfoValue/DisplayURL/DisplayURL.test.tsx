@@ -13,4 +13,11 @@ describe('DisplayURL', () => {
     const { getByText } = render(<DisplayURL url="http://google.com" />);
     expect(getByText('HTTP')).toBeTruthy();
   });
+
+  it('displays only the host part of the URL', () => {
+    const { getByText } = render(
+      <DisplayURL url="https://metamask.github.io/test-dapp/" />,
+    );
+    expect(getByText('metamask.github.io')).toBeTruthy();
+  });
 });

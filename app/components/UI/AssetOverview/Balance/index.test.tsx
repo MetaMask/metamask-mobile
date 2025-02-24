@@ -9,6 +9,7 @@ import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { NetworkBadgeSource } from './Balance';
 import { isPortfolioViewEnabled } from '../../../../util/networks';
+import { MOCK_VAULT_APY_AVERAGES } from '../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -100,16 +101,12 @@ jest.mock('../../Stake/hooks/usePooledStakes', () => ({
   }),
 }));
 
-jest.mock('../../Stake/hooks/useVaultData', () => ({
+jest.mock('../../Stake/hooks/useVaultApyAverages', () => ({
   __esModule: true,
   default: () => ({
-    vaultData: {
-      apy: '2.437033146840025387168141592920355',
-      capacity: '1000000000000000000000000000000000000000000000000000000000000',
-      feePercent: 1500,
-      totalAssets: '10000000000000000000000',
-      vaultAddress: '0xdef',
-    },
+    vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
+    isLoadingVaultApyAverages: false,
+    refreshVaultApyAverages: jest.fn(),
   }),
 }));
 

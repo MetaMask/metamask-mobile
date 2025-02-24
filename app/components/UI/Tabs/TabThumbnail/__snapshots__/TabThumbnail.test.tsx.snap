@@ -106,7 +106,7 @@ exports[`TabThumbnail should render correctly 1`] = `
             }
           }
         >
-          about:blank
+          example.com
         </Text>
       </View>
       <TouchableOpacity
@@ -147,7 +147,7 @@ exports[`TabThumbnail should render correctly 1`] = `
       <Image
         source={
           {
-            "uri": "",
+            "uri": "test-image-uri",
           }
         }
         style={
