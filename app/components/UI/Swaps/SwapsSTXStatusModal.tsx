@@ -12,7 +12,6 @@ import { selectSmartTransactionsForCurrentChain } from '../../../selectors/smart
 interface Props {
   isVisible: boolean;
   dismiss: () => void;
-  creationTime: number;
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
@@ -31,7 +30,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
 });
 
-export const SwapsSTXStatusModal = ({ isVisible, dismiss, creationTime }: Props) => {
+export const SwapsSTXStatusModal = ({ isVisible, dismiss }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -57,10 +56,7 @@ export const SwapsSTXStatusModal = ({ isVisible, dismiss, creationTime }: Props)
       <View style={styles.root}>
         <SmartTransactionStatus
           requestState={{
-            smartTransaction: {
-              ...latestSmartTransaction,
-              creationTime,
-            },
+            smartTransaction: latestSmartTransaction,
             isDapp: false,
             isInSwapFlow: true,
           }}
