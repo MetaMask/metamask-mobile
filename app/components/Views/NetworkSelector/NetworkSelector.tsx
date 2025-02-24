@@ -146,6 +146,7 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
+
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
@@ -245,12 +246,13 @@ const NetworkSelector = () => {
           origin,
           networkConfigurationId,
         );
+        sheetRef.current?.dismissModal();
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
           await MultichainNetworkController.setActiveNetwork(networkClientId);
         } catch (error) {
-          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
+          Logger.error(new Error(`Error i setActiveNetwork: ${error}`));
         }
       }
 
@@ -364,8 +366,10 @@ const NetworkSelector = () => {
       AccountTrackerController,
       SelectedNetworkController,
     } = Engine.context;
+
     if (domainIsConnectedDapp && isMultichainV1Enabled()) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+      closeRpcModal();
     } else {
       const networkConfiguration =
         networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
