@@ -2,13 +2,17 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Modal from 'react-native-modal';
 import { useTheme } from '../../../util/theme';
-import Text from '../../../component-library/components/Texts/Text';
 import Device from '../../../util/device';
 import { ThemeColors } from '@metamask/design-tokens';
+import SmartTransactionStatus from '../../Views/SmartTransactionStatus/SmartTransactionStatus';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { useSelector } from 'react-redux';
+import { selectSmartTransactionsForCurrentChain } from '../../../selectors/smartTransactionsController';
 
 interface Props {
   isVisible: boolean;
   dismiss: () => void;
+  creationTime: number;
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
@@ -27,10 +31,13 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
 });
 
-
-export const SwapsSTXStatusModal = ({ isVisible, dismiss }: Props) => {
+export const SwapsSTXStatusModal = ({ isVisible, dismiss, creationTime }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const smartTransactions = useSelector(selectSmartTransactionsForCurrentChain);
+  const latestSmartTransaction = smartTransactions[smartTransactions.length - 1];
+
   return (
     <Modal
       isVisible={isVisible}
@@ -48,7 +55,18 @@ export const SwapsSTXStatusModal = ({ isVisible, dismiss }: Props) => {
       propagateSwipe
     >
       <View style={styles.root}>
-        <Text>Swaps STX Status Modal</Text>
+        <SmartTransactionStatus
+          requestState={{
+            smartTransaction: {
+              ...latestSmartTransaction,
+              creationTime,
+            },
+            isDapp: false,
+            isInSwapFlow: true,
+          }}
+          origin={ORIGIN_METAMASK}
+          onConfirm={dismiss}
+        />
       </View>
     </Modal>
   );

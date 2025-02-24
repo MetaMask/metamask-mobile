@@ -1,4 +1,4 @@
-import { TransactionParams } from '@metamask/transaction-controller';
+import { TransactionParams, TransactionType } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { decimalToHex } from '../../../../util/conversions';
@@ -7,6 +7,7 @@ import { Quote, TxParams } from '@metamask/swaps-controller/dist/types';
 import { selectChainId , selectIsEIP1559Network } from '../../../../selectors/networkController';
 import { getGasFeeEstimatesForTransaction } from './gas';
 import { Hex } from '@metamask/utils';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 interface TemporarySmartTransactionGasFees {
   maxFeePerGas: string;
@@ -107,8 +108,10 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
   // We don't need to await on the approval tx to be confirmed on chain. We can simply submit both the approval and trade tx at the same time.
   // Sentinel will batch them for us and ensure they are executed in the correct order.
   const submitSwapsSmartTransaction = async () => {
+    const { SmartTransactionsController } = Engine.context;
+
     // Calc fees
-    const smartTransactionFees = await Engine.context.SmartTransactionsController.getFees(tradeTransaction, approvalTransaction);
+    const smartTransactionFees = await SmartTransactionsController.getFees(tradeTransaction, approvalTransaction);
 
     // Approval transaction (if it exists)
     let approvalTxUuid: string | undefined;
@@ -136,8 +139,16 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
         isEIP1559Network,
         gasEstimates,
       });
-    }
 
+      if (approvalTxUuid) {
+        await SmartTransactionsController.updateSmartTransaction({
+          uuid: approvalTxUuid,
+          origin: ORIGIN_METAMASK,
+          type: TransactionType.swapApproval,
+          creationTime: Date.now(),
+        });
+      }
+    }
 
     // Trade transaction
     const tradeGas = decimalToHex(smartTransactionFees.tradeTxFees?.gasLimit || 0).toString();
@@ -157,6 +168,16 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
       isEIP1559Network,
       gasEstimates,
     });
+
+    if (tradeTxUuid) {
+      await SmartTransactionsController.updateSmartTransaction({
+        uuid: tradeTxUuid,
+        origin: ORIGIN_METAMASK,
+        type: TransactionType.swap,
+        creationTime: Date.now(),
+      });
+    }
+
     return tradeTxUuid;
   };
 
