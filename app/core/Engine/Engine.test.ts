@@ -50,6 +50,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('UserStorageController');
     expect(engine.context).toHaveProperty('NotificationServicesController');
     expect(engine.context).toHaveProperty('SelectedNetworkController');
+    expect(engine.context).toHaveProperty('SnapInterfaceController');
     expect(engine.context).toHaveProperty('MultichainBalancesController');
     expect(engine.context).toHaveProperty('RatesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');

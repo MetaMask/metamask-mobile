@@ -12,6 +12,7 @@ interface BottomModalProps {
   onClose?: () => void;
   hideBackground?: boolean;
   testID?: string;
+  visible?: boolean;
 }
 
 /**
@@ -23,13 +24,14 @@ const BottomModal = ({
   hideBackground,
   onClose,
   testID,
+  visible = true,
 }: BottomModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <Modal
-      isVisible
+      isVisible={visible}
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
