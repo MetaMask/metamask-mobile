@@ -7,12 +7,18 @@ import Icon, {
   IconSize,
 } from '../../../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../../../component-library/components/Texts/Text';
-// import Logger from '../../../../../../../../util/Logger';
+import Logger from '../../../../../../../../util/Logger';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import styleSheet from './DisplayURL.styles';
 
 interface DisplayURLProps {
   url: string;
+}
+
+function extractHostname(url: string) {
+  // eslint-disable-next-line no-useless-escape
+  const match = url.match(/^(?:https?:\/\/)?([^\/:]+)/);
+  return match ? match[1] : null;
 }
 
 const DisplayURL = ({ url }: DisplayURLProps) => {
@@ -23,14 +29,12 @@ const DisplayURL = ({ url }: DisplayURLProps) => {
     try {
       urlObject = new URL(url);
     } catch (e) {
-      // Commenting out the line below till issue of missing protocol in origin is addressed
-      // https://github.com/MetaMask/metamask-mobile/issues/13580#issuecomment-2671458216
-      // Logger.error(e as Error, `DisplayURL: new URL(url) cannot parse ${url}`);
+      Logger.error(e as Error, `DisplayURL: new URL(url) cannot parse ${url}`);
     }
     setIsHTTP(urlObject?.protocol === 'http:');
   }, [url]);
 
-  const urlWithoutProtocol = url?.replace(/https?:\/\//u, '');
+  const hostName = extractHostname(url);
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -46,7 +50,7 @@ const DisplayURL = ({ url }: DisplayURLProps) => {
           <Text style={styles.warningText}>HTTP</Text>
         </View>
       )}
-      <Text style={styles.value}>{urlWithoutProtocol}</Text>
+      <Text style={styles.value}>{hostName}</Text>
     </View>
   );
 };

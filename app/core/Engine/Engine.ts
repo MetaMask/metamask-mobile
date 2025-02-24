@@ -43,6 +43,7 @@ import {
   TransactionController,
   TransactionMeta,
   TransactionControllerOptions,
+  TransactionControllerMessenger,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
@@ -592,7 +593,6 @@ export class Engine {
 
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
       state: initialState.RemoteFeatureFlagController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
         allowedActions: [],
@@ -1330,7 +1330,7 @@ export class Engine {
           `${networkController.name}:findNetworkClientIdByChainId`,
         ],
         allowedEvents: [`NetworkController:stateChange`],
-      }),
+      }) as unknown as TransactionControllerMessenger,
       pendingTransactions: {
         isResubmitEnabled: () => false,
       },
