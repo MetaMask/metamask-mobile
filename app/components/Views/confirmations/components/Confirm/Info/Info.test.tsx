@@ -26,6 +26,13 @@ jest.mock('../../../../../../core/Engine', () => ({
       },
       getOrAddQRKeyring: jest.fn(),
     },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),

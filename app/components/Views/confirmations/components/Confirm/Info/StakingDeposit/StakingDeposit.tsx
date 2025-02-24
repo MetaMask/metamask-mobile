@@ -1,26 +1,17 @@
-import React, { useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
-
+import React from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
-import { useConfirmActions } from '../../../../hooks/useConfirmActions';
+import AdvancedDetails from '../../AdvancedDetails/AdvancedDetails';
+import FlatNavHeader from '../../FlatNavHeader';
 import StakingDetails from '../../StakingDetails';
 import TokenHero from '../../TokenHero';
-import { getStakingDepositNavbar } from './Navbar';
+import GasFeesDetails from '../GasFeesDetails';
 
-const StakingDeposit = () => {
-  const navigation = useNavigation();
-  const { onReject } = useConfirmActions();
-  const title = strings('stake.stake');
-
-  useEffect(() => {
-    navigation.setOptions(getStakingDepositNavbar({ title, onReject }));
-  }, [navigation, onReject, title]);
-
-  return (
-    <>
-      <TokenHero />
-      <StakingDetails />
-    </>
-  );
-};
+const StakingDeposit = () => (
+  <>
+    <TokenHero />
+    <StakingDetails />
+    <GasFeesDetails />
+    <AdvancedDetails />
+  </>
+);
 export default StakingDeposit;
