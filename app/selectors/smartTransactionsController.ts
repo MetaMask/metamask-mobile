@@ -88,7 +88,7 @@ export const selectPendingSmartTransactionsBySender = (state: RootState) => {
 };
 
 export const selectSmartTransactionsForCurrentChain = (state: RootState) => {
-  const chainId = selectChainId(state);
+  const chainId = selectEvmChainId(state);
   return state.engine.backgroundState.SmartTransactionsController
     ?.smartTransactionsState?.smartTransactions?.[chainId] || [];
 };
