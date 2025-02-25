@@ -1,35 +1,33 @@
-import { renderHook, act } from '@testing-library/react-hooks';
 import { selectEvmChainId, selectIsEIP1559Network } from '../../../../selectors/networkController';
 import { selectSwapsApprovalTransaction } from '../../../../reducers/swaps';
 import { useSwapsSmartTransaction } from './useSwapsSmartTransaction';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
+import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import Engine from '../../../../core/Engine';
 
 // Mock selectors directly
 jest.mock('../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../selectors/networkController'),
   selectEvmChainId: jest.fn(),
   selectIsEIP1559Network: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/swaps', () => ({
+  ...jest.requireActual('../../../../reducers/swaps'),
   selectSwapsApprovalTransaction: jest.fn(),
 }));
 
 // Mock Engine and its methods properly with jest.fn()
-const mockGetFees = jest.fn();
-const mockSubmitSignedTransactions = jest.fn();
-const mockUpdateSmartTransaction = jest.fn();
-const mockApproveTransactionsWithSameNonce = jest.fn();
-
 jest.mock('../../../../core/Engine', () => ({
   context: {
     SmartTransactionsController: {
-      getFees: mockGetFees,
-      submitSignedTransactions: mockSubmitSignedTransactions,
-      updateSmartTransaction: mockUpdateSmartTransaction,
+      getFees: jest.fn(),
+      submitSignedTransactions: jest.fn(),
+      updateSmartTransaction: jest.fn(),
     },
     TransactionController: {
-      approveTransactionsWithSameNonce: mockApproveTransactionsWithSameNonce,
+      approveTransactionsWithSameNonce: jest.fn(),
     },
   },
 }));
@@ -96,44 +94,42 @@ describe('useSwapsSmartTransaction', () => {
     jest.clearAllMocks();
 
     // Setup selector default return values
-    (selectEvmChainId as jest.Mock).mockReturnValue(mockChainId);
-    (selectIsEIP1559Network as jest.Mock).mockReturnValue(mockIsEIP1559Network);
-    (selectSwapsApprovalTransaction as jest.Mock).mockReturnValue(null);
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue(mockChainId);
+    (selectIsEIP1559Network as unknown as jest.Mock).mockReturnValue(mockIsEIP1559Network);
+    (selectSwapsApprovalTransaction as unknown as jest.Mock).mockReturnValue(null);
 
     // Setup controller mocks
-    mockGetFees.mockResolvedValue(mockSmartTransactionFees);
-    mockSubmitSignedTransactions.mockResolvedValue(mockTradeResponse);
-    mockUpdateSmartTransaction.mockResolvedValue(undefined);
-    mockApproveTransactionsWithSameNonce.mockResolvedValue(['0xsignedtx1', '0xsignedtx2']);
+    (Engine.context.SmartTransactionsController.getFees as jest.Mock).mockResolvedValue(mockSmartTransactionFees);
+    (Engine.context.TransactionController.approveTransactionsWithSameNonce as jest.Mock).mockResolvedValue(['0xsignedtx1', '0xsignedtx2']);
   });
 
   it('should successfully submit a trade transaction without approval', async () => {
     // Mock no approval transaction
-    (selectSwapsApprovalTransaction as jest.Mock).mockReturnValue(null);
+    (selectSwapsApprovalTransaction as unknown as jest.Mock).mockReturnValue(null);
 
-    const { result } = renderHook(() =>
+    (Engine.context.SmartTransactionsController.submitSignedTransactions as jest.Mock).mockResolvedValueOnce(mockTradeResponse);
+
+    const { result } = renderHookWithProvider(() =>
       useSwapsSmartTransaction({
         tradeTransaction: mockTradeTransaction,
         gasEstimates: mockGasEstimates
       })
     );
 
-    let returnValue;
-    await act(async () => {
-      returnValue = await result.current.submitSwapsSmartTransaction();
-    });
+    const returnValue = await result.current.submitSwapsSmartTransaction();
 
     // Verify getFees was called with correct params
-    expect(mockGetFees).toHaveBeenCalledWith(
+    expect(Engine.context.SmartTransactionsController.getFees).toHaveBeenCalledWith(
       mockTradeTransaction,
       null
     );
 
     // Verify approveTransactionsWithSameNonce was called
-    expect(mockApproveTransactionsWithSameNonce).toHaveBeenCalled();
+    expect(Engine.context.TransactionController.approveTransactionsWithSameNonce).toHaveBeenCalled();
 
     // Verify submitSignedTransactions was called
-    expect(mockSubmitSignedTransactions).toHaveBeenCalledWith({
+    expect(Engine.context.SmartTransactionsController.submitSignedTransactions).toHaveBeenCalledTimes(1);
+    expect(Engine.context.SmartTransactionsController.submitSignedTransactions).toHaveBeenCalledWith({
       signedTransactions: ['0xsignedtx1', '0xsignedtx2'],
       txParams: expect.objectContaining({
         from: '0xfrom',
@@ -148,11 +144,11 @@ describe('useSwapsSmartTransaction', () => {
     });
 
     // Verify updateSmartTransaction was called for the trade transaction
-    expect(mockUpdateSmartTransaction).toHaveBeenCalledWith({
+    expect(Engine.context.SmartTransactionsController.updateSmartTransaction).toHaveBeenCalledWith({
       uuid: 'trade-uuid-456',
       origin: ORIGIN_METAMASK,
       type: TransactionType.swap,
-      creationTime: expect.any(Number),
+      creationTime: 123,
     });
 
     // Verify the UUID was returned
@@ -164,43 +160,39 @@ describe('useSwapsSmartTransaction', () => {
 
   it('should successfully submit both approval and trade transactions', async () => {
     // Mock with approval transaction
-    (selectSwapsApprovalTransaction as jest.Mock).mockReturnValue(mockApprovalTransaction);
+    (selectSwapsApprovalTransaction as unknown as jest.Mock).mockReturnValue(mockApprovalTransaction);
 
     // Mock different UUIDs for approval and trade transactions
-    mockSubmitSignedTransactions
-      .mockResolvedValueOnce(mockApprovalResponse)
+    (Engine.context.SmartTransactionsController.submitSignedTransactions as jest.Mock).mockResolvedValueOnce(mockApprovalResponse)
       .mockResolvedValueOnce(mockTradeResponse);
 
-    const { result } = renderHook(() =>
+    const { result } = renderHookWithProvider(() =>
       useSwapsSmartTransaction({
         tradeTransaction: mockTradeTransaction,
         gasEstimates: mockGasEstimates
       })
     );
 
-    let returnValue;
-    await act(async () => {
-      returnValue = await result.current.submitSwapsSmartTransaction();
-    });
+    const returnValue = await result.current.submitSwapsSmartTransaction();
 
     // Verify getFees was called with correct params
-    expect(mockGetFees).toHaveBeenCalledWith(
+    expect(Engine.context.SmartTransactionsController.getFees).toHaveBeenCalledWith(
       mockTradeTransaction,
       mockApprovalTransaction
     );
 
     // Verify submitSignedTransactions was called twice (for approval and trade)
-    expect(mockSubmitSignedTransactions).toHaveBeenCalledTimes(2);
+    expect(Engine.context.SmartTransactionsController.submitSignedTransactions).toHaveBeenCalledTimes(2);
 
     // Verify updateSmartTransaction was called for both transactions
-    expect(mockUpdateSmartTransaction).toHaveBeenCalledTimes(2);
-    expect(mockUpdateSmartTransaction).toHaveBeenCalledWith({
+    expect(Engine.context.SmartTransactionsController.updateSmartTransaction).toHaveBeenCalledTimes(2);
+    expect(Engine.context.SmartTransactionsController.updateSmartTransaction).toHaveBeenCalledWith({
       uuid: 'approval-uuid-123',
       origin: ORIGIN_METAMASK,
       type: TransactionType.swapApproval,
       creationTime: expect.any(Number),
     });
-    expect(mockUpdateSmartTransaction).toHaveBeenCalledWith({
+    expect(Engine.context.SmartTransactionsController.updateSmartTransaction).toHaveBeenCalledWith({
       uuid: 'trade-uuid-456',
       origin: ORIGIN_METAMASK,
       type: TransactionType.swap,
