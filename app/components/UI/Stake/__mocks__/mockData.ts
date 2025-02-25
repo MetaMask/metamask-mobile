@@ -1,8 +1,6 @@
 import {
   ChainId,
   StakingType,
-  VaultApyAverages,
-  VaultDailyApy,
   type PooledStakes,
   type VaultData,
 } from '@metamask/stake-sdk';
@@ -18,7 +16,7 @@ import {
   MOCK_POOLED_STAKING_VAULT_APY_AVERAGES,
   MOCK_POOLED_STAKING_VAULT_DAILY_APYS,
 } from '../components/PoolStakingLearnMoreModal/mockVaultRewards';
-import { PooledStakingState } from '@metamask/earn-controller';
+import { MockEarnControllerOptions } from './mockData.types';
 
 export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   accounts: [
@@ -230,18 +228,7 @@ export const MOCK_SELECT_POOLED_STAKING_VAULT_APY = {
   apyPercentString: '3.3%',
 };
 
-// TODO: Breakout type definition
-interface MockEarnControllerOptions {
-  isEligible?: boolean;
-  pooledStakes?: PooledStakingState['pooledStakes'];
-  vaultMetadata?: VaultData;
-  exchangeRate?: string;
-  vaultApyAverages?: VaultApyAverages;
-  vaultDailyApys?: VaultDailyApy[];
-}
-
-// TODO: Cleanup so that MOCK_EARN_CONTROLLER_STATE is the engine.backgroundState.EarnController state only and not entire tree.
-export const getMockEarnControllerState = ({
+export const mockEarnControllerRootState = ({
   isEligible = true,
   pooledStakes = MOCK_POOLED_STAKES_DATA,
   vaultMetadata = MOCK_VAULT_DATA,
@@ -267,5 +254,8 @@ export const getMockEarnControllerState = ({
   },
 });
 
-export const MOCK_EARN_CONTROLLER_STATE: DeepPartial<RootState> =
-  getMockEarnControllerState({});
+export const MOCK_ROOT_STATE_WITH_EARN_CONTROLLER: DeepPartial<RootState> =
+  mockEarnControllerRootState({});
+
+export const MOCK_EARN_CONTROLLER_STATE =
+  MOCK_ROOT_STATE_WITH_EARN_CONTROLLER.engine?.backgroundState?.EarnController;

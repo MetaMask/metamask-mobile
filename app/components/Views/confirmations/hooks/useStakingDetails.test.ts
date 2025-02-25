@@ -19,9 +19,7 @@ describe('useStakingDetails', () => {
                 },
               ],
             },
-            EarnController:
-              MOCK_EARN_CONTROLLER_STATE.engine?.backgroundState
-                ?.EarnController,
+            EarnController: MOCK_EARN_CONTROLLER_STATE,
           },
         },
       });
