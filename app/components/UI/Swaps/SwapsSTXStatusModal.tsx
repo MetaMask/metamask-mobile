@@ -25,8 +25,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     minHeight: 200,
-    maxHeight: '95%',
-    paddingTop: 24,
+    maxHeight: '100%',
+    paddingTop: 12,
     paddingBottom: Device.isIphoneX() ? 32 : 24,
   },
 });
