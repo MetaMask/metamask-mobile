@@ -134,7 +134,7 @@ describe('Snap Keyring Methods', () => {
         },
       });
 
-      expect(mockStartFlow).toHaveBeenCalledTimes(1);
+      expect(mockStartFlow).toHaveBeenCalledTimes(2);
       expect(mockAddRequest).toHaveBeenNthCalledWith(1, [
         {
           origin: mockSnapId,
@@ -145,11 +145,8 @@ describe('Snap Keyring Methods', () => {
         },
         true,
       ]);
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
-      expect(mockGetAccountByAddress).toHaveBeenCalledTimes(1);
-      expect(mockGetAccountByAddress).toHaveBeenCalledWith([
-        mockAccount.address.toLowerCase(),
-      ]);
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
+      expect(mockGetAccounts).toHaveBeenCalledTimes(1);
       expect(mockSetAccountName).not.toHaveBeenCalled();
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
     });
@@ -170,8 +167,8 @@ describe('Snap Keyring Methods', () => {
         },
       });
 
-      expect(mockStartFlow).toHaveBeenCalledTimes(1);
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
+      expect(mockStartFlow).toHaveBeenCalledTimes(2);
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
       expect(mockAddRequest).toHaveBeenNthCalledWith(1, [
         {
           origin: mockSnapId,
@@ -182,16 +179,13 @@ describe('Snap Keyring Methods', () => {
         },
         true,
       ]);
-      expect(mockGetAccountByAddress).toHaveBeenCalledTimes(1);
-      expect(mockGetAccountByAddress).toHaveBeenCalledWith([
-        mockAccount.address.toLowerCase(),
-      ]);
+      expect(mockGetAccounts).toHaveBeenCalledTimes(1);
       expect(mockSetAccountName).toHaveBeenCalledTimes(1);
       expect(mockSetAccountName).toHaveBeenCalledWith([
         mockAccount.id,
         mockNameSuggestion,
       ]);
-      expect(mockEndFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledTimes(2);
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
     });
   });
