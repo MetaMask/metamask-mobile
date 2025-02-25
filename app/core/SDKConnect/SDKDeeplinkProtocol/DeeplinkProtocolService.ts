@@ -24,6 +24,7 @@ import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import RemotePort from '../../BackgroundBridge/RemotePort';
 
 export default class DeeplinkProtocolService {
   public connections: DappConnections = {};
@@ -94,13 +95,9 @@ export default class DeeplinkProtocolService {
     const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
 
     const bridge = new BackgroundBridge({
-      channelId: clientInfo.clientId,
+      url: `${PROTOCOLS.METAMASK}://${clientInfo.clientId}`,
       isMMSDK: true,
-      url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-      isRemoteConn: true,
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sendMessage: (msg: any) => this.sendMessage(msg),
+      port: new RemotePort(this.sendMessage.bind(this)),
       ...defaultBridgeParams,
     });
 

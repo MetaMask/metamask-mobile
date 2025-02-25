@@ -28,6 +28,8 @@ import { hideWCLoadingState, showWCLoadingState } from './wc-utils';
 import { getDefaultNetworkByChainId } from '../../util/networks';
 import { ERROR_MESSAGES } from './WalletConnectV2';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
+import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
+import { PROTOCOLS } from '../../constants/deeplinks';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -92,15 +94,13 @@ class WalletConnect2Session {
     );
 
     this.backgroundBridge = backgroundBridgeFactory.create({
-      webview: null,
-      url,
+      url: `${PROTOCOLS.WC}://${channelId}`,
       isWalletConnect: true,
-      channelId,
-      wcRequestActions: {
+      port: new WalletConnectPort({
         approveRequest: this.approveRequest.bind(this),
         rejectRequest: this.rejectRequest.bind(this),
         updateSession: this.updateSession.bind(this),
-      },
+      }),
       getRpcMethodMiddleware: ({
         getProviderState,
       }: {
@@ -134,9 +134,6 @@ class WalletConnect2Session {
           tabId: '',
           isWalletConnect: true,
         }),
-      isMMSDK: false,
-      isMainFrame: true,
-      isRemoteConn: false,
     });
 
     this.checkPendingRequests();
@@ -331,6 +328,7 @@ class WalletConnect2Session {
           );
           accounts = approvedAccounts;
         } else {
+          const origin = this.session.peer.metadata.url;
           console.warn(
             `WC2::updateSession no permitted accounts found for topic=${this.session.topic} origin=${origin}`,
           );

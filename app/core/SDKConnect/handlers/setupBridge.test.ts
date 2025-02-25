@@ -80,18 +80,6 @@ describe('setupBridge', () => {
     );
   });
 
-  it('should setup backgroundBridge with correct remoteConnHost', () => {
-    connection.backgroundBridge = undefined;
-
-    setupBridge({ originatorInfo, connection });
-
-    expect(BackgroundBridge).toHaveBeenCalledWith(
-      expect.objectContaining({
-        remoteConnHost: connection.host,
-      }),
-    );
-  });
-
   it('should setup backgroundBridge with correct getRpcMethodMiddleware', () => {
     connection.backgroundBridge = undefined;
 

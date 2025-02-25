@@ -4,8 +4,6 @@ import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { DappClient } from './dapp-sdk-types';
 
 const getDefaultBridgeParams = (clientInfo: DappClient) => ({
-  remoteConnHost:
-    clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
   getRpcMethodMiddleware: ({
     getProviderState,
   }: {
@@ -48,9 +46,6 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
       toggleUrlModal: () => null,
       injectHomePageScripts: () => null,
     }),
-  isMainFrame: true,
-  isWalletConnect: false,
-  wcRequestActions: undefined,
 });
 
 export default getDefaultBridgeParams;

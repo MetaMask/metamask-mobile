@@ -14,9 +14,6 @@ import Engine from '../Engine';
 import { createSanitizationMiddleware } from '../SanitizationMiddleware';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
-import RemotePort from './RemotePort';
-import WalletConnectPort from './WalletConnectPort';
-import Port from './Port';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
@@ -38,8 +35,8 @@ import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
 import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
 import createTracingMiddleware from '../createTracingMiddleware';
-import WebView from '@metamask/react-native-webview';
 import { Json, JsonRpcParams } from '@metamask/utils';
+import type { Port } from './types';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type BackgroundBridgeState = {
@@ -51,7 +48,7 @@ type BackgroundBridgeState = {
 
 type GetRpcMethodMiddleware = (params: {
   hostname: string;
-  getProviderState: (origin: string) => Promise<{
+  getProviderState: (domain: string) => Promise<{
     isUnlocked: boolean;
     chainId: string;
     networkVersion: string;
@@ -72,76 +69,48 @@ const legacyNetworkId = () => {
 
 export class BackgroundBridge extends EventEmitter {
   #jsonRpcEngine: JsonRpcEngine = new JsonRpcEngine();
-  #createMiddleware: GetRpcMethodMiddleware;
-  #port: Port | WalletConnectPort | RemotePort;
-  #url: string;
+  #createRpcMiddleware: GetRpcMethodMiddleware;
+  #port: Port;
   #lastChainIdSent: string;
   #networkVersionSent: string;
   #addressSent: string;
-  hostname: string;
-  remoteConnHost?: string;
-  isMainFrame: boolean;
-  isWalletConnect: boolean;
-  isMMSDK: boolean;
-  isRemoteConn: boolean;
-  disconnected: boolean;
-  channelId: string;
-  deprecatedNetworkVersions: Record<string, string>;
+  #isMMSDK: boolean;
+  #isWalletConnect: boolean;
+  #disconnected: boolean;
+  #deprecatedNetworkVersions: Record<string, string>;
+  origin: string;
+  domain: string;
 
   constructor({
-    webview,
     url,
-    getRpcMethodMiddleware,
-    isMainFrame,
-    isRemoteConn,
-    sendMessage,
-    isWalletConnect,
-    wcRequestActions,
-    remoteConnHost,
     isMMSDK,
-    channelId,
+    isWalletConnect,
+    getRpcMethodMiddleware,
+    port,
   }: {
-    webview?: React.RefObject<WebView>;
     url: string;
+    isMMSDK?: boolean;
+    isWalletConnect?: boolean;
     getRpcMethodMiddleware: GetRpcMethodMiddleware;
-    isMainFrame: boolean;
-    isRemoteConn: boolean;
-    sendMessage?: (params: unknown) => void;
-    isWalletConnect: boolean;
-    wcRequestActions?: {
-      approveRequest: (params: { id: string; result: unknown }) => void;
-      rejectRequest: (params: { id: string; error: unknown }) => void;
-      updateSession: (params: { chainId: string; accounts: unknown }) => void;
-    };
-    remoteConnHost?: string;
-    isMMSDK: boolean;
-    channelId: string;
+    port: Port;
   }) {
     super();
-    this.#url = url;
-    // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
-    this.hostname = new URL(url).hostname;
-    this.remoteConnHost = remoteConnHost;
-    this.isMainFrame = isMainFrame;
-    this.isWalletConnect = isWalletConnect;
-    this.isMMSDK = isMMSDK;
-    this.isRemoteConn = isRemoteConn;
-    this.disconnected = false;
-    this.channelId = channelId;
-    this.deprecatedNetworkVersions = {};
+    const urlObject = new URL(url);
+    const { hostname, protocol, origin } = urlObject;
+    this.domain = hostname;
+    this.origin = origin ?? `${protocol}${hostname}`;
+    this.#isMMSDK = isMMSDK ?? false;
+    this.#isWalletConnect = isWalletConnect ?? false;
+    this.#disconnected = false;
+    this.#deprecatedNetworkVersions = {};
 
-    this.#createMiddleware = getRpcMethodMiddleware;
+    this.#createRpcMiddleware = getRpcMethodMiddleware;
 
-    this.#port =
-      isRemoteConn && sendMessage
-        ? new RemotePort(sendMessage)
-        : this.isWalletConnect
-        ? new WalletConnectPort(wcRequestActions)
-        : new Port(webview?.current, isMainFrame);
+    this.#port = port;
 
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
-      this.hostname,
+      this.domain,
     );
 
     const networkClient = Engine.controllerMessenger.call(
@@ -168,7 +137,8 @@ export class BackgroundBridge extends EventEmitter {
 
     this.on('update', () => this.#onStateUpdate());
 
-    if (this.isRemoteConn) {
+    // FIXME: Add comment as to why this is needed
+    if (this.#isMMSDK) {
       const memState = this.getState();
       const selectedAddress = memState.selectedAddress;
       this.notifyChainChanged();
@@ -178,9 +148,9 @@ export class BackgroundBridge extends EventEmitter {
 
   onUnlock() {
     // TODO UNSUBSCRIBE EVENT INSTEAD
-    if (this.disconnected) return;
+    if (this.#disconnected) return;
 
-    if (this.isRemoteConn) {
+    if (this.#isMMSDK) {
       // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
       // In case we want to send, use  new structure
       /*const memState = this.getState();
@@ -204,9 +174,9 @@ export class BackgroundBridge extends EventEmitter {
 
   onLock() {
     // TODO UNSUBSCRIBE EVENT INSTEAD
-    if (this.disconnected) return;
+    if (this.#disconnected) return;
 
-    if (this.isRemoteConn) {
+    if (this.#isMMSDK) {
       // Not sending the lock event in case of a remote connection as this is handled correctly already by the SDK
       // In case we want to send, use  new structure
       /*this.sendNotification({
@@ -224,10 +194,10 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  async #getProviderNetworkState(origin: string = METAMASK_DOMAIN) {
+  async #getProviderNetworkState(domain: string = METAMASK_DOMAIN) {
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
-      origin,
+      domain,
     );
 
     const networkClient = Engine.controllerMessenger.call(
@@ -238,7 +208,7 @@ export class BackgroundBridge extends EventEmitter {
     const { chainId } = networkClient.configuration;
 
     let networkVersion: string | null =
-      this.deprecatedNetworkVersions[networkClientId];
+      this.#deprecatedNetworkVersions[networkClientId];
     if (!networkVersion) {
       const ethQuery = new EthQuery(networkClient.provider);
       networkVersion = await new Promise((resolve) => {
@@ -247,7 +217,7 @@ export class BackgroundBridge extends EventEmitter {
             console.error(error);
             resolve(null);
           } else {
-            this.deprecatedNetworkVersions[networkClientId] = result as string;
+            this.#deprecatedNetworkVersions[networkClientId] = result as string;
             resolve(result as string);
           }
         });
@@ -267,7 +237,7 @@ export class BackgroundBridge extends EventEmitter {
     DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
-      params: params ?? (await this.#getProviderNetworkState(this.hostname)),
+      params: params ?? (await this.#getProviderNetworkState(this.domain)),
     });
   }
 
@@ -275,17 +245,11 @@ export class BackgroundBridge extends EventEmitter {
     try {
       let approvedAccounts = [];
       DevLogger.log(
-        `notifySelectedAddressChanged: ${selectedAddress} channelId=${
-          this.channelId
-        } wc=${this.isWalletConnect} url=${this.#url}`,
+        `notifySelectedAddressChanged: ${selectedAddress} origin=${
+          this.origin
+        } wc=${this.#isWalletConnect} url=${this.origin}`,
       );
-      if (this.isWalletConnect) {
-        approvedAccounts = await getPermittedAccounts(this.#url);
-      } else {
-        approvedAccounts = await getPermittedAccounts(
-          this.channelId ?? this.hostname,
-        );
-      }
+      approvedAccounts = await getPermittedAccounts(this.origin);
       // Check if selectedAddress is approved
       const found = approvedAccounts
         .map((addr) => addr.toLowerCase())
@@ -301,9 +265,7 @@ export class BackgroundBridge extends EventEmitter {
         ];
 
         DevLogger.log(
-          `notifySelectedAddressChanged url: ${this.#url} hostname: ${
-            this.hostname
-          }: ${selectedAddress}`,
+          `notifySelectedAddressChanged url: ${this.origin} hostname: ${this.domain}: ${selectedAddress}`,
           approvedAccounts,
         );
         this.sendNotification({
@@ -323,7 +285,7 @@ export class BackgroundBridge extends EventEmitter {
 
   async #onStateUpdate() {
     const memState = this.getState();
-    const publicState = await this.#getProviderNetworkState(this.hostname);
+    const publicState = await this.#getProviderNetworkState(this.domain);
 
     // Check if update already sent
     if (
@@ -335,8 +297,8 @@ export class BackgroundBridge extends EventEmitter {
       this.#networkVersionSent = publicState.networkVersion;
       await this.notifyChainChanged(publicState);
     }
-    // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
-    if (this.isWalletConnect || this.isRemoteConn) {
+    // ONLY NEEDED FOR REMOTE CONNECTIONS FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
+    if (this.#isWalletConnect || this.#isMMSDK) {
       if (
         this.#addressSent?.toLowerCase() !==
         memState.selectedAddress?.toLowerCase()
@@ -351,10 +313,10 @@ export class BackgroundBridge extends EventEmitter {
     return Engine.context.KeyringController.isUnlocked();
   }
 
-  async getProviderState(origin: string) {
+  async getProviderState(domain: string) {
     return {
       isUnlocked: this.isUnlocked(),
-      ...(await this.#getProviderNetworkState(origin)),
+      ...(await this.#getProviderNetworkState(domain)),
     };
   }
 
@@ -367,7 +329,7 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onDisconnect = () => {
-    this.disconnected = true;
+    this.#disconnected = true;
     Engine.controllerMessenger.unsubscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.#sendStateUpdate,
@@ -384,18 +346,20 @@ export class BackgroundBridge extends EventEmitter {
    * A method for serving our ethereum provider over a given stream.
    */
   #setupProviderConnection() {
+    const multiplexStreamName = this.#isWalletConnect
+      ? 'walletconnect-provider'
+      : 'metamask-provider';
+
     // Setup multiplexing
-    const portStream = new MobilePortStream(this.#port, this.#url);
+    const portStream = new MobilePortStream(this.#port, this.origin);
     const mux = setupMultiplex(portStream);
-    const outStream = mux.createStream(
-      this.isWalletConnect ? 'walletconnect-provider' : 'metamask-provider',
-    );
+    const outStream = mux.createStream(multiplexStreamName);
     this.#jsonRpcEngine = this.setupProviderEngine();
 
     // setup connection
     const providerStream = createEngineStream({ engine: this.#jsonRpcEngine });
 
-    pump(outStream, providerStream, outStream, (err: Error) => {
+    pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
       this.#jsonRpcEngine.destroy();
       if (err) Logger.log('Error with provider stream conn', err);
@@ -444,7 +408,7 @@ export class BackgroundBridge extends EventEmitter {
           const selectedAddress = this.getState().selectedAddress;
           this.notifySelectedAddressChanged(selectedAddress);
         },
-        (state) => state.subjects[this.channelId],
+        (state) => state.subjects[this.origin],
       );
     } catch (err) {
       DevLogger.log(`Error in BackgroundBridge: ${err}`);
@@ -455,18 +419,17 @@ export class BackgroundBridge extends EventEmitter {
    * A method for creating a provider that is safely restricted for the requesting domain.
    **/
   setupProviderEngine() {
-    const origin = this.hostname;
     // setup json rpc engine stack
     const baseJsonRpcEngine = new JsonRpcEngine();
 
-    // If the origin is not in the selectedNetworkController's `domains` state
+    // If the domain is not in the selectedNetworkController's `domains` state
     // when the provider engine is created, the selectedNetworkController will
     // fetch the globally selected networkClient from the networkController and wrap
-    // it in a proxy which can be switched to use its own state if/when the origin
+    // it in a proxy which can be switched to use its own state if/when the domain
     // is added to the `domains` state
     const proxyClient =
       Engine.context.SelectedNetworkController.getProviderAndBlockTracker(
-        origin,
+        this.domain,
       );
 
     // create filter polyfill middleware
@@ -479,14 +442,14 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     // metadata
-    baseJsonRpcEngine.push(createOriginMiddleware({ origin }));
+    baseJsonRpcEngine.push(createOriginMiddleware({ origin: this.origin }));
     baseJsonRpcEngine.push(
       createSelectedNetworkMiddleware(
         // @ts-expect-error FIXME: Type expects a SelectedNetworkControllerMessenger, but it's using controller messenger from Engine instead
         Engine.controllerMessenger,
       ),
     );
-    baseJsonRpcEngine.push(createLoggerMiddleware({ origin }));
+    baseJsonRpcEngine.push(createLoggerMiddleware({ origin: this.origin }));
     // filter and subscription polyfills
     baseJsonRpcEngine.push(filterMiddleware);
     baseJsonRpcEngine.push(subscriptionManager.middleware);
@@ -497,8 +460,7 @@ export class BackgroundBridge extends EventEmitter {
     // Legacy RPC methods that need to be implemented ahead of the permission middleware
     baseJsonRpcEngine.push(
       createLegacyMethodMiddleware({
-        getAccounts: async () =>
-          await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
+        getAccounts: async () => await getPermittedAccounts(this.origin),
       }),
     );
 
@@ -508,9 +470,7 @@ export class BackgroundBridge extends EventEmitter {
     // Append PermissionController middleware
     baseJsonRpcEngine.push(
       Engine.context.PermissionController.createPermissionMiddleware({
-        // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
-        // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
-        origin: this.isMMSDK ? this.channelId : origin,
+        origin: this.origin,
       }),
     );
 
@@ -520,7 +480,7 @@ export class BackgroundBridge extends EventEmitter {
       snapMethodMiddlewareBuilder(
         Engine.context,
         Engine.controllerMessenger,
-        this.#url,
+        this.origin,
         // We assume that origins connecting through the BackgroundBridge are websites
         SubjectType.Website,
       ),
@@ -529,7 +489,7 @@ export class BackgroundBridge extends EventEmitter {
 
     // user-facing RPC methods
     baseJsonRpcEngine.push(
-      this.#createMiddleware({
+      this.#createRpcMiddleware({
         hostname: this.hostname,
         getProviderState: this.getProviderState.bind(this),
       }),

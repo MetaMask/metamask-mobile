@@ -82,9 +82,7 @@ export enum ApprovalTypes {
 export interface RPCMethodsMiddleParameters {
   hostname: string;
   channelId?: string; // Used for remote connections
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getProviderState: (origin: string) => Promise<{
+  getProviderState: (domain: string) => Promise<{
     isUnlocked: boolean;
     chainId: string;
     networkVersion: string;

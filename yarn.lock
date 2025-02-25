@@ -10170,6 +10170,13 @@
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.4.tgz#fcf7205c25dff795ee79af1e30da2c9790808f11"
   integrity sha512-rZ5drC/jWjrArrS8BR6SIr4cWpW09RNTYt9AMZo3Jwwif+iacXAqgVjm0B0Bv/S1jhDXKHqRVNCbACkJ89RAnQ==
 
+"@types/pump@^1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@types/pump/-/pump-1.1.3.tgz#127eeed2f416f89ef60697003486ae27c7f0b49e"
+  integrity sha512-ZyooTTivmOwPfOwLVaszkF8Zq6mvavgjuHYitZhrIjfQAJDH+kIP3N+MzpG1zDAslsHvVz6Q8ECfivix3qLJaQ==
+  dependencies:
+    "@types/node" "*"
+
 "@types/punycode@^2.1.0":
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/@types/punycode/-/punycode-2.1.4.tgz#96f8a47f1ee9fb0d0def5557fe80fac532f966fa"
@@ -10313,6 +10320,14 @@
   integrity sha512-qaIzpCuXNWomGR1Xq8SCFTtF4v8V27Y6f+b9+bzHiv087MylI/nTCqqdChNeWS7tslgROmYB7yeiruWX7WnqNg==
   dependencies:
     "@types/react" "*"
+
+"@types/readable-stream@^4.0.18":
+  version "4.0.18"
+  resolved "https://registry.yarnpkg.com/@types/readable-stream/-/readable-stream-4.0.18.tgz#5d8d15d26c776500ce573cae580787d149823bfc"
+  integrity sha512-21jK/1j+Wg+7jVw1xnSwy/2Q1VgVjWuFssbYGTREPUBeZ+rqVFl2udq0IkxzPC0ZhOzVceUbyIACFZKLqKEBlA==
+  dependencies:
+    "@types/node" "*"
+    safe-buffer "~5.1.1"
 
 "@types/readdir-glob@*":
   version "1.1.1"

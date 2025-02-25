@@ -12,6 +12,8 @@ import AppConstants from '../../AppConstants';
 import { DappClient } from '../AndroidSDK/dapp-sdk-types';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import RemotePort from '../../BackgroundBridge/RemotePort';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 
 jest.mock('../SDKConnect');
 jest.mock('react-native');
@@ -161,12 +163,9 @@ describe('DeeplinkProtocolService', () => {
 
       service.currentClientId = 'client1';
       service.bridgeByClientId.client1 = new BackgroundBridge({
-        webview: null,
-        channelId: 'client1',
+        url: `${PROTOCOLS.METAMASK}://client1`,
         isMMSDK: true,
-        url: 'test-url',
-        isRemoteConn: true,
-        sendMessage: jest.fn(),
+        port: new RemotePort(jest.fn()),
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
@@ -196,12 +195,9 @@ describe('DeeplinkProtocolService', () => {
 
       service.currentClientId = 'client1';
       service.bridgeByClientId.client1 = new BackgroundBridge({
-        webview: null,
-        channelId: 'client1',
+        url: `${PROTOCOLS.METAMASK}://client1`,
         isMMSDK: true,
-        url: 'test-url',
-        isRemoteConn: true,
-        sendMessage: jest.fn(),
+        port: new RemotePort(jest.fn()),
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
@@ -247,12 +243,9 @@ describe('DeeplinkProtocolService', () => {
 
       service.currentClientId = 'client1';
       service.bridgeByClientId.client1 = new BackgroundBridge({
-        webview: null,
-        channelId: 'client1',
+        url: `${PROTOCOLS.METAMASK}://client1`,
         isMMSDK: true,
-        url: 'test-url',
-        isRemoteConn: true,
-        sendMessage: jest.fn(),
+        port: new RemotePort(jest.fn()),
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);

@@ -28,6 +28,8 @@ import parseWalletConnectUri from './wc-utils';
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
+import { PROTOCOLS } from '../../constants/deeplinks';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -160,7 +162,7 @@ class WalletConnect {
       if (payload.method) {
         const payloadUrl = this.walletConnector.session.peerMeta.url;
         const payloadHostname = new URL(payloadUrl).hostname;
-        if (payloadHostname === this.backgroundBridge.hostname) {
+        if (payloadHostname === this.backgroundBridge.domain) {
           if (METHODS_TO_REDIRECT[payload.method]) {
             this.requestsToRedirect[payload.id] = true;
           }
@@ -333,14 +335,13 @@ class WalletConnect {
     this.hostname = new URL(this.url.current).hostname;
 
     this.backgroundBridge = new BackgroundBridge({
-      url: this.url.current,
+      url: `${PROTOCOLS.WC}://${sessionData.handshakeTopic}`,
       isWalletConnect: true,
-      wcWalletConnector: this.walletConnector,
-      wcRequestActions: {
-        approveRequest: this.approveRequest,
-        rejectRequest: this.rejectRequest,
-        updateSession: this.updateSession,
-      },
+      port: new WalletConnectPort({
+        approveRequest: this.approveRequest.bind(this),
+        rejectRequest: this.rejectRequest.bind(this),
+        updateSession: this.updateSession.bind(this),
+      }),
       getRpcMethodMiddleware: ({ getProviderState }) =>
         getRpcMethodMiddleware({
           hostname: WALLET_CONNECT_ORIGIN + this.hostname,
@@ -360,7 +361,6 @@ class WalletConnect {
           tabId: false,
           isWalletConnect: true,
         }),
-      isMainFrame: true,
     });
   };
 

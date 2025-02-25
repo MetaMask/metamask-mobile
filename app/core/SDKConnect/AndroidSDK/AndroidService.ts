@@ -36,6 +36,7 @@ import getDefaultBridgeParams from './getDefaultBridgeParams';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import Routes from '../../../constants/navigation/Routes';
+import RemotePort from '../../BackgroundBridge/RemotePort';
 
 export default class AndroidService extends EventEmitter2 {
   public communicationClient = NativeModules.CommunicationClient;
@@ -454,11 +455,9 @@ export default class AndroidService extends EventEmitter2 {
     const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
 
     const bridge = new BackgroundBridge({
-      channelId: clientInfo.clientId,
+      url: `${PROTOCOLS.METAMASK}://${clientInfo.clientId}`,
       isMMSDK: true,
-      url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-      isRemoteConn: true,
-      sendMessage: this.sendMessage.bind(this),
+      port: new RemotePort(this.sendMessage.bind(this)),
       ...defaultBridgeParams,
     });
 

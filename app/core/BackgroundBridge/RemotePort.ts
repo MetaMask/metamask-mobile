@@ -1,7 +1,10 @@
 // eslint-disable-next-line import/no-nodejs-modules, import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-const EventEmitter = require('events').EventEmitter;
+import { EventEmitter } from 'events';
+import { Port } from './types';
 
-class RemotePort extends EventEmitter {
+class RemotePort extends EventEmitter implements Port {
+  sendMessage: (params: unknown) => void;
+
   constructor(sendMessage: (params: unknown) => void) {
     super();
     this.sendMessage = sendMessage;

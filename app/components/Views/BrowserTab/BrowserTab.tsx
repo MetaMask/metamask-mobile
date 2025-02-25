@@ -109,6 +109,7 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import WebViewPort from '../../../core/BackgroundBridge/WebViewPort';
 
 /**
  * Tab component for the in-app browser
@@ -862,15 +863,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }, []);
 
   const initializeBackgroundBridge = useCallback(
-    (urlBridge: string, isMainFrame: boolean) => {
+    (urlBridge: string) => {
       // First disconnect and reset bridge
       backgroundBridgeRef.current?.onDisconnect();
       backgroundBridgeRef.current = undefined;
 
-      //@ts-expect-error - We should type bacgkround bridge js file
       const newBridge = new BackgroundBridge({
-        webview: webviewRef,
         url: urlBridge,
+        port: new WebViewPort(webviewRef),
         getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
           getRpcMethodMiddleware({
             hostname,
@@ -894,7 +894,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             isMMSDK: false,
             analytics: {},
           }),
-        isMainFrame,
       });
       backgroundBridgeRef.current = newBridge;
     },
@@ -935,7 +934,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         injectHomePageScripts();
       }
 
-      initializeBackgroundBridge(urlOrigin, true);
+      initializeBackgroundBridge(urlOrigin);
     },
     [
       isAllowedOrigin,
