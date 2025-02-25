@@ -4,28 +4,11 @@ import InlineAlert, { InlineAlertProps } from './InlineAlert';
 import { Severity } from '../../types/alerts';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      error: { muted: 'red' },
-      warning: { muted: 'yellow' },
-      info: { muted: 'blue', default: 'lightblue' },
-    },
-  }),
-}));
-
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn().mockReturnValue({ styles: { wrapper: {}, inlineContainer: {}, icon: {} } }),
-}));
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn().mockReturnValue('Inline Alert Label'),
-}));
-
 describe('InlineAlert', () => {
-  const INLINE_ALERT_LABEL = 'Inline Alert Label';
+  const INLINE_ALERT_LABEL = 'Alert';
+  const onClickMock = jest.fn();
 
-  const renderComponent = (props: Partial<InlineAlertProps> = {}) => render(<InlineAlert {...props} />);
+  const renderComponent = (props: Partial<InlineAlertProps> = {}) => render(<InlineAlert onClick={onClickMock} {...props} />);
 
   it('renders correctly with default props', () => {
     const { getByTestId, getByText } = renderComponent();

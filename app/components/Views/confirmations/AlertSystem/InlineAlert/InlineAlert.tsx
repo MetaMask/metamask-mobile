@@ -14,7 +14,7 @@ export interface InlineAlertProps {
   /** The onClick handler for the inline alerts */
   onClick: () => void;
   /** The severity of the alert, e.g. Severity.Warning */
-  severity: Severity;
+  severity?: Severity;
   /** Additional styles to apply to the inline alert */
   style?: ViewStyle;
 }
