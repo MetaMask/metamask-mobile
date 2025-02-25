@@ -31,7 +31,9 @@ const QRInfo = () => {
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [shouldPause, setShouldPause] = useState(false);
 
-  const submitQRSignature = Engine.context.KeyringController.submitQRSignature;
+  const submitQRSignature = Engine.context.KeyringController.submitQRSignature.bind(
+    Engine.context.KeyringController,
+  );
 
   useEffect(() => {
     if (scannerVisible) {
