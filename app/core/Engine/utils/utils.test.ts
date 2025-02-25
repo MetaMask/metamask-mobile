@@ -4,15 +4,15 @@ import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { NetworkController } from '@metamask/network-controller';
 import { mockControllerInitFunction } from './test-utils';
 import { AccountsController } from '@metamask/accounts-controller';
-import { ControllerInitFunctionByControllerName } from '../types';
 
 describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
     const controllers = initModularizedControllers({
       existingControllersByName: {},
+      // @ts-expect-error - we are not defining all controllers for this test
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
-      } as ControllerInitFunctionByControllerName,
+      },
       persistedState: {},
       baseControllerMessenger: new ExtendedControllerMessenger(),
     });
@@ -24,9 +24,10 @@ describe('initModularizedControllers', () => {
     expect(() =>
       initModularizedControllers({
         existingControllersByName: {},
+        // @ts-expect-error - we are not defining all controllers for this test
         controllerInitFunctions: {
           AccountsController: mockControllerInitFunction,
-        } as ControllerInitFunctionByControllerName,
+        },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
       }),
@@ -41,9 +42,10 @@ describe('initModularizedControllers', () => {
         existingControllersByName: {
           NetworkController: jest.fn() as unknown as NetworkController,
         },
+        // @ts-expect-error - we are not defining all controllers for this test
         controllerInitFunctions: {
           AccountsController: mockControllerInitFunction,
-        } as ControllerInitFunctionByControllerName,
+        },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
       }),

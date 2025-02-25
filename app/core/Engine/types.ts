@@ -570,7 +570,7 @@ export type ControllerInitFunction<
 /**
  * Map of controller init functions by controller name.
  */
-export type ControllerInitFunctionByControllerName = {
+type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
     ControllerByName[Name],
     ReturnType<ControllerMessengerByControllerName[Name]['getMessenger']>
