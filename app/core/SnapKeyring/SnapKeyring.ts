@@ -73,25 +73,23 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   }): Promise<{ accountName?: string }> {
     return await this.withApprovalFlow(async (_) => {
       // Show the account **renaming** confirmation dialog.
-      {
-        const { success, name: accountName } =
-          await showAccountNameSuggestionDialog(
-            snapId,
-            this.#messenger,
-            accountNameSuggestion,
-          );
+      const { success, name: accountName } =
+        await showAccountNameSuggestionDialog(
+          snapId,
+          this.#messenger,
+          accountNameSuggestion,
+        );
 
-        if (!success) {
-          // User has cancelled account creation
-          await handleUserInput(success);
-
-          throw new Error('User denied account creation');
-        }
-
+      if (!success) {
+        // User has cancelled account creation
         await handleUserInput(success);
 
-        return { accountName };
+        throw new Error('User denied account creation');
       }
+
+      await handleUserInput(success);
+
+      return { accountName };
     });
   }
 

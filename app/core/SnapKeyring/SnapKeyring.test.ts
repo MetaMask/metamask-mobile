@@ -1,5 +1,10 @@
 import { Messenger } from '@metamask/base-controller';
-import { EthAccountType, EthScope, KeyringEvent } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  EthScope,
+  KeyringEvent,
+  KeyringRpcMethod,
+} from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { snapKeyringBuilder } from './SnapKeyring';
 import {
@@ -8,6 +13,7 @@ import {
 } from './types';
 import { SnapId } from '@metamask/snaps-sdk';
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethodMiddleware';
+import { showAccountNameSuggestionDialog } from './utils/showDialog';
 
 const mockAddRequest = jest.fn();
 const mockStartFlow = jest.fn();
@@ -20,6 +26,7 @@ const mockSetSelectedAccount = jest.fn();
 const mockRemoveAccountHelper = jest.fn();
 const mockGetAccountByAddress = jest.fn();
 const mockSetAccountName = jest.fn();
+const mockSnapControllerHandleRequest = jest.fn();
 
 const mockFlowId = '123';
 const address = '0x2a4d4b667D5f12C3F9Bf8F14a7B9f8D8d9b8c8fA';
@@ -95,6 +102,8 @@ const createControllerMessenger = ({
         return mockSetSelectedAccount(params);
       case 'AccountsController:setAccountName':
         return mockSetAccountName.mockReturnValue(null)(params);
+      case 'SnapController:handleRequest':
+        return mockSnapControllerHandleRequest(params);
       default:
         throw new Error(
           `MOCK_FAIL - unsupported messenger call: ${actionType}`,
@@ -105,6 +114,20 @@ const createControllerMessenger = ({
   return messenger;
 };
 
+/**
+ * Utility function that waits for all pending promises to be resolved.
+ * This is necessary when testing asynchronous execution flows that are
+ * initiated by synchronous calls.
+ *
+ * @returns A promise that resolves when all pending promises are completed.
+ */
+async function waitForAllPromises(): Promise<void> {
+  // Wait for next tick to flush all pending promises. It's requires since
+  // we are testing some asynchronous execution flows that are started by
+  // synchronous calls.
+  await new Promise(process.nextTick);
+}
+
 const createSnapKeyringBuilder = () =>
   snapKeyringBuilder(createControllerMessenger(), {
     persistKeyringHelper: mockPersisKeyringHelper,
@@ -114,6 +137,33 @@ const createSnapKeyringBuilder = () =>
 describe('Snap Keyring Methods', () => {
   afterEach(() => {
     jest.resetAllMocks();
+  });
+
+  describe('helpers', () => {
+    describe('showAccountNameSuggestionDialog', () => {
+      it('shows account name suggestion dialog and return true on user confirmation', async () => {
+        const controllerMessenger = createControllerMessenger();
+        controllerMessenger.call('ApprovalController:startFlow');
+
+        await showAccountNameSuggestionDialog(
+          mockSnapId,
+          controllerMessenger,
+          accountNameSuggestion,
+        );
+
+        expect(mockAddRequest).toHaveBeenCalledTimes(1);
+        expect(mockAddRequest).toHaveBeenCalledWith([
+          {
+            origin: mockSnapId,
+            type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
+            requestData: {
+              snapSuggestedAccountName: accountNameSuggestion,
+            },
+          },
+          true,
+        ]);
+      });
+    });
   });
 
   describe('addAccount', () => {
@@ -187,6 +237,53 @@ describe('Snap Keyring Methods', () => {
       ]);
       expect(mockEndFlow).toHaveBeenCalledTimes(2);
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
+    });
+    it('ends approval flow on error', async () => {
+      const consoleSpy = jest.spyOn(console, 'error');
+
+      const errorMessage = 'save error';
+      mockPersisKeyringHelper.mockRejectedValue(new Error(errorMessage));
+      mockSnapControllerHandleRequest.mockImplementation((params) => {
+        expect(params).toStrictEqual([
+          {
+            snapId: mockSnapId,
+            origin: 'metamask',
+            handler: 'onKeyringRequest',
+            request: {
+              jsonrpc: '2.0',
+              id: expect.any(String),
+              method: KeyringRpcMethod.DeleteAccount,
+              params: {
+                id: mockAccount.id,
+              },
+            },
+          },
+        ]);
+
+        // We must return `null` when removing an account.
+        return null;
+      });
+      const builder = createSnapKeyringBuilder();
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: 'notify:accountCreated',
+        params: {
+          account: mockAccount,
+          displayConfirmation: false,
+        },
+      });
+
+      // ! This no longer throws an error, but instead, we log it. Since this part
+      // ! of the flow is not awaited, so we await for it explicitly here:
+      await waitForAllPromises();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Error occurred while creating snap account:',
+        errorMessage,
+      );
+
+      expect(mockStartFlow).toHaveBeenCalledTimes(2);
+      expect(mockEndFlow).toHaveBeenCalledTimes(2);
+      expect(mockEndFlow).toHaveBeenNthCalledWith(1, [{ id: mockFlowId }]);
+      expect(mockEndFlow).toHaveBeenNthCalledWith(2, [{ id: mockFlowId }]);
     });
   });
 });
