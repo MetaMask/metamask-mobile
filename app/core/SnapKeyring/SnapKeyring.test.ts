@@ -13,7 +13,7 @@ const mockAddRequest = jest.fn();
 const mockStartFlow = jest.fn();
 const mockEndFlow = jest.fn();
 const mockGetAccounts = jest.fn();
-const mockSnapId: SnapId = 'snapId' as SnapId;
+const mockSnapId: SnapId = 'npm:@metamask/solana-wallet-snap' as SnapId;
 const mockSnapName = 'mock-snap';
 const mockPersisKeyringHelper = jest.fn();
 const mockSetSelectedAccount = jest.fn();
@@ -106,11 +106,10 @@ const createControllerMessenger = ({
 };
 
 const createSnapKeyringBuilder = () =>
-  snapKeyringBuilder(
-    createControllerMessenger(),
-    mockPersisKeyringHelper,
-    mockRemoveAccountHelper,
-  );
+  snapKeyringBuilder(createControllerMessenger(), {
+    persistKeyringHelper: mockPersisKeyringHelper,
+    removeAccountHelper: mockRemoveAccountHelper,
+  });
 
 describe('Snap Keyring Methods', () => {
   afterEach(() => {
