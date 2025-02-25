@@ -12,9 +12,9 @@ import { ThemeColors } from '@metamask/design-tokens';
 
 export interface InlineAlertProps {
   /** The onClick handler for the inline alerts */
-  onClick?: () => void;
+  onClick: () => void;
   /** The severity of the alert, e.g. Severity.Warning */
-  severity?: Severity;
+  severity: Severity;
   /** Additional styles to apply to the inline alert */
   style?: ViewStyle;
 }
@@ -25,10 +25,8 @@ const getBackgroundColor = (severity: Severity, colors: ThemeColors) => {
       return colors.error.muted;
     case Severity.Warning:
       return colors.warning.muted;
-    case Severity.Info:
-      return colors.info.muted;
     default:
-      return colors.info.default;
+      return colors.info.muted;
   }
 };
 
@@ -38,10 +36,8 @@ const getTextColor = (severity: Severity) => {
       return TextColor.Error;
     case Severity.Warning:
       return TextColor.Warning;
-    case Severity.Info:
-      return TextColor.Info;
     default:
-      return TextColor.Default;
+      return TextColor.Info;
   }
 };
 
