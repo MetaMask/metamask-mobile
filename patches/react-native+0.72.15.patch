@@ -8,7 +8,7 @@ index 25377f6..5542973 100644
  
 +const Platform = require('../Utilities/Platform');
 +
-+if (Platform.OS === 'ios' && !global?.HermesInternal) {
++if (Platform.OS === 'ios' && !global?.HermesInternal && false) {
 +  require('./setUpSes');
 +}
 +
@@ -81,8 +81,8 @@ index 0000000..5dc1859
 +
 +// Enable SES by default
 +if (isSesEnabled === undefined) {
-+  isSesEnabled = true;
-+  storage.set('is-ses-enabled', true);
++  isSesEnabled = false;
++  storage.set('is-ses-enabled', false);
 +}
 +
 +/**
