@@ -229,6 +229,16 @@ const BrowserFlow = (props) => (
       component={Asset}
       initialParams={props.route.params}
     />
+    <Stack.Screen
+      name="SwapsAmountView"
+      component={SwapsAmountView}
+      options={SwapsAmountView.navigationOptions}
+    />
+    <Stack.Screen
+      name="SwapsQuotesView"
+      component={SwapsQuotesView}
+      options={SwapsQuotesView.navigationOptions}
+    />
   </Stack.Navigator>
 );
 

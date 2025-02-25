@@ -166,14 +166,26 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const handleSwapNavigation = useCallback(() => {
-    navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+    if (isAssetFromSearch(asset)) {
+      navigation.navigate('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        destinationToken: asset.address,
         sourcePage: 'MainView',
         chainId: asset.chainId,
       },
     });
+    } else {
+        navigation.navigate('Swaps', {
+          screen: 'SwapsAmountView',
+          params: {
+          sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourcePage: 'MainView',
+          chainId: asset.chainId,
+        },
+      });
+    }
   }, [navigation, asset.address, asset.chainId]);
 
   const handleBridgeNavigation = useCallback(() => {
@@ -230,12 +242,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const goToSwaps = useCallback(() => {
     if (isPortfolioViewEnabled()) {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      if (!isAssetFromSearch(asset)) {
+        navigation.navigate(Routes.WALLET.HOME, {
+          screen: Routes.WALLET.TAB_STACK_FLOW,
+          params: {
+            screen: Routes.WALLET_VIEW,
+          },
+        });
+      }
       if (asset.chainId !== selectedChainId) {
         const { NetworkController, MultichainNetworkController } =
           Engine.context;
@@ -243,6 +257,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           NetworkController.getNetworkConfigurationByChainId(
             asset.chainId as Hex,
           );
+        
+        if (!networkConfiguration) {
+          // TODO: Popup the "add network" modal
+        }
 
         const networkClientId =
           networkConfiguration?.rpcEndpoints?.[
