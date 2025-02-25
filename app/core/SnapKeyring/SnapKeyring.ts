@@ -1,14 +1,9 @@
 import { SnapKeyring, SnapKeyringCallbacks } from '@metamask/eth-snap-keyring';
 import Logger from '../../util/Logger';
-import {
-  showAccountCreationDialog,
-  showAccountNameSuggestionDialog,
-} from './utils/showDialog';
+import { showAccountNameSuggestionDialog } from './utils/showDialog';
 import { SnapKeyringBuilderMessenger } from './types';
 import { SnapId } from '@metamask/snaps-sdk';
-import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethodMiddleware';
 import { assertIsValidSnapId } from '@metamask/snaps-utils';
-import { isSnapPreinstalled } from './utils/snaps';
 
 /**
  * Builder type for the Snap keyring.
@@ -69,32 +64,15 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
 
   private async addAccountConfirmations({
     snapId,
-    skipConfirmation,
     handleUserInput,
     accountNameSuggestion,
   }: {
     snapId: SnapId;
-    skipConfirmation: boolean;
     accountNameSuggestion: string;
     handleUserInput: (accepted: boolean) => Promise<void>;
   }): Promise<{ accountName?: string }> {
     return await this.withApprovalFlow(async (_) => {
-      // 1. Show the account **creation** confirmation dialog.
-      {
-        // If confirmation dialog are skipped, we consider the account creation to be confirmed until the account name dialog is closed
-        const success =
-          skipConfirmation ||
-          (await showAccountCreationDialog(snapId, this.#messenger));
-
-        if (!success) {
-          // User has cancelled account creation
-          await handleUserInput(success);
-
-          throw new Error('User denied account creation');
-        }
-      }
-
-      // 2. Show the account **renaming** confirmation dialog.
+      // Show the account **renaming** confirmation dialog.
       {
         const { success, name: accountName } =
           await showAccountNameSuggestionDialog(
@@ -118,13 +96,11 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   }
 
   private async addAccountFinalize({
-    skipConfirmation,
     accountName,
     onceSaved,
   }: {
     address: string;
     snapId: SnapId;
-    skipConfirmation: boolean;
     onceSaved: Promise<string>;
     accountName?: string;
   }) {
@@ -151,13 +127,6 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
             accountName,
           );
         }
-
-        if (!skipConfirmation) {
-          // TODO: Add events tracking to the dialog itself, so that events are more
-          // "linked" to UI actions
-          // User should now see the "Successfuly added account" page
-          // show success
-        }
       } catch (e) {
         // Error occurred while naming the account
         const error = (e as Error).message;
@@ -173,18 +142,13 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     handleUserInput: (accepted: boolean) => Promise<void>,
     onceSaved: Promise<string>,
     accountNameSuggestion: string = '',
-    displayConfirmation: boolean = false,
   ) {
     assertIsValidSnapId(snapId);
-
-    // If Snap is preinstalled and does not request confirmation, skip the confirmation dialog.
-    const skipConfirmation = isSnapPreinstalled(snapId) && !displayConfirmation;
 
     // First part of the flow, which includes confirmation dialogs (if not skipped).
     // Once confirmed, we resume the Snap execution.
     const { accountName } = await this.addAccountConfirmations({
       snapId,
-      skipConfirmation,
       accountNameSuggestion,
       handleUserInput,
     });
@@ -196,9 +160,8 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     void this.addAccountFinalize({
       address,
       snapId,
-      skipConfirmation,
-      accountName,
       onceSaved,
+      accountName,
     });
   }
 
