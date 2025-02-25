@@ -24,7 +24,6 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.normal,
       fontSize: 14,
-      fontWeight: '400',
     },
     messageContainer: {
       backgroundColor: theme.colors.background.default,
@@ -39,7 +38,6 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.normal,
       fontSize: 14,
-      fontWeight: '400',
     },
     copyButtonContainer: {
       position: 'absolute',
