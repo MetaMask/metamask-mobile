@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import { Image } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';

@@ -13,6 +13,7 @@ const PaymentMethodBadges: React.FC<Props> = ({
   style,
 }: Props) => {
   const { themeAppearance } = useTheme();
+
   const logos = logosByTheme[themeAppearance];
 
   return (

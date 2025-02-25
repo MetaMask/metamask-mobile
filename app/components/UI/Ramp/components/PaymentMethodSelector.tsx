@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Box from './Box';
-import Entypo from 'react-native-vector-icons/Entypo';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import ListItem from '../../../../component-library/components/List/ListItem';
