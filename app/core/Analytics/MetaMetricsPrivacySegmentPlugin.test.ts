@@ -95,6 +95,37 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
     expect((processedEvent as TrackEventType).properties?.anonymous).toBeUndefined();
   });
 
+  it('uses anonymousId as userId if provided user id is invalid', async () => {
+    const event: TrackEventType = {
+      event: 'Test Event',
+      type: EventType.TrackEvent
+    };
+
+    const emptyUserId = '';
+
+    const plugin = new MetaMetricsPrivacySegmentPlugin(emptyUserId);
+    plugin.configure(mockAnalytics);
+
+    const processedEvent = await plugin.execute(event);
+
+    expect(processedEvent.userId).toBe(METAMETRICS_ANONYMOUS_ID);
+  });
+
+  it('replaces anonymousId if not our custom null id', async () => {
+    const event: TrackEventType = {
+      event: 'Test Event',
+      type: EventType.TrackEvent,
+      anonymousId: 'not-our-custom-id'
+    };
+
+    const plugin = new MetaMetricsPrivacySegmentPlugin(mockUserId);
+    plugin.configure(mockAnalytics);
+
+    const processedEvent = await plugin.execute(event);
+
+    expect(processedEvent.anonymousId).toBe(METAMETRICS_ANONYMOUS_ID);
+  });
+
   it('does not replace userId for non-anonymous track events', async () => {
     const expectedUserId = '65746865-724D-496E-696E-674C6F766573';
 
