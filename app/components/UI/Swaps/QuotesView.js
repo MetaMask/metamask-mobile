@@ -790,7 +790,7 @@ function SwapsQuotesView({
   ]);
 
   const updateSwapsTransactions = useCallback(
-    async (transactionMeta, approvalTransactionMetaId) => {
+    async (transactionMetaId, approvalTransactionMetaId) => {
       const ethQuery = getGlobalEthQuery();
       const blockNumber = await query(ethQuery, 'blockNumber', []);
       const currentBlock = await query(ethQuery, 'getBlockByNumber', [
@@ -798,7 +798,7 @@ function SwapsQuotesView({
         false,
       ]);
 
-      addSwapsTransaction(transactionMeta.id, {
+      addSwapsTransaction(transactionMetaId, {
         action: 'swap',
         sourceToken: {
           address: sourceToken.address,
@@ -956,7 +956,7 @@ function SwapsQuotesView({
           transactionMeta.id,
         );
 
-        updateSwapsTransactions(transactionMeta, approvalTransactionMetaId);
+        updateSwapsTransactions(transactionMeta.id, approvalTransactionMetaId);
 
         setRecipient(selectedAddress);
         await addTokenToAssetsController(destinationToken);
@@ -1100,8 +1100,29 @@ function SwapsQuotesView({
     let approvalTransactionMetaId;
 
     if (shouldUseSmartTransaction) {
-      await submitSwapsSmartTransaction();
+      const { approvalTxUuid, tradeTxUuid } =
+        await submitSwapsSmartTransaction();
+
       setIsSwapsSTXStatusModalVisible(true);
+
+      // Update info to show in Activity list
+      // We use the stx uuids instead of the txMeta.id since we don't have the txMeta
+      // Approval tx info
+      addSwapsTransaction(approvalTxUuid, {
+        action: 'approval',
+        sourceToken: {
+          address: sourceToken.address,
+          decimals: sourceToken.decimals,
+        },
+        destinationToken: { swaps: 'swaps' },
+        upTo: new BigNumber(
+          decodeApproveData(approvalTransaction.data).encodedAmount,
+          16,
+        ).toString(10),
+      });
+
+      // Trade tx info
+      updateSwapsTransactions(tradeTxUuid, approvalTxUuid);
     } else {
       if (approvalTransaction) {
         approvalTransactionMetaId = await handleApprovalTransaction(

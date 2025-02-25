@@ -176,7 +176,7 @@ export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { t
       creationTime: Date.now(),
     });
 
-    return tradeTxUuid;
+    return { approvalTxUuid, tradeTxUuid };
   };
 
   return { submitSwapsSmartTransaction };
