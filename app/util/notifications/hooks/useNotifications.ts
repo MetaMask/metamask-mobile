@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { MarkAsReadNotificationsParam } from '@metamask/notification-services-controller/notification-services';
@@ -18,6 +18,7 @@ import {
 } from '../../../selectors/notifications';
 import { usePushNotificationsToggle } from './usePushNotifications';
 import Logger from '../../Logger';
+import { isNotificationsFeatureEnabled } from '../constants';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -41,6 +42,36 @@ export function useListNotifications() {
     isLoading: loading,
     error,
   };
+}
+
+/**
+ * Effect that queries for notifications on startup if notifications are enabled.
+ */
+export function useListNotificationsEffect() {
+  const notificationsFlagEnabled = isNotificationsFeatureEnabled();
+  const notificationsControllerEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+
+  const notificationsEnabled =
+    notificationsFlagEnabled && notificationsControllerEnabled;
+
+  const { listNotifications } = useListNotifications();
+
+  // App Open Effect
+  useEffect(() => {
+    const run = async () => {
+      try {
+        if (notificationsEnabled) {
+          await listNotifications();
+        }
+      } catch {
+        // Do Nothing
+      }
+    };
+
+    run();
+  }, [notificationsEnabled, listNotifications]);
 }
 
 /**
