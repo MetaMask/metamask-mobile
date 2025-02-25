@@ -52,7 +52,7 @@ const Confirm = () => {
     transactionMetadata?.type as TransactionType,
   );
 
-  const { styles } = useStyles(styleSheet);
+  const { styles } = useStyles(styleSheet, {});
 
   if (!isRedesignedEnabled) {
     return null;
