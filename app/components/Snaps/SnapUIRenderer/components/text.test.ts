@@ -4,6 +4,7 @@ import {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text/Text.types';
 import { TextElement } from '@metamask/snaps-sdk/jsx';
+import { mockTheme } from '../../../../util/theme';
 
 describe('text component', () => {
   const defaultParams = {
@@ -11,6 +12,7 @@ describe('text component', () => {
     useFooter: false,
     onCancel: jest.fn(),
     t: jest.fn(),
+    theme: mockTheme,
   };
 
   it('should render text with default props', () => {
@@ -26,11 +28,17 @@ describe('text component', () => {
 
     expect(result).toEqual({
       element: 'Text',
-      children: ['Hello World'],
+      children: [
+        {
+          element: 'Text',
+          children: 'Hello World',
+          props: { color: 'inherit' },
+        },
+      ],
       props: {
         variant: TextVariant.BodyMD,
         fontWeight: 'normal',
-        color: TextColor.Default,
+        color: 'inherit',
         textAlign: 'left',
       },
     });

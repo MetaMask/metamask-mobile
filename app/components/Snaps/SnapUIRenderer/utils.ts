@@ -10,6 +10,9 @@ import {
 } from '@metamask/utils';
 import { COMPONENT_MAPPING } from './components';
 import { unescape as unescapeFn } from 'he';
+import { FormState, InterfaceState, State } from '@metamask/snaps-sdk';
+import { UIComponent } from './components/types';
+import { Theme } from '../../../util/theme/models';
 
 export interface MapToTemplateParams {
   map: Record<string, number>;
@@ -19,6 +22,7 @@ export interface MapToTemplateParams {
   onCancel?: () => void;
   onConfirm?: () => void;
   t?: (key: string) => string;
+  theme: Theme;
 }
 
 /**
@@ -63,6 +67,7 @@ const generateHash = memoize((component: JSXElement) => {
   const children = getChildrenForHash(component);
   return remove0x(
     bytesToHex(
+      // TODO: Benchmark
       sha256(
         JSON.stringify({
           type,
@@ -122,17 +127,19 @@ export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
 
 export const mapTextToTemplate = (
   elements: NonEmptyArray<JSXElement | string>,
-  params: Pick<MapToTemplateParams, 'map' | 'useFooter' | 'onCancel'>,
+  params: Pick<MapToTemplateParams, 'map' | 'useFooter' | 'onCancel' | 'theme'>,
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
     if (typeof e === 'string') {
-      return unescapeFn(e);
+      // React Native cannot render strings directly, so we map to an element where we control the props.
+      return {
+        element: 'Text',
+        children: unescapeFn(e),
+        props: { color: 'inherit' },
+      };
     }
     return mapToTemplate({ ...params, element: e });
   }) as NonEmptyArray<UIComponent | string>;
-
-import { FormState, InterfaceState, State } from '@metamask/snaps-sdk';
-import { UIComponent } from './components/types';
 
 /**
  * Merge a new input value in the interface state.
@@ -161,3 +168,24 @@ export const mergeValue = <Type extends State>(
   }
   return { ...state, [name]: value };
 };
+
+/**
+ * Registry of element types that are used within Field element.
+ */
+export const FIELD_ELEMENT_TYPES = [
+  'FileInput',
+  'Input',
+  'Dropdown',
+  'RadioGroup',
+  'Checkbox',
+  'Selector',
+];
+
+/**
+ * Search for the element that is considered to be primary child element of a Field.
+ *
+ * @param children - Children elements specified within Field element.
+ * @returns Number, representing index of a primary field in the array of children elements.
+ */
+export const getPrimaryChildElementIndex = (children: JSXElement[]) =>
+  children.findIndex((c) => FIELD_ELEMENT_TYPES.includes(c.type));
