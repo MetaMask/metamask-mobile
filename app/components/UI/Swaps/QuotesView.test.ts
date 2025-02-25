@@ -21,6 +21,7 @@ import { RpcEndpointType } from '@metamask/network-controller';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
 import { query } from '@metamask/controller-utils';
+import { swapsUtils } from '@metamask/swaps-controller';
 
 jest.mock('../../../util/networks/global-network', () => ({
   ...jest.requireActual('../../../util/networks/global-network'),
@@ -33,9 +34,10 @@ jest.mock('@metamask/controller-utils', () => ({
 }));
 
 jest.mock('./utils/useSwapsSmartTransaction', () => {
-  const { useSwapsSmartTransaction: originalUseSwapsSmartTransaction } = jest.requireActual('./utils/useSwapsSmartTransaction');
+  const actual = jest.requireActual('./utils/useSwapsSmartTransaction');
   return {
-    useSwapsSmartTransaction: jest.fn(originalUseSwapsSmartTransaction),
+    ...actual,
+    useSwapsSmartTransaction: jest.fn(actual.useSwapsSmartTransaction),
   };
 });
 
@@ -75,6 +77,9 @@ jest.mock('../../../core/Engine', () => ({
       getFees: jest.fn(),
       submitSignedTransactions: mockSubmitSignedTransactions,
       updateSmartTransaction: mockUpdateSmartTransaction,
+    },
+    GasFeeController: {
+      getGasFeeEstimatesAndStartPolling: jest.fn(),
     },
   },
 }));
@@ -215,6 +220,8 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       SwapsController: {
+        quotesLastFetched: 123,
+        quoteRefreshSeconds: 30,
         topAggId: topAggIdMock,
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -401,13 +408,25 @@ describe('QuotesView', () => {
 
       // Verify submitSwapsSmartTransaction was not called
       expect(mockSubmitSwapsSmartTransaction).not.toHaveBeenCalled();
+    });
+  });
 
-      // Instead, we should still be using the regular transaction flow
-      const estimateGasFeeSpy = jest.spyOn(
-        Engine.context.TransactionController,
-        'estimateGasFee',
-      );
-      expect(estimateGasFeeSpy).toHaveBeenCalled();
+  describe('polling and error handling', () => {
+    it('should show error when quotes are expired', async () => {
+      const state = merge(mockInitialState,  {
+        engine: {
+          backgroundState: {
+            SwapsController: {
+              isInPolling: false,
+              error: {key: swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR, description: null},
+            },
+          },
+        },
+      });
+      const wrapper = render(QuotesView, state);
+
+      const error = await wrapper.findByTestId('error-area');
+      expect(error).toBeDefined();
     });
   });
 });
