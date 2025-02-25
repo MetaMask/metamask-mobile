@@ -31,7 +31,7 @@ const QRInfo = () => {
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [shouldPause, setShouldPause] = useState(false);
 
-  const submitQRSignature = Engine.context.KeyringController.submitQRSignature;
+  const KeyringController = Engine.context.KeyringController;
 
   useEffect(() => {
     if (scannerVisible) {
@@ -47,7 +47,7 @@ const QRInfo = () => {
       if (buffer) {
         const requestId = uuidStringify(buffer);
         if (QRState?.sign?.request?.requestId === requestId) {
-          submitQRSignature(
+          KeyringController.submitQRSignature(
             QRState.sign.request?.requestId as string,
             ur.cbor.toString('hex'),
           );
@@ -70,7 +70,7 @@ const QRInfo = () => {
       createEventBuilder,
       setRequestCompleted,
       setScannerVisible,
-      submitQRSignature,
+      KeyringController,
       trackEvent,
     ],
   );
