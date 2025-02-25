@@ -67,9 +67,8 @@ import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
-  selectProviderConfig,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
@@ -186,7 +185,6 @@ function SwapsAmountView({
   selectedAddress,
   chainId,
   selectedNetworkClientId,
-  providerConfig,
   networkConfigurations,
   balances,
   tokensWithBalance,
@@ -205,7 +203,7 @@ function SwapsAmountView({
 
   const previousSelectedAddress = useRef();
 
-  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
+  const explorer = useBlockExplorer(networkConfigurations);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const initialDestination = route.params?.destinationToken;
 
@@ -988,10 +986,6 @@ SwapsAmountView.propTypes = {
    */
   tokenExchangeRates: PropTypes.object,
   /**
-   * Current network provider configuration
-   */
-  providerConfig: PropTypes.object,
-  /**
    * Chain Id
    */
   chainId: PropTypes.string,
@@ -1018,9 +1012,8 @@ const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   tokenExchangeRates: selectContractExchangeRates(state),
-  providerConfig: selectProviderConfig(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  chainId: selectChainId(state),
+  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
+  chainId: selectEvmChainId(state),
   selectedNetworkClientId: selectSelectedNetworkClientId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),

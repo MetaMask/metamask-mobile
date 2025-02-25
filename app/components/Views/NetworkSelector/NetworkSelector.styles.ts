@@ -89,6 +89,10 @@ const createStyles = (colors: Colors) =>
     networkCell: {
       alignItems: 'center',
     },
+    networkCellDisabled: {
+      alignItems: 'center',
+      opacity: 0.5,
+    },
     titleContainer: {
       margin: 16,
     },
