@@ -6,7 +6,7 @@ import {
 import usePooledStakes from './usePooledStakes';
 import useBalance from './useBalance';
 import BigNumber from 'bignumber.js';
-import useVaultApyAverages from './useVaultApyAverages';
+import usePooledStakingVaultApyAverages from './usePooledStakingVaultApyAverages';
 import {
   formatPercent,
   CommonPercentageInputUnits,
@@ -14,7 +14,8 @@ import {
 } from '../utils/value';
 
 const useStakingEarnings = () => {
-  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
+  const { vaultApyAverages, isLoadingVaultApyAverages } =
+    usePooledStakingVaultApyAverages();
 
   const annualRewardRatePercent = formatPercent(vaultApyAverages.oneWeek, {
     inputFormat: CommonPercentageInputUnits.PERCENTAGE,

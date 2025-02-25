@@ -1,6 +1,8 @@
 import {
   ChainId,
   StakingType,
+  VaultApyAverages,
+  VaultDailyApy,
   type PooledStakes,
   type VaultData,
 } from '@metamask/stake-sdk';
@@ -12,7 +14,11 @@ import { TOKENS_WITH_DEFAULT_OPTIONS } from '../testUtils/testUtils.types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { DeepPartial } from '../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../reducers';
-import { DEFAULT_VAULT_APY_AVERAGES } from '../constants';
+import {
+  MOCK_POOLED_STAKING_VAULT_APY_AVERAGES,
+  MOCK_POOLED_STAKING_VAULT_DAILY_APYS,
+} from '../components/PoolStakingLearnMoreModal/mockVaultRewards';
+import { PooledStakingState } from '@metamask/earn-controller';
 
 export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   accounts: [
@@ -210,7 +216,7 @@ export const MOCK_POOLED_STAKES_DATA = {
 };
 
 export const MOCK_VAULT_DATA = {
-  apy: '5.5',
+  apy: '3.3',
   capacity: '1000000',
   feePercent: 10,
   totalAssets: '500000',
@@ -219,21 +225,47 @@ export const MOCK_VAULT_DATA = {
 
 export const MOCK_EXCHANGE_RATE = '1.5';
 
-export const MOCK_EARN_CONTROLLER_STATE: DeepPartial<RootState> = {
+export const MOCK_SELECT_POOLED_STAKING_VAULT_APY = {
+  apyDecimal: 0.03257560263513173,
+  apyPercentString: '3.3%',
+};
+
+// TODO: Breakout type definition
+interface MockEarnControllerOptions {
+  isEligible?: boolean;
+  pooledStakes?: PooledStakingState['pooledStakes'];
+  vaultMetadata?: VaultData;
+  exchangeRate?: string;
+  vaultApyAverages?: VaultApyAverages;
+  vaultDailyApys?: VaultDailyApy[];
+}
+
+// TODO: Cleanup so that MOCK_EARN_CONTROLLER_STATE is the engine.backgroundState.EarnController state only and not entire tree.
+export const getMockEarnControllerState = ({
+  isEligible = true,
+  pooledStakes = MOCK_POOLED_STAKES_DATA,
+  vaultMetadata = MOCK_VAULT_DATA,
+  exchangeRate = MOCK_EXCHANGE_RATE,
+  vaultApyAverages = MOCK_POOLED_STAKING_VAULT_APY_AVERAGES,
+  vaultDailyApys = MOCK_POOLED_STAKING_VAULT_DAILY_APYS,
+}: MockEarnControllerOptions) => ({
   engine: {
     backgroundState: {
       EarnController: {
         lastUpdated: 0,
         pooled_staking: {
-          isEligible: true,
-          pooledStakes: MOCK_POOLED_STAKES_DATA,
-          vaultMetadata: MOCK_VAULT_DATA,
-          exchangeRate: MOCK_EXCHANGE_RATE,
-          vaultApyAverages: DEFAULT_VAULT_APY_AVERAGES,
-          vaultDailyApys: [],
+          isEligible,
+          pooledStakes,
+          vaultMetadata,
+          exchangeRate,
+          vaultApyAverages,
+          vaultDailyApys,
         },
         stablecoin_lending: {},
       },
     },
   },
-};
+});
+
+export const MOCK_EARN_CONTROLLER_STATE: DeepPartial<RootState> =
+  getMockEarnControllerState({});

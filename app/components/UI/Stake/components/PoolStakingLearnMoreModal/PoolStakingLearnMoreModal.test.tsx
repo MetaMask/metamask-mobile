@@ -4,12 +4,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import {
-  MOCK_VAULT_APY_AVERAGES,
-  MOCK_VAULT_DAILY_APYS,
+  MOCK_POOLED_STAKING_VAULT_APY_AVERAGES,
+  MOCK_POOLED_STAKING_VAULT_DAILY_APYS,
 } from './mockVaultRewards';
 import { AreaChart } from 'react-native-svg-charts';
 import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
-import { screen } from '@testing-library/react-native';
 import { INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID } from './InteractiveTimespanChart';
 
 jest.mock('@react-navigation/native', () => {
@@ -27,21 +26,21 @@ jest.mock('../../hooks/useStakeContext', () => ({
   useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
 }));
 
-jest.mock('../../hooks/useVaultApyAverages', () => ({
+jest.mock('../../hooks/usePooledStakingVaultApyAverages', () => ({
   __esModule: true,
   default: () => ({
-    vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
+    vaultApyAverages: MOCK_POOLED_STAKING_VAULT_APY_AVERAGES,
     isLoadingVaultApyAverages: false,
-    refreshVaultApyAverages: jest.fn(),
+    refreshPooledStakingVaultApyAverages: jest.fn(),
   }),
 }));
 
-jest.mock('../../hooks/useVaultApys', () => ({
+jest.mock('../../hooks/usePooledStakingVaultApys', () => ({
   __esModule: true,
   default: () => ({
-    vaultApys: MOCK_VAULT_DAILY_APYS,
+    vaultApys: MOCK_POOLED_STAKING_VAULT_DAILY_APYS,
     isLoadingVaultApys: false,
-    refreshVaultApys: jest.fn(),
+    refreshPooledStakingVaultApys: jest.fn(),
   }),
 }));
 
@@ -70,8 +69,6 @@ describe('PoolStakingLearnMoreModal', () => {
     );
 
     fireLayoutEvent(areaChart);
-
-    screen.debug();
 
     expect(toJSON()).toMatchSnapshot();
   });

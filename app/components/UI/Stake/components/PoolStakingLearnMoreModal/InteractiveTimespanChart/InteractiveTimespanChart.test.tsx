@@ -6,7 +6,7 @@ import InteractiveTimespanChart, {
 } from '.';
 import { strings } from '../../../../../../../locales/i18n';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { MOCK_VAULT_APYS_ONE_YEAR } from '../mockVaultRewards';
+import { MOCK_POOLED_STAKING_VAULT_APYS_ONE_YEAR } from '../mockVaultRewards';
 import BigNumber from 'bignumber.js';
 import { noop } from 'lodash';
 import { ChartButton } from './ChartTimespanButtonGroup/ChartTimespanButtonGroup.types';
@@ -44,7 +44,7 @@ const getProps = (dataPointsType: 'number' | 'object') => {
     } as InteractiveTimespanChartProps<number>;
   }
   return {
-    dataPoints: MOCK_VAULT_APYS_ONE_YEAR,
+    dataPoints: MOCK_POOLED_STAKING_VAULT_APYS_ONE_YEAR,
     defaultTitle: DEFAULT_PROPS.OBJECT_ARRAY.title,
     defaultSubtitle: DEFAULT_PROPS.OBJECT_ARRAY.subtitle,
     onTimespanPressed: noop,
@@ -53,19 +53,21 @@ const getProps = (dataPointsType: 'number' | 'object') => {
     graphOptions: {
       timespanButtons: buttons,
     },
-  } as InteractiveTimespanChartProps<(typeof MOCK_VAULT_APYS_ONE_YEAR)[number]>;
+  } as InteractiveTimespanChartProps<
+    (typeof MOCK_POOLED_STAKING_VAULT_APYS_ONE_YEAR)[number]
+  >;
 };
 
 const renderGraph = (
   dataType: 'number' | 'object',
   propOverride?: Partial<
     InteractiveTimespanChartProps<
-      number | (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
+      number | (typeof MOCK_POOLED_STAKING_VAULT_APYS_ONE_YEAR)[number]
     >
   >,
 ) => {
   const baseProps = getProps(dataType) as InteractiveTimespanChartProps<
-    number | (typeof MOCK_VAULT_APYS_ONE_YEAR)[number]
+    number | (typeof MOCK_POOLED_STAKING_VAULT_APYS_ONE_YEAR)[number]
   >;
 
   const props = { ...baseProps, ...propOverride };

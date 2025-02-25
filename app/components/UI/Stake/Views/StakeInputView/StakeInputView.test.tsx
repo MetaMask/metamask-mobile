@@ -20,7 +20,7 @@ import {
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { MOCK_VAULT_APY_AVERAGES } from '../../components/PoolStakingLearnMoreModal/mockVaultRewards';
+import { MOCK_POOLED_STAKING_VAULT_APY_AVERAGES } from '../../components/PoolStakingLearnMoreModal/mockVaultRewards';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -125,12 +125,12 @@ jest.mock('../../hooks/useStakingEligibility', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useVaultApyAverages', () => ({
+jest.mock('../../hooks/usePooledStakingVaultApyAverages', () => ({
   __esModule: true,
   default: () => ({
-    vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
+    vaultApyAverages: MOCK_POOLED_STAKING_VAULT_APY_AVERAGES,
     isLoadingVaultApyAverages: false,
-    refreshVaultApyAverages: jest.fn(),
+    refreshPooledStakingVaultApyAverages: jest.fn(),
   }),
 }));
 

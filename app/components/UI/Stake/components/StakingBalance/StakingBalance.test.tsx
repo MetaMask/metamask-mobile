@@ -79,7 +79,7 @@ jest.mock('../../hooks/usePooledStakes', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useVaultData', () => ({
+jest.mock('../../hooks/usePooledStakingVaultMetadata', () => ({
   __esModule: true,
   default: () => ({
     vaultData: mockVaultData,
@@ -87,6 +87,7 @@ jest.mock('../../hooks/useVaultData', () => ({
     error: null,
     annualRewardRate: '2.5%',
     annualRewardRateDecimal: 0.025,
+    refreshPoolStakingVaultMetadata: jest.fn(),
   }),
 }));
 

@@ -12,16 +12,14 @@ import {
 } from '../../../../util/number';
 import { RootState } from '../../../../reducers';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { selectPooledStakingVaultMetadata } from '../../../../selectors/earnController';
-import BigNumber from 'bignumber.js';
+import usePooledStakingVaultMetadata from '../../../UI/Stake/hooks/usePooledStakingVaultMetadata';
 
 export const useStakingDetails = () => {
   const transactionMeta = useTransactionMetadataRequest();
   const txValueWei = transactionMeta?.txParams?.value;
 
-  const { apy: apr } = useSelector(selectPooledStakingVaultMetadata);
-
-  const annualRewardRateDecimal = new BigNumber(apr).dividedBy(100).toNumber();
+  const { annualRewardRateDecimal, annualRewardRate } =
+    usePooledStakingVaultMetadata();
 
   const amountEth = renderFromWei(txValueWei || '0');
 
@@ -49,5 +47,5 @@ export const useStakingDetails = () => {
     2,
   );
 
-  return { apr, annualRewardsFiat, annualRewardsETH };
+  return { apr: annualRewardRate, annualRewardsFiat, annualRewardsETH };
 };

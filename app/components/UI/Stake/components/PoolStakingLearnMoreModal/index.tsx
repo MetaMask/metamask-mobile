@@ -21,7 +21,7 @@ import { POOLED_STAKING_FAQ_URL } from '../../constants';
 import styleSheet from './PoolStakingLearnMoreModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import useVaultApys from '../../hooks/useVaultApys';
+import usePooledStakingVaultDailyApys from '../../hooks/usePooledStakingVaultApys';
 import InteractiveTimespanChart from './InteractiveTimespanChart';
 import BigNumber from 'bignumber.js';
 import {
@@ -31,7 +31,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { parseVaultApyAveragesResponse } from './PoolStakingLearnMoreModal.utils';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import useVaultApyAverages from '../../hooks/useVaultApyAverages';
+import usePooledStakingVaultApyAverages from '../../hooks/usePooledStakingVaultApyAverages';
 import {
   CommonPercentageInputUnits,
   formatPercent,
@@ -81,13 +81,19 @@ const PoolStakingLearnMoreModal = () => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const { vaultApys, isLoadingVaultApys, refreshVaultApys } = useVaultApys();
+  const { vaultApys, isLoadingVaultApys, refreshPooledStakingVaultApys } =
+    usePooledStakingVaultDailyApys();
+
+  const reversedVaultApys = useMemo(
+    () => [...vaultApys].reverse(),
+    [vaultApys],
+  );
 
   const {
     vaultApyAverages,
     isLoadingVaultApyAverages,
-    refreshVaultApyAverages,
-  } = useVaultApyAverages();
+    refreshPooledStakingVaultApyAverages,
+  } = usePooledStakingVaultApyAverages();
 
   // Converts VaultApyAverage for use with interactive graph timespan buttons.
   const parsedVaultTimespanApyAverages = useMemo(() => {
@@ -107,17 +113,19 @@ const PoolStakingLearnMoreModal = () => {
 
   useEffect(() => {
     async function refreshGraphData() {
-      await Promise.all([refreshVaultApyAverages(), refreshVaultApys()]).catch(
-        (err) =>
-          console.error(
-            'Failed to refresh Pool-Staking Learn More Modal Data: ',
-            err,
-          ),
+      await Promise.all([
+        refreshPooledStakingVaultApyAverages(),
+        refreshPooledStakingVaultApys(),
+      ]).catch((err) =>
+        console.error(
+          'Failed to refresh Pool-Staking Learn More Modal Data: ',
+          err,
+        ),
       );
     }
 
     refreshGraphData();
-  }, [refreshVaultApyAverages, refreshVaultApys]);
+  }, [refreshPooledStakingVaultApyAverages, refreshPooledStakingVaultApys]);
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -173,9 +181,9 @@ const PoolStakingLearnMoreModal = () => {
             {strings('stake.stake_eth_and_earn')}
           </Text>
         </BottomSheetHeader>
-        {Boolean(vaultApys.length) && activeTimespanApyAverage && (
+        {Boolean(reversedVaultApys.length) && activeTimespanApyAverage && (
           <InteractiveTimespanChart
-            dataPoints={vaultApys}
+            dataPoints={reversedVaultApys}
             yAccessor={(point) => new BigNumber(point.daily_apy).toNumber()}
             defaultTitle={`${formatPercent(
               activeTimespanApyAverage.apyAverage,

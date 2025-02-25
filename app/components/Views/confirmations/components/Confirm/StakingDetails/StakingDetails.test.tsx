@@ -7,8 +7,8 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
 import StakingDetails from './StakingDetails';
+import { MOCK_EARN_CONTROLLER_STATE } from '../../../../../UI/Stake/__mocks__/mockData';
 
-// TODO: FIXME
 describe('TokenHero', () => {
   it('contains token and fiat values for staking deposit', async () => {
     const state: DeepPartial<RootState> = merge(
@@ -24,11 +24,9 @@ describe('TokenHero', () => {
                 },
               ],
             },
-            EarnController: {
-              pooled_staking: {
-                vaultMetadata: { apy: '2.2' },
-              },
-            },
+            EarnController:
+              MOCK_EARN_CONTROLLER_STATE.engine?.backgroundState
+                ?.EarnController,
           },
         },
       },
@@ -37,11 +35,11 @@ describe('TokenHero', () => {
     const { getByText } = renderWithProvider(<StakingDetails />, { state });
 
     expect(getByText('APR')).toBeDefined();
-    expect(getByText('2.2%')).toBeDefined();
+    expect(getByText('3.3%')).toBeDefined();
 
     expect(getByText('Est. annual reward')).toBeDefined();
-    expect(getByText('$7.91')).toBeDefined();
-    expect(getByText('0.0022 ETH')).toBeDefined();
+    expect(getByText('$11.71')).toBeDefined();
+    expect(getByText('0.00326 ETH')).toBeDefined();
 
     expect(getByText('Reward frequency')).toBeDefined();
     expect(getByText('12 hours')).toBeDefined();

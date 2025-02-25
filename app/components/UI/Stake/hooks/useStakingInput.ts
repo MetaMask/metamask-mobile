@@ -7,7 +7,7 @@ import {
 import useStakingGasFee from './useStakingGasFee';
 import useBalance from './useBalance';
 import useInputHandler from './useInputHandler';
-import useVaultApyAverages from './useVaultApyAverages';
+import usePooledStakingVaultApyAverages from './usePooledStakingVaultApyAverages';
 import {
   CommonPercentageInputUnits,
   formatPercent,
@@ -54,7 +54,8 @@ const useStakingInputHandlers = () => {
     return isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
   }, [amountWei, isNonZeroAmount, maxStakeableAmountWei]);
 
-  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
+  const { vaultApyAverages, isLoadingVaultApyAverages } =
+    usePooledStakingVaultApyAverages();
 
   // e.g. 2.8%
   const annualRewardRate = formatPercent(vaultApyAverages.oneWeek, {

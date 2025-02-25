@@ -1,11 +1,13 @@
 import { strings } from '../../../../../../locales/i18n';
-import { MOCK_VAULT_APY_AVERAGES } from './mockVaultRewards';
+import { MOCK_POOLED_STAKING_VAULT_APY_AVERAGES } from './mockVaultRewards';
 import { parseVaultApyAveragesResponse } from './PoolStakingLearnMoreModal.utils';
 
 describe('PoolStakingLearnMoreModal Utils', () => {
   describe('parseVaultApyAveragesResponse', () => {
     it('parses the VaultApyAverageResponse', () => {
-      const result = parseVaultApyAveragesResponse(MOCK_VAULT_APY_AVERAGES);
+      const result = parseVaultApyAveragesResponse(
+        MOCK_POOLED_STAKING_VAULT_APY_AVERAGES,
+      );
 
       expect(result).toEqual({
         '1': {

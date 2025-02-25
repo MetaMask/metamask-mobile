@@ -48,7 +48,7 @@ import { isPortfolioViewEnabled } from '../../../../../util/networks';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
-import useVaultApyAverages from '../../hooks/useVaultApyAverages';
+import usePooledStakingVaultApyAverages from '../../hooks/usePooledStakingVaultApyAverages';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -82,7 +82,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     isLoadingPooledStakesData,
   } = usePooledStakes();
 
-  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
+  const { vaultApyAverages, isLoadingVaultApyAverages } =
+    usePooledStakingVaultApyAverages();
 
   const {
     formattedStakedBalanceETH: stakedBalanceETH,

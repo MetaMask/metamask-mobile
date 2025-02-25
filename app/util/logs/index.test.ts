@@ -60,7 +60,6 @@ const mockMetrics = {
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 describe('logs :: generateStateLogs', () => {
-
   it('generates a valid json export', async () => {
     const mockStateInput = {
       appVersion: '1',

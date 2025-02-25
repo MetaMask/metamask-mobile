@@ -3,9 +3,11 @@ import { decGWEIToHexWEI } from '../../../../util/conversions';
 import { stakingDepositConfirmationState } from '../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { useStakingDetails } from './useStakingDetails';
+import { MOCK_EARN_CONTROLLER_STATE } from '../../../UI/Stake/__mocks__/mockData';
 
 describe('useStakingDetails', () => {
   describe('staking deposit', () => {
+    // TODO: FIXME
     it('returns token and fiat values', () => {
       const state = merge({}, stakingDepositConfirmationState, {
         engine: {
@@ -17,19 +19,19 @@ describe('useStakingDetails', () => {
                 },
               ],
             },
+            EarnController:
+              MOCK_EARN_CONTROLLER_STATE.engine?.backgroundState
+                ?.EarnController,
           },
-        },
-        staking: {
-          vaultData: { apy: '2.2' },
         },
       });
 
       const { result } = renderHookWithProvider(useStakingDetails, { state });
 
       expect(result.current).toEqual({
-        annualRewardsETH: '0.0022 ETH',
-        annualRewardsFiat: '$7.91',
-        apr: '2.2%',
+        annualRewardsETH: '0.00326 ETH',
+        annualRewardsFiat: '$11.71',
+        apr: '3.3%',
       });
     });
   });

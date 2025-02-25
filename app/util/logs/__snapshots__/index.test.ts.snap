@@ -50,7 +50,16 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "exitRequests": [],
             "lifetimeRewards": "0",
           },
-          "vaultData": {
+          "vaultApyAverages": {
+            "oneDay": "0",
+            "oneMonth": "0",
+            "oneWeek": "0",
+            "oneYear": "0",
+            "sixMonths": "0",
+            "threeMonths": "0",
+          },
+          "vaultDailyApys": [],
+          "vaultMetadata": {
             "apy": "0",
             "capacity": "0",
             "feePercent": 0,
