@@ -174,6 +174,7 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.BUY}
       />,
+      { state: defaultState },
     );
 
     expect(getByText('Most reliable')).toBeTruthy();
@@ -182,6 +183,7 @@ describe('Quote Component', () => {
   it('displays provider logo correctly', () => {
     const { getByLabelText } = renderWithProvider(
       <Quote quote={mockQuote} showInfo={jest.fn()} rampType={RampType.BUY} />,
+      { state: defaultState },
     );
 
     expect(getByLabelText('Mock Provider logo')).toBeTruthy();
@@ -196,6 +198,7 @@ describe('Quote Component', () => {
         rampType={RampType.BUY}
         highlighted
       />,
+      { state: defaultState },
     );
 
     fireEvent.press(getByLabelText('Mock Provider logo'));
