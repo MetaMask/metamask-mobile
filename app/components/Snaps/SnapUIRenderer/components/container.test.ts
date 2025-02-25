@@ -1,6 +1,7 @@
 import { BoxElement } from '@metamask/snaps-sdk/jsx';
 import { container } from './container';
 import { mapToTemplate } from '../utils';
+import { mockTheme } from '../../../../util/theme';
 
 // First, properly mock the utils module
 jest.mock('../utils', () => ({
@@ -39,6 +40,7 @@ describe('container', () => {
       useFooter: false,
       t: mockT,
       map: {},
+      theme: mockTheme,
     });
 
     expect(result).toEqual({
@@ -69,6 +71,7 @@ describe('container', () => {
       onCancel: mockOnCancel,
       t: mockT,
       map: {},
+      theme: mockTheme,
     });
 
     expect(Array.isArray(result.children)).toBe(true);

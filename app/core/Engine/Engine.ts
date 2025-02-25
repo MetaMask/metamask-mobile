@@ -90,7 +90,6 @@ import {
 } from '@metamask/eth-ledger-bridge-keyring';
 import {
   Encryptor,
-  hmacSha512,
   LEGACY_DERIVATION_OPTIONS,
   pbkdf2,
 } from '../Encryptor';
@@ -642,7 +641,7 @@ export class Engine {
 
     const hdKeyringBuilder = () =>
       new HDKeyring({
-        cryptographicFunctions: { pbkdf2Sha512: pbkdf2, hmacSha512 },
+        cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
       });
     hdKeyringBuilder.type = HDKeyring.type;
     additionalKeyrings.push(hdKeyringBuilder);
@@ -803,7 +802,7 @@ export class Engine {
           origin,
           target,
         ),
-      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2, hmacSha512 }),
+      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -1088,7 +1087,6 @@ export class Engine {
       }),
       clientCryptography: {
         pbkdf2Sha512: pbkdf2,
-        hmacSha512,
       },
     });
 

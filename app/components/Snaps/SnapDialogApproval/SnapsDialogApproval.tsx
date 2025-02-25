@@ -94,7 +94,7 @@ const SnapDialogApproval = () => {
           },
           {
             variant: ButtonVariants.Primary,
-            label: strings(TemplateConfirmation.Ok),
+            label: strings('transactions.approve'),
             size: ButtonSize.Lg,
             onPress: onConfirm,
           },
