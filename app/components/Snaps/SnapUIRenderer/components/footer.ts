@@ -39,8 +39,8 @@ const getDefaultButtons = (
         onCancel,
         variant: ButtonVariant.Secondary,
         isSnapAction: false,
-        label: t(TemplateConfirmation.CANCEL),
       },
+      children: t(TemplateConfirmation.CANCEL),
     };
   }
 

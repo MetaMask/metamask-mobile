@@ -1,14 +1,28 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
-import { FormTextField } from '../../FormTextField';
 import { TextInput } from 'react-native';
+import TextField, {
+  TextFieldSize,
+} from '../../../../component-library/components/Form/TextField';
+import HelpText, {
+  HelpTextSeverity,
+} from '../../../../component-library/components/Form/HelpText';
+import Label from '../../../../component-library/components/Form/Label';
 
 export interface SnapUIInputProps {
   name: string;
   form?: string;
+  label?: string;
+  error?: string;
 }
 
-export const SnapUIInput = ({ name, form, ...props }: SnapUIInputProps) => {
+export const SnapUIInput = ({
+  name,
+  form,
+  label,
+  error,
+  ...props
+}: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =
     useSnapInterfaceContext();
 
@@ -43,15 +57,24 @@ export const SnapUIInput = ({ name, form, ...props }: SnapUIInputProps) => {
   const handleBlur = () => setCurrentFocusedInput(null);
 
   return (
-    <FormTextField
-      ref={inputRef}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      className="snap-ui-renderer__input"
-      id={name}
-      value={value}
-      onChangeText={handleChange}
-      {...props}
-    />
+    <>
+      {label && <Label>{label}</Label>}
+      <TextField
+        {...props}
+        size={TextFieldSize.Lg}
+        ref={inputRef}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        id={name}
+        value={value}
+        onChangeText={handleChange}
+      />
+      {error && (
+                // eslint-disable-next-line react-native/no-inline-styles
+        <HelpText severity={HelpTextSeverity.Error} style={{ marginTop: 4 }}>
+          {error}
+        </HelpText>
+      )}
+    </>
   );
 };

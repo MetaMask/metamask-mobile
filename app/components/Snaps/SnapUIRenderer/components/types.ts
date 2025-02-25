@@ -1,5 +1,5 @@
-import { ChangeEvent as ReactChangeEvent } from 'react';
 import { JSXElement, SnapsChildren } from '@metamask/snaps-sdk/jsx';
+import { Theme } from '../../../../util/theme/models';
 
 export interface UIComponentParams<T extends JSXElement> {
   map: Record<string, number>;
@@ -7,12 +7,8 @@ export interface UIComponentParams<T extends JSXElement> {
   form?: string;
   useFooter?: boolean;
   onCancel?: () => void;
-  promptLegacyProps?: {
-    onInputChange: (event: ReactChangeEvent<HTMLInputElement>) => void;
-    inputValue: string;
-    placeholder?: string;
-  };
   t: (key: string) => string;
+  theme: Theme;
 }
 
 export interface UIComponent {
