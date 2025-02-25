@@ -19,13 +19,14 @@ import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.se
 import Engine from '../../../core/Engine';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
 
-const mockSubmitSwapsSmartTransaction = jest.fn().mockResolvedValue('mock-uuid-123');
-jest.mock('./utils/useSwapsSmartTransaction', () => ({
-  useSwapsSmartTransaction: jest.fn(() => ({
-    submitSwapsSmartTransaction: mockSubmitSwapsSmartTransaction,
-  })),
-}));
+jest.mock('./utils/useSwapsSmartTransaction', () => {
+  const { useSwapsSmartTransaction: originalUseSwapsSmartTransaction } = jest.requireActual('./utils/useSwapsSmartTransaction');
+  return {
+    useSwapsSmartTransaction: jest.fn(originalUseSwapsSmartTransaction),
+  };
+});
 
 jest.mock('../../../../app/selectors/smartTransactionsController', () => ({
   ...jest.requireActual('../../../../app/selectors/smartTransactionsController'),
@@ -343,6 +344,11 @@ describe('QuotesView', () => {
     const state = merge({}, mockInitialState);
 
     it('should use Smart Transactions when enabled', async () => {
+      const mockSubmitSwapsSmartTransaction = jest.fn().mockResolvedValue('mock-uuid-123');
+      (useSwapsSmartTransaction as jest.Mock).mockReturnValue({
+        submitSwapsSmartTransaction: mockSubmitSwapsSmartTransaction,
+      });
+
       (selectShouldUseSmartTransaction as jest.Mock).mockReturnValue(true);
       const wrapper = render(QuotesView, state);
 
@@ -357,6 +363,11 @@ describe('QuotesView', () => {
     });
 
     it('should not use Smart Transactions when disabled', async () => {
+      const mockSubmitSwapsSmartTransaction = jest.fn().mockResolvedValue('mock-uuid-123');
+      (useSwapsSmartTransaction as jest.Mock).mockReturnValue({
+        submitSwapsSmartTransaction: mockSubmitSwapsSmartTransaction,
+      });
+
       (selectShouldUseSmartTransaction as jest.Mock).mockReturnValue(false);
       const wrapper = render(QuotesView, state);
 
