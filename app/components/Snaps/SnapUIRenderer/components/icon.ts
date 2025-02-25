@@ -11,9 +11,12 @@ const ICON_NAMES = new Set(Object.values(IconName));
 
 export const icon: UIComponentFactory<IconElement> = ({ element }) => {
   const getIconName = () => {
-    // TODO: This will never succeed because all of the icons are named differently on mobile.
-    if (ICON_NAMES.has(element.props.name as IconName)) {
-      return element.props.name as IconName;
+    const rawName = element.props.name;
+    // The icon names are formatted differently between extension and mobile, 
+    // so we attempt to map from extension to the mobile format here.
+    const mappedName = rawName.split('-').map(str => str.charAt(0).toUpperCase() + str.slice(1)).join("") as IconName;
+    if (ICON_NAMES.has(mappedName)) {
+      return mappedName;
     }
     return IconName.Danger;
   };
