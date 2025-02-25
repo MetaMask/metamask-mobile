@@ -52,7 +52,7 @@ const Confirm = () => {
     transactionMetadata?.type as TransactionType,
   );
 
-  const { styles } = useStyles(styleSheet, { isFlatConfirmation });
+  const { styles } = useStyles(styleSheet);
 
   if (!isRedesignedEnabled) {
     return null;
@@ -60,10 +60,7 @@ const Confirm = () => {
 
   if (isFlatConfirmation) {
     return (
-      <View
-        style={styles.flatContainer}
-        testID="flat-confirmation-container"
-      >
+      <View style={styles.flatContainer} testID="flat-confirmation-container">
         <ConfirmWrapped styles={styles} />
       </View>
     );

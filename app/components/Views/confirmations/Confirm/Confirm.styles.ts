@@ -3,14 +3,8 @@ import { StyleSheet } from 'react-native';
 import Device from '../../../../util/device';
 import { Theme } from '../../../../util/theme/models';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { isFlatConfirmation: boolean };
-}) => {
-  const {
-    theme,
-    vars: { isFlatConfirmation },
-  } = params;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
 
   return StyleSheet.create({
     flatContainer: {
