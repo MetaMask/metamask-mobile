@@ -103,7 +103,7 @@ export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { t
 } }) => {
   const chainId = useSelector(selectEvmChainId);
   const isEIP1559Network = useSelector(selectIsEIP1559Network);
-  const approvalTransaction: TxParams = useSelector(selectSwapsApprovalTransaction);
+  const approvalTransaction: TxParams | null = useSelector(selectSwapsApprovalTransaction);
 
   // We don't need to await on the approval tx to be confirmed on chain. We can simply submit both the approval and trade tx at the same time.
   // Sentinel will batch them for us and ensure they are executed in the correct order.
