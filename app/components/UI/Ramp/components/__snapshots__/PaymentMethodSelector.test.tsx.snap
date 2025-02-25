@@ -118,36 +118,118 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
             }
             testID="listitem-gap"
           />
-          <View
-            style={
-              {
-                "flex": -1,
-              }
-            }
-            testID="listitemcolumn"
-          >
+          <View>
             <Text
-              allowFontScaling={false}
               style={
                 [
                   {
-                    "color": undefined,
-                    "fontSize": 16,
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
                   },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
                   {
                     "color": "#141618",
-                    "marginLeft": 10,
                   },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
                   {
-                    "fontFamily": "Entypo",
-                    "fontStyle": "normal",
-                    "fontWeight": "normal",
+                    "color": "#141618",
                   },
-                  {},
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
                 ]
               }
             >
-              
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    {
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontWeight": "600",
+                    },
+                    undefined,
+                    {
+                      "color": "#141618",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "color": "#141618",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
+                }
+              >
+                Change
+              </Text>
+                
+              <Text
+                allowFontScaling={false}
+                style={
+                  [
+                    {
+                      "color": undefined,
+                      "fontSize": 16,
+                    },
+                    {
+                      "color": "#141618",
+                      "marginLeft": 10,
+                    },
+                    {
+                      "fontFamily": "Entypo",
+                      "fontStyle": "normal",
+                      "fontWeight": "normal",
+                    },
+                    {},
+                  ]
+                }
+              >
+                
+              </Text>
             </Text>
           </View>
         </View>
@@ -171,6 +253,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
         }
       >
         <Image
+          onError={[Function]}
           source={
             {
               "uri": "https://on-ramp-content.api.cx.metamask.io/assets/Visa-regular@3x.png",
@@ -178,13 +261,14 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
           }
           style={
             {
-              "height": 18,
-              "marginRight": 8,
-              "width": 28,
+              "height": 20,
+              "marginRight": 6,
+              "width": 30,
             }
           }
         />
         <Image
+          onError={[Function]}
           source={
             {
               "uri": "https://on-ramp-content.api.cx.metamask.io/assets/Mastercard-regular@3x.png",
@@ -192,9 +276,9 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
           }
           style={
             {
-              "height": 18,
-              "marginRight": 8,
-              "width": 28,
+              "height": 20,
+              "marginRight": 6,
+              "width": 30,
             }
           }
         />

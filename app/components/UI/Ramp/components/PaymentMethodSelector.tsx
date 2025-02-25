@@ -11,6 +11,8 @@ import ListItemColumn, {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import DownChevronText from './DownChevronText';
+import RemoteImage from '../../../Base/RemoteImage';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -19,9 +21,9 @@ const createStyles = (colors: Colors) =>
       color: colors.icon.default,
     },
     icon: {
-      width: 28,
-      height: 18,
-      marginRight: 8,
+      width: 30,
+      height: 20,
+      marginRight: 6,
     },
     iconContainer: {
       flexDirection: 'row',
@@ -70,14 +72,16 @@ const PaymentMethodSelector: React.FC<IProps> = ({
             {name}
           </Text>
         </ListItemColumn>
-        <ListItemColumn>
-          <Entypo name="chevron-down" size={16} style={styles.chevron} />
-        </ListItemColumn>
+        <DownChevronText text="Change" />
       </ListItem>
       <View style={styles.divider} />
       <View style={styles.iconContainer}>
-        {paymentMethodIcons.map((imgSrc) => (
-          <Image key={imgSrc} source={{ uri: imgSrc }} style={styles.icon} />
+        {paymentMethodIcons.map((logoURL) => (
+          <RemoteImage
+            key={logoURL}
+            source={{ uri: logoURL }}
+            style={styles.icon}
+          />
         ))}
       </View>
     </Box>
