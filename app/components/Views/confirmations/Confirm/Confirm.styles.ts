@@ -37,12 +37,7 @@ const styleSheet = (params: {
       padding: 4,
     },
     scrollable: {
-      minHeight: '100%',
-    },
-    scrollWrapper: {
-      minHeight: isFlatConfirmation ? '100%' : '75%',
-      maxHeight: isFlatConfirmation ? '100%' : '75%',
-      margin: 0,
+      height: '75%',
     },
   });
 };
