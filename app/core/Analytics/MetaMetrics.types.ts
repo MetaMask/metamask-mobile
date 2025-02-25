@@ -18,14 +18,6 @@ export interface IMetaMetrics {
    * Enable or disable data tracking
    * @param enable
    */
-
-  /**
-   * Set the portion of events to track
-   *
-   * @param portion - The portion of events to track
-   */
-  setEventsPortionToTrack(portion: number): void;
-
   enable(enable?: boolean): Promise<void>;
   /**
    * add traits to an user
