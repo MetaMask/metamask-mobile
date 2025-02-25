@@ -1,12 +1,14 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { useMemo } from 'react';
-import { Image, ImageStyle, StyleProp } from 'react-native';
+import { ImageStyle, StyleProp } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 
 export interface SnapUIImageProps {
   value: string;
   style?: StyleProp<ImageStyle>;
   width?: number;
   height?: number;
+  borderRadius?: number;
 }
 
 export const SnapUIImage: React.FC<SnapUIImageProps> = ({
@@ -14,17 +16,18 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
   width,
   height,
   style,
+  borderRadius,
 }) => {
-  const src = useMemo(
-    () => ({ uri: `data:image/svg+xml;utf8,${encodeURIComponent(value)}` }),
+  const uri = useMemo(
+    () => `data:image/svg+xml;utf8,${encodeURIComponent(value)}`,
     [value],
   );
 
   return (
-    <Image
+    <SvgUri
       testID="snaps-ui-image"
-      source={src}
-      style={[{ width, height }, style]}
+      uri={uri}
+      style={[{ width, height, borderRadius }, style]}
     />
   );
 };
