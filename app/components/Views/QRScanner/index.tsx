@@ -104,6 +104,7 @@ const QRScanner = ({
         return;
       }
       setIsProcessing(true);
+
       let content = response.data;
       /**
        * Barcode read triggers multiple times
@@ -250,6 +251,7 @@ const QRScanner = ({
       onStartScan,
       onScanSuccess,
       currentChainId,
+      isProcessing,
     ],
   );
 
