@@ -123,7 +123,7 @@ import {
 } from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
-import { useSwapsSmartTransactions } from './utils/useSwapsSmartTransaction';
+import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
 import { SwapsSTXStatusModal } from './SwapsSTXStatusModal';
 
 const LOG_PREFIX = 'Swaps';
@@ -533,7 +533,7 @@ function SwapsQuotesView({
     [customGasEstimate, usedGasEstimate],
   );
 
-  const { submitSwapsSmartTransaction } = useSwapsSmartTransactions({
+  const { submitSwapsSmartTransaction } = useSwapsSmartTransaction({
     tradeTransaction: selectedQuote?.trade,
     gasEstimates,
   });

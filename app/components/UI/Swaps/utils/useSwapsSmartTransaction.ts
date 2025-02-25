@@ -97,7 +97,7 @@ const submitSmartTransaction = async ({
   }
 };
 
-export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { tradeTransaction: Quote['trade'], gasEstimates: {
+export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { tradeTransaction: Quote['trade'], gasEstimates: {
   gasPrice: string;
   medium: string;
 } }) => {
