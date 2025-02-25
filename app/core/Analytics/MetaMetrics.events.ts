@@ -417,6 +417,10 @@ enum EVENT_NAME {
 
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
+
+  // RPC Failover
+  RPC_SERVICE_UNAVAILABLE = 'RPC Service Unavailable',
+  RPC_SERVICE_DEGRADED = 'RPC Service Degraded',
 }
 
 enum ACTIONS {
@@ -997,6 +1001,10 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
+
+  // RPC Failover
+  RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
+  RPC_SERVICE_DEGRADED: generateOpt(EVENT_NAME.RPC_SERVICE_DEGRADED),
 };
 
 /**

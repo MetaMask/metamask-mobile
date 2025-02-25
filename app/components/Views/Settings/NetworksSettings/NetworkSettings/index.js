@@ -451,6 +451,7 @@ export class NetworkSettings extends PureComponent {
 
   state = {
     rpcUrl: undefined,
+    failoverRpcUrls: [],
     rpcName: undefined,
     rpcUrlFrom: undefined,
     rpcNameForm: '',
@@ -538,6 +539,7 @@ export class NetworkSettings extends PureComponent {
       ticker,
       editable,
       rpcUrl,
+      failoverRpcUrls,
       rpcUrls,
       blockExplorerUrls,
       rpcName,
@@ -558,6 +560,10 @@ export class NetworkSettings extends PureComponent {
           networkConfigurations?.[chainId]?.rpcEndpoints[
             networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
           ]?.url;
+        failoverRpcUrls =
+          networkConfigurations?.[chainId]?.rpcEndpoints[
+            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+          ]?.failoverUrls;
         rpcName =
           networkConfigurations?.[chainId]?.rpcEndpoints[
             networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
@@ -588,6 +594,10 @@ export class NetworkSettings extends PureComponent {
           networkConfigurations?.[chainId]?.rpcEndpoints[
             networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
           ]?.url;
+        failoverRpcUrls =
+          networkConfigurations?.[chainId]?.rpcEndpoints[
+            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+          ]?.failoverUrls;
         rpcUrls = networkConfiguration?.rpcEndpoints;
         blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
         rpcName =
@@ -604,6 +614,7 @@ export class NetworkSettings extends PureComponent {
 
       const initialState =
         rpcUrl +
+        failoverRpcUrls +
         blockExplorerUrl +
         nickname +
         chainId +
@@ -613,6 +624,7 @@ export class NetworkSettings extends PureComponent {
         blockExplorerUrls;
       this.setState({
         rpcUrl,
+        failoverRpcUrls,
         rpcName,
         rpcUrls,
         blockExplorerUrls,
@@ -1309,7 +1321,7 @@ export class NetworkSettings extends PureComponent {
     await this.setState((prevState) => ({
       rpcUrls: [
         ...prevState.rpcUrls,
-        { url, name: rpcName, type: RpcEndpointType.Custom },
+        { url, failoverUrls: [], name: rpcName, type: RpcEndpointType.Custom },
       ],
     }));
 
@@ -1628,6 +1640,7 @@ export class NetworkSettings extends PureComponent {
   customNetwork = () => {
     const {
       rpcUrl,
+      failoverRpcUrls,
       rpcUrls,
       blockExplorerUrls,
       blockExplorerUrl,
@@ -1732,6 +1745,7 @@ export class NetworkSettings extends PureComponent {
 
     const selectedNetwork = {
       rpcUrl: url.href,
+      failoverRpcUrls: [],
       ticker,
       nickname,
       rpcPrefs: {
@@ -1979,7 +1993,6 @@ export class NetworkSettings extends PureComponent {
                   testID={NetworksViewSelectorsIDs.ICON_BUTTON_RPC}
                   variant={CellVariant.SelectWithMenu}
                   title={rpcName || rpcUrl}
-                  // Conditionally include secondaryText only if rpcName exists
                   {...(rpcName
                     ? {
                         secondaryText:
@@ -1990,6 +2003,12 @@ export class NetworkSettings extends PureComponent {
                                 ?.defaultRpcEndpointIndex
                             ]?.url,
                           ),
+                      }
+                    : {})}
+                  {...(failoverRpcUrls.length > 0
+                    ? {
+                        tertiaryText:
+                          '(' + hideKeyFromUrl(failoverRpcUrls[0]) + ')',
                       }
                     : {})}
                   isSelected={false}
@@ -2389,12 +2408,17 @@ export class NetworkSettings extends PureComponent {
               <ScrollView contentContainerStyle={styles.scrollViewContent}>
                 {rpcUrls.length > 0 ? (
                   <View>
-                    {rpcUrls.map(({ url, name, type }) => (
+                    {rpcUrls.map(({ url, failoverUrls, name, type }) => (
                       <Cell
                         key={`${url}-${name}`}
                         variant={CellVariant.SelectWithMenu}
                         title={name || type}
                         secondaryText={hideKeyFromUrl(url)}
+                        tertiaryText={
+                          failoverUrls.length > 0
+                            ? '(' + hideKeyFromUrl(failoverUrls[0]) + ')'
+                            : null
+                        }
                         isSelected={rpcUrl === url}
                         withAvatar={false}
                         onPress={async () => {

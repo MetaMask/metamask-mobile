@@ -24,8 +24,8 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
+  getDefaultNetworkControllerState,
   NetworkController,
-  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -136,8 +136,8 @@ import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ApprovalType,
+  ChainId,
   toChecksumHexAddress,
-  type ChainId,
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
@@ -307,21 +307,74 @@ export class Engine {
       },
     });
 
+    const networkControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'NetworkController',
+      allowedEvents: [],
+      allowedActions: [],
+    });
+
+    // eslint-disable-next-line
+    console.log(
+      'Initial network controller state',
+      JSON.stringify(initialState.NetworkController),
+    );
+
+    let initialNetworkControllerState = initialState.NetworkController;
+    if (!initialNetworkControllerState) {
+      initialNetworkControllerState = getDefaultNetworkControllerState();
+
+      // Add failovers for default Infura RPC endpoints
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId.mainnet
+      ].rpcEndpoints[0].failoverUrls = [
+        process.env.QUICKNODE_MAINNET_URL ?? '',
+      ].filter(Boolean);
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['linea-mainnet']
+      ].rpcEndpoints[0].failoverUrls = [
+        process.env.QUICKNODE_LINEA_MAINNET_URL ?? '',
+      ].filter(Boolean);
+    }
+
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-      state: initialState.NetworkController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'NetworkController',
-        allowedEvents: [],
-        allowedActions: [],
-      }) as unknown as NetworkControllerMessenger,
-      // Metrics event tracking is handled in this repository instead
-      // TODO: Use events for controller metric events
-      trackMetaMetricsEvent: () => {
-        // noop
-      },
+      state: initialNetworkControllerState,
+      messenger: networkControllerMessenger,
+      getRpcServiceOptions: () => ({
+        fetch,
+        btoa,
+      }),
     };
     const networkController = new NetworkController(networkControllerOpts);
+
+    networkControllerMessenger.subscribe(
+      'NetworkController:rpcEndpointUnavailable',
+      async ({ chainId, endpointUrl, failoverEndpointUrl }) => {
+        const metricsEvent = MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE,
+        )
+          .addProperties({
+            caip_chain_id: `eip155:${chainId}`,
+            rpc_endpoint_url: endpointUrl,
+            failover_endpoint_url: failoverEndpointUrl,
+          })
+          .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
+      },
+    );
+    networkControllerMessenger.subscribe(
+      'NetworkController:rpcEndpointDegraded',
+      async ({ endpointUrl }) => {
+        const metricsEvent = MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.RPC_SERVICE_DEGRADED,
+        )
+          .addProperties({
+            rpc_endpoint_url: endpointUrl,
+          })
+          .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
+      },
+    );
 
     networkController.initializeProvider();
 
