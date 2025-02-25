@@ -35,7 +35,7 @@ describe('SnapUIInput', () => {
   it('handles input changes', () => {
     const { getByTestId } = render(<SnapUIInput name="testInput" />);
 
-    const input = getByTestId('form-text-field');
+    const input = getByTestId('textfield');
     fireEvent.changeText(input, 'new value');
 
     expect(mockHandleInputChange).toHaveBeenCalledWith(
@@ -50,7 +50,7 @@ describe('SnapUIInput', () => {
       <SnapUIInput name="testInput" form="testForm" />,
     );
 
-    const input = getByTestId('form-text-field');
+    const input = getByTestId('textfield');
     fireEvent.changeText(input, 'new value');
 
     expect(mockHandleInputChange).toHaveBeenCalledWith(
@@ -63,7 +63,7 @@ describe('SnapUIInput', () => {
   it('handles focus events', () => {
     const { getByTestId } = render(<SnapUIInput name="testInput" />);
 
-    const input = getByTestId('form-text-field');
+    const input = getByTestId('textfield');
     fireEvent(input, 'focus');
 
     expect(mockSetCurrentFocusedInput).toHaveBeenCalledWith('testInput');
@@ -72,7 +72,7 @@ describe('SnapUIInput', () => {
   it('handles blur events', () => {
     const { getByTestId } = render(<SnapUIInput name="testInput" />);
 
-    const input = getByTestId('form-text-field');
+    const input = getByTestId('textfield');
     fireEvent(input, 'blur');
 
     expect(mockSetCurrentFocusedInput).toHaveBeenCalledWith(null);
@@ -102,7 +102,7 @@ describe('SnapUIInput', () => {
     });
 
     const { getByTestId } = render(<SnapUIInput name="testInput" />);
-    const input = getByTestId('form-text-field');
+    const input = getByTestId('textfield');
 
     expect(input).toBeTruthy();
     expect(useSnapInterfaceContext().focusedInput).toBe('testInput');
