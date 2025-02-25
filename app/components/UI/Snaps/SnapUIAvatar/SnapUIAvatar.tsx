@@ -26,7 +26,10 @@ export interface SnapUIAvatarProps {
   size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
-function getJazziconSeed(namespace: CaipNamespace, address: CaipAccountAddress) {
+function getJazziconSeed(
+  namespace: CaipNamespace,
+  address: CaipAccountAddress,
+) {
   if (namespace === KnownCaipNamespace.Eip155) {
     // Default behaviour for EIP155 namespace to match existing Jazzicons
     return parseInt(address.slice(2, 10), 16);
@@ -38,7 +41,10 @@ export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
   address,
   size = 'md',
 }) => {
-  const parsed = useMemo(() => parseCaipAccountId(address as CaipAccountId), [address]);
+  const parsed = useMemo(
+    () => parseCaipAccountId(address as CaipAccountId),
+    [address],
+  );
   const useBlockie = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );

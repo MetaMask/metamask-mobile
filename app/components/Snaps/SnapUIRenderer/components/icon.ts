@@ -14,7 +14,10 @@ export const icon: UIComponentFactory<IconElement> = ({ element }) => {
     const rawName = element.props.name;
     // The icon names are formatted differently between extension and mobile,
     // so we attempt to map from extension to the mobile format here.
-    const mappedName = rawName.split('-').map(str => str.charAt(0).toUpperCase() + str.slice(1)).join('') as IconName;
+    const mappedName = rawName
+      .split('-')
+      .map((str) => str.charAt(0).toUpperCase() + str.slice(1))
+      .join('') as IconName;
     if (ICON_NAMES.has(mappedName)) {
       return mappedName;
     }
@@ -37,7 +40,8 @@ export const icon: UIComponentFactory<IconElement> = ({ element }) => {
       case 'md':
         return IconSize.Md;
       default:
-        return 'inherit';
+        // TODO: In the extension this inherits the size of the parent.
+        return IconSize.Sm;
     }
   };
 

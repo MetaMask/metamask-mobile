@@ -63,10 +63,7 @@ export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
       gap={8}
     >
       {avatar && <SnapUIAvatar address={caipIdentifier} size={avatarSize} />}
-      <Text
-        variant={TextVariant.BodyMD}
-        color="inherit"
-      >
+      <Text variant={TextVariant.BodyMD} color="inherit">
         {formattedAddress}
       </Text>
     </Box>
