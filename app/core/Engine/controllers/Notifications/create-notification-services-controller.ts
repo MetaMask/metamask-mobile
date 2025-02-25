@@ -23,11 +23,11 @@ export const createNotificationServicesController = (props: {
       },
     });
     return notificationServicesController;
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to initialize NotificationServicesController',
+  } catch (err) {
+    const error = new Error(
+      `Failed to initialize NotificationServicesController - ${err}`,
     );
+    Logger.error(error);
     throw error;
   }
 };

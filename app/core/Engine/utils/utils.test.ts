@@ -9,7 +9,6 @@ describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
     const controllers = initModularizedControllers({
       existingControllersByName: {},
-      // @ts-expect-error - we are not defining all controllers for this test
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
       },
@@ -24,7 +23,6 @@ describe('initModularizedControllers', () => {
     expect(() =>
       initModularizedControllers({
         existingControllersByName: {},
-        // @ts-expect-error - we are not defining all controllers for this test
         controllerInitFunctions: {
           AccountsController: mockControllerInitFunction,
         },
@@ -42,7 +40,6 @@ describe('initModularizedControllers', () => {
         existingControllersByName: {
           NetworkController: jest.fn() as unknown as NetworkController,
         },
-        // @ts-expect-error - we are not defining all controllers for this test
         controllerInitFunctions: {
           AccountsController: mockControllerInitFunction,
         },

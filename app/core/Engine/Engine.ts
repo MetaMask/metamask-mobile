@@ -127,6 +127,10 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
+import { getNotificationServicesControllerMessenger } from './messengers/notifications/notification-services-controller-messenger';
+import { createNotificationServicesController } from './controllers/Notifications/create-notification-services-controller';
+import { getNotificationServicesPushControllerMessenger } from './messengers/notifications/notification-services-push-controller-messenger';
+import { createNotificationServicesPushController } from './controllers/Notifications/create-notification-services-push-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -226,8 +230,6 @@ import {
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
-import { notificationServicesControllerInit } from './controllers/Notifications/notification-services-controller-init';
-import { notificationServicesPushControllerInit } from './controllers/Notifications/notification-services-push-controller-init';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -389,11 +391,6 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-        NotificationServicesController: notificationServicesControllerInit,
-        NotificationServicesPushController:
-          notificationServicesPushControllerInit,
-        ///: END:ONLY_INCLUDE_IF
       },
       persistedState: initialState as EngineState,
       existingControllersByName: {},
@@ -401,12 +398,6 @@ export class Engine {
     });
 
     const accountsController = controllersByName.AccountsController;
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    const notificationServicesController =
-      controllersByName.NotificationServicesController;
-    const notificationServicesPushController =
-      controllersByName.NotificationServicesPushController;
-    ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 
@@ -1198,6 +1189,24 @@ export class Engine {
       }),
       nativeScryptCrypto: scrypt,
     });
+
+    const notificationServicesControllerMessenger =
+      getNotificationServicesControllerMessenger(this.controllerMessenger);
+    const notificationServicesController = createNotificationServicesController(
+      {
+        messenger: notificationServicesControllerMessenger,
+        initialState: initialState.NotificationServicesController,
+      },
+    );
+
+    const notificationServicesPushControllerMessenger =
+      getNotificationServicesPushControllerMessenger(this.controllerMessenger);
+    const notificationServicesPushController =
+      createNotificationServicesPushController({
+        messenger: notificationServicesPushControllerMessenger,
+        initialState: initialState.NotificationServicesPushController,
+      });
+
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({

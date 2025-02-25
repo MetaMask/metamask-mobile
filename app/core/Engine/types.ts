@@ -493,10 +493,7 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize =
-  | 'AccountsController'
-  | 'NotificationServicesController'
-  | 'NotificationServicesPushController';
+export type ControllersToInitialize = 'AccountsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

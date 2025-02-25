@@ -48,11 +48,11 @@ export const createNotificationServicesPushController = (props: {
     }
 
     return notificationServicesPushController;
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to initialize NotificationServicesController',
+  } catch (err) {
+    const error = new Error(
+      `Failed to initialize NotificationServicesPushController - ${err}`,
     );
+    Logger.error(error);
     throw error;
   }
 };
