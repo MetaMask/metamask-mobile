@@ -1151,6 +1151,9 @@ function SwapsQuotesView({
     navigation,
     shouldUseSmartTransaction,
     submitSwapsSmartTransaction,
+    sourceToken.address,
+    sourceToken.decimals,
+    updateSwapsTransactions,
   ]);
 
   const onEditQuoteTransactionsGas = useCallback(() => {
