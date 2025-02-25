@@ -85,6 +85,142 @@ describe('Engine', () => {
     );
   });
 
+  it('setSelectedAccount successfully updates selected account when address exists', () => {
+    const engine = Engine.init(backgroundState);
+    const validAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
+    const mockAccount = {
+      id: 'account-1',
+      address: validAddress,
+      type: 'eip155:eoa' as const,
+      options: {},
+      metadata: {
+        name: 'Test Account',
+        importTime: Date.now(),
+        keyring: {
+          type: 'HD Key Tree',
+        },
+      },
+      scopes: [],
+      methods: [],
+    };
+
+    const getAccountByAddressSpy = jest
+      .spyOn(engine.context.AccountsController, 'getAccountByAddress')
+      .mockReturnValue(mockAccount);
+
+    const setSelectedAccountSpy = jest
+      .spyOn(engine.context.AccountsController, 'setSelectedAccount')
+      .mockImplementation();
+
+    const setSelectedAddressSpy = jest
+      .spyOn(engine.context.PreferencesController, 'setSelectedAddress')
+      .mockImplementation();
+
+    engine.setSelectedAccount(validAddress);
+
+    expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
+    expect(setSelectedAccountSpy).toHaveBeenCalledWith(mockAccount.id);
+    expect(setSelectedAddressSpy).toHaveBeenCalledWith(validAddress);
+
+    getAccountByAddressSpy.mockRestore();
+    setSelectedAccountSpy.mockRestore();
+    setSelectedAddressSpy.mockRestore();
+  });
+
+  it('setAccountLabel successfully updates account label when address exists', () => {
+    const engine = Engine.init(backgroundState);
+    const validAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
+    const label = 'New Account Name';
+    const mockAccount = {
+      id: 'account-1',
+      address: validAddress,
+      type: 'eip155:eoa' as const,
+      options: {},
+      metadata: {
+        name: 'Test Account',
+        importTime: Date.now(),
+        keyring: {
+          type: 'HD Key Tree',
+        },
+      },
+      scopes: [],
+      methods: [],
+    };
+
+    const getAccountByAddressSpy = jest
+      .spyOn(engine.context.AccountsController, 'getAccountByAddress')
+      .mockReturnValue(mockAccount);
+
+    const setAccountNameSpy = jest
+      .spyOn(engine.context.AccountsController, 'setAccountName')
+      .mockImplementation();
+
+    const setAccountLabelSpy = jest
+      .spyOn(engine.context.PreferencesController, 'setAccountLabel')
+      .mockImplementation();
+
+    engine.setAccountLabel(validAddress, label);
+
+    expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
+    expect(setAccountNameSpy).toHaveBeenCalledWith(mockAccount.id, label);
+    expect(setAccountLabelSpy).toHaveBeenCalledWith(validAddress, label);
+
+    getAccountByAddressSpy.mockRestore();
+    setAccountNameSpy.mockRestore();
+    setAccountLabelSpy.mockRestore();
+  });
+
+  it('setAccountLabel throws an error if no account exists for the given address', () => {
+    const engine = Engine.init(backgroundState);
+    const invalidAddress = '0xInvalidAddress';
+    const label = 'Test Account';
+
+    expect(() => engine.setAccountLabel(invalidAddress, label)).toThrow(
+      `No account found for address: ${invalidAddress}`,
+    );
+  });
+
+  it('getSnapKeyring gets or creates a snap keyring', async () => {
+    const engine = new EngineClass(backgroundState);
+    const mockSnapKeyring = { type: 'Snap Keyring' };
+    jest
+      .spyOn(engine.keyringController, 'getKeyringsByType')
+      .mockImplementation(() => [mockSnapKeyring]);
+
+    const getSnapKeyringSpy = jest
+      .spyOn(engine, 'getSnapKeyring')
+      .mockImplementation(async () => mockSnapKeyring);
+
+    const result = await engine.getSnapKeyring();
+    expect(getSnapKeyringSpy).toHaveBeenCalled();
+    expect(result).toEqual(mockSnapKeyring);
+
+    jest.restoreAllMocks();
+  });
+
+  it('getSnapKeyring creates a new snap keyring if none exists', async () => {
+    const engine = new EngineClass(backgroundState);
+    const mockSnapKeyring = { type: 'Snap Keyring' };
+
+    jest
+      .spyOn(engine.keyringController, 'getKeyringsByType')
+      .mockImplementation(() => []);
+
+    jest
+      .spyOn(engine.keyringController, 'addNewKeyring')
+      .mockImplementation(async () => mockSnapKeyring);
+
+    const getSnapKeyringSpy = jest
+      .spyOn(engine, 'getSnapKeyring')
+      .mockImplementation(async () => mockSnapKeyring);
+
+    const result = await engine.getSnapKeyring();
+    expect(getSnapKeyringSpy).toHaveBeenCalled();
+    expect(result).toEqual(mockSnapKeyring);
+
+    jest.restoreAllMocks();
+  });
+
   it('normalizes CurrencyController state property conversionRate from null to 0', () => {
     const ticker = 'ETH';
     const state = {
