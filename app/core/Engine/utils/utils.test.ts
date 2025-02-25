@@ -4,6 +4,7 @@ import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { NetworkController } from '@metamask/network-controller';
 import { mockControllerInitFunction } from './test-utils';
 import { AccountsController } from '@metamask/accounts-controller';
+import { ControllerInitFunctionByControllerName } from '../types';
 
 describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
@@ -11,7 +12,7 @@ describe('initModularizedControllers', () => {
       existingControllersByName: {},
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
-      },
+      } as ControllerInitFunctionByControllerName,
       persistedState: {},
       baseControllerMessenger: new ExtendedControllerMessenger(),
     });
@@ -25,7 +26,7 @@ describe('initModularizedControllers', () => {
         existingControllersByName: {},
         controllerInitFunctions: {
           AccountsController: mockControllerInitFunction,
-        },
+        } as ControllerInitFunctionByControllerName,
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
       }),
@@ -42,7 +43,7 @@ describe('initModularizedControllers', () => {
         },
         controllerInitFunctions: {
           AccountsController: mockControllerInitFunction,
-        },
+        } as ControllerInitFunctionByControllerName,
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
       }),

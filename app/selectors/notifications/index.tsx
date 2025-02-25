@@ -28,14 +28,10 @@ export const selectIsMetamaskNotificationsEnabled = createSelector(
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.isNotificationServicesEnabled,
 );
-/**
- * TEMP - update controller to get up-to-date state
- */
 export const selectIsMetaMaskPushNotificationsEnabled = createSelector(
   selectNotificationServicesPushControllerState,
   (state: NotificationServicesPushControllerState) =>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Boolean((state as any)?.isPushEnabled),
+    Boolean(state.isPushEnabled),
 );
 export const selectIsMetamaskNotificationsFeatureSeen = createSelector(
   selectNotificationServicesControllerState,

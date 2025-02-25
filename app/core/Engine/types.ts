@@ -166,10 +166,18 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import {
-  NotificationServicesPushController,
-  NotificationServicesController,
-} from '@metamask/notification-services-controller';
+import type {
+  Controller as NotificationServicesController,
+  Actions as NotificationServicesControllerMessengerActions,
+  Events as NotificationServicesControllerMessengerEvents,
+  NotificationServicesControllerState,
+} from '@metamask/notification-services-controller/notification-services';
+import type {
+  Controller as NotificationServicesPushController,
+  Actions as NotificationServicesPushControllerActions,
+  Events as NotificationServicesPushControllerEvents,
+  NotificationServicesPushControllerState,
+} from '@metamask/notification-services-controller/push-services';
 
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -265,8 +273,8 @@ type GlobalActions =
   | SnapInterfaceControllerActions
   | AuthenticationController.Actions
   | UserStorageController.Actions
-  | NotificationServicesController.Actions
-  | NotificationServicesPushController.Actions
+  | NotificationServicesControllerMessengerActions
+  | NotificationServicesPushControllerActions
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
@@ -305,8 +313,8 @@ type GlobalEvents =
   | SnapInterfaceControllerEvents
   | AuthenticationController.Events
   | UserStorageController.Events
-  | NotificationServicesController.Events
-  | NotificationServicesPushController.Events
+  | NotificationServicesControllerMessengerEvents
+  | NotificationServicesPushControllerEvents
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
@@ -390,8 +398,8 @@ export type Controllers = {
   SubjectMetadataController: SubjectMetadataController;
   AuthenticationController: AuthenticationController.Controller;
   UserStorageController: UserStorageController.Controller;
-  NotificationServicesController: NotificationServicesController.Controller;
-  NotificationServicesPushController: NotificationServicesPushController.Controller;
+  NotificationServicesController: NotificationServicesController;
+  NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
@@ -439,8 +447,8 @@ export type EngineState = {
   SubjectMetadataController: SubjectMetadataControllerState;
   AuthenticationController: AuthenticationController.AuthenticationControllerState;
   UserStorageController: UserStorageController.UserStorageControllerState;
-  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
-  NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
+  NotificationServicesController: NotificationServicesControllerState;
+  NotificationServicesPushController: NotificationServicesPushControllerState;
   SnapInterfaceController: SnapInterfaceControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
@@ -485,7 +493,10 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize = 'AccountsController';
+export type ControllersToInitialize =
+  | 'AccountsController'
+  | 'NotificationServicesController'
+  | 'NotificationServicesPushController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -559,7 +570,7 @@ export type ControllerInitFunction<
 /**
  * Map of controller init functions by controller name.
  */
-type ControllerInitFunctionByControllerName = {
+export type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
     ControllerByName[Name],
     ReturnType<ControllerMessengerByControllerName[Name]['getMessenger']>
