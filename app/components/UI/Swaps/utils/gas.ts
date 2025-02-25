@@ -36,7 +36,7 @@ export async function getTransaction1559GasFeeEstimates(
 export async function getGasFeeEstimatesForTransaction(
   transaction: Partial<TransactionParams> & { from: string; chainId: string },
   gasEstimates: {
-    gasPrice: string;
+    gasPrice?: string;
     medium: string;
   },
   { chainId, isEIP1559Network }: { chainId: Hex; isEIP1559Network: boolean },
