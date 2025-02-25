@@ -65,7 +65,7 @@ const createControllerMessenger = ({
     SnapKeyringBuilderAllowActions,
     never
   >().getRestricted({
-    name: 'SnapKeyringBuilder',
+    name: 'SnapKeyring',
     allowedActions: [
       'ApprovalController:addRequest',
       'ApprovalController:acceptRequest',
@@ -284,6 +284,53 @@ describe('Snap Keyring Methods', () => {
       expect(mockEndFlow).toHaveBeenCalledTimes(2);
       expect(mockEndFlow).toHaveBeenNthCalledWith(1, [{ id: mockFlowId }]);
       expect(mockEndFlow).toHaveBeenNthCalledWith(2, [{ id: mockFlowId }]);
+    });
+  });
+
+  describe('removeAccount', () => {
+    beforeEach(() => {
+      mockAddRequest.mockReturnValue(true).mockReturnValue({ success: true });
+      // Reset mocks before each test
+      mockGetAccounts.mockResolvedValue([address]);
+      mockGetAccountByAddress.mockReturnValue(mockInternalAccount);
+    });
+
+    it('handles account removal correctly', async () => {
+      // Mock getAccounts to return the address after account creation
+      // mockGetAccounts.mockResolvedValue([address.toLowerCase()]);
+
+      // Mock getAccountByAddress to return the mockInternalAccount
+
+      const builder = createSnapKeyringBuilder();
+
+      // First add the account to the keyring
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: false,
+        },
+      });
+
+      // Wait for all promises to resolve
+      await waitForAllPromises();
+
+      // Now remove the account
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountDeleted,
+        params: {
+          id: mockAccount.id,
+        },
+      });
+
+      // Wait for all promises to resolve
+      await waitForAllPromises();
+
+      // Verify removeAccountHelper was called with the correct address
+      expect(mockRemoveAccountHelper).toHaveBeenCalledWith(address);
+
+      // Verify persistKeyringHelper was called to save state
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2); // Once for creation, once for deletion
     });
   });
 });

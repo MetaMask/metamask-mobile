@@ -168,6 +168,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     snapId: string,
     handleUserInput: (accepted: boolean) => Promise<void>,
   ) {
+    assertIsValidSnapId(snapId);
     // TODO: Implement proper snap account confirmations. Currently, we are approving everything for testing purposes.
     Logger.log(
       `SnapKeyring: removeAccount called with \n
