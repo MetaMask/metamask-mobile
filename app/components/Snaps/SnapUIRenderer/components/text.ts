@@ -23,7 +23,7 @@ function getTextColor(color: TextElement['props']['color']) {
     case 'warning':
       return TextColor.Warning;
     default:
-      return TextColor.Default;
+      return 'inherit';
   }
 }
 
