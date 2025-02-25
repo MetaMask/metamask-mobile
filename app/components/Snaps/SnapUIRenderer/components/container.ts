@@ -7,7 +7,6 @@ export const container: UIComponentFactory<BoxElement> = ({
   element: e,
   useFooter,
   onCancel,
-  promptLegacyProps,
   t,
   ...params
 }) => {
