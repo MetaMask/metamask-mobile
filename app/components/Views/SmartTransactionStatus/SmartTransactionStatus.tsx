@@ -41,6 +41,7 @@ interface Props {
   };
   origin: string;
   onConfirm: () => void;
+  handleCreateNewSwap?: () => void;
 }
 
 export const FALLBACK_STX_ESTIMATED_DEADLINE_SEC = 45;
@@ -252,6 +253,7 @@ const SmartTransactionStatus = ({
   requestState: { smartTransaction, isDapp, isInSwapFlow },
   origin,
   onConfirm,
+  handleCreateNewSwap,
 }: Props) => {
   const { status, creationTime, uuid } = smartTransaction;
   const chainId = useSelector(selectEvmChainId);
@@ -282,7 +284,11 @@ const SmartTransactionStatus = ({
 
   const createNewSwap = () => {
     onConfirm();
-    navigation.navigate(Routes.SWAPS);
+    if (handleCreateNewSwap) {
+      handleCreateNewSwap();
+    } else {
+      navigation.navigate(Routes.SWAPS);
+    }
   };
 
   const createNewSend = () => {

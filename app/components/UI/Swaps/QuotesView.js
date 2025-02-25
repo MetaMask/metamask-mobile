@@ -1764,6 +1764,12 @@ function SwapsQuotesView({
             {errorAction}
           </StyledButton>
         </View>
+        <SwapsSTXStatusModal
+          isVisible={isSwapsSTXStatusModalVisible}
+          dismiss={() => {
+            setIsSwapsSTXStatusModalVisible(false);
+          }}
+        />
       </ScreenView>
     );
   }

@@ -8,6 +8,7 @@ import SmartTransactionStatus from '../../Views/SmartTransactionStatus/SmartTran
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 import { selectSmartTransactionsForCurrentChain } from '../../../selectors/smartTransactionsController';
+import { useNavigation } from '@react-navigation/native';
 
 interface Props {
   isVisible: boolean;
@@ -33,6 +34,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
 export const SwapsSTXStatusModal = ({ isVisible, dismiss }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const navigation = useNavigation();
 
   const smartTransactions = useSelector(selectSmartTransactionsForCurrentChain);
   const latestSmartTransaction = smartTransactions[smartTransactions.length - 1];
@@ -62,6 +64,9 @@ export const SwapsSTXStatusModal = ({ isVisible, dismiss }: Props) => {
           }}
           origin={ORIGIN_METAMASK}
           onConfirm={dismiss}
+          handleCreateNewSwap={() => {
+            navigation.goBack();
+          }}
         />
       </View>
     </Modal>
