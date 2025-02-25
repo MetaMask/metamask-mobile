@@ -40,7 +40,7 @@ import {
 } from '../../../util/address';
 
 import {
-  selectChainId,
+  selectEvmChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
@@ -583,7 +583,7 @@ RootRPCMethodsUI.propTypes = {
 
 const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
   tokens: selectTokens(state),
   providerType: selectProviderType(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),

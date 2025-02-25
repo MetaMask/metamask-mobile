@@ -9,6 +9,7 @@ import useAddressBalance from './useAddressBalance';
 import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { BN } from 'ethereumjs-util';
+import { SolScope } from '@metamask/keyring-api';
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 
@@ -46,6 +47,12 @@ const mockInitialState = {
         selectedAddress: MOCK_ADDRESS_1,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      MultichainNetworkController: {
+        isEvmSelected: true,
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+        multichainNetworkConfigurationsByChainId: {},
+      },
     },
   },
 };

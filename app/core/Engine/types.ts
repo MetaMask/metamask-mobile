@@ -170,6 +170,7 @@ import {
   NotificationServicesPushController,
   NotificationServicesController,
 } from '@metamask/notification-services-controller';
+
 ///: END:ONLY_INCLUDE_IF
 import {
   AccountsController,
