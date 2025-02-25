@@ -292,6 +292,8 @@ async function main(): Promise<void> {
       console.log(
         `Started Bitrise build for commit ${latestCommitHash} at ${buildLink}`,
       );
+
+      console.log(`Response headers from bitrise call ${bitriseBuildResponse.headers}`)
     } else {
       core.setFailed(
         `Bitrise build request returned with status code ${bitriseBuildResponse.status}`,
