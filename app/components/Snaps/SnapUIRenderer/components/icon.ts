@@ -11,6 +11,7 @@ const ICON_NAMES = new Set(Object.values(IconName));
 
 export const icon: UIComponentFactory<IconElement> = ({ element }) => {
   const getIconName = () => {
+    // TODO: This will never succeed because all of the icons are named differently on mobile.
     if (ICON_NAMES.has(element.props.name as IconName)) {
       return element.props.name as IconName;
     }
