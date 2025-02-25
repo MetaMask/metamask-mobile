@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   CaipAccountAddress,
   CaipAccountId,
-  CaipChainId,
+  CaipNamespace,
   KnownCaipNamespace,
   parseCaipAccountId,
   stringToBytes,
@@ -20,14 +20,14 @@ export const DIAMETERS: Record<string, number> = {
   lg: 40,
 };
 
-export type SnapUIAvatarProps = {
+export interface SnapUIAvatarProps {
   // The address must be a CAIP-10 string.
   address: string;
   size?: 'xs' | 'sm' | 'md' | 'lg';
-};
+}
 
-function getJazziconSeed(chainId: CaipChainId, address: CaipAccountAddress) {
-  if (chainId.startsWith(KnownCaipNamespace.Eip155)) {
+function getJazziconSeed(namespace: CaipNamespace, address: CaipAccountAddress) {
+  if (namespace === KnownCaipNamespace.Eip155) {
     // Default behaviour for EIP155 namespace to match existing Jazzicons
     return parseInt(address.slice(2, 10), 16);
   }
@@ -38,9 +38,7 @@ export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
   address,
   size = 'md',
 }) => {
-  const parsed = useMemo(() => {
-    return parseCaipAccountId(address as CaipAccountId);
-  }, [address]);
+  const parsed = useMemo(() => parseCaipAccountId(address as CaipAccountId), [address]);
   const useBlockie = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
@@ -58,7 +56,7 @@ export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
     );
   }
 
-  const seed = getJazziconSeed(parsed.chainId, parsed.address);
+  const seed = getJazziconSeed(parsed.chain.namespace, parsed.address);
 
   return (
     <Jazzicon

@@ -421,17 +421,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
         textAlign="left"
       >
         <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "inherit",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
+          color="inherit"
         >
           Hello world!
         </Text>
@@ -856,17 +846,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             }
           >
             <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "inherit",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
+              color="inherit"
             >
               Foo
             </Text>
@@ -930,17 +910,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
         textAlign="left"
       >
         <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "inherit",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
+          color="inherit"
         >
           Hello world!
         </Text>
@@ -1080,17 +1050,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             }
           >
             <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "inherit",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
+              color="inherit"
             >
               Foo
             </Text>
@@ -1263,17 +1223,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
               textVariant="sBodyMDMedium"
             >
               <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "inherit",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
+                color="inherit"
               >
                 Submit
               </Text>
@@ -1518,17 +1468,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
           textVariant="sBodyMDMedium"
         >
           <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "inherit",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
+            color="inherit"
           >
             Submit
           </Text>
@@ -1682,17 +1622,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         textAlign="left"
       >
         <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "inherit",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
+          color="inherit"
         >
           Hello world!
         </Text>
@@ -1832,17 +1762,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             }
           >
             <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "inherit",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
+              color="inherit"
             >
               Foo
             </Text>

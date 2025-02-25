@@ -1,10 +1,10 @@
 import { AvatarElement } from '@metamask/snaps-sdk/jsx';
 import { UIComponentFactory } from './types';
 
-export const avatar: UIComponentFactory<AvatarElement> = ({ element }) => ({
+export const avatar: UIComponentFactory<AvatarElement> = ({ element: e }) => ({
   element: 'SnapUIAvatar',
   props: {
-    address: element.props.address,
-    size: element.props.size,
+    address: e.props.address,
+    size: e.props.size,
   },
 });

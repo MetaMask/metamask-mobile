@@ -13,7 +13,7 @@ import Text, {
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
 
-export type SnapUIAddressProps = {
+export interface SnapUIAddressProps {
   // The address must be a CAIP-10 string.
   address: string;
   // This is not currently exposed to Snaps.
@@ -21,7 +21,7 @@ export type SnapUIAddressProps = {
   truncate?: boolean;
   displayName?: boolean;
   avatar?: boolean;
-};
+}
 
 export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
   address,
@@ -66,7 +66,6 @@ export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
       <Text
         variant={TextVariant.BodyMD}
         color="inherit"
-        //style={{ lineBreak: 'anywhere' }}
       >
         {formattedAddress}
       </Text>

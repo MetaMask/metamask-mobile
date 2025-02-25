@@ -1,13 +1,13 @@
 import { AddressElement } from '@metamask/snaps-sdk/jsx';
 import { UIComponentFactory } from './types';
 
-export const address: UIComponentFactory<AddressElement> = ({ element }) => ({
+export const address: UIComponentFactory<AddressElement> = ({ element: e }) => ({
   element: 'SnapUIAddress',
   props: {
-    address: element.props.address,
+    address: e.props.address,
     avatarSize: 'xs',
-    truncate: element.props.truncate,
-    displayName: element.props.displayName,
-    avatar: element.props.avatar,
+    truncate: e.props.truncate,
+    displayName: e.props.displayName,
+    avatar: e.props.avatar,
   },
 });
