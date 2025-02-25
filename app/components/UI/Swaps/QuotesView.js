@@ -1772,7 +1772,10 @@ function SwapsQuotesView({
     >
       {!isInPolling && error?.key ? (
         <>
-          <View style={[styles.content, styles.errorViewContent]}>
+          <View
+            style={[styles.content, styles.errorViewContent]}
+            testID="error-area"
+          >
             {errorIcon}
             <Text primary centered style={styles.errorTitle}>
               {errorTitle}
