@@ -40,7 +40,6 @@ import {
 } from '../../../util/networks';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../util/networks/engineNetworkUtils';
 import {
-  getErrorMessage,
   getFetchParams,
   getQuotesNavigationsParams,
   isSwapsNativeAsset,
@@ -125,6 +124,7 @@ import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
 import { SwapsSTXStatusModal } from './SwapsSTXStatusModal';
+import { getErrorItems } from './components/QuotesViewErrors';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -1753,25 +1753,10 @@ function SwapsQuotesView({
     );
   }
 
-  let errorIcon;
-  let errorTitle;
-  let errorMessage;
-  let errorAction;
-  if (!isInPolling && error?.key) {
-    [errorTitle, errorMessage, errorAction] = getErrorMessage(error?.key);
-    errorIcon =
-      error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR ? (
-        <MaterialCommunityIcons
-          name="clock-outline"
-          style={[styles.errorIcon, styles.expiredIcon]}
-        />
-      ) : (
-        <MaterialCommunityIcons
-          name="alert-outline"
-          style={[styles.errorIcon]}
-        />
-      );
-  }
+  const { errorIcon, errorTitle, errorMessage, errorAction } = getErrorItems(
+    isInPolling,
+    error?.key,
+  );
 
   const disabledView =
     shouldDisplaySlippage &&
