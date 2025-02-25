@@ -1,6 +1,9 @@
 import { SnapKeyring, SnapKeyringCallbacks } from '@metamask/eth-snap-keyring';
 import Logger from '../../util/Logger';
-import { showAccountNameSuggestionDialog } from './utils/showDialog';
+import {
+  showAccountCreationDialog,
+  showAccountNameSuggestionDialog,
+} from './utils/showDialog';
 import { SnapKeyringBuilderMessenger } from './types';
 import { SnapId } from '@metamask/snaps-sdk';
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethodMiddleware';
@@ -21,37 +24,6 @@ export interface SnapKeyringBuilder {
 export interface SnapKeyringHelpers {
   persistKeyringHelper: () => Promise<void>;
   removeAccountHelper: (address: string) => Promise<void>;
-}
-
-/**
- * Show the account creation dialog for a given Snap.
- * This function will start the approval flow, show the account creation dialog, and end the flow.
- *
- * @param snapId - Snap ID to show the account creation dialog for.
- * @param messenger - The controller messenger instance.
- * @returns The user's confirmation result.
- */
-export async function showAccountCreationDialog(
-  snapId: string,
-  messenger: SnapKeyringBuilderMessenger,
-) {
-  try {
-    const confirmationResult = Boolean(
-      await messenger.call(
-        'ApprovalController:addRequest',
-        {
-          origin: snapId,
-          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.confirmAccountCreation,
-        },
-        true,
-      ),
-    );
-    return confirmationResult;
-  } catch (e) {
-    throw new Error(
-      `Error occurred while showing account creation dialog.\n${e}`,
-    );
-  }
 }
 
 class SnapKeyringImpl implements SnapKeyringCallbacks {
