@@ -27,6 +27,12 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: Device.isIphoneX() ? 20 : 0,
       height: '85%',
     },
+    scrollableSection: {
+      padding: 4,
+    },
+    scrollable: {
+      height: '75%',
+    },
   });
 };
 
