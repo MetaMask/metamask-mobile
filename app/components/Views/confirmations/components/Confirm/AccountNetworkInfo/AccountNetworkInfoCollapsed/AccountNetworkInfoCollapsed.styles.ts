@@ -17,9 +17,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     accountName: {
       color: theme.colors.text.default,
-      ...fontStyles.normal,
+      ...fontStyles.bold,
       fontSize: 14,
-      fontWeight: '500',
     },
     networkName: {
       color: theme.colors.text.default,
