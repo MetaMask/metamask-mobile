@@ -1,8 +1,12 @@
-import { MessageType, SendAnalytics, TrackingEvents } from '@metamask/sdk-communication-layer';
+import {
+  MessageType,
+  SendAnalytics,
+  TrackingEvents,
+} from '@metamask/sdk-communication-layer';
 import { resetConnections } from '../../../../app/actions/sdk';
 import { store } from '../../../../app/store';
 import Routes from '../../../constants/navigation/Routes';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
@@ -133,12 +137,19 @@ async function connectToChannel({
 
       try {
         // We cannot request permissions if the user is on the login screen or the account connect screen otherwise it will kill other permissions requests.
-        const skipRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN, Routes.SHEET.ACCOUNT_CONNECT];
+        const skipRoutes = [
+          Routes.LOCK_SCREEN,
+          Routes.ONBOARDING.LOGIN,
+          Routes.SHEET.ACCOUNT_CONNECT,
+        ];
         // Wait for login screen to be closed
         await waitForCondition({
           fn: () => {
-            const currentRouteName = connected.navigation?.getCurrentRoute()?.name;
-            DevLogger.log(`connectToChannel:: currentRouteName=${currentRouteName}`);
+            const currentRouteName =
+              connected.navigation?.getCurrentRoute()?.name;
+            DevLogger.log(
+              `connectToChannel:: currentRouteName=${currentRouteName}`,
+            );
             return !!currentRouteName && !skipRoutes.includes(currentRouteName);
           },
           context: 'connectToChannel',
@@ -148,14 +159,23 @@ async function connectToChannel({
           connection: connected,
           engine: Engine,
         });
-        DevLogger.log(`SDKConnect::connectToChannel - checkPermissions - authorized`, res);
+        DevLogger.log(
+          `SDKConnect::connectToChannel - checkPermissions - authorized`,
+          res,
+        );
         authorized = true;
       } catch (error) {
-        DevLogger.log(`SDKConnect::connectToChannel - checkPermissions - error`, error);
+        DevLogger.log(
+          `SDKConnect::connectToChannel - checkPermissions - error`,
+          error,
+        );
         // first needs to connect without key exchange to send the event
-        await instance.state.connected[id].remote.reject({channelId: id});
+        await instance.state.connected[id].remote.reject({ channelId: id });
         // Send rejection event without awaiting
-        SendAnalytics({id, event: TrackingEvents.REJECTED, ...originatorInfo}, instance.state.socketServerUrl).catch((err: Error) => {
+        SendAnalytics(
+          { id, event: TrackingEvents.REJECTED, ...originatorInfo },
+          instance.state.socketServerUrl,
+        ).catch((err: Error) => {
           Logger.error(err, 'SendAnalytics failed');
         });
 
@@ -171,14 +191,20 @@ async function connectToChannel({
     }
 
     // SDK PROTOCOL pre 0.28.0
-    DevLogger.log(`SDKConnect::connectToChannel - before connect`, instance.state.connected[id]);
+    DevLogger.log(
+      `SDKConnect::connectToChannel - before connect`,
+      instance.state.connected[id],
+    );
 
     // Initialize connection
     await connected.connect({
       withKeyExchange: true,
       authorized,
     });
-    DevLogger.log(`SDKConnect::connectToChannel - connected - state after connect`, instance.state);
+    DevLogger.log(
+      `SDKConnect::connectToChannel - connected - state after connect`,
+      instance.state,
+    );
 
     DevLogger.log(
       `SDKConnect::connectToChannel - connected - authorized=${authorized} initialConnection=${initialConnection}`,
@@ -192,7 +218,7 @@ async function connectToChannel({
 
     if (authorized && initialConnection) {
       const accounts = await getPermittedAccounts(id);
-      const currentChainId = selectChainId(store.getState());
+      const currentChainId = selectEvmChainId(store.getState());
       connected.remote.state.channelId = id;
       const data = {
         accounts,
@@ -239,7 +265,9 @@ async function connectToChannel({
   } catch (error) {
     Logger.error(error as Error, 'Failed to connect to channel');
   } finally {
-    DevLogger.log(`SDKConnect::connectToChannel - finally - state.connecting[${id}]=${instance.state.connecting[id]}`);
+    DevLogger.log(
+      `SDKConnect::connectToChannel - finally - state.connecting[${id}]=${instance.state.connecting[id]}`,
+    );
     instance.state.connecting[id] = false;
   }
 }
