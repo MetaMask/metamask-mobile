@@ -13,7 +13,6 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 
-import { useRampSDK } from '../sdk';
 import { useAccountName } from '../../../hooks/useAccountName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { formatAddress } from '../../../../util/address';
@@ -33,7 +32,9 @@ const styles = StyleSheet.create({
 
 const AccountSelector = () => {
   const navigation = useNavigation();
-  const { selectedAddress } = useRampSDK();
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const accountName = useAccountName();
 
   const accountAvatarType = useSelector((state: RootState) =>
