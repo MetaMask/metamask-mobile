@@ -19,7 +19,10 @@ import { ConfirmInfoRowValueDouble } from '../../../component-library/components
 import { SnapUIIcon } from '../../Snaps/SnapUIIcon/SnapUIIcon';
 import { SnapUIButton } from '../../Snaps/SnapUIButton/SnapUIButton';
 import { SnapUICheckbox } from '../../Snaps/SnapUICheckbox/SnapUICheckbox';
+import { SnapUIAddress } from '../../UI/Snaps/SnapUIAddress/SnapUIAddress';
+import { SnapUIAvatar } from '../../UI/Snaps/SnapUIAvatar/SnapUIAvatar';
 import InfoRow from '../../Views/confirmations/components/UI/InfoRow';
+import { Text as RNText } from 'react-native';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -43,7 +46,10 @@ export const safeComponentList = {
   ConfirmInfoRowValueDouble,
   SnapUIButton,
   SnapUICheckbox,
+  SnapUIAvatar,
+  SnapUIAddress,
   InfoRow,
+  RNText,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;
