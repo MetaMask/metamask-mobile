@@ -9,7 +9,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import { selectNetworkName } from '../../../../../../selectors/networkInfos';
+import { selectEvmNetworkName } from '../../../../../../selectors/networkInfos';
 import { useStyles } from '../../../../../hooks/useStyles';
 import NetworkMainAssetLogo from '../../../../NetworkMainAssetLogo';
 import styleSheet from './TokenValueStack.styles';
@@ -25,7 +25,7 @@ const TokenValueStack = ({
 }: TokenValueStackProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const networkName = useSelector(selectNetworkName);
+  const networkName = useSelector(selectEvmNetworkName);
 
   return (
     <View style={[styles.tokenValueStackContainer, style]}>

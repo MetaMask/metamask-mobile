@@ -25,7 +25,13 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
-      maxHeight: '90%',
+      height: '85%',
+    },
+    scrollableSection: {
+      padding: 4,
+    },
+    scrollable: {
+      height: '75%',
     },
   });
 };

@@ -16,7 +16,6 @@ import {
 } from '../../../../components/UI/Stake/__mocks__/mockData';
 import type {
   PooledStake,
-  VaultApyAverages,
   VaultDailyApy,
   VaultData,
 } from '@metamask/stake-sdk';
@@ -25,6 +24,7 @@ import {
   MOCK_VAULT_APY_AVERAGES,
   MOCK_VAULT_APYS_ONE_YEAR,
 } from '../../../../components/UI/Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
+import { DEFAULT_VAULT_APY_AVERAGES } from '../../../../components/UI/Stake/constants';
 
 describe('PooledStaking', () => {
   const initialState = {
@@ -32,7 +32,7 @@ describe('PooledStaking', () => {
     exchangeRate: '',
     vaultData: {} as VaultData,
     isEligible: false,
-    vaultApyAverages: {} as VaultApyAverages,
+    vaultApyAverages: DEFAULT_VAULT_APY_AVERAGES,
     vaultApys: [] as VaultDailyApy[],
   };
 

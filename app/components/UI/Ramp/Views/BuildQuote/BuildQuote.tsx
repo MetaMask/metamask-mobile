@@ -874,7 +874,7 @@ const BuildQuote = () => {
               )}
             {hasInsufficientBalance && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error} testID={BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR}>
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
                 </Text>
               </Row>

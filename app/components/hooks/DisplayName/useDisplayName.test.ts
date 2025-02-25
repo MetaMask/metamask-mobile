@@ -11,7 +11,7 @@ const UNKNOWN_ADDRESS_CHECKSUMMED =
 const KNOWN_NFT_ADDRESS_CHECKSUMMED =
   '0x495f947276749Ce646f68AC8c248420045cb7b5e';
 const KNOWN_NFT_NAME_MOCK = 'Known NFT';
-const KNOWN_FIRST_PARTY_CONTRACT_NAME = 'MetaMask Pool Staking';
+const KNOWN_FIRST_PARTY_CONTRACT_NAME = 'Pool Staking';
 const KNOWN_TOKEN_LIST_NAME = 'Known Token List';
 
 jest.mock('./useWatchedNFTNames', () => ({
@@ -55,6 +55,10 @@ describe('useDisplayName', () => {
 
       expect(displayName).toEqual({
         variant: DisplayNameVariant.Unknown,
+        contractDisplayName: undefined,
+        image: undefined,
+        isFirstPartyContractName: false,
+        name: undefined,
       });
     });
   });
@@ -74,6 +78,9 @@ describe('useDisplayName', () => {
       expect(displayName).toEqual({
         variant: DisplayNameVariant.Recognized,
         name: KNOWN_FIRST_PARTY_CONTRACT_NAME,
+        contractDisplayName: undefined,
+        image: undefined,
+        isFirstPartyContractName: true,
       });
     });
 
@@ -98,6 +105,9 @@ describe('useDisplayName', () => {
       expect(displayName).toEqual({
         variant: DisplayNameVariant.Recognized,
         name: KNOWN_NFT_NAME_MOCK,
+        contractDisplayName: undefined,
+        image: undefined,
+        isFirstPartyContractName: false,
       });
     });
 

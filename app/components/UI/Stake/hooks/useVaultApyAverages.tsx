@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { hexToNumber } from '@metamask/utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../selectors/networkController';
 import {
   selectVaultApyAverages,
   setVaultApyAverages,
 } from '../../../../core/redux/slices/staking';
 import { stakingApiService } from '../sdk/stakeSdkProvider';
+import { DEFAULT_VAULT_APY_AVERAGES } from '../constants';
 
 const useVaultApyAverages = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +16,7 @@ const useVaultApyAverages = () => {
   const dispatch = useDispatch();
 
   const { vaultApyAverages } = useSelector(selectVaultApyAverages);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
 
   const fetchVaultAprs = useCallback(async () => {
     setIsLoading(true);
@@ -39,7 +40,10 @@ const useVaultApyAverages = () => {
   }, [fetchVaultAprs]);
 
   return {
-    vaultApyAverages,
+    vaultApyAverages:
+      Object.keys(vaultApyAverages).length === 0
+        ? DEFAULT_VAULT_APY_AVERAGES
+        : vaultApyAverages,
     refreshVaultApyAverages: fetchVaultAprs,
     isLoadingVaultApyAverages: isLoading,
     error,

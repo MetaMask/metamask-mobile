@@ -10,11 +10,11 @@ import { useTheme } from '../../../../../util/theme';
 import { TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
 import {
-  selectChainId,
   selectProviderConfig,
   selectTicker,
   selectNetworkConfigurations,
   selectNetworkConfigurationByChainId,
+  selectChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectContractExchangeRates,
@@ -64,6 +64,7 @@ import {
   CustomNetworkImgMapping,
 } from '../../../../../util/networks/customNetworks';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
+import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -94,6 +95,8 @@ export const TokenListItem = React.memo(
 
     const { type } = useSelector(selectProviderConfig);
     const selectedChainId = useSelector(selectChainId);
+    const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+
     const chainId = isPortfolioViewEnabled()
       ? (asset.chainId as Hex)
       : selectedChainId;
@@ -135,6 +138,7 @@ export const TokenListItem = React.memo(
           chainId as Hex
         ]
       : selectedChainTokenBalance;
+
     const nativeCurrency =
       networkConfigurations?.[chainId as Hex]?.nativeCurrency;
 
@@ -231,8 +235,8 @@ export const TokenListItem = React.memo(
 
           if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-          if (CustomNetworkImgMapping[chainId]) {
-            return CustomNetworkImgMapping[chainId];
+          if (CustomNetworkImgMapping[chainId as Hex]) {
+            return CustomNetworkImgMapping[chainId as Hex];
           }
 
           return ticker ? images[ticker] : undefined;
@@ -271,6 +275,10 @@ export const TokenListItem = React.memo(
     );
 
     const onItemPress = (token: TokenI) => {
+      if (!isEvmNetworkSelected) {
+        return;
+      }
+
       // if the asset is staked, navigate to the native asset details
       if (asset.isStaked) {
         return navigation.navigate('Asset', {
@@ -333,7 +341,7 @@ export const TokenListItem = React.memo(
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource(chainId)}
+                imageSource={networkBadgeSource(chainId as Hex)}
                 name={networkConfigurationByChainId?.name}
               />
             }
