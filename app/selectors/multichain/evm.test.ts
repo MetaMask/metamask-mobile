@@ -3,6 +3,7 @@ import {
   selectedAccountNativeTokenCachedBalanceByChainId,
   selectAccountTokensAcrossChains,
 } from './evm';
+import { SolScope } from '@metamask/keyring-api';
 
 describe('Multichain Selectors', () => {
   const mockState: RootState = {
@@ -84,6 +85,16 @@ describe('Multichain Selectors', () => {
               },
             },
           },
+        },
+        MultichainNetworkController: {
+          multichainNetworkConfigurationsByChainId: {
+            [SolScope.Mainnet]: {
+              chainId: SolScope.Mainnet,
+            },
+          },
+
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
         },
       },
     },

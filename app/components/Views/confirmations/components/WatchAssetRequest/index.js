@@ -14,7 +14,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import useTokenBalance from '../../../../hooks/useTokenBalance';
 import { useTheme } from '../../../../../util/theme';
 import NotificationManager from '../../../../../core/NotificationManager';
-import { selectChainId } from '../../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../../../util/transactions';
 import { isEqual } from 'lodash';
@@ -107,7 +107,7 @@ const WatchAssetRequest = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const balanceWithSymbol = error
     ? strings('transaction.failed')
     : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;

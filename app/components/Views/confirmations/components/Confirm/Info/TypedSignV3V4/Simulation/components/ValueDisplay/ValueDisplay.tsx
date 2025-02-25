@@ -153,6 +153,11 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     return null;
   }
 
+  // Avoid empty button pill container
+  const showValueButtonPill = Boolean(isPendingTokenDetails
+    || shouldShowUnlimitedValue
+    || (tokenValue !== null || tokenId));
+
   function handlePressTokenValue() {
     setHasValueModalOpen(true);
   }
@@ -161,7 +166,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
       <View style={styles.wrapper}>
         <View style={styles.flexRowTokenValueAndAddress}>
           <View style={styles.valueAndAddress}>
-            {
+            {showValueButtonPill &&
               <AnimatedPulse isPulsing={isPendingTokenDetails} testID="simulation-value-display-loader">
                 <ButtonPill
                   isDisabled={isNFT}
