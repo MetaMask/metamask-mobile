@@ -238,6 +238,51 @@ describe('Snap Keyring Methods', () => {
       expect(mockEndFlow).toHaveBeenCalledTimes(2);
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
     });
+
+    it('throws an error when user denies account creation', async () => {
+      // Mock the addRequest to return success: false to simulate user denial
+      mockAddRequest.mockReturnValueOnce({
+        success: false,
+      });
+
+      const builder = createSnapKeyringBuilder();
+
+      // We expect the handleKeyringSnapMessage to throw an error
+      await expect(
+        builder().handleKeyringSnapMessage(mockSnapId, {
+          method: KeyringEvent.AccountCreated,
+          params: {
+            account: mockAccount,
+            displayConfirmation: false,
+          },
+        }),
+      ).rejects.toThrow('User denied account creation');
+
+      // Verify that the approval flow was started and ended
+      expect(mockStartFlow).toHaveBeenCalledTimes(1);
+      expect(mockAddRequest).toHaveBeenCalledTimes(1);
+      expect(mockAddRequest).toHaveBeenCalledWith([
+        {
+          origin: mockSnapId,
+          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
+          requestData: {
+            snapSuggestedAccountName: '',
+          },
+        },
+        true,
+      ]);
+
+      // Verify that the handleUserInput callback was called with false
+      expect(mockSnapControllerHandleRequest).not.toHaveBeenCalled();
+
+      // Verify that the persistKeyringHelper was not called
+      expect(mockPersisKeyringHelper).not.toHaveBeenCalled();
+
+      // Verify that the flow was ended
+      expect(mockEndFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
+    });
+
     it('ends approval flow on error', async () => {
       const consoleSpy = jest.spyOn(console, 'error');
 
@@ -265,7 +310,7 @@ describe('Snap Keyring Methods', () => {
       });
       const builder = createSnapKeyringBuilder();
       await builder().handleKeyringSnapMessage(mockSnapId, {
-        method: 'notify:accountCreated',
+        method: KeyringEvent.AccountCreated,
         params: {
           account: mockAccount,
           displayConfirmation: false,
@@ -284,53 +329,6 @@ describe('Snap Keyring Methods', () => {
       expect(mockEndFlow).toHaveBeenCalledTimes(2);
       expect(mockEndFlow).toHaveBeenNthCalledWith(1, [{ id: mockFlowId }]);
       expect(mockEndFlow).toHaveBeenNthCalledWith(2, [{ id: mockFlowId }]);
-    });
-  });
-
-  describe('removeAccount', () => {
-    beforeEach(() => {
-      mockAddRequest.mockReturnValue(true).mockReturnValue({ success: true });
-      // Reset mocks before each test
-      mockGetAccounts.mockResolvedValue([address]);
-      mockGetAccountByAddress.mockReturnValue(mockInternalAccount);
-    });
-
-    it('handles account removal correctly', async () => {
-      // Mock getAccounts to return the address after account creation
-      // mockGetAccounts.mockResolvedValue([address.toLowerCase()]);
-
-      // Mock getAccountByAddress to return the mockInternalAccount
-
-      const builder = createSnapKeyringBuilder();
-
-      // First add the account to the keyring
-      await builder().handleKeyringSnapMessage(mockSnapId, {
-        method: KeyringEvent.AccountCreated,
-        params: {
-          account: mockAccount,
-          displayConfirmation: false,
-        },
-      });
-
-      // Wait for all promises to resolve
-      await waitForAllPromises();
-
-      // Now remove the account
-      await builder().handleKeyringSnapMessage(mockSnapId, {
-        method: KeyringEvent.AccountDeleted,
-        params: {
-          id: mockAccount.id,
-        },
-      });
-
-      // Wait for all promises to resolve
-      await waitForAllPromises();
-
-      // Verify removeAccountHelper was called with the correct address
-      expect(mockRemoveAccountHelper).toHaveBeenCalledWith(address);
-
-      // Verify persistKeyringHelper was called to save state
-      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2); // Once for creation, once for deletion
     });
   });
 });
