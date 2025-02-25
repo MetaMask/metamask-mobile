@@ -2614,6 +2614,7 @@
     "done": "Done",
     "fetching_quotes": "Fetching quotes",
     "select_a_quote": "Select a Quote",
+    "recommended_quote": "Recommended quote",
     "select_a_cryptocurrency": "Select a cryptocurrency",
     "select_a_cryptocurrency_description": "Select from the list of tokens available on {{network}}.",
     "search_by_cryptocurrency": "Search by cryptocurrency",

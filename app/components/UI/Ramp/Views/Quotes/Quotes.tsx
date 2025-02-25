@@ -715,7 +715,7 @@ function Quotes() {
     return (
       <BottomSheet ref={bottomSheetRef}>
         <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)}>
-          {strings('fiat_on_ramp_aggregator.select_a_quote')}
+          {strings('fiat_on_ramp_aggregator.recommended_quote')}
         </BottomSheetHeader>
 
         {isInPolling && (

@@ -4028,7 +4028,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 }
                                 testID="header-title"
                               >
-                                Select a Quote
+                                Recommended quote
                               </Text>
                             </View>
                             <View
