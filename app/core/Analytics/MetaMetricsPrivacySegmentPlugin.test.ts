@@ -111,7 +111,7 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
     expect(processedEvent.userId).toBe(METAMETRICS_ANONYMOUS_ID);
   });
 
-  it('replaces anonymousId if not our custom null id', async () => {
+  it('replaces anonymousId if not custom null id', async () => {
     const event: TrackEventType = {
       event: 'Test Event',
       type: EventType.TrackEvent,
@@ -124,6 +124,26 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
     const processedEvent = await plugin.execute(event);
 
     expect(processedEvent.anonymousId).toBe(METAMETRICS_ANONYMOUS_ID);
+    expect(mockAnalytics.userInfo.set).toHaveBeenCalledTimes(1);
+    expect(mockAnalytics.userInfo.set).toHaveBeenCalledWith({
+      anonymousId: METAMETRICS_ANONYMOUS_ID,
+    });
+  });
+
+  it('does not replaces anonymousId if already custom null id', async () => {
+    const event: TrackEventType = {
+      event: 'Test Event',
+      type: EventType.TrackEvent,
+      anonymousId: METAMETRICS_ANONYMOUS_ID
+    };
+
+    const plugin = new MetaMetricsPrivacySegmentPlugin(mockUserId);
+    plugin.configure(mockAnalytics);
+
+    const processedEvent = await plugin.execute(event);
+
+    expect(processedEvent.anonymousId).toBe(METAMETRICS_ANONYMOUS_ID);
+    expect(mockAnalytics.userInfo.set).not.toHaveBeenCalled();
   });
 
   it('does not replace userId for non-anonymous track events', async () => {
