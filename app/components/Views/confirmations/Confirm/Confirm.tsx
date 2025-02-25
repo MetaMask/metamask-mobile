@@ -1,5 +1,10 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { useStyles } from '../../../../component-library/hooks';
@@ -26,15 +31,14 @@ const ConfirmWrapped = ({
 }) => (
   <QRHardwareContextProvider>
     <Title />
-    <View style={styles.scrollWrapper}>
-      <ScrollView
-        style={styles.scrollable}
-        contentContainerStyle={styles.scrollableSection}
-      >
-        <SignatureBlockaidBanner />
-        <Info />
-      </ScrollView>
-    </View>
+    <ScrollView style={styles.scrollable}>
+      <TouchableWithoutFeedback>
+        <View style={styles.scrollableSection}>
+          <SignatureBlockaidBanner />
+          <Info />
+        </View>
+      </TouchableWithoutFeedback>
+    </ScrollView>
     <Footer />
   </QRHardwareContextProvider>
 );
@@ -48,7 +52,7 @@ const Confirm = () => {
     transactionMetadata?.type as TransactionType,
   );
 
-  const { styles } = useStyles(styleSheet, { isFlatConfirmation });
+  const { styles } = useStyles(styleSheet, {});
 
   if (!isRedesignedEnabled) {
     return null;
@@ -56,10 +60,7 @@ const Confirm = () => {
 
   if (isFlatConfirmation) {
     return (
-      <View
-        style={styles.flatContainer}
-        testID="flat-confirmation-container"
-      >
+      <View style={styles.flatContainer} testID="flat-confirmation-container">
         <ConfirmWrapped styles={styles} />
       </View>
     );
