@@ -4,7 +4,7 @@ import Engine from '../../../../core/Engine';
 import { decimalToHex } from '../../../../util/conversions';
 import { selectSwapsApprovalTransaction } from '../../../../reducers/swaps';
 import { Quote, TxParams } from '@metamask/swaps-controller/dist/types';
-import { selectChainId , selectIsEIP1559Network } from '../../../../selectors/networkController';
+import { selectEvmChainId, selectIsEIP1559Network } from '../../../../selectors/networkController';
 import { getGasFeeEstimatesForTransaction } from './gas';
 import { Hex } from '@metamask/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -101,7 +101,7 @@ export const useSwapsSmartTransactions = ({ tradeTransaction, gasEstimates }: { 
   gasPrice: string;
   medium: string;
 } }) => {
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const isEIP1559Network = useSelector(selectIsEIP1559Network);
   const approvalTransaction: TxParams = useSelector(selectSwapsApprovalTransaction);
 
