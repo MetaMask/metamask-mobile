@@ -129,7 +129,7 @@ class NavbarTitle extends PureComponent {
     const styles = createStyles(colors);
 
     if (selectedNetworkName || networkName) {
-      name = selectedNetworkName || networkName;
+      name = networkName || selectedNetworkName;
       // TODO: [SOLANA] Revisit this before shipping, some screens do not pass a network name as a prop, consider using the selector instead
     } else if (providerConfig.nickname) {
       name = providerConfig.nickname;

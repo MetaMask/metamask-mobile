@@ -10,6 +10,7 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
 import { isSIWESignatureRequest , isRecognizedPermit, parseTypedDataMessageFromSignatureRequest } from '../../../utils/signature';
+import { useStandaloneConfirmation } from '../../../hooks/useStandaloneConfirmation';
 import styleSheet from './Title.styles';
 
 const getTitleAndSubTitle = (approvalRequest?: ApprovalRequest<{ data: string }>, signatureRequest?: SignatureRequest) => {
@@ -60,6 +61,11 @@ const Title = () => {
   const { approvalRequest } = useApprovalRequest();
   const signatureRequest = useSignatureRequest();
   const { styles } = useStyles(styleSheet, {});
+  const { isStandaloneConfirmation } = useStandaloneConfirmation();
+
+  if (isStandaloneConfirmation) {
+    return null;
+  }
 
   const { title, subTitle } = getTitleAndSubTitle(approvalRequest, signatureRequest);
 
