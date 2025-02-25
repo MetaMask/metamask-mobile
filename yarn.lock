@@ -4586,7 +4586,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.2", "@metamask/base-controller@^7.0.3", "@metamask/base-controller@^7.1.1":
+"@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.2", "@metamask/base-controller@^7.0.3", "@metamask/base-controller@^7.1.0", "@metamask/base-controller@^7.1.1":
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.1.1.tgz#837216ee099563b2106202fa0ed376dc909dfbb9"
   integrity sha512-4nbA6RL9y0SdHdn4MmMTREX6ISJL7OGHn0GXXszv0tp1fdjsn+SBs28uu1a9ceg1J7R/lO6JH7jAAz8zRtt8Nw==
@@ -5399,14 +5399,14 @@
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
-"@metamask/remote-feature-flag-controller@^1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.5.0.tgz#3a5078d698c1e603e51c4d3f155ce9d228ae07ea"
-  integrity sha512-r+t/t3jKjpsVdoOVWWt6ulZHRhQn8gAMLID1l0QvQgmzQy87ayTDU7WAnyw+jFyO4z+OA/uCwj4EwN+M2rPXgA==
+"@metamask/remote-feature-flag-controller@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.3.0.tgz#b83fc08c413b229b24046c84e2599d4dab2bafd8"
+  integrity sha512-h5DnnqbFxLsm8N98rrlVwUpQvvH03epb+1YhRMghIKa5WtjyoERV2wp0MuSH8l2Or4+ccx8eLv/X2bsnmtujGw==
   dependencies:
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.5.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/base-controller" "^7.1.0"
+    "@metamask/utils" "^11.0.1"
+    cockatiel "^3.1.2"
     uuid "^8.3.2"
 
 "@metamask/rpc-errors@7.0.2", "@metamask/rpc-errors@^6.2.1", "@metamask/rpc-errors@^7.0.0", "@metamask/rpc-errors@^7.0.2":
