@@ -43,6 +43,7 @@ import {
   TransactionController,
   TransactionMeta,
   TransactionControllerOptions,
+  TransactionControllerMessenger,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
@@ -64,6 +65,8 @@ import {
   JsonSnapsRegistry,
   SnapController,
   SnapsRegistryMessenger,
+  SnapInterfaceController,
+  SnapInterfaceControllerMessenger,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -87,7 +90,6 @@ import {
 } from '@metamask/eth-ledger-bridge-keyring';
 import {
   Encryptor,
-  hmacSha512,
   LEGACY_DERIVATION_OPTIONS,
   pbkdf2,
 } from '../Encryptor';
@@ -168,11 +170,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
-import {
-  selectSwapsChainFeatureFlags,
-  selectSwapsQuotes,
-  selectSwapsTopAggId,
-} from '../../reducers/swaps';
+import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import {
   SmartTransactionStatuses,
   ClientId,
@@ -202,10 +200,7 @@ import { setupCurrencyRateSync } from './controllers/RatesController/subscriptio
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
-import {
-  getSmartTransactionMetricsProperties,
-  getGasIncludedTransactionFees,
-} from '../../util/smart-transactions';
+import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
@@ -597,7 +592,6 @@ export class Engine {
 
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
       state: initialState.RemoteFeatureFlagController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
         allowedActions: [],
@@ -647,7 +641,7 @@ export class Engine {
 
     const hdKeyringBuilder = () =>
       new HDKeyring({
-        cryptographicFunctions: { pbkdf2Sha512: pbkdf2, hmacSha512 },
+        cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
       });
     hdKeyringBuilder.type = HDKeyring.type;
     additionalKeyrings.push(hdKeyringBuilder);
@@ -788,13 +782,27 @@ export class Engine {
           origin,
         );
       },
+      createInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:createInterface',
+      ),
+      getInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:getInterface',
+      ),
+      updateInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:updateInterface',
+      ),
+      requestUserApproval:
+        approvalController.addAndShowApprovalRequest.bind(approvalController),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
           origin,
           target,
         ),
-      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2, hmacSha512 }),
+      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -1079,8 +1087,28 @@ export class Engine {
       }),
       clientCryptography: {
         pbkdf2Sha512: pbkdf2,
-        hmacSha512,
       },
+    });
+
+    const snapInterfaceControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapInterfaceController',
+        allowedActions: [
+          'PhishingController:maybeUpdateState',
+          'PhishingController:testOrigin',
+          'ApprovalController:hasRequest',
+          'ApprovalController:acceptRequest',
+          'SnapController:get',
+        ],
+        allowedEvents: [
+          'NotificationServicesController:notificationsListUpdated',
+        ],
+      });
+
+    const snapInterfaceController = new SnapInterfaceController({
+      messenger:
+        snapInterfaceControllerMessenger as unknown as SnapInterfaceControllerMessenger,
+      state: initialState.SnapInterfaceController,
     });
 
     const authenticationController = new AuthenticationController.Controller({
@@ -1259,15 +1287,10 @@ export class Engine {
       getNetworkState: () => networkController.state,
       hooks: {
         publish: (transactionMeta) => {
-          const state = store.getState();
-          const shouldUseSmartTransaction =
-            selectShouldUseSmartTransaction(state);
-          const swapsQuotes = selectSwapsQuotes(state);
-          // We can choose the top agg id for now. Once selection is enabled, we need
-          // to look for a selected agg id.
-          const swapsTopAggId = selectSwapsTopAggId(state);
-          const selectedQuote = swapsQuotes?.[swapsTopAggId];
-          const transactionFees = getGasIncludedTransactionFees(selectedQuote);
+          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+            store.getState(),
+          );
+
           return submitSmartTransactionHook({
             transactionMeta,
             transactionController: this.transactionController,
@@ -1276,8 +1299,7 @@ export class Engine {
             approvalController,
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             controllerMessenger: this.controllerMessenger,
-            featureFlags: selectSwapsChainFeatureFlags(state),
-            transactionFees,
+            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
           }) as Promise<{ transactionHash: string }>;
         },
       },
@@ -1306,7 +1328,7 @@ export class Engine {
           `${networkController.name}:findNetworkClientIdByChainId`,
         ],
         allowedEvents: [`NetworkController:stateChange`],
-      }),
+      }) as unknown as TransactionControllerMessenger,
       pendingTransactions: {
         isResubmitEnabled: () => false,
       },
@@ -1572,6 +1594,7 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
+      SnapInterfaceController: snapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -2201,6 +2224,7 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2243,6 +2267,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,

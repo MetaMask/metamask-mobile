@@ -44,9 +44,9 @@ import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
   // Pending updated multichain UX to specify the send chain.
   // eslint-disable-next-line no-restricted-syntax
-  selectChainId,
+  selectEvmChainId,
   selectNativeCurrencyByChainId,
-  selectProviderTypeByChainId
+  selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
@@ -389,8 +389,8 @@ class SendFlow extends PureComponent {
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
       : matchingAccount
-        ? matchingAccount.metadata.name
-        : null;
+      ? matchingAccount.metadata.name
+      : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
@@ -688,7 +688,7 @@ class SendFlow extends PureComponent {
 SendFlow.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
-  const globalChainId = selectChainId(state);
+  const globalChainId = selectEvmChainId(state);
 
   return {
     addressBook: selectAddressBook(state),
