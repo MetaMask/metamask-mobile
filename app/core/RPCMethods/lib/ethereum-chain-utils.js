@@ -299,7 +299,7 @@ export async function switchToNetwork({
       networkConfigurationId || networkConfiguration.networkType,
     );
   } else {
-    MultichainNetworkController.setActiveNetwork(
+    await MultichainNetworkController.setActiveNetwork(
       networkConfigurationId || networkConfiguration.networkType,
     );
   }

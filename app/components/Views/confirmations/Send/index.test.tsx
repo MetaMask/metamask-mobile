@@ -11,6 +11,7 @@ import {
   DeepPartial,
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockedNetworkControllerState = mockNetworkState({
   chainId: CHAIN_IDS.MAINNET,
@@ -119,6 +120,11 @@ const initialState: DeepPartial<RootState> = {
         gasFeeEstimates: {},
         estimatedGasFeeTimeBounds: {},
         gasEstimateType: 'none',
+      },
+      MultichainNetworkController: {
+        isEvmSelected: true,
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+        multichainNetworkConfigurationsByChainId: {},
       },
     },
   },

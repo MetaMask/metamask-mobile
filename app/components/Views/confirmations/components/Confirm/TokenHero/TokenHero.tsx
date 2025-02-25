@@ -21,16 +21,16 @@ const NetworkAndTokenImage = ({
   tokenSymbol: string;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
 }) => (
-    <View style={styles.networkAndTokenContainer}>
-      <BadgeWrapper
-        badgeElement={
-          <Badge imageSource={images.ETHEREUM} variant={BadgeVariant.Network} />
-        }
-      >
-        <TokenIcon big symbol={tokenSymbol} />
-      </BadgeWrapper>
-    </View>
-  );
+  <View style={styles.networkAndTokenContainer}>
+    <BadgeWrapper
+      badgeElement={
+        <Badge imageSource={images.ETHEREUM} variant={BadgeVariant.Network} />
+      }
+    >
+      <TokenIcon big symbol={tokenSymbol} />
+    </BadgeWrapper>
+  </View>
+);
 
 const AssetAmount = ({
   tokenAmountDisplayValue,
@@ -41,12 +41,12 @@ const AssetAmount = ({
   tokenSymbol: string;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
 }) => (
-    <View style={styles.assetAmountContainer}>
-      <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
-        {tokenAmountDisplayValue} {tokenSymbol}
-      </Text>
-    </View>
-  );
+  <View style={styles.assetAmountContainer}>
+    <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
+      {tokenAmountDisplayValue} {tokenSymbol}
+    </Text>
+  </View>
+);
 
 const AssetFiatConversion = ({
   fiatDisplayValue,
@@ -55,12 +55,10 @@ const AssetFiatConversion = ({
   fiatDisplayValue: string;
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
 }) => (
-    <View style={styles.assetFiatConversionContainer}>
-      <Text style={styles.assetFiatConversionText} variant={TextVariant.BodyMD}>
-        {fiatDisplayValue}
-      </Text>
-    </View>
-  );
+  <Text style={styles.assetFiatConversionText} variant={TextVariant.BodyMD}>
+    {fiatDisplayValue}
+  </Text>
+);
 
 const TokenHero = () => {
   const { styles } = useStyles(styleSheet, {});

@@ -12,7 +12,7 @@ import { RampType } from '../../types';
 import { QuoteTags } from '@consensys/on-ramp-sdk/dist/API';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectIpfsGateway } from '../../../../../selectors/preferencesController';
-
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 // Mock the selectIpfsGateway selector
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
@@ -61,10 +61,17 @@ const mockSellQuote: SellQuoteResponse = {
   sell: () => undefined,
 };
 
+const defaultState = {
+  engine: {
+    backgroundState,
+  },
+};
+
 describe('Quote Component', () => {
   it('renders correctly with buy quote', () => {
     const { getByText } = renderWithProvider(
       <Quote quote={mockQuote} showInfo={jest.fn()} rampType={RampType.BUY} />,
+      { state: defaultState },
     );
 
     expect(getByText('Continue with Mock Provider')).toBeTruthy();
@@ -79,6 +86,7 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.SELL}
       />,
+      { state: defaultState },
     );
 
     expect(getByText('Continue with Mock Sell Provider')).toBeTruthy();
@@ -95,6 +103,7 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.BUY}
       />,
+      { state: defaultState },
     );
 
     fireEvent.press(getByLabelText('Mock Provider'));
@@ -109,6 +118,7 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.BUY}
       />,
+      { state: defaultState },
     );
 
     expect(getByTestId('buy-button-loading')).toBeTruthy();
@@ -122,6 +132,7 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.BUY}
       />,
+      { state: defaultState },
     );
 
     expect(getByText('Previously used')).toBeTruthy();
@@ -130,6 +141,7 @@ describe('Quote Component', () => {
   it('displays best rate tag', () => {
     const { getByText } = renderWithProvider(
       <Quote quote={mockQuote} showInfo={jest.fn()} rampType={RampType.BUY} />,
+      { state: defaultState },
     );
 
     expect(getByText('Best rate')).toBeTruthy();
@@ -144,6 +156,7 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.BUY}
       />,
+      { state: defaultState },
     );
 
     fireEvent.press(getByText('Continue with Mock Provider'));

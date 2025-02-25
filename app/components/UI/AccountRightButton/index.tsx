@@ -23,13 +23,13 @@ import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { selectProviderConfig } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import UrlParser from 'url-parse';
+import { selectEvmChainId } from '../../../selectors/networkController';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -72,7 +72,7 @@ const AccountRightButton = ({
   /**
    * Current network
    */
-  const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectEvmChainId);
 
   const handleKeyboardVisibility = useCallback(
     (visibility: boolean) => () => {
@@ -117,11 +117,14 @@ const AccountRightButton = ({
     if (!selectedAddress && isNetworkVisible) {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
+        params: {
+          evmChainId: chainId,
+        },
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
           .addProperties({
-            chain_id: getDecimalChainId(providerConfig.chainId),
+            chain_id: getDecimalChainId(chainId),
           })
           .build(),
       );
@@ -132,11 +135,11 @@ const AccountRightButton = ({
     dismissKeyboard,
     selectedAddress,
     isNetworkVisible,
-    onPress,
     navigate,
-    providerConfig.chainId,
     trackEvent,
     createEventBuilder,
+    chainId,
+    onPress,
   ]);
 
   const route = useRoute<RouteProp<Record<string, { url: string }>, string>>();

@@ -22,20 +22,18 @@ export const button: UIComponentFactory<ButtonElementProps> = ({
 }) => ({
   element: 'SnapUIButton',
   props: {
-    // type not used in mobile
-    type: e.type,
-    // form not used in mobile
-    form: e.props.form,
+    type: e.props.type,
+    // This differs from the extension implementation because we don't have proper form support on RN
+    form: e.props.form ?? params.form,
     variant: e.props.variant,
     name: e.props.name,
     disabled: e.props.disabled,
     loading: e.props.loading ?? false,
-    label: mapTextToTemplate(
-      getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-      params,
-    ),
+    // TODO: This prop is currently not used.
     textVariant:
-      e.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
+      e.props.size === 'sm'
+        ? TextVariant.BodySMMedium
+        : TextVariant.BodyMDMedium,
   },
   children: mapTextToTemplate(
     getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
