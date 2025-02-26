@@ -17,7 +17,6 @@ interface TemporarySmartTransactionGasFees {
 const createSignedTransactions = async (
   unsignedTransaction: Partial<TransactionParams> & { from: string; chainId: string },
   fees: TemporarySmartTransactionGasFees[],
-  areCancelTransactions?: boolean,
 ): Promise<string[]> => {
   const { TransactionController } = Engine.context;
 
@@ -26,15 +25,9 @@ const createSignedTransactions = async (
       ...unsignedTransaction,
       maxFeePerGas: decimalToHex(fee.maxFeePerGas).toString(),
       maxPriorityFeePerGas: decimalToHex(fee.maxPriorityFeePerGas).toString(),
-      gas: areCancelTransactions
-        ? decimalToHex(21000).toString() // It has to be 21000 for cancel transactions, otherwise the API would reject it.
-        : unsignedTransaction.gas,
+      gas: unsignedTransaction.gas,
       value: unsignedTransaction.value,
     };
-    if (areCancelTransactions) {
-      unsignedTransactionWithFees.to = unsignedTransactionWithFees.from;
-      unsignedTransactionWithFees.data = '0x';
-    }
     return unsignedTransactionWithFees;
   });
   const signedTransactions = await TransactionController.approveTransactionsWithSameNonce(
