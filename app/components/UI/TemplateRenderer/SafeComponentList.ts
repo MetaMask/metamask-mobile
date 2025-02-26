@@ -18,6 +18,7 @@ import { SnapUIFooterButton } from '../../Snaps/SnapUIFooterButton/SnapUIFooterB
 import { ConfirmInfoRowValueDouble } from '../../../component-library/components-temp/Snaps/ConfirmInfoRowValueDouble/ConfirmInfoRowValueDouble';
 import { SnapUIIcon } from '../../Snaps/SnapUIIcon/SnapUIIcon';
 import { SnapUIButton } from '../../Snaps/SnapUIButton/SnapUIButton';
+import { SnapUIBanner } from '../../Snaps/SnapUIBanner/SnapUIBanner';
 import { SnapUICheckbox } from '../../Snaps/SnapUICheckbox/SnapUICheckbox';
 import { SnapUIAddress } from '../../UI/Snaps/SnapUIAddress/SnapUIAddress';
 import { SnapUIAvatar } from '../../UI/Snaps/SnapUIAvatar/SnapUIAvatar';
@@ -47,6 +48,7 @@ export const safeComponentList = {
   SnapUICheckbox,
   SnapUIAvatar,
   SnapUIAddress,
+  SnapUIBanner,
   InfoRow,
   RNText,
 };
