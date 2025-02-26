@@ -12,6 +12,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
+import { useDisplayName } from './useDisplayName';
 
 export interface SnapUIAddressProps {
   // The address must be a CAIP-10 string.
@@ -27,7 +28,6 @@ export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
   address,
   avatarSize = 'md',
   truncate = true,
-  // TODO: Support this prop
   displayName = false,
   avatar = true,
 }) => {
@@ -56,6 +56,8 @@ export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
     ? shortenString(transformedAddress)
     : address;
 
+  const name = useDisplayName(parsed);
+
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -64,7 +66,7 @@ export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
     >
       {avatar && <SnapUIAvatar address={caipIdentifier} size={avatarSize} />}
       <Text variant={TextVariant.BodyMD} color="inherit">
-        {formattedAddress}
+        {displayName && name ? name : formattedAddress}
       </Text>
     </Box>
   );
