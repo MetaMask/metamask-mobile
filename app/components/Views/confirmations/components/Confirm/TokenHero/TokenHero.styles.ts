@@ -12,8 +12,6 @@ const styleSheet = (params: { theme: Theme }) => {
     assetAmountText: {
       textAlign: 'center',
     },
-    assetFiatConversionContainer: {
-    },
     assetFiatConversionText: {
       textAlign: 'center',
       color: theme.colors.text.alternative,
@@ -27,9 +25,10 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 48,
       height: 48,
     },
-    container:{
-      paddingVertical: 8
-    }
+    container: {
+      paddingBottom: 8,
+      paddingTop: 16,
+    },
   });
 };
 

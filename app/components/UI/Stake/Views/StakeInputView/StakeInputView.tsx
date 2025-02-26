@@ -82,6 +82,9 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
         amountWei.toString(),
         activeAccount?.address as string,
       );
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+      });
       return;
     }
 
