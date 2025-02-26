@@ -24,6 +24,7 @@ import createFilterMiddleware from '@metamask/eth-json-rpc-filters';
 import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 import pump from 'pump';
+import { PROTOCOLS } from '../../constants/deeplinks';
 
 interface ISnapBridgeProps {
   snapId: string;
@@ -52,7 +53,7 @@ export default class SnapBridge {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #blockTrackerProxy: any;
-  #origin: string;
+  #subject: string;
   #domain: string;
   #deprecatedNetworkVersions: Record<string, string>;
 
@@ -65,10 +66,8 @@ export default class SnapBridge {
       '[SNAP BRIDGE LOG] Engine+setupSnapProvider: Setup bridge for Snap',
       snapId,
     );
-    const urlObject = new URL(snapId);
-    const { hostname, protocol, origin } = urlObject;
-    this.#domain = hostname;
-    this.#origin = origin ?? `${protocol}${hostname}`;
+    this.#domain = snapId;
+    this.#subject = `${PROTOCOLS.SNAP}://${snapId}`;
     this.stream = connectionStream;
     this.getRPCMethodMiddleware = getRPCMethodMiddleware;
     this.#deprecatedNetworkVersions = {};
@@ -164,7 +163,7 @@ export default class SnapBridge {
 
     engine.push(
       PermissionController.createPermissionMiddleware({
-        origin: this.#origin,
+        origin: this.#subject,
       }),
     );
 
@@ -172,7 +171,7 @@ export default class SnapBridge {
       snapMethodMiddlewareBuilder(
         context,
         controllerMessenger,
-        this.#origin,
+        this.#subject,
         SubjectType.Snap,
       ),
     );
@@ -182,7 +181,7 @@ export default class SnapBridge {
       this.getRPCMethodMiddleware({
         getProviderState: this.getProviderState.bind(this),
         getSubjectInfo: () => ({
-          origin: this.#origin,
+          origin: this.#subject,
           domain: this.#domain,
         }),
       }),

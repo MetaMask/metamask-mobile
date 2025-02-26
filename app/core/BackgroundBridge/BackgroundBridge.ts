@@ -83,7 +83,9 @@ export class BackgroundBridge extends EventEmitter {
   #isWalletConnect: boolean;
   #disconnected: boolean;
   #deprecatedNetworkVersions: Record<string, string>;
-  origin: string;
+  #subject: string;
+
+  // This is currently accessed by WalletConnect.js
   domain: string;
 
   constructor({
@@ -103,14 +105,12 @@ export class BackgroundBridge extends EventEmitter {
     const urlObject = new URL(url);
     const { hostname, protocol, origin } = urlObject;
     this.domain = hostname;
-    this.origin = origin ?? `${protocol}${hostname}`;
+    this.#subject = origin ?? `${protocol}${hostname}`;
     this.#isMMSDK = isMMSDK ?? false;
     this.#isWalletConnect = isWalletConnect ?? false;
     this.#disconnected = false;
     this.#deprecatedNetworkVersions = {};
-
     this.#createRpcMiddleware = getRpcMethodMiddleware;
-
     this.#port = port;
 
     const networkClientId = Engine.controllerMessenger.call(
@@ -251,10 +251,10 @@ export class BackgroundBridge extends EventEmitter {
       let approvedAccounts = [];
       DevLogger.log(
         `notifySelectedAddressChanged: ${selectedAddress} origin=${
-          this.origin
-        } wc=${this.#isWalletConnect} url=${this.origin}`,
+          this.#subject
+        } wc=${this.#isWalletConnect} url=${this.#subject}`,
       );
-      approvedAccounts = await getPermittedAccounts(this.origin);
+      approvedAccounts = await getPermittedAccounts(this.#subject);
       // Check if selectedAddress is approved
       const found = approvedAccounts
         .map((addr) => addr.toLowerCase())
@@ -270,7 +270,9 @@ export class BackgroundBridge extends EventEmitter {
         ];
 
         DevLogger.log(
-          `notifySelectedAddressChanged url: ${this.origin} hostname: ${this.domain}: ${selectedAddress}`,
+          `notifySelectedAddressChanged url: ${this.#subject} hostname: ${
+            this.domain
+          }: ${selectedAddress}`,
           approvedAccounts,
         );
         this.sendNotification({
@@ -356,7 +358,7 @@ export class BackgroundBridge extends EventEmitter {
       : 'metamask-provider';
 
     // Setup multiplexing
-    const portStream = new MobilePortStream(this.#port, this.origin);
+    const portStream = new MobilePortStream(this.#port, this.#subject);
     const mux = setupMultiplex(portStream);
     const outStream = mux.createStream(multiplexStreamName);
     this.#jsonRpcEngine = this.setupProviderEngine();
@@ -413,7 +415,7 @@ export class BackgroundBridge extends EventEmitter {
           const selectedAddress = this.getState().selectedAddress;
           this.notifySelectedAddressChanged(selectedAddress);
         },
-        (state) => state.subjects[this.origin],
+        (state) => state.subjects[this.#subject],
       );
     } catch (err) {
       DevLogger.log(`Error in BackgroundBridge: ${err}`);
@@ -447,14 +449,14 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     // metadata
-    baseJsonRpcEngine.push(createOriginMiddleware({ origin: this.origin }));
+    baseJsonRpcEngine.push(createOriginMiddleware({ origin: this.#subject }));
     baseJsonRpcEngine.push(
       createSelectedNetworkMiddleware(
         // @ts-expect-error FIXME: Type expects a SelectedNetworkControllerMessenger, but it's using controller messenger from Engine instead
         Engine.controllerMessenger,
       ),
     );
-    baseJsonRpcEngine.push(createLoggerMiddleware({ origin: this.origin }));
+    baseJsonRpcEngine.push(createLoggerMiddleware({ origin: this.#subject }));
     // filter and subscription polyfills
     baseJsonRpcEngine.push(filterMiddleware);
     baseJsonRpcEngine.push(subscriptionManager.middleware);
@@ -465,7 +467,7 @@ export class BackgroundBridge extends EventEmitter {
     // Legacy RPC methods that need to be implemented ahead of the permission middleware
     baseJsonRpcEngine.push(
       createLegacyMethodMiddleware({
-        getAccounts: async () => await getPermittedAccounts(this.origin),
+        getAccounts: async () => await getPermittedAccounts(this.#subject),
       }),
     );
 
@@ -475,7 +477,7 @@ export class BackgroundBridge extends EventEmitter {
     // Append PermissionController middleware
     baseJsonRpcEngine.push(
       Engine.context.PermissionController.createPermissionMiddleware({
-        origin: this.origin,
+        origin: this.#subject,
       }),
     );
 
@@ -485,7 +487,7 @@ export class BackgroundBridge extends EventEmitter {
       snapMethodMiddlewareBuilder(
         Engine.context,
         Engine.controllerMessenger,
-        this.origin,
+        this.#subject,
         // We assume that origins connecting through the BackgroundBridge are websites
         SubjectType.Website,
       ),
@@ -497,7 +499,7 @@ export class BackgroundBridge extends EventEmitter {
       this.#createRpcMiddleware({
         getProviderState: this.getProviderState.bind(this),
         getSubjectInfo: () => ({
-          origin: this.origin,
+          origin: this.#subject,
           domain: this.domain,
           isMMSDK: this.#isMMSDK,
           isWalletConnect: this.#isWalletConnect,

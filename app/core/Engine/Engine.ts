@@ -88,11 +88,7 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import {
-  Encryptor,
-  LEGACY_DERIVATION_OPTIONS,
-  pbkdf2,
-} from '../Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import {
   isMainnetByChainId,
   isTestNet,
@@ -234,7 +230,6 @@ import {
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
-import { PROTOCOLS } from '../../constants/deeplinks';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -963,7 +958,7 @@ export class Engine {
       // Develop a simpler getRpcMethodMiddleware object for SnapBridge
       // Consider developing an abstract class to derived custom implementations for each use case
       const bridge = new SnapBridge({
-        snapId: `${PROTOCOLS.SNAP}://${snapId}`,
+        snapId,
         connectionStream,
         getRPCMethodMiddleware: ({ getProviderState, getSubjectInfo }) =>
           getRpcMethodMiddleware({
