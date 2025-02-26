@@ -19,6 +19,7 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
+import Engine from '../../core/Engine';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -139,6 +140,11 @@ const selectNonEvmCachedBalance = createDeepEqualSelector(
   selectMultichainBalances,
   selectSelectedNonEvmNetworkChainId,
   (selectedInternalAccount, multichainBalances, nonEvmChainId) => {
+    console.log('multichainBalances', multichainBalances);
+    console.log(
+      'multichainBalances from engine',
+      Engine.context.MultichainBalancesController.state,
+    );
     if (!selectedInternalAccount) {
       return undefined;
     }
@@ -172,6 +178,7 @@ export const selectMultichainConversionRate = createDeepEqualSelector(
   selectMultichainCoinRates,
   selectSelectedNonEvmNetworkSymbol,
   (isEvmSelected, evmConversionRate, multichaincCoinRates, nonEvmTicker) => {
+    console.log('multichaincCoinRates', multichaincCoinRates);
     if (isEvmSelected) {
       return evmConversionRate;
     }
