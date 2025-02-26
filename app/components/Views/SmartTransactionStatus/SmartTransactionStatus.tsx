@@ -27,6 +27,7 @@ import { hexToDecimal } from '../../../util/conversions';
 import useRemainingTime from './useRemainingTime';
 import { ThemeColors } from '@metamask/design-tokens';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectSmartTransactionsForCurrentChain } from '../../../selectors/smartTransactionsController';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -253,7 +254,15 @@ const SmartTransactionStatus = ({
   origin,
   onConfirm,
 }: Props) => {
-  const { status, creationTime, uuid } = smartTransaction;
+  const smartTransactions = useSelector(selectSmartTransactionsForCurrentChain);
+  const latestSmartTransaction = smartTransactions[smartTransactions.length - 1];
+
+  // We use a custom flow for swaps. We don't go through the STX hook for swaps, so there's no listener for the latest smart transaction.
+  // Read it directly from the SmartTransactionsController.
+  const { status, creationTime, uuid } = isInSwapFlow
+    ? latestSmartTransaction
+    : smartTransaction;
+
   const chainId = useSelector(selectEvmChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const navigation = useNavigation();
