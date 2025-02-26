@@ -3,12 +3,14 @@ import {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
+import { mockTheme } from '../../../../util/theme';
 import { icon } from './icon';
 
 describe('Icon UIComponentFactory', () => {
   const mockParams = {
     map: {},
     t: jest.fn(),
+    theme: mockTheme,
   };
 
   it('create correct element configuration with valid props', () => {

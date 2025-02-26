@@ -8,6 +8,7 @@ import { typedSignV3ConfirmationState } from '../../../../../../../util/test/con
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../../../context/QRHardwareContext/QRHardwareContext';
 import QRInfo from './QRInfo';
+import Engine from '../../../../../../../core/Engine';
 
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
@@ -16,6 +17,12 @@ jest.mock('../../../../../../../core/Engine', () => ({
     },
   },
 }));
+
+jest.mock('uuid', () => ({
+  stringify: jest.fn().mockReturnValue('c95ecc76-d6e9-4a0a-afa3-31429bc80566'),
+}));
+
+const MockEngine = jest.mocked(Engine);
 
 const MockView = View;
 const MockText = Text;
@@ -59,9 +66,18 @@ const mockQRState = {
 };
 
 describe('QRInfo', () => {
+
+  const mockKeyringController = MockEngine.context.KeyringController;
+  const mockSetRequestCompleted = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   const createQRHardwareHookSpy = (mockedValues = {}) => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       QRState: mockQRState,
+      setRequestCompleted: mockSetRequestCompleted,
       ...mockedValues,
     } as unknown as QRHardwareHook.QRHardwareContextType);
   };
@@ -122,7 +138,7 @@ describe('QRInfo', () => {
 
   it('submits request when onScanSuccess is called by scanner', () => {
     jest.spyOn(ETHSignature, 'fromCBOR').mockReturnValue({
-      getRequestId: () => undefined,
+      getRequestId: () => mockQRState.sign.request?.requestId,
     } as unknown as ETHSignature);
     const mockSetScannerVisible = jest.fn();
     createQRHardwareHookSpy({
@@ -133,6 +149,8 @@ describe('QRInfo', () => {
       state: typedSignV3ConfirmationState,
     });
     fireEvent.press(getByText('onScanSuccess'));
+    expect(mockKeyringController.submitQRSignature).toHaveBeenCalledTimes(1);
+    expect(mockSetRequestCompleted).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenCalledWith(false);
   });
