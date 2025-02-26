@@ -89,7 +89,7 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
             // be provided a key when a part of an array.
             if (!child.key) {
               throw new Error(
-                'When using array syntax in MetaMask Template Language, you must specify a key for each child of the array' + JSON.stringify(child),
+                'When using array syntax in MetaMask Template Language, you must specify a key for each child of the array',
               );
             }
             if (typeof child?.children === 'object') {
