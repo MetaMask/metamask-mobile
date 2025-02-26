@@ -54,7 +54,7 @@ export const SwapsSTXStatusModal = ({ isVisible, dismiss }: Props) => {
       onSwipeComplete={dismiss}
       swipeDirection={'down'}
       propagateSwipe
-    >
+      >
       <View style={styles.root}>
         <SmartTransactionStatus
           requestState={{

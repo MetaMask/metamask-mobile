@@ -413,7 +413,7 @@ describe('QuotesView', () => {
 
   describe('polling and error handling', () => {
     it('should show error when quotes are expired', async () => {
-      const state = merge(mockInitialState,  {
+      const state = merge({}, mockInitialState, {
         engine: {
           backgroundState: {
             SwapsController: {
@@ -427,6 +427,23 @@ describe('QuotesView', () => {
 
       const error = await wrapper.findByTestId('error-area');
       expect(error).toBeDefined();
+    });
+
+    it('should not show error when quotes are not expired', async () => {
+      const state = merge({}, mockInitialState, {
+        engine: {
+          backgroundState: {
+            SwapsController: {
+              isInPolling: true,
+              error: null,
+            },
+          },
+        },
+      });
+
+      const wrapper = render(QuotesView, state);
+      const topBar = await wrapper.findByTestId('top-bar');
+      expect(topBar).toBeDefined();
     });
   });
 });
