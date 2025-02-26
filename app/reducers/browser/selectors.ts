@@ -1,5 +1,7 @@
 import { RootState } from '..';
 
+export const selectBrowserState = (state: RootState) => state.browser;
+
 export const selectBrowserHistory = (state: RootState) => state.browser.history;
 
 /**

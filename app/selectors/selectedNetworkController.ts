@@ -95,7 +95,8 @@ export const makeSelectNetworkName = () =>
       chainId,
       hostname,
     ) => {
-      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK) return providerNetworkName;
+      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK)
+        return providerNetworkName;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       return (
@@ -193,7 +194,8 @@ export const makeSelectRpcUrl = () =>
       chainId,
       hostname,
     ) => {
-      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK) return providerRpcUrl;
+      if (!hostname || !process.env.MM_PER_DAPP_SELECTED_NETWORK)
+        return providerRpcUrl;
       const relevantNetworkClientId =
         domainNetworkClientId || globalNetworkClientId;
       return networkConfigurations[chainId]?.rpcEndpoints.find(

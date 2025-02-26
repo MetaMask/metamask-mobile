@@ -234,6 +234,7 @@ import {
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
+import { PROTOCOLS } from '../../constants/deeplinks';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -963,24 +964,22 @@ export class Engine {
       // Develop a simpler getRpcMethodMiddleware object for SnapBridge
       // Consider developing an abstract class to derived custom implementations for each use case
       const bridge = new SnapBridge({
-        snapId,
+        snapId: `${PROTOCOLS.SNAP}://${snapId}`,
         connectionStream,
-        getRPCMethodMiddleware: ({ hostname, getProviderState }) =>
+        getRPCMethodMiddleware: ({ getProviderState, getSubjectInfo }) =>
           getRpcMethodMiddleware({
-            hostname,
             getProviderState,
+            getSubjectInfo,
+            subjectDisplayInfo: {
+              title: 'Snap',
+              icon: undefined,
+            },
             navigation: null,
-            title: { current: 'Snap' },
-            icon: { current: undefined },
             isHomepage: () => false,
             fromHomepage: { current: false },
             toggleUrlModal: () => null,
             wizardScrollAdjusted: { current: false },
             tabId: false,
-            isWalletConnect: true,
-            isMMSDK: false,
-            url: { current: '' },
-            analytics: {},
             injectHomePageScripts: () => null,
           }),
       });
