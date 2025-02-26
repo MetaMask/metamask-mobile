@@ -1,6 +1,6 @@
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { isE2E } from '../util/test/utils';
+import { isTest } from '../util/test/utils';
 import { MMKV } from 'react-native-mmkv';
 
 /**
@@ -33,11 +33,8 @@ class StorageWrapper {
    * Initializes the storage based on the environment (E2E test or production).
    */
   private constructor() {
-    /**
-     * The underlying storage implementation.
-     * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
-     */
-    this.storage = isE2E ? ReadOnlyNetworkStore : new MMKV();
+    // TODO: ADD LOG here to explain why its always MMKV
+    this.storage = new MMKV();
   }
 
   /**
@@ -63,7 +60,7 @@ class StorageWrapper {
       const value = (await this.storage.getString(key)) ?? null;
       return value;
     } catch (error) {
-      if (isE2E) {
+      if (isTest) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
         return await AsyncStorage.getItem(key);
       }
@@ -93,7 +90,7 @@ class StorageWrapper {
         );
       return await this.storage.set(key, value);
     } catch (error) {
-      if (isE2E) {
+      if (isTest) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
         return await AsyncStorage.setItem(key, value);
       }
@@ -118,7 +115,7 @@ class StorageWrapper {
     try {
       return await this.storage.delete(key);
     } catch (error) {
-      if (isE2E) {
+      if (isTest) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
         return await AsyncStorage.removeItem(key);
       }
