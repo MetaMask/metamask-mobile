@@ -30,7 +30,7 @@ describe('text component', () => {
       element: 'Text',
       children: [
         {
-          element: 'Text',
+          element: 'RNText',
           children: 'Hello World',
           props: { color: 'inherit' },
         },

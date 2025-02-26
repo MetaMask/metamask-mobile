@@ -39,7 +39,7 @@ describe('box UIComponentFactory', () => {
           key: 'mock-key',
           children: [
             {
-              element: 'Text',
+              element: 'RNText',
               children: 'Test content',
               props: { color: 'inherit' },
             },
