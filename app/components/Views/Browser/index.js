@@ -103,9 +103,10 @@ export const Browser = (props) => {
   const hasAccounts = useRef(Boolean(accounts.length));
 
   useEffect(() => {
+    const { origin, hostname } = new URL(browserUrl);
+
     const checkIfActiveAccountChanged = async () => {
-      const hostname = new URL(browserUrl).hostname;
-      const permittedAccounts = await getPermittedAccounts(hostname);
+      const permittedAccounts = await getPermittedAccounts(origin);
       const activeAccountAddress = permittedAccounts?.[0];
 
       if (activeAccountAddress) {
@@ -131,8 +132,7 @@ export const Browser = (props) => {
     };
 
     // Handle when the Browser initially mounts and when url changes.
-    if (accounts.length && browserUrl) {
-      const hostname = new URL(browserUrl).hostname;
+    if (accounts.length) {
       if (prevSiteHostname.current !== hostname || !hasAccounts.current) {
         checkIfActiveAccountChanged();
       }

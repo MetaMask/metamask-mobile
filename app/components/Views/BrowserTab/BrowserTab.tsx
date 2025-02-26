@@ -13,7 +13,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import { connect, useSelector } from 'react-redux';
@@ -51,7 +50,7 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import { getPermittedAccountsBySubject } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectIpfsGateway,
@@ -72,7 +71,7 @@ import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/Brows
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import { selectPermittedAccounts } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 import { PermissionKeys } from '../../../core/Permissions/specifications';
@@ -174,15 +173,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const fromHomepage = useRef(false);
   const wizardScrollAdjustedRef = useRef(false);
   const searchEngine = useSelector(selectSearchEngine);
-  const permittedAccountsList = useSelector((state: RootState) => {
-    const permissionsControllerState = selectPermissionControllerState(state);
-    const hostname = new URLParse(resolvedUrlRef.current).hostname;
-    const permittedAcc = getPermittedAccountsByHostname(
-      permissionsControllerState,
-      hostname,
-    );
-    return permittedAcc;
-  }, isEqual);
+  const origin = new URLParse(resolvedUrlRef.current).origin;
+  const permittedAccountAddresses = useSelector(
+    selectPermittedAccounts(origin),
+  );
 
   const favicon = useFavicon(resolvedUrlRef.current);
   const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
@@ -403,10 +397,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const triggerDappViewedEvent = useCallback((urlToTrigger: string) => {
     const permissionsControllerState =
       Engine.context.PermissionController.state;
-    const hostname = new URLParse(urlToTrigger).hostname;
-    const connectedAccounts = getPermittedAccountsByHostname(
+    const { origin: subject, hostname } = new URLParse(urlToTrigger);
+    const connectedAccounts = getPermittedAccountsBySubject(
       permissionsControllerState,
-      hostname,
+      subject,
     );
 
     // Check if there are any connected accounts
@@ -607,12 +601,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       return;
     }
     if (!resolvedUrlRef.current) return;
-    const hostname = new URLParse(resolvedUrlRef.current).hostname;
+    const { origin: subject } = new URLParse(resolvedUrlRef.current);
     const permissionsControllerState =
       Engine.context.PermissionController.state;
-    const permittedAccounts = getPermittedAccountsByHostname(
+    const permittedAccounts = getPermittedAccountsBySubject(
       permissionsControllerState,
-      hostname,
+      subject,
     );
 
     const isConnected = permittedAccounts.length > 0;
@@ -621,7 +615,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       let permittedChains = [];
       try {
         const caveat = Engine.context.PermissionController.getCaveat(
-          hostname,
+          origin,
           PermissionKeys.permittedChains,
           CaveatTypes.restrictNetworkSwitching,
         );
@@ -638,7 +632,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               isNonDappNetworkSwitch: true,
               hostInfo: {
                 metadata: {
-                  origin: hostname,
+                  origin,
                 },
               },
               isRenderedAsBottomSheet: true,
@@ -651,7 +645,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         Logger.error(checkTabPermissionsError, 'Error in checkTabPermissions');
       }
     }
-  }, [activeChainId, navigation, isFocused, isInTabsView, isTabActive]);
+  }, [activeChainId, navigation, isFocused, isInTabsView, isTabActive, origin]);
 
   /**
    * Handles state changes for when the url changes
@@ -863,23 +857,24 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }, []);
 
   const initializeBackgroundBridge = useCallback(
-    (urlBridge: string) => {
+    (url: string) => {
       // First disconnect and reset bridge
       backgroundBridgeRef.current?.onDisconnect();
       backgroundBridgeRef.current = undefined;
 
       const newBridge = new BackgroundBridge({
-        url: urlBridge,
+        url,
         port: new WebViewPort(webviewRef),
-        getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+        getRpcMethodMiddleware: ({ getProviderState, getSubjectInfo }) =>
           getRpcMethodMiddleware({
-            hostname,
             getProviderState,
+            getSubjectInfo,
             navigation,
             // Website info
-            url: resolvedUrlRef,
-            title: titleRef,
-            icon: iconRef,
+            subjectDisplayInfo: {
+              title: titleRef.current,
+              icon: iconRef.current,
+            },
             // Bookmarks
             isHomepage,
             // Show autocomplete
@@ -889,10 +884,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             wizardScrollAdjusted: wizardScrollAdjustedRef,
             tabId,
             injectHomePageScripts,
-            // TODO: This properties were missing, and were not optional
-            isWalletConnect: false,
-            isMMSDK: false,
-            analytics: {},
           }),
       });
       backgroundBridgeRef.current = newBridge;
@@ -903,10 +894,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const sendActiveAccount = useCallback(async () => {
     notifyAllConnections({
       method: NOTIFICATION_NAMES.accountsChanged,
-      params: permittedAccountsList,
+      params: permittedAccountAddresses,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, permittedAccountsList]);
+  }, [notifyAllConnections, permittedAccountAddresses]);
 
   /**
    * Website started to load
@@ -951,7 +942,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   useEffect(() => {
     sendActiveAccount();
-  }, [sendActiveAccount, permittedAccountsList]);
+  }, [sendActiveAccount, permittedAccountAddresses]);
 
   /**
    * Check when the ipfs gateway is enabled to hide the banner
@@ -1307,7 +1298,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             onFocus={onFocusUrlBar}
             onBlur={hideAutocomplete}
             onChangeText={onChangeUrlBar}
-            connectedAccounts={permittedAccountsList}
+            connectedAccounts={permittedAccountAddresses}
             activeUrl={resolvedUrlRef.current}
             setIsUrlBarFocused={setIsUrlBarFocused}
             isUrlBarFocused={isUrlBarFocused}

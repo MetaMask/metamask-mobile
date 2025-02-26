@@ -24,8 +24,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import createStyles from './TabThumbnail.styles';
 import { TabThumbnailProps } from './TabThumbnail.types';
 import { useSelector } from 'react-redux';
-import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
-import { getPermittedAccountsByHostname } from '../../../../core/Permissions';
+import { selectPermittedAccounts } from '../../../../selectors/snaps/permissionController';
 import { useAccounts } from '../../../hooks/useAccounts';
 import { useFavicon } from '../../../hooks/useFavicon';
 
@@ -45,16 +44,12 @@ const TabThumbnail = ({
   const Container: React.ElementType = Device.isAndroid() ? View : ElevatedView;
   const tabTitle = getHost(tab.url);
 
-  // Get permitted accounts for this hostname
-  const permittedAccountsList = useSelector(selectPermissionControllerState);
-  const permittedAccountsByHostname = getPermittedAccountsByHostname(
-    permittedAccountsList,
-    tabTitle,
-  );
-  const activeAddress = permittedAccountsByHostname[0];
+  const activeAccountAddress = useSelector(selectPermittedAccounts(tab.url))[0];
+
   const { accounts } = useAccounts({});
   const selectedAccount = accounts.find(
-    (account) => account.address.toLowerCase() === activeAddress?.toLowerCase(),
+    (account) =>
+      account.address.toLowerCase() === activeAccountAddress?.toLowerCase(),
   );
   const { networkName, networkImageSource } = useNetworkInfo(tabTitle);
   const faviconSource = useFavicon(tab.url);
