@@ -3,6 +3,14 @@ import { getJsxChildren } from '@metamask/snaps-utils';
 import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 
+function transformSeverity(severity: BannerElement['props']['severity']): string {
+  if (severity === 'danger') {
+    return 'Error';
+  }
+
+  return severity?.charAt(0).toUpperCase() + severity?.slice(1);
+}
+
 export const banner: UIComponentFactory<BannerElement> = ({
   element: e,
   ...params
@@ -13,7 +21,6 @@ export const banner: UIComponentFactory<BannerElement> = ({
   ),
   props: {
     title: e.props.title,
-    severity:
-      e.props.severity?.charAt(0).toUpperCase() + e.props.severity?.slice(1),
+    severity: transformSeverity(e.props.severity),
   },
 });
