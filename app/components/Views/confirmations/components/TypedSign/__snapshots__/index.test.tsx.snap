@@ -114,6 +114,14 @@ exports[`TypedSign onConfirm signs message 1`] = `
           <View
             style={
               {
+                "marginBottom": 20,
+                "marginHorizontal": 20,
+              }
+            }
+          />
+          <View
+            style={
+              {
                 "paddingHorizontal": 24,
               }
             }
@@ -776,6 +784,14 @@ exports[`TypedSign onReject rejects message 1`] = `
               Sign this message?
             </Text>
           </View>
+          <View
+            style={
+              {
+                "marginBottom": 20,
+                "marginHorizontal": 20,
+              }
+            }
+          />
           <View
             style={
               {

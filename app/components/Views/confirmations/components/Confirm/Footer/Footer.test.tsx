@@ -8,7 +8,7 @@ import { personalSignatureConfirmationState, stakingDepositConfirmationState } f
 import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareContext';
 // eslint-disable-next-line import/no-namespace
 import * as LedgerContext from '../../../context/LedgerContext/LedgerContext';
-import Footer from './index';
+import { Footer } from './index';
 import { Linking } from 'react-native';
 import AppConstants from '../../../../../../core/AppConstants';
 
