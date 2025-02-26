@@ -1796,7 +1796,7 @@ function SwapsQuotesView({
         </>
       ) : (
         <>
-          <View style={styles.topBar}>
+          <View style={styles.topBar} testID="top-bar">
             {shouldUseSmartTransaction && (
               <View style={styles.smartTransactionsMigrationBanner}>
                 <SmartTransactionsMigrationBanner />

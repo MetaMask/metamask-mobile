@@ -446,6 +446,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                 "marginVertical": 12,
                               }
                             }
+                            testID="top-bar"
                           >
                             <View
                               style={
