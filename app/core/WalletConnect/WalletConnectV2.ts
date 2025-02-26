@@ -22,7 +22,6 @@ import { getPermittedAccounts } from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
-import extractApprovedAccounts from './extractApprovedAccounts';
 import WalletConnect from './WalletConnect';
 import parseWalletConnectUri, {
   hideWCLoadingState,
@@ -30,6 +29,7 @@ import parseWalletConnectUri, {
 } from './wc-utils';
 
 import WalletConnect2Session from './WalletConnect2Session';
+import { PROTOCOLS } from '../../constants/deeplinks';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -129,48 +129,10 @@ export class WC2Manager {
             `WC2::init getPermittedAccounts for ${sessionKey} origin=${session.peer.metadata.url}`,
             JSON.stringify(permissionController.state, null, 2),
           );
-          const accountPermission = permissionController.getPermission(
-            session.peer.metadata.url,
-            'eth_accounts',
-          );
 
-          DevLogger.log(
-            `WC2::init accountPermission`,
-            JSON.stringify(accountPermission, null, 2),
-          );
-          let approvedAccounts =
-            (await getPermittedAccounts(accountPermission?.id ?? '')) ?? [];
-          const fromOrigin = await getPermittedAccounts(
-            session.peer.metadata.url,
-          );
+          const subject = `${PROTOCOLS.WC}://${session.pairingTopic}`;
 
-          DevLogger.log(
-            `WC2::init approvedAccounts id ${accountPermission?.id}`,
-            approvedAccounts,
-          );
-          DevLogger.log(
-            `WC2::init fromOrigin ${session.peer.metadata.url}`,
-            fromOrigin,
-          );
-
-          // fallback to origin from metadata url
-          if (approvedAccounts.length === 0) {
-            DevLogger.log(
-              `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
-            );
-            approvedAccounts =
-              (await getPermittedAccounts(session.peer.metadata.url)) ?? [];
-          }
-
-          if (approvedAccounts?.length === 0) {
-            DevLogger.log(
-              `WC2::init fallback to parsing accountPermission`,
-              accountPermission,
-            );
-            // FIXME: Why getPermitted accounts doesn't work???
-            approvedAccounts = extractApprovedAccounts(accountPermission);
-            DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
-          }
+          const approvedAccounts = (await getPermittedAccounts(subject)) ?? [];
 
           const nChainId = parseInt(chainId, 16);
           DevLogger.log(
@@ -330,7 +292,8 @@ export class WC2Manager {
         `WC2::removeSession revokeAllPermissions for ${session.topic}`,
         permissionsController.state,
       );
-      permissionsController.revokeAllPermissions(session.topic);
+      const subject = `${PROTOCOLS.WC}://${session.topic}`;
+      permissionsController.revokeAllPermissions(subject);
     } catch (err) {
       DevLogger.log(`WC2::removeSession error while disconnecting`, err);
       // Fallback method because of bug in wc2 sdk
@@ -421,9 +384,12 @@ export class WC2Manager {
     // Save Connection info to redux store to be retrieved in ui.
     store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
 
+    // FIXME: Verify if this is the correct subject to use
+    const subject = `${PROTOCOLS.WC}://${pairingTopic}`;
+
     try {
       await permissionsController.requestPermissions(
-        { origin: url },
+        { origin: subject },
         {
           eth_accounts: {},
         },
@@ -441,7 +407,7 @@ export class WC2Manager {
 
     try {
       // use Permission controller
-      const approvedAccounts = await getPermittedAccounts(url);
+      const approvedAccounts = await getPermittedAccounts(subject);
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = selectChainId(store.getState());
       DevLogger.log(

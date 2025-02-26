@@ -342,15 +342,16 @@ class WalletConnect {
         rejectRequest: this.rejectRequest.bind(this),
         updateSession: this.updateSession.bind(this),
       }),
-      getRpcMethodMiddleware: ({ getProviderState }) =>
+      getRpcMethodMiddleware: ({ getProviderState, getSubjectInfo }) =>
         getRpcMethodMiddleware({
-          hostname: WALLET_CONNECT_ORIGIN + this.hostname,
           getProviderState,
+          getSubjectInfo,
           navigation: null, //props.navigation,
           // Website info
-          url: this.url,
-          title: this.title,
-          icon: this.icon,
+          subjectDisplayInfo: {
+            title: this.title.current,
+            icon: this.icon.current,
+          },
           // Bookmarks
           isHomepage: false,
           // Show autocomplete
@@ -359,7 +360,6 @@ class WalletConnect {
           // Wizard
           wizardScrollAdjusted: () => null,
           tabId: false,
-          isWalletConnect: true,
         }),
     });
   };

@@ -85,7 +85,7 @@ class WalletConnect2Session {
     );
     this.navigation = navigation;
 
-    const url = session.peer.metadata.url;
+    // const url = session.peer.metadata.url;
     const name = session.peer.metadata.name;
     const icons = session.peer.metadata.icons;
 
@@ -103,36 +103,32 @@ class WalletConnect2Session {
       }),
       getRpcMethodMiddleware: ({
         getProviderState,
+        getSubjectInfo,
       }: {
-        hostname: string;
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         getProviderState: any;
+        getSubjectInfo: () => {
+          origin: string;
+          domain: string;
+        };
       }) =>
         getRpcMethodMiddleware({
-          hostname: url,
           getProviderState,
-          channelId,
-          analytics: {},
-          isMMSDK: false,
+          getSubjectInfo,
           isHomepage: () => false,
           fromHomepage: { current: false },
           injectHomePageScripts: () => false,
           navigation: this.navigation,
           // Website info
-          url: {
-            current: url,
-          },
-          title: {
-            current: name,
-          },
-          icon: {
-            current: icons?.[0] as ImageSourcePropType, // Need to cast here because this cames from @walletconnect/types as string
+          subjectDisplayInfo: {
+            title: name,
+            // Need to cast here because this cames from @walletconnect/types as string
+            icon: icons?.[0] as ImageSourcePropType,
           },
           toggleUrlModal: () => null,
           wizardScrollAdjusted: { current: false },
           tabId: '',
-          isWalletConnect: true,
         }),
     });
 
@@ -374,8 +370,9 @@ class WalletConnect2Session {
       )}`,
     );
 
-    const origin = this.session.peer.metadata.url;
-    return await getPermittedAccounts(origin);
+    const id = this.session.pairingTopic;
+    const subject = `${PROTOCOLS.WC}://${id}`;
+    return await getPermittedAccounts(subject);
   }
 
   handleRequest = async (requestEvent: SingleEthereumTypes.SessionRequest) => {
