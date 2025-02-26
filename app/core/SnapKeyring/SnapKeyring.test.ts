@@ -14,6 +14,7 @@ import {
 import { SnapId } from '@metamask/snaps-sdk';
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethodMiddleware';
 import { showAccountNameSuggestionDialog } from './utils/showDialog';
+import Logger from '../../util/Logger';
 
 const mockAddRequest = jest.fn();
 const mockStartFlow = jest.fn();
@@ -284,7 +285,7 @@ describe('Snap Keyring Methods', () => {
     });
 
     it('ends approval flow on error', async () => {
-      const consoleSpy = jest.spyOn(console, 'error');
+      const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
 
       const errorMessage = 'save error';
       mockPersisKeyringHelper.mockRejectedValue(new Error(errorMessage));
@@ -320,9 +321,9 @@ describe('Snap Keyring Methods', () => {
       // ! This no longer throws an error, but instead, we log it. Since this part
       // ! of the flow is not awaited, so we await for it explicitly here:
       await waitForAllPromises();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Error occurred while creating snap account:',
-        errorMessage,
+      expect(loggerSpy).toHaveBeenCalledWith(
+        new Error('save error'),
+        'Error occurred while creating snap account',
       );
 
       expect(mockStartFlow).toHaveBeenCalledTimes(2);

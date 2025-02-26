@@ -80,14 +80,12 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           accountNameSuggestion,
         );
 
-      if (!success) {
-        // User has cancelled account creation
-        await handleUserInput(success);
+      // User has cancelled account creation
+      await handleUserInput(success);
 
+      if (!success) {
         throw new Error('User denied account creation');
       }
-
-      await handleUserInput(success);
 
       return { accountName };
     });
@@ -127,9 +125,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
         }
       } catch (e) {
         // Error occurred while naming the account
-        const error = (e as Error).message;
+        const error = e as Error;
         // This part of the flow is not awaited, so we just log the error for now:
-        console.error('Error occurred while creating snap account:', error);
+        Logger.error(error, 'Error occurred while creating snap account');
       }
     });
   }
