@@ -31,14 +31,11 @@ function renderElement(section: TemplateRendererComponent) {
     : {};
   return (
     <Element {...section.props} {...propsAsComponents}>
-      {Array.isArray(section.children)
-        ? section.children.map((child) => (
+      {typeof section.children === 'object' ? 
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             <TemplateRenderer
-              key={typeof child === 'string' ? `${random()}` : child.key}
-              sections={child}
+              sections={section.children}
             />
-          ))
         : section.children}
     </Element>
   );

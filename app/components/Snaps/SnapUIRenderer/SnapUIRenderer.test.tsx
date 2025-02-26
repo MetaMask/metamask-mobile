@@ -212,6 +212,20 @@ describe('SnapUIRenderer', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('adds a footer if required', () => {
+    const { toJSON, getByText } = renderInterface(
+      Container({
+        children: [
+          Box({ children: Text({ children: 'Hello world!' }) }),
+        ],
+      }),
+      { useFooter: true },
+    );
+
+    expect(getByText('Close')).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('supports the onCancel prop', () => {
     const onCancel = jest.fn();
     const { toJSON, getByText } = renderInterface(
@@ -308,6 +322,7 @@ describe('SnapUIRenderer', () => {
     );
 
     const inputsAfterRerender = getAllByTestId('input');
+    expect(inputsAfterRerender).toHaveLength(2);
     expect(inputsAfterRerender[0].props.value).toStrictEqual('bar');
     expect(inputsAfterRerender[1].props.value).toStrictEqual('foo');
 
