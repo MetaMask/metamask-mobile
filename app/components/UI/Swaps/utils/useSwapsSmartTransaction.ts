@@ -87,6 +87,7 @@ const submitSmartTransaction = async ({
     return response.uuid;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 };
 

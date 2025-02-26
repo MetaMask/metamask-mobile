@@ -1100,29 +1100,34 @@ function SwapsQuotesView({
     let approvalTransactionMetaId;
 
     if (shouldUseSmartTransaction) {
-      const { approvalTxUuid, tradeTxUuid } =
-        await submitSwapsSmartTransaction();
+      try {
+        const { approvalTxUuid, tradeTxUuid } =
+          await submitSwapsSmartTransaction();
 
-      setIsSwapsSTXStatusModalVisible(true);
+        setIsSwapsSTXStatusModalVisible(true);
 
-      // Update info to show in Activity list
-      // We use the stx uuids instead of the txMeta.id since we don't have the txMeta
-      // Approval tx info
-      addSwapsTransaction(approvalTxUuid, {
-        action: 'approval',
-        sourceToken: {
-          address: sourceToken.address,
-          decimals: sourceToken.decimals,
-        },
-        destinationToken: { swaps: 'swaps' },
-        upTo: new BigNumber(
-          decodeApproveData(approvalTransaction.data).encodedAmount,
-          16,
-        ).toString(10),
-      });
+        // Update info to show in Activity list
+        // We use the stx uuids instead of the txMeta.id since we don't have the txMeta
+        // Approval tx info
+        addSwapsTransaction(approvalTxUuid, {
+          action: 'approval',
+          sourceToken: {
+            address: sourceToken.address,
+            decimals: sourceToken.decimals,
+          },
+          destinationToken: { swaps: 'swaps' },
+          upTo: new BigNumber(
+            decodeApproveData(approvalTransaction.data).encodedAmount,
+            16,
+          ).toString(10),
+        });
 
-      // Trade tx info
-      updateSwapsTransactions(tradeTxUuid, approvalTxUuid);
+        // Trade tx info
+        updateSwapsTransactions(tradeTxUuid, approvalTxUuid);
+      } catch (e) {
+        Logger.log(LOG_PREFIX, 'Failed to submit smart transaction', e);
+        setIsHandlingSwap(false);
+      }
     } else {
       if (approvalTransaction) {
         approvalTransactionMetaId = await handleApprovalTransaction(
