@@ -73,9 +73,11 @@ const SnapUIRendererComponent = ({
     return <ActivityIndicator size="large" color={Colors.primary} />;
   }
 
+  const hasFooter = onCancel || content?.props?.children?.[1] !== undefined;
+
   const { state: initialState, context } = interfaceState;
   return (
-    <Box style={styles.root}>
+    <Box style={[styles.root, { marginBottom: useFooter && hasFooter ? 80 : 0 }]}>
       <SnapInterfaceContextProvider
         snapId={snapId}
         interfaceId={interfaceId}

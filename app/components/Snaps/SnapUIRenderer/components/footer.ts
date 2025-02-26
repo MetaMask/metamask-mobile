@@ -10,15 +10,16 @@ export const DEFAULT_FOOTER = {
   key: 'default-footer',
   props: {
     flexDirection: 'row',
-    width: '100%',
-    gap: 4,
-    padding: 4,
+    gap: 16,
+    padding: 16,
     style: {
-      position: 'absolute',
+      position: 'fixed',
       bottom: 0,
       width: '100%',
       justifyContent: 'space-evenly',
       paddingVertical: 20,
+      height: 80,
+      marginTop: 'auto',
     },
   },
 };

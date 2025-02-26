@@ -60,7 +60,6 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   disabled = false,
   loading = false,
   isSnapAction = false,
-  type,
   variant = ButtonVariants.Primary,
   snapVariant,
   ...props
@@ -82,9 +81,6 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const handlePress = isSnapAction ? handleSnapAction : onCancel!;
-
-  const overriddenVariant = disabled ? 'disabled' : variant;
-  const color = COLORS[overriddenVariant as keyof typeof COLORS];
 
   const hideSnapBranding = snapMetadata.hideSnapBranding;
 
@@ -116,7 +112,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       );
     }
     return (
-      <Text variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT} color={color}>
+      <Text variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}>
         {children}
       </Text>
     );
@@ -132,6 +128,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       label={buttonLabel()}
       size={ButtonSize.Lg}
       style={styles.button}
+      isDanger={snapVariant === 'destructive'}
     />
   );
 };

@@ -31,14 +31,11 @@ function renderElement(section: TemplateRendererComponent) {
     : {};
   return (
     <Element {...section.props} {...propsAsComponents}>
-      {Array.isArray(section.children)
-        ? section.children.map((child) => (
+      {typeof section.children === 'object' ? 
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             <TemplateRenderer
-              key={typeof child === 'string' ? `${random()}` : child.key}
-              sections={child}
+              sections={section.children}
             />
-          ))
         : section.children}
     </Element>
   );
@@ -92,7 +89,7 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
             // be provided a key when a part of an array.
             if (!child.key) {
               throw new Error(
-                'When using array syntax in MetaMask Template Language, you must specify a key for each child of the array',
+                'When using array syntax in MetaMask Template Language, you must specify a key for each child of the array' + JSON.stringify(child),
               );
             }
             if (typeof child?.children === 'object') {
