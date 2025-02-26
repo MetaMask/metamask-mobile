@@ -1,4 +1,3 @@
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   CaipChainId,
   KnownCaipNamespace,
@@ -11,14 +10,14 @@ import { selectInternalAccounts } from '../../../../selectors/accountsController
 import { toLowerCaseEquals } from '../../../../util/general';
 import { selectAddressBookByChain } from '../../../../selectors/addressBookController';
 
-export type UseDisplayNameParams = {
+export interface UseDisplayNameParams {
   chain: {
     namespace: CaipNamespace;
     reference: string;
   };
   chainId: CaipChainId;
   address: string;
-};
+}
 
 /**
  * Get the display name for an address.
@@ -39,8 +38,8 @@ export const useDisplayName = (
 
   const accounts = useSelector(selectInternalAccounts);
 
-  const account = accounts.find((account) =>
-    toLowerCaseEquals(account.address, address),
+  const account = accounts.find((possibleAccount) =>
+    toLowerCaseEquals(possibleAccount.address, address),
   );
 
   const chainAddressBook = useSelector((state: RootState) =>

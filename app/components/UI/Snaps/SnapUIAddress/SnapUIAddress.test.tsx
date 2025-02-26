@@ -34,7 +34,7 @@ const baseMockState = {
       }
     },
   }
-}
+};
 
 const mockStateWithoutBlockies = {
   state: {
@@ -75,7 +75,7 @@ describe('SnapUIAddress', () => {
 
   it('renders account name', () => {
     const { getByText } = renderWithProvider(
-      <SnapUIAddress address="eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb" displayName={true} />,
+      <SnapUIAddress address="eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb" displayName />,
       baseMockState
     );
 
@@ -84,7 +84,7 @@ describe('SnapUIAddress', () => {
 
   it('renders contact name', () => {
     const { getByText } = renderWithProvider(
-      <SnapUIAddress address="eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcda" displayName={true} />,
+      <SnapUIAddress address="eip155:1:0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcda" displayName />,
       baseMockState
     );
 
