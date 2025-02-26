@@ -536,7 +536,7 @@ function SwapsQuotesView({
   );
 
   const { submitSwapsSmartTransaction } = useSwapsSmartTransaction({
-    tradeTransaction: selectedQuote?.trade,
+    quote: selectedQuote,
     gasEstimates,
   });
 
