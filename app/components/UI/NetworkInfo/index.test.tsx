@@ -3,6 +3,7 @@ import NetworkInfo from './';
 
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -27,7 +28,6 @@ describe('NetworkInfo', () => {
   it('render correctly', () => {
     const wrapper = renderWithProvider(
       <NetworkInfo
-        type={''}
         onClose={function (): void {
           throw new Error('Function not implemented.');
         }}
@@ -53,7 +53,6 @@ describe('NetworkInfo', () => {
 
     const wrapper = renderWithProvider(
       <NetworkInfo
-        type={''}
         onClose={function (): void {
           throw new Error('Function not implemented.');
         }}
@@ -71,11 +70,21 @@ describe('NetworkInfo', () => {
           ...backgroundState,
           NetworkController: {
             ...backgroundState.NetworkController,
-            providerConfig: {
-              ...backgroundState.NetworkController
-                .networkConfigurationsByChainId['0x1'],
-              ticker: undefined,
-              rpcUrl: 'https://custom-rpc.example.com',
+            networkConfigurationsByChainId: {
+              '0x1': {
+                blockExplorerUrls: [],
+                chainId: '0x9',
+                defaultRpcEndpointIndex: 0,
+                name: 'Custom mainnet',
+                nativeCurrency: undefined,
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    type: RpcEndpointType.Custom,
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                  },
+                ],
+              },
             },
           },
         },
@@ -84,7 +93,6 @@ describe('NetworkInfo', () => {
 
     const wrapper = renderWithProvider(
       <NetworkInfo
-        type={''}
         onClose={function (): void {
           throw new Error('Function not implemented.');
         }}

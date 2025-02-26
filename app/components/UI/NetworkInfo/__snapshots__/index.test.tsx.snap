@@ -380,8 +380,9 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "#f2f4f6",
               "borderRadius": 16,
+              "borderWidth": 1,
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
@@ -389,18 +390,21 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
             }
           }
         >
-          <Image
-            onError={[Function]}
-            resizeMode="contain"
-            source={1}
+          <Text
+            accessibilityRole="text"
             style={
               {
-                "height": 32,
-                "width": 32,
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 24,
               }
             }
-            testID="network-avatar-image"
-          />
+          >
+            C
+          </Text>
         </View>
         <Text
           style={
@@ -414,9 +418,23 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
           }
           testID="network-education-modal-network-name"
         >
-          Ethereum Main Network
+          Custom mainnet
         </Text>
       </View>
+      <Text
+        style={
+          {
+            "color": "#BBC0C566",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 10,
+            "fontWeight": "400",
+            "paddingVertical": 5,
+            "textAlign": "center",
+          }
+        }
+      >
+        https://mainnet.infura.io/v3/{infuraProjectId}
+      </Text>
     </View>
     <Text
       style={
@@ -478,7 +496,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
             }
           >
             <Text>
-              The native token on this network is ETH. It is the token used for gas fees. 
+              This network is unknown and may use a special token for gas fees. 
             </Text>
           </Text>
         </View>
@@ -574,7 +592,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
             }
           >
             <Text>
-              Token detection is enabled so tokens will automatically show up in your wallet. 
+              Your tokens may not automatically show up in your wallet. 
             </Text>
             <Text
               onPress={[Function]}
@@ -584,7 +602,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
                 }
               }
             >
-              You can also add tokens manually.
+              Add them manually.
             </Text>
           </Text>
         </View>
