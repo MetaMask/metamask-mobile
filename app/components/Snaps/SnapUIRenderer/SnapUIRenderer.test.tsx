@@ -322,6 +322,7 @@ describe('SnapUIRenderer', () => {
     );
 
     const inputsAfterRerender = getAllByTestId('input');
+    expect(inputsAfterRerender).toHaveLength(2);
     expect(inputsAfterRerender[0].props.value).toStrictEqual('bar');
     expect(inputsAfterRerender[1].props.value).toStrictEqual('foo');
 

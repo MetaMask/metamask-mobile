@@ -6,7 +6,7 @@ import { getMemoizedInterface } from '../../../selectors/snaps/interfaceControll
 import { SnapInterfaceContextProvider } from '../SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../UI/TemplateRenderer';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, ScrollView } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Container } from '@metamask/snaps-sdk/jsx';
 import { strings } from '../../../../locales/i18n';
@@ -73,18 +73,24 @@ const SnapUIRendererComponent = ({
     return <ActivityIndicator size="large" color={Colors.primary} />;
   }
 
+  const contentBox = sections?.children?.[0]
+  const footer = sections?.children?.[1]
+
   const hasFooter = onCancel || content?.props?.children?.[1] !== undefined;
 
   const { state: initialState, context } = interfaceState;
   return (
-    <Box style={[styles.root, { marginBottom: useFooter && hasFooter ? 80 : 0 }]}>
+    <Box style={styles.root}>
       <SnapInterfaceContextProvider
         snapId={snapId}
         interfaceId={interfaceId}
         initialState={initialState}
         context={context}
       >
-        <TemplateRenderer sections={sections} />
+        <ScrollView style={{ marginBottom: useFooter && hasFooter ? 80 : 0 }}>
+          <TemplateRenderer sections={contentBox} />
+        </ScrollView>
+        {footer && <TemplateRenderer sections={footer} />}
         {PERF_DEBUG && <PerformanceTracker />}
       </SnapInterfaceContextProvider>
     </Box>
