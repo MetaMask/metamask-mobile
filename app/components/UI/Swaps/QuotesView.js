@@ -430,8 +430,6 @@ function SwapsQuotesView({
   const [isHandlingSwap, setIsHandlingSwap] = useState(false);
   const [multiLayerL1ApprovalFeeTotal, setMultiLayerL1ApprovalFeeTotal] =
     useState(null);
-  const [isSwapsSTXStatusModalVisible, setIsSwapsSTXStatusModalVisible] =
-    useState(false);
 
   /* Selected quote, initially topAggId (see effects) */
   const [selectedQuoteId, setSelectedQuoteId] = useState(null);
