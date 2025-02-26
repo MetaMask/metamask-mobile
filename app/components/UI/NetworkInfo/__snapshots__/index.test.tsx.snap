@@ -118,8 +118,6 @@ exports[`NetworkInfo render correctly 1`] = `
       <View
         style={
           {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
             "marginBottom": 10,
           }
         }
@@ -127,7 +125,7 @@ exports[`NetworkInfo render correctly 1`] = `
         <View
           style={
             {
-              "alignItems": "center",
+              "alignItems": "flex-start",
               "flexDirection": "row",
               "marginBottom": 4,
             }
@@ -161,8 +159,6 @@ exports[`NetworkInfo render correctly 1`] = `
       <View
         style={
           {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
             "marginBottom": 10,
           }
         }
@@ -170,7 +166,7 @@ exports[`NetworkInfo render correctly 1`] = `
         <View
           style={
             {
-              "alignItems": "center",
+              "alignItems": "flex-start",
               "flexDirection": "row",
               "marginBottom": 4,
             }
@@ -214,8 +210,6 @@ exports[`NetworkInfo render correctly 1`] = `
       <View
         style={
           {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
             "marginBottom": 10,
           }
         }
@@ -223,7 +217,7 @@ exports[`NetworkInfo render correctly 1`] = `
         <View
           style={
             {
-              "alignItems": "center",
+              "alignItems": "flex-start",
               "flexDirection": "row",
               "marginBottom": 4,
             }
@@ -461,8 +455,6 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
       <View
         style={
           {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
             "marginBottom": 10,
           }
         }
@@ -470,7 +462,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
         <View
           style={
             {
-              "alignItems": "center",
+              "alignItems": "flex-start",
               "flexDirection": "row",
               "marginBottom": 4,
             }
@@ -504,8 +496,6 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
       <View
         style={
           {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
             "marginBottom": 10,
           }
         }
@@ -513,7 +503,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
         <View
           style={
             {
-              "alignItems": "center",
+              "alignItems": "flex-start",
               "flexDirection": "row",
               "marginBottom": 4,
             }
@@ -557,8 +547,6 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
       <View
         style={
           {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
             "marginBottom": 10,
           }
         }
@@ -566,7 +554,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
         <View
           style={
             {
-              "alignItems": "center",
+              "alignItems": "flex-start",
               "flexDirection": "row",
               "marginBottom": 4,
             }
@@ -786,8 +774,6 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
       <View
         style={
           {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
             "marginBottom": 10,
           }
         }
@@ -795,7 +781,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
         <View
           style={
             {
-              "alignItems": "center",
+              "alignItems": "flex-start",
               "flexDirection": "row",
               "marginBottom": 4,
             }
@@ -829,8 +815,6 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
       <View
         style={
           {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
             "marginBottom": 10,
           }
         }
@@ -838,7 +822,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
         <View
           style={
             {
-              "alignItems": "center",
+              "alignItems": "flex-start",
               "flexDirection": "row",
               "marginBottom": 4,
             }
