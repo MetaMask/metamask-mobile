@@ -3,7 +3,6 @@ import NetworkInfo from './';
 
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { RpcEndpointType } from '@metamask/network-controller';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -71,16 +70,16 @@ describe('NetworkInfo', () => {
           NetworkController: {
             ...backgroundState.NetworkController,
             networkConfigurationsByChainId: {
-              '0x1': {
+              '0x123': {
                 blockExplorerUrls: [],
-                chainId: '0x9',
+                chainId: '0x123',
                 defaultRpcEndpointIndex: 0,
                 name: 'Custom mainnet',
                 nativeCurrency: undefined,
                 rpcEndpoints: [
                   {
                     networkClientId: 'mainnet',
-                    type: RpcEndpointType.Custom,
+                    type: 'custom',
                     url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
                   },
                 ],
@@ -97,6 +96,7 @@ describe('NetworkInfo', () => {
           throw new Error('Function not implemented.');
         }}
       />,
+      // @ts-expect-error - we do want to test the ticker be undefined on this unit test
       { state: evmStateWithoutTicker },
     );
     expect(wrapper).toMatchSnapshot();
