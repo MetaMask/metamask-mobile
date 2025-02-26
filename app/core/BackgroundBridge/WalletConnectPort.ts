@@ -8,6 +8,7 @@ import { EventEmitter } from 'events';
 
 const { NOTIFICATION_NAMES } = AppConstants;
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type WcRequestActions = {
   approveRequest: (params: { id: string; result: unknown }) => void;
   rejectRequest: (params: { id: string; error: unknown }) => void;

@@ -47,12 +47,17 @@ type BackgroundBridgeState = {
 };
 
 type GetRpcMethodMiddleware = (params: {
-  hostname: string;
   getProviderState: (domain: string) => Promise<{
     isUnlocked: boolean;
     chainId: string;
     networkVersion: string;
   }>;
+  getSubjectInfo: () => {
+    domain: string;
+    origin: string;
+    isMMSDK?: boolean;
+    isWalletConnect?: boolean;
+  };
 }) => JsonRpcMiddleware<JsonRpcParams, Json>;
 
 const legacyNetworkId = () => {
@@ -490,8 +495,13 @@ export class BackgroundBridge extends EventEmitter {
     // user-facing RPC methods
     baseJsonRpcEngine.push(
       this.#createRpcMiddleware({
-        hostname: this.hostname,
         getProviderState: this.getProviderState.bind(this),
+        getSubjectInfo: () => ({
+          origin: this.origin,
+          domain: this.domain,
+          isMMSDK: this.#isMMSDK,
+          isWalletConnect: this.#isWalletConnect,
+        }),
       }),
     );
 
