@@ -91,14 +91,14 @@ const submitSmartTransaction = async ({
   }
 };
 
-export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote: Quote, gasEstimates: {
+export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quote, gasEstimates: {
   gasPrice: string;
   medium: string;
 } }) => {
   const chainId = useSelector(selectEvmChainId);
   const isEIP1559Network = useSelector(selectIsEIP1559Network);
   const approvalTransaction: TxParams | null = useSelector(selectSwapsApprovalTransaction);
-  const tradeTransaction = quote.trade;
+  const tradeTransaction = quote?.trade;
 
   // We don't need to await on the approval tx to be confirmed on chain. We can simply submit both the approval and trade tx at the same time.
   // Sentinel will batch them for us and ensure they are executed in the correct order.
@@ -110,6 +110,7 @@ export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote: Quote
 
     // Approval transaction (if it exists)
     let approvalTxUuid: string | undefined;
+    let tradeTxUuid: string | undefined;
     if (approvalTransaction && smartTransactionFees.approvalTxFees) {
       const approvalGas = decimalToHex(smartTransactionFees.approvalTxFees.gasLimit).toString() || '0';
 
@@ -143,9 +144,10 @@ export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote: Quote
     }
 
     // Trade transaction
-    const tradeGas = decimalToHex(smartTransactionFees.tradeTxFees?.gasLimit || 0).toString();
-    const tradeTxUuid = await submitSmartTransaction({
-      unsignedTransaction: {...tradeTransaction, chainId, gas: tradeGas},
+    if (tradeTransaction) {
+      const tradeGas = decimalToHex(smartTransactionFees.tradeTxFees?.gasLimit || 0).toString();
+      tradeTxUuid = await submitSmartTransaction({
+        unsignedTransaction: {...tradeTransaction, chainId, gas: tradeGas},
       smartTransactionFees: {
         fees: smartTransactionFees.tradeTxFees?.fees.map((fee) => ({
           maxFeePerGas: fee.maxFeePerGas.toString(),
@@ -158,12 +160,15 @@ export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote: Quote
       gasEstimates,
     });
 
-    SmartTransactionsController.updateSmartTransaction({
-      uuid: tradeTxUuid,
-      origin: ORIGIN_METAMASK,
-      type: TransactionType.swap,
-      creationTime: Date.now(),
-    });
+      if (tradeTxUuid) {
+        SmartTransactionsController.updateSmartTransaction({
+          uuid: tradeTxUuid,
+          origin: ORIGIN_METAMASK,
+          type: TransactionType.swap,
+          creationTime: Date.now(),
+        });
+      }
+    }
 
     return { approvalTxUuid, tradeTxUuid };
   };
