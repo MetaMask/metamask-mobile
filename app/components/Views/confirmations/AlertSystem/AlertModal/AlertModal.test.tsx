@@ -32,6 +32,7 @@ const mockAlerts = [
     severity: Severity.Warning,
     alertDetails: ALERT_DETAILS_MOCK,
     action: ALERT_ACTION_MOCK,
+    field: 'To',
   },
   {
     key: 'alert2',
@@ -40,6 +41,7 @@ const mockAlerts = [
     severity: Severity.Danger,
     alertDetails: ALERT_DETAILS_MOCK,
     action: ALERT_ACTION_MOCK,
+    field: 'From',
   },
   {
     key: 'alert3',
@@ -47,12 +49,14 @@ const mockAlerts = [
     message: ALERT_MESSAGE_MOCK,
     severity: Severity.Info,
     alertDetails: ALERT_DETAILS_MOCK,
+    field: 'Subject',
   },
 ];
 
 describe('AlertModal', () => {
   const baseMockUseAlerts = {
     alerts: mockAlerts,
+    fieldAlerts: mockAlerts,
     hideAlertModal: jest.fn(),
     alertModalVisible: true,
   };
@@ -127,7 +131,7 @@ describe('AlertModal', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
       hideAlertModal,
-      alerts: [{
+      fieldAlerts: [{
         ...mockAlerts[0],
         action: { ...ALERT_ACTION_MOCK, callback: action1Callback },
       }]
@@ -187,7 +191,7 @@ describe('AlertModal', () => {
   it('renders content component correctly', async () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
-      alerts: [{
+      fieldAlerts: [{
         ...mockAlerts[0],
         content: <Text>{'Mock content'}</Text>,
       }]
@@ -199,7 +203,7 @@ describe('AlertModal', () => {
   it('does not render checkbox if is a blocking alert', async () => {
     (useAlerts as jest.Mock).mockReturnValue({
       ...baseMockUseAlerts,
-      alerts: [{
+      fieldAlerts: [{
         ...mockAlerts[0],
         isBlocking: true,
       }]
