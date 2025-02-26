@@ -19,7 +19,7 @@ import {
   TransactionStatus,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
-import { query } from '@metamask/controller-utils';
+import { query, toChecksumHexAddress } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import {
@@ -84,7 +84,7 @@ import {
   selectSwapsUsedGasEstimate,
   swapsTokensSelector,
 } from '../../../reducers/swaps';
-import { decGWEIToHexWEI } from '../../../util/conversions';
+import { decGWEIToHexWEI, hexToDecimal } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
@@ -125,6 +125,13 @@ import SmartTransactionsMigrationBanner from '../../Views/confirmations/componen
 import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
 import { SwapsSTXStatusModal } from './SwapsSTXStatusModal';
 import { getErrorItems } from './components/QuotesViewErrors';
+import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
+import {
+  ContractExchangeRates,
+  fetchTokenContractExchangeRates,
+  CodefiTokenPricesServiceV2,
+} from '@metamask/assets-controllers';
+import { getTradeTxTokenFee } from '../../../util/smart-transactions';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -304,6 +311,9 @@ const createStyles = (colors) =>
     fetchingText: {
       color: colors.text.default,
     },
+    included: {
+      fontStyle: 'italic',
+    },
   });
 
 async function resetAndStartPolling({
@@ -313,6 +323,7 @@ async function resetAndStartPolling({
   sourceAmount,
   walletAddress,
   networkClientId,
+  enableGasIncludedQuotes,
 }) {
   if (!sourceToken || !destinationToken) {
     return;
@@ -326,6 +337,7 @@ async function resetAndStartPolling({
     sourceAmount,
     walletAddress,
     networkClientId,
+    enableGasIncludedQuotes,
   });
   await SwapsController.stopPollingAndResetState();
   await SwapsController.startFetchAndSetQuotes(
@@ -502,6 +514,14 @@ function SwapsQuotesView({
     () => allQuotes.find((quote) => quote?.aggregator === selectedQuoteId),
     [allQuotes, selectedQuoteId],
   );
+  const tradeTxTokenFee = useMemo(
+    () => getTradeTxTokenFee(selectedQuote),
+    [selectedQuote],
+  );
+  const isGasIncludedTrade = useMemo(
+    () => selectedQuote?.isGasIncludedTrade ?? false,
+    [selectedQuote],
+  );
   const selectedQuoteValue = useMemo(() => {
     if (!quoteValues[selectedQuoteId] || !multiLayerL1ApprovalFeeTotal) {
       return quoteValues[selectedQuoteId];
@@ -563,10 +583,20 @@ function SwapsQuotesView({
         ? new BigNumber(sourceAmount)
         : new BigNumber(0);
       const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
-      const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
+      const hasEnoughEthBalance =
+        isGasIncludedTrade && tradeTxTokenFee
+          ? true
+          : ethBalanceBN.gte(ethAmountBN.plus(gasBN));
       return hasEnoughEthBalance;
     },
-    [accounts, selectedAddress, sourceAmount, sourceToken],
+    [
+      accounts,
+      selectedAddress,
+      sourceAmount,
+      sourceToken,
+      tradeTxTokenFee,
+      isGasIncludedTrade,
+    ],
   );
 
   const balance = useBalance(accounts, balances, selectedAddress, sourceToken, {
@@ -693,6 +723,12 @@ function SwapsQuotesView({
     useModalHandler(false);
   const [isGasTooltipVisible, , showGasTooltip, hideGasTooltip] =
     useModalHandler(false);
+  const [
+    isGasIncludedTooltipVisible,
+    ,
+    showGasIncludedTooltip,
+    hideGasIncludedTooltip,
+  ] = useModalHandler(false);
 
   const handleGasFeeUpdate = useCallback(
     (changedGasEstimate, changedGasLimit) => {
@@ -774,6 +810,7 @@ function SwapsQuotesView({
         sourceAmount,
         walletAddress: selectedAddress,
         networkClientId: selectedNetworkClientId,
+        enableGasIncludedQuotes: shouldUseSmartTransaction,
       });
     } else {
       navigation.pop();
@@ -787,6 +824,7 @@ function SwapsQuotesView({
     selectedAddress,
     navigation,
     selectedNetworkClientId,
+    shouldUseSmartTransaction,
   ]);
 
   const updateSwapsTransactions = useCallback(
@@ -838,6 +876,8 @@ function SwapsQuotesView({
           network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
           other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
           chain_id: getDecimalChainId(chainId),
+          is_smart_transaction: shouldUseSmartTransaction,
+          gas_included: selectedQuote.isGasIncludedTrade,
         },
         paramsForAnalytics: {
           sentAt: currentBlock.timestamp,
@@ -862,6 +902,7 @@ function SwapsQuotesView({
       selectedQuoteId,
       conversionRate,
       selectedQuoteValue,
+      shouldUseSmartTransaction,
     ],
   );
 
@@ -885,6 +926,7 @@ function SwapsQuotesView({
         network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
         chain_id: getDecimalChainId(chainId),
         is_smart_transaction: shouldUseSmartTransaction,
+        gas_included: selectedQuote.isGasIncludedTrade,
       };
       const sensitiveParameters = {
         token_from_amount: fromTokenMinimalUnitString(
@@ -1198,6 +1240,8 @@ function SwapsQuotesView({
       custom_spend_limit_set: originalAmount !== currentAmount,
       custom_spend_limit_amount: currentAmount,
       chain_id: getDecimalChainId(chainId),
+      is_smart_transaction: shouldUseSmartTransaction,
+      gas_included: selectedQuote.isGasIncludedTrade,
     };
     const sensitiveParameters = {
       token_from_amount: fromTokenMinimalUnitString(
@@ -1232,6 +1276,7 @@ function SwapsQuotesView({
     sourceToken,
     trackEvent,
     createEventBuilder,
+    shouldUseSmartTransaction,
   ]);
 
   const handleQuotesReceivedMetric = useCallback(() => {
@@ -1436,6 +1481,7 @@ function SwapsQuotesView({
       sourceAmount,
       walletAddress: selectedAddress,
       networkClientId: selectedNetworkClientId,
+      enableGasIncludedQuotes: shouldUseSmartTransaction,
     });
 
     return () => {
@@ -1450,6 +1496,7 @@ function SwapsQuotesView({
     sourceAmount,
     sourceToken.address,
     selectedNetworkClientId,
+    shouldUseSmartTransaction,
   ]);
 
   /** selectedQuote alert effect */
@@ -1738,6 +1785,63 @@ function SwapsQuotesView({
     Linking.openURL(
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     );
+
+  const openLinkAboutGasIncluded = () =>
+    Linking.openURL(
+      'https://support.metamask.io/token-swaps/user-guide-swaps/#gas-fees',
+    );
+
+  const fiatConversionRates = useAsyncResultOrThrow(async () => {
+    if (!isGasIncludedTrade || !selectedQuote?.trade || !tradeTxTokenFee) {
+      return undefined;
+    }
+
+    const { token, balanceNeededToken } = tradeTxTokenFee;
+    if (!token?.decimals || !token?.address || !balanceNeededToken) {
+      return undefined;
+    }
+
+    const checksumAddress = toChecksumHexAddress(token.address);
+    return fetchTokenContractExchangeRates({
+      tokenPricesService: new CodefiTokenPricesServiceV2(),
+      nativeCurrency: currentCurrency,
+      tokenAddresses: [checksumAddress],
+      chainId,
+    });
+  }, [
+    isGasIncludedTrade,
+    selectedQuote?.trade,
+    tradeTxTokenFee,
+    currentCurrency,
+    chainId,
+  ]);
+
+  const gasTokenFiatAmount = useMemo(() => {
+    if (!isGasIncludedTrade || !selectedQuote?.trade || !tradeTxTokenFee) {
+      return undefined;
+    }
+
+    const { token, balanceNeededToken } = tradeTxTokenFee;
+    if (!token?.decimals || !token?.address || !balanceNeededToken) {
+      return;
+    }
+
+    const tokenAmount = swapsUtils
+      .calcTokenAmount(hexToDecimal(balanceNeededToken), token.decimals)
+      .toString(10);
+
+    const fiatConversionRate =
+      fiatConversionRates?.value?.[toChecksumHexAddress(token.address)];
+    return (
+      weiToFiat(toWei(tokenAmount), fiatConversionRate, currentCurrency) || ''
+    );
+  }, [
+    isGasIncludedTrade,
+    selectedQuote?.trade,
+    tradeTxTokenFee,
+    currentCurrency,
+    fiatConversionRates?.value,
+  ]);
 
   /* Rendering */
   if (isFirstLoad || (!error?.key && !selectedQuote)) {
