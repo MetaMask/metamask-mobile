@@ -14,7 +14,7 @@ export const SnapUIBanner: FunctionComponent<SnapUIBannerProps> = ({
   severity,
   title,
 }) => (
-    <Banner severity={severity} title={title} variant={BannerVariant.Alert}>
-      {children}
-    </Banner>
-  );
+  <Banner severity={severity} title={title} variant={BannerVariant.Alert}>
+    {children}
+  </Banner>
+);
