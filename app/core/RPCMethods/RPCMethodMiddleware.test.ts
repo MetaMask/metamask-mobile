@@ -50,6 +50,7 @@ import { PROTOCOLS } from '../../constants/deeplinks';
 const mockChannelId = 'unique-wc-channel-id';
 const mockSDKSubject = `${PROTOCOLS.METAMASK}://${mockChannelId}`;
 const mockWCSubject = `${PROTOCOLS.WC}://${mockChannelId}`;
+const mockDappOrigin = 'https://example.metamask.io';
 
 jest.mock('./spam');
 
@@ -141,7 +142,7 @@ function getMinimalOptions(
   return {
     getProviderState: jest.fn(),
     getSubjectInfo: () => ({
-      origin: 'https://example.metamask.io',
+      origin: mockDappOrigin,
       domain: 'example.metamask.io',
       isMMSDK: false,
       isWalletConnect: false,
@@ -178,21 +179,6 @@ function getMinimalBrowserOptions() {
   return {
     ...getMinimalOptions(),
     tabId: 1,
-  };
-}
-
-/**
- * Return a minimal set of options for `getRpcMethodMiddleware` when used in a
- * WalletConnect context.
- *
- * See {@link getMinimalOptions} for more details.
- *
- * @returns A minimal set of options for `getRpcMethodMiddleware`
- */
-function getMinimalWalletConnectOptions() {
-  return {
-    ...getMinimalOptions(),
-    isWalletConnect: true,
   };
 }
 
@@ -302,7 +288,7 @@ const dataJsonMock = JSON.stringify({
   test: 'data',
   domain: { chainId: '0x1' },
 });
-const hostMock = 'example.metamask.io';
+const hostMock = mockDappOrigin;
 const signatureMock = '0x1234567890';
 
 function setupSignature() {
@@ -446,7 +432,7 @@ describe('getRpcMethodMiddleware', () => {
           const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: {
-              'https://example.metamask.io': [mockAddress1],
+              [mockDappOrigin]: [mockAddress1],
             },
             selectedAddress: mockAddress2,
             selectedNetworkClientId: 'testNetworkClientId',
@@ -593,7 +579,6 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('wallet_requestPermissions', () => {
     it('can requestPermissions for eth_accounts', async () => {
-      const mockOrigin = 'example.metamask.io';
       const mockPermission: Awaited<
         ReturnType<
           typeof MockEngine.context.PermissionController.requestPermissions
@@ -602,7 +587,7 @@ describe('getRpcMethodMiddleware', () => {
         eth_accounts: {
           id: 'id',
           date: 1,
-          invoker: mockOrigin,
+          invoker: mockDappOrigin,
           parentCapability: 'eth_accounts',
           caveats: [
             {
@@ -617,7 +602,7 @@ describe('getRpcMethodMiddleware', () => {
           mockPermission,
           {
             id: 'id',
-            origin: mockOrigin,
+            origin: mockDappOrigin,
           },
         ],
       );
@@ -643,7 +628,6 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('wallet_getPermissions', () => {
     it('can getPermissions', async () => {
-      const mockOrigin = 'example.metamask.io';
       const mockPermission: Awaited<
         ReturnType<
           typeof MockEngine.context.PermissionController.getPermissions
@@ -652,7 +636,7 @@ describe('getRpcMethodMiddleware', () => {
         eth_accounts: {
           id: 'id',
           date: 1,
-          invoker: mockOrigin,
+          invoker: mockDappOrigin,
           parentCapability: 'eth_accounts',
           caveats: [
             {
@@ -690,7 +674,7 @@ describe('getRpcMethodMiddleware', () => {
         setupGlobalState({
           activeTab: mockTabId,
           addTransactionResult: Promise.resolve('fake-hash'),
-          permittedAccounts: { 'https://example.metamask.io': [mockAddress] },
+          permittedAccounts: { [mockDappOrigin]: [mockAddress] },
           // Set minimal network controller state to support validation
           selectedNetworkClientId: 'mainnet',
           networksMetadata: {},
@@ -738,7 +722,7 @@ describe('getRpcMethodMiddleware', () => {
         setupGlobalState({
           activeTab: activeTabId,
           addTransactionResult: Promise.resolve('fake-hash'),
-          permittedAccounts: { 'https://example.metamask.io': [mockAddress] },
+          permittedAccounts: { mockDappOrigin: [mockAddress] },
           // Set minimal network controller state to support validation
           selectedNetworkClientId: 'mainnet',
           networksMetadata: {},
@@ -1002,11 +986,17 @@ describe('getRpcMethodMiddleware', () => {
       });
 
       it('returns a JSON-RPC error if the referenced account is not currently selected', async () => {
-        const mockAddress = '0x0000000000000000000000000000000000000001';
-        const differentMockAddress =
+        const activeMockAddress = '0x0000000000000000000000000000000000000001';
+        const permittedMockAddress =
           '0x0000000000000000000000000000000000000002';
-        const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
+        const mockTransactionParameters = {
+          from: activeMockAddress,
+          chainId: '0x1',
+        };
         setupGlobalState({
+          permittedAccounts: {
+            [mockSDKSubject]: [permittedMockAddress],
+          },
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
           selectedNetworkClientId: 'mainnet',
@@ -1028,7 +1018,7 @@ describe('getRpcMethodMiddleware', () => {
               nativeCurrency: 'ETH',
             },
           },
-          selectedAddress: differentMockAddress,
+          selectedAddress: activeMockAddress,
         });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalOptions({
@@ -1045,8 +1035,9 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
+
         const expectedError = rpcErrors.invalidParams({
-          message: `Invalid parameters: must provide an Ethereum address.`,
+          message: `Invalid parameters: must provide a permitted Ethereum address.`,
         });
 
         const response = await callMiddleware({ middleware, request });
@@ -1106,7 +1097,7 @@ describe('getRpcMethodMiddleware', () => {
       const mockTransactionParameters = { from: mockAddress };
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
-        permittedAccounts: { 'https://example.metamask.io': [mockAddress] },
+        permittedAccounts: { [mockDappOrigin]: [mockAddress] },
         selectedNetworkClientId: 'mainnet', // Added to fix the linting error
       });
       const middleware = getRpcMethodMiddleware({
