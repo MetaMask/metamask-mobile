@@ -9,13 +9,19 @@ import {
   Image,
   ImageSourcePropType,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../util/theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { CarouselProps } from './carousel.types';
+import {
+  CarouselProps,
+  CarouselSlide,
+  SlideId,
+  NavigationAction,
+} from './carousel.types';
 import { Theme } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,16 +29,18 @@ import { dismissBanner } from '../../../actions/banners/index';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { createBuyNavigationDetails } from '../../UI/Ramp/routes/utils';
+import cardImage from '../../../images/banners/banner_image_card.png';
+import fundImage from '../../../images/banners/banner_image_fund.png';
+import cashoutImage from '../../../images/banners/banner_image_cashout.png';
+import aggregatedImage from '../../../images/banners/banner_image_aggregated.png';
 
-// Import banner images
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const BannerImages: Record<SlideId, ImageSourcePropType> = {
-  card: require('../../../images/banners/banner_image_card.png'),
-  fund: require('../../../images/banners/banner_image_fund.png'),
-  cashout: require('../../../images/banners/banner_image_cashout.png'),
-  aggregated: require('../../../images/banners/banner_image_aggregated.png'),
+  card: cardImage,
+  fund: fundImage,
+  cashout: cashoutImage,
+  aggregated: aggregatedImage,
 };
-/* eslint-enable @typescript-eslint/no-require-imports, import/no-commonjs */
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
@@ -42,44 +50,52 @@ const IMAGE_WIDTH = 60;
 const IMAGE_HEIGHT = 59;
 const PEEK_WIDTH = 5;
 
-type SlideId = 'card' | 'fund' | 'cashout' | 'aggregated';
+const openUrl =
+  (href: string): (() => Promise<void>) =>
+  () =>
+    Linking.openURL(href).catch((error) => {
+      console.error('Failed to open URL:', error);
+    });
 
-interface Slide {
-  id: SlideId;
-  title: string;
-  description: string;
-  undismissable: boolean;
-  href?: string;
-}
-
-const PREDEFINED_SLIDES: Slide[] = [
+const PREDEFINED_SLIDES: CarouselSlide[] = [
   {
     id: 'card',
     title: strings('banner.card.title'),
     description: strings('banner.card.subtitle'),
     undismissable: false,
-    href: 'https://portfolio.metamask.io/card',
+    navigation: { type: 'url', href: 'https://portfolio.metamask.io/card' },
+    testID: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE,
+    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE,
   },
   {
     id: 'fund',
     title: strings('banner.fund.title'),
     description: strings('banner.fund.subtitle'),
     undismissable: false,
-    href: 'https://portfolio.metamask.io/buy/build-quote',
+    navigation: {
+      type: 'function',
+      navigate: () => createBuyNavigationDetails(),
+    },
+    testID: WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE,
+    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE,
   },
   {
     id: 'cashout',
     title: strings('banner.cashout.title'),
     description: strings('banner.cashout.subtitle'),
     undismissable: false,
-    href: 'https://portfolio.metamask.io/sell',
+    navigation: { type: 'url', href: 'https://portfolio.metamask.io/sell' },
+    testID: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE,
+    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE_TITLE,
   },
   {
     id: 'aggregated',
     title: strings('banner.aggregated.title'),
     description: strings('banner.aggregated.subtitle'),
     undismissable: false,
-    href: 'metamask://settings/general',
+    navigation: { type: 'url', href: 'https://portfolio.metamask.io/sell' },
+    testID: WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE,
+    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE_TITLE,
   },
 ];
 
@@ -180,14 +196,15 @@ const createStyles = (colors: Theme['colors']) =>
     },
   });
 
-export const Carousel: FC<CarouselProps> = ({ onClick, style }) => {
+export const Carousel: FC<CarouselProps> = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const [hasRendered, setHasRendered] = useState(false);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { colors } = useTheme();
+  const dispatch = useDispatch();
+  const { navigate } = useNavigation();
+  const styles = createStyles(colors);
   const dismissedBanners = useSelector(
     (state: RootState) => state.banners.dismissedBanners,
   );
@@ -216,6 +233,29 @@ export const Carousel: FC<CarouselProps> = ({ onClick, style }) => {
     [hasRendered, trackEvent, createEventBuilder],
   );
 
+  const handleSlideClick = (slideId: string, navigation: NavigationAction) => {
+    trackEvent(
+      createEventBuilder({
+        category: 'Banner Select',
+        properties: {
+          name: slideId,
+        },
+      }).build(),
+    );
+
+    if (navigation.type === 'url') {
+      return openUrl(navigation.href)();
+    }
+
+    if (navigation.type === 'function') {
+      return navigate(...navigation.navigate());
+    }
+  };
+
+  const handleClose = (slideId: string) => {
+    dispatch(dismissBanner(slideId));
+  };
+
   useEffect(() => {
     if (visibleSlides.length > 0) {
       handleRenderSlides(visibleSlides);
@@ -226,32 +266,9 @@ export const Carousel: FC<CarouselProps> = ({ onClick, style }) => {
     return null;
   }
 
-  const handleClose = (slideId: string) => {
-    dispatch(dismissBanner(slideId));
-  };
-
-  const handleSlideClick = (slideId: string, href?: string) => {
-    trackEvent(
-      createEventBuilder({
-        category: 'Banner Select',
-        properties: {
-          name: slideId,
-        },
-      }).build(),
-    );
-
-    if (href) {
-      Linking.openURL(href).catch(() => {
-        // Error is handled silently as it's not critical for the app
-      });
-    } else if (onClick) {
-      onClick(slideId);
-    }
-  };
-
   return (
     <View
-      style={[styles.container, style]}
+      style={styles.container}
       testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
     >
       <View style={styles.bannerContainer}>
@@ -266,19 +283,15 @@ export const Carousel: FC<CarouselProps> = ({ onClick, style }) => {
             },
           }}
         >
-          {visibleSlides.map((slide, index) => (
+          {visibleSlides.map((slide) => (
             <Pressable
               key={slide.id}
-              testID={
-                index === 0
-                  ? WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE
-                  : WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE
-              }
+              testID={slide.testID}
               style={[
                 styles.slideContainer,
                 pressedSlideId === slide.id && styles.slideContainerPressed,
               ]}
-              onPress={() => handleSlideClick(slide.id, slide.href)}
+              onPress={() => handleSlideClick(slide.id, slide.navigation)}
               onPressIn={() => setPressedSlideId(slide.id)}
               onPressOut={() => setPressedSlideId(null)}
             >
@@ -298,11 +311,7 @@ export const Carousel: FC<CarouselProps> = ({ onClick, style }) => {
                     <Text
                       variant={TextVariant.BodyMD}
                       style={styles.title}
-                      testID={
-                        index === 0
-                          ? WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE
-                          : WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE
-                      }
+                      testID={slide.testIDTitle}
                     >
                       {slide.title}
                     </Text>

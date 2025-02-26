@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { Linking } from 'react-native';
 import Carousel from './';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -35,10 +36,6 @@ jest.mock('react-native-scrollable-tab-view', () => {
   return MockScrollableTabView;
 });
 
-jest.mock('../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
-}));
-
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
@@ -70,6 +67,10 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
+jest.mock('../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+}));
+
 // Mock Linking
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(() => Promise.resolve()),
@@ -90,6 +91,13 @@ jest.mock('../../../images/banners/banner_image_aggregated.png', () => ({
 }));
 
 const mockDispatch = jest.fn();
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 describe('Carousel', () => {
   beforeEach(() => {
@@ -105,6 +113,11 @@ describe('Carousel', () => {
     );
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     jest.clearAllMocks();
+  });
+
+  it('should render correctly', () => {
+    const { toJSON } = render(<Carousel />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('does not render when all banners are dismissed', () => {
@@ -123,29 +136,40 @@ describe('Carousel', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('opens correct URLs when banners are clicked', async () => {
-    const { getByText } = render(<Carousel />);
+  it('opens correct URLs or navigates to correct screens when banners are clicked', async () => {
+    const { getByTestId } = render(<Carousel />);
+
+    const {
+      CAROUSEL_FIRST_SLIDE,
+      CAROUSEL_SECOND_SLIDE,
+      CAROUSEL_THIRD_SLIDE,
+      CAROUSEL_FOURTH_SLIDE,
+    } = WalletViewSelectorsIDs;
+    const firstSlide = getByTestId(CAROUSEL_FIRST_SLIDE);
+    const secondSlide = getByTestId(CAROUSEL_SECOND_SLIDE);
+    const thirdSlide = getByTestId(CAROUSEL_THIRD_SLIDE);
+    const fourthSlide = getByTestId(CAROUSEL_FOURTH_SLIDE);
 
     // Test card banner
-    fireEvent.press(getByText('banner.card.title').parent);
+    fireEvent.press(firstSlide);
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://portfolio.metamask.io/card',
     );
 
     // Test fund banner
-    fireEvent.press(getByText('banner.fund.title').parent);
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://portfolio.metamask.io/buy/build-quote',
-    );
+    fireEvent.press(secondSlide);
+    expect(mockNavigate).toHaveBeenCalled();
 
     // Test cashout banner
-    fireEvent.press(getByText('banner.cashout.title').parent);
+    fireEvent.press(thirdSlide);
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://portfolio.metamask.io/sell',
     );
 
     // Test aggregated banner
-    fireEvent.press(getByText('banner.aggregated.title').parent);
-    expect(Linking.openURL).toHaveBeenCalledWith('metamask://settings/general');
+    fireEvent.press(fourthSlide);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://portfolio.metamask.io/sell',
+    );
   });
 });

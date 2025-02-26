@@ -29,7 +29,6 @@ describe(SmokeCore('Carousel Tests'), () => {
   });
   beforeEach(async () => {
     jest.setTimeout(150000);
-    // Wait for the Carousel to be rendered
     const carouselContainer = await WalletView.carouselContainer;
     await Assertions.checkIfVisible(carouselContainer, 5000);
   });
@@ -82,12 +81,13 @@ describe(SmokeCore('Carousel Tests'), () => {
     });
     await loginToApp();
 
-    const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
+    const carouselSecondSlideTitle = await WalletView.carouselSecondSlideTitle;
     const closeButton = await WalletView.carouselCloseButton;
     await Assertions.checkIfVisible(closeButton, 5000);
     await Gestures.tap(closeButton);
+    await TestHelpers.delay(5000);
     await Assertions.checkIfElementToHaveText(
-      carouselFirstSlideTitle,
+      carouselSecondSlideTitle,
       'Fund your wallet',
       5000,
     );
