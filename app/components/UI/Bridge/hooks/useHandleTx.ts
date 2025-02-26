@@ -4,12 +4,13 @@ import { selectChainId, selectIsEIP1559Network, selectSelectedNetworkClientId } 
 import { resetTransaction } from '../../../../actions/transaction';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import { getTransaction1559GasFeeEstimates } from '../../Swaps/utils/gas';
-import { addHexPrefix } from '../../../../util/number';
+import { addHexPrefix, BNToHex } from '../../../../util/number';
 import { TransactionMeta, TransactionType, WalletDevice } from '@metamask/transaction-controller';
 import { selectGasFeeEstimates } from '../../../../selectors/confirmTransaction';
 import AppConstants from '../../../../core/AppConstants';
 import { TxData } from '../types';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
+import BigNumber from 'bignumber.js';
 
 type GasEstimatesWithPrice = GasFeeEstimates & {
   gasPrice?: string;
@@ -58,15 +59,17 @@ export default function useHandleTx() {
     const gasFeeEstimates = await getGasFeeEstimatesForTransaction(
       txParams,
       gasEstimates as GasEstimatesWithPrice,
-      { chainId, isEIP1559Network },
+      { chainId: chainId as `0x${string}`, isEIP1559Network },
     );
 
+    const gasLimitHex = BNToHex(new BigNumber(txParams.gasLimit ?? 0));
     const { transactionMeta, result } = await addTransaction(
       {
         ...{
           ...txParams,
           chainId: txParams.chainId.toString() as `0x${string}`,
-          gasLimit: txParams.gasLimit?.toString() as string | undefined
+          gasLimit: gasLimitHex,
+          gas: gasLimitHex,
         },
         ...gasFeeEstimates,
       },
