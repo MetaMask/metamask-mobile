@@ -5,6 +5,7 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import Engine from '../../../../core/Engine';
+import { Quote } from '@metamask/swaps-controller/dist/types';
 
 // Mock selectors directly
 jest.mock('../../../../selectors/networkController', () => ({
@@ -111,7 +112,7 @@ describe('useSwapsSmartTransaction', () => {
 
     const { result } = renderHookWithProvider(() =>
       useSwapsSmartTransaction({
-        tradeTransaction: mockTradeTransaction,
+        quote: {trade: mockTradeTransaction} as Quote,
         gasEstimates: mockGasEstimates
       })
     );
@@ -168,7 +169,7 @@ describe('useSwapsSmartTransaction', () => {
 
     const { result } = renderHookWithProvider(() =>
       useSwapsSmartTransaction({
-        tradeTransaction: mockTradeTransaction,
+        quote: {trade: mockTradeTransaction} as Quote,
         gasEstimates: mockGasEstimates
       })
     );
