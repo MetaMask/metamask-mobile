@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
+import { fontStyles } from '../../../../../../styles/common';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -22,7 +23,7 @@ const styleSheet = (params: { theme: Theme }) => {
     headerTitle: {
       color: theme.colors.text.default,
       fontSize: 14,
-      fontWeight: '500',
+      ...fontStyles.bold,
     },
     icon: {
       color: theme.colors.text.muted,
