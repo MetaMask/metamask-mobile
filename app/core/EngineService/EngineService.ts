@@ -138,6 +138,7 @@ export class EngineService {
         keyrings: [],
         vault: keyringState.vault,
         isUnlocked: false,
+        keyringsMetadata: [],
       };
 
       Logger.log(`${LOG_TAG}: Initializing Engine from backup:`, {
