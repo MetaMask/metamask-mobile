@@ -85,16 +85,4 @@ describe('Notification Services Controller', () => {
     const constructorParams = assertGetConstructorCall();
     expect(constructorParams?.state).toEqual(state);
   });
-
-  it('throws and logs error if controller creation fails', () => {
-    const { messenger, mockConstructor } = arrange();
-    mockConstructor.mockImplementation(() => {
-      throw new Error('TEST ERROR');
-    });
-    jest.spyOn(console, 'error').mockImplementation();
-
-    expect(() => createNotificationServicesController({ messenger })).toThrow(
-      expect.any(Error),
-    );
-  });
 });

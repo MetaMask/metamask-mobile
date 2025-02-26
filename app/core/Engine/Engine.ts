@@ -128,9 +128,9 @@ import {
   UserStorageController,
 } from '@metamask/profile-sync-controller';
 import { getNotificationServicesControllerMessenger } from './messengers/notifications/notification-services-controller-messenger';
-import { createNotificationServicesController } from './controllers/Notifications/create-notification-services-controller';
+import { createNotificationServicesController } from './controllers/notifications/create-notification-services-controller';
 import { getNotificationServicesPushControllerMessenger } from './messengers/notifications/notification-services-push-controller-messenger';
-import { createNotificationServicesPushController } from './controllers/Notifications/create-notification-services-push-controller';
+import { createNotificationServicesPushController } from './controllers/notifications/create-notification-services-push-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,

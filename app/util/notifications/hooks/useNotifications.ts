@@ -19,6 +19,7 @@ import {
 import { usePushNotificationsToggle } from './usePushNotifications';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
+import ErrorMessage from '../../../components/Views/confirmations/SendFlow/ErrorMessage';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -65,8 +66,12 @@ export function useListNotificationsEffect() {
         if (notificationsEnabled) {
           await listNotifications();
         }
-      } catch {
-        // Do Nothing
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(ErrorMessage);
+        Logger.error(
+          new Error(`Failed to list notifications - ${errorMessage}`),
+        );
       }
     };
 
@@ -87,7 +92,6 @@ export function useListNotificationsEffect() {
 export function useEnableNotifications(props = { nudgeEnablePush: true }) {
   const { togglePushNotification, loading: pushLoading } =
     usePushNotificationsToggle(props);
-
   const data = useSelector(selectIsMetamaskNotificationsEnabled);
   const loading = useSelector(selectIsUpdatingMetamaskNotifications);
   const [error, setError] = useState<unknown>(null);
