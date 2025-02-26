@@ -39,7 +39,6 @@ import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
 import AddNewHdAccount from '../AddNewHdAccount';
-import Logger from '../../../util/Logger';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();

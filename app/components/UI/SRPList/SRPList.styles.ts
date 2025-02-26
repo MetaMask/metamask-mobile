@@ -16,11 +16,14 @@ const styleSheet = (params: { theme: Theme }) => {
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'center',
+      flexShrink: 1,
       paddingVertical: 16,
       paddingHorizontal: 16,
       backgroundColor: colors.background.default,
       margin: 8,
       borderRadius: 8,
+      borderWidth: 2,
+      borderColor: colors.warning.default,
     },
     accountInputContainer: {
       width: '100%',
@@ -71,6 +74,11 @@ const styleSheet = (params: { theme: Theme }) => {
       button: {
         flex: 1,
       },
+    },
+    srpListContentContainer: {
+      display: 'flex',
+      maxWidth: '100%',
+      paddingVertical: 4,
     },
   });
 };

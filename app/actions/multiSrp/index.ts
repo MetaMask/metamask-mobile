@@ -77,7 +77,6 @@ export async function addNewHdAccount(
       keyringSelector,
       async (keyring) => (await keyring.addAccounts(1))[0],
     );
-    Logger.log('added account address', addedAccountAddress);
     Engine.setSelectedAddress(addedAccountAddress);
 
     if (name) {
