@@ -7,7 +7,6 @@ import ScreenView from '../../Base/ScreenView';
 import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text';
 import useHandleBridgeTx from './hooks/useHandleBridgeTx';
-import useHandleApprovalTx from './hooks/useHandleApprovalTx';
 import { ThemeColors } from '@metamask/design-tokens';
 
 const createStyles = (colors: ThemeColors) =>
