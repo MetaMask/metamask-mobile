@@ -8,6 +8,10 @@ import { selectEvmChainId, selectIsEIP1559Network } from '../../../../selectors/
 import { getGasFeeEstimatesForTransaction } from './gas';
 import { Hex } from '@metamask/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import {
+  getGasIncludedTransactionFees,
+  type GasIncludedQuote
+} from '../../../../util/smart-transactions';
 
 interface TemporarySmartTransactionGasFees {
   maxFeePerGas: string;
@@ -97,10 +101,10 @@ const submitSmartTransaction = async ({
   }
 };
 
-export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { tradeTransaction: Quote['trade'], gasEstimates: {
+export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates, selectedQuote }: { tradeTransaction: Quote['trade'], gasEstimates: {
   gasPrice: string;
   medium: string;
-} }) => {
+}, selectedQuote: Quote }) => {
   const chainId = useSelector(selectEvmChainId);
   const isEIP1559Network = useSelector(selectIsEIP1559Network);
   const approvalTransaction: TxParams | null = useSelector(selectSwapsApprovalTransaction);
@@ -110,8 +114,13 @@ export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { t
   const submitSwapsSmartTransaction = async () => {
     const { SmartTransactionsController } = Engine.context;
 
-    // Calc fees
-    const smartTransactionFees = await SmartTransactionsController.getFees(tradeTransaction, approvalTransaction);
+    let smartTransactionFees;
+    if (selectedQuote.isGasIncludedTrade) {
+      smartTransactionFees = getGasIncludedTransactionFees(selectedQuote as unknown as GasIncludedQuote);
+    } 
+    if (!smartTransactionFees) {
+      smartTransactionFees = await SmartTransactionsController.getFees(tradeTransaction, approvalTransaction);
+    }
 
     // Approval transaction (if it exists)
     let approvalTxUuid: string | undefined;
@@ -130,10 +139,7 @@ export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { t
             maxFeePerGas: fee.maxFeePerGas.toString(),
             maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
           })),
-          cancelFees: smartTransactionFees.approvalTxFees.cancelFees.map((fee) => ({
-            maxFeePerGas: fee.maxFeePerGas.toString(),
-            maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
-          })),
+          cancelFees: [],
         },
         chainId,
         isEIP1559Network,
@@ -159,10 +165,7 @@ export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { t
           maxFeePerGas: fee.maxFeePerGas.toString(),
           maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
         })) || [],
-        cancelFees: smartTransactionFees.tradeTxFees?.cancelFees.map((fee) => ({
-          maxFeePerGas: fee.maxFeePerGas.toString(),
-          maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
-        })) || [],
+        cancelFees: [],
       },
       chainId,
       isEIP1559Network,
