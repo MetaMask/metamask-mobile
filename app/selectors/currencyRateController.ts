@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import { CurrencyRateState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectTicker,
 } from './networkController';
@@ -13,7 +13,7 @@ const selectCurrencyRateControllerState = (state: RootState) =>
 
 export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
-  selectChainId,
+  selectEvmChainId,
   selectTicker,
   (state: RootState) => state.settings.showFiatOnTestnets,
   (

@@ -114,13 +114,13 @@ jest.mock('../Permissions', () => ({
 }));
 
 jest.mock('../../selectors/networkController', () => ({
-  selectChainId: jest.fn().mockReturnValue('0x1'),
+  selectEvmChainId: jest.fn().mockReturnValue('0x1'),
   selectProviderConfig: jest.fn().mockReturnValue({
     type: 'mainnet',
     chainId: '0x1',
     ticker: 'ETH',
   }),
-  selectNetworkConfigurations: jest.fn().mockReturnValue({}),
+  selectEvmNetworkConfigurationsByChainId: jest.fn().mockReturnValue({}),
   selectSelectedNetworkClientId: jest.fn().mockReturnValue('0x1'),
 }));
 

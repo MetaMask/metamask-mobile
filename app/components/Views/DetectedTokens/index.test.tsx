@@ -7,8 +7,8 @@ import {
   selectDetectedTokens,
 } from '../../../selectors/tokensController';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
@@ -102,8 +102,8 @@ describe('DetectedTokens Component', () => {
           { address: '0xToken2', symbol: 'TKN2', chainId: '1' },
         ];
       }
-      if (selector === selectChainId) return '1';
-      if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectEvmChainId) return '1';
+      if (selector === selectEvmNetworkConfigurationsByChainId) return {};
       return {};
     });
   });
@@ -128,8 +128,8 @@ describe('DetectedTokens Component', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectDetectedTokens) return [];
       if (selector === selectAllDetectedTokensFlat) return [];
-      if (selector === selectChainId) return '1';
-      if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectEvmChainId) return '1';
+      if (selector === selectEvmNetworkConfigurationsByChainId) return {};
       return {};
     });
 

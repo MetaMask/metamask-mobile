@@ -85,6 +85,7 @@ import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesi
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const Stack = createStackNavigator();
 
@@ -225,17 +226,28 @@ const Main = (props) => {
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkName = useSelector(selectNetworkName);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const previousProviderConfig = useRef(undefined);
   const previousNetworkConfigurations = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
   const networkImage = useSelector(selectNetworkImageSource);
 
+  const hasNetworkChanged = useCallback(
+    (chainId, previousConfig, isEvmSelected) => {
+      if (!previousConfig) return false;
+
+      return isEvmSelected
+        ? chainId !== previousConfig.chainId ||
+            providerConfig.type !== previousConfig.type
+        : chainId !== previousConfig.chainId;
+    },
+    [providerConfig.type],
+  );
+
   // Show network switch confirmation.
   useEffect(() => {
     if (
-      previousProviderConfig.current &&
-      (providerConfig.chainId !== previousProviderConfig.current.chainId ||
-        providerConfig.type !== previousProviderConfig.current.type)
+      hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
     ) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
@@ -249,8 +261,18 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
-    previousProviderConfig.current = providerConfig;
-  }, [providerConfig, networkName, networkImage, toastRef]);
+    previousProviderConfig.current = !isEvmSelected
+      ? { chainId }
+      : providerConfig;
+  }, [
+    providerConfig,
+    networkName,
+    networkImage,
+    toastRef,
+    chainId,
+    isEvmSelected,
+    hasNetworkChanged,
+  ]);
 
   // Show add network confirmation.
   useEffect(() => {

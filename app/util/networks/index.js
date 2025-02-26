@@ -41,6 +41,10 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
   SEPOLIA_FAUCET,
 } from '../../constants/urls';
+import { isNonEvmChainId } from '../../core/Multichain/utils';
+import { SolScope } from '@metamask/keyring-api';
+import { store } from '../../store';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../selectors/multichainNetworkController';
 
 /**
  * List of the supported networks
@@ -153,8 +157,15 @@ export const isMainNet = (chainId) => chainId === '0x1';
 
 export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
+export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
+
 export const getDecimalChainId = (chainId) => {
-  if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
+  if (
+    !chainId ||
+    typeof chainId !== 'string' ||
+    !chainId.startsWith('0x') ||
+    isNonEvmChainId(chainId)
+  ) {
     return chainId;
   }
   return parseInt(chainId, 16).toString(10);
@@ -283,6 +294,21 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
   }
 
   return undefined;
+}
+/**
+ * Returns block explorer for non-evm chain id
+ *
+ * @param {string} chainId - Chain ID of the network
+ * @returns {string} - Block explorer url
+ */
+export function findBlockExplorerForNonEvmChainId(chainId) {
+  const nonEvmNetworks = selectNonEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
+  const network = Object.values(nonEvmNetworks).find(
+    (network) => network.chainId === chainId,
+  );
+  return network?.blockExplorers?.urls[network?.blockExplorers?.defaultIndex];
 }
 
 /**

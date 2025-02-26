@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
 import { PooledStake } from '@metamask/stake-sdk';
 import {
@@ -20,7 +20,7 @@ export enum StakeAccountStatus {
 
 const usePooledStakes = () => {
   const dispatch = useDispatch();
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const selectedAddress =
     useSelector(selectSelectedInternalAccountFormattedAddress) || '';
   const { pooledStakesData, exchangeRate } = useSelector(

@@ -75,24 +75,29 @@ jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    addListener: jest.fn(),
+    dispatch: jest.fn(),
+    setOptions: jest.fn(),
+  }),
+}));
+
 describe('Confirm', () => {
+  it('renders modal confirmation', async () => {
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: typedSignV1ConfirmationState,
+    });
+    expect(getByTestId('modal-confirmation-container')).toBeDefined();
+  });
+
   it('renders a flat confirmation for specified type(s): staking deposit', () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
     });
     expect(getByTestId('flat-confirmation-container')).toBeDefined();
-  });
-
-  it('renders a modal confirmation', () => {
-    const { getByTestId } = renderWithProvider(
-      <SafeAreaProvider>
-        <Confirm />
-      </SafeAreaProvider>,
-      {
-        state: typedSignV1ConfirmationState,
-      },
-    );
-    expect(getByTestId('modal-confirmation-container')).toBeDefined();
   });
 
   it('renders correct information for personal sign', () => {
@@ -134,18 +139,25 @@ describe('Confirm', () => {
     expect(queryByText('This is a deceptive request')).toBeNull();
   });
 
+  it('renders correct information for staking deposit', async () => {
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(getByText('APR')).toBeDefined();
+    expect(getByText('Est. annual reward')).toBeDefined();
+    expect(getByText('Reward frequency')).toBeDefined();
+    expect(getByText('Withdrawal time')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Advanced details')).toBeDefined();
+  });
+
   it('renders a blockaid banner if the confirmation has blockaid error response', async () => {
-    const { getByText } = renderWithProvider(
-      <SafeAreaProvider>
-        <Confirm />
-      </SafeAreaProvider>,
-      {
-        state: {
-          ...typedSignV1ConfirmationState,
-          signatureRequest: { securityAlertResponse },
-        },
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: {
+        ...typedSignV1ConfirmationState,
+        signatureRequest: { securityAlertResponse },
       },
-    );
+    });
 
     await act(async () => undefined);
 

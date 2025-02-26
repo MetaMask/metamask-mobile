@@ -38,8 +38,8 @@ import { toHex } from '@metamask/controller-utils';
 import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
 import {
-  selectNetworkConfigurations,
   selectIsAllNetworks,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import {
   NetworkConfiguration,
@@ -88,6 +88,7 @@ const NetworkModals = (props: NetworkProps) => {
     safeChains,
   } = props;
   const { trackEvent, createEventBuilder } = useMetrics();
+
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -198,7 +199,7 @@ const NetworkModals = (props: NetworkProps) => {
   );
 
   const networkConfigurationByChainId = useSelector(
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
   );
 
   const checkNetwork = useCallback(async () => {
@@ -355,12 +356,13 @@ const NetworkModals = (props: NetworkProps) => {
         ticker,
         blockExplorerUrl,
       );
+
       const { networkClientId } =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
         {};
 
       onUpdateNetworkFilter();
-      MultichainNetworkController.setActiveNetwork(networkClientId);
+      await MultichainNetworkController.setActiveNetwork(networkClientId);
     }
     onClose();
 
