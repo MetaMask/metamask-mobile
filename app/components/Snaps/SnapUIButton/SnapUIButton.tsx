@@ -6,7 +6,10 @@ import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { TextColor } from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 export interface SnapUIButtonProps {
   name?: string;
@@ -14,6 +17,7 @@ export interface SnapUIButtonProps {
   type?: ButtonType;
   form?: string;
   variant: keyof typeof COLORS;
+  textVariant?: TextVariant;
 }
 
 const COLORS = {
@@ -32,6 +36,7 @@ export const SnapUIButton: FunctionComponent<
   variant = 'primary',
   disabled = false,
   loading = false,
+  textVariant,
   ...props
 }) => {
   const { handleEvent } = useSnapInterfaceContext();
@@ -71,7 +76,9 @@ export const SnapUIButton: FunctionComponent<
             name={IconName.Loading}
           />
         ) : (
-          children
+          <Text color={color} variant={textVariant}>
+            {children}
+          </Text>
         )
       }
     />
