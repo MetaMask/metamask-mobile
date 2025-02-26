@@ -27,6 +27,7 @@ import { hexToDecimal } from '../../../util/conversions';
 import useRemainingTime from './useRemainingTime';
 import { ThemeColors } from '@metamask/design-tokens';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectSmartTransactionsForCurrentChain } from '../../../selectors/smartTransactionsController';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -41,7 +42,6 @@ interface Props {
   };
   origin: string;
   onConfirm: () => void;
-  handleCreateNewSwap?: () => void;
 }
 
 export const FALLBACK_STX_ESTIMATED_DEADLINE_SEC = 45;
@@ -253,9 +253,14 @@ const SmartTransactionStatus = ({
   requestState: { smartTransaction, isDapp, isInSwapFlow },
   origin,
   onConfirm,
-  handleCreateNewSwap,
 }: Props) => {
-  const { status, creationTime, uuid } = smartTransaction;
+  const smartTransactions = useSelector(selectSmartTransactionsForCurrentChain);
+  const latestSmartTransaction = smartTransactions[smartTransactions.length - 1];
+
+  const { status, creationTime, uuid } = isInSwapFlow
+    ? latestSmartTransaction
+    : smartTransaction;
+
   const chainId = useSelector(selectEvmChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const navigation = useNavigation();
@@ -284,11 +289,7 @@ const SmartTransactionStatus = ({
 
   const createNewSwap = () => {
     onConfirm();
-    if (handleCreateNewSwap) {
-      handleCreateNewSwap();
-    } else {
-      navigation.navigate(Routes.SWAPS);
-    }
+    navigation.navigate(Routes.SWAPS);
   };
 
   const createNewSend = () => {
