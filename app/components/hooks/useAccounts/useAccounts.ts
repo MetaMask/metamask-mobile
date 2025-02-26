@@ -8,7 +8,7 @@ import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { getTicker } from '../../../util/transactions';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -59,7 +59,7 @@ const useAccounts = ({
   const accountInfoByAddress = useSelector(selectAccounts);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 

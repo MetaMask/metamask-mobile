@@ -12,7 +12,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import {
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../../selectors/networkController';
 // eslint-disable-next-line import/no-namespace
 import * as reactRedux from 'react-redux';
@@ -214,7 +214,7 @@ describe('TokenDetails', () => {
           return mockCurrentCurrency;
         case selectProviderConfig:
           return { ticker: 'ETH' };
-        case selectTicker:
+        case selectEvmTicker:
           return 'ETH';
         default:
           return undefined;

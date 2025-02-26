@@ -74,7 +74,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
@@ -1245,11 +1245,7 @@ class DrawerView extends PureComponent {
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
         >
-          <NetworkInfo
-            onClose={this.onInfoNetworksModalClose}
-            type={providerConfig.type}
-            ticker={providerConfig.ticker}
-          />
+          <NetworkInfo onClose={this.onInfoNetworksModalClose} />
         </Modal>
 
         {this.renderProtectModal()}
@@ -1270,7 +1266,7 @@ const mapStateToProps = (state) => ({
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   tokens: selectTokens(state),
   tokenBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),

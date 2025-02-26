@@ -30,7 +30,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -432,7 +432,7 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
