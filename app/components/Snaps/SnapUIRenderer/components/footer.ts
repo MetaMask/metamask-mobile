@@ -13,13 +13,12 @@ export const DEFAULT_FOOTER = {
     gap: 16,
     padding: 16,
     style: {
-      position: 'fixed',
+      position: 'absolute',
       bottom: 0,
       width: '100%',
       justifyContent: 'space-evenly',
-      paddingVertical: 20,
+      paddingVertical: 16,
       height: 80,
-      marginTop: 'auto',
     },
   },
 };
