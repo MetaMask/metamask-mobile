@@ -3,7 +3,11 @@ import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState, TransactionEventPayload } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
-import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
+import {
+  createMockAccountsControllerState,
+  createMockInternalAccount,
+  MOCK_ADDRESS_1,
+} from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { store } from '../../store';
@@ -23,7 +27,12 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
 jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
+
 describe('Engine', () => {
+  // Create a shared mock account for tests
+  const validAddress = MOCK_ADDRESS_1;
+  const mockAccount = createMockInternalAccount(validAddress, 'Test Account');
+
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -91,22 +100,6 @@ describe('Engine', () => {
 
   it('setSelectedAccount successfully updates selected account when address exists', () => {
     const engine = Engine.init(backgroundState);
-    const validAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
-    const mockAccount = {
-      id: 'account-1',
-      address: validAddress,
-      type: 'eip155:eoa' as const,
-      options: {},
-      metadata: {
-        name: 'Test Account',
-        importTime: Date.now(),
-        keyring: {
-          type: 'HD Key Tree',
-        },
-      },
-      scopes: [],
-      methods: [],
-    };
 
     const getAccountByAddressSpy = jest
       .spyOn(engine.context.AccountsController, 'getAccountByAddress')
@@ -129,23 +122,7 @@ describe('Engine', () => {
 
   it('setAccountLabel successfully updates account label when address exists', () => {
     const engine = Engine.init(backgroundState);
-    const validAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
     const label = 'New Account Name';
-    const mockAccount = {
-      id: 'account-1',
-      address: validAddress,
-      type: 'eip155:eoa' as const,
-      options: {},
-      metadata: {
-        name: 'Test Account',
-        importTime: Date.now(),
-        keyring: {
-          type: 'HD Key Tree',
-        },
-      },
-      scopes: [],
-      methods: [],
-    };
 
     const getAccountByAddressSpy = jest
       .spyOn(engine.context.AccountsController, 'getAccountByAddress')
