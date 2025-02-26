@@ -8,7 +8,6 @@ import { Alert, Severity } from '../Views/confirmations/types/alerts';
  */
 export const useAlertsConfirmed = (alerts: Alert[]) => {
   const [confirmed, setConfirmed] = useState<{ [key: string]: boolean }>({});
-  const [alertKey, setAlertKey] = useState(alerts[0]?.key);
 
   /**
    * Sets the confirmation status of an alert.
@@ -44,10 +43,8 @@ export const useAlertsConfirmed = (alerts: Alert[]) => {
   ), [alerts, isAlertConfirmed]);
 
   return {
-    alertKey,
     isAlertConfirmed,
     setAlertConfirmed,
-    setAlertKey: (key: string) => setAlertKey(key),
     unconfirmedDangerAlerts,
     unconfirmedFieldDangerAlerts,
     hasUnconfirmedDangerAlerts: unconfirmedDangerAlerts.length > 0,
