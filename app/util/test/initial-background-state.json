@@ -327,7 +327,9 @@
     "subscriptionAccountsSeen": []
   },
   "NotificationServicesPushController": {
-    "fcmToken": ""
+    "fcmToken": "",
+    "isPushEnabled": true,
+    "isUpdatingFCMToken": false
   },
   "UserStorageController": {
     "hasAccountSyncingSyncedAtLeastOnce": false,

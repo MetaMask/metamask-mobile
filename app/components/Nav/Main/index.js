@@ -116,7 +116,7 @@ const Main = (props) => {
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-  useNotificationHandler(props.navigation);
+  useNotificationHandler();
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
