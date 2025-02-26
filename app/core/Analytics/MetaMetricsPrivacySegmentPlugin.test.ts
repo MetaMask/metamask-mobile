@@ -147,7 +147,8 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
   });
 
   it('does not replace userId for non-anonymous track events', async () => {
-    const expectedUserId = '65746865-724D-496E-696E-674C6F766573';
+    // This is a different UUIDv4 than the mockUserId
+    const expectedUserId = '74686973-5555-4944-4973-344B796C616E';
 
     const event: TrackEventType = {
       event: 'Non-anonymous Event',
@@ -166,7 +167,8 @@ describe('MetaMetricsPrivacySegmentPlugin', () => {
   });
 
   it('does not replace userId for non-track events', async () => {
-    const expectedUserId = '65746865-724D-496E-696E-674C6F766573';
+    // This is a different UUIDv4 than the mockUserId
+    const expectedUserId = '74686973-5555-4944-4973-344B796C616E';
 
     const identifyEvent: IdentifyEventType = {
       type: EventType.IdentifyEvent,
