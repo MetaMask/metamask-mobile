@@ -16,8 +16,11 @@ const AccountNetworkInfoExpanded = () => {
   const chainId = signatureRequest?.chainId as Hex;
 
   const fromAddress = signatureRequest?.messageParams?.from as string;
-  const { accountAddress } = useAccountInfo(fromAddress);
+  const { accountAddress, accountFiatBalance } = useAccountInfo(fromAddress);
   const { multichainBalances } = useMultichainBalances();
+  const balanceToDisplay = multichainBalances.isPortfolioVieEnabled
+    ? multichainBalances.displayBalance
+    : accountFiatBalance;
 
   return (
     <View>
@@ -26,7 +29,7 @@ const AccountNetworkInfoExpanded = () => {
           {renderShortAddress(accountAddress, 5)}
         </InfoRow>
         <InfoRow label={strings('confirm.label.balance')}>
-          {multichainBalances.displayBalance}
+          {balanceToDisplay}
         </InfoRow>
       </InfoSection>
       <InfoSection>
