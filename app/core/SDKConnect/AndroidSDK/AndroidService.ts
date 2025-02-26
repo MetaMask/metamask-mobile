@@ -180,8 +180,7 @@ export default class AndroidService extends EventEmitter2 {
             );
             // Ask for account permissions
             await this.checkPermission({
-              originatorInfo: clientInfo.originatorInfo,
-              channelId: clientInfo.clientId,
+              subject: `${PROTOCOLS.METAMASK}://${clientInfo.clientId}`,
             });
 
             this.setupBridge(clientInfo);
@@ -256,10 +255,9 @@ export default class AndroidService extends EventEmitter2 {
   }
 
   private async checkPermission({
-    channelId,
+    subject,
   }: {
-    originatorInfo: OriginatorInfo;
-    channelId: string;
+    subject: string;
   }): Promise<unknown> {
     const permissionsController = (
       Engine.context as {
@@ -270,7 +268,7 @@ export default class AndroidService extends EventEmitter2 {
     ).PermissionController;
 
     return permissionsController.requestPermissions(
-      { origin: channelId },
+      { origin: subject },
       { eth_accounts: {} },
     );
   }
@@ -346,8 +344,7 @@ export default class AndroidService extends EventEmitter2 {
           try {
             // Ask users permissions again - it probably means the channel was removed
             await this.checkPermission({
-              originatorInfo: this.connections[sessionId]?.originatorInfo ?? {},
-              channelId: sessionId,
+              subject: `${PROTOCOLS.METAMASK}://${sessionId}`,
             });
 
             // Create new bridge

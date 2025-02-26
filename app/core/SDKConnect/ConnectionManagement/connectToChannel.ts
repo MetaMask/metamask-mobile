@@ -19,6 +19,7 @@ import { wait, waitForCondition } from '../utils/wait.util';
 import { SDKConnect } from './../SDKConnect';
 
 import packageJSON from '../../../../package.json';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 const { version: walletVersion } = packageJSON;
 
 async function connectToChannel({
@@ -216,7 +217,9 @@ async function connectToChannel({
     store.dispatch(resetConnections(instance.state.connections));
 
     if (authorized && initialConnection) {
-      const accounts = await getPermittedAccounts(id);
+      const accounts = await getPermittedAccounts(
+        `${PROTOCOLS.METAMASK}://${id}`,
+      );
       const currentChainId = selectChainId(store.getState());
       connected.remote.state.channelId = id;
       const data = {

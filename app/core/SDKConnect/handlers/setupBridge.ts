@@ -39,24 +39,20 @@ export const setupBridge = ({
         });
       },
     ),
-    getRpcMethodMiddleware: ({ getProviderState }) => {
+    getRpcMethodMiddleware: ({ getProviderState, getSubjectInfo }) => {
       DevLogger.log(
         `getRpcMethodMiddleware hostname=${connection.host} url=${originatorInfo.url} `,
       );
       return getRpcMethodMiddleware({
-        hostname: connection.host,
-        channelId: connection.channelId,
         getProviderState,
-        isMMSDK: true,
+        getSubjectInfo,
         navigation: null, //props.navigation,
         // Website info
-        url: {
-          current: originatorInfo?.url,
+        subjectDisplayInfo: {
+          title: originatorInfo?.title,
+          // TODO: Need to change the type at the @metamask/sdk-communication-layer from string to ImageSourcePropType
+          icon: originatorInfo?.icon as ImageSourcePropType,
         },
-        title: {
-          current: originatorInfo?.title,
-        },
-        icon: { current: originatorInfo.icon as ImageSourcePropType }, // TODO: Need to change the type at the @metamask/sdk-communication-layer from string to ImageSourcePropType
         // Bookmarks
         isHomepage: () => false,
         // Show autocomplete
@@ -64,9 +60,7 @@ export const setupBridge = ({
         // Wizard
         wizardScrollAdjusted: { current: false },
         tabId: '',
-        isWalletConnect: false,
         analytics: {
-          isRemoteConn: true,
           platform:
             originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
         },
@@ -74,7 +68,6 @@ export const setupBridge = ({
         injectHomePageScripts: () => null,
       });
     },
-    isWalletConnect: false,
   });
 
   return backgroundBridge;

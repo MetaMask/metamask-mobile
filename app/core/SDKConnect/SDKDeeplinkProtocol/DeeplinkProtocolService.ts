@@ -275,8 +275,10 @@ export default class DeeplinkProtocolService {
       }
     ).PermissionController;
 
+    const subject = `${PROTOCOLS.METAMASK}://${channelId}`;
+
     return permissionsController.requestPermissions(
-      { origin: channelId },
+      { origin: subject },
       { eth_accounts: {} },
     );
   }

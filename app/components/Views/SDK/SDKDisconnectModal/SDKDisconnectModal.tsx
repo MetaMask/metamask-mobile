@@ -22,6 +22,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
+import { PROTOCOLS } from '../../../../constants/deeplinks';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -42,7 +43,7 @@ const createStyles = (
 interface SDKDisconnectModalProps {
   route: {
     params: {
-      channelId?: string;
+      subject: string;
       account?: string;
       accountName?: string;
       dapp?: string;
@@ -53,8 +54,8 @@ interface SDKDisconnectModalProps {
 
 const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
   const { params } = route;
-  const { channelId, account, accountsLength, accountName, dapp } =
-    params ?? {};
+  const { subject, account, accountsLength, accountName, dapp } = params ?? {};
+  const channelId = subject.replace(`${PROTOCOLS.METAMASK}://`, '');
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const safeAreaInsets = useSafeAreaInsets();
@@ -68,7 +69,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
     if (account) {
       _title = 'sdk_disconnect_modal.disconnect_account';
       _description = 'sdk_disconnect_modal.disconnect_account_desc';
-    } else if (channelId) {
+    } else if (subject) {
       _title = 'sdk_disconnect_modal.disconnect_all_accounts';
       _description = 'sdk_disconnect_modal.disconnect_all_accounts_desc';
     } else {
@@ -77,12 +78,12 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
     }
 
     return { title: _title, description: _description };
-  }, [channelId, account]);
+  }, [subject, account]);
 
   const onConfirm = async () => {
-    if (account && channelId) {
-      removePermittedAccounts(channelId, [account]);
-    } else if (!account && channelId) {
+    if (account && subject) {
+      removePermittedAccounts(subject, [account]);
+    } else if (!account && subject) {
       SDKConnect.getInstance().removeChannel({
         channelId,
         sendTerminate: true,

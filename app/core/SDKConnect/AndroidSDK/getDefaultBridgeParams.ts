@@ -6,28 +6,27 @@ import { DappClient } from './dapp-sdk-types';
 const getDefaultBridgeParams = (clientInfo: DappClient) => ({
   getRpcMethodMiddleware: ({
     getProviderState,
+    getSubjectInfo,
   }: {
-    hostname: string;
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getProviderState: any;
+    getSubjectInfo: () => {
+      origin: string;
+      domain: string;
+    };
   }) =>
     getRpcMethodMiddleware({
-      hostname:
-        clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
-      channelId: clientInfo.clientId,
+      // hostname:
+      //   clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
+      // channelId: clientInfo.clientId,
       getProviderState,
-      isMMSDK: true,
+      getSubjectInfo,
       navigation: null, //props.navigation,
       // Website info
-      url: {
-        current: clientInfo.originatorInfo?.url,
-      },
-      title: {
-        current: clientInfo.originatorInfo?.title,
-      },
-      icon: {
-        current: clientInfo.originatorInfo?.icon as ImageSourcePropType, // TODO: Need to change the type at the @metamask/sdk-communication-layer from string to ImageSourcePropType
+      subjectDisplayInfo: {
+        title: clientInfo.originatorInfo?.title,
+        icon: clientInfo.originatorInfo?.icon as ImageSourcePropType,
       },
       // Bookmarks
       isHomepage: () => false,
@@ -36,9 +35,7 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
       // Wizard
       wizardScrollAdjusted: { current: false },
       tabId: '',
-      isWalletConnect: false,
       analytics: {
-        isRemoteConn: true,
         platform:
           clientInfo.originatorInfo.platform ??
           AppConstants.MM_SDK.UNKNOWN_PARAM,
