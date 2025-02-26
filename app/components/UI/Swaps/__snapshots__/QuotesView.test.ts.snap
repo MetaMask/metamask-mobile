@@ -446,7 +446,6 @@ exports[`QuotesView should render quote screen 1`] = `
                                 "marginVertical": 12,
                               }
                             }
-                            testID="top-bar"
                           >
                             <View
                               style={
@@ -1866,35 +1865,6 @@ exports[`QuotesView should render quote screen 1`] = `
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <Modal
-                            animationType="none"
-                            deviceHeight={null}
-                            deviceWidth={null}
-                            hardwareAccelerated={false}
-                            hideModalContentWhileAnimating={false}
-                            onBackdropPress={[Function]}
-                            onModalHide={[Function]}
-                            onModalWillHide={[Function]}
-                            onModalWillShow={[Function]}
-                            onRequestClose={[Function]}
-                            onSwipeComplete={[Function]}
-                            panResponderThreshold={4}
-                            scrollHorizontal={false}
-                            scrollOffset={0}
-                            scrollOffsetMax={0}
-                            scrollTo={null}
-                            statusBarTranslucent={false}
-                            supportedOrientations={
-                              [
-                                "portrait",
-                                "landscape",
-                              ]
-                            }
-                            swipeDirection="down"
-                            swipeThreshold={100}
-                            transparent={true}
-                            visible={false}
-                          />
                           <Modal
                             animationType="none"
                             deviceHeight={null}
