@@ -29,6 +29,8 @@ describe('useSwitchNotifications - useNotificationsToggle', () => {
       .spyOn(UseNotificationsModule, 'useEnableNotifications')
       .mockReturnValue({
         data: true,
+        isEnablingNotifications: false,
+        isEnablingPushNotifications: false,
         loading: false,
         error: null,
         enableNotifications: mockEnableNotifications,
@@ -178,7 +180,7 @@ describe('useSwitchNotifications - useFetchAccountNotifications()', () => {
   };
 
   type Mocks = ReturnType<typeof arrangeMocks>;
-  const arrangeAct = async (
+  const arrangeActCallback = async (
     accounts: string[],
     mutateMocks?: (m: Mocks) => void,
   ) => {
@@ -197,9 +199,25 @@ describe('useSwitchNotifications - useFetchAccountNotifications()', () => {
     return { mocks, hook };
   };
 
+  const arrangeActEffect = async (
+    accounts: string[],
+    mutateMocks?: (m: Mocks) => void,
+  ) => {
+    // Arrange
+    const mocks = arrangeMocks();
+    mutateMocks?.(mocks);
+
+    // Act - render hook (which will invoke effect)
+    const hook = renderHookWithProvider(() =>
+      useFetchAccountNotifications(accounts),
+    );
+
+    return { mocks, hook };
+  };
+
   it('fetches account notifications successfully', async () => {
     const accounts = ['0x123', '0x456'];
-    const { mocks, hook } = await arrangeAct(accounts);
+    const { mocks, hook } = await arrangeActCallback(accounts);
     await waitFor(() =>
       expect(mocks.mockFetchAccountNotificationSettings).toHaveBeenCalledWith(
         accounts,
@@ -212,7 +230,7 @@ describe('useSwitchNotifications - useFetchAccountNotifications()', () => {
   it('returns error if fails to fetch', async () => {
     const accounts = ['0x123', '0x456'];
     const errorMessage = 'Failed to get account settings';
-    const { mocks, hook } = await arrangeAct(accounts, (m) => {
+    const { mocks, hook } = await arrangeActCallback(accounts, (m) => {
       m.mockFetchAccountNotificationSettings.mockRejectedValue(
         new Error(errorMessage),
       );
@@ -227,9 +245,35 @@ describe('useSwitchNotifications - useFetchAccountNotifications()', () => {
 
   it('does not fetch if notifications are not enabled', async () => {
     const accounts = ['0x123', '0x456'];
-    const { mocks } = await arrangeAct(accounts, (m) => {
+    const { mocks } = await arrangeActCallback(accounts, (m) => {
       m.mockSelectIsEnabled.mockReturnValue(false);
     });
+    await waitFor(() =>
+      expect(mocks.mockFetchAccountNotificationSettings).not.toHaveBeenCalled(),
+    );
+  });
+
+  it('invokes effect fetch account notifications', async () => {
+    const accounts = ['0x123', '0x456'];
+    const { mocks } = await arrangeActEffect(accounts);
+    await waitFor(() =>
+      expect(mocks.mockFetchAccountNotificationSettings).toHaveBeenCalled(),
+    );
+  });
+
+  it('does not invoke effect fetch if notifications are not enabled', async () => {
+    const accounts = ['0x123', '0x456'];
+    const { mocks } = await arrangeActEffect(accounts, (m) => {
+      m.mockSelectIsEnabled.mockReturnValue(false);
+    });
+    await waitFor(() =>
+      expect(mocks.mockFetchAccountNotificationSettings).not.toHaveBeenCalled(),
+    );
+  });
+
+  it('does not invoke effect fetch if there are no accounts', async () => {
+    const accounts: string[] = [];
+    const { mocks } = await arrangeActEffect(accounts);
     await waitFor(() =>
       expect(mocks.mockFetchAccountNotificationSettings).not.toHaveBeenCalled(),
     );

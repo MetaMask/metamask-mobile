@@ -113,7 +113,9 @@ export function useFetchAccountNotifications(accounts: string[]) {
       return;
     }
     const memoAccounts: string[] = JSON.parse(jsonAccounts);
-    update(memoAccounts);
+    if (memoAccounts.length > 0) {
+      update(memoAccounts);
+    }
   }, [jsonAccounts, isEnabled, update]);
 
   return {
