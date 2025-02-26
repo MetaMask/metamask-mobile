@@ -99,7 +99,7 @@ const BuildQuote = () => {
   const params = useParams<BuildQuoteParams>();
   const {
     styles,
-    theme: { colors },
+    theme: { colors, themeAppearance },
   } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
@@ -178,7 +178,7 @@ const BuildQuote = () => {
     return [
       ...new Set(
         paymentMethods.reduce((acc, payment) => {
-          const icons = payment.logo.light || [];
+          const icons = payment.logo[themeAppearance] || [];
           return [...acc, ...icons];
         }, [] as string[]),
       ),
