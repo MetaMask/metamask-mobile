@@ -257,6 +257,8 @@ const SmartTransactionStatus = ({
   const smartTransactions = useSelector(selectSmartTransactionsForCurrentChain);
   const latestSmartTransaction = smartTransactions[smartTransactions.length - 1];
 
+  // We use a custom flow for swaps. We don't go through the STX hook for swaps, so there's no listener for the latest smart transaction.
+  // Read it directly from the SmartTransactionsController.
   const { status, creationTime, uuid } = isInSwapFlow
     ? latestSmartTransaction
     : smartTransaction;
