@@ -46,6 +46,10 @@ import {
   MultichainAssetsControllerState,
   MultichainAssetsControllerEvents,
   MultichainAssetsControllerActions,
+  MultichainAssetsRatesController,
+  MultichainAssetsRatesControllerState,
+  MultichainAssetsRatesControllerEvents,
+  MultichainAssetsRatesControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
@@ -280,6 +284,7 @@ type GlobalActions =
   | MultichainBalancesControllerActions
   | RatesControllerActions
   | MultichainAssetsControllerActions
+  | MultichainAssetsRatesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -320,6 +325,7 @@ type GlobalEvents =
   | MultichainBalancesControllerEvents
   | RatesControllerEvents
   | MultichainAssetsControllerEvents
+  | MultichainAssetsRatesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -405,6 +411,7 @@ export type Controllers = {
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
+  MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
@@ -462,6 +469,7 @@ export type EngineState = {
   MultichainBalancesController: MultichainBalancesControllerState;
   RatesController: RatesControllerState;
   MultichainAssetsController: MultichainAssetsControllerState;
+  MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
 };

@@ -376,5 +376,8 @@
   "MultichainAssetsController": {
     "accountsAssets": {},
     "assetsMetadata": {}
+  },
+  "MultichainAssetsRatesController": {
+    "conversionRates": {}
   }
 }
