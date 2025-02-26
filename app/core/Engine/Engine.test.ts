@@ -24,6 +24,10 @@ jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
 describe('Engine', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('should expose an API', () => {
     const engine = Engine.init({});
     expect(engine.context).toHaveProperty('AccountTrackerController');
@@ -121,10 +125,6 @@ describe('Engine', () => {
     expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
     expect(setSelectedAccountSpy).toHaveBeenCalledWith(mockAccount.id);
     expect(setSelectedAddressSpy).toHaveBeenCalledWith(validAddress);
-
-    getAccountByAddressSpy.mockRestore();
-    setSelectedAccountSpy.mockRestore();
-    setSelectedAddressSpy.mockRestore();
   });
 
   it('setAccountLabel successfully updates account label when address exists', () => {
@@ -164,10 +164,6 @@ describe('Engine', () => {
     expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
     expect(setAccountNameSpy).toHaveBeenCalledWith(mockAccount.id, label);
     expect(setAccountLabelSpy).toHaveBeenCalledWith(validAddress, label);
-
-    getAccountByAddressSpy.mockRestore();
-    setAccountNameSpy.mockRestore();
-    setAccountLabelSpy.mockRestore();
   });
 
   it('setAccountLabel throws an error if no account exists for the given address', () => {
@@ -194,8 +190,6 @@ describe('Engine', () => {
     const result = await engine.getSnapKeyring();
     expect(getSnapKeyringSpy).toHaveBeenCalled();
     expect(result).toEqual(mockSnapKeyring);
-
-    jest.restoreAllMocks();
   });
 
   it('getSnapKeyring creates a new snap keyring if none exists', async () => {
@@ -217,8 +211,6 @@ describe('Engine', () => {
     const result = await engine.getSnapKeyring();
     expect(getSnapKeyringSpy).toHaveBeenCalled();
     expect(result).toEqual(mockSnapKeyring);
-
-    jest.restoreAllMocks();
   });
 
   it('normalizes CurrencyController state property conversionRate from null to 0', () => {
