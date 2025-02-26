@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
@@ -13,10 +12,10 @@ import Engine from '../../../core/Engine';
 
 // Internal dependencies
 import { AddNewHdAccountProps } from './AddNewHdAccount.types';
-import { useMetrics } from '../../../components/hooks/useMetrics';
 
 import { addNewHdAccount } from '../../../actions/multiSrp';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import Input from '../../../component-library/components/Form/TextField/foundation/Input';
@@ -30,13 +29,11 @@ import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import SRPList from '../../UI/SRPList';
-import { set } from 'lodash';
 import Logger from '../../../util/Logger';
 
 const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
-  const { styles } = useStyles(styleSheet, {});
-  const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { colors } = theme;
   const [isLoading, setIsLoading] = useState(false);
   const [accountName, setAccountName] = useState('');
   const keyrings = useSelector(selectKeyrings);
@@ -107,13 +104,15 @@ const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
           <View style={styles.base}>
             <Fragment>
               <View style={styles.accountInputContainer}>
-                <Text variant={TextVariant.BodyMDMedium}>
-                  {strings('accounts.account_name')}
-                </Text>
                 <Input
+                  textVariant={TextVariant.BodyMDMedium}
                   style={styles.accountInput}
-                  onChangeText={setAccountName}
+                  value={accountName}
+                  onChangeText={(newName: string) => {
+                    setAccountName(newName);
+                  }}
                   placeholder={getNextAccountName()}
+                  placeholderTextColor={colors.text.default}
                   onSubmitEditing={onSubmit}
                 />
               </View>
@@ -132,14 +131,19 @@ const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
                       )} ${hdKeyringIndex}`}</Text>
                     </View>
                     <View>
-                      <Text>{`(${numberOfAccounts} ${strings(
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Primary}
+                      >{`${strings(
+                        'accounts.show_accounts',
+                      )} ${numberOfAccounts} ${strings(
                         'accounts.accounts',
-                      )})`}</Text>
+                      )}`}</Text>
                     </View>
                   </View>
                   <Icon style={styles.srpArrow} name={IconName.ArrowRight} />
                 </TouchableOpacity>
-                <Text>
+                <Text variant={TextVariant.BodySM}>
                   {strings('accounts.add_new_hd_account_helper_text')}
                 </Text>
               </View>

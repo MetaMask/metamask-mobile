@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FlatList, TouchableWithoutFeedback, View } from 'react-native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPListItem.styles';
@@ -49,7 +49,7 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
           />
           {showAccounts && (
             <>
-              {/* <View style={styles.horizontalLine} /> */}
+              <View style={styles.horizontalLine} />
               <View style={styles.accountsList}>
                 <FlatList
                   contentContainerStyle={styles.accountsListContentContainer}
@@ -62,16 +62,19 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
                     return (
                       <View style={styles.accountItem}>
                         <Jazzicon size={20} seed={parseInt(item.address, 16)} />
-                        <Text color={TextColor.Muted}>
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Default}
+                        >
                           {item.metadata.name}
                         </Text>
                       </View>
                     );
                   }}
                   removeClippedSubviews={false}
-                  // scrollEnabled
-                  // nestedScrollEnabled
-                  // alwaysBounceVertical
+                  scrollEnabled
+                  nestedScrollEnabled
+                  alwaysBounceVertical
                 />
               </View>
             </>
