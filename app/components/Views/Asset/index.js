@@ -36,6 +36,7 @@ import { sortTransactions } from '../../../util/activity';
 import { safeToChecksumAddress } from '../../../util/address';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
+  findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
   isMainnetByChainId,
   isPortfolioViewEnabled,
@@ -66,6 +67,7 @@ import { selectSwapsTransactions } from '../../../selectors/transactionControlle
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 import { isAssetFromSearch, selectSupportedSwapTokenAddresses } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -212,10 +214,9 @@ class Asset extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const isNativeToken = route.params.isNative ?? route.params.isETH;
     const isMainnet = isMainnetByChainId(chainId);
-    const blockExplorer = findBlockExplorerForRpc(
-      rpcUrl,
-      networkConfigurations,
-    );
+    const blockExplorer = isNonEvmChainId(chainId)
+      ? findBlockExplorerForNonEvmChainId(chainId)
+      : findBlockExplorerForRpc(rpcUrl, networkConfigurations);
 
     const shouldShowMoreOptionsInNavBar =
       isMainnet || !isNativeToken || (isNativeToken && blockExplorer);

@@ -25,7 +25,7 @@ export const ConfirmInfoRowValueDouble = ({
   right,
   variant = RowVariant.Default,
 }: ConfirmInfoRowValueDoubleProps) => (
-  <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={1}>
+  <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
     {typeof left === 'string' ? (
       <Text color={LEFT_TEXT_COLORS[variant] as TextColor}>{left}</Text>
     ) : (

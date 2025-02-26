@@ -2,7 +2,6 @@ import {
   createClient,
   GroupTraits,
   JsonMap,
-  SegmentClient,
   UserTraits,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
@@ -37,7 +36,6 @@ import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsM
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
-import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -177,13 +175,6 @@ class MetaMetrics implements IMetaMetrics {
    * @private
    */
   private deleteRegulationDate: DataDeleteDate;
-
-  /**
-   * Portion of events to randomly sample
-   *
-   * @private
-   */
-  private eventsPortionToTrack: number = 0.01;
 
   /**
    * Retrieve state of metrics from the preference
@@ -527,9 +518,8 @@ class MetaMetrics implements IMetaMetrics {
         );
 
       const segmentClient = isE2E ? undefined : createClient(config);
-      segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin() });
 
-      this.instance = new MetaMetrics(segmentClient as SegmentClient);
+      this.instance = new MetaMetrics(segmentClient as ISegmentClient);
     }
     return this.instance;
   }
@@ -556,6 +546,9 @@ class MetaMetrics implements IMetaMetrics {
       this.deleteRegulationDate =
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
+
+      this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
+
       this.#isConfigured = true;
 
       // identify user with the latest traits
@@ -668,21 +661,6 @@ class MetaMetrics implements IMetaMetrics {
     saveDataRecording: boolean = true,
   ): void {
     if (!this.enabled) {
-      return;
-    }
-
-    let metaMetricsIdRandomNumber
-    try {
-      metaMetricsIdRandomNumber = generateDeterministicRandomNumber(
-        this.metametricsId ?? '',
-      );
-    } catch (error) {
-      Logger.error(error as Error, `Error generating random number for MetaMetrics ID with value ${this.metametricsId}`);
-      return
-    }
-
-    // early exit if not within portion range to track
-    if (metaMetricsIdRandomNumber > this.eventsPortionToTrack) {
       return;
     }
 
@@ -807,15 +785,6 @@ class MetaMetrics implements IMetaMetrics {
    */
   getMetaMetricsId = async (): Promise<string | undefined> =>
     this.metametricsId ?? (await this.#getMetaMetricsId());
-
-  /**
-   * Set the portion of events to track
-   *
-   * @param portion - The portion of events to track
-   */
-  setEventsPortionToTrack = (portion: number) => {
-    this.eventsPortionToTrack = portion;
-  };
 }
 
 export default MetaMetrics;

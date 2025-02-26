@@ -345,7 +345,11 @@ class TransactionElement extends PureComponent {
               <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
                 {actionKey}
               </ListItem.Title>
-              <StatusText testID={`transaction-status-${i}`} status={status} style={styles.listItemStatus} />
+              <StatusText
+                testID={`transaction-status-${i}`}
+                status={status}
+                style={styles.listItemStatus}
+              />
             </ListItem.Body>
             {Boolean(value) && (
               <ListItem.Amounts>
