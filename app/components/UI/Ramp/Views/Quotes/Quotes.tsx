@@ -433,7 +433,12 @@ function Quotes() {
   }, [isFetchingQuotes]);
 
   useEffect(() => {
-    if (quotesWithoutError && !isFetchingQuotes && pollingCyclesLeft >= 0) {
+    if (
+      quotesWithoutError &&
+      quotesWithError &&
+      !isFetchingQuotes &&
+      pollingCyclesLeft >= 0
+    ) {
       if (quotesWithoutError.length > 0) {
         const totals = quotesWithoutError.reduce(
           (acc, curr) => {
@@ -728,7 +733,7 @@ function Quotes() {
         <ScreenLayout.Content style={styles.withoutTopPadding}>
           <ScrollView testID={QuoteSelectors.QUOTES}>
             {isFetchingQuotes && isInPolling ? (
-              <LoadingQuotes count={2} />
+              <LoadingQuotes count={1} />
             ) : recommendedQuote ? (
               <Row key={recommendedQuote.provider.id}>
                 <Quote

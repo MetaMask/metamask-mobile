@@ -16,8 +16,8 @@ function useSortedQuotes(amount: number | string) {
 
   const quotesWithoutError: (QuoteResponse | SellQuoteResponse)[] = useMemo(
     () =>
-      quotes?.filter((quote): quote is QuoteResponse | SellQuoteResponse =>
-        Boolean(!quote.error),
+      quotes?.filter(
+        (quote): quote is QuoteResponse | SellQuoteResponse => !quote.error,
       ) || [],
     [quotes],
   );
