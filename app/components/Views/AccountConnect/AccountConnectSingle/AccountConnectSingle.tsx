@@ -45,7 +45,7 @@ const AccountConnectSingle = ({
   isLoading,
   favicon,
   secureIcon,
-  urlWithProtocol,
+  origin,
   connection,
 }: AccountConnectSingleProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -169,11 +169,7 @@ const AccountConnectSingle = ({
         style={styles.body}
         testID={ConnectAccountBottomSheetSelectorsIDs.CONTAINER}
       >
-        <TagUrl
-          imageSource={favicon}
-          label={urlWithProtocol}
-          iconName={secureIcon}
-        />
+        <TagUrl imageSource={favicon} label={origin} iconName={secureIcon} />
         <Text style={styles.description}>
           {strings('accounts.connect_description')}
         </Text>

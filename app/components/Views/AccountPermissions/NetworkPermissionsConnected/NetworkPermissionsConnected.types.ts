@@ -17,8 +17,7 @@ export interface NetworkPermissionsConnectedProps
   onSetSelectedAddresses: (addresses: string[]) => void;
   onSetPermissionsScreen: (screen: AccountPermissionsScreens) => void;
   onDismissSheet: () => void;
-  hostname: string;
-  urlWithProtocol: string;
+  origin: string;
   favicon: ImageSourcePropType;
   secureIcon: IconName;
   accountAvatarType: AvatarAccountType;

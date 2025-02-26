@@ -4,6 +4,11 @@ import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
+import {
+  PermissionConstraint,
+  PermissionControllerState,
+  PermissionSubjectEntry,
+} from '@metamask/permission-controller';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -11,68 +16,62 @@ const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsCaveatFromPermission(accountsPermission: any = {}) {
-  return (
-    Array.isArray(accountsPermission.caveats) &&
-    accountsPermission.caveats.find(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (caveat: any) => caveat.type === CaveatTypes.restrictReturnedAccounts,
-    )
+function getAccountsCaveatFromPermission(
+  accountsPermission: PermissionConstraint,
+) {
+  return accountsPermission.caveats?.find(
+    (caveat) => caveat.type === CaveatTypes.restrictReturnedAccounts,
   );
 }
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsPermissionFromSubject(subject: any = {}) {
+function getAccountsPermissionFromSubject(
+  subject: PermissionSubjectEntry<PermissionConstraint>,
+) {
   return subject.permissions?.eth_accounts || {};
 }
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsFromPermission(accountsPermission: any) {
+function getAccountsFromPermission(accountsPermission: PermissionConstraint) {
   const accountsCaveat = getAccountsCaveatFromPermission(accountsPermission);
-  return accountsCaveat && Array.isArray(accountsCaveat.value)
-    ? accountsCaveat.value.map((address: string) => address.toLowerCase())
+  return accountsCaveat?.value && Array.isArray(accountsCaveat.value)
+    ? // @ts-expect-error FIXME: Types imply that this is JSON[] but we're accessing it as string[]
+      accountsCaveat.value.map((address: string) => address.toLowerCase())
     : [];
 }
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsFromSubject(subject: any) {
+function getAccountsFromSubject(
+  subject: PermissionSubjectEntry<PermissionConstraint>,
+) {
   return getAccountsFromPermission(getAccountsPermissionFromSubject(subject));
 }
 
-export const getPermittedAccountsByHostname = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  state: any,
-  hostname: string,
-) => {
+/**
+ * Returns the permitted accounts for a given subject
+ *
+ * @param state - State of the PermissionController
+ * @param subject - The subject to get the permitted accounts for
+ * @returns An array containing the permitted accounts for the specified subject, first account is the active account for the subject
+ */
+export const getPermittedAccountsBySubject = (
+  state: PermissionControllerState<PermissionConstraint>,
+  subject: string,
+): string[] => {
   const subjects = state.subjects;
-  const accountsByHostname = Object.keys(subjects).reduce(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (acc: any, subjectKey) => {
-      const accounts = getAccountsFromSubject(subjects[subjectKey]);
-      if (accounts.length > 0) {
-        acc[subjectKey] = accounts;
-      }
-      return acc;
-    },
-    {},
-  );
+  const accountsBySubject = Object.keys(subjects).reduce((acc, subjectKey) => {
+    const accounts = getAccountsFromSubject(subjects[subjectKey]);
+    if (accounts.length > 0) {
+      acc[subjectKey] = accounts;
+    }
+    return acc;
+  }, {} as Record<string, string[]>);
 
-  return accountsByHostname?.[hostname] || [];
+  return accountsBySubject?.[subject] || [];
 };
 
-export const switchActiveAccounts = (hostname: string, accAddress: string) => {
+export const switchActiveAccounts = (origin: string, accAddress: string) => {
   const { PermissionController } = Engine.context;
   const existingPermittedAccountAddresses: string[] =
     PermissionController.getCaveat(
-      hostname,
+      origin,
       RestrictedMethods.eth_accounts,
       CaveatTypes.restrictReturnedAccounts,
     ).value;
@@ -81,7 +80,7 @@ export const switchActiveAccounts = (hostname: string, accAddress: string) => {
   );
   if (accountIndex === -1) {
     throw new Error(
-      `eth_accounts permission for hostname "${hostname}" does not permit "${accAddress} account".`,
+      `eth_accounts permission for origin "${origin}" does not permit "${accAddress} account".`,
     );
   }
   let newPermittedAccountAddresses = [...existingPermittedAccountAddresses];
@@ -92,7 +91,7 @@ export const switchActiveAccounts = (hostname: string, accAddress: string) => {
   ]);
 
   PermissionController.updateCaveat(
-    hostname,
+    origin,
     RestrictedMethods.eth_accounts,
     CaveatTypes.restrictReturnedAccounts,
     newPermittedAccountAddresses,
@@ -100,12 +99,12 @@ export const switchActiveAccounts = (hostname: string, accAddress: string) => {
 };
 
 export const addPermittedAccounts = (
-  hostname: string,
+  origin: string,
   addresses: string[],
 ): string => {
   const { PermissionController } = Engine.context;
   const existing = PermissionController.getCaveat(
-    hostname,
+    origin,
     RestrictedMethods.eth_accounts,
     CaveatTypes.restrictReturnedAccounts,
   );
@@ -122,13 +121,13 @@ export const addPermittedAccounts = (
     existingPermittedAccountAddresses.length
   ) {
     console.error(
-      `eth_accounts permission for hostname: (${hostname}) already exists for account addresses: (${existingPermittedAccountAddresses}).`,
+      `eth_accounts permission for origin: (${origin}) already exists for account addresses: (${existingPermittedAccountAddresses}).`,
     );
     return existingPermittedAccountAddresses[0];
   }
 
   PermissionController.updateCaveat(
-    hostname,
+    origin,
     RestrictedMethods.eth_accounts,
     CaveatTypes.restrictReturnedAccounts,
     newPermittedAccountsAddresses,
@@ -137,13 +136,10 @@ export const addPermittedAccounts = (
   return newPermittedAccountsAddresses[0];
 };
 
-export const removePermittedAccounts = (
-  hostname: string,
-  accounts: string[],
-) => {
+export const removePermittedAccounts = (origin: string, accounts: string[]) => {
   const { PermissionController } = Engine.context;
   const existing = PermissionController.getCaveat(
-    hostname,
+    origin,
     RestrictedMethods.eth_accounts,
     CaveatTypes.restrictReturnedAccounts,
   );
@@ -153,12 +149,12 @@ export const removePermittedAccounts = (
 
   if (remainingAccounts.length === 0) {
     PermissionController.revokePermission(
-      hostname,
+      origin,
       RestrictedMethods.eth_accounts,
     );
   } else {
     PermissionController.updateCaveat(
-      hostname,
+      origin,
       RestrictedMethods.eth_accounts,
       CaveatTypes.restrictReturnedAccounts,
       remainingAccounts,
@@ -181,19 +177,19 @@ export const removeAccountsFromPermissions = async (addresses: string[]) => {
 };
 
 /**
- * Get permitted accounts for the given the host.
+ * Get permitted accounts for the given the subject.
  *
- * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
+ * @param subject - Subject to check if permissions exists. Ex: A Dapp is a subject.
  * @returns An array containing permitted accounts for the specified host.
  * The active account is the first item in the returned array.
  */
 export const getPermittedAccounts = async (
-  hostname: string,
+  subject: string,
 ): Promise<string[]> => {
   const { AccountsController } = Engine.context;
 
   try {
-    if (INTERNAL_ORIGINS.includes(hostname)) {
+    if (INTERNAL_ORIGINS.includes(subject)) {
       const selectedAccountAddress =
         AccountsController.getSelectedAccount().address;
 
@@ -202,7 +198,7 @@ export const getPermittedAccounts = async (
 
     const accounts =
       await Engine.context.PermissionController.executeRestrictedMethod(
-        hostname,
+        subject,
         RestrictedMethods.eth_accounts,
       );
     return accounts;

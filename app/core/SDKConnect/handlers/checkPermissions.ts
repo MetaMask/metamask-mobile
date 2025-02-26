@@ -11,6 +11,7 @@ import {
   waitForCondition,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({
@@ -34,7 +35,9 @@ export const checkPermissions = async ({
       connection.originatorInfo,
     );
 
-    const permittedAccounts = await getPermittedAccounts(connection.channelId);
+    const permittedAccounts = await getPermittedAccounts(
+      `${PROTOCOLS.METAMASK}://${connection.channelId}`,
+    );
     DevLogger.log(`checkPermissions permittedAccounts`, permittedAccounts);
 
     if (permittedAccounts.length > 0) {
@@ -88,13 +91,12 @@ export const checkPermissions = async ({
       return allowed;
     }
 
+    const subject = `${PROTOCOLS.METAMASK}://${connection.channelId}`;
     const accountPermission = permissionsController.getPermission(
-      connection.channelId,
+      subject,
       'eth_accounts',
     );
-    const moreAccountPermission = permissionsController.getPermissions(
-      connection.channelId,
-    );
+    const moreAccountPermission = permissionsController.getPermissions(subject);
     DevLogger.log(
       `checkPermissions accountPermission`,
       accountPermission,
@@ -102,7 +104,7 @@ export const checkPermissions = async ({
     );
     if (!accountPermission) {
       connection.approvalPromise = permissionsController.requestPermissions(
-        { origin: connection.channelId },
+        { origin: subject },
         { eth_accounts: {} },
         {
           preserveExistingPermissions: false,
@@ -111,7 +113,7 @@ export const checkPermissions = async ({
     }
 
     const res = await connection.approvalPromise;
-    const accounts = await getPermittedAccounts(connection.channelId);
+    const accounts = await getPermittedAccounts(subject);
     DevLogger.log(`checkPermissions approvalPromise completed`, res);
     return accounts.length > 0;
   } catch (err) {

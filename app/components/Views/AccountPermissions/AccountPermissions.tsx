@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { isEqual } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -18,7 +17,6 @@ import BottomSheet, {
 import Engine from '../../../core/Engine';
 import {
   addPermittedAccounts,
-  getPermittedAccountsByHostname,
   removePermittedAccounts,
 } from '../../../core/Permissions';
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
@@ -33,8 +31,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
-import { getActiveTabUrl } from '../../../util/transactions';
+import { getUrlObj } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
@@ -52,7 +49,7 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import { selectPermittedAccounts } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
 import { getNetworkImageSource } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
@@ -71,12 +68,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const {
     hostInfo: {
-      metadata: { origin: hostname },
+      metadata: { origin: metadataOrigin },
     },
     isRenderedAsBottomSheet = true,
     initialScreen = AccountPermissionsScreens.Connected,
     isNonDappNetworkSwitch = false,
   } = props.route.params;
+  const { origin, hostname } = new URLParse(metadataOrigin);
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -90,10 +88,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       Object.keys(selectEvmNetworkConfigurationsByChainId(state)).length + 1,
   );
 
-  const origin: string = useSelector(getActiveTabUrl, isEqual);
   const faviconSource = useFavicon(origin);
-  // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
-  // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
+
   const secureIcon = useMemo(
     () =>
       (getUrlObj(origin) as URLParse<string>).protocol === 'https:'
@@ -102,15 +98,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [origin],
   );
 
-  const urlWithProtocol = prefixUrlWithProtocol(hostname);
-
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
-  const permittedAccountsList = useSelector(selectPermissionControllerState);
-  const permittedAccountsByHostname = getPermittedAccountsByHostname(
-    permittedAccountsList,
-    hostname,
-  );
+  const permittedAccounts = useSelector(selectPermittedAccounts(origin));
+  const activeAccountAddress = permittedAccounts[0];
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
   const [networkAvatars, setNetworkAvatars] = useState<
     ({ name: string; imageSource: string } | null)[]
@@ -129,23 +120,21 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { evmAccounts: accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
-  const previousPermittedAccounts = useRef<string[]>();
   const previousIdentitiesListSize = useRef<number>();
   const internalAccounts = useSelector(selectInternalAccounts);
-  const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(
     USER_INTENT.None,
   );
 
-  const { chainId } = useNetworkInfo(hostname);
+  const { chainId } = useNetworkInfo(origin);
 
   useEffect(() => {
     let currentlyPermittedChains: string[] = [];
     try {
       const caveat = Engine.context.PermissionController.getCaveat(
-        hostname,
+        origin,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );
@@ -192,7 +181,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ) {
       setNetworkAvatars(theNetworkAvatars);
     }
-  }, [hostname, networkConfigurations, networkSelectorUserIntent]);
+  }, [origin, networkConfigurations, networkSelectorUserIntent]);
 
   const hideSheet = useCallback(
     (callback?: () => void) =>
@@ -203,10 +192,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   // Checks if anymore accounts are connected to the dapp. Auto dismiss sheet if none are connected.
   useEffect(() => {
-    if (
-      previousPermittedAccounts.current === undefined &&
-      permittedAccountsByHostname.length === 0
-    ) {
+    if (!activeAccountAddress) {
       hideSheet();
 
       const networkToastProps: ToastOptions = {
@@ -223,11 +209,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       };
 
       toastRef?.current?.showToast(networkToastProps);
-
-      previousPermittedAccounts.current = permittedAccountsByHostname.length;
     }
   }, [
-    permittedAccountsByHostname,
+    activeAccountAddress,
     hideSheet,
     toastRef,
     hostname,
@@ -263,7 +247,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     accounts.forEach((account) => {
       const lowercasedAccount = account.address.toLowerCase();
-      if (permittedAccountsByHostname.includes(lowercasedAccount)) {
+      if (permittedAccounts.includes(lowercasedAccount)) {
         accountsByPermittedStatus.permitted.push(account);
       } else {
         accountsByPermittedStatus.unpermitted.push(account);
@@ -271,7 +255,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     });
 
     return accountsByPermittedStatus;
-  }, [accounts, permittedAccountsByHostname]);
+  }, [accounts, permittedAccounts]);
 
   const handleCreateAccount = useCallback(
     async () => {
@@ -313,12 +297,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       const normalizeAddresses = (addresses: string[]) =>
         addresses.map((address) => toChecksumHexAddress(address));
 
-      // Retrieve the list of permitted accounts for the given hostname
-      const permittedAccounts = getPermittedAccountsByHostname(
-        permittedAccountsList,
-        hostname,
-      );
-
       // Normalize permitted accounts and selected addresses to checksummed format
       const normalizedPermittedAccounts = normalizeAddresses(permittedAccounts);
       const normalizedSelectedAddresses = normalizeAddresses(selectedAddresses);
@@ -333,7 +311,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       // Add newly selected accounts
       if (accountsToAdd.length > 0) {
-        newActiveAddress = addPermittedAccounts(hostname, accountsToAdd);
+        newActiveAddress = addPermittedAccounts(origin, accountsToAdd);
       } else {
         // If no new accounts were added, set the first selected address as active
         newActiveAddress = normalizedSelectedAddresses[0];
@@ -347,7 +325,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       // Remove accounts that are no longer selected
       if (accountsToRemove.length > 0) {
-        removePermittedAccounts(hostname, accountsToRemove);
+        removePermittedAccounts(origin, accountsToRemove);
       }
 
       // Calculate the number of connected accounts after changes
@@ -399,11 +377,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setIsLoading(false);
     }
   }, [
-    permittedAccountsList,
+    permittedAccounts,
     selectedAddresses,
     accounts,
     setIsLoading,
-    hostname,
+    origin,
     ensByAccountAddress,
     toastRef,
     accountAvatarType,
@@ -525,17 +503,17 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onDismissSheet={hideSheet}
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={[activeAddress]}
+        selectedAddresses={[activeAccountAddress]}
         favicon={faviconSource}
         hostname={hostname}
-        urlWithProtocol={urlWithProtocol}
+        origin={origin}
         secureIcon={secureIcon}
         accountAvatarType={accountAvatarType}
       />
     ),
     [
       ensByAccountAddress,
-      activeAddress,
+      activeAccountAddress,
       isLoading,
       accountsFilteredByPermissions,
       setSelectedAddresses,
@@ -543,14 +521,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       hideSheet,
       faviconSource,
       hostname,
-      urlWithProtocol,
+      origin,
       secureIcon,
       accountAvatarType,
     ],
   );
 
   const renderPermissionsSummaryScreen = useCallback(() => {
-    const checksummedPermittedAddresses = permittedAccountsByHostname.map(
+    const checksummedPermittedAddresses = permittedAccounts.map(
       toChecksumHexAddress<string>,
     );
 
@@ -558,7 +536,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       currentPageInformation: {
         currentEnsName: '',
         icon: faviconSource as string,
-        url: urlWithProtocol,
+        url: origin,
       },
       onEdit: () => {
         setPermissionsScreen(AccountPermissionsScreens.EditAccountsPermissions);
@@ -581,10 +559,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [
     faviconSource,
-    urlWithProtocol,
+    origin,
     isRenderedAsBottomSheet,
     navigation,
-    permittedAccountsByHostname,
+    permittedAccounts,
     setSelectedAddresses,
     networkAvatars,
     accounts,
@@ -602,7 +580,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         isLoading={isLoading}
         onUserAction={setUserIntent}
         favicon={faviconSource}
-        urlWithProtocol={urlWithProtocol}
+        origin={origin}
         hostname={hostname}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
@@ -622,7 +600,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       isLoading,
       setUserIntent,
       faviconSource,
-      urlWithProtocol,
+      origin,
       secureIcon,
       hostname,
       isRenderedAsBottomSheet,
@@ -637,15 +615,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ensByAccountAddress={ensByAccountAddress}
         selectedAddresses={selectedAddresses}
         onSelectAddress={(checkedAddresses) => {
-          setSelectedAddresses([
-            ...checkedAddresses,
-            ...permittedAccountsByHostname,
-          ]);
+          setSelectedAddresses([...checkedAddresses, ...permittedAccounts]);
         }}
         isLoading={isLoading}
         onUserAction={setUserIntent}
         favicon={faviconSource}
-        urlWithProtocol={urlWithProtocol}
+        origin={origin}
         hostname={hostname}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
@@ -661,10 +636,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       accountsFilteredByPermissions,
       setUserIntent,
       faviconSource,
-      urlWithProtocol,
+      origin,
       secureIcon,
       hostname,
-      permittedAccountsByHostname,
+      permittedAccounts,
     ],
   );
 
@@ -674,7 +649,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onSelectNetworkIds={setSelectedAddresses}
         isLoading={isLoading}
         onUserAction={setNetworkSelectorUserIntent}
-        urlWithProtocol={urlWithProtocol}
+        origin={origin}
         hostname={hostname}
         onBack={() =>
           setPermissionsScreen(
@@ -689,7 +664,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [
       isLoading,
       setNetworkSelectorUserIntent,
-      urlWithProtocol,
+      origin,
       hostname,
       isRenderedAsBottomSheet,
       isNonDappNetworkSwitch,
@@ -702,10 +677,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accountsFilteredByPermissions.permitted}
         onSetPermissionsScreen={setPermissionsScreen}
         ensByAccountAddress={ensByAccountAddress}
-        permittedAddresses={permittedAccountsByHostname}
+        permittedAddresses={permittedAccounts}
         isLoading={isLoading}
         favicon={faviconSource}
-        urlWithProtocol={urlWithProtocol}
+        origin={origin}
         hostname={hostname}
         secureIcon={secureIcon}
         accountAvatarType={accountAvatarType}
@@ -714,12 +689,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [
       ensByAccountAddress,
       isLoading,
-      permittedAccountsByHostname,
+      permittedAccounts,
       accountsFilteredByPermissions,
       setPermissionsScreen,
       faviconSource,
       hostname,
-      urlWithProtocol,
+      origin,
       secureIcon,
       accountAvatarType,
     ],
@@ -734,25 +709,23 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onDismissSheet={hideSheet}
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
-        selectedAddresses={[activeAddress]}
+        selectedAddresses={[activeAccountAddress]}
         favicon={faviconSource}
-        hostname={hostname}
-        urlWithProtocol={urlWithProtocol}
+        origin={origin}
         secureIcon={secureIcon}
         accountAvatarType={accountAvatarType}
       />
     ),
     [
       ensByAccountAddress,
-      activeAddress,
+      activeAccountAddress,
       isLoading,
       accountsFilteredByPermissions,
       setSelectedAddresses,
       setPermissionsScreen,
       hideSheet,
       faviconSource,
-      hostname,
-      urlWithProtocol,
+      origin,
       secureIcon,
       accountAvatarType,
     ],
@@ -763,12 +736,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       currentPageInformation: {
         currentEnsName: '',
         icon: faviconSource as string,
-        url: urlWithProtocol,
+        url: origin,
       },
       onEdit: () => {
         setPermissionsScreen(AccountPermissionsScreens.EditAccountsPermissions);
         setSelectedAddresses(
-          permittedAccountsByHostname.map(toChecksumHexAddress),
+          permittedAccounts.map(toChecksumHexAddress<string>),
         );
       },
       onEditNetworks: () =>
@@ -778,7 +751,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         let currentlyPermittedChains: string[] = [];
         try {
           const caveat = Engine.context.PermissionController.getCaveat(
-            hostname,
+            origin,
             PermissionKeys.permittedChains,
             CaveatTypes.restrictNetworkSwitching,
           );
@@ -799,7 +772,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         }
 
         Engine.context.PermissionController.updateCaveat(
-          hostname,
+          origin,
           PermissionKeys.permittedChains,
           CaveatTypes.restrictNetworkSwitching,
           currentlyPermittedChains,
@@ -824,7 +797,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
           : navigation.navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
-      accountAddresses: permittedAccountsByHostname.map(toChecksumHexAddress),
+      accountAddresses: permittedAccounts.map(toChecksumHexAddress<string>),
       accounts,
       networkAvatars,
       isNetworkSwitch: true,
@@ -841,16 +814,15 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [
     faviconSource,
-    urlWithProtocol,
+    origin,
     isRenderedAsBottomSheet,
     navigation,
-    permittedAccountsByHostname,
+    permittedAccounts,
     setSelectedAddresses,
     networkAvatars,
     accounts,
     chainId,
     hideSheet,
-    hostname,
     toastRef,
   ]);
 

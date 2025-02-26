@@ -36,6 +36,7 @@ import getDefaultBridgeParams from './getDefaultBridgeParams';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import Routes from '../../../constants/navigation/Routes';
+import RemotePort from '../../BackgroundBridge/RemotePort';
 
 export default class AndroidService extends EventEmitter2 {
   public communicationClient = NativeModules.CommunicationClient;
@@ -179,8 +180,7 @@ export default class AndroidService extends EventEmitter2 {
             );
             // Ask for account permissions
             await this.checkPermission({
-              originatorInfo: clientInfo.originatorInfo,
-              channelId: clientInfo.clientId,
+              subject: `${PROTOCOLS.METAMASK}://${clientInfo.clientId}`,
             });
 
             this.setupBridge(clientInfo);
@@ -233,9 +233,12 @@ export default class AndroidService extends EventEmitter2 {
               `AndroidService::clients_connected error failed sending jsonrpc error to client`,
             );
           });
-          SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          });
+          SDKConnect.getInstance().state.navigation?.navigate(
+            Routes.MODAL.ROOT_MODAL_FLOW,
+            {
+              screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+            },
+          );
           return;
         }
 
@@ -252,10 +255,9 @@ export default class AndroidService extends EventEmitter2 {
   }
 
   private async checkPermission({
-    channelId,
+    subject,
   }: {
-    originatorInfo: OriginatorInfo;
-    channelId: string;
+    subject: string;
   }): Promise<unknown> {
     const permissionsController = (
       Engine.context as {
@@ -266,7 +268,7 @@ export default class AndroidService extends EventEmitter2 {
     ).PermissionController;
 
     return permissionsController.requestPermissions(
-      { origin: channelId },
+      { origin: subject },
       { eth_accounts: {} },
     );
   }
@@ -342,8 +344,7 @@ export default class AndroidService extends EventEmitter2 {
           try {
             // Ask users permissions again - it probably means the channel was removed
             await this.checkPermission({
-              originatorInfo: this.connections[sessionId]?.originatorInfo ?? {},
-              channelId: sessionId,
+              subject: `${PROTOCOLS.METAMASK}://${sessionId}`,
             });
 
             // Create new bridge
@@ -451,12 +452,9 @@ export default class AndroidService extends EventEmitter2 {
     const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
 
     const bridge = new BackgroundBridge({
-      webview: null,
-      channelId: clientInfo.clientId,
+      url: `${PROTOCOLS.METAMASK}://${clientInfo.clientId}`,
       isMMSDK: true,
-      url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-      isRemoteConn: true,
-      sendMessage: this.sendMessage.bind(this),
+      port: new RemotePort(this.sendMessage.bind(this)),
       ...defaultBridgeParams,
     });
 

@@ -78,7 +78,7 @@ else if (document.selection) {document.selection.empty();}`;
 
 export const JS_POST_MESSAGE_TO_PROVIDER = (
   message: object,
-  origin: string
+  origin: string,
 ) => `(function () {
   try {
     window.postMessage(${JSON.stringify(message)}, '${origin}');
@@ -86,24 +86,3 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (
     //Nothing to do
   }
 })()`;
-
-export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (
-  _message: object,
-  _origin: string
-) =>
-  `(function () {})()`;
-/** Disable sending messages to iframes for now
- *
-`(function () {
-  const iframes = document.getElementsByTagName('iframe');
-  for (let frame of iframes){
-
-      try {
-        frame.contentWindow.postMessage(${JSON.stringify(_message)}, '${_origin}');
-      } catch (e) {
-        //Nothing to do
-      }
-
-  }
-})()`;
- */
