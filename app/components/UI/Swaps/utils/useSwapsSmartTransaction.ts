@@ -123,10 +123,7 @@ export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { t
             maxFeePerGas: fee.maxFeePerGas.toString(),
             maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
           })),
-          cancelFees: smartTransactionFees.approvalTxFees.cancelFees.map((fee) => ({
-            maxFeePerGas: fee.maxFeePerGas.toString(),
-            maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
-          })),
+          cancelFees: [],
         },
         chainId,
         isEIP1559Network,
@@ -152,10 +149,7 @@ export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { t
           maxFeePerGas: fee.maxFeePerGas.toString(),
           maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
         })) || [],
-        cancelFees: smartTransactionFees.tradeTxFees?.cancelFees.map((fee) => ({
-          maxFeePerGas: fee.maxFeePerGas.toString(),
-          maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
-        })) || [],
+        cancelFees: [],
       },
       chainId,
       isEIP1559Network,
