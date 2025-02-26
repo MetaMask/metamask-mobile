@@ -48,17 +48,16 @@ const mockInitialState = {
       AccountTrackerController: {
         accountsByChainId: {
           [MOCK_CHAIN_ID]: {
-            [MOCK_ADDRESS_2]: { balance: '0x1' },
+            [MOCK_ADDRESS_2]: { balance: '0xDE0B6B3A7640000' },
           },
         },
       } as const,
-    },
-    CurrencyRateController: {
-      conversionRate: {
-        ETH: {
-          conversionDate: 1732572535.47,
-          conversionRate: 3432.53,
-          usdConversionRate: 3432.53,
+      CurrencyRateController: {
+        currentCurrency: 'USD',
+        currencyRates: {
+          ETH: {
+            conversionRate: 1000,
+          },
         },
       },
     },
@@ -107,6 +106,15 @@ jest.mock('../../../core/Engine', () => ({
         .fn()
         .mockReturnValue(mockNetworkConfiguration),
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
     },
     MultichainNetworkController: {
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
@@ -124,7 +132,7 @@ const asset = {
   isETH: undefined,
   hasBalanceError: false,
   decimals: 18,
-  address: '0x123',
+  address: zeroAddress(),
   aggregators: [],
   image: '',
 };
@@ -342,6 +350,55 @@ describe('AssetOverview', () => {
 
     const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
     expect(buyButton).toBeNull();
+  });
+
+  it('should render native balance as primary when the primaryCurrency setting is ETH', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={{
+          ...asset,
+          isETH: true,
+        }}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      { state: mockInitialState },
+    );
+
+    const balance = getByTestId('balance-test-id');
+    const secondaryBalance = getByTestId('secondary-balance-test-id');
+
+    expect(balance.props.children).toEqual('1 ETH');
+    expect(secondaryBalance.props.children).toEqual('$1000');
+  });
+
+  it('should render fiat balance as primary when the primaryCurrency setting is fiat', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={{
+          ...asset,
+          isETH: true,
+        }}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      {
+        state: {
+          ...mockInitialState,
+          settings: {
+            primaryCurrency: 'fiat',
+          },
+        },
+      },
+    );
+
+    const balance = getByTestId('balance-test-id');
+    const secondaryBalance = getByTestId('secondary-balance-test-id');
+
+    expect(balance.props.children).toEqual('$1000');
+    expect(secondaryBalance.props.children).toEqual('1 ETH');
   });
 
   describe('Portfolio view network switching', () => {
