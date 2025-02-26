@@ -42,6 +42,7 @@ describe(SmokeConfirmations('Typed Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
+        await TestHelpers.delay(3000);
         await TestDApp.tapTypedSignButton();
         await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
         await SigningBottomSheet.tapCancelButton();
