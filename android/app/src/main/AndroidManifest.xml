@@ -145,5 +145,6 @@
       android:exported="true">
 
     </service>
+	<profileable android:shell="true" />
 	</application>
 </manifest>
