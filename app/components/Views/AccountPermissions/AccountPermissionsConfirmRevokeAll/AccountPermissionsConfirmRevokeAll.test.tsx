@@ -54,7 +54,9 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       <AccountPermissionsConfirmRevokeAll
         route={{
           params: {
-            hostInfo: { metadata: { origin: 'test' } },
+            hostInfo: {
+              metadata: { origin: 'https://test.com', hostname: 'test.com' },
+            },
           },
         }}
       />,
@@ -69,7 +71,9 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       <AccountPermissionsConfirmRevokeAll
         route={{
           params: {
-            hostInfo: { metadata: { origin: 'test' } },
+            hostInfo: {
+              metadata: { origin: 'https://test.com', hostname: 'test.com' },
+            },
           },
         }}
       />,
@@ -87,7 +91,9 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       <AccountPermissionsConfirmRevokeAll
         route={{
           params: {
-            hostInfo: { metadata: { origin: 'test' } },
+            hostInfo: {
+              metadata: { origin: 'https://test.com', hostname: 'test.com' },
+            },
             onRevokeAll: mockedOnRevokeAll,
           },
         }}
@@ -107,7 +113,9 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       <AccountPermissionsConfirmRevokeAll
         route={{
           params: {
-            hostInfo: { metadata: { origin: testOrigin } },
+            hostInfo: {
+              metadata: { origin: 'https://test.com', hostname: 'test.com' },
+            },
           },
         }}
       />,

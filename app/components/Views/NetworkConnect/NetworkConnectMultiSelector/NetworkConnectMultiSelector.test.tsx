@@ -69,7 +69,7 @@ describe('NetworkConnectMultiSelector', () => {
   const defaultProps = {
     isLoading: false,
     onUserAction: jest.fn(),
-    urlWithProtocol: 'https://example.com',
+    origin: 'https://example.com',
     hostname: 'example.com',
     onBack: jest.fn(),
     isRenderedAsBottomSheet: true,

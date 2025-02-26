@@ -160,7 +160,7 @@ describe('eth_sendTransaction', () => {
     const pendingResult = constructPendingJsonRpcResponse();
 
     await eth_sendTransaction({
-      hostname: 'example.metamask.io',
+      origin: 'https://example.metamask.io',
       req: constructSendTransactionRequest([mockTransactionParameters]),
       res: pendingResult,
       sendTransaction: getMockAddTransaction({
@@ -185,7 +185,7 @@ describe('eth_sendTransaction', () => {
       await expect(
         async () =>
           await eth_sendTransaction({
-            hostname: 'example.metamask.io',
+            origin: 'https://example.metamask.io',
             //@ts-expect-error - invalid parameters forced
             req: constructSendTransactionRequest(invalidParameter),
             res: constructPendingJsonRpcResponse(),
@@ -208,7 +208,7 @@ describe('eth_sendTransaction', () => {
       await expect(
         async () =>
           await eth_sendTransaction({
-            hostname: 'example.metamask.io',
+            origin: 'https://example.metamask.io',
             //@ts-expect-error - invalid parameters forced
             req: constructSendTransactionRequest(invalidParameter),
             res: constructPendingJsonRpcResponse(),
@@ -230,7 +230,7 @@ describe('eth_sendTransaction', () => {
     await expect(
       async () =>
         await eth_sendTransaction({
-          hostname: 'example.metamask.io',
+          origin: 'https://example.metamask.io',
           req: constructSendTransactionRequest([mockTransactionParameters]),
           res: constructPendingJsonRpcResponse(),
           sendTransaction: getMockAddTransaction({
@@ -250,7 +250,7 @@ describe('eth_sendTransaction', () => {
     await expect(
       async () =>
         await eth_sendTransaction({
-          hostname: 'example.metamask.io',
+          origin: 'https://example.metamask.io',
           req: constructSendTransactionRequest([mockTransactionParameters]),
           res: constructPendingJsonRpcResponse(),
           sendTransaction: getMockAddTransaction({
@@ -273,7 +273,7 @@ describe('eth_sendTransaction', () => {
     await expect(
       async () =>
         await eth_sendTransaction({
-          hostname: 'example.metamask.io',
+          origin: 'https://example.metamask.io',
           req: constructSendTransactionRequest([mockTransactionParameters]),
           res: constructPendingJsonRpcResponse(),
           sendTransaction: getMockAddTransaction({
@@ -297,7 +297,7 @@ describe('eth_sendTransaction', () => {
     const spy = jest.spyOn(PPOMUtil, 'validateRequest');
 
     await eth_sendTransaction({
-      hostname: 'example.metamask.io',
+      origin: 'https://example.metamask.io',
       req: constructSendTransactionRequest([mockTransactionParameters]),
       res: pendingResult,
       sendTransaction: getMockAddTransaction({

@@ -105,7 +105,7 @@ export class BackgroundBridge extends EventEmitter {
     const urlObject = new URL(url);
     const { hostname, protocol, origin } = urlObject;
     this.domain = hostname;
-    this.#subject = origin ?? `${protocol}${hostname}`;
+    this.#subject = origin ?? `${protocol}//${hostname}`;
     this.#isMMSDK = isMMSDK ?? false;
     this.#isWalletConnect = isWalletConnect ?? false;
     this.#disconnected = false;
