@@ -74,7 +74,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
@@ -1270,7 +1270,7 @@ const mapStateToProps = (state) => ({
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   tokens: selectTokens(state),
   tokenBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),

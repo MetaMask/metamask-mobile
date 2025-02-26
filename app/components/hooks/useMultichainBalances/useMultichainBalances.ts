@@ -7,7 +7,7 @@ import {
   selectChainId,
   selectIsPopularNetwork,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../../../selectors/preferencesController';
@@ -45,7 +45,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   );
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const { type } = useSelector(selectProviderConfig);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
 
   // Production hooks (EVM)
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(

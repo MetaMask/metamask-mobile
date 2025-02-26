@@ -12,7 +12,7 @@ import BottomSheet, {
 import AppConstants from '../../../core/AppConstants';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
@@ -49,7 +49,7 @@ const WalletActions = () => {
   const { navigate } = useNavigation();
 
   const chainId = useSelector(selectChainId);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
@@ -243,9 +243,10 @@ const WalletActions = () => {
 
   const goToPortfolioBridge = useGoToBridge('TabBar');
 
-  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true'
-    ? handleBridgeNavigation
-    : goToPortfolioBridge;
+  const goToBridge =
+    process.env.MM_BRIDGE_UI_ENABLED === 'true'
+      ? handleBridgeNavigation
+      : goToPortfolioBridge;
 
   const sendIconStyle = useMemo(
     () => ({
