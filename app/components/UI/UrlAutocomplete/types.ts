@@ -1,13 +1,16 @@
 /**
  * Props for the UrlAutocomplete component
  */
+
+import { Hex } from '@metamask/utils';
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UrlAutocompleteComponentProps = {
   /**
    * Callback that is triggered while
    * choosing one of the autocomplete options
    */
-  onSelect: (url: string) => void;
+  onSelect: (item: AutocompleteSearchResult) => void;
   /**
    * Callback that is triggered while
    * tapping on the background
@@ -35,11 +38,25 @@ export type UrlAutocompleteRef = {
 };
 
 /**
- * The result of an Fuse search
+ * The result of a Fuse search
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type FuseSearchResult = {
+  type: 'sites' | 'recents' | 'favorites';
   url: string;
   name: string;
-  type: string;
 };
+
+/**
+ * The result of a token search
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TokenSearchResult = {
+  type: 'tokens';
+  name: string;
+  symbol: string;
+  address: string;
+  chainId: Hex;
+};
+
+export type AutocompleteSearchResult = FuseSearchResult | TokenSearchResult;
