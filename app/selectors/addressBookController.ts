@@ -15,7 +15,7 @@ export const selectAddressBook = createSelector(
 
 export const selectAddressBookByChain = createDeepEqualSelector(
   [selectAddressBook,
-  (_state: AddressBookControllerState['addressBook'], chainId: Hex) => chainId],
+  (_state: RootState, chainId: Hex) => chainId],
   (addressBook: AddressBookControllerState['addressBook'], chainId: Hex) => {
     if (!addressBook[chainId]) {
       return [];
