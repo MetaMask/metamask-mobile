@@ -672,11 +672,10 @@ export class Engine {
     };
 
     additionalKeyrings.push(
-      snapKeyringBuilder(
-        snapKeyringBuildMessenger,
-        persistAndUpdateAccounts,
-        (address) => this.removeAccount(address),
-      ),
+      snapKeyringBuilder(snapKeyringBuildMessenger, {
+        persistKeyringHelper: () => persistAndUpdateAccounts(),
+        removeAccountHelper: (address) => this.removeAccount(address),
+      }),
     );
 
     ///: END:ONLY_INCLUDE_IF
@@ -686,7 +685,6 @@ export class Engine {
         preferencesController,
       ),
       encryptor,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],
@@ -1958,7 +1956,6 @@ export class Engine {
     await removeAccountsFromPermissions([address]);
     // Remove account from the keyring
     await this.keyringController.removeAccount(address as Hex);
-    return address;
   };
   ///: END:ONLY_INCLUDE_IF
 
