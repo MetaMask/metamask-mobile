@@ -70,6 +70,10 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   const multichainSelectedAccountCachedBalance = useSelector(
     selectMultichainSelectedAccountCachedBalance,
   );
+  console.log(
+    'multichainSelectedAccountCachedBalance',
+    multichainSelectedAccountCachedBalance,
+  );
   const { symbol } = useSelector(selectMultichainDefaultToken);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
   const multichainConversionRate = useSelector(selectMultichainConversionRate);
