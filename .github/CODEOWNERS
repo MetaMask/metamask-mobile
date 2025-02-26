@@ -142,3 +142,17 @@ app/reducers/navigation @MetaMask/wallet-ux
 app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
+
+# Transactions Team
+app/components/Views/Transactions/                @MetaMask/transactions
+app/util/transactions/                           @MetaMask/transactions
+app/core/Transaction/                            @MetaMask/transactions
+app/constants/transaction.ts                     @MetaMask/transactions
+app/constants/smartTransactions.ts               @MetaMask/transactions
+app/reducers/transaction/                        @MetaMask/transactions
+app/selectors/confirmTransaction.ts              @MetaMask/transactions
+app/selectors/transactionController.ts           @MetaMask/transactions
+app/selectors/smartTransactionsController.ts     @MetaMask/transactions
+app/actions/transaction/                         @MetaMask/transactions
+app/core/redux/slices/transactionMetrics/        @MetaMask/transactions
+app/core/RPCMethods/eth_sendTransaction.ts       @MetaMask/transactions
