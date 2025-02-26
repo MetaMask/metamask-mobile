@@ -108,13 +108,13 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
   });
 
   it('displays correct host information', () => {
-    const testOrigin = 'test.example.com';
+    const domain = 'test.com';
     const { getByText } = renderWithProvider(
       <AccountPermissionsConfirmRevokeAll
         route={{
           params: {
             hostInfo: {
-              metadata: { origin: 'https://test.com', hostname: 'test.com' },
+              metadata: { origin: 'https://test.com', hostname: domain },
             },
           },
         }}
@@ -123,7 +123,7 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
     );
 
     const expectedText = strings('accounts.reconnect_notice', {
-      dappUrl: testOrigin,
+      dappUrl: domain,
     });
 
     expect(getByText(expectedText)).toBeTruthy();

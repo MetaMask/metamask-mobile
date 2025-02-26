@@ -166,7 +166,7 @@ describe('eth_sendTransaction', () => {
       sendTransaction: getMockAddTransaction({
         expectedTransaction: mockTransactionParameters,
         expectedOrigin: {
-          origin: 'example.metamask.io',
+          origin: 'https://example.metamask.io',
           networkClientId: NETWORK_CLIENT_ID_MOCK,
         },
         returnValue: expectedResult,
@@ -256,7 +256,7 @@ describe('eth_sendTransaction', () => {
           sendTransaction: getMockAddTransaction({
             expectedTransaction: mockTransactionParameters,
             expectedOrigin: {
-              origin: 'example.metamask.io',
+              origin: 'https://example.metamask.io',
               networkClientId: NETWORK_CLIENT_ID_MOCK,
             },
             addTransactionError: new Error('Failed to add transaction'),
@@ -279,7 +279,7 @@ describe('eth_sendTransaction', () => {
           sendTransaction: getMockAddTransaction({
             expectedTransaction: mockTransactionParameters,
             expectedOrigin: {
-              origin: 'example.metamask.io',
+              origin: 'https://example.metamask.io',
               networkClientId: NETWORK_CLIENT_ID_MOCK,
             },
             processTransactionError: new Error('User rejected the transaction'),
@@ -303,7 +303,7 @@ describe('eth_sendTransaction', () => {
       sendTransaction: getMockAddTransaction({
         expectedTransaction: mockTransactionParameters,
         expectedOrigin: {
-          origin: 'example.metamask.io',
+          origin: 'https://example.metamask.io',
           networkClientId: NETWORK_CLIENT_ID_MOCK,
         },
         returnValue: expectedResult,

@@ -33,6 +33,7 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import DevLogger from './utils/DevLogger';
+import { PROTOCOLS } from '../../constants/deeplinks';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -271,8 +272,11 @@ export class SDKConnect {
     channelId: string;
     sendTerminate?: boolean;
   }) {
+    // Clean the channelId in case there is a protocol prefix
+    const cleanChannelId = channelId.replace(`${PROTOCOLS.METAMASK}://`, '');
+
     return removeChannel({
-      channelId,
+      channelId: cleanChannelId,
       engine: Engine,
       sendTerminate,
       instance: this,

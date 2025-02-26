@@ -4,6 +4,7 @@ import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import setupBridge from './setupBridge';
+import RemotePort from '../../BackgroundBridge/RemotePort';
 
 jest.mock('../../BackgroundBridge/BackgroundBridge');
 jest.mock('../Connection');
@@ -16,6 +17,8 @@ jest.mock('../../../constants/deeplinks');
 describe('setupBridge', () => {
   let originatorInfo = {} as OriginatorInfo;
   let connection = {} as unknown as Connection;
+  let mockChannelId = 'unique-wc-channel-id';
+  const mockSDKSubject = `${PROTOCOLS.METAMASK}://${mockChannelId}`;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -28,6 +31,7 @@ describe('setupBridge', () => {
     connection = {
       origin: 'testOrigin',
       trigger: 'testTrigger',
+      channelId: mockChannelId,
     } as unknown as Connection;
   });
 
@@ -53,54 +57,18 @@ describe('setupBridge', () => {
     expect(BackgroundBridge).toHaveBeenCalledWith(expect.any(Object));
   });
 
-  it('should setup backgroundBridge with correct url and isRemoteConn', () => {
-    connection.backgroundBridge = undefined;
-    const expectedUrl =
-      PROTOCOLS.METAMASK + '://' + originatorInfo.url ?? originatorInfo.title;
-
-    setupBridge({ originatorInfo, connection });
-
-    expect(BackgroundBridge).toHaveBeenCalledWith(
-      expect.objectContaining({
-        url: expectedUrl,
-        isRemoteConn: true,
-      }),
-    );
-  });
-
-  it('should setup backgroundBridge with correct sendMessage', () => {
-    connection.backgroundBridge = undefined;
-
-    setupBridge({ originatorInfo, connection });
-
-    expect(BackgroundBridge).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sendMessage: expect.any(Function),
-      }),
-    );
-  });
-
-  it('should setup backgroundBridge with correct getRpcMethodMiddleware', () => {
-    connection.backgroundBridge = undefined;
-
-    setupBridge({ originatorInfo, connection });
-
-    expect(BackgroundBridge).toHaveBeenCalledWith(
-      expect.objectContaining({
-        getRpcMethodMiddleware: expect.any(Function),
-      }),
-    );
-  });
-
   it('should setup backgroundBridge with correct params', () => {
     connection.backgroundBridge = undefined;
+    connection.channelId = 'unique-wc-channel-id';
 
     setupBridge({ originatorInfo, connection });
 
     expect(BackgroundBridge).toHaveBeenCalledWith(
       expect.objectContaining({
-        webview: null,
         isMMSDK: true,
+        url: `${PROTOCOLS.METAMASK}://${connection.channelId}`,
+        getRpcMethodMiddleware: expect.any(Function),
+        port: expect.any(RemotePort),
       }),
     );
   });

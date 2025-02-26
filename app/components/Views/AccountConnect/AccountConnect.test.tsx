@@ -8,6 +8,7 @@ import { RootState } from '../../../reducers';
 import { fireEvent } from '@testing-library/react-native';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 import Engine from '../../../core/Engine';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -97,7 +98,7 @@ describe('AccountConnect', () => {
             hostInfo: {
               metadata: {
                 id: 'mockId',
-                origin: 'mockOrigin',
+                origin: 'https://mockOrigin.com',
               },
               permissions: {
                 eth_accounts: {
@@ -217,6 +218,8 @@ describe('AccountConnect', () => {
   });
 
   it('should handle cancel button press correctly', () => {
+    const mockSubject = `${PROTOCOLS.METAMASK}://unique-sdk-channel-id`;
+
     const { getByTestId } = renderWithProvider(
       <AccountConnect
         route={{
@@ -224,7 +227,7 @@ describe('AccountConnect', () => {
             hostInfo: {
               metadata: {
                 id: 'mockId',
-                origin: 'mockOrigin',
+                origin: mockSubject,
               },
               permissions: {
                 eth_accounts: {
@@ -250,7 +253,7 @@ describe('AccountConnect', () => {
     ).toHaveBeenCalledWith('test');
     // Verify removeChannel was called with correct parameters
     expect(mockRemoveChannel).toHaveBeenCalledWith({
-      channelId: 'mockOrigin',
+      channelId: mockSubject,
       sendTerminate: true,
     });
     // Verify createEventBuilder was called

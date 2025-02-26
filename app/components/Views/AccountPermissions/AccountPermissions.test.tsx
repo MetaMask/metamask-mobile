@@ -74,7 +74,7 @@ describe('AccountPermissions', () => {
         <AccountPermissions
           route={{
             params: {
-              hostInfo: { metadata: { origin: 'test' } },
+              hostInfo: { metadata: { origin: 'https://test.com' } },
             },
           }}
         />,
@@ -95,7 +95,7 @@ describe('AccountPermissions', () => {
       <AccountPermissions
         route={{
           params: {
-            hostInfo: { metadata: { origin: 'test' } },
+            hostInfo: { metadata: { origin: 'https://test.com' } },
             initialScreen: AccountPermissionsScreens.ConnectMoreAccounts,
           },
         }}

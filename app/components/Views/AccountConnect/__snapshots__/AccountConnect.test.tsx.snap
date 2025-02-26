@@ -208,7 +208,7 @@ exports[`AccountConnect renders correctly 1`] = `
                         ]
                       }
                     >
-                      h
+                      m
                     </Text>
                   </View>
                 </View>
@@ -248,7 +248,7 @@ exports[`AccountConnect renders correctly 1`] = `
                   }
                 }
               >
-                mockorigin wants to:
+                mockorigin.com wants to:
               </Text>
             </View>
             <TouchableOpacity

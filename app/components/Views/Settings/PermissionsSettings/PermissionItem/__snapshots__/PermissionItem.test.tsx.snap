@@ -107,7 +107,7 @@ exports[`PermissionItem renders correctly 1`] = `
           }
         }
       >
-        uniswap.org
+        https://uniswap.org
       </Text>
     </View>
     <View
