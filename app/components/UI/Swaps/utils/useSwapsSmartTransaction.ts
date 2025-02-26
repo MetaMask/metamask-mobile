@@ -141,7 +141,7 @@ export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { t
       });
 
       if (approvalTxUuid) {
-        await SmartTransactionsController.updateSmartTransaction({
+        SmartTransactionsController.updateSmartTransaction({
           uuid: approvalTxUuid,
           origin: ORIGIN_METAMASK,
           type: TransactionType.swapApproval,
@@ -169,7 +169,7 @@ export const useSwapsSmartTransaction = ({ tradeTransaction, gasEstimates }: { t
       gasEstimates,
     });
 
-    await SmartTransactionsController.updateSmartTransaction({
+    SmartTransactionsController.updateSmartTransaction({
       uuid: tradeTxUuid,
       origin: ORIGIN_METAMASK,
       type: TransactionType.swap,
