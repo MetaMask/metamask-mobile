@@ -12,6 +12,7 @@ import {
   PrimaryType,
 } from '../constants/signatures';
 import { sanitizeMessage } from '../../../../util/string';
+import { TOKEN_ADDRESS } from '../constants/tokens';
 
 /**
  * The contents of this file have been taken verbatim from
@@ -61,6 +62,15 @@ interface TypedSignatureRequest {
   messageParams: MessageParamsTyped;
   type: SignatureRequestType.TypedSign;
 }
+
+/**
+ * Support backwards compatibility DAI while it's still being deprecated. See EIP-2612 for more info.
+ */
+export const isPermitDaiUnlimited = (tokenAddress: string, allowed?: number|string|boolean) =>
+  tokenAddress === TOKEN_ADDRESS.DAI && Number(allowed) > 0;
+
+export const isPermitDaiRevoke = (tokenAddress: string, allowed?: number|string|boolean) =>
+  tokenAddress === TOKEN_ADDRESS.DAI && (allowed === 0 || allowed === false || allowed === 'false');
 
 /**
  * Returns true if the request is Typed Sign V3 or V4 request
