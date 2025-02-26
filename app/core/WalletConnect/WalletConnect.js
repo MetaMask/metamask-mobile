@@ -26,7 +26,7 @@ import { addTransaction } from '../../util/transaction-controller';
 import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
 import { store } from '../../store';
-import { selectChainId } from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
 import { PROTOCOLS } from '../../constants/deeplinks';
@@ -313,7 +313,7 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
-    const chainId = selectChainId(store.getState());
+    const chainId = selectEvmChainId(store.getState());
     const selectedAddress =
       Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
     const approveData = {

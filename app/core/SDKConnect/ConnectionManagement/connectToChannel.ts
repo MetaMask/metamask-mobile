@@ -6,7 +6,7 @@ import {
 import { resetConnections } from '../../../../app/actions/sdk';
 import { store } from '../../../../app/store';
 import Routes from '../../../constants/navigation/Routes';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
@@ -220,7 +220,7 @@ async function connectToChannel({
       const accounts = await getPermittedAccounts(
         `${PROTOCOLS.METAMASK}://${id}`,
       );
-      const currentChainId = selectChainId(store.getState());
+      const currentChainId = selectEvmChainId(store.getState());
       connected.remote.state.channelId = id;
       const data = {
         accounts,

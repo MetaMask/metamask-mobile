@@ -13,7 +13,7 @@ import { fontStyles } from '../../../../styles/common';
 import { useDispatch, useSelector } from 'react-redux';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../selectors/networkController';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
@@ -108,7 +108,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const styles = createStyles(colors);
   const [expandTokenList, setExpandTokenList] = useState(false);
   const tokenExchangeRatesAllChains = useSelector(selectTokenMarketData);
-  const currentChainId = useSelector(selectChainId);
+  const currentChainId = useSelector(selectEvmChainId);
   const tokenExchangeRates = tokenExchangeRatesAllChains[token.chainId];
   const tokenBalancesAllChains = useSelector(selectTokensBalances);
   const balanceAllChainsForAccount =

@@ -66,7 +66,7 @@ import {
   MM_MIXPANEL_TOKEN,
 } from './constants';
 import { regex } from '../../../../app/util/regex';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
@@ -1405,7 +1405,7 @@ const mapStateToProps = (state: RootState) => ({
     selectSelectedInternalAccountFormattedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   wizardStep: state.wizard.step,
-  activeChainId: selectChainId(state),
+  activeChainId: selectEvmChainId(state),
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

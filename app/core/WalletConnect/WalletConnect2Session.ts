@@ -18,8 +18,8 @@ import METHODS_TO_REDIRECT from './wc-config';
 import { Minimizer } from '../NativeModules';
 import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../selectors/networkController';
 import { store } from '../../store';
 import { addTransaction } from '../../util/transaction-controller';
@@ -337,7 +337,7 @@ class WalletConnect2Session {
           `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
         // overwrite chainId with actual value.
-        chainId = parseInt(selectChainId(store.getState()));
+        chainId = parseInt(selectEvmChainId(store.getState()));
         DevLogger.log(
           `WC2::updateSession overwrite invalid chain Id with selectedChainId=${chainId}`,
         );
@@ -405,7 +405,7 @@ class WalletConnect2Session {
     );
 
     // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-    const selectedChainId = parseInt(selectChainId(store.getState()));
+    const selectedChainId = parseInt(selectEvmChainId(store.getState()));
 
     if (selectedChainId !== chainId) {
       DevLogger.log(
@@ -430,7 +430,7 @@ class WalletConnect2Session {
         `formatting chainId=>${chainId} ==> 0x${chainId.toString(16)}`,
       );
 
-      const networkConfigurations = selectNetworkConfigurations(
+      const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
         store.getState(),
       );
       const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);

@@ -57,7 +57,7 @@ export const Browser = (props) => {
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
-  const { accounts, ensByAccountAddress } = useAccounts();
+  const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies

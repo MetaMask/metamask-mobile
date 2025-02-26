@@ -16,7 +16,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectProviderConfig,
   ProviderConfig,
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
+  selectEvmChainId,
 } from '../../../../selectors/networkController';
 import {
   IconColor,
@@ -60,8 +61,11 @@ const NetworkPermissionsConnected = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectEvmChainId);
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   // Get permitted chain IDs
   const getPermittedChainIds = () => {
@@ -80,7 +84,7 @@ const NetworkPermissionsConnected = ({
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
     // If no permitted chains found, default to current chain
-    return providerConfig?.chainId ? [providerConfig.chainId] : [];
+    return chainId ? [chainId] : [];
   };
 
   const permittedChainIds = getPermittedChainIds();
@@ -130,21 +134,21 @@ const NetworkPermissionsConnected = ({
       <View style={styles.networkSelectorListContainer}>
         <NetworkSelectorList
           networks={networks}
-          onSelectNetwork={(chainId) => {
-            if (chainId === providerConfig?.chainId) {
+          onSelectNetwork={(onSelectChainId) => {
+            if (onSelectChainId === chainId) {
               onDismissSheet();
               return;
             }
 
             const theNetworkName = handleNetworkSwitch(
-              getDecimalChainId(chainId),
+              getDecimalChainId(onSelectChainId),
             );
 
             if (theNetworkName) {
               trackEvent(
                 createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
                   .addProperties({
-                    chain_id: getDecimalChainId(chainId),
+                    chain_id: getDecimalChainId(onSelectChainId),
                     from_network: providerConfig?.nickname || theNetworkName,
                     to_network: theNetworkName,
                   })

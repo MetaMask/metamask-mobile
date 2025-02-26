@@ -46,7 +46,7 @@ const TabThumbnail = ({
 
   const activeAccountAddress = useSelector(selectPermittedAccounts(tab.url))[0];
 
-  const { accounts } = useAccounts({});
+  const { evmAccounts: accounts } = useAccounts({});
   const selectedAccount = accounts.find(
     (account) =>
       account.address.toLowerCase() === activeAccountAddress?.toLowerCase(),
@@ -91,7 +91,7 @@ const TabThumbnail = ({
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
         {selectedAccount && (
-          <View style={styles.footerContainer}>
+          <View testID="footer-container" style={styles.footerContainer}>
             <View style={styles.badgeWrapperContainer}>
               <BadgeWrapper
                 badgeElement={

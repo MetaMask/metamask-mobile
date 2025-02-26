@@ -10,7 +10,7 @@ import {
   TOKEN_NOT_VALID,
 } from '../../constants/error';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectNetworkClientId,
 } from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
@@ -51,7 +51,7 @@ const wallet_watchAsset = async ({
 
   const { TokensController } = Engine.context;
   const state = store.getState();
-  const chainId = selectChainId(state);
+  const chainId = selectEvmChainId(state);
   const networkClientId = selectNetworkClientId(state);
 
   checkTabActive();

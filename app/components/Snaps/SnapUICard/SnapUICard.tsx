@@ -4,7 +4,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { SnapUIImage } from '../../UI/Snaps/SnapUIImage';
+import { SnapUIImage } from '../../UI/Snaps/SnapUIImage/SnapUIImage';
 import {
   FlexDirection,
   TextAlign,
@@ -29,11 +29,18 @@ export const SnapUICard: FunctionComponent<SnapUICardProps> = ({
 }) => (
   <Box
     testID="snaps-ui-card"
+    flexDirection={FlexDirection.Row}
     justifyContent={JustifyContent.spaceBetween}
     alignItems={AlignItems.center}
   >
-    <Box gap={4} alignItems={AlignItems.center}>
-      {image && <SnapUIImage width={32} height={32} value={image} />}
+    <Box
+      gap={16}
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+    >
+      {image && (
+        <SnapUIImage width={32} height={32} borderRadius={999} value={image} />
+      )}
       <Box flexDirection={FlexDirection.Column}>
         <Text variant={TextVariant.BodyMDMedium} ellipsizeMode="tail">
           {title}

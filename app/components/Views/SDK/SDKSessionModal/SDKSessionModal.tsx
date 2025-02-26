@@ -90,7 +90,7 @@ const SDKSessionModal = ({ route }: SDKSessionMoodalProps) => {
   const permittedAccountAddresses = useSelector(
     selectPermittedAccounts(subject),
   );
-  const { accounts } = useAccounts({
+  const { evmAccounts: accounts } = useAccounts({
     isLoading: false,
   });
   const permittedAccounts = useMemo(
