@@ -8,6 +8,15 @@ jest.mock('../../../../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
 }));
 
+jest.mock('../../../../../../hooks/useMultichainBalances', () => ({
+  useMultichainBalances: () => ({
+    multichainBalances: {
+      isPortfolioVieEnabled: true,
+      displayBalance: '$100',
+    },
+  }),
+}));
+
 describe('AccountNetworkInfoExpanded', () => {
   it('should render correctly', async () => {
     const { getByText } = renderWithProvider(<AccountNetworkInfoExpanded />, {
@@ -15,7 +24,7 @@ describe('AccountNetworkInfoExpanded', () => {
     });
     expect(getByText('Account')).toBeDefined();
     expect(getByText('Balance')).toBeDefined();
-    expect(getByText('$10')).toBeDefined();
+    expect(getByText('$100')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
   });
