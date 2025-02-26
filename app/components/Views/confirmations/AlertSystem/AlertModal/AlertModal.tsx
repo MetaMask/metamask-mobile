@@ -142,8 +142,8 @@ const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHan
 const AlertModal = () => {
   const { colors } = useTheme();
   const styles = (useStyles(styleSheet, {})).styles as Record<string, ViewStyle>;
-  const { alerts, hideAlertModal, alertModalVisible } = useAlerts();
-  const {isAlertConfirmed, setAlertConfirmed, alertKey,} = useAlertsConfirmed(alerts);
+  const { hideAlertModal, alertModalVisible, fieldAlerts } = useAlerts();
+  const { isAlertConfirmed, setAlertConfirmed, alertKey } = useAlertsConfirmed(fieldAlerts);
 
   const handleClose = useCallback(
     () => {
@@ -167,7 +167,7 @@ const AlertModal = () => {
     [hideAlertModal],
   );
 
-  const selectedAlert = alerts.find((alertSelected: Alert) => alertSelected.key === alertKey);
+  const selectedAlert = fieldAlerts.find((alertSelected: Alert) => alertSelected.key === alertKey);
 
   if (!alertModalVisible || !selectedAlert) {
     return null;
