@@ -316,6 +316,7 @@ exports[`Carousel should render correctly 1`] = `
                     "marginLeft": 14,
                   }
                 }
+                testID="carousel-second-slide-title"
               >
                 banner.fund.title
               </Text>
