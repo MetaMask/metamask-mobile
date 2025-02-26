@@ -148,6 +148,10 @@ const selectNonEvmCachedBalance = createDeepEqualSelector(
     if (!selectedInternalAccount) {
       return undefined;
     }
+    // update the balances
+    Engine.context.MultichainBalancesController.updateBalance(
+      selectedInternalAccount.id,
+    );
     // We assume that there's at least one asset type in and that is the native
     // token for that network.
     const asset = NETWORK_ASSETS_MAP[nonEvmChainId]?.[0];

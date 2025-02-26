@@ -230,6 +230,7 @@ import {
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
+import { createMultichainAssetsRatesController } from './controllers/MultichainAssetsRatesController/utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -417,6 +418,30 @@ export class Engine {
       initialState: initialState.MultichainAssetsController,
     });
 
+    const multichainAssetsRatesControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'MultichainAssetsRatesController',
+        allowedEvents: [
+          'AccountsController:accountAdded',
+          'KeyringController:lock',
+          'KeyringController:unlock',
+          'CurrencyRateController:stateChange',
+          'MultichainAssetsController:stateChange',
+        ],
+        allowedActions: [
+          'AccountsController:listMultichainAccounts',
+          'SnapController:handleRequest',
+          'CurrencyRateController:getState',
+          'MultichainAssetsController:getState',
+        ],
+      });
+
+    const multichainAssetsRatesController =
+      createMultichainAssetsRatesController({
+        messenger: multichainAssetsRatesControllerMessenger,
+        initialState: initialState.MultichainAssetsRatesController,
+      });
+
     const multichainBalancesControllerMessenger: MultichainBalancesControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'MultichainBalancesController',
@@ -429,6 +454,7 @@ export class Engine {
         allowedActions: [
           'AccountsController:listMultichainAccounts',
           SnapControllerHandleRequestAction,
+          'MultichainAssetsController:getState',
         ],
       });
 
@@ -1577,6 +1603,7 @@ export class Engine {
       MultichainBalancesController: multichainBalancesController,
       RatesController: multichainRatesController,
       MultichainAssetsController: multichainAssetsController,
+      MultichainAssetsRatesController: multichainAssetsRatesController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController: multichainNetworkController,
     };
