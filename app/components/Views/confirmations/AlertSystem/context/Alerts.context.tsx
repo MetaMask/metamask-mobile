@@ -54,7 +54,7 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
     alertSelected => alertSelected.severity === Severity.Danger
   ), [alertsMemo]);
 
-  const contextValue = {
+  const contextValue = useMemo(() => ({
     alertModalVisible,
     alerts: alertsMemo,
     dangerAlerts,
@@ -64,7 +64,7 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
     hasDangerAlerts: dangerAlerts.length > 0,
     hideAlertModal: () => setAlertModalVisible(false),
     showAlertModal: () => setAlertModalVisible(true),
-  };
+  }), [alertModalVisible, alertsMemo, dangerAlerts, fieldAlerts, generalAlerts]);
 
   return (
     <AlertsContext.Provider value={contextValue}>
