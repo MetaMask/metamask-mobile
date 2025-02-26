@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -70,6 +70,8 @@ import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import { isAssetFromSearch, selectTokenDisplayData } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { useAddNetwork } from '../../hooks/useAddNetwork';
+import { PopularList } from '../../../util/networks/customNetworks';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -240,7 +242,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate('SendFlowView', {});
   };
 
-  const goToSwaps = useCallback(() => {
+  const { addPopularNetwork, networkModal } = useAddNetwork();
+
+  const goToSwaps = useCallback(async () => {
     if (isPortfolioViewEnabled()) {
       if (!isAssetFromSearch(asset)) {
         navigation.navigate(Routes.WALLET.HOME, {
@@ -253,13 +257,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       if (asset.chainId !== selectedChainId) {
         const { NetworkController, MultichainNetworkController } =
           Engine.context;
-        const networkConfiguration =
+        let networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
             asset.chainId as Hex,
           );
         
         if (!networkConfiguration) {
-          // TODO: Popup the "add network" modal
+          const network = PopularList.find((network) => network.chainId === asset.chainId);
+          if (network) {
+            try {
+              await addPopularNetwork(network);
+            } catch (error) {
+              return;
+            }
+            networkConfiguration = NetworkController.getNetworkConfigurationByChainId(
+              asset.chainId as Hex,
+            );
+          }
         }
 
         const networkClientId =
@@ -267,13 +281,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        MultichainNetworkController.setActiveNetwork(
+        await MultichainNetworkController.setActiveNetwork(
           networkClientId as string,
-        ).then(() => {
-          setTimeout(() => {
-            handleSwapNavigation();
-          }, 500);
-        });
+        );
+
+        setTimeout(() => {
+          handleSwapNavigation();
+        }, 500);
       } else {
         handleSwapNavigation();
       }
@@ -297,6 +311,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     trackEvent,
     createEventBuilder,
     handleSwapNavigation,
+    addPopularNetwork,
   ]);
 
   const onBuy = () => {
@@ -498,6 +513,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           {/* <View style={styles.aboutWrapper}>
             // <AboutAsset asset={asset} chainId={chainId} />
           </View> */}
+          {networkModal}
         </View>
       )}
     </View>
