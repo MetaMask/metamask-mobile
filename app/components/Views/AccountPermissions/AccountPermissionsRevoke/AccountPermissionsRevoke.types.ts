@@ -15,7 +15,7 @@ export interface AccountPermissionsRevokeProps extends UseAccounts {
   permittedAddresses: string[];
   onSetPermissionsScreen: (screen: AccountPermissionsScreens) => void;
   hostname: string;
-  urlWithProtocol: string;
+  origin: string;
   favicon: ImageSourcePropType;
   secureIcon: IconName;
   accountAvatarType: AvatarAccountType;

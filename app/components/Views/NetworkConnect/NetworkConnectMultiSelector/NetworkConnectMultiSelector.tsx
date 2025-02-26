@@ -41,7 +41,7 @@ import Logger from '../../../../util/Logger';
 const NetworkConnectMultiSelector = ({
   isLoading,
   onUserAction,
-  urlWithProtocol,
+  origin,
   hostname,
   onBack,
   isRenderedAsBottomSheet = true,
@@ -70,7 +70,7 @@ const NetworkConnectMultiSelector = ({
     let currentlyPermittedChains: string[] = [];
     try {
       const caveat = Engine.context.PermissionController.getCaveat(
-        hostname,
+        origin,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );
@@ -89,7 +89,7 @@ const NetworkConnectMultiSelector = ({
 
     setSelectedChainIds(currentlyPermittedChains);
     setOriginalChainIds(currentlyPermittedChains);
-  }, [hostname, isInitializedWithPermittedChains, initialChainId]);
+  }, [origin, isInitializedWithPermittedChains, initialChainId]);
 
   const handleUpdateNetworkPermissions = useCallback(async () => {
     if (onNetworksSelected) {
@@ -125,7 +125,7 @@ const NetworkConnectMultiSelector = ({
       let hasPermittedChains = false;
       try {
         hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-          hostname,
+          origin,
           PermissionKeys.permittedChains,
           CaveatTypes.restrictNetworkSwitching,
         );
@@ -134,7 +134,7 @@ const NetworkConnectMultiSelector = ({
       }
       if (hasPermittedChains) {
         Engine.context.PermissionController.updateCaveat(
-          hostname,
+          origin,
           PermissionKeys.permittedChains,
           CaveatTypes.restrictNetworkSwitching,
           selectedChainIds,
@@ -142,7 +142,7 @@ const NetworkConnectMultiSelector = ({
       } else {
         Engine.context.PermissionController.grantPermissionsIncremental({
           subject: {
-            origin: hostname,
+            origin,
           },
           approvedPermissions: {
             [PermissionKeys.permittedChains]: {
@@ -161,7 +161,7 @@ const NetworkConnectMultiSelector = ({
   }, [
     selectedChainIds,
     originalChainIds,
-    hostname,
+    origin,
     onUserAction,
     onNetworksSelected,
     currentChainId,
@@ -199,9 +199,9 @@ const NetworkConnectMultiSelector = ({
   );
 
   const onRevokeAllHandler = useCallback(async () => {
-    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    await Engine.context.PermissionController.revokeAllPermissions(origin);
     navigate('PermissionsManager');
-  }, [hostname, navigate]);
+  }, [origin, navigate]);
 
   const toggleRevokeAllNetworkPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -209,13 +209,14 @@ const NetworkConnectMultiSelector = ({
       params: {
         hostInfo: {
           metadata: {
-            origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
+            origin,
+            hostname,
           },
         },
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
+  }, [navigate, origin, isRenderedAsBottomSheet, onRevokeAllHandler, hostname]);
 
   const areAllNetworksSelected = networks
     .map(({ id }) => id)

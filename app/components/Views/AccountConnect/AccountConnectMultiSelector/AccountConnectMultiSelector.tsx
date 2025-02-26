@@ -44,7 +44,7 @@ const AccountConnectMultiSelector = ({
   isLoading,
   onUserAction,
   isAutoScrollEnabled = true,
-  urlWithProtocol,
+  origin,
   hostname,
   connection,
   onBack,
@@ -83,9 +83,9 @@ const AccountConnectMultiSelector = ({
   );
 
   const onRevokeAllHandler = useCallback(async () => {
-    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    await Engine.context.PermissionController.revokeAllPermissions(origin);
     navigate('PermissionsManager');
-  }, [hostname, navigate]);
+  }, [origin, navigate]);
 
   const toggleRevokeAllAccountPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -93,13 +93,14 @@ const AccountConnectMultiSelector = ({
       params: {
         hostInfo: {
           metadata: {
-            origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
+            origin,
+            hostname,
           },
         },
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
+  }, [navigate, origin, hostname, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
   const areAllAccountsSelected = accounts
     .map(({ address }) => address)

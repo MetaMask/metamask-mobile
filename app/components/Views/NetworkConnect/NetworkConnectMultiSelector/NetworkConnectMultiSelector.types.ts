@@ -9,7 +9,7 @@ export interface NetworkConnectMultiSelectorProps {
   onSelectNetworkIds?: (ids: string[]) => void;
   isLoading?: boolean;
   onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
-  urlWithProtocol: string;
+  origin: string;
   hostname: string;
   onBack: () => void;
   isRenderedAsBottomSheet?: boolean;

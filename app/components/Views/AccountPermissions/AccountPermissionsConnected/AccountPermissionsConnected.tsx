@@ -40,6 +40,7 @@ const AccountPermissionsConnected = ({
   onSetSelectedAddresses,
   onDismissSheet,
   hostname,
+  origin,
   favicon,
   accountAvatarType,
 }: AccountPermissionsConnectedProps) => {
@@ -54,7 +55,7 @@ const AccountPermissionsConnected = ({
   const switchActiveAccount = useCallback(
     (address: string) => {
       if (address !== activeAddress) {
-        switchActiveAccounts(hostname, address);
+        switchActiveAccounts(origin, address);
       }
       onDismissSheet();
       const activeAccountName = getAccountNameWithENS({
@@ -81,7 +82,7 @@ const AccountPermissionsConnected = ({
       onDismissSheet,
       accounts,
       ensByAccountAddress,
-      hostname,
+      origin,
       toastRef,
       accountAvatarType,
     ],

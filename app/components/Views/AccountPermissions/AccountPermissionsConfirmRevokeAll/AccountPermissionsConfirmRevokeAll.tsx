@@ -25,7 +25,7 @@ interface AccountPermissionsConfirmRevokeAllProps {
   route: {
     params: {
       hostInfo: {
-        metadata: { origin: string };
+        metadata: { origin: string; hostname: string };
       };
       onRevokeAll?: () => void;
     };
@@ -37,7 +37,7 @@ const AccountPermissionsConfirmRevokeAll = (
 ) => {
   const {
     hostInfo: {
-      metadata: { origin: hostname },
+      metadata: { origin, hostname },
     },
     onRevokeAll,
   } = props.route.params;
@@ -54,15 +54,13 @@ const AccountPermissionsConfirmRevokeAll = (
       if (onRevokeAll) {
         onRevokeAll();
       } else {
-        await Engine.context.PermissionController.revokeAllPermissions(
-          hostname,
-        );
+        await Engine.context.PermissionController.revokeAllPermissions(origin);
         sheetRef.current?.onCloseBottomSheet();
       }
     } catch (e) {
-      Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
+      Logger.log(`Failed to revoke all accounts for ${origin}`, e);
     }
-  }, [hostname, Engine.context.PermissionController, onRevokeAll]);
+  }, [origin, Engine.context.PermissionController, onRevokeAll]);
 
   const onCancel = () => {
     sheetRef.current?.onCloseBottomSheet();

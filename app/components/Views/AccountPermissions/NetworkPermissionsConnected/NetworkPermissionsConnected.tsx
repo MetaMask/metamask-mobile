@@ -53,7 +53,7 @@ import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwit
 const NetworkPermissionsConnected = ({
   onSetPermissionsScreen,
   onDismissSheet,
-  hostname,
+  origin,
   favicon,
 }: NetworkPermissionsConnectedProps) => {
   const { navigate } = useNavigation();
@@ -67,7 +67,7 @@ const NetworkPermissionsConnected = ({
   const getPermittedChainIds = () => {
     try {
       const caveat = Engine.context.PermissionController.getCaveat(
-        hostname,
+        origin,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );

@@ -45,7 +45,7 @@ const AccountPermissionsRevoke = ({
   permittedAddresses,
   onSetPermissionsScreen,
   hostname,
-  urlWithProtocol,
+  origin,
   favicon,
   secureIcon,
   accountAvatarType,
@@ -118,11 +118,7 @@ const AccountPermissionsRevoke = ({
         }
       />
       <View style={styles.body}>
-        <TagUrl
-          imageSource={favicon}
-          label={urlWithProtocol}
-          iconName={secureIcon}
-        />
+        <TagUrl imageSource={favicon} label={origin} iconName={secureIcon} />
         <Text style={styles.description}>
           {strings('accounts.site_permission_to')}
         </Text>
@@ -162,7 +158,7 @@ const AccountPermissionsRevoke = ({
                     accounts,
                     ensByAccountAddress,
                   });
-                  removePermittedAccounts(hostname, [address]);
+                  removePermittedAccounts(origin, [address]);
                   labelOptions.push(
                     {
                       label: `\n${newActiveAccountName} `,
@@ -179,7 +175,7 @@ const AccountPermissionsRevoke = ({
                   });
                 } else {
                   // Just disconnect
-                  removePermittedAccounts(hostname, [address]);
+                  removePermittedAccounts(origin, [address]);
                   toastRef?.current?.showToast({
                     variant: ToastVariants.Plain,
                     labelOptions,

@@ -24,7 +24,7 @@ export interface AccountConnectMultiSelectorProps extends UseAccounts {
   isLoading?: boolean;
   onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
   onPrimaryActionButtonPress?: () => void;
-  urlWithProtocol: string;
+  origin: string;
   hostname: string;
   favicon: ImageSourcePropType;
   secureIcon: IconName;
