@@ -15,6 +15,7 @@ import { SnapId } from '@metamask/snaps-sdk';
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethodMiddleware';
 import { showAccountNameSuggestionDialog } from './utils/showDialog';
 import Logger from '../../util/Logger';
+import { isSnapPreinstalled } from './utils/snaps';
 
 const mockAddRequest = jest.fn();
 const mockStartFlow = jest.fn();
@@ -28,6 +29,7 @@ const mockRemoveAccountHelper = jest.fn();
 const mockGetAccountByAddress = jest.fn();
 const mockSetAccountName = jest.fn();
 const mockSnapControllerHandleRequest = jest.fn();
+const mockListMultichainAccounts = jest.fn();
 
 const mockFlowId = '123';
 const address = '0x2a4d4b667D5f12C3F9Bf8F14a7B9f8D8d9b8c8fA';
@@ -79,6 +81,8 @@ const createControllerMessenger = ({
       'KeyringController:getAccounts',
       'AccountsController:setSelectedAccount',
       'AccountsController:getAccountByAddress',
+      'AccountsController:listMultichainAccounts',
+      'AccountsController:setAccountName',
     ],
     allowedEvents: [],
   });
@@ -103,6 +107,8 @@ const createControllerMessenger = ({
         return mockSetSelectedAccount(params);
       case 'AccountsController:setAccountName':
         return mockSetAccountName.mockReturnValue(null)(params);
+      case 'AccountsController:listMultichainAccounts':
+        return mockListMultichainAccounts.mockReturnValue([])();
       case 'SnapController:handleRequest':
         return mockSnapControllerHandleRequest(params);
       default:
@@ -134,6 +140,11 @@ const createSnapKeyringBuilder = () =>
     persistKeyringHelper: mockPersisKeyringHelper,
     removeAccountHelper: mockRemoveAccountHelper,
   });
+
+// Mock the isSnapPreinstalled function
+jest.mock('./utils/snaps', () => ({
+  isSnapPreinstalled: jest.fn(),
+}));
 
 describe('Snap Keyring Methods', () => {
   afterEach(() => {
@@ -170,6 +181,7 @@ describe('Snap Keyring Methods', () => {
   describe('addAccount', () => {
     beforeEach(() => {
       mockAddRequest.mockReturnValue(true).mockReturnValue({ success: true });
+      (isSnapPreinstalled as jest.Mock).mockReset();
     });
     afterEach(() => {
       jest.resetAllMocks();
@@ -330,6 +342,129 @@ describe('Snap Keyring Methods', () => {
       expect(mockEndFlow).toHaveBeenCalledTimes(2);
       expect(mockEndFlow).toHaveBeenNthCalledWith(1, [{ id: mockFlowId }]);
       expect(mockEndFlow).toHaveBeenNthCalledWith(2, [{ id: mockFlowId }]);
+    });
+    it('skips account name suggestion dialog for preinstalled snaps when displayAccountNameSuggestion is false', async () => {
+      // Mock isSnapPreinstalled to return true for this test
+      (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
+
+      const mockNameSuggestion = 'auto generated name';
+      mockListMultichainAccounts.mockReturnValueOnce([]);
+
+      const builder = createSnapKeyringBuilder();
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: false,
+          accountNameSuggestion: mockNameSuggestion,
+          displayAccountNameSuggestion: false,
+        },
+      });
+
+      // Verify the account name suggestion dialog was not shown
+      expect(mockAddRequest).not.toHaveBeenCalledWith([
+        {
+          origin: mockSnapId,
+          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
+          requestData: {
+            snapSuggestedAccountName: mockNameSuggestion,
+          },
+        },
+        true,
+      ]);
+
+      // Verify that listMultichainAccounts was called to generate a unique name
+      expect(mockListMultichainAccounts).toHaveBeenCalledTimes(1);
+
+      // Verify that the account was created and named
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountName).toHaveBeenCalledWith([
+        mockAccount.id,
+        mockNameSuggestion,
+      ]);
+    });
+
+    it('shows account name suggestion dialog for preinstalled snaps when displayAccountNameSuggestion is true', async () => {
+      // Mock isSnapPreinstalled to return true for this test
+      (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
+
+      const mockNameSuggestion = 'suggested name';
+
+      // Set up mockAddRequest to return success with the name
+      mockAddRequest.mockReturnValueOnce({
+        success: true,
+        name: mockNameSuggestion,
+      });
+
+      const builder = createSnapKeyringBuilder();
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: false,
+          accountNameSuggestion: mockNameSuggestion,
+          displayAccountNameSuggestion: true, // This should trigger the dialog
+        },
+      });
+
+      // Verify that the approval flow was started
+      expect(mockStartFlow).toHaveBeenCalledTimes(2);
+
+      // Verify that the account was created and named
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountName).toHaveBeenCalledWith([
+        mockAccount.id,
+        mockNameSuggestion,
+      ]);
+
+      // Verify that the approval flow was ended
+      expect(mockEndFlow).toHaveBeenCalledTimes(2);
+      expect(mockEndFlow).toHaveBeenNthCalledWith(1, [{ id: mockFlowId }]);
+      expect(mockEndFlow).toHaveBeenNthCalledWith(2, [{ id: mockFlowId }]);
+    });
+
+    it('always shows account name suggestion dialog for non-preinstalled snaps regardless of displayAccountNameSuggestion', async () => {
+      // Mock isSnapPreinstalled to return false for this test
+      (isSnapPreinstalled as jest.Mock).mockReturnValue(false);
+
+      const mockNameSuggestion = 'suggested name';
+      mockAddRequest.mockReturnValueOnce({
+        success: true,
+        name: mockNameSuggestion,
+      });
+
+      const builder = createSnapKeyringBuilder();
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: false,
+          accountNameSuggestion: mockNameSuggestion,
+          displayAccountNameSuggestion: false, // Even though this is false, dialog should show for non-preinstalled snaps
+        },
+      });
+
+      // Verify the account name suggestion dialog was shown
+      expect(mockAddRequest).toHaveBeenCalledWith([
+        {
+          origin: mockSnapId,
+          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
+          requestData: {
+            snapSuggestedAccountName: mockNameSuggestion,
+          },
+        },
+        true,
+      ]);
+
+      // Verify that the account was created and named
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountName).toHaveBeenCalledWith([
+        mockAccount.id,
+        mockNameSuggestion,
+      ]);
     });
   });
 });

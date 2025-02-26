@@ -71,7 +71,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
    * @param accountNameSuggestion - Suggested name for the account.
    * @returns The name that should be used for the account.
    */
-  async #getAccountNameFromDialog(
+  private async getAccountNameFromDialog(
     snapId: SnapId,
     accountNameSuggestion: string,
   ): Promise<{ success: boolean; accountName?: string }> {
@@ -91,7 +91,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
    * @param accountNameSuggestion - Suggested name for the account.
    * @returns The name that should be used for the account.
    */
-  async #getAccountNameFromSuggestion(
+  private async getAccountNameFromSuggestion(
     accountNameSuggestion: string,
   ): Promise<{ success: boolean; accountName?: string }> {
     const accounts = await this.#messenger.call(
@@ -114,8 +114,8 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   }): Promise<{ accountName?: string }> {
     return await this.withApprovalFlow(async (_) => {
       const { success, accountName } = skipAccountNameSuggestionDialog
-        ? await this.#getAccountNameFromSuggestion(accountNameSuggestion)
-        : await this.#getAccountNameFromDialog(snapId, accountNameSuggestion);
+        ? await this.getAccountNameFromSuggestion(accountNameSuggestion)
+        : await this.getAccountNameFromDialog(snapId, accountNameSuggestion);
 
       // User has cancelled account creation
       await handleUserInput(success);
