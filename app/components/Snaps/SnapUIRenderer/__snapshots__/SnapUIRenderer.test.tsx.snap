@@ -1,12 +1,143 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`SnapUIRenderer adds a footer if required 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 80,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "flex": 1,
+        "flexDirection": "column",
+      }
+    }
+  >
+    <View
+      color="Default"
+      flexDirection="column"
+      justifyContent="flex-start"
+      style={
+        [
+          {
+            "color": "Default",
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+          },
+          undefined,
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        fontWeight="normal"
+        style={
+          {
+            "color": "inherit",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+        textAlign="left"
+      >
+        <Text
+          color="inherit"
+        >
+          Hello world!
+        </Text>
+      </Text>
+    </View>
+    <View
+      flexDirection="row"
+      gap={16}
+      padding={16}
+      style={
+        {
+          "alignItems": "center",
+          "bottom": 0,
+          "height": 80,
+          "justifyContent": "space-evenly",
+          "marginTop": "auto",
+          "paddingVertical": 20,
+          "position": "fixed",
+          "width": "100%",
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        loading={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#0376c9",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Close
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
 exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 0,
+      },
+    ]
   }
 >
   <View
@@ -94,10 +225,15 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
 exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 0,
+      },
+    ]
   }
 >
   <View
@@ -235,10 +371,15 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
 exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 0,
+      },
+    ]
   }
 >
   <View
@@ -376,10 +517,15 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
 exports[`SnapUIRenderer renders basic UI 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 0,
+      },
+    ]
   }
 >
   <View
@@ -438,10 +584,15 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
 exports[`SnapUIRenderer renders complex nested components 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 80,
+      },
+    ]
   }
 >
   <View
@@ -592,14 +743,9 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           flexDirection="row"
           justifyContent="space-between"
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-              },
-              undefined,
-            ]
+            {
+              "flex": 1,
+            }
           }
           testID="snaps-ui-card"
         >
@@ -714,18 +860,19 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
     </View>
     <View
       flexDirection="row"
-      gap={4}
-      padding={4}
+      gap={16}
+      padding={16}
       style={
         {
           "bottom": 0,
+          "height": 80,
           "justifyContent": "space-evenly",
+          "marginTop": "auto",
           "paddingVertical": 20,
-          "position": "absolute",
+          "position": "fixed",
           "width": "100%",
         }
       }
-      width="100%"
     >
       <TouchableOpacity
         accessibilityRole="button"
@@ -865,10 +1012,15 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
 exports[`SnapUIRenderer renders footers 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 80,
+      },
+    ]
   }
 >
   <View
@@ -918,18 +1070,19 @@ exports[`SnapUIRenderer renders footers 1`] = `
     </View>
     <View
       flexDirection="row"
-      gap={4}
-      padding={4}
+      gap={16}
+      padding={16}
       style={
         {
           "bottom": 0,
+          "height": 80,
           "justifyContent": "space-evenly",
+          "marginTop": "auto",
           "paddingVertical": 20,
-          "position": "absolute",
+          "position": "fixed",
           "width": "100%",
         }
       }
-      width="100%"
     >
       <TouchableOpacity
         accessibilityRole="button"
@@ -1076,10 +1229,15 @@ exports[`SnapUIRenderer renders loading state 1`] = `
 exports[`SnapUIRenderer supports fields with multiple components 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 0,
+      },
+    ]
   }
 >
   <View
@@ -1256,10 +1414,15 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
 exports[`SnapUIRenderer supports forms with fields 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 0,
+      },
+    ]
   }
 >
   <View
@@ -1512,10 +1675,15 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
 exports[`SnapUIRenderer supports interactive inputs 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 0,
+      },
+    ]
   }
 >
   <View
@@ -1603,10 +1771,15 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
 exports[`SnapUIRenderer supports the onCancel prop 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      {
+        "marginBottom": 80,
+      },
+    ]
   }
 >
   <View
@@ -1656,18 +1829,19 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
     </View>
     <View
       flexDirection="row"
-      gap={4}
-      padding={4}
+      gap={16}
+      padding={16}
       style={
         {
           "bottom": 0,
+          "height": 80,
           "justifyContent": "space-evenly",
+          "marginTop": "auto",
           "paddingVertical": 20,
-          "position": "absolute",
+          "position": "fixed",
           "width": "100%",
         }
       }
-      width="100%"
     >
       <TouchableOpacity
         accessibilityRole="button"

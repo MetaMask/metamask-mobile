@@ -13,6 +13,7 @@ import { unescape as unescapeFn } from 'he';
 import { FormState, InterfaceState, State } from '@metamask/snaps-sdk';
 import { UIComponent } from './components/types';
 import { Theme } from '../../../util/theme/models';
+import { Text } from '@metamask/snaps-sdk/jsx';
 
 export interface MapToTemplateParams {
   map: Record<string, number>;
@@ -132,9 +133,12 @@ export const mapTextToTemplate = (
   elements.map((e) => {
     if (typeof e === 'string') {
       // React Native cannot render strings directly, so we map to an element where we control the props.
+      const text = unescapeFn(e);
+      const key = generateKey(params.map, Text({ children: text }));
       return {
         element: 'RNText',
-        children: unescapeFn(e),
+        key,
+        children: text,
         props: { color: 'inherit' },
       };
     }
