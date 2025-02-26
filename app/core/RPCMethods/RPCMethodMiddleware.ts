@@ -1,4 +1,3 @@
-import { MutableRefObject } from 'react';
 import { Alert, ImageSourcePropType } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
@@ -80,19 +79,26 @@ export enum ApprovalTypes {
 }
 
 export interface RPCMethodsMiddleParameters {
-  hostname: string;
-  channelId?: string; // Used for remote connections
   getProviderState: (domain: string) => Promise<{
     isUnlocked: boolean;
     chainId: string;
     networkVersion: string;
   }>;
+  getSubjectInfo: () => {
+    origin: string;
+    domain: string;
+    isMMSDK?: boolean;
+    isWalletConnect?: boolean;
+  };
+  subjectDisplayInfo: {
+    // Title associated with subject
+    title: string;
+    // Icon associated with subject
+    icon?: ImageSourcePropType;
+  };
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
-  url: MutableRefObject<string>;
-  title: MutableRefObject<string>;
-  icon: MutableRefObject<ImageSourcePropType | undefined>;
   // Bookmarks
   isHomepage: () => boolean;
   // Show autocomplete
@@ -102,27 +108,19 @@ export interface RPCMethodsMiddleParameters {
   wizardScrollAdjusted: { current: boolean };
   // For the browser
   tabId: number | '' | false;
-  // For WalletConnect
-  isWalletConnect: boolean;
-  // For MM SDK
-  isMMSDK: boolean;
   injectHomePageScripts: (bookmarks?: []) => void;
-  analytics: { [key: string]: string | boolean };
+  analytics?: { [key: string]: string | boolean };
 }
 
 // Also used by WalletConnect.js.
 export const checkActiveAccountAndChainId = async ({
   address,
   chainId,
-  channelId,
-  hostname,
-  isWalletConnect,
+  origin,
 }: {
   address?: string;
   chainId?: number;
-  channelId?: string;
-  hostname: string;
-  isWalletConnect: boolean;
+  origin: string;
 }) => {
   let isInvalidAccount = false;
   if (address) {
@@ -130,8 +128,7 @@ export const checkActiveAccountAndChainId = async ({
     DevLogger.log('checkActiveAccountAndChainId', {
       address,
       chainId,
-      channelId,
-      hostname,
+      origin,
       formattedAddress,
     });
 
@@ -143,11 +140,10 @@ export const checkActiveAccountAndChainId = async ({
       }
     ).PermissionController;
     DevLogger.log(
-      `checkActiveAccountAndChainId channelId=${channelId} isWalletConnect=${isWalletConnect} hostname=${hostname}`,
+      `checkActiveAccountAndChainId origin=${origin}`,
       permissionsController.state,
     );
 
-    const origin = isWalletConnect ? hostname : channelId ?? hostname;
     const accounts = await getPermittedAccounts(origin);
 
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
@@ -211,31 +207,24 @@ export const checkActiveAccountAndChainId = async ({
 const generateRawSignature = async ({
   version,
   req,
-  hostname,
-  url,
+  origin,
   title,
   icon,
   analytics,
   chainId,
-  channelId,
   getSource,
-  isWalletConnect,
   checkTabActive,
 }: {
   version: string;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   req: any;
-  hostname: string;
-  url: MutableRefObject<string>;
-  title: MutableRefObject<string>;
-  icon: MutableRefObject<ImageSourcePropType | undefined>;
-  analytics: { [key: string]: string | boolean };
+  origin: string;
+  title: string;
+  icon?: ImageSourcePropType;
+  analytics?: { [key: string]: string | boolean };
   chainId: number;
-  isMMSDK: boolean;
-  channelId?: string;
   getSource: () => string;
-  isWalletConnect: boolean;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   checkTabActive: any;
@@ -247,10 +236,10 @@ const generateRawSignature = async ({
 
   const pageMeta = {
     meta: {
-      url: url.current,
-      title: title.current,
-      icon: icon.current,
-      channelId,
+      url: origin,
+      title,
+      icon,
+      origin,
       analytics: {
         request_source: getSource(),
         request_platform: analytics?.platform,
@@ -260,11 +249,9 @@ const generateRawSignature = async ({
 
   checkTabActive();
   await checkActiveAccountAndChainId({
-    hostname,
-    channelId,
+    origin,
     address: req.params[0],
     chainId,
-    isWalletConnect,
   });
 
   const rawSig = await signatureController.newUnsignedTypedMessage(
@@ -273,8 +260,7 @@ const generateRawSignature = async ({
       from: req.params[0],
       requestId: req.id,
       ...pageMeta,
-      channelId,
-      origin: hostname,
+      origin,
       securityAlertResponse: req.securityAlertResponse,
     } as MessageParamsTyped,
     req,
@@ -294,14 +280,14 @@ const generateRawSignature = async ({
  * Handle RPC methods called by dapps
  */
 export const getRpcMethodMiddleware = ({
-  hostname,
-  channelId,
   getProviderState,
+  getSubjectInfo,
+  subjectDisplayInfo: {
+    // Website info
+    title,
+    icon,
+  },
   navigation,
-  // Website info
-  url,
-  title,
-  icon,
   // Bookmarks
   isHomepage,
   // Show autocomplete
@@ -311,21 +297,13 @@ export const getRpcMethodMiddleware = ({
   wizardScrollAdjusted,
   // For the browser
   tabId,
-  // For WalletConnect
-  isWalletConnect,
-  // For MM SDK
-  isMMSDK,
   injectHomePageScripts,
   // For analytics
   analytics,
 }: RPCMethodsMiddleParameters) => {
-  // Make sure to always have the correct origin
-  hostname = hostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
-  const origin = isWalletConnect ? hostname : channelId ?? hostname;
+  const { origin, domain, isMMSDK, isWalletConnect } = getSubjectInfo();
 
-  DevLogger.log(
-    `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
-  );
+  DevLogger.log(`getRpcMethodMiddleware domain=${domain} origin=${origin}`);
   // all user facing RPC calls not implemented by the provider
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -344,8 +322,7 @@ export const getRpcMethodMiddleware = ({
     };
 
     const getSource = () => {
-      if (analytics?.isRemoteConn)
-        return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+      if (isMMSDK) return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
       if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
       return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     };
@@ -375,15 +352,15 @@ export const getRpcMethodMiddleware = ({
       );
 
       const responseData = await Engine.context.ApprovalController.add({
-        origin: hostname,
+        origin,
         type,
         requestData: {
           ...requestData,
           pageMeta: {
-            url: url.current,
-            title: title.current,
-            icon: icon.current,
-            channelId,
+            url: origin,
+            title,
+            icon,
+            origin,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -416,7 +393,7 @@ export const getRpcMethodMiddleware = ({
               getPermissionsForOrigin:
                 Engine.context.PermissionController.getPermissions.bind(
                   Engine.context.PermissionController,
-                  channelId ?? hostname,
+                  origin,
                 ),
             },
           );
@@ -443,7 +420,7 @@ export const getRpcMethodMiddleware = ({
                 requestPermissionsForOrigin:
                   Engine.context.PermissionController.requestPermissions.bind(
                     Engine.context.PermissionController,
-                    { origin: channelId ?? hostname },
+                    { origin },
                     req.params[0],
                   ),
               },
@@ -523,7 +500,7 @@ export const getRpcMethodMiddleware = ({
         checkTabActive();
 
         return RPCMethods.eth_sendTransaction({
-          hostname,
+          origin,
           req,
           res,
           sendTransaction: addTransaction,
@@ -536,11 +513,9 @@ export const getRpcMethodMiddleware = ({
           }) => {
             // TODO this needs to be modified for per dapp selected network
             await checkActiveAccountAndChainId({
-              hostname,
+              origin,
               address: from,
-              channelId,
               chainId,
-              isWalletConnect,
             });
           },
         });
@@ -562,10 +537,10 @@ export const getRpcMethodMiddleware = ({
 
         const pageMeta = {
           meta: {
-            url: url.current,
-            channelId,
-            title: title.current,
-            icon: icon.current,
+            url: origin,
+            origin,
+            title,
+            icon,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -578,13 +553,11 @@ export const getRpcMethodMiddleware = ({
 
         checkTabActive();
         await checkActiveAccountAndChainId({
-          hostname,
-          channelId,
+          origin,
           address: params.from,
-          isWalletConnect,
         });
 
-        DevLogger.log(`personal_sign`, params, pageMeta, hostname);
+        DevLogger.log(`personal_sign`, params, pageMeta, domain);
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
@@ -595,7 +568,7 @@ export const getRpcMethodMiddleware = ({
           {
             ...params,
             ...pageMeta,
-            origin: hostname,
+            origin,
           },
           req,
           { traceContext: req.traceContext },
@@ -626,10 +599,10 @@ export const getRpcMethodMiddleware = ({
 
         const pageMeta = {
           meta: {
-            url: url.current,
-            title: title.current,
-            icon: icon.current,
-            channelId,
+            url: origin,
+            title,
+            icon,
+            origin,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -642,10 +615,8 @@ export const getRpcMethodMiddleware = ({
 
         checkTabActive();
         await checkActiveAccountAndChainId({
-          hostname,
-          channelId,
+          origin,
           address: req.params[1],
-          isWalletConnect,
         });
 
         trace(
@@ -659,7 +630,7 @@ export const getRpcMethodMiddleware = ({
             from: req.params[1],
             requestId: req.id,
             ...pageMeta,
-            origin: hostname,
+            origin,
           },
           req,
           'V1',
@@ -687,14 +658,10 @@ export const getRpcMethodMiddleware = ({
         res.result = await generateRawSignature({
           version: 'V3',
           req,
-          hostname,
-          url,
+          origin,
           title,
           icon,
           analytics,
-          isMMSDK,
-          channelId,
-          isWalletConnect,
           chainId,
           getSource,
           checkTabActive,
@@ -713,14 +680,10 @@ export const getRpcMethodMiddleware = ({
         res.result = await generateRawSignature({
           version: 'V4',
           req,
-          hostname,
-          url,
+          origin,
           title,
           icon,
           analytics,
-          isMMSDK,
-          channelId,
-          isWalletConnect,
           chainId,
           getSource,
           checkTabActive,
@@ -767,7 +730,7 @@ export const getRpcMethodMiddleware = ({
         }),
 
       wallet_watchAsset: async () =>
-        RPCMethods.wallet_watchAsset({ req, res, hostname, checkTabActive }),
+        RPCMethods.wallet_watchAsset({ req, res, origin, checkTabActive }),
 
       metamask_removeFavorite: async () => {
         checkTabActive();

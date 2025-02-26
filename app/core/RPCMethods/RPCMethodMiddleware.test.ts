@@ -131,6 +131,7 @@ function getMinimalOptions() {
   return {
     hostname: '',
     getProviderState: jest.fn(),
+    getSubjectInfo: jest.fn(),
     navigation: jest.fn(),
     url: { current: '' },
     title: { current: '' },
@@ -290,7 +291,7 @@ function setupGlobalState({
   }
   if (permittedAccounts) {
     mockGetPermittedAccounts.mockImplementation(
-      (hostname) => permittedAccounts[hostname] || [],
+      (origin) => permittedAccounts[origin] || [],
     );
   }
   if (selectedAddress) {

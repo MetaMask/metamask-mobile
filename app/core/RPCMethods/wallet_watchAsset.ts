@@ -9,7 +9,10 @@ import {
   TOKEN_NOT_SUPPORTED_FOR_NETWORK,
   TOKEN_NOT_VALID,
 } from '../../constants/error';
-import { selectChainId, selectNetworkClientId } from '../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkClientId,
+} from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
@@ -17,7 +20,7 @@ import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 const wallet_watchAsset = async ({
   req,
   res,
-  hostname,
+  origin,
   checkTabActive,
 }: {
   req: JsonRpcRequest<{
@@ -32,7 +35,7 @@ const wallet_watchAsset = async ({
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: PendingJsonRpcResponse<any>;
-  hostname: string;
+  origin: string;
   checkTabActive: () => true | undefined;
 }) => {
   const { AssetsContractController } = Engine.context;
@@ -60,12 +63,16 @@ const wallet_watchAsset = async ({
   }
 
   // Check if token exists on wallet's active network.
-  const isTokenOnNetwork = await isSmartContractAddress(address, chainId, networkClientId);
+  const isTokenOnNetwork = await isSmartContractAddress(
+    address,
+    chainId,
+    networkClientId,
+  );
   if (!isTokenOnNetwork) {
     throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
   }
 
-  const permittedAccounts = await getPermittedAccounts(hostname);
+  const permittedAccounts = await getPermittedAccounts(origin);
   // This should return the current active account on the Dapp.
   const selectedInternalAccountChecksummedAddress = toChecksumHexAddress(
     Engine.context.AccountsController.getSelectedAccount().address,
