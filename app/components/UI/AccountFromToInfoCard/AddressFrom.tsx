@@ -10,16 +10,13 @@ import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import {
-  selectNetworkImageSource,
-  selectNetworkName,
-} from '../../../selectors/networkInfos';
-import {
   getLabelTextByAddress,
   renderAccountName,
 } from '../../../util/address';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 interface Asset {
   isETH?: boolean;
@@ -55,7 +52,9 @@ const AddressFrom = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  const networkName = useSelector(selectNetworkName);
+  // FIXME: this could be the wrong selector, probably needs to be per dapp (per origin)
+  // console.log('>>> AddressFrom origin', origin);
+  const { networkName, networkImageSource } = useNetworkInfo(origin);
 
   const useBlockieIcon = useSelector(
     // TODO: Replace "any" with type
@@ -74,7 +73,7 @@ const AddressFrom = ({
     }
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const networkImage = useSelector(selectNetworkImageSource);
+  // const networkImage = useSelector(selectNetworkImageSource);
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress);
 
@@ -95,7 +94,7 @@ const AddressFrom = ({
         badgeProps={{
           variant: BadgeVariant.Network,
           name: networkName,
-          imageSource: networkImage,
+          imageSource: networkImageSource,
         }}
         useBlockieIcon={useBlockieIcon}
       />
