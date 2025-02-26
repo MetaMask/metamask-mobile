@@ -56,6 +56,9 @@ const initialRootState: RootState = {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: initialMultichainSettingsState,
   ///: END:ONLY_INCLUDE_IF
+  banners: {
+    dismissedBanners: [],
+  },
 };
 
 export default initialRootState;
