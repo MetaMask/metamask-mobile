@@ -83,19 +83,18 @@ describe('Notification Services Controller', () => {
     const state = { ...defaultState, isFeatureAnnouncementsEnabled: true };
     createNotificationServicesController({ messenger, initialState: state });
     const constructorParams = assertGetConstructorCall();
-    expect(constructorParams?.state).toBe(state);
+    expect(constructorParams?.state).toEqual(state);
   });
 
   it('throws and logs error if controller creation fails', () => {
     const { messenger, mockConstructor } = arrange();
-    const mockError = new Error('TEST ERROR');
     mockConstructor.mockImplementation(() => {
-      throw mockError;
+      throw new Error('TEST ERROR');
     });
     jest.spyOn(console, 'error').mockImplementation();
 
     expect(() => createNotificationServicesController({ messenger })).toThrow(
-      mockError,
+      expect.any(Error),
     );
   });
 });

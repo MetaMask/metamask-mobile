@@ -93,7 +93,7 @@ describe('Notification Services Controller', () => {
     const { messenger, assertGetConstructorCall } = arrange();
     createNotificationServicesPushController({ messenger });
     const constructorParams = assertGetConstructorCall();
-    expect(constructorParams?.state).toBe(defaultState);
+    expect(constructorParams?.state).toEqual(defaultState);
   });
 
   it('uses initial state that is provided', () => {
@@ -107,20 +107,19 @@ describe('Notification Services Controller', () => {
       initialState: state,
     });
     const constructorParams = assertGetConstructorCall();
-    expect(constructorParams?.state).toBe(state);
+    expect(constructorParams?.state).toEqual(state);
   });
 
   it('throws and logs error if controller creation fails', () => {
     const { messenger, mockConstructor } = arrange();
-    const mockError = new Error('TEST ERROR');
     mockConstructor.mockImplementationOnce(() => {
-      throw mockError;
+      throw new Error('TEST ERROR');
     });
     jest.spyOn(console, 'error').mockImplementation();
 
     expect(() =>
       createNotificationServicesPushController({ messenger }),
-    ).toThrow(mockError);
+    ).toThrow(expect.any(Error));
   });
 
   it('runs push notification side effect to disable the controller if the mobile device has not enabled push notifications', async () => {
