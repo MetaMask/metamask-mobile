@@ -183,7 +183,7 @@ const BuildQuote = () => {
         }, [] as string[]),
       ),
     ];
-  }, [paymentMethods]);
+  }, [paymentMethods, themeAppearance]);
 
   const {
     defaultFiatCurrency,
