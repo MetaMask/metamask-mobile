@@ -100,148 +100,155 @@ const QRScanner = ({
 
   const onBarCodeRead = useCallback(
     async (response) => {
-      if (isProcessing) {
-        return;
-      }
-      setIsProcessing(true);
-
       let content = response.data;
-      /**
-       * Barcode read triggers multiple times
-       * shouldReadBarCodeRef controls how often the logic below runs
-       * Think of this as a allow or disallow bar code reading
-       */
+
+      // Add immediate guard to prevent multiple rapid executions
       if (!shouldReadBarCodeRef.current || !mountedRef.current || !content) {
         return;
       }
+      // Immediately set shouldReadBarCodeRef to false to prevent subsequent scans
+      shouldReadBarCodeRef.current = false;
 
-      if (
-        origin === Routes.SEND_FLOW.SEND_TO ||
-        origin === Routes.SETTINGS.CONTACT_FORM
-      ) {
-        if (!isValidAddressInputViaQRCode(content)) {
-          showAlertForInvalidAddress();
-          end();
-          return;
+      try {
+        if (
+          origin === Routes.SEND_FLOW.SEND_TO ||
+          origin === Routes.SETTINGS.CONTACT_FORM
+        ) {
+          if (!isValidAddressInputViaQRCode(content)) {
+            showAlertForInvalidAddress();
+            end();
+            return;
+          }
         }
-      }
 
-      const contentProtocol = getURLProtocol(content);
-      if (
-        (contentProtocol === PROTOCOLS.HTTP ||
-          contentProtocol === PROTOCOLS.HTTPS ||
-          contentProtocol === PROTOCOLS.DAPP) &&
-        !content.startsWith(MM_SDK_DEEPLINK)
-      ) {
-        if (contentProtocol === PROTOCOLS.DAPP) {
-          content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
+        const contentProtocol = getURLProtocol(content);
+        if (
+          (contentProtocol === PROTOCOLS.HTTP ||
+            contentProtocol === PROTOCOLS.HTTPS ||
+            contentProtocol === PROTOCOLS.DAPP) &&
+          !content.startsWith(MM_SDK_DEEPLINK)
+        ) {
+          if (contentProtocol === PROTOCOLS.DAPP) {
+            content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);
+          }
+          const redirect = await showAlertForURLRedirection(content);
+
+          if (!redirect) {
+            navigation.goBack();
+            return;
+          }
         }
-        const redirect = await showAlertForURLRedirection(content);
 
-        if (!redirect) {
-          navigation.goBack();
-          return;
-        }
-      }
+        let data = {};
 
-      let data = {};
-
-      if (content.split('metamask-sync:').length > 1) {
-        shouldReadBarCodeRef.current = false;
-        data = { content };
-        if (onStartScan) {
-          onStartScan(data).then(() => {
-            onScanSuccess(data);
-          });
-          mountedRef.current = false;
+        if (content.split('metamask-sync:').length > 1) {
+          Logger.log('****barcode**** detected "metamask-sync:" setting ref to false');
+          shouldReadBarCodeRef.current = false;
+          data = { content };
+          if (onStartScan) {
+            Logger.log('****kylan**** onStartScan isProcessing', isProcessing);
+            onStartScan(data).then(() => {
+              Logger.log('****kylan**** onStartScan then clause, isProcessing', isProcessing);
+              onScanSuccess(data);
+            });
+            mountedRef.current = false;
+          } else {
+            Alert.alert(
+              strings('qr_scanner.error'),
+              strings('qr_scanner.attempting_sync_from_wallet_error'),
+            );
+            mountedRef.current = false;
+          }
         } else {
-          Alert.alert(
-            strings('qr_scanner.error'),
-            strings('qr_scanner.attempting_sync_from_wallet_error'),
-          );
-          mountedRef.current = false;
-        }
-      } else {
-        if (
-          !failedSeedPhraseRequirements(content) &&
-          isValidMnemonic(content)
-        ) {
-          shouldReadBarCodeRef.current = false;
-          data = { seed: content };
-          end();
-          onScanSuccess(data, content);
-          return;
-        }
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { KeyringController } = Engine.context as any;
-        const isUnlocked = KeyringController.isUnlocked();
-
-        if (!isUnlocked) {
-          navigation.goBack();
-          Alert.alert(
-            strings('qr_scanner.error'),
-            strings('qr_scanner.attempting_to_scan_with_wallet_locked'),
-          );
-          mountedRef.current = false;
-          return;
-        }
-        // Let ethereum:address and address go forward
-        if (
-          (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
-            !parse(content).function_name) ||
-          (content.startsWith('0x') && isValidAddress(content))
-        ) {
-          const handledContent = content.startsWith('0x')
-            ? `${PROTOCOLS.ETHEREUM}:${content}@${currentChainId}`
-            : content;
-          shouldReadBarCodeRef.current = false;
-          data = parse(handledContent);
-          const action = 'send-eth';
-          data = { ...data, action };
-          end();
-          onScanSuccess(data, handledContent);
-          return;
-        }
-
-        // Checking if it can be handled like deeplinks
-        const handledByDeeplink = SharedDeeplinkManager.parse(content, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-          // TODO: Check is pop is still valid.
+          Logger.log('****barcode**** NOT detected "metamask-sync:"');
+          if (
+            !failedSeedPhraseRequirements(content) &&
+            isValidMnemonic(content)
+          ) {
+            Logger.log('****barcode**** isValidMnemonic and did not fail seed phrase reqs');
+            shouldReadBarCodeRef.current = false;
+            data = { seed: content };
+            end();
+            onScanSuccess(data, content);
+            return;
+          }
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onHandled: () => (navigation as any).pop(2),
-        });
+          const { KeyringController } = Engine.context as any;
+          const isUnlocked = KeyringController.isUnlocked();
 
-        if (handledByDeeplink) {
-          mountedRef.current = false;
-          return;
+          if (!isUnlocked) {
+            Logger.log('****barcode**** isUnlocked is false');
+            navigation.goBack();
+            Alert.alert(
+              strings('qr_scanner.error'),
+              strings('qr_scanner.attempting_to_scan_with_wallet_locked'),
+            );
+            mountedRef.current = false;
+            return;
+          }
+          // Let ethereum:address and address go forward
+          if (
+            (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
+              !parse(content).function_name) ||
+            (content.startsWith('0x') && isValidAddress(content))
+          ) {
+            Logger.log('****barcode**** is ethereum and no function name, or is valid eth address');
+            const handledContent = content.startsWith('0x')
+              ? `${PROTOCOLS.ETHEREUM}:${content}@${currentChainId}`
+              : content;
+            shouldReadBarCodeRef.current = false;
+            data = parse(handledContent);
+            const action = 'send-eth';
+            data = { ...data, action };
+            end();
+            onScanSuccess(data, handledContent);
+            return;
+          }
+
+          // Checking if it can be handled like deeplinks
+          const handledByDeeplink = SharedDeeplinkManager.parse(content, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+            // TODO: Check is pop is still valid.
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onHandled: () => (navigation as any).pop(2),
+          });
+
+          if (handledByDeeplink) {
+            mountedRef.current = false;
+            return;
+          }
+
+          // I can't be handled by deeplinks, checking other options
+          if (
+            content.length === 64 ||
+            (content.substring(0, 2).toLowerCase() === '0x' &&
+              content.length === 66)
+          ) {
+            shouldReadBarCodeRef.current = false;
+            data = {
+              private_key: content.length === 64 ? content : content.substr(2),
+            };
+          } else if (content.substring(0, 2).toLowerCase() === '0x') {
+            shouldReadBarCodeRef.current = false;
+            data = { target_address: content, action: 'send-eth' };
+          } else if (content.split('wc:').length > 1) {
+            shouldReadBarCodeRef.current = false;
+            data = { walletConnectURI: content };
+          } else {
+            // EIP-945 allows scanning arbitrary data
+            data = content;
+          }
+          onScanSuccess(data, content);
         }
 
-        // I can't be handled by deeplinks, checking other options
-        if (
-          content.length === 64 ||
-          (content.substring(0, 2).toLowerCase() === '0x' &&
-            content.length === 66)
-        ) {
-          shouldReadBarCodeRef.current = false;
-          data = {
-            private_key: content.length === 64 ? content : content.substr(2),
-          };
-        } else if (content.substring(0, 2).toLowerCase() === '0x') {
-          shouldReadBarCodeRef.current = false;
-          data = { target_address: content, action: 'send-eth' };
-        } else if (content.split('wc:').length > 1) {
-          shouldReadBarCodeRef.current = false;
-          data = { walletConnectURI: content };
-        } else {
-          // EIP-945 allows scanning arbitrary data
-          data = content;
-        }
-        onScanSuccess(data, content);
+        end();
+      } catch (error) {
+        // If there's an error, we might want to re-enable scanning
+        shouldReadBarCodeRef.current = true;
+        throw error;
       }
-
-      end();
     },
     [
       origin,
