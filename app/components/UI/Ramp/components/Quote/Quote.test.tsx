@@ -40,7 +40,7 @@ const mockQuote: QuoteResponse = {
     logos: { light: 'logo-url', dark: 'logo-url-dark', width: 50, height: 50 },
   } as Provider,
   crypto: { symbol: 'ETH', decimals: 18 } as CryptoCurrency,
-  tags: { isBestRate: true } as QuoteTags,
+  tags: { isBestRate: true, isMostReliable: true } as QuoteTags,
   amountOutInFiat: 98,
   isNativeApplePay: false,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -161,5 +161,47 @@ describe('Quote Component', () => {
 
     fireEvent.press(getByText('Continue with Mock Provider'));
     expect(onPressCTAMock).toHaveBeenCalled();
+  });
+
+  it('displays most reliable tag', () => {
+    const mockQuoteWithReliableTag = {
+      ...mockQuote,
+      tags: { isMostReliable: true } as QuoteTags,
+    };
+    const { getByText } = renderWithProvider(
+      <Quote
+        quote={mockQuoteWithReliableTag}
+        showInfo={jest.fn()}
+        rampType={RampType.BUY}
+      />,
+      { state: defaultState },
+    );
+
+    expect(getByText('Most reliable')).toBeTruthy();
+  });
+
+  it('displays provider logo correctly', () => {
+    const { getByLabelText } = renderWithProvider(
+      <Quote quote={mockQuote} showInfo={jest.fn()} rampType={RampType.BUY} />,
+      { state: defaultState },
+    );
+
+    expect(getByLabelText('Mock Provider logo')).toBeTruthy();
+  });
+
+  it('calls showInfo when info icon is pressed and highlighted', () => {
+    const showInfoMock = jest.fn();
+    const { getByLabelText } = renderWithProvider(
+      <Quote
+        quote={mockQuote}
+        showInfo={showInfoMock}
+        rampType={RampType.BUY}
+        highlighted
+      />,
+      { state: defaultState },
+    );
+
+    fireEvent.press(getByLabelText('Mock Provider logo'));
+    expect(showInfoMock).toHaveBeenCalled();
   });
 });

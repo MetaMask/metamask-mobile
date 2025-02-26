@@ -80,6 +80,7 @@ const Quote: React.FC<Props> = ({
     fiat,
     provider,
     crypto,
+    tags,
   } = quote;
   const amountOutInFiat = isBuyQuote(quote, rampType)
     ? quote.amountOutInFiat
@@ -90,7 +91,8 @@ const Quote: React.FC<Props> = ({
   const fiatCode = fiat?.symbol ?? '';
   const fiatSymbol = fiat?.denomSymbol ?? '';
 
-  const shouldShowTags = previouslyUsedProvider || quote?.tags?.isBestRate;
+  const shouldShowTags =
+    previouslyUsedProvider || tags?.isBestRate || tags?.isMostReliable;
 
   const expandedHeight = useSharedValue(0);
   const handleOnLayout = (event: LayoutChangeEvent) => {
@@ -138,7 +140,13 @@ const Quote: React.FC<Props> = ({
                     </TagColored>
                   ) : null}
 
-                  {quote?.tags?.isBestRate ? (
+                  {tags?.isMostReliable ? (
+                    <TagColored color={TagColor.Info}>
+                      {strings('fiat_on_ramp_aggregator.most_reliable')}
+                    </TagColored>
+                  ) : null}
+
+                  {tags?.isBestRate ? (
                     <TagColored color={TagColor.Success}>
                       {strings('fiat_on_ramp_aggregator.best_rate')}
                     </TagColored>
