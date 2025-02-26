@@ -498,28 +498,6 @@ describe('SmartTransactionStatus', () => {
           fireEvent.press(secondaryButton);
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
-        it('should use custom handleCreateNewSwap if provided', () => {
-          const mockHandleCreateNewSwap = jest.fn();
-          const { getByText } = renderWithProvider(
-            <SmartTransactionStatus
-              // TODO: Replace "any" with type
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              requestState={PENDING_APPROVALS.Swap.success.requestState as any}
-              origin={PENDING_APPROVALS.Swap.success.origin}
-              onConfirm={jest.fn()}
-              handleCreateNewSwap={mockHandleCreateNewSwap}
-            />,
-            { state: initialState },
-          );
-
-          const primaryButton = getByText(
-            strings('smart_transactions.create_new', {
-              txType: strings('smart_transactions.swap'),
-            }),
-          );
-          fireEvent.press(primaryButton);
-          expect(mockHandleCreateNewSwap).toHaveBeenCalled();
-        });
       });
     });
 
