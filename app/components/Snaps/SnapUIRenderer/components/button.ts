@@ -29,7 +29,6 @@ export const button: UIComponentFactory<ButtonElementProps> = ({
     name: e.props.name,
     disabled: e.props.disabled,
     loading: e.props.loading ?? false,
-    // TODO: This prop is currently not used.
     textVariant:
       e.props.size === 'sm'
         ? TextVariant.BodySMMedium
