@@ -446,6 +446,9 @@ class FixtureBuilder {
               accountsAssets: {},
               assetsMetadata: {},
             },
+            MultichainAssetsRatesController: {
+              conversionRates: {},
+            },
           },
         },
         privacy: {
