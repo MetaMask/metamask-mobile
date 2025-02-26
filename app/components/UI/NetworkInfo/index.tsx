@@ -111,8 +111,6 @@ const createStyles = (colors: {
 
 interface NetworkInfoProps {
   onClose: () => void;
-  type: string;
-  ticker: string;
   isTokenDetectionEnabled: boolean;
 }
 

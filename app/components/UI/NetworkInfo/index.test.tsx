@@ -31,7 +31,6 @@ describe('NetworkInfo', () => {
         onClose={function (): void {
           throw new Error('Function not implemented.');
         }}
-        ticker={''}
       />,
       { state: initialState },
     );
@@ -58,9 +57,39 @@ describe('NetworkInfo', () => {
         onClose={function (): void {
           throw new Error('Function not implemented.');
         }}
-        ticker={''}
       />,
       { state: nonEvmState },
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('render correctly with EVM network without ticker', () => {
+    const evmStateWithoutTicker = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...backgroundState.NetworkController,
+            providerConfig: {
+              ...backgroundState.NetworkController
+                .networkConfigurationsByChainId['0x1'],
+              ticker: undefined,
+              rpcUrl: 'https://custom-rpc.example.com',
+            },
+          },
+        },
+      },
+    };
+
+    const wrapper = renderWithProvider(
+      <NetworkInfo
+        type={''}
+        onClose={function (): void {
+          throw new Error('Function not implemented.');
+        }}
+      />,
+      { state: evmStateWithoutTicker },
     );
     expect(wrapper).toMatchSnapshot();
   });

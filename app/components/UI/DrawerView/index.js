@@ -1245,11 +1245,7 @@ class DrawerView extends PureComponent {
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
         >
-          <NetworkInfo
-            onClose={this.onInfoNetworksModalClose}
-            type={providerConfig.type}
-            ticker={providerConfig.ticker}
-          />
+          <NetworkInfo onClose={this.onInfoNetworksModalClose} />
         </Modal>
 
         {this.renderProtectModal()}
