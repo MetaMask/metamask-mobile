@@ -2,8 +2,6 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { SwapsSTXStatusModal } from './SwapsSTXStatusModal';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { fireEvent } from '@testing-library/react-native';
-import { merge } from 'lodash';
 
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({

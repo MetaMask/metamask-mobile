@@ -22,7 +22,6 @@ import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransac
 import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
 import { query } from '@metamask/controller-utils';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { NavigationContainer } from '@react-navigation/native';
 
 jest.mock('../../../util/networks/global-network', () => ({
   ...jest.requireActual('../../../util/networks/global-network'),
