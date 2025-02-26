@@ -133,7 +133,7 @@ export const mapTextToTemplate = (
     if (typeof e === 'string') {
       // React Native cannot render strings directly, so we map to an element where we control the props.
       return {
-        element: 'Text',
+        element: 'RNText',
         children: unescapeFn(e),
         props: { color: 'inherit' },
       };
