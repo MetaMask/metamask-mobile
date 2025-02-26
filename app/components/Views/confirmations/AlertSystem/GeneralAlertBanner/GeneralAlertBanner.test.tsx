@@ -1,23 +1,13 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { useAlerts } from '../context';
-import GeneralAlertBanner, { getBannerAlertSeverity } from './GeneralAlertBanner';
-import { Alert, Severity } from '../../types/alerts';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
 import Text from '../../../../../component-library/components/Texts/Text';
+import { Alert, Severity } from '../../types/alerts';
+import { useAlerts } from '../context';
+import GeneralAlertBanner, { getBannerAlertSeverity } from './GeneralAlertBanner';
 
 jest.mock('../context', () => ({
   useAlerts: jest.fn(),
-}));
-
-jest.mock('../../../../hooks/useStyles', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      wrapper: {},
-      details: { marginLeft: 10, marginBottom: 10 },
-      detailsItem: { marginBottom: 5 },
-    },
-  })),
 }));
 
 describe('GeneralAlertBanner', () => {
