@@ -50,10 +50,6 @@ const KeypadContainer = ({ style, ...props }) => {
 };
 
 KeypadContainer.propTypes = {
-  /**
-   * Custom style for digit buttons
-   */
-  style: ViewPropTypes.style,
 };
 
 const KeypadRow = (props) => {
@@ -78,7 +74,6 @@ KeypadButton.propTypes = {
   /**
    * Custom style for digit buttons
    */
-  style: ViewPropTypes.style,
   /**
    * Custom style for digit text
    */
@@ -105,7 +100,6 @@ KeypadDeleteButton.propTypes = {
   /**
    * Custom style for digit buttons
    */
-  style: ViewPropTypes.style,
   icon: PropTypes.node,
 };
 

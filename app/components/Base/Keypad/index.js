@@ -224,11 +224,10 @@ KeypadComponent.propTypes = {
   /**
    * Custom style for container
    */
-  style: ViewPropTypes.style,
+
   /**
    * Custom style for digit buttons
    */
-  digitButtonStyle: ViewPropTypes.style,
   /**
    * Custom style for digit text
    */
@@ -236,7 +235,6 @@ KeypadComponent.propTypes = {
   /**
    * Custom style for period button
    */
-  periodButtonStyle: ViewPropTypes.style,
   /**
    * Custom style for period text
    */
@@ -244,7 +242,6 @@ KeypadComponent.propTypes = {
   /**
    * Custom style for delete button
    */
-  deleteButtonStyle: ViewPropTypes.style,
   /**
    * Custom icon for delete button
    */

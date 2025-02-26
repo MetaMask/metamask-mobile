@@ -26,7 +26,6 @@ import expo.modules.ReactNativeHostWrapper
 import cl.json.ShareApplication
 import io.branch.rnbranch.RNBranchModule
 import com.airbnb.android.react.lottie.LottiePackage
-import com.brentvatne.react.ReactVideoPackage
 import io.metamask.nativeModules.PreventScreenshotPackage
 import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativesdk.NativeSDKPackage
@@ -44,7 +43,6 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
                 // Add all our custom packages
                 packages.add(LottiePackage())
                 packages.add(PreventScreenshotPackage())
-                packages.add(ReactVideoPackage())
                 packages.add(RCTMinimizerPackage())
                 packages.add(NativeSDKPackage())
                 packages.add(RNTarPackage())
@@ -63,7 +61,8 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
     override val reactHost: ReactHost
         get() = ReactNativeHostWrapper.createReactHost(applicationContext, reactNativeHost)
 
-    override fun registerReceiver(receiver: BroadcastReceiver, filter: IntentFilter): Intent? {
+    @Suppress("OVERRIDE_DEPRECATION")
+    override fun registerReceiver(receiver: BroadcastReceiver?, filter: IntentFilter): Intent? {
         return if (Build.VERSION.SDK_INT >= 34 && applicationInfo.targetSdkVersion >= 34) {
             super.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
         } else {

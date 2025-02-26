@@ -47,7 +47,6 @@ Button.propTypes = {
   /**
    * Styles to be applied to the Button
    */
-  style: ViewPropTypes.style,
   /**
    * Function to be called on press
    */

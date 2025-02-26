@@ -143,19 +143,6 @@ post_install do |installer|
     :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
   )
 
-  require 'fileutils'
-  umbrella_source = 'Pods/Headers/Public/React/React-Core.common-umbrella.h'
-  umbrella_dest = 'Pods/Headers/Public/React/react-core.common-umbrella.h'
-  FileUtils.cp(File.join(__dir__, umbrella_source), File.join(__dir__, umbrella_dest))
-
-  umbrella_modulemap_source = 'Pods/Headers/Public/React/React-Core.common.modulemap'
-  umbrella_modulemap_dest = 'Pods/Headers/Public/React/React-Core.modulemap'
-  FileUtils.cp(File.join(__dir__, umbrella_modulemap_source), File.join(__dir__, umbrella_modulemap_dest))
-  
-  contents_modulemap = File.read(File.join(__dir__, umbrella_modulemap_dest))
-  modified_contents_modulemap = contents_modulemap.gsub('React-Core.common-umbrella.h', 'react-core.common-umbrella.h')
-  File.write(File.join(__dir__, umbrella_modulemap_dest), modified_contents_modulemap)
-
   # Modify RCT-Folly Portability.h to disable coroutines
   Dir.glob(installer.sandbox.root + "RCT-Folly/folly/Portability.h") do |file|
     begin

@@ -173,7 +173,6 @@ MediaPlayer.propTypes = {
   /**
    * Custom style object
    */
-  style: ViewPropTypes.style,
   /**
    * On close callback
    */

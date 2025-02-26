@@ -26,22 +26,6 @@ export default class StyledButton extends PureComponent {
      */
     disabled: PropTypes.bool,
     /**
-     * Styles to be applied to the Button Text
-     */
-    style: Text.propTypes.style,
-    /**
-     * Styles to be applied to the Button disabled state text
-     */
-    styleDisabled: Text.propTypes.style,
-    /**
-     * Styles to be applied to the Button disabled container
-     */
-    disabledContainerStyle: ViewPropTypes.style,
-    /**
-     * Styles to be applied to the Button Container
-     */
-    containerStyle: ViewPropTypes.style,
-    /**
      * Function to be called on press
      */
     onPress: PropTypes.func,

@@ -125,6 +125,7 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     ),
   ];
 
+  // Problem
   const selectedAccountTokensChains = useSelector((state: RootState) =>
     isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
   );

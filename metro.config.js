@@ -20,6 +20,11 @@ module.exports = function (baseConfig) {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
       sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
       resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
+      extraNodeModules: {
+        ...defaultConfig.resolver.extraNodeModules,
+        crypto: require.resolve('react-native-crypto'),
+        stream: require.resolve('stream-browserify'),
+      },
     },
     transformer: {
       babelTransformerPath: require.resolve('./metro.transform.js'),

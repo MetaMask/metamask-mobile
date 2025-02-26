@@ -642,7 +642,6 @@ VideoPlayer.propTypes = {
   onError: PropTypes.func,
   selectedTextTrack: PropTypes.object,
   textTracks: PropTypes.arrayOf(PropTypes.object),
-  style: ViewPropTypes.style,
 };
 
 VideoPlayer.defaultProps = {

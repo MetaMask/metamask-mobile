@@ -10,7 +10,7 @@ buildscript {
 
 		ndkVersion = "26.1.10909125"
 		bitriseNdkPath = "/usr/local/share/android-sdk/ndk-bundle"
-		kotlin_version = "1.9.24"
+		kotlin_version = "1.9.25"
 		kotlinVersion = "$kotlin_version"
 		supportLibVersion = "28.0.0"
 	}
@@ -35,6 +35,7 @@ buildscript {
         maven {
             url(new File(['node', '--print', "require.resolve('@notifee/react-native/package.json')"].execute(null, rootDir).text.trim(), '../android/libs'))
         }
+        maven { url "https://jitpack.io" }
     }
 	}
 }

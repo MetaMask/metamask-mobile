@@ -266,11 +266,9 @@ RemoteImage.propTypes = {
   /**
    * Style for the image
    */
-  style: ViewPropTypes.style,
   /**
    * Style for the placeholder (used for fadeIn)
    */
-  placeholderStyle: ViewPropTypes.style,
   /**
    * Called when there is an error
    */

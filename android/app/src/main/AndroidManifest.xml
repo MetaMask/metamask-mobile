@@ -68,10 +68,6 @@
 				<!-- The following document explains reasons behind this strange subdomain declarations -->
 				<!-- https://developer.android.com/training/app-links/verify-site-associations#multi-subdomain -->
 				<data android:scheme="https" />
-				<data android:scheme="https" />
-				<data android:scheme="https" />
-				<data android:scheme="https" />
-				<data android:scheme="https" />
 				<data android:host="metamask.app.link" />
 				<data android:host="metamask-alternate.app.link" />
 				<data android:host="metamask.test-app.link" />

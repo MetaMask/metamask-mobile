@@ -47,7 +47,6 @@ export default class CustomAlert extends PureComponent {
     /**
     /* Style of the header view
     */
-    headerStyle: ViewPropTypes.style,
     /**
     /* Content to be displayed in the header
     */

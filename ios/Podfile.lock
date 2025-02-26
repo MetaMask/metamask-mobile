@@ -1693,6 +1693,27 @@ PODS:
     - React-Core
   - react-native-netinfo (9.5.0):
     - React-Core
+  - react-native-pager-view (6.7.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-performance (5.1.2):
     - React-Core
   - react-native-quick-base64 (2.0.8):
@@ -1747,11 +1768,49 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-video (5.2.1):
+  - react-native-video (6.10.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
-    - react-native-video/Video (= 5.2.1)
-  - react-native-video/Video (5.2.1):
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - react-native-video/Video (= 6.10.1)
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-video/Video (6.10.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-view-shot (3.1.2):
     - React
   - react-native-webview-mm (14.0.4):
@@ -2037,7 +2096,7 @@ PODS:
   - RNCCheckbox (0.5.17):
     - BEMCheckBox (~> 1.4)
     - React-Core
-  - RNCClipboard (1.8.4):
+  - RNCClipboard (1.16.1):
     - React-Core
   - RNCMaskedView (0.3.1):
     - React-Core
@@ -2074,7 +2133,73 @@ PODS:
     - React
   - RNPermissions (3.10.1):
     - React-Core
-  - RNReanimated (3.6.0):
+  - RNReanimated (3.16.7):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNReanimated/reanimated (= 3.16.7)
+    - RNReanimated/worklets (= 3.16.7)
+    - Yoga
+  - RNReanimated/reanimated (3.16.7):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNReanimated/reanimated/apple (= 3.16.7)
+    - Yoga
+  - RNReanimated/reanimated/apple (3.16.7):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - RNReanimated/worklets (3.16.7):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2144,11 +2269,11 @@ PODS:
     - Yoga
   - RNShare (7.3.7):
     - React-Core
-  - RNSVG (15.3.0):
+  - RNSVG (15.11.1):
     - React-Core
   - RNVectorIcons (6.4.2):
     - React
-  - segment-analytics-react-native (2.17.0):
+  - segment-analytics-react-native (2.20.3):
     - React-Core
     - sovran-react-native
   - Sentry/HybridSDK (8.36.0)
@@ -2238,6 +2363,7 @@ DEPENDENCIES:
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
+  - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-performance (from `../node_modules/react-native-performance`)
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-quick-crypto (from `../node_modules/react-native-quick-crypto`)
@@ -2475,6 +2601,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-mmkv"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
+  react-native-pager-view:
+    :path: "../node_modules/react-native-pager-view"
   react-native-performance:
     :path: "../node_modules/react-native-performance"
   react-native-quick-base64:
@@ -2702,6 +2830,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: 5a46c73e3e12aa872c4485ae0e4414b4040af79a
   react-native-netinfo: 26560022f28c06d8ef00a9ff1e03beefbbb60c2d
+  react-native-pager-view: f9310646f5ec893563c90ec053918ded7a0bc229
   react-native-performance: 125a96c145e29918b55b45ce25cbba54f1e24dcd
   react-native-quick-base64: daf67f19ee076b77f0755bf4056f3425f164e1d8
   react-native-quick-crypto: abf579512bc44a035e0af3c8a4a1fbe39459abc6
@@ -2709,7 +2838,7 @@ SPEC CHECKSUMS:
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: 667324e20fb3dd9c39c12d6036675ed90099bcd5
   react-native-slider: e3c37170c5998b20d9796ce04f58426c0565c6f4
-  react-native-video: 2aad0d963bf3952bd9ebb2f53fab799338e8e202
+  react-native-video: 93d594ef6fcb9ed17b2dd046ff2562057669c649
   react-native-view-shot: bb8934cb93bf8ec740c81ed94f93244778797b6c
   react-native-webview-mm: d5f16bf95d45db97b53851ab87c79b2e1d964a13
   React-nativeconfig: 539ff4de6ce3b694e8e751080568c281c84903ce
@@ -2743,7 +2872,7 @@ SPEC CHECKSUMS:
   ReactNativePayments: 47056cd9f1dc32dbdd716974de5df700c44f12db
   RNCAsyncStorage: aa75595c1aefa18f868452091fa0c411a516ce11
   RNCCheckbox: 450ce156f3e29e25efa0315c96cfbabe5a39ded1
-  RNCClipboard: ba13782f62310ffd4377332497241a1051f6870b
+  RNCClipboard: ee059e6006b137e369caed5eb852b4aad9f5d886
   RNCMaskedView: de80352547bd4f0d607bf6bab363d826822bd126
   RNDateTimePicker: 590f2000e4272050b98689cee6c8abc66c25bb22
   RNDefaultPreference: 36fe31684af1f2d14e0664aa9a816d0ec6149cc1
@@ -2758,20 +2887,20 @@ SPEC CHECKSUMS:
   RNNotifee: 5165d37aaf980031837be3caece2eae5a6d73ae8
   RNOS: d07e5090b5060c6f2b83116d740a32cfdb33afe3
   RNPermissions: bd0d9ca7969ff7b999aa605ee2e5919c12522bfe
-  RNReanimated: 232089019c52088f2a974bce11aef2ca5e83657e
+  RNReanimated: 66cf0f600a26d2b5e74c6e0b1c77c1ab1f62fc05
   RNScreens: b05d3b8e716e68d9e2f1364d440d23de5b6885f1
   RNSensors: 4690be00931bc60be7c7bd457701edefaff965e3
   RNSentry: 9c9452f2ca61b4632a0d2fbbc782a0c6d45a24e9
   RNShare: d03cdc71e750246a48b81dcd62bd792bf57a758e
-  RNSVG: e77adf5edb2302f0f10dd03a09e92bb9420d914e
+  RNSVG: 86fecdfc637614ba9def63f7f3f2e7795e018356
   RNVectorIcons: 24be0b504ce32d5bea38bde6c645f08b9c736392
-  segment-analytics-react-native: 885c1703579dc7964b97e7ae11d857669aa9b015
+  segment-analytics-react-native: 6f98edf18246782ee7428c5380c6519a3d2acf5e
   Sentry: f8374b5415bc38dfb5645941b3ae31230fbeae57
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
   TcpSockets: 48866ffcb39d7114741919d21069fc90189e474a
   Yoga: be6f55a028e86c83ae066f018e9b5d24ffc45436
 
-PODFILE CHECKSUM: a84e30b9d6b405cbf0fe38952eb516644bd5f151
+PODFILE CHECKSUM: 63a4d040a9ab054c08b14cc4aaf45760e8a24099
 
 COCOAPODS: 1.16.2

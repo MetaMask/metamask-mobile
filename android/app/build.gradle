@@ -3,6 +3,7 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "io.sentry.android.gradle"
 apply plugin: 'com.google.gms.google-services'
+def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -281,6 +282,10 @@ android {
       it.buildConfigField 'String', 'IS_RAMP_UAT', "\"$System.env.RAMP_INTERNAL_BUILD\""
       // Used to point to dev environment API for ramp
       it.buildConfigField 'String', 'IS_RAMP_DEV', "\"$System.env.RAMP_DEV_BUILD\""
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 
