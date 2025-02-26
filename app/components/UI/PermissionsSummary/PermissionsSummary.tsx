@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import StyledButton from '../StyledButton';
 import {
   ImageSourcePropType,
@@ -76,10 +76,7 @@ const PermissionsSummary = ({
   const selectedAccount = useSelectedAccount();
   const providerConfig = useSelector(selectProviderConfig);
 
-  const hostname = useMemo(
-    () => new URL(currentPageInformation.url).hostname,
-    [currentPageInformation.url],
-  );
+  const { origin, hostname } = new URL(currentPageInformation.url);
   const networkInfo = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
@@ -161,9 +158,7 @@ const PermissionsSummary = ({
                   params: {
                     hostInfo: {
                       metadata: {
-                        origin:
-                          currentPageInformation?.url &&
-                          new URL(currentPageInformation?.url).hostname,
+                        origin,
                       },
                     },
                     connectionDateTime: new Date().getTime(),
@@ -196,9 +191,9 @@ const PermissionsSummary = ({
   );
 
   const onRevokeAllHandler = useCallback(async () => {
-    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    await Engine.context.PermissionController.revokeAllPermissions(origin);
     navigate('PermissionsManager');
-  }, [hostname, navigate]);
+  }, [origin, navigate]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -206,13 +201,14 @@ const PermissionsSummary = ({
       params: {
         hostInfo: {
           metadata: {
-            origin: hostname,
+            origin,
+            hostname,
           },
         },
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, isRenderedAsBottomSheet, onRevokeAllHandler, hostname]);
+  }, [navigate, isRenderedAsBottomSheet, onRevokeAllHandler, origin, hostname]);
 
   const getAccountLabel = useCallback(() => {
     if (isAlreadyConnected) {

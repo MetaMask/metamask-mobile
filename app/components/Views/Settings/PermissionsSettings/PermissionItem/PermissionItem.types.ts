@@ -6,7 +6,7 @@ export enum PermissionSource {
 
 export interface PermissionListItemViewModel {
   dappLogoUrl: string;
-  dappHostName: string;
+  dappOrigin: string;
   numberOfAccountPermissions: number;
   numberOfNetworkPermissions: number;
   permissionSource: PermissionSource;
