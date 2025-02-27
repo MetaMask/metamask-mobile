@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -69,6 +69,9 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
+import { isAssetFromSearch, selectTokenDisplayData } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { useAddNetwork } from '../../hooks/useAddNetwork';
+import { PopularList } from '../../../util/networks/customNetworks';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -164,14 +167,26 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const handleSwapNavigation = useCallback(() => {
-    navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+    if (isAssetFromSearch(asset)) {
+      navigation.navigate('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        destinationToken: asset.address,
         sourcePage: 'MainView',
         chainId: asset.chainId,
       },
     });
+    } else {
+        navigation.navigate('Swaps', {
+          screen: 'SwapsAmountView',
+          params: {
+          sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourcePage: 'MainView',
+          chainId: asset.chainId,
+        },
+      });
+    }
   }, [navigation, asset.address, asset.chainId]);
 
   const handleBridgeNavigation = useCallback(() => {
@@ -227,34 +242,52 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate('SendFlowView', {});
   };
 
-  const goToSwaps = useCallback(() => {
+  const { addPopularNetwork, networkModal } = useAddNetwork();
+
+  const goToSwaps = useCallback(async () => {
     if (isPortfolioViewEnabled()) {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      if (!isAssetFromSearch(asset)) {
+        navigation.navigate(Routes.WALLET.HOME, {
+          screen: Routes.WALLET.TAB_STACK_FLOW,
+          params: {
+            screen: Routes.WALLET_VIEW,
+          },
+        });
+      }
       if (asset.chainId !== selectedChainId) {
         const { NetworkController, MultichainNetworkController } =
           Engine.context;
-        const networkConfiguration =
+        let networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
             asset.chainId as Hex,
           );
+        
+        if (!networkConfiguration) {
+          const network = PopularList.find((network) => network.chainId === asset.chainId);
+          if (network) {
+            try {
+              await addPopularNetwork(network);
+            } catch (error) {
+              return;
+            }
+            networkConfiguration = NetworkController.getNetworkConfigurationByChainId(
+              asset.chainId as Hex,
+            );
+          }
+        }
 
         const networkClientId =
           networkConfiguration?.rpcEndpoints?.[
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        MultichainNetworkController.setActiveNetwork(
+        await MultichainNetworkController.setActiveNetwork(
           networkClientId as string,
-        ).then(() => {
-          setTimeout(() => {
-            handleSwapNavigation();
-          }, 500);
-        });
+        );
+
+        setTimeout(() => {
+          handleSwapNavigation();
+        }, 500);
       } else {
         handleSwapNavigation();
       }
@@ -278,6 +311,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     trackEvent,
     createEventBuilder,
     handleSwapNavigation,
+    addPopularNetwork,
   ]);
 
   const onBuy = () => {
@@ -411,10 +445,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     secondaryBalance = asset.balanceFiat || '';
   }
 
+  const tokenResult = useSelector((state: RootState) => selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex));
+
   let currentPrice = 0;
   let priceDiff = 0;
 
-  if (!isPortfolioViewEnabled()) {
+  if (isAssetFromSearch(asset) && tokenResult?.found) {
+    currentPrice = tokenResult.price?.price || 0;
+  } else if (!isPortfolioViewEnabled()) {
     if (asset.isETH) {
       currentPrice = conversionRate || 0;
     } else if (exchangeRate && conversionRate) {
@@ -475,6 +513,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           {/* <View style={styles.aboutWrapper}>
             // <AboutAsset asset={asset} chainId={chainId} />
           </View> */}
+          {networkModal}
         </View>
       )}
     </View>
