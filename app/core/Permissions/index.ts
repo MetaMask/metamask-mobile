@@ -208,11 +208,13 @@ export const getPermittedAccounts = async (
         hostname,
         RestrictedMethods.eth_accounts,
       );
+    Logger.log('getPermittedAccounts', accounts);
     return accounts;
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.code === rpcErrorCodes.provider.unauthorized) {
+      Logger.log('getPermittedAccounts', 'Unauthorized');
       return [];
     }
     throw error;
