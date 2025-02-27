@@ -22,9 +22,11 @@ export interface ConfirmAlertModalProps {
 const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfirm }) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  const { showAlertModal } = useAlerts();
+  const { showAlertModal, fieldAlerts } = useAlerts();
 
   const [confirmCheckbox, setConfirmCheckbox] = useState<boolean>(false);
+
+  const hasFieldAlerts = fieldAlerts.length > 0;
 
   const handleConfirmCheckbox = useCallback(() => {
     setConfirmCheckbox(!confirmCheckbox);
@@ -52,7 +54,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfi
           <Text style={styles.message}>
             {strings('alert_system.confirm_modal.message')}
           </Text>
-          <ButtonLink
+          {hasFieldAlerts && (<ButtonLink
             style={styles.reviewAlertsLink}
             onPress={showAlertModal}
             label={strings('alert_system.confirm_modal.review_alerts')}
@@ -61,7 +63,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfi
             size={ButtonSize.Lg}
             labelTextVariant={TextVariant.BodyMD}
           />
-
+          )}
         <View style={styles.checkboxContainer}>
           <Checkbox
             isChecked={confirmCheckbox}
@@ -79,6 +81,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfi
             size={ButtonSize.Lg}
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
+            testID="confirm-alert-reject-button"
           />
           <View style={styles.buttonDivider} />
           <Button
@@ -91,6 +94,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfi
             isDisabled={!confirmCheckbox}
             startIconName={IconName.Danger}
             isDanger
+            testID="confirm-alert-confirm-button"
           />
         </View>
       </View>
