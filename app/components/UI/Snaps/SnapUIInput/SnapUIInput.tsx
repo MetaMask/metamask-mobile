@@ -8,6 +8,7 @@ import HelpText, {
   HelpTextSeverity,
 } from '../../../../component-library/components/Form/HelpText';
 import Label from '../../../../component-library/components/Form/Label';
+import { Box } from '../../Box/Box';
 
 export interface SnapUIInputProps {
   name: string;
@@ -57,7 +58,7 @@ export const SnapUIInput = ({
   const handleBlur = () => setCurrentFocusedInput(null);
 
   return (
-    <>
+    <Box>
       {label && <Label>{label}</Label>}
       <TextField
         {...props}
@@ -75,6 +76,6 @@ export const SnapUIInput = ({
           {error}
         </HelpText>
       )}
-    </>
+    </Box>
   );
 };
