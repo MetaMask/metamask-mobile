@@ -26,6 +26,7 @@ import { DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT } from '../../../component-l
 import Button from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.styles';
+import { ButtonProps } from '@metamask/snaps-sdk/jsx';
 
 const localStyles = StyleSheet.create({
   snapActionContainer: {
@@ -42,7 +43,7 @@ interface SnapUIFooterButtonProps {
   isSnapAction?: boolean;
   onCancel?: () => void;
   type: ButtonType;
-  snapVariant: ButtonVariants;
+  snapVariant: ButtonProps['variant'];
   disabled?: boolean;
   loading?: boolean;
 }
@@ -112,9 +113,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       );
     }
     return (
-      <Text variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}>
-        {children}
-      </Text>
+      <Text variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}>{children}</Text>
     );
   };
 

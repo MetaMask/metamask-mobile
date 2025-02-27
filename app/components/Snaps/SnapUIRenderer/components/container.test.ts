@@ -79,8 +79,20 @@ describe('container', () => {
     expect((result.children as any[])[0]).toEqual({
       element: 'Box',
       props: {
-        style: { alignItems: 'center' },
+        flexDirection: 'row',
+        gap: 16,
+        padding: 16,
+        style: {
+          alignItems: 'center',
+          bottom: 0,
+          height: 80,
+          justifyContent: 'space-evenly',
+          paddingVertical: 16,
+          position: 'absolute',
+          width: '100%',
+        },
       },
+      key: 'default-footer',
       children: {
         element: 'SnapUIFooterButton',
         key: 'default-button',
@@ -88,7 +100,7 @@ describe('container', () => {
           onCancel: mockOnCancel,
           isSnapAction: false,
         },
-        children: 'close',
+        children: 'navigation.close',
       },
     });
   });
