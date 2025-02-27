@@ -470,23 +470,6 @@ class DrawerView extends PureComponent {
     this.props.selectedInternalAccount.address,
   );
 
-  isCurrentAccountImported() {
-    let ret = false;
-    const { keyrings } = this.props;
-    const allKeyrings =
-      keyrings && keyrings.length
-        ? keyrings
-        : Engine.context.KeyringController.state.keyrings;
-    for (const keyring of allKeyrings) {
-      if (keyring.accounts.includes(this.selectedChecksummedAddress)) {
-        ret = keyring.type !== 'HD Key Tree';
-        break;
-      }
-    }
-
-    return ret;
-  }
-
   renderTag() {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -645,6 +628,7 @@ class DrawerView extends PureComponent {
   };
 
   onSend = async () => {
+    console.log('onSend .............', this.props.newAssetTransaction);
     this.props.newAssetTransaction(getEther(this.props.ticker));
     this.props.navigation.navigate('SendFlowView');
     this.hideDrawer();
@@ -1249,9 +1233,6 @@ class DrawerView extends PureComponent {
           propagateSwipe
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
-          // onLayout={() => {
-          //   console.log('onLayout');
-          // }}
         >
           <NetworkInfo
             onClose={this.onInfoNetworksModalClose}
