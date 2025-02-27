@@ -144,4 +144,4 @@ app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
 
 # Transactions Team
-app/components/Views/Transactions/               @MetaMask/transactions
+app/components/Views/transactions/ @MetaMask/transactions
