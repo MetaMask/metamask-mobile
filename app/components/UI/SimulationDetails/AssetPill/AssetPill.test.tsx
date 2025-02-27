@@ -4,6 +4,8 @@ import AssetPill from './AssetPill';
 import { AssetType, AssetIdentifier } from '../types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockNetworkState } from '../../../../util/test/network';
+import { RootState } from '../../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork',
@@ -24,9 +26,15 @@ const STATE_MOCK = {
           chainId: CHAIN_ID_MOCK,
         }),
       },
+      MultichainNetworkController: {
+        isEvmSelected: true,
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+        multichainNetworkConfigurationsByChainId: {},
+      },
     },
   },
-};
+} as unknown as RootState;
 
 describe('AssetPill', () => {
   it('renders correctly for native assets', () => {

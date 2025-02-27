@@ -136,6 +136,10 @@ import {
   SnapControllerActions,
   JsonSnapsRegistry as SnapsRegistry,
   SnapsRegistryState,
+  SnapInterfaceControllerState,
+  SnapInterfaceControllerEvents,
+  SnapInterfaceControllerActions,
+  SnapInterfaceController,
   SnapsRegistryActions,
   SnapsRegistryEvents,
 } from '@metamask/snaps-controllers';
@@ -162,10 +166,19 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import {
-  NotificationServicesPushController,
-  NotificationServicesController,
-} from '@metamask/notification-services-controller';
+import type {
+  Controller as NotificationServicesController,
+  Actions as NotificationServicesControllerMessengerActions,
+  Events as NotificationServicesControllerMessengerEvents,
+  NotificationServicesControllerState,
+} from '@metamask/notification-services-controller/notification-services';
+import type {
+  Controller as NotificationServicesPushController,
+  Actions as NotificationServicesPushControllerActions,
+  Events as NotificationServicesPushControllerEvents,
+  NotificationServicesPushControllerState,
+} from '@metamask/notification-services-controller/push-services';
+
 ///: END:ONLY_INCLUDE_IF
 import {
   AccountsController,
@@ -257,10 +270,11 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
+  | SnapInterfaceControllerActions
   | AuthenticationController.Actions
   | UserStorageController.Actions
-  | NotificationServicesController.Actions
-  | NotificationServicesPushController.Actions
+  | NotificationServicesControllerMessengerActions
+  | NotificationServicesPushControllerActions
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
@@ -296,10 +310,11 @@ type GlobalEvents =
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
+  | SnapInterfaceControllerEvents
   | AuthenticationController.Events
   | UserStorageController.Events
-  | NotificationServicesController.Events
-  | NotificationServicesPushController.Events
+  | NotificationServicesControllerMessengerEvents
+  | NotificationServicesPushControllerEvents
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
@@ -383,8 +398,9 @@ export type Controllers = {
   SubjectMetadataController: SubjectMetadataController;
   AuthenticationController: AuthenticationController.Controller;
   UserStorageController: UserStorageController.Controller;
-  NotificationServicesController: NotificationServicesController.Controller;
-  NotificationServicesPushController: NotificationServicesPushController.Controller;
+  NotificationServicesController: NotificationServicesController;
+  NotificationServicesPushController: NotificationServicesPushController;
+  SnapInterfaceController: SnapInterfaceController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -431,8 +447,9 @@ export type EngineState = {
   SubjectMetadataController: SubjectMetadataControllerState;
   AuthenticationController: AuthenticationController.AuthenticationControllerState;
   UserStorageController: UserStorageController.UserStorageControllerState;
-  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
-  NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
+  NotificationServicesController: NotificationServicesControllerState;
+  NotificationServicesPushController: NotificationServicesPushControllerState;
+  SnapInterfaceController: SnapInterfaceControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;

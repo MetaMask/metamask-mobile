@@ -161,6 +161,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "NotificationServicesPushController": {
         "fcmToken": "",
+        "isPushEnabled": true,
+        "isUpdatingFCMToken": false,
       },
       "PPOMController": {
         "storageMetadata": [],
@@ -279,6 +281,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "snapStates": {},
         "snaps": {},
         "unencryptedSnapStates": {},
+      },
+      "SnapInterfaceController": {
+        "interfaces": {},
       },
       "SnapsRegistry": {
         "database": null,
