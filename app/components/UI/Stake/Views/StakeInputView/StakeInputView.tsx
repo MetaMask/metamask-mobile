@@ -77,17 +77,6 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
   };
 
   const handleStakePress = useCallback(async () => {
-    if (isStakingDepositRedesignedEnabled) {
-      await attemptDepositTransaction(
-        amountWei.toString(),
-        activeAccount?.address as string,
-      );
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-      });
-      return;
-    }
-
     if (isHighGasCostImpact()) {
       trackEvent(
         createEventBuilder(
@@ -119,16 +108,27 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       return;
     }
 
+    const amount = amountWei.toString();
+
+    if (isStakingDepositRedesignedEnabled) {
+      await attemptDepositTransaction(amount, activeAccount?.address as string);
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+      });
+      return;
+    }
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
-        amountWei: amountWei.toString(),
+        amountWei: amount,
         amountFiat: fiatAmount,
         annualRewardsETH,
         annualRewardsFiat,
         annualRewardRate,
       },
     });
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
         .addProperties({
