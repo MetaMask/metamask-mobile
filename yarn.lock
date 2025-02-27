@@ -4515,16 +4515,17 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^24.0.1":
-  version "24.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-24.0.1.tgz#e2743744a0f4b48e74cccde7d8de6eb30f55662a"
-  integrity sha512-bjTaqriUplaMXBEPGfrK9UuU9/EVb8IqS3rzGsFA/v1MkgYmUF1JHNUCsLDrxE9DbANHXM4phsuXeXroIiz6eA==
+"@metamask/accounts-controller@^24.1.0":
+  version "24.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-24.1.0.tgz#749c2e9617610c058c38fa355a680152e81e08dd"
+  integrity sha512-Yip2kbWEc0p0axaIB5accPHsrnON8p2277xPIklRNcJnMxjnkzDdqUQy8nc2eSiQoFsWnQLErDLeoSt4pgfooA==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@metamask/base-controller" "^8.0.0"
     "@metamask/eth-snap-keyring" "^11.1.0"
     "@metamask/keyring-api" "^17.2.0"
     "@metamask/keyring-internal-api" "^4.0.3"
+    "@metamask/keyring-utils" "^2.3.1"
     "@metamask/network-controller" "^22.2.1"
     "@metamask/snaps-sdk" "^6.17.1"
     "@metamask/snaps-utils" "^8.10.0"
