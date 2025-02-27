@@ -28,7 +28,7 @@ describe('SnapUIRenderer utils', () => {
           "children": [
             {
               "children": "Test Content",
-              "element": "Text",
+              "element": "RNText",
               "props": {
                 "color": "inherit",
               },
