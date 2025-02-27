@@ -21,6 +21,9 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
       paddingHorizontal: 16,
     },
+    scrollView: {
+      paddingHorizontal: 16,
+    },
   });
 };
 

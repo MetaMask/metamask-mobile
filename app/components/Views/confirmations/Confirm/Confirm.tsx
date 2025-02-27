@@ -30,9 +30,9 @@ const ConfirmWrapped = ({
   <QRHardwareContextProvider>
     <LedgerContextProvider>
       <Title />
-      <ScrollView style={styles.scrollable}>
+      <ScrollView style={styles.scrollView}>
         <TouchableWithoutFeedback testID={testID}>
-          <View style={styles.scrollableSection}>
+          <View>
             <SignatureBlockaidBanner />
             <Info />
           </View>
