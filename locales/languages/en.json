@@ -1997,7 +1997,9 @@
     "title":"Import Secret Recovery Phrase",
     "description": "Enter your wallet's secret recovery phrase. You can import any Ethereum, Solana, or Bitcoin secret recovery phrase.",
     "subtitle": "Paste your secret recovery phrase",
-    "cta_text": "IMPORT",
+    "cta_text": "Continue",
+    "paste": "Paste",
+    "clear": "Clear all",
     "error_title": "Something went wrong",
     "error_message": "We couldn't import that secret recovery phrase. Please make sure you entered it correctly.",
     "error_empty_message":"You need to enter your secret recovery phrase."
