@@ -1,4 +1,4 @@
-import { JSXElement, GenericSnapElement } from '@metamask/snaps-sdk/jsx';
+import { JSXElement, GenericSnapElement , Text } from '@metamask/snaps-sdk/jsx';
 import { hasChildren } from '@metamask/snaps-utils';
 import { memoize } from 'lodash';
 import { sha256 } from '@noble/hashes/sha256';
@@ -13,7 +13,6 @@ import { unescape as unescapeFn } from 'he';
 import { FormState, InterfaceState, State } from '@metamask/snaps-sdk';
 import { UIComponent } from './components/types';
 import { Theme } from '../../../util/theme/models';
-import { Text } from '@metamask/snaps-sdk/jsx';
 
 export interface MapToTemplateParams {
   map: Record<string, number>;

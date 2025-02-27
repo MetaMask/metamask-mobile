@@ -6,7 +6,7 @@ import { getMemoizedInterface } from '../../../selectors/snaps/interfaceControll
 import { SnapInterfaceContextProvider } from '../SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../UI/TemplateRenderer';
-import { ActivityIndicator, View, ScrollView } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Container } from '@metamask/snaps-sdk/jsx';
 import { strings } from '../../../../locales/i18n';
