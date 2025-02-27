@@ -43,22 +43,35 @@ describe('container', () => {
       theme: mockTheme,
     });
 
-    expect(result).toEqual({
-      element: 'Box',
-      children: [
-        {
-          element: 'text',
-          props: {},
-          children: ['Hello'],
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "children": [
+          {
+            "children": {
+              "children": [
+                "Hello",
+              ],
+              "element": "text",
+              "props": {},
+            },
+            "element": "ScrollView",
+            "key": "default-scrollview",
+            "props": {
+              "style": {
+                "marginBottom": 0,
+              },
+            },
+          },
+        ],
+        "element": "Box",
+        "props": {
+          "style": {
+            "flex": 1,
+            "flexDirection": "column",
+          },
         },
-      ],
-      props: {
-        style: {
-          flex: 1,
-          flexDirection: 'column',
-        },
-      },
-    });
+      }
+    `);
   });
 
   it('add footer button when useFooter is true and onCancel is provided', () => {
@@ -76,32 +89,43 @@ describe('container', () => {
 
     expect(Array.isArray(result.children)).toBe(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.children as any[])[0]).toEqual({
-      element: 'Box',
-      props: {
-        flexDirection: 'row',
-        gap: 16,
-        padding: 16,
-        style: {
-          alignItems: 'center',
-          bottom: 0,
-          height: 80,
-          justifyContent: 'space-evenly',
-          paddingVertical: 16,
-          position: 'absolute',
-          width: '100%',
+    expect((result.children as any[])[0]).toMatchInlineSnapshot(`
+      {
+        "children": {
+          "children": {
+            "children": "navigation.close",
+            "element": "SnapUIFooterButton",
+            "key": "default-button",
+            "props": {
+              "isSnapAction": false,
+              "onCancel": [MockFunction],
+            },
+          },
+          "element": "Box",
+          "key": "default-footer",
+          "props": {
+            "flexDirection": "row",
+            "gap": 16,
+            "padding": 16,
+            "style": {
+              "alignItems": "center",
+              "bottom": 0,
+              "height": 80,
+              "justifyContent": "space-evenly",
+              "paddingVertical": 16,
+              "position": "absolute",
+              "width": "100%",
+            },
+          },
         },
-      },
-      key: 'default-footer',
-      children: {
-        element: 'SnapUIFooterButton',
-        key: 'default-button',
-        props: {
-          onCancel: mockOnCancel,
-          isSnapAction: false,
+        "element": "ScrollView",
+        "key": "default-scrollview",
+        "props": {
+          "style": {
+            "marginBottom": 0,
+          },
         },
-        children: 'navigation.close',
-      },
-    });
+      }
+    `);
   });
 });

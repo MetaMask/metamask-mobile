@@ -1473,7 +1473,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     style={
                       {
                         "backgroundColor": "transparent",
-                        "color": "#0376c9",
+                        "color": "#141618",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -1753,7 +1753,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
               style={
                 {
                   "backgroundColor": "transparent",
-                  "color": "#0376c9",
+                  "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
