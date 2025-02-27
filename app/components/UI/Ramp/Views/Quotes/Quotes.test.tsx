@@ -138,6 +138,7 @@ let mockUseSortedQuotesValues: Partial<ReturnType<typeof useSortedQuotes>> = {
   ...mockUseSortedQuotesInitialValues,
 };
 
+
 jest.mock('../../hooks/useSortedQuotes', () =>
   jest.fn(() => mockUseSortedQuotesValues),
 );
@@ -364,6 +365,8 @@ describe('Quotes', () => {
           "currency_source": "USD",
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_onramp": "MoonPay (Staging)",
@@ -394,6 +397,8 @@ describe('Quotes', () => {
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_offramp": "MoonPay (Staging)",
@@ -430,6 +435,8 @@ describe('Quotes', () => {
           "currency_source": "USD",
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_onramp": "MoonPay (Staging)",
@@ -460,6 +467,8 @@ describe('Quotes', () => {
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_offramp": "MoonPay (Staging)",
@@ -570,6 +579,7 @@ describe('Quotes', () => {
             "currency_destination": "ETH",
             "currency_source": "USD",
             "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_onramp_best_price": "Banxa (Staging)",
             "provider_onramp_first": "Banxa (Staging)",
             "provider_onramp_last": "Transak (Staging)",
             "provider_onramp_list": [
@@ -577,6 +587,7 @@ describe('Quotes', () => {
               "MoonPay (Staging)",
               "Transak (Staging)",
             ],
+            "provider_onramp_most_reliable": "MoonPay (Staging)",
             "quotes_amount_first": 0.017142,
             "quotes_amount_last": 0.01590613,
             "quotes_amount_list": [
@@ -619,6 +630,7 @@ describe('Quotes', () => {
             "currency_destination": "USD",
             "currency_source": "ETH",
             "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_offramp_best_price": "Banxa (Staging)",
             "provider_offramp_first": "Banxa (Staging)",
             "provider_offramp_last": "Transak (Staging)",
             "provider_offramp_list": [
@@ -626,6 +638,7 @@ describe('Quotes', () => {
               "MoonPay (Staging)",
               "Transak (Staging)",
             ],
+            "provider_offramp_most_reliable": "MoonPay (Staging)",
             "quotes_amount_first": 0.017142,
             "quotes_amount_last": 0.01590613,
             "quotes_amount_list": [
