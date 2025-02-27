@@ -16,7 +16,7 @@ import { useTheme } from '../../../util/theme';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-import { FIAT_BALANCE_TEST_ID, MAIN_BALANCE_TEST_ID } from './index.constants';
+import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
 
 interface AssetElementProps {
   children?: React.ReactNode;
@@ -24,7 +24,7 @@ interface AssetElementProps {
   onPress?: (asset: TokenI) => void;
   onLongPress?: ((asset: TokenI) => void) | null;
   balance?: string;
-  mainBalance?: string | null;
+  secondaryBalance?: string;
   privacyMode?: boolean;
 }
 
@@ -48,7 +48,7 @@ const createStyles = (colors: Colors) =>
     skeleton: {
       width: 50,
     },
-    balanceFiat: {
+    secondaryBalance: {
       color: colors.text.alternative,
       paddingHorizontal: 0,
       ...fontStyles.normal,
@@ -62,8 +62,8 @@ const createStyles = (colors: Colors) =>
 const AssetElement: React.FC<AssetElementProps> = ({
   children,
   balance,
+  secondaryBalance,
   asset,
-  mainBalance = null,
   onPress,
   onLongPress,
   privacyMode = false,
@@ -101,7 +101,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
             }
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}
-            testID={FIAT_BALANCE_TEST_ID}
+            testID={BALANCE_TEST_ID}
           >
             {balance === TOKEN_BALANCE_LOADING ? (
               <SkeletonText thin style={styles.skeleton} />
@@ -110,18 +110,18 @@ const AssetElement: React.FC<AssetElementProps> = ({
             )}
           </SensitiveText>
         )}
-        {mainBalance ? (
+        {secondaryBalance ? (
           <SensitiveText
             variant={TextVariant.BodyMD}
-            style={styles.balanceFiat}
+            style={styles.secondaryBalance}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
-            testID={MAIN_BALANCE_TEST_ID}
+            testID={SECONDARY_BALANCE_TEST_ID}
           >
-            {mainBalance === TOKEN_BALANCE_LOADING ? (
+            {secondaryBalance === TOKEN_BALANCE_LOADING ? (
               <SkeletonText thin style={styles.skeleton} />
             ) : (
-              mainBalance
+              secondaryBalance
             )}
           </SensitiveText>
         ) : null}
