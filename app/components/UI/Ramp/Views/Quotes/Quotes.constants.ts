@@ -82,6 +82,7 @@ export const mockQuotesData = [
     exchangeRate: 2854.3927196359814,
     error: false,
     amountOutInFiat: 46.97353692000001,
+    tags: { isBestRate: true, isMostReliable: false },
   },
   {
     crypto: {
@@ -165,6 +166,7 @@ export const mockQuotesData = [
     exchangeRate: 2809.8765432098767,
     error: false,
     amountOutInFiat: 44.392212,
+    tags: { isBestRate: true, isMostReliable: true },
   },
   {
     crypto: {
@@ -243,5 +245,6 @@ export const mockQuotesData = [
     exchangeRate: 2749.8832211229255,
     error: true,
     amountOutInFiat: 43.586931793800005,
+    tags: { isBestRate: false, isMostReliable: false },
   },
 ] as unknown as (DeepPartial<QuoteResponse> | DeepPartial<QuoteError>)[];
