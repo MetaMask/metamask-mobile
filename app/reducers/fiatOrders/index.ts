@@ -1,7 +1,7 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/Ramp/types';
-import { selectEvmChainId } from '../../selectors/networkController';
+import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -146,7 +146,7 @@ const ordersSelector = (state: RootState) =>
   (state.fiatOrders.orders as FiatOrdersState['orders']) || [];
 export const chainIdSelector: (state: RootState) => string = (
   state: RootState,
-) => getDecimalChainId(selectEvmChainId(state));
+) => getDecimalChainId(selectChainId(state));
 export const selectedAddressSelector: (
   state: RootState,
 ) => string | undefined = (state: RootState) =>
@@ -256,8 +256,7 @@ export const networkShortNameSelector = createSelector(
   getRampNetworks,
   (chainId, networks) => {
     const network = networks.find(
-      // TODO(ramp, chainId-string): remove once chainId is a string
-      (aggregatorNetwork) => `${aggregatorNetwork.chainId}` === chainId,
+      (aggregatorNetwork) => aggregatorNetwork.chainId === chainId,
     );
 
     return network?.shortName;
