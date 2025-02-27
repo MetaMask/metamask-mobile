@@ -657,7 +657,7 @@ export class Engine {
     // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
     const persistAndUpdateAccounts = async () => {
       await this.keyringController.persistAllKeyrings();
-      await this.context.AccountsController.updateAccounts();
+      await (() => this.context.AccountsController.updateAccounts())();
     };
 
     additionalKeyrings.push(
