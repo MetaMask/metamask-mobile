@@ -14,6 +14,7 @@ import {
   useDisableNotifications,
   useEnableNotifications,
   useListNotifications,
+  useListNotificationsEffect,
   useMarkNotificationAsRead,
   useResetNotifications,
 } from './useNotifications';
@@ -68,6 +69,55 @@ describe('useNotifications - useListNotifications()', () => {
     });
 
     expect(hook.result.current.error).toBeDefined();
+  });
+});
+
+describe('useNotifications - useListNotificationsEffect', () => {
+  const arrangeMocks = () => {
+    const mockFetchNotifications = jest.spyOn(Actions, 'fetchNotifications');
+    const mockSelectLoading = jest.spyOn(
+      Selectors,
+      'selectIsFetchingMetamaskNotifications',
+    );
+    const mockSelectData = jest.spyOn(Selectors, 'getNotificationsList');
+    const mockSelectIsMetamaskNotificationsEnabled = jest
+      .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled')
+      .mockReturnValue(true);
+
+    return {
+      mockFetchNotifications,
+      mockSelectLoading,
+      mockSelectData,
+      mockSelectIsMetamaskNotificationsEnabled,
+    };
+  };
+
+  type Mocks = ReturnType<typeof arrangeMocks>;
+  const arrangeAct = async (mutateMocks?: (mocks: Mocks) => void) => {
+    // Arrange
+    const mocks = arrangeMocks();
+    mutateMocks?.(mocks);
+
+    // Act
+    const hook = renderHookWithProvider(() => useListNotificationsEffect());
+
+    return { mocks, hook };
+  };
+
+  it('invokes list notifications action when notifications is enabled', async () => {
+    const { mocks } = await arrangeAct();
+    await waitFor(() =>
+      expect(mocks.mockFetchNotifications).toHaveBeenCalled(),
+    );
+  });
+
+  it(`doesn't invoke list notifications action when notifications are disabled`, async () => {
+    const { mocks } = await arrangeAct((m) =>
+      m.mockSelectIsMetamaskNotificationsEnabled.mockReturnValue(false),
+    );
+    await waitFor(() =>
+      expect(mocks.mockFetchNotifications).not.toHaveBeenCalled(),
+    );
   });
 });
 
