@@ -95,6 +95,7 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
         await Assertions.checkIfTextIsDisplayed(
           PopularNetworksList.Optimism.providerConfig.nickname,
         );
+        await Assertions.checkIfTextIsDisplayed('Batman');
       },
     );
   });
