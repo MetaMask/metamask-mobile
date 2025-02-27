@@ -60,7 +60,6 @@ export const SnapUIButton: FunctionComponent<
 
   const color = COLORS[overriddenVariant as keyof typeof COLORS];
 
-  // TODO: Support sizing the text
   return (
     <ButtonLink
       {...props}
