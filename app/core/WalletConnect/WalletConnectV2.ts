@@ -26,7 +26,8 @@ import {
   getScopedPermissions,
   hideWCLoadingState,
   parseWalletConnectUri,
-  showWCLoadingState
+  showWCLoadingState,
+  normalizeOrigin,
 } from './wc-utils';
 
 import WalletConnect2Session from './WalletConnect2Session';
@@ -103,7 +104,7 @@ export class WC2Manager {
     );
     const permissionController = (
       Engine.context as {
-        // TODO: Replace "any" with type
+        // TODO: Replace 'any' with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         PermissionController: PermissionController<any, any>;
       }
@@ -319,7 +320,7 @@ export class WC2Manager {
       // Remove associated permissions
       const permissionsController = (
         Engine.context as {
-          // TODO: Replace "any" with type
+          // TODO: Replace 'any' with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           PermissionController: PermissionController<any, any>;
         }
@@ -378,8 +379,8 @@ export class WC2Manager {
           response: {
             id: request.id,
             jsonrpc: '2.0',
-            error: { code: 1, message: ERROR_MESSAGES.INVALID_ID }
-          }
+            error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
+          },
         });
       } catch (err) {
         console.warn(`Can't remove request ${request.id}`, err);
@@ -401,7 +402,7 @@ export class WC2Manager {
 
     const permissionsController = (
       Engine.context as {
-        // TODO: Replace "any" with type
+        // TODO: Replace 'any' with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         PermissionController: PermissionController<any, any>;
       }
@@ -413,15 +414,20 @@ export class WC2Manager {
     const name = metadata.description ?? '';
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
-    DevLogger.log(`WC2::session_proposal metadata`, metadata);
+
+    // Normalize origin once
+    const origin = normalizeOrigin(url);
+
+    DevLogger.log(
+      `WC2::session_proposal metadata ${url} normalized to ${origin}`,
+    );
+
     // Save Connection info to redux store to be retrieved in ui.
     store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
 
-    const origin = url;
-
     try {
       await permissionsController.requestPermissions(
-        { origin },
+        { origin: url },
         {
           eth_accounts: {},
         },
@@ -439,18 +445,10 @@ export class WC2Manager {
       const walletChainIdHex = selectEvmChainId(store.getState());
       const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
       const chains = await getPermittedChains(origin);
-      const accountsPerChains = chains.map(
-        (chain) => `${chain}:${approvedAccounts}`,
-      );
 
-      const namespaces = {
-        eip155: {
-          chains,
-          methods: getApprovedSessionMethods({ origin }),
-          events: ['chainChanged', 'accountsChanged'],
-          accounts: accountsPerChains,
-        },
-      };
+      // Use getScopedPermissions to get properly formatted namespaces
+      const namespaces = await getScopedPermissions({ origin });
+
       DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
 
       const activeSession = await this.web3Wallet.approveSession({

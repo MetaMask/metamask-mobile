@@ -7,10 +7,7 @@ import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
-import {
-  selectEvmChainId,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import Device from '../../util/device';
 import Logger from '../../util/Logger';
@@ -23,7 +20,12 @@ import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { ERROR_MESSAGES } from './WalletConnectV2';
 import METHODS_TO_REDIRECT from './wc-config';
-import { checkWCPermissions, getScopedPermissions, hideWCLoadingState, normalizeOrigin } from './wc-utils';
+import {
+  checkWCPermissions,
+  getScopedPermissions,
+  hideWCLoadingState,
+  normalizeOrigin,
+} from './wc-utils';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -101,7 +103,7 @@ class WalletConnect2Session {
         getProviderState,
       }: {
         hostname: string;
-        // TODO: Replace "any" with type
+        // TODO: Replace 'any' with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         getProviderState: any;
       }) =>
@@ -322,8 +324,12 @@ class WalletConnect2Session {
         );
         return;
       }
+
+      // Normalize origin from session metadata
       const origin = normalizeOrigin(this.session.peer.metadata.url);
-      DevLogger.log(`WC2::updateSession origin=${origin} - chainId=${chainId} - accounts=${accounts}`);
+      DevLogger.log(
+        `WC2::updateSession origin=${origin} - chainId=${chainId} - accounts=${accounts}`,
+      );
 
       if (accounts.length === 0) {
         console.warn(
@@ -356,11 +362,11 @@ class WalletConnect2Session {
       }
 
       const namespaces = await getScopedPermissions({ origin });
-      DevLogger.log(`WC2::updateSession updating with eip155 namespace`, namespaces);
+      DevLogger.log(`WC2::updateSession updating with namespaces`, namespaces);
 
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
-        namespaces
+        namespaces,
       });
     } catch (err) {
       console.warn(
@@ -381,13 +387,18 @@ class WalletConnect2Session {
 
     hideWCLoadingState({ navigation: this.navigation });
     const verified = requestEvent.verifyContext?.verified;
-    const hostname = verified?.origin;
-    const origin = normalizeOrigin(hostname);
+    const rawOrigin = verified?.origin;
+
+    // Normalize origin once at the beginning
+    const origin = normalizeOrigin(rawOrigin);
+    DevLogger.log(
+      `WalletConnect2Session::handleRequest raw=${rawOrigin} normalized=${origin}`,
+    );
 
     let method = requestEvent.params.request.method;
     const caip2ChainId = requestEvent.params.chainId; // 'eip155:1'
 
-    // TODO: Replace "any" with type
+    // TODO: Replace 'any' with type
     const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(
@@ -396,10 +407,14 @@ class WalletConnect2Session {
 
     try {
       const allowed = await checkWCPermissions({ origin, caip2ChainId });
-      DevLogger.log(`WC2::handleRequest caip2ChainId=${caip2ChainId} is allowed=${allowed}`);
+      DevLogger.log(
+        `WC2::handleRequest caip2ChainId=${caip2ChainId} is allowed=${allowed}`,
+      );
 
-      if(!allowed) {
-        DevLogger.log(`WC2::handleRequest caip2ChainId=${caip2ChainId} is not allowed`);
+      if (!allowed) {
+        DevLogger.log(
+          `WC2::handleRequest caip2ChainId=${caip2ChainId} is not allowed`,
+        );
         await this.web3Wallet.respondSessionRequest({
           topic: this.session.topic,
           response: {
@@ -411,7 +426,9 @@ class WalletConnect2Session {
         return;
       }
     } catch (error) {
-      DevLogger.log(`WC2::handleRequest caip2ChainId=${caip2ChainId} is not allowed`);
+      DevLogger.log(
+        `WC2::handleRequest caip2ChainId=${caip2ChainId} is not allowed`,
+      );
       await this.web3Wallet.respondSessionRequest({
         topic: this.session.topic,
         response: {
