@@ -57,6 +57,7 @@ describe('box UIComponentFactory', () => {
         justifyContent: 'flex-start',
         color: TextColor.Default,
         alignItems: undefined,
+        gap: 8,
       },
     });
   });

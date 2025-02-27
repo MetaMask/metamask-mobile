@@ -8,9 +8,7 @@ import {
 } from '../../../component-library/components/Buttons/Button/Button.types';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SnapIcon } from '../SnapIcon/SnapIcon';
-import Text, {
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
+import Text from '../../../component-library/components/Texts/Text';
 import { useSelector } from 'react-redux';
 import { selectSnaps } from '../../../selectors/snaps/snapController';
 import {
@@ -47,12 +45,6 @@ interface SnapUIFooterButtonProps {
   disabled?: boolean;
   loading?: boolean;
 }
-
-const COLORS = {
-  primary: TextColor.Info,
-  destructive: TextColor.Error,
-  disabled: TextColor.Muted,
-};
 
 export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   onCancel,
