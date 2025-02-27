@@ -62,10 +62,9 @@ const AccountSelector = () => {
     'short',
   );
 
-  let displayedAddress = shortenedAddress;
-  if (accountName) {
-    displayedAddress = `(${shortenedAddress})`;
-  }
+  const displayedAddress = accountName
+    ? `(${shortenedAddress})`
+    : shortenedAddress;
 
   return (
     <SelectorButton onPress={openAccountSelector} style={styles.selector}>
