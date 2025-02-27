@@ -981,9 +981,14 @@ class DrawerView extends PureComponent {
       networkSwitched,
       toggleInfoNetworkModal,
     } = this.props;
+
     onboardNetworkAction(chainId);
     networkSwitched({ networkUrl: '', networkStatus: false });
-    toggleInfoNetworkModal();
+
+    // Wrap the toggle call in a setTimeout to avoid awaiting a non-promise function.
+    setTimeout(() => {
+      toggleInfoNetworkModal();
+    }, 0);
   };
 
   renderProtectModal = () => {
@@ -1244,6 +1249,9 @@ class DrawerView extends PureComponent {
           propagateSwipe
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
+          // onLayout={() => {
+          //   console.log('onLayout');
+          // }}
         >
           <NetworkInfo
             onClose={this.onInfoNetworksModalClose}
