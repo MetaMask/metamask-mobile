@@ -1,0 +1,90 @@
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
+import Engine from '../../core/Engine';
+import {
+  importNewSecretRecoveryPhrase,
+  createNewSecretRecoveryPhrase,
+} from './';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+
+jest.mock('../../util/Logger');
+
+const mockSetSelectedAddress = jest.fn();
+const mockAddNewKeyring = jest.fn();
+const mockGetKeyringsByType = jest.fn();
+const mockWithKeyring = jest.fn();
+const mockGetAccounts = jest.fn();
+jest.mock('../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      addNewKeyring: (keyringType: ExtendedKeyringTypes, args: unknown) =>
+        mockAddNewKeyring(keyringType, args),
+      getKeyringsByType: () => mockGetKeyringsByType(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      withKeyring: (args: any) => mockWithKeyring(args),
+      getAccounts: () => mockGetAccounts(),
+    },
+  },
+  setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
+}));
+
+jest.mocked(Engine);
+
+const testAddress = '0x123';
+const testMnemonic =
+  'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
+
+describe('MultiSRP Actions', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  describe('importNewSecretRecoveryPhrase', () => {
+    it('should import new SRP successfully', async () => {
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({ getAccounts: () => [testAddress] });
+
+      await importNewSecretRecoveryPhrase(testMnemonic);
+
+      expect(mockAddNewKeyring).toHaveBeenCalledWith(ExtendedKeyringTypes.hd, {
+        mnemonic: testMnemonic,
+        numberOfAccounts: 1,
+      });
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+    });
+
+    it('should throw error if SRP already imported', async () => {
+      mockGetKeyringsByType.mockResolvedValue([
+        {
+          mnemonic: new Uint16Array(
+            testMnemonic.split(' ').map((word) => wordlist.indexOf(word)),
+          ).buffer,
+        },
+      ]);
+
+      await importNewSecretRecoveryPhrase(testMnemonic);
+
+      expect(mockAddNewKeyring).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createNewSecretRecoveryPhrase', () => {
+    it('should create new SRP successfully', async () => {
+      mockAddNewKeyring.mockResolvedValue({
+        getAccounts: () => Promise.resolve([testAddress]),
+      });
+
+      await createNewSecretRecoveryPhrase();
+
+      expect(mockAddNewKeyring).toHaveBeenCalledWith('HD Key Tree');
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+    });
+
+    it('should handle errors gracefully', async () => {
+      mockAddNewKeyring.mockRejectedValue(new Error('Test error'));
+
+      await createNewSecretRecoveryPhrase();
+
+      expect(mockSetSelectedAddress).not.toHaveBeenCalled();
+    });
+  });
+});
