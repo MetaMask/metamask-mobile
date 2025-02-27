@@ -32,7 +32,7 @@ describe('SnapUIFooterButton', () => {
   const defaultProps = {
     children: 'Test Button',
     type: ButtonType.Submit,
-    snapVariant: ButtonVariants.Primary,
+    snapVariant: 'primary',
     onPress: jest.fn(),
     variant: ButtonVariants.Primary,
     accessibilityLabel: 'Test Button',

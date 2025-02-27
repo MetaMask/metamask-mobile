@@ -46,9 +46,25 @@ export const container: UIComponentFactory<BoxElement> = ({
     });
   }
 
+  const content = templateChildren[0];
+  const footer = templateChildren[1];
+
   return {
     element: 'Box',
-    children: templateChildren,
+    children: [
+      {
+        element: 'ScrollView',
+        key: 'default-scrollview',
+        children: content,
+        props: {
+          style: {
+            // flex: 1,
+            marginBottom: useFooter && footer ? 80 : 0,
+          },
+        },
+      },
+      ...(footer ? [footer] : []),
+    ],
     props: {
       style: {
         flex: 1,

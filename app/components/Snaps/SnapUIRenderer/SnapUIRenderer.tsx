@@ -87,10 +87,7 @@ const SnapUIRendererComponent = ({
         initialState={initialState}
         context={context}
       >
-        <ScrollView style={{ marginBottom: useFooter && hasFooter ? 80 : 0 }}>
-          <TemplateRenderer sections={contentBox} />
-        </ScrollView>
-        {footer && <TemplateRenderer sections={footer} />}
+        <TemplateRenderer sections={sections} />
         {PERF_DEBUG && <PerformanceTracker />}
       </SnapInterfaceContextProvider>
     </Box>
