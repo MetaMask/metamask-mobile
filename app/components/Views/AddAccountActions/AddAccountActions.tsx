@@ -108,6 +108,10 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       await client.createAccount({
         scope,
       });
+      console.log(
+        '-- Account assets: ',
+        await client.listAccountAssets('18f4b089-71b0-41e3-b226-9095419e370c'),
+      );
     } catch (error) {
       Logger.error(error as Error, 'Bitcoin account creation failed');
     } finally {
