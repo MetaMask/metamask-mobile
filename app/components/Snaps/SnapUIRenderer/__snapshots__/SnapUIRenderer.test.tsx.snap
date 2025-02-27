@@ -176,52 +176,61 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#848c96",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "opacity": 1,
-                "paddingHorizontal": 16,
-              }
+              [
+                {},
+                undefined,
+              ]
             }
-            testID="textfield"
           >
             <View
               style={
                 {
-                  "flex": 1,
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#848c96",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
                 }
               }
+              testID="textfield"
             >
-              <TextInput
-                autoFocus={false}
-                editable={true}
-                id="input"
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onFocus={[Function]}
+              <View
                 style={
                   {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                    "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "height": 24,
-                    "letterSpacing": 0,
-                    "opacity": 1,
-                    "paddingVertical": 0,
+                    "flex": 1,
                   }
                 }
-                testID="input"
-                value="bar"
-              />
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#141618",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="bar"
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -279,102 +288,120 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#848c96",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "opacity": 1,
-                "paddingHorizontal": 16,
-              }
+              [
+                {},
+                undefined,
+              ]
             }
-            testID="textfield"
           >
             <View
               style={
                 {
-                  "flex": 1,
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#848c96",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
                 }
               }
+              testID="textfield"
             >
-              <TextInput
-                autoFocus={false}
-                editable={true}
-                id="input"
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onFocus={[Function]}
+              <View
                 style={
                   {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                    "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "height": 24,
-                    "letterSpacing": 0,
-                    "opacity": 1,
-                    "paddingVertical": 0,
+                    "flex": 1,
                   }
                 }
-                testID="input"
-                value=""
-              />
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#141618",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value=""
+                />
+              </View>
             </View>
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#848c96",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "opacity": 1,
-                "paddingHorizontal": 16,
-              }
+              [
+                {},
+                undefined,
+              ]
             }
-            testID="textfield"
           >
             <View
               style={
                 {
-                  "flex": 1,
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#848c96",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
                 }
               }
+              testID="textfield"
             >
-              <TextInput
-                autoFocus={false}
-                editable={true}
-                id="input2"
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onFocus={[Function]}
+              <View
                 style={
                   {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                    "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "height": 24,
-                    "letterSpacing": 0,
-                    "opacity": 1,
-                    "paddingVertical": 0,
+                    "flex": 1,
                   }
                 }
-                testID="input"
-                value=""
-              />
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input2"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#141618",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value=""
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -432,102 +459,120 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#848c96",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "opacity": 1,
-                "paddingHorizontal": 16,
-              }
+              [
+                {},
+                undefined,
+              ]
             }
-            testID="textfield"
           >
             <View
               style={
                 {
-                  "flex": 1,
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#848c96",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
                 }
               }
+              testID="textfield"
             >
-              <TextInput
-                autoFocus={false}
-                editable={true}
-                id="input"
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onFocus={[Function]}
+              <View
                 style={
                   {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                    "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "height": 24,
-                    "letterSpacing": 0,
-                    "opacity": 1,
-                    "paddingVertical": 0,
+                    "flex": 1,
                   }
                 }
-                testID="input"
-                value="bar"
-              />
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#141618",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="bar"
+                />
+              </View>
             </View>
           </View>
           <View
             style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#848c96",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "opacity": 1,
-                "paddingHorizontal": 16,
-              }
+              [
+                {},
+                undefined,
+              ]
             }
-            testID="textfield"
           >
             <View
               style={
                 {
-                  "flex": 1,
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#848c96",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
                 }
               }
+              testID="textfield"
             >
-              <TextInput
-                autoFocus={false}
-                editable={true}
-                id="input2"
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onFocus={[Function]}
+              <View
                 style={
                   {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                    "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "height": 24,
-                    "letterSpacing": 0,
-                    "opacity": 1,
-                    "paddingVertical": 0,
+                    "flex": 1,
                   }
                 }
-                testID="input"
-                value="foo"
-              />
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input2"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#141618",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="foo"
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -1327,129 +1372,138 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
               ]
             }
           >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-              testID="label"
-            >
-              My Input
-            </Text>
             <View
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#848c96",
-                  "borderRadius": 8,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "opacity": 1,
-                  "paddingHorizontal": 16,
-                }
+                [
+                  {},
+                  undefined,
+                ]
               }
-              testID="textfield"
             >
-              <View
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "marginRight": 8,
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
                   }
                 }
-                testID="textfield-startacccessory"
-              />
-              <View
-                style={
-                  {
-                    "flex": 1,
-                  }
-                }
+                testID="label"
               >
-                <TextInput
-                  autoFocus={false}
-                  editable={true}
-                  id="input"
-                  onBlur={[Function]}
-                  onChangeText={[Function]}
-                  onFocus={[Function]}
+                My Input
+              </Text>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#848c96",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
                   style={
                     {
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "transparent",
-                      "borderWidth": 1,
-                      "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "height": 24,
-                      "letterSpacing": 0,
-                      "opacity": 1,
-                      "paddingVertical": 0,
+                      "marginRight": 8,
                     }
                   }
-                  testID="input"
-                  value=""
+                  testID="textfield-startacccessory"
                 />
-              </View>
-              <View
-                style={
-                  {
-                    "marginLeft": 8,
-                  }
-                }
-                testID="textfield-endacccessory"
-              >
-                <Text
-                  accessibilityRole="link"
-                  accessible={true}
-                  disabled={false}
-                  id="submit"
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
-                  padding={0}
+                <View
                   style={
                     {
-                      "backgroundColor": "transparent",
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "flex": 1,
                     }
                   }
-                  suppressHighlighting={true}
                 >
-                  <Text
-                    accessibilityRole="text"
+                  <TextInput
+                    autoFocus={false}
+                    editable={true}
+                    id="input"
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
                     style={
                       {
-                        "color": "#0376c9",
-                        "fontFamily": "EuclidCircularB-Medium",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#141618",
+                        "fontFamily": "Euclid Circular B",
                         "fontSize": 14,
-                        "fontWeight": "500",
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="input"
+                    value=""
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "marginLeft": 8,
+                    }
+                  }
+                  testID="textfield-endacccessory"
+                >
+                  <Text
+                    accessibilityRole="link"
+                    accessible={true}
+                    disabled={false}
+                    id="submit"
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    padding={0}
+                    style={
+                      {
+                        "backgroundColor": "transparent",
+                        "color": "#0376c9",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
                     }
+                    suppressHighlighting={true}
                   >
                     <Text
-                      color="inherit"
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#0376c9",
+                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
                     >
-                      Submit
+                      <Text
+                        color="inherit"
+                      >
+                        Submit
+                      </Text>
                     </Text>
                   </Text>
-                </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -1519,70 +1573,79 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
               ]
             }
           >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-              testID="label"
-            >
-              My Input
-            </Text>
             <View
               style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#848c96",
-                  "borderRadius": 8,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "opacity": 1,
-                  "paddingHorizontal": 16,
-                }
+                [
+                  {},
+                  undefined,
+                ]
               }
-              testID="textfield"
             >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                My Input
+              </Text>
               <View
                 style={
                   {
-                    "flex": 1,
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#848c96",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
                   }
                 }
+                testID="textfield"
               >
-                <TextInput
-                  autoFocus={false}
-                  editable={true}
-                  id="input"
-                  onBlur={[Function]}
-                  onChangeText={[Function]}
-                  onFocus={[Function]}
+                <View
                   style={
                     {
-                      "backgroundColor": "#ffffff",
-                      "borderColor": "transparent",
-                      "borderWidth": 1,
-                      "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "height": 24,
-                      "letterSpacing": 0,
-                      "opacity": 1,
-                      "paddingVertical": 0,
+                      "flex": 1,
                     }
                   }
-                  testID="input"
-                  value="abc"
-                />
+                >
+                  <TextInput
+                    autoFocus={false}
+                    editable={true}
+                    id="input"
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#141618",
+                        "fontFamily": "Euclid Circular B",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="input"
+                    value="abc"
+                  />
+                </View>
               </View>
             </View>
             <View
@@ -1776,52 +1839,61 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#848c96",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "opacity": 1,
-                "paddingHorizontal": 16,
-              }
+              [
+                {},
+                undefined,
+              ]
             }
-            testID="textfield"
           >
             <View
               style={
                 {
-                  "flex": 1,
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#848c96",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
                 }
               }
+              testID="textfield"
             >
-              <TextInput
-                autoFocus={false}
-                editable={true}
-                id="input"
-                onBlur={[Function]}
-                onChangeText={[Function]}
-                onFocus={[Function]}
+              <View
                 style={
                   {
-                    "backgroundColor": "#ffffff",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                    "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "height": 24,
-                    "letterSpacing": 0,
-                    "opacity": 1,
-                    "paddingVertical": 0,
+                    "flex": 1,
                   }
                 }
-                testID="input"
-                value="a"
-              />
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#141618",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="a"
+                />
+              </View>
             </View>
           </View>
         </View>
