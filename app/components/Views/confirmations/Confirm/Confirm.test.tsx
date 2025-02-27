@@ -4,13 +4,13 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
   securityAlertResponse,
-  typedSignV1ConfirmationState,
   stakingDepositConfirmationState,
+  typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
 
-import Confirm from './index';
+import { Confirm } from './Confirm';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -20,6 +20,13 @@ jest.mock('../../../../core/Engine', () => ({
         keyrings: [],
       },
       getOrAddQRKeyring: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
+    },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
   },
   controllerMessenger: {
@@ -42,17 +49,11 @@ jest.mock('@react-navigation/native', () => ({
     navigate: jest.fn(),
     addListener: jest.fn(),
     dispatch: jest.fn(),
+    setOptions: jest.fn(),
   }),
 }));
 
 describe('Confirm', () => {
-  it('renders flat confirmation', async () => {
-    const { getByTestId } = renderWithProvider(<Confirm />, {
-      state: stakingDepositConfirmationState,
-    });
-    expect(getByTestId('flat-confirmation-container')).toBeDefined();
-  });
-
   it('renders modal confirmation', async () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: typedSignV1ConfirmationState,
@@ -87,6 +88,18 @@ describe('Confirm', () => {
     expect(getByText('Hi, Alice!')).toBeDefined();
     expect(getAllByRole('button')).toHaveLength(2);
     expect(queryByText('This is a deceptive request')).toBeNull();
+  });
+
+  it('renders correct information for staking deposit', async () => {
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(getByText('APR')).toBeDefined();
+    expect(getByText('Est. annual reward')).toBeDefined();
+    expect(getByText('Reward frequency')).toBeDefined();
+    expect(getByText('Withdrawal time')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Advanced details')).toBeDefined();
   });
 
   it('renders blockaid banner if confirmation has blockaid error response', async () => {

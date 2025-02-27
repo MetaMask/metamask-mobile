@@ -67,6 +67,9 @@ jest.mock('./../../core/Engine', () => ({
         },
       },
     },
+    MultichainNetworkController: {
+      setActiveNetwork: () => jest.fn(),
+    },
     PreferencesController: {
       state: {},
     },

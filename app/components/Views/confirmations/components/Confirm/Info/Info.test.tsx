@@ -1,14 +1,18 @@
 import React from 'react';
+import { Text } from 'react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import {
-  personalSignatureConfirmationState,
-  stakingDepositConfirmationState,
-} from '../../../../../../util/test/confirm-data-helpers';
+import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareContext';
 import Info from './Info';
-import { Text } from 'react-native';
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: jest.fn(),
+  }),
+}));
 
 const MockText = Text;
 jest.mock('./QRInfo', () => () => <MockText>QR Scanning Component</MockText>);
@@ -21,6 +25,13 @@ jest.mock('../../../../../../core/Engine', () => ({
         keyrings: [],
       },
       getOrAddQRKeyring: jest.fn(),
+    },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
     },
   },
   controllerMessenger: {
@@ -45,13 +56,5 @@ describe('Info', () => {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('QR Scanning Component')).toBeTruthy();
-  });
-  describe('Staking Deposit', () => {
-    it('should render correctly', async () => {
-      const { getByText } = renderWithProvider(<Info />, {
-        state: stakingDepositConfirmationState,
-      });
-      expect(getByText('Stake')).toBeDefined();
-    });
   });
 });

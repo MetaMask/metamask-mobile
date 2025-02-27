@@ -5,8 +5,8 @@ import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../selectors/networkController';
 import { store } from '../../store';
 import checkSafeNetwork from './networkChecker.util';
@@ -48,6 +48,7 @@ const wallet_addEthereumChain = async ({
   const {
     CurrencyRateController,
     NetworkController,
+    MultichainNetworkController,
     ApprovalController,
     PermissionController,
     SelectedNetworkController,
@@ -69,14 +70,15 @@ const wallet_addEthereumChain = async ({
   if (Object.values(actualChains).find((value) => value === chainId)) {
     throw rpcErrors.invalidParams(`May not specify default MetaMask chain.`);
   }
-
-  const networkConfigurations = selectNetworkConfigurations(store.getState());
+  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) => networkConfiguration.chainId === chainId,
   );
   if (existingEntry) {
     const [chainId, networkConfiguration] = existingEntry;
-    const currentChainId = selectChainId(store.getState());
+    const currentChainId = selectEvmChainId(store.getState());
 
     // A network for this chain id already exists.
     // Update it with any new information.
@@ -135,7 +137,7 @@ const wallet_addEthereumChain = async ({
       chainId,
       controllers: {
         CurrencyRateController,
-        NetworkController,
+        MultichainNetworkController,
         PermissionController,
         SelectedNetworkController,
       },
@@ -248,7 +250,7 @@ const wallet_addEthereumChain = async ({
       chainId,
       controllers: {
         CurrencyRateController,
-        NetworkController,
+        MultichainNetworkController,
         PermissionController,
         SelectedNetworkController,
       },

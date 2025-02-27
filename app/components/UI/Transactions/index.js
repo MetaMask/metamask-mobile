@@ -39,6 +39,7 @@ import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/Le
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {
+  findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
@@ -77,6 +78,7 @@ import {
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -269,12 +271,16 @@ class Transactions extends PureComponent {
     const {
       providerConfig: { type, rpcUrl },
       networkConfigurations,
+      chainId,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
+    } else if (isNonEvmChainId(chainId)) {
+      // TODO: [SOLANA] - block explorer needs to be implemented
+      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
@@ -861,13 +867,6 @@ class Transactions extends PureComponent {
             descriptionText={strings('transaction.speedup_tx_message')}
           />
         )}
-
-        <RetryModal
-          onCancelPress={() => this.toggleRetry(undefined)}
-          onConfirmPress={this.retry}
-          retryIsOpen={this.state.retryIsOpen}
-          errorMsg={this.state.errorMsg}
-        />
       </View>
     );
   };
@@ -885,6 +884,12 @@ class Transactions extends PureComponent {
           {(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
             this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
         </View>
+        <RetryModal
+          onCancelPress={() => this.toggleRetry(undefined)}
+          onConfirmPress={this.retry}
+          retryIsOpen={this.state.retryIsOpen}
+          errorMsg={this.state.errorMsg}
+        />
       </PriceChartProvider>
     );
   };

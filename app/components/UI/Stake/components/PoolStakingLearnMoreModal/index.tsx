@@ -32,6 +32,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { parseVaultApyAveragesResponse } from './PoolStakingLearnMoreModal.utils';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import useVaultApyAverages from '../../hooks/useVaultApyAverages';
+import {
+  CommonPercentageInputUnits,
+  formatPercent,
+  PercentageOutputFormat,
+} from '../../utils/value';
 
 const BodyText = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -172,14 +177,20 @@ const PoolStakingLearnMoreModal = () => {
           <InteractiveTimespanChart
             dataPoints={vaultApys}
             yAccessor={(point) => new BigNumber(point.daily_apy).toNumber()}
-            defaultTitle={`${new BigNumber(
+            defaultTitle={`${formatPercent(
               activeTimespanApyAverage.apyAverage,
-            ).toFixed(2, BigNumber.ROUND_DOWN)}% ${strings('stake.apr')}`}
+              {
+                inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                fixed: 1,
+              },
+            )} ${strings('stake.apr')}`}
             titleAccessor={(point) =>
-              `${new BigNumber(point.daily_apy).toFixed(
-                2,
-                BigNumber.ROUND_DOWN,
-              )}% ${strings('stake.apr')}`
+              `${formatPercent(point.daily_apy, {
+                inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                fixed: 1,
+              })} ${strings('stake.apr')}`
             }
             defaultSubtitle={activeTimespanApyAverage.label}
             subtitleAccessor={(point) => formatChartDate(point.timestamp)}
