@@ -30,24 +30,25 @@ describe(SmokeCore('Carousel Tests'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
     const carouselContainer = await WalletView.carouselContainer;
-    await Assertions.checkIfVisible(carouselContainer, 30000);
+    await Assertions.checkIfVisible(carouselContainer, 5000);
   });
   afterAll(async () => {
     await stopFixtureServer(fixtureServer);
   });
+
   it('should display carousel with correct slides', async () => {
     const carouselContainer = await WalletView.carouselContainer;
     const carouselFirstSlide = await WalletView.carouselFirstSlide;
     const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
     const carouselProgressDots = await WalletView.carouselProgressDots;
-    await Assertions.checkIfVisible(carouselContainer, 30000);
-    await Assertions.checkIfVisible(carouselFirstSlide, 30000);
+    await Assertions.checkIfVisible(carouselContainer, 5000);
+    await Assertions.checkIfVisible(carouselFirstSlide, 5000);
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
       'MetaMask Card',
-      30000,
+      5000,
     );
-    await Assertions.checkIfVisible(carouselProgressDots, 30000);
+    await Assertions.checkIfVisible(carouselProgressDots, 5000);
   });
   it('should navigate between slides', async () => {
     const carouselContainer = await WalletView.carouselContainer;
@@ -55,41 +56,45 @@ describe(SmokeCore('Carousel Tests'), () => {
     const carouselSecondSlideTitle = await WalletView.carouselSecondSlideTitle;
     const carouselFirstSlideTitle = await WalletView.carouselFirstSlideTitle;
     await Gestures.swipe(carouselContainer, 'left', 'slow', 0.7);
-    await Assertions.checkIfVisible(carouselSecondSlide, 30000);
+    await Assertions.checkIfVisible(carouselSecondSlide, 5000);
     await Assertions.checkIfElementToHaveText(
       carouselSecondSlideTitle,
       'Fund your wallet',
-      30000,
+      5000,
     );
     await Gestures.swipe(carouselContainer, 'right', 'slow', 0.7);
     await Assertions.checkIfElementToHaveText(
       carouselFirstSlideTitle,
       'MetaMask Card',
-      30000,
+      5000,
     );
   });
   it('should handle slide interactions', async () => {
+    await device.disableSynchronization();
     const carouselFirstSlide = await WalletView.carouselFirstSlide;
     const container = await WalletView.container;
-    await Assertions.checkIfVisible(carouselFirstSlide, 30000);
+    await Assertions.checkIfVisible(carouselFirstSlide, 5000);
     await Gestures.tap(carouselFirstSlide);
-    await Assertions.checkIfVisible(container, 30000);
+    await Assertions.checkIfVisible(container, 5000);
+    await TestHelpers.delay(5000);
+    await device.enableSynchronization();
   });
   it('should dismiss a slide', async () => {
     await TestHelpers.relaunchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
-
+    await device.disableSynchronization();
     const carouselSecondSlideTitle = await WalletView.carouselSecondSlideTitle;
     const closeButton = await WalletView.carouselCloseButton;
-    await Assertions.checkIfVisible(closeButton, 30000);
+    await Assertions.checkIfVisible(closeButton, 5000);
     await Gestures.tap(closeButton);
-    await TestHelpers.delay(30000);
+    await TestHelpers.delay(5000);
     await Assertions.checkIfElementToHaveText(
       carouselSecondSlideTitle,
       'Fund your wallet',
       5000,
     );
+    await device.enableSynchronization();
   });
 });
