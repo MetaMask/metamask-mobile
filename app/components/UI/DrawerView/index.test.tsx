@@ -44,69 +44,59 @@ jest.mock('../../../core/Engine', () => {
 });
 
 describe('DrawerView - Extended Coverage', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let navigationMock: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let metricsMock: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let props: any;
-
-  beforeEach(() => {
-    navigationMock = {
-      navigate: jest.fn(),
-      goBack: jest.fn(),
-      replace: jest.fn(),
-      dangerouslyGetState: jest.fn(() => ({ routes: [{ name: 'Home' }] })),
-    };
-
-    metricsMock = {
-      trackEvent: jest.fn(),
-      createEventBuilder: jest.fn(() => ({
-        addProperties: jest.fn(() => ({
-          build: jest.fn(() => ({})),
-        })),
+  const navigationMock = {
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    replace: jest.fn(),
+    dangerouslyGetState: jest.fn(() => ({ routes: [{ name: 'Home' }] })),
+  };
+  const metricsMock = {
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({
         build: jest.fn(() => ({})),
       })),
-    };
-
-    props = {
-      navigation: navigationMock,
-      providerConfig: {
-        type: 'mainnet',
-        ticker: 'ETH',
-        rpcUrl: 'https://rpc.example.com',
-      },
-      accounts: {},
-      selectedInternalAccount: {
-        address: '0x123',
-        metadata: { name: 'Account 1' },
-      },
-      currentCurrency: 'USD',
-      keyrings: [],
-      toggleNetworkModal: jest.fn(),
-      showAlert: jest.fn(),
-      networkModalVisible: false,
-      newAssetTransaction: jest.fn(),
-      passwordSet: true,
-      wizard: {},
+      build: jest.fn(() => ({})),
+    })),
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const props = {
+    navigation: navigationMock,
+    providerConfig: {
+      type: 'mainnet',
       ticker: 'ETH',
-      networkConfigurations: {},
-      tokens: [],
-      tokenBalances: {},
-      collectibles: [],
-      seedphraseBackedUp: true,
-      currentRoute: 'Home',
-      switchedNetwork: {},
-      protectWalletModalVisible: jest.fn(),
-      onboardNetworkAction: jest.fn(),
-      networkSwitched: jest.fn(),
-      infoNetworkModalVisible: false,
-      toggleInfoNetworkModal: jest.fn(),
-      onCloseDrawer: jest.fn(),
-      metrics: metricsMock,
-      chainId: '1',
-    };
-  });
+      rpcUrl: 'https://rpc.example.com',
+    },
+    accounts: {},
+    selectedInternalAccount: {
+      address: '0x123',
+      metadata: { name: 'Account 1' },
+    },
+    currentCurrency: 'USD',
+    keyrings: [],
+    toggleNetworkModal: jest.fn(),
+    showAlert: jest.fn(),
+    networkModalVisible: false,
+    newAssetTransaction: jest.fn(),
+    passwordSet: true,
+    wizard: {},
+    ticker: 'ETH',
+    networkConfigurations: {},
+    tokens: [],
+    tokenBalances: {},
+    collectibles: [],
+    seedphraseBackedUp: true,
+    currentRoute: 'Home',
+    switchedNetwork: {},
+    protectWalletModalVisible: jest.fn(),
+    onboardNetworkAction: jest.fn(),
+    networkSwitched: jest.fn(),
+    infoNetworkModalVisible: false,
+    toggleInfoNetworkModal: jest.fn(),
+    onCloseDrawer: jest.fn(),
+    metrics: metricsMock,
+    chainId: '1',
+  };
 
   it('renders correctly (snapshot)', () => {
     const { toJSON } = renderWithProvider(
