@@ -388,17 +388,6 @@ export class Engine {
       chainId: getGlobalChainId(networkController),
     });
 
-    const { controllersByName } = initModularizedControllers({
-      controllerInitFunctions: {
-        AccountsController: accountsControllerInit,
-      },
-      persistedState: initialState as EngineState,
-      existingControllersByName: {},
-      baseControllerMessenger: this.controllerMessenger,
-    });
-
-    const accountsController = controllersByName.AccountsController;
-
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 
     const multichainAssetsControllerMessenger =
@@ -1338,6 +1327,17 @@ export class Engine {
       getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
+
+    const { controllersByName } = initModularizedControllers({
+      controllerInitFunctions: {
+        AccountsController: accountsControllerInit,
+      },
+      persistedState: initialState as EngineState,
+      existingControllersByName: {},
+      baseControllerMessenger: this.controllerMessenger,
+    });
+
+    const accountsController = controllersByName.AccountsController;
 
     this.context = {
       KeyringController: this.keyringController,
