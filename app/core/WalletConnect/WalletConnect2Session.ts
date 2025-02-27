@@ -32,6 +32,7 @@ const ERROR_CODES = {
 };
 
 const RPC_WALLET_SWITCHETHEREUMCHAIN = 'wallet_switchEthereumChain';
+const RPC_WALLET_ADDETHEREUMCHAIN = 'wallet_addEthereumChain';
 
 interface BackgroundBridgeFactory {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,6 +52,8 @@ class WalletConnect2Session {
   private requestByRequestId: {
     [requestId: string]: WalletKitTypes.SessionRequest;
   } = {};
+  private lastChainId: string;
+  private isHandlingChainChange = false;
 
   public session: SessionTypes.Struct;
 
@@ -75,11 +78,12 @@ class WalletConnect2Session {
     this.web3Wallet = web3Wallet;
     this.deeplink = deeplink;
     this.session = session;
+    this.navigation = navigation;
+
     DevLogger.log(
       `WalletConnect2Session::constructor channelId=${channelId} deeplink=${deeplink}`,
       navigation,
     );
-    this.navigation = navigation;
 
     const url = session.peer.metadata.url;
     const name = session.peer.metadata.name;
@@ -98,6 +102,7 @@ class WalletConnect2Session {
         approveRequest: this.approveRequest.bind(this),
         rejectRequest: this.rejectRequest.bind(this),
         updateSession: this.updateSession.bind(this),
+        emitEvent: this.emitEvent.bind(this),
       },
       getRpcMethodMiddleware: ({
         getProviderState,
@@ -117,16 +122,9 @@ class WalletConnect2Session {
           fromHomepage: { current: false },
           injectHomePageScripts: () => false,
           navigation: this.navigation,
-          // Website info
-          url: {
-            current: url,
-          },
-          title: {
-            current: name,
-          },
-          icon: {
-            current: icons?.[0] as ImageSourcePropType, // Need to cast here because this cames from @walletconnect/types as string
-          },
+          url: { current: url },
+          title: { current: name },
+          icon: { current: icons?.[0] as ImageSourcePropType },
           toggleUrlModal: () => null,
           wizardScrollAdjusted: { current: false },
           tabId: '',
@@ -141,9 +139,23 @@ class WalletConnect2Session {
     });
 
     this.checkPendingRequests();
+
+    this.lastChainId = selectEvmChainId(store.getState());
+
+    // Subscribe to store changes to detect chain switches
+    store.subscribe(() => {
+      const newChainId = selectEvmChainId(store.getState());
+      if (newChainId !== this.lastChainId && !this.isHandlingChainChange) {
+        this.lastChainId = newChainId;
+        const decimalChainId = parseInt(newChainId, 16);
+        this.handleChainChange(decimalChainId).catch((error) => {
+          console.warn('WC2::store.subscribe Error handling chain change:', error);
+        });
+      }
+    });
   }
 
-  // Check for pending unresolved requests
+  /** Check for pending unresolved requests */
   private checkPendingRequests = async () => {
     const pendingSessionRequests = this.web3Wallet.getPendingSessionRequests();
     if (pendingSessionRequests) {
@@ -162,7 +174,7 @@ class WalletConnect2Session {
         } catch (error) {
           Logger.error(
             error as Error,
-            `WC2::constructor error while handling request`,
+            'WC2::constructor error while handling request',
           );
         }
       }
@@ -216,15 +228,77 @@ class WalletConnect2Session {
     }
   };
 
+  emitEvent = async (eventName: string, data: unknown) => {
+    await this.web3Wallet.emitSessionEvent({
+      topic: this.session.topic,
+      event: { name: eventName, data },
+      chainId: `eip155:${data}`,
+    });
+  };
+
+  /** Handle chain change by updating session namespaces and emitting event */
+  private async handleChainChange(chainIdDecimal: number) {
+    if (this.isHandlingChainChange) return;
+    this.isHandlingChainChange = true;
+
+    try {
+      const origin = normalizeOrigin(this.session.peer.metadata.url);
+      const accounts = await getPermittedAccounts(origin);
+
+      // Update session namespaces
+      const currentNamespaces = this.session.namespaces;
+      const newChainId = `eip155:${chainIdDecimal}`;
+      const updatedChains = [
+        ...new Set([...(currentNamespaces.eip155?.chains || []), newChainId]),
+      ];
+
+      const updatedNamespaces = {
+        ...currentNamespaces,
+        eip155: {
+          ...currentNamespaces.eip155,
+          chains: updatedChains,
+          methods: currentNamespaces.eip155.methods,
+          events: currentNamespaces.eip155.events,
+          accounts: currentNamespaces.eip155.accounts,
+        },
+      };
+
+      DevLogger.log(
+        `WC2::handleChainChange updating session with namespaces`,
+        updatedNamespaces,
+      );
+
+      const { acknowledged } = await this.web3Wallet.updateSession({
+        topic: this.session.topic,
+        namespaces: updatedNamespaces,
+      });
+      await acknowledged();
+
+      // Emit chainChanged event
+      await this.emitEvent('chainChanged', chainIdDecimal);
+    } catch (error) {
+      DevLogger.log(
+        `WC2::handleChainChange error while updating session`,
+        error,
+      );
+      throw error;
+    } finally {
+      this.isHandlingChainChange = false;
+    }
+  }
+
   approveRequest = async ({ id, result }: { id: string; result: unknown }) => {
     const topic = this.topicByRequestId[id];
     const initialRequest = this.requestByRequestId[id];
+    const method = initialRequest?.params.request.method;
 
-    // Special case for eth_switchNetwork to wait for the modal to be closed
     if (
-      initialRequest?.params.request.method === RPC_WALLET_SWITCHETHEREUMCHAIN
+      method === RPC_WALLET_ADDETHEREUMCHAIN ||
+      method === RPC_WALLET_SWITCHETHEREUMCHAIN
     ) {
-      await this.handleSwitchEthereumChain(initialRequest);
+      const chainIdHex = initialRequest.params.request.params[0].chainId;
+      const chainIdDecimal = parseInt(chainIdHex, 16);
+      await this.handleChainChange(chainIdDecimal);
     }
 
     try {
@@ -244,32 +318,11 @@ class WalletConnect2Session {
     }
 
     const requests = this.web3Wallet.getPendingSessionRequests() || [];
-
     const hasPendingSignRequest =
       requests[0]?.params?.request?.method === 'personal_sign';
 
     if (!hasPendingSignRequest) {
       this.needsRedirect(id);
-    }
-  };
-
-  private handleSwitchEthereumChain = async (
-    initialRequest: WalletKitTypes.SessionRequest,
-  ) => {
-    try {
-      const params = initialRequest.params.request.params as unknown[];
-      const { chainId } = params[0] as { chainId: string };
-
-      if (chainId) {
-        // TODO: check what happens after adding a new network -- waiting was initially made to handle that scenario
-        DevLogger.log(`SKIP: waitForNetworkModalOnboarding`);
-        // await waitForNetworkModalOnboarding({
-        //   chainId: parseInt(chainId) + '',
-        // });
-      }
-    } catch (err) {
-      // Ignore error as it is not critical when timeout for modal is reached
-      // It allows to safely continue and prevent pilling up the requests.
     }
   };
 
@@ -285,7 +338,6 @@ class WalletConnect2Session {
       errorMsg = JSON.stringify(error);
     }
 
-    // Convert error to correct format
     const errorResponse: ErrorResponse = {
       code: ERROR_CODES.USER_REJECT_CODE,
       message: errorMsg,
@@ -325,16 +377,12 @@ class WalletConnect2Session {
         return;
       }
 
-      // Normalize origin from session metadata
       const origin = normalizeOrigin(this.session.peer.metadata.url);
       DevLogger.log(
         `WC2::updateSession origin=${origin} - chainId=${chainId} - accounts=${accounts}`,
       );
 
       if (accounts.length === 0) {
-        console.warn(
-          `WC2::updateSession invalid accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
-        );
         const approvedAccounts = await getPermittedAccounts(origin);
         if (approvedAccounts.length > 0) {
           DevLogger.log(
@@ -354,8 +402,7 @@ class WalletConnect2Session {
         DevLogger.log(
           `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
-        // overwrite chainId with actual value.
-        chainId = parseInt(selectEvmChainId(store.getState()));
+        chainId = parseInt(selectEvmChainId(store.getState()), 16);
         DevLogger.log(
           `WC2::updateSession overwrite invalid chain Id with selectedChainId=${chainId}`,
         );
@@ -364,10 +411,11 @@ class WalletConnect2Session {
       const namespaces = await getScopedPermissions({ origin });
       DevLogger.log(`WC2::updateSession updating with namespaces`, namespaces);
 
-      await this.web3Wallet.updateSession({
+      const { acknowledged } = await this.web3Wallet.updateSession({
         topic: this.session.topic,
         namespaces,
       });
+      await acknowledged();
     } catch (err) {
       console.warn(
         `WC2::updateSession can't update session topic=${this.session.topic}`,
@@ -377,6 +425,10 @@ class WalletConnect2Session {
   };
 
   handleRequest = async (requestEvent: WalletKitTypes.SessionRequest) => {
+    DevLogger.log(
+      'WC2::handleRequest requestEvent',
+      JSON.stringify(requestEvent, null, 2),
+    );
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
     this.requestByRequestId[requestEvent.id] = requestEvent;
 
@@ -388,17 +440,13 @@ class WalletConnect2Session {
     hideWCLoadingState({ navigation: this.navigation });
     const verified = requestEvent.verifyContext?.verified;
     const rawOrigin = verified?.origin;
-
-    // Normalize origin once at the beginning
     const origin = normalizeOrigin(rawOrigin);
     DevLogger.log(
       `WalletConnect2Session::handleRequest raw=${rawOrigin} normalized=${origin}`,
     );
 
-    let method = requestEvent.params.request.method;
-    const caip2ChainId = requestEvent.params.chainId; // 'eip155:1'
-
-    // TODO: Replace 'any' with type
+    const method = requestEvent.params.request.method;
+    const caip2ChainId = requestEvent.params.chainId;
     const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(
@@ -439,7 +487,6 @@ class WalletConnect2Session {
       });
     }
 
-    // Manage redirects
     if (METHODS_TO_REDIRECT[method]) {
       this.requestsToRedirect[requestEvent.id] = true;
     }
@@ -447,8 +494,20 @@ class WalletConnect2Session {
     if (method === 'eth_sendTransaction') {
       await this.handleSendTransaction(requestEvent, methodParams, origin);
       return;
-    } else if (method === 'eth_signTypedData') {
-      method = 'eth_signTypedData_v3';
+    }
+    
+    if (method === 'eth_signTypedData') {
+      await this.backgroundBridge.onMessage({
+        name: 'walletconnect-provider',
+        data: {
+          id: requestEvent.id,
+          topic: requestEvent.topic,
+          method: 'eth_signTypedData_v3',
+          params: methodParams,
+        },
+        origin,
+      });
+      return;
     }
 
     this.backgroundBridge.onMessage({
