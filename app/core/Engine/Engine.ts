@@ -657,7 +657,7 @@ export class Engine {
     // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
     const persistAndUpdateAccounts = async () => {
       await this.keyringController.persistAllKeyrings();
-      await accountsController.updateAccounts();
+      await this.context.AccountsController.updateAccounts();
     };
 
     additionalKeyrings.push(
@@ -852,8 +852,8 @@ export class Engine {
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
-        getInternalAccounts:
-          accountsController.listAccounts.bind(accountsController),
+        getInternalAccounts: (...args) =>
+          this.context.AccountsController.listAccounts(...args),
         findNetworkClientIdByChainId:
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
@@ -863,8 +863,8 @@ export class Engine {
       permissionSpecifications: {
         ...getPermissionSpecifications({
           getAllAccounts: () => this.keyringController.getAccounts(),
-          getInternalAccounts:
-            accountsController.listAccounts.bind(accountsController),
+          getInternalAccounts: (...args) =>
+            this.context.AccountsController.listAccounts(...args),
           captureKeyringTypesWithMissingIdentities: (
             internalAccounts = [],
             accounts = [],
