@@ -1,7 +1,8 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": []
+    "keyrings": [],
+    "keyringsMetadata": []
   },
   "LoggingController": {
     "logs": {}
@@ -327,7 +328,9 @@
     "subscriptionAccountsSeen": []
   },
   "NotificationServicesPushController": {
-    "fcmToken": ""
+    "fcmToken": "",
+    "isPushEnabled": true,
+    "isUpdatingFCMToken": false
   },
   "UserStorageController": {
     "hasAccountSyncingSyncedAtLeastOnce": false,

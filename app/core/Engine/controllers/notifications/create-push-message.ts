@@ -4,20 +4,20 @@ import {
 } from '@metamask/notification-services-controller/push-services';
 import type { INotification } from '@metamask/notification-services-controller/notification-services';
 import { strings } from '../../../../../locales/i18n';
+import type Translations from '../../../../../locales/languages/en.json';
 
-// TEMP - we an add strict types in another PR
-// import type Translations from '../../../../../locales/languages/en.json';
-// type NotificationTranslations = (typeof Translations)['notifications'];
-// type FlattenToString<TObj> = {
-//   [K in keyof TObj]: TObj[K] extends string
-//     ? `${K & string}`
-//     : `${K & string}.${FlattenToString<TObj[K]>}`;
-// }[keyof TObj];
+type NotificationTranslations = (typeof Translations)['notifications'];
+type FlattenToString<TObj> = {
+  [K in keyof TObj]: TObj[K] extends string
+    ? `${K & string}`
+    : `${K & string}.${FlattenToString<TObj[K]>}`;
+}[keyof TObj];
 
-// type NotificationStrings =
-//   `notifications.${FlattenToString<NotificationTranslations>}`;
+type NotificationStrings =
+  `notifications.${FlattenToString<NotificationTranslations>}`;
 
-const t = (name: string, params?: object) => strings(name, params) ?? '';
+const t = (name: NotificationStrings, params?: object) =>
+  strings(name, params) ?? '';
 
 const translations: TranslationKeys = {
   pushPlatformNotificationsFundsSentTitle: () =>

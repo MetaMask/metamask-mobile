@@ -1,25 +1,10 @@
-import type { UserTraits, GroupTraits } from '@segment/analytics-react-native';
+import type {UserTraits, GroupTraits, SegmentClient} from '@segment/analytics-react-native';
+import { PublicInterface } from '@metamask/utils';
+
 /**
- * custom implementation of the Segment ClientMethods type
- * Allows to mock the Segment client
+ * Segment client restricted to the interface used by MetaMetrics
  */
-export interface ISegmentClient {
-  // track an event
-  track: (
-    event: string,
-    properties?: JsonMap,
-    userId?: string,
-    anonymousId?: string,
-  ) => void;
-  // identify an user with ID and traits
-  identify: (userId?: string, userTraits?: UserTraits) => Promise<void>;
-  // add a user to a specific group
-  group: (groupId: string, groupTraits?: GroupTraits) => Promise<void>;
-  // clear the internal state of the library for the current user and group.
-  screen: (name: string, properties?: JsonMap) => Promise<void>;
-  flush: () => Promise<void>;
-  reset: (resetAnonymousId: boolean) => Promise<void>;
-}
+export type ISegmentClient = Pick<PublicInterface<SegmentClient>, 'track' | 'identify' | 'group' | 'screen' | 'flush' | 'reset' | 'add'>
 
 /**
  * MetaMetrics core interface
@@ -33,14 +18,6 @@ export interface IMetaMetrics {
    * Enable or disable data tracking
    * @param enable
    */
-
-  /**
-   * Set the portion of events to track
-   *
-   * @param portion - The portion of events to track
-   */
-  setEventsPortionToTrack(portion: number): void;
-
   enable(enable?: boolean): Promise<void>;
   /**
    * add traits to an user
@@ -181,27 +158,3 @@ export interface IDeleteRegulationStatus {
   hasCollectedDataSinceDeletionRequest: boolean;
   dataDeletionRequestStatus: DataDeleteStatus;
 }
-
-/*
- * Legacy event properties structure with two distinct properties lists
- * for sensitive (anonymous) and regular (non-anonymous) properties
- * this structure and naming is mirroring how the extension metrics works.
- * @deprecated use ITrackingEvent with MetricsEventBuilder instead
- */
-export interface EventProperties {
-  properties?: JsonMap;
-  sensitiveProperties?: JsonMap;
-}
-
-export const isCombinedProperties = (
-  properties: CombinedProperties | boolean | undefined,
-): properties is CombinedProperties =>
-  typeof properties === 'object' &&
-  properties !== null &&
-  !Array.isArray(properties);
-
-/*
- * EventProperties type is now legacy, direct JsonMap is for backward compatibility
- * @deprecated use ITrackingEvent with MetricsEventBuilder instead
- */
-export type CombinedProperties = JsonMap | EventProperties;

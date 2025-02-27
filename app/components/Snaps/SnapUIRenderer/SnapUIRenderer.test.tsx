@@ -7,6 +7,14 @@ import {
   Button,
   Input,
   JSXElement,
+  Form,
+  Field,
+  Checkbox,
+  Section,
+  Row,
+  Value,
+  Card,
+  Image as ImageComponent,
 } from '@metamask/snaps-sdk/jsx';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -229,7 +237,7 @@ describe('SnapUIRenderer', () => {
       Box({ children: Input({ name: 'input' }) }),
     );
 
-    const input = getByTestId('form-text-field');
+    const input = getByTestId('input');
     fireEvent.changeText(input, 'a');
 
     expect(
@@ -264,7 +272,7 @@ describe('SnapUIRenderer', () => {
       { state: { input: 'bar' } },
     );
 
-    const input = getByTestId('form-text-field');
+    const input = getByTestId('input');
     expect(input).toBeDefined();
     expect(input.props.value).toStrictEqual('bar');
 
@@ -275,14 +283,14 @@ describe('SnapUIRenderer', () => {
     const { toJSON, getAllByTestId, updateInterface, getRenderCount } =
       renderInterface(Box({ children: Input({ name: 'input' }) }));
 
-    const inputs = getAllByTestId('form-text-field');
+    const inputs = getAllByTestId('input');
     expect(inputs).toHaveLength(1);
 
     updateInterface(
       Box({ children: [Input({ name: 'input' }), Input({ name: 'input2' })] }),
     );
 
-    const inputsAfterRerender = getAllByTestId('form-text-field');
+    const inputsAfterRerender = getAllByTestId('input');
     expect(inputsAfterRerender).toHaveLength(2);
 
     expect(getRenderCount()).toBe(2);
@@ -299,11 +307,192 @@ describe('SnapUIRenderer', () => {
       { input: 'bar', input2: 'foo' },
     );
 
-    const inputsAfterRerender = getAllByTestId('form-text-field');
+    const inputsAfterRerender = getAllByTestId('input');
     expect(inputsAfterRerender[0].props.value).toStrictEqual('bar');
     expect(inputsAfterRerender[1].props.value).toStrictEqual('foo');
 
     expect(getRenderCount()).toBe(2);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('supports forms with fields', () => {
+    const { toJSON, getByTestId, getByText } = renderInterface(
+      Box({
+        children: Form({
+          name: 'form',
+          children: [
+            Field({ label: 'My Input', children: Input({ name: 'input' }) }),
+            Field({
+              label: 'My Checkbox',
+              children: Checkbox({
+                name: 'checkbox',
+                label: 'This is a checkbox',
+              }),
+            }),
+            Button({ type: 'submit', name: 'submit', children: 'Submit' }),
+          ],
+        }),
+      }),
+    );
+
+    const input = getByTestId('input');
+    fireEvent.changeText(input, 'abc');
+
+    expect(
+      mockEngine.context.SnapInterfaceController.updateInterfaceState,
+    ).toHaveBeenNthCalledWith(1, MOCK_INTERFACE_ID, { form: { input: 'abc' } });
+
+    expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
+      1,
+      'SnapController:handleRequest',
+      {
+        handler: 'onUserInput',
+        origin: '',
+        request: {
+          jsonrpc: '2.0',
+          method: ' ',
+          params: {
+            context: null,
+            event: { name: 'input', type: 'InputChangeEvent', value: 'abc' },
+            id: MOCK_INTERFACE_ID,
+          },
+        },
+        snapId: MOCK_SNAP_ID,
+      },
+    );
+
+    const checkbox = getByText('This is a checkbox');
+    fireEvent.press(checkbox);
+
+    expect(
+      mockEngine.context.SnapInterfaceController.updateInterfaceState,
+    ).toHaveBeenNthCalledWith(2, MOCK_INTERFACE_ID, {
+      form: { input: 'abc', checkbox: true },
+    });
+
+    expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
+      2,
+      'SnapController:handleRequest',
+      {
+        handler: 'onUserInput',
+        origin: '',
+        request: {
+          jsonrpc: '2.0',
+          method: ' ',
+          params: {
+            context: null,
+            event: { name: 'checkbox', type: 'InputChangeEvent', value: true },
+            id: MOCK_INTERFACE_ID,
+          },
+        },
+        snapId: MOCK_SNAP_ID,
+      },
+    );
+
+    const button = getByText('Submit');
+    fireEvent.press(button);
+
+    expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
+      3,
+      'SnapController:handleRequest',
+      {
+        handler: 'onUserInput',
+        origin: '',
+        request: {
+          jsonrpc: '2.0',
+          method: ' ',
+          params: {
+            context: null,
+            event: { name: 'submit', type: 'ButtonClickEvent' },
+            id: MOCK_INTERFACE_ID,
+          },
+        },
+        snapId: MOCK_SNAP_ID,
+      },
+    );
+
+    expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
+      4,
+      'SnapController:handleRequest',
+      {
+        handler: 'onUserInput',
+        origin: '',
+        request: {
+          jsonrpc: '2.0',
+          method: ' ',
+          params: {
+            context: null,
+            event: {
+              name: 'form',
+              type: 'FormSubmitEvent',
+              value: {
+                checkbox: true,
+                input: 'abc',
+              },
+            },
+            id: MOCK_INTERFACE_ID,
+          },
+        },
+        snapId: MOCK_SNAP_ID,
+      },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('supports fields with multiple components', () => {
+    const { toJSON } = renderInterface(
+      Box({
+        children: Form({
+          name: 'form',
+          children: [
+            Field({
+              label: 'My Input',
+              children: [
+                ImageComponent({ src: '<svg />' }),
+                Input({ name: 'input' }),
+                Button({ type: 'submit', name: 'submit', children: 'Submit' }),
+              ],
+            }),
+          ],
+        }),
+      }),
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders complex nested components', () => {
+    const { toJSON, getRenderCount } = renderInterface(
+      Container({
+        children: [
+          Box({
+            children: [
+              Section({
+                children: [
+                  Row({
+                    label: 'Key',
+                    children: Value({ value: 'Value', extra: 'Extra' }),
+                  }),
+                  Card({
+                    image: '<svg />',
+                    title: 'CardTitle',
+                    description: 'CardDescription',
+                    value: 'CardValue',
+                    extra: 'CardExtra',
+                  }),
+                ],
+              }),
+            ],
+          }),
+          Footer({ children: Button({ children: 'Foo' }) }),
+        ],
+      }),
+      { useFooter: true },
+    );
+
+    expect(getRenderCount()).toBe(1);
 
     expect(toJSON()).toMatchSnapshot();
   });
