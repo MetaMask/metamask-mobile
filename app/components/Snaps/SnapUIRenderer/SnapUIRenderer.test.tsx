@@ -215,9 +215,7 @@ describe('SnapUIRenderer', () => {
   it('adds a footer if required', () => {
     const { toJSON, getByText } = renderInterface(
       Container({
-        children: [
-          Box({ children: Text({ children: 'Hello world!' }) }),
-        ],
+        children: [Box({ children: Text({ children: 'Hello world!' }) })],
       }),
       { useFooter: true },
     );

@@ -31,12 +31,12 @@ function renderElement(section: TemplateRendererComponent) {
     : {};
   return (
     <Element {...section.props} {...propsAsComponents}>
-      {typeof section.children === 'object' ? 
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            <TemplateRenderer
-              sections={section.children}
-            />
-        : section.children}
+      {typeof section.children === 'object' ? (
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        <TemplateRenderer sections={section.children} />
+      ) : (
+        section.children
+      )}
     </Element>
   );
 }

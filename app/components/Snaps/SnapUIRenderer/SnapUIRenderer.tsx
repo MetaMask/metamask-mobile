@@ -12,7 +12,7 @@ import { Container } from '@metamask/snaps-sdk/jsx';
 import { strings } from '../../../../locales/i18n';
 import styles from './SnapUIRenderer.styles';
 import { RootState } from '../../../reducers';
-import { TemplateRendererInput } from '../../UI/TemplateRenderer/types';
+import { TemplateRendererComponent } from '../../UI/TemplateRenderer/types';
 import { useTheme } from '../../../util/theme';
 
 interface SnapUIRendererProps {
@@ -65,7 +65,7 @@ const SnapUIRendererComponent = ({
         onCancel,
         t: strings,
         theme,
-      }) as TemplateRendererInput),
+      }) as TemplateRendererComponent),
     [content, useFooter, onCancel, theme],
   );
 
@@ -73,8 +73,8 @@ const SnapUIRendererComponent = ({
     return <ActivityIndicator size="large" color={Colors.primary} />;
   }
 
-  const contentBox = sections?.children?.[0]
-  const footer = sections?.children?.[1]
+  const contentBox = sections?.children?.[0];
+  const footer = sections?.children?.[1];
 
   const hasFooter = onCancel || content?.props?.children?.[1] !== undefined;
 
