@@ -16,7 +16,7 @@ import {
   Card,
   Image as ImageComponent,
 } from '@metamask/snaps-sdk/jsx';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { SnapUIRenderer } from './SnapUIRenderer';
 import Engine from '../../../core/Engine/Engine';
@@ -161,12 +161,14 @@ function renderInterface(
     newContent: JSXElement,
     newState: FormState | null = null,
   ) => {
-    store.dispatch({
-      type: 'updateInterface',
-      payload: {
-        content: newContent,
-        state: newState,
-      },
+    act(() => {
+      store.dispatch({
+        type: 'updateInterface',
+        payload: {
+          content: newContent,
+          state: newState,
+        },
+      });
     });
   };
 
@@ -209,6 +211,18 @@ describe('SnapUIRenderer', () => {
     );
 
     expect(getByText('Foo')).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('adds a footer if required', () => {
+    const { toJSON, getByText } = renderInterface(
+      Container({
+        children: Box({ children: Text({ children: 'Hello world!' }) }),
+      }),
+      { useFooter: true },
+    );
+
+    expect(getByText('Close')).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -308,6 +322,7 @@ describe('SnapUIRenderer', () => {
     );
 
     const inputsAfterRerender = getAllByTestId('input');
+    expect(inputsAfterRerender).toHaveLength(2);
     expect(inputsAfterRerender[0].props.value).toStrictEqual('bar');
     expect(inputsAfterRerender[1].props.value).toStrictEqual('foo');
 
