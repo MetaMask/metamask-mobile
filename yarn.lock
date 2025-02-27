@@ -5044,6 +5044,16 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
+"@metamask/keyring-utils@^2.3.0":
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-2.3.1.tgz#a30f9dd4a3d576980739ebdbee1e66ad66abfdc8"
+  integrity sha512-NCmWZGoOPhDX8Krsx+NZvd3eUqeSmJoEXMUBxM8tKmoxajzRs2A1ZT5bv5rDUSCZoUy+R2D8w/HV+wT3PijTYQ==
+  dependencies:
+    "@ethereumjs/tx" "^4.2.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+    bitcoin-address-validation "^2.2.3"
+
 "@metamask/logging-controller@^6.0.4":
   version "6.0.4"
   resolved "https://registry.yarnpkg.com/@metamask/logging-controller/-/logging-controller-6.0.4.tgz#05b9b445e8c09f25eb0d4342e5c5281601d8d11c"
