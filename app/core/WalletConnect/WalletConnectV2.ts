@@ -416,7 +416,9 @@ export class WC2Manager {
     const icon = icons?.[0] ?? '';
 
     // Normalize origin once
-    const origin = normalizeOrigin(url);
+    // const origin = normalizeOrigin(url);
+    // Normalizing origin is not working, so we're just using the url as the origin
+    const origin = url;
 
     DevLogger.log(
       `WC2::session_proposal metadata ${url} normalized to ${origin}`,
