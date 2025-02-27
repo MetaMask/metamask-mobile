@@ -10,6 +10,7 @@ describe('useTokenValues', () => {
       });
 
       expect(result.current).toEqual({
+        tokenAmountValue: '0.0001',
         tokenAmountDisplayValue: '0.0001',
         fiatDisplayValue: '$0.36',
       });
