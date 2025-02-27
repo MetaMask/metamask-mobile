@@ -163,6 +163,9 @@ const Routes = {
   STANDALONE_CONFIRMATIONS: {
     STAKE_DEPOSIT: 'RedesignedStakeDeposit',
   },
+  MULTI_SRP: {
+    IMPORT: 'ImportSRPView',
+  },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
