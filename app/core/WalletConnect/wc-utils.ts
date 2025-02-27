@@ -131,8 +131,26 @@ export const waitForNetworkModalOnboarding = async ({
 
 export const normalizeOrigin = (origin: string): string => {
   try {
-    // Remove protocol and trailing slashes
-    return origin.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    // If origin is null or undefined, return empty string
+    if (!origin) {
+      DevLogger.log('WC::normalizeOrigin received null/undefined origin');
+      return '';
+    }
+
+    // If already a domain without protocol, return it
+    if (!origin.includes('://')) {
+      return origin;
+    }
+
+    // Parse URL to extract just the hostname (domain)
+    try {
+      const url = new URL(origin);
+      return url.hostname;
+    } catch (urlError) {
+      // If URL parsing fails, try a simple regex approach
+      const match = origin.match(/^(?:https?:\/\/)?([^\/]+)/i);
+      return match ? match[1] : origin;
+    }
   } catch (error) {
     DevLogger.log('WC::normalizeOrigin error:', error);
     return origin;
@@ -181,10 +199,18 @@ export const getApprovedSessionMethods = (_: {
 };
 
 export const getScopedPermissions = async ({ origin }: { origin: string }) => {
+  // origin is already normalized by this point - no need to normalize again
   const approvedAccounts = await getPermittedAccounts(origin);
   const chains = await getPermittedChains(origin);
-  const accountsPerChains = chains.map(
-    (chain) => `${chain}:${approvedAccounts}`,
+
+  DevLogger.log(
+    `WC::getScopedPermissions for ${origin}, found accounts:`,
+    approvedAccounts,
+  );
+
+  // Create properly formatted account strings for each chain and account
+  const accountsPerChains = chains.flatMap((chain) =>
+    approvedAccounts.map((account) => `${chain}:${account}`),
   );
 
   const scopedPermissions = {
@@ -194,7 +220,10 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
     accounts: accountsPerChains,
   };
 
-  DevLogger.log(`WC::getScopedPermissions`, scopedPermissions);
+  DevLogger.log(
+    `WC::getScopedPermissions final permissions`,
+    scopedPermissions,
+  );
   return {
     [EVM_IDENTIFIER]: scopedPermissions,
   };
