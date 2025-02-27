@@ -155,9 +155,15 @@ class WalletView {
     );
   }
 
-  get carouselCloseButton() {
+  get carouselFirstSlideCloseButton() {
     return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_CLOSE_BUTTON,
+      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON,
+    );
+  }
+
+  get carouselSecondSlideCloseButton() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON,
     );
   }
 

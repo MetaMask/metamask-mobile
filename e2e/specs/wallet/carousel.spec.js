@@ -69,32 +69,29 @@ describe(SmokeCore('Carousel Tests'), () => {
       5000,
     );
   });
-  it('should handle slide interactions', async () => {
-    await device.disableSynchronization();
-    const carouselFirstSlide = await WalletView.carouselFirstSlide;
-    const container = await WalletView.container;
-    await Assertions.checkIfVisible(carouselFirstSlide, 5000);
-    await Gestures.tap(carouselFirstSlide);
-    await Assertions.checkIfVisible(container, 5000);
-    await TestHelpers.delay(5000);
-    await device.enableSynchronization();
-  });
   it('should dismiss a slide', async () => {
-    await TestHelpers.relaunchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-    });
-    await loginToApp();
     await device.disableSynchronization();
     const carouselSecondSlideTitle = await WalletView.carouselSecondSlideTitle;
-    const closeButton = await WalletView.carouselCloseButton;
-    await Assertions.checkIfVisible(closeButton, 5000);
-    await Gestures.tap(closeButton);
+    const firstSlideCloseButton =
+      await WalletView.carouselFirstSlideCloseButton;
+    await Assertions.checkIfVisible(firstSlideCloseButton, 5000);
+    await Gestures.tap(firstSlideCloseButton);
     await TestHelpers.delay(5000);
     await Assertions.checkIfElementToHaveText(
       carouselSecondSlideTitle,
       'Fund your wallet',
       5000,
     );
+    await device.enableSynchronization();
+  });
+  it('should handle slide interactions', async () => {
+    await device.disableSynchronization();
+    const carouselSecondSlide = await WalletView.carouselSecondSlide;
+    const container = await WalletView.container;
+    await Assertions.checkIfVisible(carouselSecondSlide, 5000);
+    await Gestures.tap(carouselSecondSlide);
+    await Assertions.checkIfVisible(container, 5000);
+    await TestHelpers.delay(5000);
     await device.enableSynchronization();
   });
 });

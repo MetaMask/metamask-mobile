@@ -173,7 +173,7 @@ exports[`Carousel should render correctly 1`] = `
                 "width": 26,
               }
             }
-            testID="close-button"
+            testID="carousel-first-slide-close-button"
           >
             <Text
               allowFontScaling={false}
@@ -352,7 +352,7 @@ exports[`Carousel should render correctly 1`] = `
                 "width": 26,
               }
             }
-            testID="close-button"
+            testID="carousel-second-slide-close-button"
           >
             <Text
               allowFontScaling={false}
@@ -531,7 +531,7 @@ exports[`Carousel should render correctly 1`] = `
                 "width": 26,
               }
             }
-            testID="close-button"
+            testID="carousel-third-slide-close-button"
           >
             <Text
               allowFontScaling={false}
@@ -710,7 +710,7 @@ exports[`Carousel should render correctly 1`] = `
                 "width": 26,
               }
             }
-            testID="close-button"
+            testID="carousel-fourth-slide-close-button"
           >
             <Text
               allowFontScaling={false}

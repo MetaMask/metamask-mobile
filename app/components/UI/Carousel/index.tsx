@@ -66,6 +66,7 @@ const PREDEFINED_SLIDES: CarouselSlide[] = [
     navigation: { type: 'url', href: 'https://portfolio.metamask.io/card' },
     testID: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE,
     testIDTitle: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE,
+    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON,
   },
   {
     id: 'fund',
@@ -78,6 +79,8 @@ const PREDEFINED_SLIDES: CarouselSlide[] = [
     },
     testID: WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE,
     testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE,
+    testIDCloseButton:
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON,
   },
   {
     id: 'cashout',
@@ -87,6 +90,7 @@ const PREDEFINED_SLIDES: CarouselSlide[] = [
     navigation: { type: 'url', href: 'https://portfolio.metamask.io/sell' },
     testID: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE,
     testIDTitle: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE_TITLE,
+    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE_CLOSE_BUTTON,
   },
   {
     id: 'aggregated',
@@ -96,6 +100,8 @@ const PREDEFINED_SLIDES: CarouselSlide[] = [
     navigation: { type: 'url', href: 'https://portfolio.metamask.io/sell' },
     testID: WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE,
     testIDTitle: WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE_TITLE,
+    testIDCloseButton:
+      WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE_CLOSE_BUTTON,
   },
 ];
 
@@ -325,7 +331,7 @@ export const Carousel: FC<CarouselProps> = () => {
                 </View>
                 {!slide.undismissable && (
                   <TouchableOpacity
-                    testID={WalletViewSelectorsIDs.CAROUSEL_CLOSE_BUTTON}
+                    testID={slide.testIDCloseButton}
                     style={styles.closeButton}
                     onPress={() => handleClose(slide.id)}
                   >

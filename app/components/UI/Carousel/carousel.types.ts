@@ -20,6 +20,7 @@ export interface CarouselSlide {
   undismissable?: boolean;
   testID?: string;
   testIDTitle?: string;
+  testIDCloseButton?: string;
 }
 
 export interface CarouselProps {
