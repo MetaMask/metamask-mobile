@@ -1,11 +1,4 @@
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Animated, {
@@ -20,12 +13,10 @@ import {
   CryptoCurrency,
   FiatCurrency,
   ProviderBuyFeatureBrowserEnum,
-  QuoteError,
   QuoteResponse,
   SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
 import { Provider } from '@consensys/on-ramp-sdk/dist/API';
-
 import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
 import Timer from './Timer';
@@ -37,10 +28,6 @@ import Row from '../../components/Row';
 import Quote from '../../components/Quote';
 import InfoAlert from '../../components/InfoAlert';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
-
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   ButtonSize,
   ButtonVariants,
@@ -54,7 +41,7 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 
 import useAnalytics from '../../hooks/useAnalytics';
-import useQuotes from '../../hooks/useQuotes';
+import useSortedQuotes from '../../hooks/useSortedQuotes';
 import { useRampSDK } from '../../sdk';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
@@ -73,7 +60,6 @@ import { isBuyQuote } from '../../utils';
 import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from '../../../../../../e2e/selectors/Ramps/Quotes.selectors';
 
-const HIGHLIGHTED_QUOTES_COUNT = 2;
 export interface QuotesParams {
   amount: number | string;
   asset: CryptoCurrency;
@@ -136,54 +122,30 @@ function Quotes() {
   });
 
   const {
-    quotes,
+    recommendedQuote,
+    quotesWithoutError,
+    quotesWithError,
+    quotesByPriceWithoutError,
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,
-  } = useQuotes(params.amount);
-
-  const [filteredQuotes, highlightedQuotes] = useMemo(() => {
-    if (quotes) {
-      const allQuotes = quotes.filter(
-        (quote): quote is QuoteResponse | SellQuoteResponse => !quote.error,
-      );
-      const highlightedPreviouslyUsed = allQuotes.findIndex(({ provider }) =>
-        ordersProviders.includes(provider.id),
-      );
-
-      let reorderedQuotes = allQuotes;
-      if (highlightedPreviouslyUsed > -1) {
-        reorderedQuotes = [
-          allQuotes[highlightedPreviouslyUsed],
-          ...allQuotes.slice(0, highlightedPreviouslyUsed),
-          ...allQuotes.slice(highlightedPreviouslyUsed + 1),
-        ];
-      }
-      return [
-        reorderedQuotes,
-        reorderedQuotes.slice(0, HIGHLIGHTED_QUOTES_COUNT),
-      ] as const;
-    }
-    return [[], []] as const;
-  }, [ordersProviders, quotes]);
-
-  const expandedCount = filteredQuotes.length - highlightedQuotes.length;
+  } = useSortedQuotes(params.amount);
 
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Quotes Screen',
         chain_id_destination: selectedChainId,
-        results_count: filteredQuotes.length,
+        results_count: quotesByPriceWithoutError.length,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Quotes Screen',
         chain_id_source: selectedChainId,
-        results_count: filteredQuotes.length,
+        results_count: quotesByPriceWithoutError.length,
       });
     }
-  }, [filteredQuotes.length, isBuy, selectedChainId, trackEvent]);
+  }, [quotesByPriceWithoutError.length, isBuy, selectedChainId, trackEvent]);
 
   const handleClosePress = useCallback(
     (bottomSheetDialogRef) => {
@@ -242,10 +204,12 @@ function Quotes() {
       payment_method_id: selectedPaymentMethodId as string,
       amount: params.amount,
       refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
-      results_count: filteredQuotes.length,
-      provider_onramp_first: filteredQuotes[0]?.provider?.name,
-      provider_onramp_list: filteredQuotes.map(({ provider }) => provider.name),
-      previously_used_count: filteredQuotes.filter(({ provider }) =>
+      results_count: quotesByPriceWithoutError.length,
+      provider_onramp_first: quotesByPriceWithoutError[0]?.provider?.name,
+      provider_onramp_list: quotesByPriceWithoutError.map(
+        ({ provider }) => provider.name,
+      ),
+      previously_used_count: quotesByPriceWithoutError.filter(({ provider }) =>
         ordersProviders.includes(provider.id),
       ).length,
     };
@@ -266,7 +230,7 @@ function Quotes() {
     }
   }, [
     appConfig.POLLING_CYCLES,
-    filteredQuotes,
+    quotesByPriceWithoutError,
     isBuy,
     ordersProviders,
     params.amount,
@@ -318,7 +282,7 @@ function Quotes() {
         const payload = {
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           quote_position: index + 1,
-          results_count: filteredQuotes.length,
+          results_count: quotesByPriceWithoutError.length,
           payment_method_id: selectedPaymentMethodId as string,
           total_fee: totalFee,
           gas_fee: quote.networkFee ?? 0,
@@ -392,7 +356,7 @@ function Quotes() {
       isBuy,
       appConfig.POLLING_CYCLES,
       callbackBaseUrl,
-      filteredQuotes.length,
+      quotesByPriceWithoutError.length,
       navigation,
       params,
       pollingCyclesLeft,
@@ -431,14 +395,14 @@ function Quotes() {
       !isInPolling &&
       !ErrorFetchingQuotes &&
       !isFetchingQuotes &&
-      filteredQuotes?.length
+      quotesByPriceWithoutError?.length
     ) {
       setFirstFetchCompleted(true);
       setIsInPolling(true);
     }
   }, [
     ErrorFetchingQuotes,
-    filteredQuotes,
+    quotesByPriceWithoutError,
     firstFetchCompleted,
     isFetchingQuotes,
     isInPolling,
@@ -469,11 +433,12 @@ function Quotes() {
   }, [isFetchingQuotes]);
 
   useEffect(() => {
-    if (quotes && !isFetchingQuotes && pollingCyclesLeft >= 0) {
-      const quotesWithoutError = filteredQuotes as (
-        | QuoteResponse
-        | SellQuoteResponse
-      )[];
+    if (
+      quotesWithoutError &&
+      quotesWithError &&
+      !isFetchingQuotes &&
+      pollingCyclesLeft >= 0
+    ) {
       if (quotesWithoutError.length > 0) {
         const totals = quotesWithoutError.reduce(
           (acc, curr) => {
@@ -558,52 +523,55 @@ function Quotes() {
         }
       }
 
-      (quotes as (QuoteResponse | SellQuoteResponse | QuoteError)[])
-        .filter((quote): quote is QuoteError => Boolean(quote.error))
-        .forEach((quoteError) => {
-          const payload = {
-            amount: params.amount,
-            payment_method_id: selectedPaymentMethodId as string,
-            error_message: quoteError.message,
-          };
-          if (isBuy) {
-            trackEvent('ONRAMP_QUOTE_ERROR', {
-              ...payload,
-              currency_source: params.fiatCurrency?.symbol,
-              currency_destination: params.asset?.symbol,
-              provider_onramp: quoteError.provider.name,
-              chain_id_destination: selectedChainId,
-            });
-          } else {
-            trackEvent('OFFRAMP_QUOTE_ERROR', {
-              ...payload,
-              currency_destination: params.fiatCurrency?.symbol,
-              currency_source: params.asset?.symbol,
-              provider_offramp: quoteError.provider.name,
-              chain_id_source: selectedChainId,
-            });
-          }
-        });
+      quotesWithError.forEach((quoteError) => {
+        const payload = {
+          amount: params.amount,
+          payment_method_id: selectedPaymentMethodId as string,
+          error_message: quoteError.message,
+        };
+        if (isBuy) {
+          trackEvent('ONRAMP_QUOTE_ERROR', {
+            ...payload,
+            currency_source: params.fiatCurrency?.symbol,
+            currency_destination: params.asset?.symbol,
+            provider_onramp: quoteError.provider.name,
+            chain_id_destination: selectedChainId,
+          });
+        } else {
+          trackEvent('OFFRAMP_QUOTE_ERROR', {
+            ...payload,
+            currency_destination: params.fiatCurrency?.symbol,
+            currency_source: params.asset?.symbol,
+            provider_offramp: quoteError.provider.name,
+            chain_id_source: selectedChainId,
+          });
+        }
+      });
     }
   }, [
     appConfig.POLLING_CYCLES,
-    filteredQuotes,
+    quotesByPriceWithoutError,
     isBuy,
     isFetchingQuotes,
     params,
     pollingCyclesLeft,
-    quotes,
     rampType,
     selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
+    quotesWithError,
+    quotesWithoutError,
   ]);
 
   useEffect(() => {
-    if (filteredQuotes && filteredQuotes.length > 0) {
-      setProviderId(filteredQuotes[0].provider?.id);
+    if (quotesByPriceWithoutError && quotesByPriceWithoutError.length > 0) {
+      if (isExpanded) {
+        setProviderId(quotesByPriceWithoutError[0].provider?.id);
+      } else if (recommendedQuote) {
+        setProviderId(recommendedQuote.provider?.id);
+      }
     }
-  }, [filteredQuotes]);
+  }, [isExpanded, quotesByPriceWithoutError, recommendedQuote]);
 
   if (sdkError) {
     if (!isExpanded) {
@@ -710,7 +678,7 @@ function Quotes() {
   }
 
   // No providers available
-  if (!isFetchingQuotes && filteredQuotes.length === 0) {
+  if (!isFetchingQuotes && quotesByPriceWithoutError.length === 0) {
     if (!isExpanded) {
       return (
         <BottomSheet>
@@ -752,7 +720,7 @@ function Quotes() {
     return (
       <BottomSheet ref={bottomSheetRef}>
         <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)}>
-          {strings('fiat_on_ramp_aggregator.select_a_quote')}
+          {strings('fiat_on_ramp_aggregator.recommended_quote')}
         </BottomSheetHeader>
 
         {isInPolling && (
@@ -765,31 +733,29 @@ function Quotes() {
         <ScreenLayout.Content style={styles.withoutTopPadding}>
           <ScrollView testID={QuoteSelectors.QUOTES}>
             {isFetchingQuotes && isInPolling ? (
-              <LoadingQuotes count={2} />
-            ) : (
-              highlightedQuotes.map((quote, index) => (
-                <Row key={quote.provider.id}>
-                  <Quote
-                    isLoading={isQuoteLoading}
-                    previouslyUsedProvider={ordersProviders.includes(
-                      quote.provider.id,
-                    )}
-                    quote={quote}
-                    onPress={() => handleOnQuotePress(quote)}
-                    onPressCTA={() => handleOnPressCTA(quote, index)}
-                    highlighted={quote.provider.id === providerId}
-                    showInfo={() => handleInfoPress(quote)}
-                    rampType={rampType}
-                  />
-                </Row>
-              ))
-            )}
+              <LoadingQuotes count={1} />
+            ) : recommendedQuote ? (
+              <Row key={recommendedQuote.provider.id}>
+                <Quote
+                  isLoading={isQuoteLoading}
+                  previouslyUsedProvider={ordersProviders.includes(
+                    recommendedQuote.provider.id,
+                  )}
+                  quote={recommendedQuote}
+                  onPress={() => handleOnQuotePress(recommendedQuote)}
+                  onPressCTA={() => handleOnPressCTA(recommendedQuote, 0)}
+                  highlighted={recommendedQuote.provider.id === providerId}
+                  showInfo={() => handleInfoPress(recommendedQuote)}
+                  rampType={rampType}
+                />
+              </Row>
+            ) : null}
           </ScrollView>
         </ScreenLayout.Content>
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Vertical}
           buttonPropsArray={
-            expandedCount > 0
+            quotesByPriceWithoutError.length > 1
               ? [
                   {
                     accessible: true,
@@ -892,40 +858,21 @@ function Quotes() {
               {isFetchingQuotes && isInPolling ? (
                 <LoadingQuotes />
               ) : (
-                filteredQuotes.map((quote, index) => (
-                  <Fragment key={quote.provider.id}>
-                    {index === HIGHLIGHTED_QUOTES_COUNT &&
-                      expandedCount > 0 && (
-                        <Row>
-                          <Text variant={TextVariant.BodyLGMedium}>
-                            {expandedCount === 1
-                              ? strings(
-                                  'fiat_on_ramp_aggregator.one_more_option',
-                                )
-                              : strings(
-                                  'fiat_on_ramp_aggregator.more_options',
-                                  {
-                                    count: expandedCount,
-                                  },
-                                )}
-                          </Text>
-                        </Row>
+                quotesByPriceWithoutError.map((quote, index) => (
+                  <Row key={quote.provider.id}>
+                    <Quote
+                      isLoading={isQuoteLoading}
+                      previouslyUsedProvider={ordersProviders.includes(
+                        quote.provider.id,
                       )}
-                    <Row>
-                      <Quote
-                        isLoading={isQuoteLoading}
-                        previouslyUsedProvider={ordersProviders.includes(
-                          quote.provider.id,
-                        )}
-                        quote={quote}
-                        onPress={() => handleOnQuotePress(quote)}
-                        onPressCTA={() => handleOnPressCTA(quote, index)}
-                        highlighted={quote.provider.id === providerId}
-                        showInfo={() => handleInfoPress(quote)}
-                        rampType={rampType}
-                      />
-                    </Row>
-                  </Fragment>
+                      quote={quote}
+                      onPress={() => handleOnQuotePress(quote)}
+                      onPressCTA={() => handleOnPressCTA(quote, index)}
+                      highlighted={quote.provider.id === providerId}
+                      showInfo={() => handleInfoPress(quote)}
+                      rampType={rampType}
+                    />
+                  </Row>
                 ))
               )}
             </ScreenLayout.Content>
