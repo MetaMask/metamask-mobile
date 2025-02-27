@@ -223,6 +223,12 @@ import {
   type BridgeControllerEvents,
   type BridgeControllerState,
 } from '@metamask/bridge-controller';
+import type {
+  BridgeStatusController,
+  BridgeStatusControllerActions,
+  BridgeStatusControllerEvents,
+  BridgeStatusControllerState,
+} from '@metamask/bridge-status-controller';
 
 /**
  * Controllers that area always instantiated
@@ -301,7 +307,8 @@ type GlobalActions =
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
   | MultichainNetworkControllerActions
-  | BridgeControllerActions;
+  | BridgeControllerActions
+  | BridgeStatusControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -345,7 +352,8 @@ type GlobalEvents =
   | TokenSearchDiscoveryControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
-  | BridgeControllerEvents;
+  | BridgeControllerEvents
+  | BridgeStatusControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -418,6 +426,7 @@ export type Controllers = {
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
+  BridgeStatusController: BridgeStatusController;
 };
 
 /**
@@ -476,6 +485,7 @@ export type EngineState = {
   BridgeController: {
     bridgeState: BridgeControllerState;
   };
+  BridgeStatusController: BridgeStatusControllerState;
 };
 
 /** Controller names */

@@ -235,6 +235,7 @@ import { createMultichainAssetsController } from './controllers/MultichainAssets
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
+import { BridgeStatusController } from '@metamask/bridge-status-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1375,6 +1376,22 @@ export class Engine {
       fetchFn: fetch,
     });
 
+    const bridgeStatusController = new BridgeStatusController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'BridgeStatusController',
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
+          'NetworkController:getState',
+          'TransactionController:getState',
+        ],
+        allowedEvents: [],
+      }),
+      clientId: BridgeClientId.MOBILE,
+      fetchFn: fetch,
+    });
+
     this.context = {
       KeyringController: this.keyringController,
       AccountTrackerController: accountTrackerController,
@@ -1615,6 +1632,7 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
+      BridgeStatusController: bridgeStatusController,
     };
 
     const childControllers = Object.assign({}, this.context);
