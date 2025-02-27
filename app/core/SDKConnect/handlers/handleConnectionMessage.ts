@@ -22,6 +22,7 @@ import {
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 // eslint-disable-next-line
 const { version } = require('../../../../package.json');
 
@@ -51,7 +52,9 @@ export const handleConnectionMessage = async ({
   // Check if message has already been processed
   const rpcQueueManager = connection.rpcQueueManager;
   if (message.id && rpcQueueManager.getId(message.id)) {
-    DevLogger.log(`Connection::onMessage rpcId=${message.id} already processed`);
+    DevLogger.log(
+      `Connection::onMessage rpcId=${message.id} already processed`,
+    );
     return;
   }
 
@@ -208,7 +211,9 @@ export const handleConnectionMessage = async ({
     // wait for accounts to be loaded
     await waitForAsyncCondition({
       fn: async () => {
-        const accounts = await getPermittedAccounts(connection.channelId);
+        const accounts = await getPermittedAccounts(
+          `${PROTOCOLS.METAMASK}://${connection.channelId}`,
+        );
         DevLogger.log(
           `handleConnectionMessage::waitForAsyncCondition channelId=${connection.channelId} accounts`,
           accounts,
@@ -222,7 +227,6 @@ export const handleConnectionMessage = async ({
     connection.backgroundBridge?.onMessage({
       name: 'metamask-provider',
       data: processedRpc,
-      origin: 'sdk',
     });
   }
 

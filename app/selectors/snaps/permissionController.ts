@@ -1,9 +1,34 @@
 import { RootState } from '../../reducers';
 import { memoize } from 'lodash';
-import { SubjectType } from '@metamask/permission-controller';
+import {
+  PermissionConstraint,
+  PermissionControllerState,
+  SubjectType,
+} from '@metamask/permission-controller';
+import { getPermittedAccountsBySubject } from '../../core/Permissions';
+import { createSelector } from 'reselect';
 
 export const selectPermissionControllerState = (state: RootState) =>
-  state.engine.backgroundState.PermissionController;
+  state.engine.backgroundState
+    .PermissionController as PermissionControllerState<PermissionConstraint>;
+
+/**
+ * Returns the permitted accounts for a given subject
+ *
+ * @param subject - The subject to get the permitted accounts for
+ * @returns A selector that returns the permitted accounts for the given subject
+ */
+export const selectPermittedAccounts = (subject: string) =>
+  createSelector(
+    selectPermissionControllerState,
+    (permissionControllerState) => {
+      const permittedAccounts = getPermittedAccountsBySubject(
+        permissionControllerState,
+        subject,
+      );
+      return permittedAccounts;
+    },
+  );
 
 export const selectSubjectMetadataControllerState = (state: RootState) =>
   state.engine.backgroundState.SubjectMetadataController;

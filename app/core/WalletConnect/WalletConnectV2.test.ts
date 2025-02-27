@@ -8,6 +8,7 @@ import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/sessio
 import { SingleEthereumTypes } from '@walletconnect/se-sdk/dist/types';
 import AppConstants from '../AppConstants';
 import StorageWrapper from '../../store/storage-wrapper';
+import { PROTOCOLS } from '../../constants/deeplinks';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -285,7 +286,9 @@ describe('WC2Manager', () => {
         },
         topic: 'test-topic',
       });
-      expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-topic');
+      expect(revokeAllPermissionsSpy).toHaveBeenCalledWith(
+        `${PROTOCOLS.WC}://test-topic`,
+      );
     });
   });
 

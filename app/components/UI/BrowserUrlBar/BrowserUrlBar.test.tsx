@@ -190,7 +190,7 @@ describe('BrowserUrlBar', () => {
       params: {
         hostInfo: {
           metadata: {
-            origin: 'example.com',
+            origin: 'https://example.com',
           },
         },
       },

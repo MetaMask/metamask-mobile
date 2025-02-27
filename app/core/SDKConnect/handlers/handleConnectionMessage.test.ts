@@ -341,7 +341,6 @@ describe('handleConnectionMessage', () => {
       expect(mockBackgroundBridgeOnMessage).toHaveBeenCalledWith({
         name: 'metamask-provider',
         data: processedRpc,
-        origin: 'sdk',
       });
     });
   });
