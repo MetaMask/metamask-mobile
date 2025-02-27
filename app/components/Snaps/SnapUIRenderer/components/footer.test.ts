@@ -65,6 +65,7 @@ describe('footer', () => {
           },
           children: [
             {
+              key: '57fd48ba929aa415dc4c3996c826a75f8686418c77765eb14fad2658efa73d87_1',
               element: 'RNText',
               children: 'Button',
               props: { color: 'inherit' },
