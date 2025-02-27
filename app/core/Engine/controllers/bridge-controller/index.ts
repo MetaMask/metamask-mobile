@@ -32,11 +32,11 @@ export const bridgeControllerInit: ControllerInitFunction<
       transactionParams: TransactionParams;
       chainId: ChainId;
     }) =>
-      await transactionController.getLayer1GasFee({
+      (await transactionController.getLayer1GasFee({
         transactionParams,
         chainId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      })) as any,
     fetchFn: fetch,
   });
 
