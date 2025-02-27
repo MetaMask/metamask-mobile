@@ -578,10 +578,9 @@ export class Engine {
         ],
         allowedActions: [
           'AccountsController:listMultichainAccounts',
-          'SnapController:handleRequest',
+          SnapControllerHandleRequestAction,
           'CurrencyRateController:getState',
           'MultichainAssetsController:getState',
-          SnapControllerHandleRequestAction,
         ],
       });
 

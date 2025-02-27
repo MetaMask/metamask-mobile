@@ -13,4 +13,14 @@ export const setupMultichainAssetsSync = (
       console.log('setupMultichainAssetsSync called with ', state);
     },
   );
+  controllerMessenger.subscribe(
+    'AccountsController:accountAssetListUpdated',
+    (state: unknown) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        'setupMultichainAssetsSync accountAssetListUpdated called with ',
+        state,
+      );
+    },
+  );
 };
