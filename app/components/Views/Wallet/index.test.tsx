@@ -167,7 +167,6 @@ describe('Wallet', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     const wrapper = render(Wallet);
     expect(wrapper.toJSON()).toMatchSnapshot();
-    expect(wrapper.findByText('Account 1')).toBeDefined();
   });
   it('should render scan qr icon', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
