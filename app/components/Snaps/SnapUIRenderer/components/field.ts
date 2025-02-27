@@ -58,8 +58,7 @@ export const field: UIComponentFactory<FieldElement> = ({
           label: e.props.label,
           name: input.props.name,
           form,
-          error: e.props.error !== undefined,
-          helpText: e.props.error,
+          error: e.props.error,
           disabled: child.props.disabled,
         },
         propComponents: {
