@@ -221,6 +221,7 @@ import {
   BridgeController,
   BridgeControllerActions,
   type BridgeControllerEvents,
+  type BridgeControllerState,
 } from '@metamask/bridge-controller';
 
 /**
@@ -266,7 +267,6 @@ type GlobalActions =
   | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
-  | BridgeControllerActions
   | CurrencyRateControllerActions
   | GasFeeControllerActions
   | KeyringControllerActions
@@ -300,7 +300,8 @@ type GlobalActions =
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
-  | MultichainNetworkControllerActions;
+  | MultichainNetworkControllerActions
+  | BridgeControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -309,7 +310,6 @@ type GlobalEvents =
   | SwapsControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
-  | BridgeControllerEvents
   | CurrencyRateControllerEvents
   | GasFeeControllerEvents
   | KeyringControllerEvents
@@ -344,7 +344,8 @@ type GlobalEvents =
   | RemoteFeatureFlagControllerEvents
   | TokenSearchDiscoveryControllerEvents
   | SnapKeyringEvents
-  | MultichainNetworkControllerEvents;
+  | MultichainNetworkControllerEvents
+  | BridgeControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -374,7 +375,6 @@ export type Controllers = {
   AddressBookController: AddressBookController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
-  BridgeController: BridgeController;
   CurrencyRateController: CurrencyRateController;
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
@@ -417,6 +417,7 @@ export type Controllers = {
   MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkController;
+  BridgeController: BridgeController;
 };
 
 /**
@@ -472,6 +473,9 @@ export type EngineState = {
   MultichainAssetsController: MultichainAssetsControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
+  BridgeController: {
+    bridgeState: BridgeControllerState;
+  };
 };
 
 /** Controller names */
@@ -501,7 +505,7 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize = 'AccountsController' | 'BridgeController';
+export type ControllersToInitialize = 'AccountsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
