@@ -56,6 +56,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerStateChangeEvent,
   RatesControllerStateChangeEvent,
+  'MultichainAssetsRatesController:stateChange',
   // TODO: Export this from the assets controller
   'MultichainAssetsController:stateChange',
   ///: END:ONLY_INCLUDE_IF
