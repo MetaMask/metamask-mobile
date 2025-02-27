@@ -20,7 +20,7 @@ describe('BlockaidAlertContent', () => {
     origin: 'https://example.com',
     method: 'eth_sign',
     params: ['param1', 'param2'],
-  }
+  };
   const mockSecurityAlertResponse: SecurityAlertResponse = {
     result_type: BlockaidResultType.Malicious,
     reason: Reason.other,
@@ -66,8 +66,8 @@ describe('BlockaidAlertContent', () => {
     expect(queryByText('• Detail 1')).toBeDefined();
     expect(queryByText('• Detail 2')).toBeDefined();
     act(() => {
-    fireEvent.press(accordionTitle);
-  });
+      fireEvent.press(accordionTitle);
+    });
     expect(queryByText('• Detail 1')).toBeNull();
     expect(queryByText('• Detail 2')).toBeNull();
   });
@@ -116,5 +116,41 @@ describe('BlockaidAlertContent', () => {
     });
 
     expect(mockOnContactUsClicked).toHaveBeenCalled();
+  });
+
+  it('does not generate report URL if req or chainId is missing', async () => {
+    const mockSecurityAlertResponseWithoutReq: SecurityAlertResponse = {
+      ...mockSecurityAlertResponse,
+      req: null,
+    } as unknown as SecurityAlertResponse;
+
+    render(
+      <BlockaidAlertContent
+        alertDetails={ALERT_DETAILS_MOCK}
+        securityAlertResponse={mockSecurityAlertResponseWithoutReq}
+        onContactUsClicked={mockOnContactUsClicked}
+      />
+    );
+
+    await waitFor(() => {
+      expect(deflate).not.toHaveBeenCalled();
+    });
+
+    const mockSecurityAlertResponseWithoutChainId: SecurityAlertResponse = {
+      ...mockSecurityAlertResponse,
+      chainId: null,
+    } as unknown as SecurityAlertResponse;
+
+    render(
+      <BlockaidAlertContent
+        alertDetails={ALERT_DETAILS_MOCK}
+        securityAlertResponse={mockSecurityAlertResponseWithoutChainId}
+        onContactUsClicked={mockOnContactUsClicked}
+      />
+    );
+
+    await waitFor(() => {
+      expect(deflate).not.toHaveBeenCalled();
+    });
   });
 });

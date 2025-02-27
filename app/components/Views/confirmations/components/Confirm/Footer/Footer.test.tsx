@@ -10,7 +10,6 @@ import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareCo
 // eslint-disable-next-line import/no-namespace
 import * as LedgerContext from '../../../context/LedgerContext/LedgerContext';
 import Footer from './index';
-// import ConfirmAlertModal from '../../../AlertSystem/ConfirmAlertModal';
 import { useAlerts } from '../../../AlertSystem/context';
 import { useAlertsConfirmed } from '../../../../../hooks/useAlertsConfirmed';
 import { Severity } from '../../../types/alerts';
@@ -215,6 +214,28 @@ describe('Footer', () => {
       });
 
       expect(mockConfirmSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      { fieldAlertsCount: 2, expectedText: 'Review alerts' },
+      { fieldAlertsCount: 1, expectedText: 'Review alert' },
+    ])('renders button label "$expectedText" when there are $fieldAlertsCount field alerts', async ({ fieldAlertsCount, expectedText }) => {
+      const fieldAlerts = Array(fieldAlertsCount).fill(mockAlerts[0]);
+
+      (useAlerts as jest.Mock).mockReturnValue({
+        ...baseMockUseAlerts,
+        fieldAlerts,
+      });
+      (useAlertsConfirmed as jest.Mock).mockReturnValue({
+        ...baseMockUseAlertsConfirmed,
+        hasUnconfirmedDangerAlerts: true,
+      });
+
+      const { getByText } = renderWithProvider(<Footer />, {
+        state: personalSignatureConfirmationState,
+      });
+
+      expect(getByText(expectedText)).toBeDefined();
     });
   });
 });

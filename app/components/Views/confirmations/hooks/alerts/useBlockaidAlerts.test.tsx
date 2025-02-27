@@ -83,7 +83,16 @@ describe('useBlockaidAlerts', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('returns an alert when there is a valid security alert response', () => {
+  it.each`
+    resultType                    | expectedSeverity     | description
+    ${BlockaidResultType.Malicious} | ${Severity.Danger}    | ${'Malicious result type'}
+    ${BlockaidResultType.Warning}   | ${Severity.Warning}   | ${'Warning result type'}
+    ${'unknown'}                    | ${Severity.Info}      | ${'default result type'}
+  `('returns an alert when there is a valid security alert response with $description', ({ resultType, expectedSeverity }) => {
+    (useSecurityAlertResponse as jest.Mock).mockReturnValue({
+      securityAlertResponse: { ...mockSecurityAlertResponse, result_type: resultType },
+    });
+
     const { result } = renderHook(() => useBlockaidAlerts());
 
     expect(result.current).toHaveLength(1);
@@ -91,7 +100,7 @@ describe('useBlockaidAlerts', () => {
       key: RowAlertKey.Blockaid,
       content: expect.any(Object),
       title: 'This is a deceptive request',
-      severity: Severity.Danger,
+      severity: expectedSeverity,
     });
   });
 
