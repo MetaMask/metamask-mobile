@@ -146,6 +146,10 @@ import {
   SnapInterfaceController,
   SnapsRegistryActions,
   SnapsRegistryEvents,
+  CronjobControllerState,
+  CronjobControllerEvents,
+  CronjobControllerActions,
+  CronjobController,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -285,6 +289,7 @@ type GlobalActions =
   | RatesControllerActions
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
+  | CronjobControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -326,6 +331,7 @@ type GlobalEvents =
   | RatesControllerEvents
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
+  | CronjobControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -414,6 +420,7 @@ export type Controllers = {
   MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
+  CronjobController: CronjobController;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkController;
 };
@@ -470,6 +477,7 @@ export type EngineState = {
   RatesController: RatesControllerState;
   MultichainAssetsController: MultichainAssetsControllerState;
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
+  CronjobController: CronjobControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
 };

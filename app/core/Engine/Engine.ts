@@ -232,6 +232,7 @@ import { createMultichainAssetsController } from './controllers/MultichainAssets
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
 import { createMultichainAssetsRatesController } from './controllers/MultichainAssetsRatesController/utils';
 import { setupMultichainAssetsSync } from './controllers/MultichainAssetsController/subscriptions';
+import { createCronJobController } from './controllers/CronJobController/utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -413,7 +414,9 @@ export class Engine {
           'AccountsController:accountBalancesUpdated',
         ],
         allowedActions: [
+          'PermissionController:getPermissions',
           'AccountsController:listMultichainAccounts',
+          'SnapController:getAll',
           SnapControllerHandleRequestAction,
         ],
       });
@@ -463,6 +466,27 @@ export class Engine {
     );
 
     setupMultichainAssetsSync(multichainAssetsControllerMessenger);
+
+    const cronjobControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'CronjobController',
+      allowedEvents: [
+        'SnapController:snapInstalled',
+        'SnapController:snapUpdated',
+        'SnapController:snapUninstalled',
+        'SnapController:snapEnabled',
+        'SnapController:snapDisabled',
+      ],
+      allowedActions: [
+        `PermissionController:getPermissions`,
+        'SnapController:handleRequest',
+        'SnapController:getAll',
+      ],
+    });
+
+    const cronjobController = createCronJobController(
+      cronjobControllerMessenger,
+      initialState.CronjobController,
+    );
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
@@ -581,6 +605,7 @@ export class Engine {
           SnapControllerHandleRequestAction,
           'CurrencyRateController:getState',
           'MultichainAssetsController:getState',
+          'CurrencyRateController:getState',
         ],
       });
 
@@ -833,6 +858,7 @@ export class Engine {
           target,
         ),
       getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
+      getIsLocked: () => AppState.currentState !== 'active',
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -1149,7 +1175,6 @@ export class Engine {
         allowedActions: [
           'KeyringController:getState',
           'KeyringController:getAccounts',
-
           SnapControllerHandleRequestAction,
           'UserStorageController:enableProfileSyncing',
         ],
@@ -1613,6 +1638,7 @@ export class Engine {
       RatesController: multichainRatesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
+      CronjobController: cronjobController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController: multichainNetworkController,
     };

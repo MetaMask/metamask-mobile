@@ -16,6 +16,7 @@ import {
   SnapControllerGetSnapFileAction,
   SnapControllerInstallSnapsAction,
 } from '../Engine/controllers/SnapController/constants';
+import { AppState } from 'react-native';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -129,6 +130,7 @@ const snapMethodMiddlewareBuilder = (
       engineContext.ApprovalController.addAndShowApprovalRequest.bind(
         engineContext.ApprovalController,
       ),
+    getIsLocked: () => AppState.currentState !== 'active',
   });
 
 export default snapMethodMiddlewareBuilder;
