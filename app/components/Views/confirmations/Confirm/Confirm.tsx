@@ -32,10 +32,10 @@ const ConfirmWrapped = ({
       <Title />
       <ScrollView style={styles.scrollView}>
         <TouchableWithoutFeedback testID={testID}>
-          <View>
+          <>
             <SignatureBlockaidBanner />
             <Info />
-          </View>
+          </>
         </TouchableWithoutFeedback>
       </ScrollView>
       <Footer />
