@@ -130,6 +130,7 @@ interface RampProviderSelected {
   amount: number | string;
   is_most_reliable: boolean;
   is_best_rate: boolean;
+  is_recommended: boolean;
 }
 
 interface OnRampProviderSelected extends RampProviderSelected {

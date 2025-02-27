@@ -138,7 +138,6 @@ let mockUseSortedQuotesValues: Partial<ReturnType<typeof useSortedQuotes>> = {
   ...mockUseSortedQuotesInitialValues,
 };
 
-
 jest.mock('../../hooks/useSortedQuotes', () =>
   jest.fn(() => mockUseSortedQuotesValues),
 );
@@ -367,6 +366,7 @@ describe('Quotes', () => {
           "gas_fee": 2.64,
           "is_best_rate": true,
           "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_onramp": "MoonPay (Staging)",
@@ -399,6 +399,7 @@ describe('Quotes', () => {
           "gas_fee": 2.64,
           "is_best_rate": true,
           "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_offramp": "MoonPay (Staging)",
@@ -437,6 +438,7 @@ describe('Quotes', () => {
           "gas_fee": 2.64,
           "is_best_rate": true,
           "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_onramp": "MoonPay (Staging)",
@@ -469,6 +471,7 @@ describe('Quotes', () => {
           "gas_fee": 2.64,
           "is_best_rate": true,
           "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_offramp": "MoonPay (Staging)",

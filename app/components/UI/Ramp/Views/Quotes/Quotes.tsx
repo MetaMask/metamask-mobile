@@ -292,6 +292,8 @@ function Quotes() {
           amount: params.amount,
           is_most_reliable: quote.tags.isMostReliable,
           is_best_rate: quote.tags.isBestRate,
+          is_recommended:
+            !isExpanded && quote.provider.id === recommendedQuote?.provider.id,
         };
 
         if (isBuy) {
