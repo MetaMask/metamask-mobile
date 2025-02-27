@@ -1,39 +1,74 @@
-import { TransactionType } from '@metamask/transaction-controller';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Linking, View } from 'react-native';
+import { TransactionType } from '@metamask/transaction-controller';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
+import AppConstants from '../../../../../../core/AppConstants';
+import { useStyles } from '../../../../../../component-library/hooks';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../../component-library/hooks';
-import AppConstants from '../../../../../../core/AppConstants';
-import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
+import { useAlerts } from '../../../AlertSystem/context';
+import ConfirmAlertModal from '../../../AlertSystem/ConfirmAlertModal';
+import { useAlertsConfirmed } from '../../../../../hooks/useAlertsConfirmed';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useLedgerContext } from '../../../context/LedgerContext';
+import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
 
 const Footer = () => {
+  const { fieldAlerts, hasDangerAlerts } = useAlerts();
+  const { hasUnconfirmedDangerAlerts } = useAlertsConfirmed(fieldAlerts);
   const { onConfirm, onReject } = useConfirmActions();
-  const { isQRSigningInProgress, needsCameraPermission } =
-    useQRHardwareContext();
+  const { isQRSigningInProgress, needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const { isLedgerAccount } = useLedgerContext();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
+
   const isStakingConfirmation = [
     TransactionType.stakingDeposit,
     TransactionType.stakingUnstake,
     TransactionType.stakingClaim,
   ].includes(transactionMetadata?.type as TransactionType);
+
+  const [confirmAlertModalVisible, setConfirmAlertModalVisible] = useState(false);
+
+    const showConfirmAlertModal = useCallback(() => {
+      setConfirmAlertModalVisible(true);
+    }, []);
+
+    const hideConfirmAlertModal = useCallback(() => {
+      setConfirmAlertModalVisible(false);
+    }, []);
+
+    const onHandleReject = useCallback(async () => {
+      hideConfirmAlertModal();
+      await onReject();
+    }, [hideConfirmAlertModal, onReject]);
+
+    const onHandleConfirm = useCallback(async () => {
+      hideConfirmAlertModal();
+      await onConfirm();
+    }, [hideConfirmAlertModal, onConfirm]);
+
+  const onSignConfirm = useCallback(async () => {
+    if (hasDangerAlerts && !hasUnconfirmedDangerAlerts) {
+      showConfirmAlertModal();
+      return;
+    }
+    await onConfirm();
+  }, [hasDangerAlerts, hasUnconfirmedDangerAlerts, onConfirm, showConfirmAlertModal]);
+
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,
     isStakingConfirmation,
@@ -46,11 +81,29 @@ const Footer = () => {
     if (isLedgerAccount) {
       return strings('confirm.sign_with_ledger');
     }
+    if (hasUnconfirmedDangerAlerts) {
+      return fieldAlerts.length > 1 ? strings('alert_system.review_alerts') : strings('alert_system.review_alert');
+    }
     return strings('confirm.confirm');
-  }, [isLedgerAccount, isQRSigningInProgress]);
+  }, [isQRSigningInProgress, isLedgerAccount, hasUnconfirmedDangerAlerts, fieldAlerts.length]);
+
+  const getStartIcon = useMemo(() => {
+    if (hasUnconfirmedDangerAlerts) {
+      return IconName.SecuritySearch;
+    }
+    if (hasDangerAlerts) {
+      return IconName.Danger;
+    }
+  }, [hasUnconfirmedDangerAlerts, hasDangerAlerts]);
 
   return (
-    <View>
+    <>
+      {confirmAlertModalVisible && (
+        <ConfirmAlertModal
+          onReject={onHandleReject}
+          onConfirm={onHandleConfirm}
+        />
+      )}
       <View style={styles.buttonsContainer}>
         <Button
           onPress={onReject}
@@ -63,14 +116,15 @@ const Footer = () => {
         />
         <View style={styles.buttonDivider} />
         <Button
-          onPress={onConfirm}
+          onPress={onSignConfirm}
           label={confirmButtonLabel}
           style={styles.confirmButton}
           size={ButtonSize.Lg}
           testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
           variant={ButtonVariants.Primary}
           width={ButtonWidthTypes.Full}
-          isDanger={securityAlertResponse?.result_type === ResultType.Malicious}
+          isDanger={securityAlertResponse?.result_type === ResultType.Malicious || hasDangerAlerts}
+          startIconName={getStartIcon}
           disabled={confirmDisabled}
         />
       </View>
@@ -103,7 +157,7 @@ const Footer = () => {
           </Text>
         </View>
       )}
-    </View>
+    </>
   );
 };
 
