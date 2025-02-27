@@ -988,7 +988,7 @@ class DrawerView extends PureComponent {
     // Wrap the toggle call in a setTimeout to avoid awaiting a non-promise function.
     setTimeout(() => {
       toggleInfoNetworkModal();
-    }, 0);
+    }, 100);
   };
 
   renderProtectModal = () => {
