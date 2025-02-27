@@ -230,6 +230,7 @@ import { createMultichainAssetsController } from './controllers/MultichainAssets
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
 import { createMultichainAssetsRatesController } from './controllers/MultichainAssetsRatesController/utils';
+import { setupMultichainAssetsSync } from './controllers/MultichainAssetsController/subscriptions';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -408,8 +409,12 @@ export class Engine {
           'AccountsController:accountAdded',
           'AccountsController:accountRemoved',
           'AccountsController:accountAssetListUpdated',
+          'AccountsController:accountBalancesUpdated',
         ],
-        allowedActions: ['AccountsController:listMultichainAccounts'],
+        allowedActions: [
+          'AccountsController:listMultichainAccounts',
+          SnapControllerHandleRequestAction,
+        ],
       });
 
     const multichainAssetsController = createMultichainAssetsController({
@@ -455,6 +460,8 @@ export class Engine {
       multichainRatesControllerMessenger,
       multichainRatesController,
     );
+
+    setupMultichainAssetsSync(multichainAssetsControllerMessenger);
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
@@ -573,6 +580,7 @@ export class Engine {
           'SnapController:handleRequest',
           'CurrencyRateController:getState',
           'MultichainAssetsController:getState',
+          SnapControllerHandleRequestAction,
         ],
       });
 
