@@ -91,7 +91,8 @@ export function useDisplayNames(
 
     const image = erc20Token?.image || nftCollectionImage;
 
-    const isFirstPartyContractName = firstPartyContractName !== undefined;
+    const isFirstPartyContractName = firstPartyContractName !== undefined &&
+      firstPartyContractName !== null;
 
     return {
       contractDisplayName: erc20Token?.name,
@@ -100,7 +101,7 @@ export function useDisplayNames(
       variant: name
         ? DisplayNameVariant.Recognized
         : DisplayNameVariant.Unknown,
-      isFirstPartyContractName,
+      isFirstPartyContractName
     };
   });
 }

@@ -103,6 +103,8 @@ interface OnRampQuotesReceived extends RampQuotesReceived {
   provider_onramp_list: string[];
   provider_onramp_first: string;
   provider_onramp_last?: string;
+  provider_onramp_most_reliable?: string;
+  provider_onramp_best_price?: string;
 }
 interface OffRampQuotesReceived extends RampQuotesReceived {
   average_fiat_out: number;
@@ -110,6 +112,8 @@ interface OffRampQuotesReceived extends RampQuotesReceived {
   provider_offramp_list: string[];
   provider_offramp_first: string;
   provider_offramp_last?: string;
+  provider_offramp_most_reliable?: string;
+  provider_offramp_best_price?: string;
 }
 
 interface RampProviderSelected {
@@ -124,6 +128,9 @@ interface RampProviderSelected {
   processing_fee: number;
   exchange_rate: number;
   amount: number | string;
+  is_most_reliable: boolean;
+  is_best_rate: boolean;
+  is_recommended: boolean;
 }
 
 interface OnRampProviderSelected extends RampProviderSelected {
