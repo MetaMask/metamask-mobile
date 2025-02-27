@@ -25,8 +25,8 @@ const mockProps = {
   label: 'Update payment method',
   icon: <Image source={{ uri: 'https://example.com/icon.png' }} />,
   paymentMethodIcons: [
-    'https://on-ramp-content.api.cx.metamask.io/assets/Visa-regular@3x.png',
-    'https://on-ramp-content.api.cx.metamask.io/assets/Mastercard-regular@3x.png',
+    'https://on-ramp-content-uat.api.cx.metamask.io/assets/Visa-regular@3x.png',
+    'https://on-ramp-content-uat.api.cx.metamask.io/assets/Mastercard-regular@3x.png',
   ],
 };
 
