@@ -58,7 +58,6 @@ export const container: UIComponentFactory<BoxElement> = ({
         children: content,
         props: {
           style: {
-            // flex: 1,
             marginBottom: useFooter && footer ? 80 : 0,
           },
         },

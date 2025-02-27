@@ -73,11 +73,6 @@ const SnapUIRendererComponent = ({
     return <ActivityIndicator size="large" color={Colors.primary} />;
   }
 
-  const contentBox = sections?.children?.[0];
-  const footer = sections?.children?.[1];
-
-  const hasFooter = onCancel || content?.props?.children?.[1] !== undefined;
-
   const { state: initialState, context } = interfaceState;
   return (
     <Box style={styles.root}>
