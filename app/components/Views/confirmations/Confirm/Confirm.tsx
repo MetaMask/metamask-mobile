@@ -17,6 +17,7 @@ import Title from '../components/Confirm/Title';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import useApprovalRequest from '../hooks/useApprovalRequest';
+import { useConfirmActions } from '../hooks/useConfirmActions';
 import styleSheet from './Confirm.styles';
 
 const ConfirmWrapped = ({
@@ -46,6 +47,7 @@ export const Confirm = () => {
   const { approvalRequest } = useApprovalRequest();
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
+  const { onReject } = useConfirmActions();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -64,6 +66,7 @@ export const Confirm = () => {
   return (
     <BottomSheet
       isInteractable={false}
+      onClose={onReject}
       style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >
