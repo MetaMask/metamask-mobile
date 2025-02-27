@@ -16,7 +16,7 @@ import {
   Card,
   Image as ImageComponent,
 } from '@metamask/snaps-sdk/jsx';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { SnapUIRenderer } from './SnapUIRenderer';
 import Engine from '../../../core/Engine/Engine';
@@ -161,12 +161,14 @@ function renderInterface(
     newContent: JSXElement,
     newState: FormState | null = null,
   ) => {
-    store.dispatch({
-      type: 'updateInterface',
-      payload: {
-        content: newContent,
-        state: newState,
-      },
+    act(() => {
+      store.dispatch({
+        type: 'updateInterface',
+        payload: {
+          content: newContent,
+          state: newState,
+        },
+      });
     });
   };
 
@@ -215,7 +217,7 @@ describe('SnapUIRenderer', () => {
   it('adds a footer if required', () => {
     const { toJSON, getByText } = renderInterface(
       Container({
-        children: [Box({ children: Text({ children: 'Hello world!' }) })],
+        children: Box({ children: Text({ children: 'Hello world!' }) }),
       }),
       { useFooter: true },
     );
