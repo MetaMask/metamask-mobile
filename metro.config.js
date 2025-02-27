@@ -34,7 +34,7 @@ module.exports = function (baseConfig) {
       getTransformOptions: async () => ({
         transform: {
           experimentalImportSupport: true,
-          inlineRequires: true,
+          inlineRequires: false,
         },
       }),
     },
