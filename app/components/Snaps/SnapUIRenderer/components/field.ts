@@ -3,10 +3,12 @@ import {
   InputElement,
   JSXElement,
   CheckboxElement,
+  SelectorElement,
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
 import { checkbox as checkboxFn } from './checkbox';
+import { selector as selectorFn } from './selector';
 import { UIComponentFactory, UIComponentParams } from './types';
 
 export const field: UIComponentFactory<FieldElement> = ({
@@ -58,8 +60,7 @@ export const field: UIComponentFactory<FieldElement> = ({
           label: e.props.label,
           name: input.props.name,
           form,
-          error: e.props.error !== undefined,
-          helpText: e.props.error,
+          error: e.props.error,
           disabled: child.props.disabled,
         },
         propComponents: {
@@ -91,6 +92,25 @@ export const field: UIComponentFactory<FieldElement> = ({
         props: {
           ...checkboxMapped.props,
           fieldLabel: e.props.label,
+          form,
+          error: e.props.error,
+          disabled: child.props.disabled,
+        },
+      };
+    }
+
+    case 'Selector': {
+      const selector = child as SelectorElement;
+      const selectorMapped = selectorFn({
+        ...params,
+        element: selector,
+      } as UIComponentParams<SelectorElement>);
+      return {
+        ...selectorMapped,
+        element: 'SnapUISelector',
+        props: {
+          ...selectorMapped.props,
+          label: e.props.label,
           form,
           error: e.props.error,
           disabled: child.props.disabled,
