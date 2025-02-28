@@ -287,13 +287,13 @@ type GlobalActions =
   | UserStorageController.Actions
   | NotificationServicesControllerMessengerActions
   | NotificationServicesPushControllerActions
+  | CronjobControllerActions
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | RatesControllerActions
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
-  | CronjobControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -329,13 +329,13 @@ type GlobalEvents =
   | UserStorageController.Events
   | NotificationServicesControllerMessengerEvents
   | NotificationServicesPushControllerEvents
+  | CronjobControllerEvents
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | RatesControllerEvents
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
-  | CronjobControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -417,6 +417,7 @@ export type Controllers = {
   NotificationServicesController: NotificationServicesController;
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
+  CronjobController: CronjobController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -424,7 +425,6 @@ export type Controllers = {
   MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
-  CronjobController: CronjobController;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkController;
 };
@@ -468,6 +468,7 @@ export type EngineState = {
   NotificationServicesController: NotificationServicesControllerState;
   NotificationServicesPushController: NotificationServicesPushControllerState;
   SnapInterfaceController: SnapInterfaceControllerState;
+  CronjobController: CronjobControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
@@ -481,7 +482,6 @@ export type EngineState = {
   RatesController: RatesControllerState;
   MultichainAssetsController: MultichainAssetsControllerState;
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
-  CronjobController: CronjobControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
 };
