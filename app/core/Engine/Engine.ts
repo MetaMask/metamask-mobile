@@ -192,7 +192,6 @@ import { createMultichainBalancesController } from './controllers/MultichainBala
 import { createMultichainRatesController } from './controllers/RatesController/utils';
 import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
-import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
 import { createMultichainAssetsRatesController } from './controllers/MultichainAssetsRatesController';
 import { createCronJobController } from './controllers/CronJobController';
 ///: END:ONLY_INCLUDE_IF
@@ -230,6 +229,7 @@ import {
   SnapControllerHandleRequestAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
+import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
