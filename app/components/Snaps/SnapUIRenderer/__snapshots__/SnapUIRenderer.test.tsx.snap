@@ -757,7 +757,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       "color": "#141618",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
-                      "fontWeight": "500",
+                      "fontWeight": "600",
                       "justifyContent": "center",
                       "letterSpacing": 0,
                       "lineHeight": 22,
