@@ -18,6 +18,10 @@ const AccountNetworkInfoExpanded = () => {
   const fromAddress = signatureRequest?.messageParams?.from as string;
   const { accountAddress, accountFiatBalance } = useAccountInfo(fromAddress);
   const { multichainBalances } = useMultichainBalances();
+  console.log(
+    'multichainBalances ..........',
+    multichainBalances.isPortfolioVieEnabled,
+  );
   const balanceToDisplay = multichainBalances.isPortfolioVieEnabled
     ? multichainBalances.displayBalance
     : accountFiatBalance;
