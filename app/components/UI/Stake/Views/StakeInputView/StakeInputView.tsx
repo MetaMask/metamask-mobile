@@ -108,10 +108,13 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       return;
     }
 
-    const amount = amountWei.toString();
+    const amountWeiString = amountWei.toString();
 
     if (isStakingDepositRedesignedEnabled) {
-      await attemptDepositTransaction(amount, activeAccount?.address as string);
+      await attemptDepositTransaction(
+        amountWeiString,
+        activeAccount?.address as string,
+      );
       navigation.navigate('StakeScreens', {
         screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
       });
@@ -121,7 +124,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
-        amountWei: amount,
+        amountWei: amountWeiString,
         amountFiat: fiatAmount,
         annualRewardsETH,
         annualRewardsFiat,
