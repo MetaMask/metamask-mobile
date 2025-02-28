@@ -34,7 +34,6 @@ import ButtonLink from '../../../component-library/components/Buttons/Button/var
 import { ButtonSize } from '../../../component-library/components/Buttons/Button';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { isValidMnemonic } from '../../../util/validators';
-import Logger from '../../../util/Logger';
 import useCopyClipboard from '../Notifications/Details/hooks/useCopyClipboard';
 import ClipboardManager from '../../../core/ClipboardManager';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert';
@@ -79,8 +78,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   const [invalidSRPWords, setInvalidSRPWords] = useState<boolean[]>(
     Array(numberOfWords).fill(false),
   );
-
-  Logger.log('secretRecoveryPhrase', secretRecoveryPhrase);
 
   const copyToClipboard = useCopyClipboard();
 
@@ -132,7 +129,6 @@ const ImportNewSecretRecoveryPhrase = () => {
 
   const onSrpChange = useCallback(
     (newDraftSrp: string[]) => {
-      Logger.log('input', newDraftSrp);
       const validateSRP = (phrase: string[], words: boolean[]) => {
         if (!phrase.some((word) => word !== '')) {
           return { error: '', words };
@@ -246,7 +242,6 @@ const ImportNewSecretRecoveryPhrase = () => {
       validationResult = validateMnemonic(validationResult, joinedDraftSrp);
 
       setSecretRecoveryPhrase(newDraftSrp);
-      Logger.log('validationResult', validationResult);
       setSrpError(validationResult.error);
       setInvalidSRPWords(validationResult.words);
     },
@@ -370,7 +365,6 @@ const ImportNewSecretRecoveryPhrase = () => {
                   keyboardAppearance={themeAppearance}
                   value={showPassword ? secretRecoveryPhrase[index] : '***'}
                   onChangeText={(value) => {
-                    Logger.log(value);
                     onSrpWordChange(index, value);
                   }}
                   secureTextEntry={!showPassword}
