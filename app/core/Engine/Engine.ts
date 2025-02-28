@@ -68,7 +68,6 @@ import {
   SnapInterfaceController,
   SnapInterfaceControllerMessenger,
 } from '@metamask/snaps-controllers';
-
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { createWebView, removeWebView } from '../../lib/snaps';
@@ -406,6 +405,7 @@ export class Engine {
     const cronjobController = controllersByName.CronjobController;
     ///: END:ONLY_INCLUDE_IF
 
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainAssetsControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'MultichainAssetsController',
