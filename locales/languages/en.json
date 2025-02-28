@@ -1744,7 +1744,8 @@
     "sign_description_1": "After you have signed with your hardware wallet,",
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature",
-    "network_fee": "Network Fee"
+    "network_fee": "Network Fee",
+    "network_fee_tooltip": "Amount paid to process the transaction on network."
   },
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
@@ -2600,6 +2601,7 @@
     "more_options": "{{count}} more options",
     "previously_used": "Previously used",
     "best_rate": "Best rate",
+    "most_reliable": "Most reliable",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
     "terms_of_service": "Terms of Service",
@@ -2614,6 +2616,7 @@
     "done": "Done",
     "fetching_quotes": "Fetching quotes",
     "select_a_quote": "Select a Quote",
+    "recommended_quote": "Recommended quote",
     "select_a_cryptocurrency": "Select a cryptocurrency",
     "select_a_cryptocurrency_description": "Select from the list of tokens available on {{network}}.",
     "search_by_cryptocurrency": "Search by cryptocurrency",
