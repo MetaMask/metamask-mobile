@@ -290,6 +290,10 @@ function Quotes() {
           exchange_rate:
             ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
           amount: params.amount,
+          is_most_reliable: quote.tags.isMostReliable,
+          is_best_rate: quote.tags.isBestRate,
+          is_recommended:
+            !isExpanded && quote.provider.id === recommendedQuote?.provider.id,
         };
 
         if (isBuy) {
@@ -353,18 +357,22 @@ function Quotes() {
       }
     },
     [
-      isBuy,
       appConfig.POLLING_CYCLES,
-      callbackBaseUrl,
-      quotesByPriceWithoutError.length,
-      navigation,
-      params,
       pollingCyclesLeft,
-      rampType,
-      renderInAppBrowser,
-      selectedChainId,
+      quotesByPriceWithoutError.length,
       selectedPaymentMethodId,
+      params.amount,
+      params.fiatCurrency?.symbol,
+      params.asset?.symbol,
+      isExpanded,
+      recommendedQuote?.provider.id,
+      isBuy,
+      rampType,
       trackEvent,
+      selectedChainId,
+      renderInAppBrowser,
+      callbackBaseUrl,
+      navigation,
     ],
   );
 
@@ -475,6 +483,15 @@ function Quotes() {
           quotesWithoutError.length > 1
             ? quotesWithoutError[quotesWithoutError.length - 1]?.provider?.name
             : undefined;
+
+        const providerMostReliable = quotesWithoutError.find(
+          (quote) => quote.tags.isMostReliable,
+        )?.provider?.name;
+
+        const providerBestPrice = quotesWithoutError.find(
+          (quote) => quote.tags.isBestRate,
+        )?.provider?.name;
+
         const amountList = quotesWithoutError.map(({ amountOut }) => amountOut);
         const amountFirst = quotesWithoutError[0]?.amountOut;
         const amountLast =
@@ -508,6 +525,8 @@ function Quotes() {
             provider_onramp_list: providerList,
             provider_onramp_first: providerFirst,
             provider_onramp_last: providerLast,
+            provider_onramp_most_reliable: providerMostReliable,
+            provider_onramp_best_price: providerBestPrice,
           });
         } else {
           trackEvent('OFFRAMP_QUOTES_RECEIVED', {
@@ -519,6 +538,8 @@ function Quotes() {
             provider_offramp_list: providerList,
             provider_offramp_first: providerFirst,
             provider_offramp_last: providerLast,
+            provider_offramp_most_reliable: providerMostReliable,
+            provider_offramp_best_price: providerBestPrice,
           });
         }
       }
