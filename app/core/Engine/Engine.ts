@@ -499,33 +499,6 @@ export class Engine {
       },
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainAssetsRatesControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'MultichainAssetsRatesController',
-        allowedEvents: [
-          'AccountsController:accountAdded',
-          'KeyringController:lock',
-          'KeyringController:unlock',
-          'CurrencyRateController:stateChange',
-          'MultichainAssetsController:stateChange',
-        ],
-        allowedActions: [
-          'AccountsController:listMultichainAccounts',
-          SnapControllerHandleRequestAction,
-          'CurrencyRateController:getState',
-          'MultichainAssetsController:getState',
-          'CurrencyRateController:getState',
-        ],
-      });
-
-    const multichainAssetsRatesController =
-      createMultichainAssetsRatesController({
-        messenger: multichainAssetsRatesControllerMessenger,
-        initialState: initialState.MultichainAssetsRatesController,
-      });
-    ///: END:ONLY_INCLUDE_IF
-
     const gasFeeController = new GasFeeController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
@@ -1261,6 +1234,32 @@ export class Engine {
       cronjobControllerMessenger,
       initialState.CronjobController,
     );
+
+    const multichainAssetsRatesControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'MultichainAssetsRatesController',
+        allowedEvents: [
+          'AccountsController:accountAdded',
+          'KeyringController:lock',
+          'KeyringController:unlock',
+          'CurrencyRateController:stateChange',
+          'MultichainAssetsController:stateChange',
+        ],
+        allowedActions: [
+          'AccountsController:listMultichainAccounts',
+          SnapControllerHandleRequestAction,
+          'CurrencyRateController:getState',
+          'MultichainAssetsController:getState',
+          'CurrencyRateController:getState',
+        ],
+      });
+
+    const multichainAssetsRatesController =
+      createMultichainAssetsRatesController({
+        messenger: multichainAssetsRatesControllerMessenger,
+        initialState: initialState.MultichainAssetsRatesController,
+      });
+
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
