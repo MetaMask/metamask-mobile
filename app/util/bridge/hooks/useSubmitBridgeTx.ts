@@ -1,7 +1,7 @@
 import useHandleBridgeTx from './useHandleBridgeTx';
 import useHandleApprovalTx from './useHandleApprovalTx';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { QuoteResponse } from '../types';
+import { QuoteResponse } from '../../../components/UI/Bridge/types';
 
 export default function useSubmitBridgeTx() {
   const { handleBridgeTx } = useHandleBridgeTx();

@@ -1,6 +1,7 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import useHandleTx from './useHandleTx';
-import { QuoteResponse, TxData } from '../types';
+import { QuoteResponse } from '../../../components/UI/Bridge/types';
+import { TxData } from '../../../components/UI/Bridge/types';
 
 export const ALLOWANCE_RESET_ERROR = 'Eth USDT allowance reset failed';
 export const APPROVAL_TX_ERROR = 'Approve transaction failed';

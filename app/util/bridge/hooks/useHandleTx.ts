@@ -1,16 +1,16 @@
 import { useSelector } from 'react-redux';
-import { addTransaction, updateTransaction } from '../../../../util/transaction-controller';
-import { selectChainId, selectIsEIP1559Network, selectSelectedNetworkClientId } from '../../../../selectors/networkController';
-import { resetTransaction } from '../../../../actions/transaction';
-import { decGWEIToHexWEI } from '../../../../util/conversions';
-import { getTransaction1559GasFeeEstimates } from '../../Swaps/utils/gas';
-import { addHexPrefix, BNToHex } from '../../../../util/number';
+import { selectChainId, selectIsEIP1559Network, selectSelectedNetworkClientId } from '../../../selectors/networkController';
+import { resetTransaction } from '../../../actions/transaction';
+import { decGWEIToHexWEI } from '../../../util/conversions';
+import { addHexPrefix, BNToHex } from '../../../util/number';
 import { TransactionMeta, TransactionType, WalletDevice } from '@metamask/transaction-controller';
-import { selectGasFeeEstimates } from '../../../../selectors/confirmTransaction';
-import AppConstants from '../../../../core/AppConstants';
-import { TxData } from '../types';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
+import AppConstants from '../../../core/AppConstants';
+import { TxData } from '../../../components/UI/Bridge/types';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import BigNumber from 'bignumber.js';
+import { getTransaction1559GasFeeEstimates } from '../../../components/UI/Swaps/utils/gas';
+import { addTransaction, updateTransaction } from '../../transaction-controller';
 
 type GasEstimatesWithPrice = GasFeeEstimates & {
   gasPrice?: string;
