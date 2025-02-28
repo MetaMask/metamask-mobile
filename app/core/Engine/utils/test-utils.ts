@@ -36,11 +36,8 @@ export function createMockControllerInitFunction<
   return (request) => {
     const { getController } = request;
 
-    try {
-      getController('NetworkController');
-    } catch (error) {
-      // Ignore error in tests
-    }
+    // This will throw an error if NetworkController is not found
+    getController('NetworkController');
 
     return {
       controller: jest.fn() as unknown as T,
