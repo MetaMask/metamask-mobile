@@ -47,3 +47,8 @@ export const selectFlattenedKeyringAccounts = createDeepEqualSelector(
     return flattenedKeyringAccounts;
   },
 );
+
+export const selectHdKeyrings = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings) => keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd),
+);
