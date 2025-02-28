@@ -224,9 +224,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             iconName={IconName.Hardware}
             onPress={openImportSrp}
             disabled={isLoading}
-            testID={
-              AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON
-            }
+            testID={AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON}
           />
         </View>
       </Fragment>
