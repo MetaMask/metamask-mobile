@@ -482,9 +482,7 @@ export type EngineState = {
   MultichainAssetsController: MultichainAssetsControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
-  BridgeController: {
-    bridgeState: BridgeControllerState;
-  };
+  BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
 };
 
