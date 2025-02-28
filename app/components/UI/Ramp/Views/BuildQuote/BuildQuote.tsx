@@ -80,13 +80,13 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
-const TRANSFER_GAS_LIMIT = 21000;
 interface BuildQuoteParams {
   showBack?: boolean;
 }
@@ -197,9 +197,18 @@ const BuildQuote = () => {
     currentFiatCurrency,
   );
 
+  const gasLimitEstimation = useERC20GasLimitEstimation({
+    tokenAddress: selectedAsset?.address,
+    fromAddress: selectedAddress,
+    chainId: selectedChainId,
+    amount,
+    decimals: selectedAsset?.decimals ?? 18, // Default ERC20 decimals
+    isNativeToken: selectedAsset?.address === NATIVE_ADDRESS,
+  });
+
   const gasPriceEstimation = useGasPriceEstimation({
     // 0 is set when buying since there's no transaction involved
-    gasLimit: isBuy ? 0 : TRANSFER_GAS_LIMIT,
+    gasLimit: isBuy ? 0 : gasLimitEstimation,
     estimateRange: 'high',
   });
 
@@ -830,14 +839,22 @@ const BuildQuote = () => {
               )}
             {hasInsufficientBalance && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error} testID={BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR}
+                >
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
                 </Text>
               </Row>
             )}
             {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error} testID={BuildQuoteSelectors.MIN_LIMIT_ERROR}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.MIN_LIMIT_ERROR}
+                >
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.minimum')}{' '}
@@ -852,7 +869,11 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && amountIsAboveMaximum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error} testID={BuildQuoteSelectors.MAX_LIMIT_ERROR}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.MAX_LIMIT_ERROR}
+                >
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.maximum')}{' '}
