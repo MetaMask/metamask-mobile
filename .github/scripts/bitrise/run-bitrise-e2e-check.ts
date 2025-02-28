@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
-import { context, getOctokit } from '@actions/github';
-import { GitHub } from '@actions/github/lib/utils';
+import { context } from '@actions/github';
+import {determineE2ERunFlags, getOctokitInstance, shouldRunBitriseE2E, getCommitHash, isMergeQueue, getMergeQueueCommitHash, getBitriseCommentForCommit} from './bitrise-utils';
 import {
   CompletedConclusionType,
   PullRequestTriggerType,
@@ -8,7 +8,6 @@ import {
 } from '../scripts.types';
 import axios from 'axios';
 
-let octokitInstance: InstanceType<typeof GitHub> | null = null;
 let owner: string;
 let repo: string;
 
@@ -18,18 +17,6 @@ main().catch((error: Error): void => {
 });
 
 
-
-function getOctokitInstance(): InstanceType<typeof GitHub> {
-  if (!octokitInstance) {
-    const githubToken = process.env.GITHUB_TOKEN;
-    if (!githubToken) {
-      throw new Error("GitHub token is not set in the environment variables");
-    }
-    octokitInstance = getOctokit(githubToken);
-  }
-  return octokitInstance;
-}
-
 async function upsertStatusCheck(
   statusCheckName: string,
   commitHash: string,
@@ -37,6 +24,7 @@ async function upsertStatusCheck(
   conclusion: CompletedConclusionType | undefined, 
   summary: string
 ): Promise<void> {
+
   const octokit = getOctokitInstance();
 
   console.log(`Upserting status check: ${statusCheckName} with status ${status} for commit ${commitHash}`);
@@ -111,27 +99,8 @@ async function upsertStatusCheck(
     console.log(`Created check: ${statusCheckName} with id ${createCheckResponse.data.id} & status ${status} for commit ${commitHash}`);
   }
 }
-// Determine whether E2E should run and provide the associated reason
-function shouldRunBitriseE2E(antiLabel: boolean, hasSmokeTestLabel: boolean, isDocs: boolean, isFork: boolean, isMergeQueue: boolean): [boolean, string] {
 
-  const conditions = [
-    {condition: hasSmokeTestLabel, message: "The smoke test label is present.", shouldRun: true},
-    {condition: isFork, message: "The pull request is from a fork.", shouldRun: false},
-    {condition: isDocs, message: "The pull request is documentation related.", shouldRun: false},
-    {condition: isMergeQueue, message: "The pull request is part of a merge queue.", shouldRun: false},
-    {condition: antiLabel, message: "The pull request has the anti-label.", shouldRun: false}
-  ];
 
-  // Iterate through conditions to determine action
-  for (const {condition, message, shouldRun} of conditions) {
-    if (condition) {
-      return [shouldRun, message];
-    }
-  }
-
-  // Default case if no conditions met
-  return [false, "Unexpected scenario or no relevant labels found."];
-}
 
 
 async function main(): Promise<void> {
@@ -178,9 +147,7 @@ async function main(): Promise<void> {
   console.log(`event: ${context.eventName}`);
   console.log(`pullRequestNumber: ${pullRequestNumber}`);
 
-  const mergeQueue = (context.eventName === 'merge_group')
-  const mqCommitHash = context.payload?.merge_group?.head_sha;
-
+  const mergeQueue = isMergeQueue();
 
   const octokit = getOctokitInstance();
 
@@ -190,30 +157,24 @@ async function main(): Promise<void> {
     pull_number: pullRequestNumber,
   });
 
-  // Get the latest commit hash
-  const prCommitHash = prData?.head?.sha;
+
   // Determine the latest commit hash depending if it's a PR or MQ
-  const latestCommitHash = mergeQueue ? mqCommitHash : prCommitHash;
-
-  // Grab flags & labels
-  const labels = prData?.labels ?? [];
-  const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
-  const hasAntiLabel = labels.some((label) => label.name === antiLabel);
-  const fork = context.payload.pull_request?.head.repo.fork || false;
-  const docs = mergeQueue ? false : prData.title.startsWith("docs:");
+  const latestCommitHash = await getCommitHash()
 
 
-  console.log(`Docs: ${docs}`);
-  console.log(`Fork: ${fork}`);
-  console.log(`Merge Queue: ${mergeQueue}`);
-  console.log(`Has smoke test label: ${hasSmokeTestLabel}`);
-  console.log(`Anti label: ${hasAntiLabel}`);
+  const flags = await determineE2ERunFlags();
 
-  const [shouldRun, reason] = shouldRunBitriseE2E(hasAntiLabel, hasSmokeTestLabel, docs, fork, mergeQueue);
+  console.log(`Docs: ${flags.isDocs}`);
+  console.log(`Fork: ${flags.isFork}`);
+  console.log(`Merge Queue: ${flags.isMQ}`);
+  console.log(`Has smoke test label: ${flags.hasSmokeTestLabel}`);
+  console.log(`Anti label: ${flags.hasAntiLabel}`);
+
+  const [shouldRun, reason] = shouldRunBitriseE2E(flags);
   console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
   // One of these two labels must exist for pull_request type
-  if (!mergeQueue && !hasSmokeTestLabel && !hasAntiLabel) {
+  if (!mergeQueue && !flags.hasSmokeTestLabel && !flags.hasAntiLabel) {
 
     // Fail Status due to missing labels
     await upsertStatusCheck(statusCheckName, latestCommitHash, StatusCheckStatusType.Completed, 
@@ -293,7 +254,7 @@ async function main(): Promise<void> {
         `Started Bitrise build for commit ${latestCommitHash} at ${buildLink}`,
       );
 
-      
+
       //TODO Remove
       console.log(`Response headers from bitrise call ${bitriseBuildResponse.headers}`)
       console.log(`Response data from bitrise call ${JSON.stringify(bitriseBuildResponse.data)}`)
@@ -305,17 +266,7 @@ async function main(): Promise<void> {
       process.exit(1);
     }
 
-    // Look for existing Bitrise comment.
-    const { data: comments } = await octokit.rest.issues.listComments({
-      owner,
-      repo,
-      issue_number: pullRequestNumber,
-    });
-
-    // Check for existing Bitrise comment with commit tag.
-    const bitriseComment = comments.find(({ body }) =>
-      body?.includes(latestCommitTag),
-    );
+    const bitriseComment = await getBitriseCommentForCommit(latestCommitHash);
 
     // Reopen conversation in case it's locked
     const unlockConvoResponse = await octokit.rest.issues.unlock({
