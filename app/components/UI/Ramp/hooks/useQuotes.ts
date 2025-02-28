@@ -13,7 +13,7 @@ function useQuotes(amount: number | string) {
   const [{ data, isFetching, error }, query] = useSDKMethod(
     isBuy ? 'getQuotes' : 'getSellQuotes',
     selectedRegion?.id,
-    selectedPaymentMethodId,
+    selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
     selectedAsset?.id,
     selectedFiatCurrencyId,
     amount,
