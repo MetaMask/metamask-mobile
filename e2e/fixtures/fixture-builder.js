@@ -449,6 +449,10 @@ class FixtureBuilder {
             MultichainAssetsRatesController: {
               conversionRates: {},
             },
+            CronJobController: {
+              jobs: {},
+              events: {},
+            },
           },
         },
         privacy: {
