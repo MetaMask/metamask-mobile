@@ -5,7 +5,7 @@ import { SnapControllerStateChangeEvent } from './controllers/SnapController/con
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { MultichainBalancesControllerStateChangeEvent } from './controllers/MultichainBalancesController/constants';
 import { RatesControllerStateChangeEvent } from './controllers/RatesController/constants';
-import { CronjobControllerStateChangeEvent } from './controllers/CronJobController/constants';
+import { CronjobControllerStateChangeEvent } from './controllers/CronJobController';
 ///: END:ONLY_INCLUDE_IF
 /**
  * Messageable modules that are part of the Engine's context, but are not defined with state.
