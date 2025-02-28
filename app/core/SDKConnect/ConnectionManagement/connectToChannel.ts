@@ -19,6 +19,7 @@ import { wait, waitForCondition } from '../utils/wait.util';
 import { SDKConnect } from './../SDKConnect';
 
 import packageJSON from '../../../../package.json';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 const { version: walletVersion } = packageJSON;
 
 async function connectToChannel({
@@ -101,7 +102,6 @@ async function connectToChannel({
       updateOriginatorInfos: instance.updateOriginatorInfos.bind(instance),
       approveHost: instance._approveHost.bind(instance),
       disapprove: instance.disapproveChannel.bind(instance),
-      getApprovedHosts: instance.getApprovedHosts.bind(instance),
       revalidate: instance.revalidateChannel.bind(instance),
       isApproved: instance.isApproved.bind(instance),
       onTerminate: ({
@@ -217,7 +217,9 @@ async function connectToChannel({
     store.dispatch(resetConnections(instance.state.connections));
 
     if (authorized && initialConnection) {
-      const accounts = await getPermittedAccounts(id);
+      const accounts = await getPermittedAccounts(
+        `${PROTOCOLS.METAMASK}://${id}`,
+      );
       const currentChainId = selectEvmChainId(store.getState());
       connected.remote.state.channelId = id;
       const data = {

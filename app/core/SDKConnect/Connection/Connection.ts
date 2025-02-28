@@ -10,7 +10,7 @@ import AppConstants from '../../AppConstants';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import BatchRPCManager from '../BatchRPCManager';
 import RPCQueueManager from '../RPCQueueManager';
-import { ApprovedHosts, approveHostProps } from '../SDKConnect';
+import { approveHostProps } from '../SDKConnect';
 import { CONNECTION_LOADING_EVENT } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import sendAuthorized from './Auth/sendAuthorized';
@@ -108,7 +108,7 @@ export class Connection extends EventEmitter2 {
   socketServerUrl: string;
 
   approveHost: ({ host, hostname }: approveHostProps) => void;
-  getApprovedHosts: (context: string) => ApprovedHosts;
+
   disapprove: (channelId: string) => void;
   revalidate: ({ channelId }: { channelId: string }) => void;
   isApproved: ({
@@ -135,7 +135,6 @@ export class Connection extends EventEmitter2 {
     navigation,
     lastAuthorized,
     approveHost,
-    getApprovedHosts,
     disapprove,
     revalidate,
     isApproved,
@@ -145,7 +144,6 @@ export class Connection extends EventEmitter2 {
     socketServerUrl: string; // Allow to customize different socket server url
     rpcQueueManager: RPCQueueManager;
     approveHost: ({ host, hostname }: approveHostProps) => void;
-    getApprovedHosts: (context: string) => ApprovedHosts;
     disapprove: (channelId: string) => void;
     revalidate: ({ channelId }: { channelId: string }) => void;
     isApproved: ({ channelId }: { channelId: string }) => boolean;
@@ -176,7 +174,6 @@ export class Connection extends EventEmitter2 {
     this.protocolVersion = protocolVersion ?? 1;
 
     this.approveHost = approveHost;
-    this.getApprovedHosts = getApprovedHosts;
     this.disapprove = disapprove;
     this.revalidate = revalidate;
     this.isApproved = isApproved;
@@ -317,7 +314,13 @@ export class Connection extends EventEmitter2 {
     this.trigger = trigger;
   }
 
-  disconnect({ terminate, context }: { terminate: boolean; context?: string }): Promise<boolean> {
+  disconnect({
+    terminate,
+    context,
+  }: {
+    terminate: boolean;
+    context?: string;
+  }): Promise<boolean> {
     return disconnect({ instance: this, terminate, context });
   }
 

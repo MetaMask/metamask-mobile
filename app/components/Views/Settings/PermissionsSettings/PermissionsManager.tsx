@@ -93,7 +93,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
     const mappedInAppBrowserPermissions: PermissionListItemViewModel[] =
       inAppBrowserSubjects.map((subject) => ({
         dappLogoUrl: '',
-        dappHostName: subject.origin,
+        dappOrigin: subject.origin,
         numberOfAccountPermissions:
           subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
         numberOfNetworkPermissions:
@@ -125,7 +125,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
       navigation.navigate('AccountPermissionsAsFullScreen', {
         hostInfo: {
           metadata: {
-            origin: permissionItem.dappHostName,
+            origin: permissionItem.dappOrigin,
           },
         },
         isRenderedAsBottomSheet: false,
