@@ -35,3 +35,21 @@ export interface SkeletonProps extends ViewProps {
    */
   animatedViewProps?: Partial<React.ComponentProps<typeof Animated.View>>;
 }
+
+/**
+ * Style sheet vars for Skeleton component.
+ */
+export interface SkeletonStyleSheetVars {
+  /**
+   * Optional height for the Skeleton
+   */
+  height?: number | string;
+  /**
+   * Optional width for the Skeleton
+   */
+  width?: number | string;
+  /**
+   * Optional custom styles
+   */
+  style?: StyleProp<ViewStyle>;
+}

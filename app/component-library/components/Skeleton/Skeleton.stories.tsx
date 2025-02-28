@@ -6,7 +6,6 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 
 // External dependencies.
-import { useTheme } from '../../../util/theme';
 import Text from '../Texts/Text';
 import Button from '../Buttons/Button';
 import { ButtonVariants } from '../Buttons/Button/Button.types';
@@ -58,12 +57,10 @@ export const WidthHeight = () => {
 };
 
 export const WithChildren = () => {
-  const { colors } = useTheme();
   const styles = StyleSheet.create({
     container: {
       display: 'flex',
       flexDirection: 'column',
-      backgroundColor: colors.background.alternative,
       borderRadius: 12,
       padding: 16,
     },

@@ -1,22 +1,32 @@
+/* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, { useEffect, useRef } from 'react';
-import { Animated, View, StyleSheet, ViewStyle } from 'react-native';
+import { Animated, View } from 'react-native';
 
-import { useTheme } from '../../../util/theme';
+// External dependencies.
+import { useStyles } from '../../../component-library/hooks';
 
+// Internal dependencies.
+import styleSheet from './Skeleton.styles';
 import { SkeletonProps } from './Skeleton.types';
 
 const Skeleton: React.FC<SkeletonProps> = ({
   height,
   width,
   children,
-  hideChildren,
+  hideChildren = false,
   style,
-  childrenWrapperProps,
-  animatedViewProps,
+  childrenWrapperProps = {},
+  animatedViewProps = {},
   ...props
 }) => {
-  const { colors } = useTheme();
   const opacityAnim = useRef(new Animated.Value(0.2)).current;
+  const { styles } = useStyles(styleSheet, {
+    height,
+    width,
+    style,
+  });
 
   const startAnimation = () => {
     Animated.sequence([
@@ -51,31 +61,8 @@ const Skeleton: React.FC<SkeletonProps> = ({
     };
   }, [children, hideChildren]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const styles = StyleSheet.create({
-    container: {
-      borderRadius: 4,
-      overflow: 'hidden',
-      // Only apply explicit height/width if provided
-      ...(height !== undefined && { height }),
-      ...(width !== undefined && { width }),
-      ...(style as object),
-    } as ViewStyle,
-    background: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: colors.icon.alternative,
-      borderRadius: 4,
-    } as ViewStyle,
-    hideChildren: {
-      opacity: 0,
-    },
-    childrenContainer: {
-      position: 'relative',
-      zIndex: 1,
-    },
-  });
-
   return (
-    <View style={[styles.container]} {...props}>
+    <View style={styles.base} {...props}>
       {/* Animated background always present */}
       <Animated.View
         style={[styles.background, { opacity: opacityAnim }]}

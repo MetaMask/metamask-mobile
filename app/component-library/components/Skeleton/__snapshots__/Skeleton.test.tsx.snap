@@ -3,12 +3,10 @@
 exports[`Skeleton should match snapshot 1`] = `
 <View
   style={
-    [
-      {
-        "borderRadius": 4,
-        "overflow": "hidden",
-      },
-    ]
+    {
+      "borderRadius": 4,
+      "overflow": "hidden",
+    }
   }
 >
   <View
