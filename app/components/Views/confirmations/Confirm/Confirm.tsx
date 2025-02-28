@@ -22,16 +22,14 @@ import styleSheet from './Confirm.styles';
 
 const ConfirmWrapped = ({
   styles,
-  testID,
 }: {
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
-  testID?: string;
 }) => (
   <QRHardwareContextProvider>
     <LedgerContextProvider>
       <Title />
       <ScrollView style={styles.scrollView}>
-        <TouchableWithoutFeedback testID={testID}>
+        <TouchableWithoutFeedback>
           <>
             <SignatureBlockaidBanner />
             <Info />
@@ -70,7 +68,9 @@ export const Confirm = () => {
       style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >
-      <ConfirmWrapped testID={approvalRequest?.type} styles={styles} />
+      <View testID={approvalRequest?.type}>
+        <ConfirmWrapped styles={styles} />
+      </View>
     </BottomSheet>
   );
 };
