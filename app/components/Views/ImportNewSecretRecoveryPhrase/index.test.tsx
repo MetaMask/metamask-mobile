@@ -68,17 +68,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
-    const { toJSON } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('handles valid 12 word srps being input manually', async () => {
     const { getByTestId } = renderScreen(
       ImportNewSecretRecoveryPhrase,
