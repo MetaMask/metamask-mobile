@@ -190,6 +190,10 @@ import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermis
 import { createMultichainBalancesController } from './controllers/MultichainBalancesController/utils';
 import { createMultichainRatesController } from './controllers/RatesController/utils';
 import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
+import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
+import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
+import { createMultichainAssetsRatesController } from './controllers/MultichainAssetsRatesController';
+import { createCronJobController } from './controllers/CronJobController';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
@@ -225,12 +229,6 @@ import {
   SnapControllerHandleRequestAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
-import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
-import { createMultichainAssetsRatesController } from './controllers/MultichainAssetsRatesController/utils';
-import { createCronJobController } from './controllers/CronJobController/utils';
-///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
