@@ -27,7 +27,8 @@ import {
   hideWCLoadingState,
   parseWalletConnectUri,
   showWCLoadingState,
-  normalizeOrigin,
+  // normalizeOrigin,
+  getHostname
 } from './wc-utils';
 
 import WalletConnect2Session from './WalletConnect2Session';
@@ -127,7 +128,7 @@ export class WC2Manager {
 
           // Find approvedAccounts for current sessions
           DevLogger.log(
-            `WC2::init getPermittedAccounts for ${sessionKey} origin=${session.peer.metadata.url}`,
+            `WC2::init getPermittedAccounts for ${sessionKey} origin=${getHostname(session.peer.metadata.url)}`,
             JSON.stringify(permissionController.state, null, 2),
           );
           const accountPermission = permissionController.getPermission(
@@ -140,9 +141,9 @@ export class WC2Manager {
             JSON.stringify(accountPermission, null, 2),
           );
           let approvedAccounts =
-            (await getPermittedAccounts(accountPermission?.id ?? '')) ?? [];
+            (await getPermittedAccounts((session.peer.metadata.url))) ?? [];
           const fromOrigin = await getPermittedAccounts(
-            session.peer.metadata.url,
+            (session.peer.metadata.url),
           );
 
           DevLogger.log(
@@ -160,7 +161,7 @@ export class WC2Manager {
               `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
             );
             approvedAccounts =
-              (await getPermittedAccounts(session.peer.metadata.url)) ?? [];
+              (await getPermittedAccounts(getHostname(session.peer.metadata.url))) ?? [];
           }
 
           if (approvedAccounts?.length === 0) {
@@ -389,6 +390,8 @@ export class WC2Manager {
   }
 
   async onSessionProposal(proposal: WalletKitTypes.SessionProposal) {
+    console.log("🔵 onSessionProposal proposal", JSON.stringify(proposal, null, 2));
+
     //  Open session proposal modal for confirmation / rejection
     const { id, params } = proposal;
 
@@ -419,6 +422,7 @@ export class WC2Manager {
     // const origin = normalizeOrigin(url);
     // Normalizing origin is not working, so we're just using the url as the origin
     const origin = url;
+    console.log("🔴 onSessionProposal origin", origin);
 
     DevLogger.log(
       `WC2::session_proposal metadata ${url} normalized to ${origin}`,
@@ -444,12 +448,14 @@ export class WC2Manager {
 
     try {
       const approvedAccounts = await getPermittedAccounts(origin);
+      console.log("🔵 onSessionProposal approvedAccounts", JSON.stringify(approvedAccounts, null, 2));
       const walletChainIdHex = selectEvmChainId(store.getState());
       const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
-      const chains = await getPermittedChains(origin);
+      console.log("🔵 onSessionProposal walletChainIdDecimal", walletChainIdDecimal);
 
       // Use getScopedPermissions to get properly formatted namespaces
       const namespaces = await getScopedPermissions({ origin });
+      console.log("🔵 onSessionProposal namespaces", JSON.stringify(namespaces, null, 2));
 
       DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
 

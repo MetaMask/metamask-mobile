@@ -24,7 +24,8 @@ import {
   checkWCPermissions,
   getScopedPermissions,
   hideWCLoadingState,
-  normalizeOrigin,
+  // normalizeOrigin,
+  getHostname
 } from './wc-utils';
 
 const ERROR_CODES = {
@@ -229,21 +230,26 @@ class WalletConnect2Session {
   };
 
   emitEvent = async (eventName: string, data: unknown) => {
-    await this.web3Wallet.emitSessionEvent({
+    console.log("🔵 emitEvent", eventName, data);
+    const res = await this.web3Wallet.emitSessionEvent({
       topic: this.session.topic,
       event: { name: eventName, data },
       chainId: `eip155:${data}`,
     });
+    console.log("🔵 emitEvent res", res);
   };
 
   /** Handle chain change by updating session namespaces and emitting event */
   private async handleChainChange(chainIdDecimal: number) {
+    console.log("🔴 handleChainChange chainIdDecimal", chainIdDecimal);
+
     if (this.isHandlingChainChange) return;
     this.isHandlingChainChange = true;
 
     try {
-      const origin = normalizeOrigin(this.session.peer.metadata.url);
-      const accounts = await getPermittedAccounts(origin);
+      // const origin = normalizeOrigin(this.session.peer.metadata.url);
+      // const origin = this.session.peer.metadata.url;
+      // const accounts = await getPermittedAccounts(origin);
 
       // Update session namespaces
       const currentNamespaces = this.session.namespaces;
@@ -268,11 +274,13 @@ class WalletConnect2Session {
         updatedNamespaces,
       );
 
-      const { acknowledged } = await this.web3Wallet.updateSession({
+      await this.web3Wallet.updateSession({
         topic: this.session.topic,
         namespaces: updatedNamespaces,
       });
-      await acknowledged();
+      // await acknowledged();
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Emit chainChanged event
       await this.emitEvent('chainChanged', chainIdDecimal);
@@ -298,6 +306,7 @@ class WalletConnect2Session {
     ) {
       const chainIdHex = initialRequest.params.request.params[0].chainId;
       const chainIdDecimal = parseInt(chainIdHex, 16);
+      console.log("👉👉👉 approveRequest chainIdDecimal", chainIdDecimal);
       await this.handleChainChange(chainIdDecimal);
     }
 
@@ -369,6 +378,7 @@ class WalletConnect2Session {
     chainId: number;
     accounts?: string[];
   }) => {
+    console.log("🔴 updateSession accounts", JSON.stringify(accounts, null, 2));
     try {
       if (!accounts) {
         DevLogger.log(
@@ -377,13 +387,15 @@ class WalletConnect2Session {
         return;
       }
 
-      const origin = normalizeOrigin(this.session.peer.metadata.url);
+      // const origin = normalizeOrigin(this.session.peer.metadata.url);
+      const origin = this.session.peer.metadata.url;
+      console.log("🔴 updateSession origin", origin);
       DevLogger.log(
         `WC2::updateSession origin=${origin} - chainId=${chainId} - accounts=${accounts}`,
       );
 
       if (accounts.length === 0) {
-        const approvedAccounts = await getPermittedAccounts(origin);
+        const approvedAccounts = await getPermittedAccounts(getHostname(origin));
         if (approvedAccounts.length > 0) {
           DevLogger.log(
             `WC2::updateSession found approved accounts`,
@@ -409,13 +421,19 @@ class WalletConnect2Session {
       }
 
       const namespaces = await getScopedPermissions({ origin });
-      DevLogger.log(`WC2::updateSession updating with namespaces`, namespaces);
-
-      const { acknowledged } = await this.web3Wallet.updateSession({
+      DevLogger.log(`🔴🔴 WC2::updateSession updating with namespaces`, namespaces);
+ 
+      await this.web3Wallet.updateSession({
         topic: this.session.topic,
         namespaces,
       });
-      await acknowledged();
+
+      // console.log("🔴🔴🔴 updateSession acknowledged", acknowledged);
+      
+      // await acknowledged();
+      
+      console.log("🔴🔴🔴 updateSession emitEvent");
+      await this.emitEvent('chainChanged', chainId);
     } catch (err) {
       console.warn(
         `WC2::updateSession can't update session topic=${this.session.topic}`,
@@ -438,15 +456,11 @@ class WalletConnect2Session {
     }
 
     hideWCLoadingState({ navigation: this.navigation });
-    const verified = requestEvent.verifyContext?.verified;
-    const rawOrigin = verified?.origin;
-    const origin = normalizeOrigin(rawOrigin);
-    DevLogger.log(
-      `WalletConnect2Session::handleRequest raw=${rawOrigin} normalized=${origin}`,
-    );
 
+    const verified = requestEvent.verifyContext?.verified;
+    const origin = verified?.origin;
     const method = requestEvent.params.request.method;
-    const caip2ChainId = requestEvent.params.chainId;
+    const caip2ChainId = method === 'wallet_switchEthereumChain' ? `eip155:${parseInt(requestEvent.params.request.params[0].chainId, 16)}` : requestEvent.params.chainId;
     const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(
@@ -468,7 +482,7 @@ class WalletConnect2Session {
           response: {
             id: requestEvent.id,
             jsonrpc: '2.0',
-            error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
+            error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
           },
         });
         return;
@@ -482,13 +496,19 @@ class WalletConnect2Session {
         response: {
           id: requestEvent.id,
           jsonrpc: '2.0',
-          error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
+          error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
         },
       });
+      return;
     }
 
     if (METHODS_TO_REDIRECT[method]) {
       this.requestsToRedirect[requestEvent.id] = true;
+    }
+
+    if (method === 'wallet_switchEthereumChain') {
+      this.handleChainChange(parseInt(caip2ChainId.split(':')[1], 10));
+      return;
     }
 
     if (method === 'eth_sendTransaction') {

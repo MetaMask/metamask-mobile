@@ -230,7 +230,7 @@ export const getPermittedAccounts = async (
 export const getPermittedChains = async (hostname: string): Promise<string[]> => {
   const { PermissionController } = Engine.context;
   const caveat = PermissionController.getCaveat(
-    normalizeOrigin(hostname),
+    hostname,
     PermissionKeys.permittedChains,
     CaveatTypes.restrictNetworkSwitching
   );
