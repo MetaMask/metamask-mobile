@@ -698,7 +698,7 @@ function decodeSwapsTx(args) {
   const smartTransaction =
     Engine.context.SmartTransactionsController.state.smartTransactionsState.smartTransactions[
       chainId
-    ].find((stx) => stx.txHash === hash);
+    ]?.find((stx) => stx.txHash === hash);
 
   const swapTransaction =
     swapsTransactions?.[id] ||
