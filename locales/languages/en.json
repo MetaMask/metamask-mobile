@@ -1999,9 +1999,20 @@
     "cta_text": "Continue",
     "paste": "Paste",
     "clear": "Clear all",
+    "srp_number_of_words_option_title": "Number of words",
+    "12_word_option": "I have a 12 word phrase",
+    "24_word_option": "I have a 24 word phrase",
     "error_title": "Something went wrong",
     "error_message": "We couldn't import that secret recovery phrase. Please make sure you entered it correctly.",
-    "error_empty_message":"You need to enter your secret recovery phrase."
+    "error_empty_message":"You need to enter your secret recovery phrase.",
+    "error_number_of_words_error_message": "Secret Recovery Phrases contain 12, or 24 words",
+    "error_srp_is_case_sensitive":"Invalid input! Secret Recovery Phrase is case sensitive.",
+    "error_srp_word_error_1": "Word ", 
+    "error_srp_word_error_2": " is incorrect or misspelled.",
+    "error_multiple_srp_word_error_1": "Word ",
+    "error_multiple_srp_word_error_2": " and ",
+    "error_multiple_srp_word_error_3": " is incorrect or misspelled.",
+    "error_invalid_srp": "Invalid Secret Recovery Phrase"
   },
   "first_incoming_transaction": {
     "title": "{{asset}} was deposited in your account",

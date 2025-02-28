@@ -1,0 +1,1229 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ImportNewSecretRecoveryPhrase should render correctly 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "zIndex": 1,
+        }
+      }
+    >
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "rgb(255, 255, 255)",
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "flex": 1,
+                "shadowColor": "rgb(216, 216, 216)",
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "height": 20,
+              }
+            }
+          />
+          <View
+            pointerEvents="box-none"
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 16,
+                  "opacity": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="header"
+                aria-level="1"
+                collapsable={false}
+                numberOfLines={1}
+                onLayout={[Function]}
+                style={
+                  {
+                    "color": "rgb(28, 28, 30)",
+                    "fontSize": 17,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                ImportNewSecretRecoveryPhrase
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        pointerEvents="box-none"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "flex": 1,
+                          "paddingHorizontal": 16,
+                        }
+                      }
+                    >
+                      <RCTScrollView
+                        automaticallyAdjustContentInsets={false}
+                        contentContainerStyle={
+                          {
+                            "flexGrow": 1,
+                          }
+                        }
+                        contentInset={
+                          {
+                            "bottom": 0,
+                          }
+                        }
+                        enableAutomaticScroll={true}
+                        enableOnAndroid={false}
+                        enableResetScrollToCoords={true}
+                        extraHeight={75}
+                        extraScrollHeight={0}
+                        getScrollResponder={[Function]}
+                        handleOnScroll={[Function]}
+                        keyboardDismissMode="interactive"
+                        keyboardOpeningTime={250}
+                        keyboardSpace={0}
+                        onScroll={[Function]}
+                        resetKeyboardSpace={[Function]}
+                        resetScrollToCoords={
+                          {
+                            "x": 0,
+                            "y": 0,
+                          }
+                        }
+                        scrollEventThrottle={1}
+                        scrollForExtraHeightOnAndroid={[Function]}
+                        scrollIntoView={[Function]}
+                        scrollToEnd={[Function]}
+                        scrollToFocusedInput={[Function]}
+                        scrollToPosition={[Function]}
+                        showsVerticalScrollIndicator={true}
+                        style={
+                          {
+                            "flex": 1,
+                          }
+                        }
+                        update={[Function]}
+                        viewIsInsideTabBar={false}
+                      >
+                        <View>
+                          <View
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                              }
+                            }
+                            testID="import-srp-screen"
+                          >
+                            <TouchableOpacity
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignSelf": "flex-start",
+                                  "marginTop": 40,
+                                  "paddingBottom": 10,
+                                  "paddingTop": 20,
+                                }
+                              }
+                            >
+                              <SvgMock
+                                color="#141618"
+                                height={16}
+                                name="ArrowLeft"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                testID="back-button-on-input-screen"
+                                width={16}
+                              />
+                            </TouchableOpacity>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontSize": 24,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                }
+                              }
+                            >
+                              Import Secret Recovery Phrase
+                            </Text>
+                            <TouchableOpacity
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginBottom": 16,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "display": "flex",
+                                    "flexGrow": 1,
+                                    "marginLeft": -15,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      onPress={[Function]}
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          numberOfLines={1}
+                                          style={
+                                            {
+                                              "alignSelf": "flex-start",
+                                              "color": "#141618",
+                                              "flex": 1,
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "paddingBottom": 10,
+                                              "paddingHorizontal": 15,
+                                              "paddingTop": 10,
+                                            }
+                                          }
+                                        >
+                                          I have a 12 word phrase
+                                        </Text>
+                                        <Text
+                                          allowFontScaling={false}
+                                          style={
+                                            [
+                                              {
+                                                "color": "#141618",
+                                                "fontSize": 24,
+                                              },
+                                              {
+                                                "height": 25,
+                                                "justifyContent": "flex-end",
+                                                "marginRight": 10,
+                                                "marginTop": 7,
+                                                "textAlign": "right",
+                                              },
+                                              {
+                                                "fontFamily": "Material Icons",
+                                                "fontStyle": "normal",
+                                                "fontWeight": "normal",
+                                              },
+                                              {},
+                                            ]
+                                          }
+                                        >
+                                          
+                                        </Text>
+                                      </View>
+                                    </TouchableOpacity>
+                                    <Modal
+                                      animationType="none"
+                                      deviceHeight={null}
+                                      deviceWidth={null}
+                                      hardwareAccelerated={false}
+                                      hideModalContentWhileAnimating={false}
+                                      onBackdropPress={[Function]}
+                                      onModalHide={[Function]}
+                                      onModalWillHide={[Function]}
+                                      onModalWillShow={[Function]}
+                                      onRequestClose={[Function]}
+                                      panResponderThreshold={4}
+                                      scrollHorizontal={false}
+                                      scrollOffset={0}
+                                      scrollOffsetMax={0}
+                                      scrollTo={null}
+                                      statusBarTranslucent={false}
+                                      supportedOrientations={
+                                        [
+                                          "portrait",
+                                          "landscape",
+                                        ]
+                                      }
+                                      swipeThreshold={100}
+                                      transparent={true}
+                                      visible={false}
+                                    />
+                                  </View>
+                                </View>
+                              </View>
+                              <SvgMock
+                                color="#141618"
+                                height={16}
+                                name="Eye"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </TouchableOpacity>
+                            <View
+                              style={
+                                {
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "flexWrap": "wrap",
+                                  "gap": 8,
+                                  "justifyContent": "space-between",
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  1. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  2. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  3. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  4. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  5. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  6. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  7. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  8. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  9. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  10. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  11. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderColor": "#BBC0C566",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "flexDirection": "row",
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 4,
+                                    "width": "30%",
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  12. 
+                                </Text>
+                                <TextInput
+                                  autoCapitalize="none"
+                                  keyboardAppearance="light"
+                                  onChangeText={[Function]}
+                                  secureTextEntry={false}
+                                  style={
+                                    {
+                                      "borderColor": "#BBC0C566",
+                                      "width": "100%",
+                                    }
+                                  }
+                                  textContentType="none"
+                                  value=""
+                                />
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "justifyContent": "flex-end",
+                                  "width": "100%",
+                                }
+                              }
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "flex-start",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 24,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "paddingHorizontal": 16,
+                                  }
+                                }
+                                testID="paste-button"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#0376c9",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 14,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  Paste
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                                "justifyContent": "flex-end",
+                                "marginBottom": 16,
+                              }
+                            }
+                          >
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              disabled={true}
+                              style={
+                                [
+                                  [
+                                    {
+                                      "borderRadius": 100,
+                                      "justifyContent": "center",
+                                      "padding": 15,
+                                    },
+                                    {
+                                      "backgroundColor": "#0376c9",
+                                      "minHeight": 50,
+                                    },
+                                    {
+                                      "marginBottom": 20,
+                                    },
+                                  ],
+                                  {
+                                    "opacity": 0.6,
+                                  },
+                                ]
+                              }
+                              testID="import-button"
+                            >
+                              <Text
+                                style={
+                                  [
+                                    {
+                                      "color": "#007aff",
+                                      "fontSize": 17,
+                                      "fontWeight": "500",
+                                      "textAlign": "center",
+                                    },
+                                    {
+                                      "color": "#dcdcdc",
+                                    },
+                                    [
+                                      {
+                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontSize": 14,
+                                        "fontWeight": "600",
+                                        "textAlign": "center",
+                                      },
+                                      {
+                                        "color": "#ffffff",
+                                      },
+                                      undefined,
+                                    ],
+                                    {
+                                      "opacity": 0.6,
+                                    },
+                                  ]
+                                }
+                              >
+                                Continue
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </RCTScrollView>
+                      <View />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
+</View>
+`;

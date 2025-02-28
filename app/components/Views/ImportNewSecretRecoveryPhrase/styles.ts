@@ -2,18 +2,19 @@
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
+import { Colors } from '../../../util/theme/models';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     mainWrapper: {
       flex: 1,
+      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
     topOverlay: {
       flex: 1,
-      backgroundColor: colors.primary.muted,
     },
     wrapper: {
       flexGrow: 1,
@@ -30,6 +31,55 @@ const createStyles = (colors: any) =>
       textAlign: 'left',
       ...fontStyles.normal,
     },
+    grid: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    gridCell: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '30%',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+    },
+    gridCellPrefix: {
+      color: colors.text.alternative,
+    },
+    input: {
+      width: '100%',
+    },
+    subheading: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    options: {
+      display: 'flex',
+      flexGrow: 1,
+      marginLeft: -15,
+    },
+    footer: {
+      display: 'flex',
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+    },
+    footerText: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 4,
+    },
     dataRow: {
       marginBottom: 10,
     },
@@ -44,15 +94,6 @@ const createStyles = (colors: any) =>
       ...fontStyles.bold,
       color: colors.text.default,
     },
-    scanPkeyRow: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 20,
-    },
-    scanPkeyText: {
-      fontSize: 14,
-      color: colors.primary.default,
-    },
     icon: {
       textAlign: 'left',
       fontSize: 50,
@@ -63,7 +104,7 @@ const createStyles = (colors: any) =>
     buttonWrapper: {
       flex: 1,
       justifyContent: 'flex-end',
-      padding: 20,
+      marginBottom: 16,
       backgroundColor: colors.background.default,
     },
     button: {
@@ -78,25 +119,8 @@ const createStyles = (colors: any) =>
       padding: 30,
       backgroundColor: colors.background.default,
     },
-    input: {
-      marginTop: 20,
-      marginBottom: 10,
-      backgroundColor: colors.background.default,
-      paddingTop: 20,
-      paddingBottom: 20,
-      paddingLeft: 20,
-      paddingRight: 20,
-      fontSize: 15,
-      borderRadius: 4,
-      height: 120,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.default,
-      ...fontStyles.normal,
-      color: colors.text.default,
-    },
-    navbarRightButton: {
-      alignSelf: 'flex-end',
-      paddingHorizontal: 22,
+    navbarLeftButton: {
+      alignSelf: 'flex-start',
       paddingTop: 20,
       paddingBottom: 10,
       marginTop: Device.isIphoneX() ? 40 : 20,

@@ -145,6 +145,7 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { Confirm } from '../../Views/confirmations/Confirm';
+import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -544,6 +545,16 @@ const ImportPrivateKeyView = () => (
         headerShown: false,
       }}
     />
+  </Stack.Navigator>
+);
+
+const ImportSRPView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="ImportSRP" component={ImportNewSecretRecoveryPhrase} />
   </Stack.Navigator>
 );
 
@@ -971,6 +982,11 @@ const App = (props) => {
           <Stack.Screen
             name="ImportPrivateKeyView"
             component={ImportPrivateKeyView}
+            options={{ animationEnabled: true }}
+          />
+          <Stack.Screen
+            name="ImportSRPView"
+            component={ImportSRPView}
             options={{ animationEnabled: true }}
           />
           <Stack.Screen
