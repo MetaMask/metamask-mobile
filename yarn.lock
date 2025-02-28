@@ -4612,10 +4612,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
-"@metamask/bridge-controller@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-1.0.0.tgz#6440f962da638b582b64e5ea26289a1f8e6fbf13"
-  integrity sha512-JpN7TNn3cEWrpwE8rxndYTCFXSwKwIfqTIpnlGckl0UjxXuIIdYXVbDUbKPfsFAvRLRvbyD/LoxhMH8ntS4VJQ==
+"@metamask/bridge-controller@^2.0.0":
+  version "2.0.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/bridge-controller/-/bridge-controller-2.0.0.tgz#5d58df5fe76d1d26f60e770eacba7507bb706f97"
+  integrity sha512-n1UcHQYWFE61FEjfwcOO4nhr73C0SF1Ex7O5yFQKU23OKlzmGapkdmQVHiDwhzw9U5CwOGR3Y5PCfdt3l8Kcfw==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.5.0"
@@ -4624,13 +4624,13 @@
     "@metamask/utils" "^11.2.0"
     ethers "^6.12.0"
 
-"@metamask/bridge-status-controller@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-1.0.0.tgz#ee32d050799f1af71d86244ee9a960d605369c1f"
-  integrity sha512-FFi/+kMcHxSPS7yNFo113XlRTKyacku7u0CJgzZCgX3TEPa6QBUULy5CkrWLm80UEN2Dxp+WR4rRa7c1rCLpGQ==
+"@metamask/bridge-status-controller@^2.0.0":
+  version "2.0.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/bridge-status-controller/-/bridge-status-controller-2.0.0.tgz#040596499d98275ad26164953db57302485a90b9"
+  integrity sha512-ta5jXmYn3j9wdrHNFDm7/Cmgm/LY4UEVwqfuG97osEKw1Ge1siUJm9+uiu8H0xjNDcOX9U3VzkXOXVExn9Y1Jg==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/bridge-controller" "^1.0.0"
+    "@metamask/bridge-controller" "^2.0.0"
     "@metamask/controller-utils" "^11.5.0"
     "@metamask/polling-controller" "^12.0.3"
     "@metamask/utils" "^11.2.0"

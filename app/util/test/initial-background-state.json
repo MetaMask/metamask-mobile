@@ -378,23 +378,32 @@
     "assetsMetadata": {}
   },
   "BridgeController": {
-    "bridgeState": {
-      "bridgeFeatureFlags": {
-        "extensionConfig": {
-          "chains": {},
-          "maxRefreshCount": 5,
-          "refreshRate": 30000,
-          "support": false
-        }
+    "bridgeFeatureFlags": {
+      "extensionConfig": {
+        "chains": {},
+        "maxRefreshCount": 5,
+        "refreshRate": 30000,
+        "support": false
       },
-
-      "quoteRequest": {
-        "slippage": "",
-        "srcTokenAddress": "",
-        "walletAddress": ""
-      },
-      "quotes": [],
-      "quotesRefreshCount": 0
-    }
+      "mobileConfig": {
+        "chains": {},
+        "maxRefreshCount": 5,
+        "refreshRate": 30000,
+        "support": false
+      }
+    },
+    "quoteFetchError": null,
+    "quoteRequest": {
+      "slippage": 0.5,
+      "srcTokenAddress": "0x0000000000000000000000000000000000000000"
+    },
+    "quotes": [],
+    "quotesInitialLoadTime": null,
+    "quotesLastFetched": null,
+    "quotesLoadingStatus": null,
+    "quotesRefreshCount": 0
+  },
+  "BridgeStatusController": {
+    "txHistory": {}
   }
 }
