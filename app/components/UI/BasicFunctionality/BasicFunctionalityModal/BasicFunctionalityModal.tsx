@@ -32,6 +32,7 @@ import { useEnableNotifications } from '../../../../util/notifications/hooks/use
 import { useMetrics } from '../../../hooks/useMetrics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import Engine from '../../../../core/Engine';
 
 interface Props {
   route: {
@@ -69,6 +70,8 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   const closeBottomSheet = async () => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       dispatch(toggleBasicFunctionality(!isEnabled));
+      Engine.context.PreferencesController.setUseTokenDetection(!isEnabled);
+
       trackEvent(
         createEventBuilder(
           !isEnabled
