@@ -8,6 +8,7 @@ import { selectEvmChainId, selectIsEIP1559Network } from '../../../../selectors/
 import { getGasFeeEstimatesForTransaction } from './gas';
 import { Hex } from '@metamask/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import Logger from '../../../../util/Logger';
 
 interface TemporarySmartTransactionGasFees {
   maxFeePerGas: string;
@@ -86,7 +87,7 @@ const submitSmartTransaction = async ({
     // Returns e.g.: { uuid: 'dP23W7c2kt4FK9TmXOkz1UM2F20' }
     return response.uuid;
   } catch (error) {
-    console.error(error);
+    Logger.error(error as Error);
     throw error;
   }
 };
