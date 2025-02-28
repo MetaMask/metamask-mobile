@@ -50,6 +50,7 @@ const Routes = {
     WALLET_ACTIONS: 'WalletActions',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
+    SELECT_SRP: 'SelectSRP',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',

@@ -147,6 +147,7 @@ import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { Confirm } from '../../Views/confirmations/Confirm';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
+import SelectSRP from '../../Views/SelectSRP';
 ///: END:ONLY_INCLUDE_IF
 
 const clearStackNavigatorOptions = {
@@ -374,7 +375,7 @@ const DetectedTokensFlow = () => (
   </Stack.Navigator>
 );
 
-const RootModalFlow = () => (
+const RootModalFlow = (props) => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -486,7 +487,12 @@ const RootModalFlow = () => (
       name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
       component={EnableAutomaticSecurityChecksModal}
     />
-    <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+    <Stack.Screen name={Routes.MODAL.SELECT_SRP} component={SelectSRP} />
+    <Stack.Screen
+      name={Routes.MODAL.SRP_REVEAL_QUIZ}
+      component={SRPQuiz}
+      initialParams={{ ...props.route.params }}
+    />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_ACTIONS}
       component={AccountActions}
@@ -557,7 +563,10 @@ const ImportSRPView = () => (
       headerShown: false,
     }}
   >
-    <Stack.Screen name="ImportSRP" component={ImportNewSecretRecoveryPhrase} />
+    <Stack.Screen
+      name={Routes.MULTI_SRP.IMPORT}
+      component={ImportNewSecretRecoveryPhrase}
+    />
   </Stack.Navigator>
 );
 ///: END:ONLY_INCLUDE_IF
@@ -1081,6 +1090,12 @@ App.propTypes = {
     params: PropTypes.shape({
       supressRender: PropTypes.bool,
     }),
+  }),
+};
+
+RootModalFlow.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.object,
   }),
 };
 

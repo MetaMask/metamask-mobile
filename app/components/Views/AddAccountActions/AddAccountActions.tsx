@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -10,7 +11,6 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
-import Engine from '../../../core/Engine';
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
@@ -20,12 +20,13 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddAccountActions.styles';
 
+import { addNewHdAccount } from '../../../actions/multiSrp';
+
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-snap-client';
 import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
-import { useSelector } from 'react-redux';
 import {
   selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
@@ -42,12 +43,17 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 
 ///: END:ONLY_INCLUDE_IF
+import { selectHdKeyrings } from '../../../selectors/keyringController';
 
-const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
+const AddAccountActions = ({
+  onBack,
+  onAddHdAccount,
+}: AddAccountActionsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
+  const hdKeyrings = useSelector(selectHdKeyrings);
 
   const openImportAccount = useCallback(() => {
     navigate('ImportPrivateKeyView');
@@ -74,12 +80,18 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   ///: END:ONLY_INCLUDE_IF
 
   const createNewAccount = useCallback(async () => {
-    const { KeyringController } = Engine.context;
+    const hasMultipleHdKeyrings = hdKeyrings.length > 1;
+
+    if (hasMultipleHdKeyrings) {
+      onAddHdAccount();
+      return;
+    }
+
     try {
       setIsLoading(true);
 
-      const addedAccountAddress = await KeyringController.addNewAccount();
-      Engine.setSelectedAddress(addedAccountAddress);
+      await addNewHdAccount();
+
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
@@ -94,7 +106,13 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       setIsLoading(false);
     }
-  }, [onBack, setIsLoading, trackEvent, createEventBuilder]);
+  }, [
+    hdKeyrings.length,
+    onAddHdAccount,
+    trackEvent,
+    createEventBuilder,
+    onBack,
+  ]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const isBitcoinSupportEnabled = useSelector(selectIsBitcoinSupportEnabled);
