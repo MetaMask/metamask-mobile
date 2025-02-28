@@ -19,7 +19,6 @@ const styleSheet = (params: {
       zIndex: 9999,
       backgroundColor: theme.colors.background.alternative,
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
     },
     scrollView: {
       paddingHorizontal: 16,
