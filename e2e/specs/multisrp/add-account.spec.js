@@ -19,10 +19,6 @@ import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSr
 
 const fixtureServer = new FixtureServer();
 
-const secondSRP =
-  'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
-const expectedSecondAccountAddress = '';
-
 const SRP_1 = {
   index: 1,
   id: '01JN61V4CZ5WSJXSS7END4FJQ9',
@@ -34,8 +30,6 @@ const SRP_2 = {
 };
 
 const addAccountToSrp = async (srp, accountName) => {
-  await WalletView.tapIdenticon();
-  await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
   await AccountListBottomSheet.tapAddAccountButton();
   await AddAccountBottomSheet.tapCreateAccount();
   await Assertions.checkIfVisible(AddNewHdAccountComponent.container);
@@ -50,7 +44,7 @@ const addAccountToSrp = async (srp, accountName) => {
   // Need to select the srp if its not the default srp
   if (srpIndex > 0) {
     // Need to tap the first srp to open the list
-    await SRPListItemComponent.tapListItem(SRP_1.id);
+    await AddNewHdAccountComponent.tapSrpSelector();
     await SRPListItemComponent.tapListItem(srp.id);
   }
 
@@ -63,8 +57,6 @@ const addAccountToSrp = async (srp, accountName) => {
   }
 
   await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-  await AccountListBottomSheet.swipeToDismissAccountsModal();
-  await Assertions.checkIfVisible(WalletView.container);
 };
 
 describe(SmokeAccounts('Multi-SRP: Add new account to a specific SRP'), () => {
@@ -79,6 +71,8 @@ describe(SmokeAccounts('Multi-SRP: Add new account to a specific SRP'), () => {
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
   });
 
   afterAll(async () => {
