@@ -2259,6 +2259,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
       BridgeController,
+      BridgeStatusController,
     } = instance.datamodel.state;
 
     return {
@@ -2303,6 +2304,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
       BridgeController,
+      BridgeStatusController,
     };
   },
 
