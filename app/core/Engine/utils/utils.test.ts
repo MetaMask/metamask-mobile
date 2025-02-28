@@ -2,8 +2,14 @@ import { accountsControllerInit } from '../controllers/accounts-controller';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { NetworkController } from '@metamask/network-controller';
-import { mockControllerInitFunction } from './test-utils';
-import { AccountsController } from '@metamask/accounts-controller';
+import { createMockControllerInitFunction } from './test-utils';
+import {
+  AccountsController,
+  AccountsControllerMessenger,
+} from '@metamask/accounts-controller';
+import { cronjobControllerInit } from '../controllers/CronJobController';
+import { CronjobController } from '@metamask/snaps-controllers';
+import { BaseRestrictedControllerMessenger } from '../types';
 
 describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
@@ -11,6 +17,7 @@ describe('initModularizedControllers', () => {
       existingControllersByName: {},
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        CronjobController: cronjobControllerInit,
       },
       persistedState: {},
       baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -24,7 +31,14 @@ describe('initModularizedControllers', () => {
       initModularizedControllers({
         existingControllersByName: {},
         controllerInitFunctions: {
-          AccountsController: mockControllerInitFunction,
+          AccountsController: createMockControllerInitFunction<
+            AccountsController,
+            AccountsControllerMessenger
+          >(),
+          CronjobController: createMockControllerInitFunction<
+            CronjobController,
+            BaseRestrictedControllerMessenger
+          >(),
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -41,7 +55,14 @@ describe('initModularizedControllers', () => {
           NetworkController: jest.fn() as unknown as NetworkController,
         },
         controllerInitFunctions: {
-          AccountsController: mockControllerInitFunction,
+          AccountsController: createMockControllerInitFunction<
+            AccountsController,
+            AccountsControllerMessenger
+          >(),
+          CronjobController: createMockControllerInitFunction<
+            CronjobController,
+            BaseRestrictedControllerMessenger
+          >(),
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
