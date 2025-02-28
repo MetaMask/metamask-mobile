@@ -230,6 +230,7 @@ import {
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
+import { AppMetadataController } from '@metamask/app-metadata-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -313,6 +314,7 @@ export class Engine {
         ApprovalType.WatchAsset,
       ],
     });
+    const appMetadataController = new AppMetadataController();
 
     const preferencesController = new PreferencesController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1352,6 +1354,7 @@ export class Engine {
         state: initialState.AddressBookController,
       }),
       AssetsContractController: assetsContractController,
+      AppMetadataController: appMetadataController,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
@@ -2165,6 +2168,7 @@ export default {
     assertEngineExists(instance);
     const {
       AccountTrackerController,
+      AppMetadataController,
       AddressBookController,
       SnapInterfaceController,
       NftController,
@@ -2209,6 +2213,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,
