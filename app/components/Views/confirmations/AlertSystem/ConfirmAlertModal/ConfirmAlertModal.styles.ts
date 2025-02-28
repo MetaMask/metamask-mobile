@@ -42,9 +42,10 @@ const styleSheet = (params: {
     },
     message: {
       textAlign: 'center',
+      padding: 12,
     },
     checkboxContainer: {
-      marginTop: 8,
+      marginTop: 12,
       backgroundColor: theme.colors.error.muted,
       borderRadius: 8,
       marginVertical: 8,
@@ -57,8 +58,6 @@ const styleSheet = (params: {
       alignItems: 'flex-start',
     },
     reviewAlertsLink: {
-      marginTop: 12,
-      marginBottom: 12,
       alignSelf: 'center',
     },
   });
