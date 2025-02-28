@@ -217,6 +217,13 @@ import {
   MultichainNetworkControllerState,
   MultichainNetworkControllerEvents,
 } from '@metamask/multichain-network-controller';
+import {
+  EarnController,
+  EarnControllerActions,
+  EarnControllerEvents,
+  EarnControllerState,
+  controllerName as EarnControllerName,
+} from '@metamask/earn-controller';
 
 /**
  * Controllers that area always instantiated
@@ -294,7 +301,8 @@ type GlobalActions =
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
-  | MultichainNetworkControllerActions;
+  | MultichainNetworkControllerActions
+  | EarnControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -337,7 +345,8 @@ type GlobalEvents =
   | RemoteFeatureFlagControllerEvents
   | TokenSearchDiscoveryControllerEvents
   | SnapKeyringEvents
-  | MultichainNetworkControllerEvents;
+  | MultichainNetworkControllerEvents
+  | EarnControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -409,6 +418,7 @@ export type Controllers = {
   MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkController;
+  EarnController: EarnController;
 };
 
 /**
@@ -464,6 +474,7 @@ export type EngineState = {
   MultichainAssetsController: MultichainAssetsControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
+  EarnController: EarnControllerState;
 };
 
 /** Controller names */
@@ -493,7 +504,9 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize = 'AccountsController';
+export type ControllersToInitialize =
+  | 'AccountsController'
+  | typeof EarnControllerName;
 
 /**
  * Callback that returns a controller messenger for a specific controller.

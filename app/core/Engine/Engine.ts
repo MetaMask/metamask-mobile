@@ -230,6 +230,7 @@ import {
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
+import { earnControllerInit } from './controllers/earn-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -391,6 +392,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        EarnController: earnControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName: {},
@@ -398,6 +400,7 @@ export class Engine {
     });
 
     const accountsController = controllersByName.AccountsController;
+    const earnController = controllersByName.EarnController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 
@@ -1579,6 +1582,7 @@ export class Engine {
       MultichainAssetsController: multichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController: multichainNetworkController,
+      EarnController: earnController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2204,6 +2208,7 @@ export default {
       MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
+      EarnController,
     } = instance.datamodel.state;
 
     return {
@@ -2247,6 +2252,7 @@ export default {
       MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
+      EarnController,
     };
   },
 
