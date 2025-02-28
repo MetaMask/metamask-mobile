@@ -1,4 +1,11 @@
 import React, { useCallback, useRef } from 'react';
+import { formatEther } from 'ethers/lib/utils';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { View } from 'react-native';
+
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -6,7 +13,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { View } from 'react-native';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheetFooter, {
   ButtonsAlignment,
@@ -18,17 +24,22 @@ import {
 } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import styleSheet from './GasImpactModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
-import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { GasImpactModalProps } from './GasImpactModal.types';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { formatEther } from 'ethers/lib/utils';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 
 const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const { styles } = useStyles(styleSheet, {});
-
+  const confirmationRedesignFlags = useSelector(
+    selectConfirmationRedesignFlags,
+  );
+  const isStakingDepositRedesignedEnabled =
+    confirmationRedesignFlags?.staking_transactions;
+  const { attemptDepositTransaction } = usePoolStakedDeposit();
+  const activeAccount = useSelector(selectSelectedInternalAccount);
   const { navigate } = useNavigation();
 
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -79,19 +90,42 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
-  const handleNavigateToStakeReviewScreen = () => {
+  const handleNavigateToStakeReviewScreen = useCallback(async () => {
+    const amountWeiString = amountWei.toString();
+
+    if (isStakingDepositRedesignedEnabled) {
+      await attemptDepositTransaction(
+        amountWeiString,
+        activeAccount?.address as string,
+      );
+      navigate('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+      });
+    } else {
+      navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE_CONFIRMATION,
+        params: {
+          amountWei: amountWeiString,
+          amountFiat,
+          annualRewardsETH,
+          annualRewardsFiat,
+          annualRewardRate,
+        },
+      });
+    }
     metricsEvent(MetaMetricsEvents.STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED);
-    navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE_CONFIRMATION,
-      params: {
-        amountWei: amountWei.toString(),
-        amountFiat,
-        annualRewardsETH,
-        annualRewardsFiat,
-        annualRewardRate,
-      },
-    });
-  };
+  }, [
+    activeAccount?.address,
+    amountFiat,
+    amountWei,
+    annualRewardsETH,
+    annualRewardsFiat,
+    annualRewardRate,
+    attemptDepositTransaction,
+    isStakingDepositRedesignedEnabled,
+    metricsEvent,
+    navigate,
+  ]);
 
   const footerButtons: ButtonProps[] = [
     {

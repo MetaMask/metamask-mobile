@@ -266,7 +266,6 @@ const WalletActions = () => {
             actionID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
           />
         )}
         {isNetworkRampSupported && (

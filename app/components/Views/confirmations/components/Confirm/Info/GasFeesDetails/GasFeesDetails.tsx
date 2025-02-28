@@ -24,7 +24,10 @@ const GasFeesDetails = () => {
   return (
     <View style={styles.container}>
       <InfoSection>
-        <InfoRow label={strings('transactions.network_fee')}>
+        <InfoRow
+          label={strings('transactions.network_fee')}
+          tooltip={strings('transactions.network_fee_tooltip')}
+        >
           <View style={styles.valueContainer}>
             {!hideFiatForTestnet && feeCalculations.estimatedFeeFiat && (
               <Text style={styles.secondaryValue}>
