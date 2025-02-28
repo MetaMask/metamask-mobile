@@ -167,7 +167,7 @@ class OptinMetrics extends PureComponent {
     /**
      * Used to control the action buttons state.
      */
-    isActionEnabled: true,
+    isActionEnabled: false,
   };
 
   /**

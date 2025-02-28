@@ -3,12 +3,13 @@ import PropTypes from 'prop-types';
 import {
   Text,
   View,
-  ViewPropTypes,
   TouchableNativeFeedback,
 } from 'react-native';
 import coalesceNonElementChildren from '@metamask/react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+
+import { ViewPropTypes, TextPropTypes } from 'deprecated-react-native-prop-types';
 
 /**
  * @deprecated The `<StyledButton>` component has been deprecated in favor of the new `<Button>` component from the component-library.
@@ -31,8 +32,21 @@ export default class StyledButton extends PureComponent {
      */
     disabled: PropTypes.bool,
     /**
+     * Styles to be applied to the Button Text
+     */
+    style: TextPropTypes.style,
+    /**
+     * Styles to be applied to the Button disabled state text
+     */
+    styleDisabled: TextPropTypes.style,
+    /**
+     * Styles to be applied to the Button disabled container
+     */
+    disabledContainerStyle: ViewPropTypes.style,
+    /**
      * Styles to be applied to the Button Container
      */
+    containerStyle: ViewPropTypes.style,
     /**
      * Function to be called on press
      */
@@ -52,6 +66,7 @@ export default class StyledButton extends PureComponent {
     /**
      * Style of the childGroup view
      */
+    childGroupStyle: ViewPropTypes.style,
     /**
      * Font Scaling
      */
@@ -80,6 +95,7 @@ export default class StyledButton extends PureComponent {
         <Text
           key={index}
           style={style}
+          allowFontScaling={this.props.allowFontScaling}
         >
           {children}
         </Text>

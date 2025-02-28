@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import Keypad from './components';
 import { KEYS } from './constants';
 import useCurrency from './useCurrency';
-import { ViewPropTypes } from 'react-native';
+import { ViewPropTypes } from 'deprecated-react-native-prop-types';
+
 function KeypadComponent({
   onChange,
   value,
@@ -224,10 +225,11 @@ KeypadComponent.propTypes = {
   /**
    * Custom style for container
    */
-
+  style: ViewPropTypes.style,
   /**
    * Custom style for digit buttons
    */
+  digitButtonStyle: ViewPropTypes.style,
   /**
    * Custom style for digit text
    */
@@ -235,6 +237,7 @@ KeypadComponent.propTypes = {
   /**
    * Custom style for period button
    */
+  periodButtonStyle: ViewPropTypes.style,
   /**
    * Custom style for period text
    */
@@ -242,6 +245,7 @@ KeypadComponent.propTypes = {
   /**
    * Custom style for delete button
    */
+  deleteButtonStyle: ViewPropTypes.style,
   /**
    * Custom icon for delete button
    */

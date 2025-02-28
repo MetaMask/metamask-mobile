@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Image,
-  ViewPropTypes,
   View,
   StyleSheet,
   Dimensions,
@@ -39,6 +38,8 @@ import { BadgeAnchorElementShape } from '../../../component-library/components/B
 import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../util/Logger';
+
+import { ViewPropTypes } from 'deprecated-react-native-prop-types';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -269,9 +270,11 @@ RemoteImage.propTypes = {
   /**
    * Style for the image
    */
+  style: ViewPropTypes.style,
   /**
    * Style for the placeholder (used for fadeIn)
    */
+  placeholderStyle: ViewPropTypes.style,
   /**
    * Called when there is an error
    */

@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ViewPropTypes, Text } from 'react-native';
+import { Text } from 'react-native';
 import Button from '@metamask/react-native-button';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ViewPropTypes, TextPropTypes } from 'deprecated-react-native-prop-types';
 
 /**
  * @deprecated The `<StyledButton>` component has been deprecated in favor of the new `<Button>` component from the component-library.
@@ -25,6 +26,22 @@ export default class StyledButton extends PureComponent {
      * Type of the button
      */
     disabled: PropTypes.bool,
+    /**
+     * Styles to be applied to the Button Text
+     */
+    style: TextPropTypes.style,
+    /**
+     * Styles to be applied to the Button disabled state text
+     */
+    styleDisabled: TextPropTypes.style,
+    /**
+     * Styles to be applied to the Button disabled container
+     */
+    disabledContainerStyle: ViewPropTypes.style,
+    /**
+     * Styles to be applied to the Button Container
+     */
+    containerStyle: ViewPropTypes.style,
     /**
      * Function to be called on press
      */

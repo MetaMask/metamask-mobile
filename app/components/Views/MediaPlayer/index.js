@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
-  ViewPropTypes,
 } from 'react-native';
 import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
@@ -20,6 +19,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useStyles } from '../../../component-library/hooks';
+import { ViewPropTypes } from 'deprecated-react-native-prop-types';
 
 const styleSheet = ({ theme: { colors }, vars: { isPlaying } }) =>
   StyleSheet.create({
@@ -173,6 +173,7 @@ MediaPlayer.propTypes = {
   /**
    * Custom style object
    */
+  style: ViewPropTypes.style,
   /**
    * On close callback
    */
