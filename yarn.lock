@@ -4614,7 +4614,7 @@
 
 "@metamask/bridge-controller@^2.0.0":
   version "2.0.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/bridge-controller/-/bridge-controller-2.0.0.tgz#5d58df5fe76d1d26f60e770eacba7507bb706f97"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-2.0.0.tgz#5d58df5fe76d1d26f60e770eacba7507bb706f97"
   integrity sha512-n1UcHQYWFE61FEjfwcOO4nhr73C0SF1Ex7O5yFQKU23OKlzmGapkdmQVHiDwhzw9U5CwOGR3Y5PCfdt3l8Kcfw==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
@@ -4626,7 +4626,7 @@
 
 "@metamask/bridge-status-controller@^2.0.0":
   version "2.0.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/bridge-status-controller/-/bridge-status-controller-2.0.0.tgz#040596499d98275ad26164953db57302485a90b9"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-2.0.0.tgz#040596499d98275ad26164953db57302485a90b9"
   integrity sha512-ta5jXmYn3j9wdrHNFDm7/Cmgm/LY4UEVwqfuG97osEKw1Ge1siUJm9+uiu8H0xjNDcOX9U3VzkXOXVExn9Y1Jg==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
