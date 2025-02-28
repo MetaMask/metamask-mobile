@@ -7,19 +7,19 @@ import { SRPListProps } from './SRPList.types';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPList.styles';
 import SRPListItem from '../SRPListItem';
+import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.selectors';
 
 const SRPList = ({ onKeyringSelect }: SRPListProps) => {
   const { styles } = useStyles(styleSheet, {});
   const hdKeyrings = useSelector(selectHdKeyrings);
 
   return (
-    <View style={styles.base} testID="srp-list">
+    <View style={styles.base} testID={SRPListSelectorsIDs.SRP_LIST}>
       <FlatList
         data={hdKeyrings}
         contentContainerStyle={styles.srpListContentContainer}
         renderItem={({ item, index }) => (
           <SRPListItem
-            testID={`srp-list-item-${index}`}
             key={item.metadata.id}
             keyring={item}
             name={`${strings('accounts.secret_recovery_phrase')} ${index + 1}`}
