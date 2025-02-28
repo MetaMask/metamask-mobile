@@ -33,6 +33,11 @@ const WalletAction = ({
   ...props
 }: WalletActionProps) => {
   const walletActionDetails: Record<WalletActionType, WalletActionDetail> = {
+    [WalletActionType.Deposit]: {
+      title: strings('asset_overview.deposit_button'),
+      description: strings('asset_overview.deposit_description'),
+      disabledDescription: strings('asset_overview.disabled_button.deposit'),
+    },
     [WalletActionType.Buy]: {
       title: strings('asset_overview.buy_button'),
       description: strings('asset_overview.buy_description'),

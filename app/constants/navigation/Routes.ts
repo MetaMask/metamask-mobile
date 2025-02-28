@@ -22,6 +22,7 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    NATIVE: 'RampNative',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',

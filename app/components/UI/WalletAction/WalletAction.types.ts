@@ -10,6 +10,7 @@ export enum WalletActionType {
   Send = 'Send',
   Receive = 'Receive',
   Earn = 'Earn',
+  Deposit = 'Deposit',
 }
 
 export interface WalletActionDetail {

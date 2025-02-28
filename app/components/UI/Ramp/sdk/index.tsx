@@ -43,12 +43,12 @@ const isDevelopment =
 const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
 const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
 
-let environment = Environment.Production;
-if (isInternalBuild) {
-  environment = Environment.Staging;
-} else if (isDevelopment) {
-  environment = Environment.Development;
-}
+// let environment = Environment.Production;
+// if (isInternalBuild) {
+//   environment = Environment.Staging;
+// } else if (isDevelopment) {
+//   environment = Environment.Development;
+// }
 
 let context = Context.Mobile;
 if (Device.isAndroid()) {
@@ -57,7 +57,7 @@ if (Device.isAndroid()) {
   context = Context.MobileIOS;
 }
 
-export const SDK = OnRampSdk.create(environment, context, {
+export const SDK = OnRampSdk.create(Environment.Staging, context, {
   verbose: isDevelopment,
   locale: I18n.locale,
 });

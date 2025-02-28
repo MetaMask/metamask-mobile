@@ -59,6 +59,7 @@ import RampActivationKeyForm from '../../UI/Ramp/Views/Settings/ActivationKeyFor
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
+import NativeRamp from '../../UI/Ramp/Views/NativeRamp';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
@@ -201,6 +202,12 @@ const TransactionsHome = () => (
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
     />
+  </Stack.Navigator>
+);
+
+const NativeRampFlow = () => (
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.RAMP.NATIVE} component={NativeRamp} />
   </Stack.Navigator>
 );
 
@@ -827,6 +834,7 @@ const MainNavigator = () => (
     <Stack.Screen name={Routes.RAMP.SELL}>
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
+    <Stack.Screen name={Routes.RAMP.NATIVE} component={NativeRampFlow} />
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen name="Bridge" component={Bridge} />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />

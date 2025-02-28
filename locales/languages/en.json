@@ -1265,6 +1265,7 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
+    "deposit_button": "Deposit",
     "token_marketplace": "Token marketplace",
     "sell_button": "Sell",
     "receive_button": "Receive",
@@ -1282,7 +1283,8 @@
       "bridge": "Bridging not supported for this account",
       "send": "Sending not supported for this account",
       "action": "This action is not supported for this account",
-      "earn": "Earning not supported for this account"
+      "earn": "Earning not supported for this account",
+      "deposit": "Depositing not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Total Supply",
@@ -1293,6 +1295,7 @@
     "for_help": "for help.",
     "troubleshoot": "Troubleshoot",
     "buy_description": "Buy crypto with cash",
+    "deposit_description": "Deposit cash to trade for tokens",
     "sell_description": "Sell crypto for cash",
     "swap_description": "Exchange between tokens",
     "bridge_description": "Transfer tokens between networks",
@@ -2525,6 +2528,8 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "deposit_cash": "Deposit cash",
+    "deposit_cash_description": "Coming soon: Deposit cash directly to your wallet",
     "buy": "buy",
     "sell": "sell",
     "orders": "Orders",

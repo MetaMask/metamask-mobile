@@ -135,6 +135,12 @@ const WalletActions = () => {
     createEventBuilder,
   ]);
 
+  const onDeposit = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.RAMP.NATIVE);
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
   const onSell = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
       navigate(...createSellNavigationDetails());
@@ -243,9 +249,10 @@ const WalletActions = () => {
 
   const goToPortfolioBridge = useGoToBridge('TabBar');
 
-  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true'
-    ? handleBridgeNavigation
-    : goToPortfolioBridge;
+  const goToBridge =
+    process.env.MM_BRIDGE_UI_ENABLED === 'true'
+      ? handleBridgeNavigation
+      : goToPortfolioBridge;
 
   const sendIconStyle = useMemo(
     () => ({
@@ -258,6 +265,17 @@ const WalletActions = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
+        {isNetworkRampSupported && (
+          <WalletAction
+            actionType={WalletActionType.Deposit}
+            iconName={IconName.Arrow2Down}
+            onPress={onDeposit}
+            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
         {isNetworkRampSupported && (
           <WalletAction
             actionType={WalletActionType.Buy}
