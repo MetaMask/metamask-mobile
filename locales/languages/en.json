@@ -1744,7 +1744,8 @@
     "sign_description_1": "After you have signed with your hardware wallet,",
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature",
-    "network_fee": "Network Fee"
+    "network_fee": "Network Fee",
+    "network_fee_tooltip": "Amount paid to process the transaction on network."
   },
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
