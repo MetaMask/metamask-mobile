@@ -379,5 +379,9 @@
   },
   "MultichainAssetsRatesController": {
     "conversionRates": {}
+  },
+  "CronjobController": {
+    "events": {},
+    "jobs": {}
   }
 }
