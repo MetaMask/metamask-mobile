@@ -513,7 +513,9 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize = 'AccountsController';
+export type ControllersToInitialize =
+  | 'AccountsController'
+  | 'CronjobController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

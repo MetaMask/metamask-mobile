@@ -192,11 +192,11 @@ import { createMultichainRatesController } from './controllers/RatesController/u
 import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 import { createMultichainAssetsRatesController } from './controllers/MultichainAssetsRatesController';
-import { createCronJobController } from './controllers/CronJobController';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
+import { cronjobControllerInit } from './controllers/CronJobController';
 ///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
@@ -390,6 +390,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        CronjobController: cronjobControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName: {},
@@ -398,6 +399,8 @@ export class Engine {
 
     const accountsController = controllersByName.AccountsController;
 
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    const cronjobController = controllersByName.CronjobController;
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 
     const multichainAssetsControllerMessenger =
@@ -459,27 +462,6 @@ export class Engine {
     setupCurrencyRateSync(
       multichainRatesControllerMessenger,
       multichainRatesController,
-    );
-
-    const cronjobControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'CronjobController',
-      allowedEvents: [
-        'SnapController:snapInstalled',
-        'SnapController:snapUpdated',
-        'SnapController:snapUninstalled',
-        'SnapController:snapEnabled',
-        'SnapController:snapDisabled',
-      ],
-      allowedActions: [
-        `PermissionController:getPermissions`,
-        'SnapController:handleRequest',
-        'SnapController:getAll',
-      ],
-    });
-
-    const cronjobController = createCronJobController(
-      cronjobControllerMessenger,
-      initialState.CronjobController,
     );
     ///: END:ONLY_INCLUDE_IF
 
@@ -1259,7 +1241,6 @@ export class Engine {
         messenger: notificationServicesPushControllerMessenger,
         initialState: initialState.NotificationServicesPushController,
       });
-
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
@@ -1592,6 +1573,7 @@ export class Engine {
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
       SnapInterfaceController: snapInterfaceController,
+      CronjobController: cronjobController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -1632,7 +1614,6 @@ export class Engine {
       RatesController: multichainRatesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
-      CronjobController: cronjobController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController: multichainNetworkController,
     };
