@@ -397,6 +397,14 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
       .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled')
       .mockReturnValue(false);
 
+    const mockSelectIsMetaMaskPushNotificationsLoading = jest
+      .spyOn(Selectors, 'selectIsMetaMaskPushNotificationsLoading')
+      .mockReturnValue(false);
+
+    const mockSelectIsMetaMaskPushNotificationsEnabled = jest
+      .spyOn(Selectors, 'selectIsMetaMaskPushNotificationsEnabled')
+      .mockReturnValue(false);
+
     const mockSelectIsUpdatingMetamaskNotificationsAccount = jest
       .spyOn(Selectors, 'selectIsUpdatingMetamaskNotificationsAccount')
       .mockReturnValue([]);
@@ -408,6 +416,8 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
     return {
       mockSelectIsUpdatingMetamaskNotifications,
       mockSelectIsMetamaskNotificationsEnabled,
+      mockSelectIsMetaMaskPushNotificationsLoading,
+      mockSelectIsMetaMaskPushNotificationsEnabled,
       mockSelectIsUpdatingMetamaskNotificationsAccount,
       mockStrings,
     };
@@ -441,6 +451,28 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
     const { hook, mocks } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotifications.mockReturnValue(true);
       m.mockSelectIsMetamaskNotificationsEnabled.mockReturnValue(false);
+    });
+    expect(hook.result.current).toBeDefined();
+    expect(mocks.mockStrings).toHaveBeenCalledWith(
+      'app_settings.enabling_notifications',
+    );
+  });
+
+  it('returns disabling notifications text when push notifications are being disabled', () => {
+    const { hook, mocks } = arrangeAct((m) => {
+      m.mockSelectIsMetaMaskPushNotificationsEnabled.mockReturnValue(true);
+      m.mockSelectIsMetaMaskPushNotificationsLoading.mockReturnValue(true);
+    });
+    expect(hook.result.current).toBeDefined();
+    expect(mocks.mockStrings).toHaveBeenCalledWith(
+      'app_settings.disabling_notifications',
+    );
+  });
+
+  it('returns enabling notifications text when push notifications are being enabled', () => {
+    const { hook, mocks } = arrangeAct((m) => {
+      m.mockSelectIsMetaMaskPushNotificationsEnabled.mockReturnValue(false);
+      m.mockSelectIsMetaMaskPushNotificationsLoading.mockReturnValue(true);
     });
     expect(hook.result.current).toBeDefined();
     expect(mocks.mockStrings).toHaveBeenCalledWith(
