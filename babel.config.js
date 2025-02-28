@@ -20,6 +20,10 @@ module.exports = {
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
     {
+      test: './node_modules/@metamask/bridge-controller',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
       test: [
         './node_modules/**/@metamask/rpc-errors/**',
         './node_modules/@metamask/rpc-errors/**',
