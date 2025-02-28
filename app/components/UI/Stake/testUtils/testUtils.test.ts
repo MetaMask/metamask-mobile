@@ -1,6 +1,12 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { createMockToken, getCreateMockTokenOptions } from '.';
+import {
+  createMockToken,
+  getCreateMockTokenOptions,
+  mockEarnControllerRootState,
+} from '.';
 import { TOKENS_WITH_DEFAULT_OPTIONS } from './testUtils.types';
+
+const MOCK_ROOT_STATE_WITH_EARN_CONTROLLER = mockEarnControllerRootState();
 
 describe('Staking Test Utils', () => {
   describe('createMockToken', () => {
@@ -91,6 +97,24 @@ describe('Staking Test Utils', () => {
         symbol: 'USDC',
         ticker: 'USDC',
       });
+    });
+  });
+
+  describe('mockEarnControllerRootState', () => {
+    it('returns default mock earn controller root state', () => {
+      const result = mockEarnControllerRootState();
+
+      expect(result).toStrictEqual(MOCK_ROOT_STATE_WITH_EARN_CONTROLLER);
+    });
+
+    it('returns correct state when overriding default values', () => {
+      const result = mockEarnControllerRootState({
+        isEligible: false,
+      });
+
+      expect(
+        result.engine.backgroundState.EarnController.pooled_staking.isEligible,
+      ).toBe(false);
     });
   });
 });
