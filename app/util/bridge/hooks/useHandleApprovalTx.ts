@@ -1,7 +1,6 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import useHandleTx from './useHandleTx';
-import { QuoteResponse } from '../../../components/UI/Bridge/types';
-import { TxData } from '../../../components/UI/Bridge/types';
+import { QuoteResponse, TxData } from '../../../components/UI/Bridge/types';
 
 export const ALLOWANCE_RESET_ERROR = 'Eth USDT allowance reset failed';
 export const APPROVAL_TX_ERROR = 'Approve transaction failed';
@@ -17,7 +16,6 @@ export default function useHandleApprovalTx() {
     quoteResponse: QuoteResponse;
   }) => {
     try {
-      console.log('approval', approval);
       const txMeta = await handleTx({
         txType: TransactionType.bridgeApproval,
         txParams: approval,

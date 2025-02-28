@@ -41,7 +41,6 @@ describe('useSubmitBridgeTx', () => {
       quoteResponse: mockQuoteResponse,
       approvalTxId: undefined,
     });
-    console.log('txResult', txResult);
     expect(txResult).toEqual({ success: true });
   });
 
