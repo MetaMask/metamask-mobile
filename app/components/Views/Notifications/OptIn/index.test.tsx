@@ -9,6 +9,8 @@ import renderWithProvider, {
 import { strings } from '../../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
 import * as OptInHooksModule from './OptIn.hooks';
+// eslint-disable-next-line import/no-namespace
+import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 
 const mockedDispatch = jest.fn();
 
@@ -67,12 +69,26 @@ const arrangeMockOptInHooks = () => {
     .spyOn(OptInHooksModule, 'useOptimisticNavigationEffect')
     .mockReturnValue(false);
 
+  const mockUseEnableNotificationReturnVal = {
+    data: false,
+    enableNotifications: jest.fn(),
+    error: null,
+    isEnablingNotifications: false,
+    isEnablingPushNotifications: false,
+    loading: false,
+  };
+  const mockUseEnableNotifications = jest
+    .spyOn(UseNotificationsModule, 'useEnableNotifications')
+    .mockReturnValue(mockUseEnableNotificationReturnVal);
+
   return {
     mockCancel,
     mockUseHandleOptInCancel,
     mockClick,
     mockUseHadleOptInClick,
     mockUseOptimisticNavigationEffect,
+    mockUseEnableNotifications,
+    mockUseEnableNotificationReturnVal,
   };
 };
 
@@ -111,7 +127,11 @@ describe('OptIn', () => {
 
   it('shows loading modal while enabling notifications', async () => {
     const mocks = arrangeMockOptInHooks();
-    mocks.mockUseOptimisticNavigationEffect.mockReturnValue(true);
+    mocks.mockUseEnableNotifications.mockReturnValue({
+      ...mocks.mockUseEnableNotificationReturnVal,
+      isEnablingNotifications: true,
+      loading: true,
+    });
     renderWithProvider(<OptIn />);
 
     const loader = screen.getByText(
