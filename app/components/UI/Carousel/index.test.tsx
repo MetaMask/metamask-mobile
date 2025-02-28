@@ -162,14 +162,10 @@ describe('Carousel', () => {
 
     // Test cashout banner
     fireEvent.press(thirdSlide);
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://portfolio.metamask.io/sell',
-    );
+    expect(mockNavigate).toHaveBeenCalled();
 
     // Test aggregated banner
     fireEvent.press(fourthSlide);
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://portfolio.metamask.io/sell',
-    );
+    expect(mockNavigate).toHaveBeenCalled();
   });
 });

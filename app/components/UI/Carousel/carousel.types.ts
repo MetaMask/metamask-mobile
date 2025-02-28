@@ -8,6 +8,11 @@ export type NavigationAction =
       type: 'function';
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       navigate: () => any;
+    }
+  | {
+      type: 'route';
+      route: string;
+      navigationStack?: string;
     };
 
 export interface CarouselSlide {
