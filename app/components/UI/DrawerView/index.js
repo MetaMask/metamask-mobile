@@ -87,6 +87,7 @@ import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import safePromiseHandler from './utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -986,9 +987,7 @@ class DrawerView extends PureComponent {
     networkSwitched({ networkUrl: '', networkStatus: false });
 
     // Wrap the toggle call in a setTimeout to avoid awaiting a non-promise function.
-    setTimeout(() => {
-      toggleInfoNetworkModal();
-    }, 100);
+    safePromiseHandler(toggleInfoNetworkModal(), 100);
   };
 
   renderProtectModal = () => {
