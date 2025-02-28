@@ -1,4 +1,4 @@
-import { JSXElement, GenericSnapElement } from '@metamask/snaps-sdk/jsx';
+import { JSXElement, GenericSnapElement , Text } from '@metamask/snaps-sdk/jsx';
 import { hasChildren } from '@metamask/snaps-utils';
 import { memoize } from 'lodash';
 import { sha256 } from '@noble/hashes/sha256';
@@ -132,9 +132,12 @@ export const mapTextToTemplate = (
   elements.map((e) => {
     if (typeof e === 'string') {
       // React Native cannot render strings directly, so we map to an element where we control the props.
+      const text = unescapeFn(e);
+      const key = generateKey(params.map, Text({ children: text }));
       return {
         element: 'RNText',
-        children: unescapeFn(e),
+        key,
+        children: text,
         props: { color: 'inherit' },
       };
     }
