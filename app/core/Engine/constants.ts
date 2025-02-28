@@ -5,6 +5,7 @@ import { SnapControllerStateChangeEvent } from './controllers/SnapController/con
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { MultichainBalancesControllerStateChangeEvent } from './controllers/MultichainBalancesController/constants';
 import { RatesControllerStateChangeEvent } from './controllers/RatesController/constants';
+import { CronjobControllerStateChangeEvent } from './controllers/CronJobController/constants';
 ///: END:ONLY_INCLUDE_IF
 /**
  * Messageable modules that are part of the Engine's context, but are not defined with state.
@@ -52,12 +53,12 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NotificationServicesController:stateChange',
   'NotificationServicesPushController:stateChange',
   'SnapInterfaceController:stateChange',
+  CronjobControllerStateChangeEvent,
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerStateChangeEvent,
   RatesControllerStateChangeEvent,
   'MultichainAssetsRatesController:stateChange',
-  'CronjobController:stateChange',
   // TODO: Export this from the assets controller
   'MultichainAssetsController:stateChange',
   ///: END:ONLY_INCLUDE_IF
