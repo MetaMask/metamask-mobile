@@ -59,6 +59,11 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     );
   }, [onBack, navigate, trackEvent, createEventBuilder]);
 
+  const openImportSrp = useCallback(() => {
+    navigate(Routes.MULTI_SRP.IMPORT);
+    onBack();
+  }, [onBack, navigate]);
+
   const createNewAccount = useCallback(async () => {
     const { KeyringController } = Engine.context;
     try {
@@ -213,6 +218,13 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             testID={
               AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON
             }
+          />
+          <AccountAction
+            actionTitle={strings('account_actions.import_srp')}
+            iconName={IconName.Hardware}
+            onPress={openImportSrp}
+            disabled={isLoading}
+            testID={AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON}
           />
         </View>
       </Fragment>
