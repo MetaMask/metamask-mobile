@@ -34,10 +34,6 @@ export interface CarouselProps {
    */
   isLoading?: boolean;
   /**
-   * Callback when a slide is clicked
-   */
-  onClick?: (slideId: string) => void;
-  /**
    * Additional style for the container
    */
   style?: ViewStyle;

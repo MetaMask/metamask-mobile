@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, FC } from 'react';
+import React, { useState, useCallback, useEffect, FC, useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -23,6 +23,7 @@ import { RootState } from '../../../reducers';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { useMultichainBalances } from '../../hooks/useMultichainBalances';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
 import {
@@ -99,11 +100,12 @@ const PREDEFINED_SLIDES: CarouselSlide[] = [
   },
 ];
 
-export const Carousel: FC<CarouselProps> = () => {
+export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const [hasRendered, setHasRendered] = useState(false);
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { multichainBalances } = useMultichainBalances();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
@@ -112,9 +114,26 @@ export const Carousel: FC<CarouselProps> = () => {
     (state: RootState) => state.banners.dismissedBanners,
   );
 
-  const visibleSlides = PREDEFINED_SLIDES.filter(
-    (slide) => !dismissedBanners.includes(slide.id),
+  const isZeroBalance = multichainBalances.totalFiatBalance === 0;
+  const visibleSlides = useMemo(
+    () =>
+      PREDEFINED_SLIDES.map((slide) => {
+        if (slide.id === 'fund' && isZeroBalance) {
+          return {
+            ...slide,
+            undismissable: true,
+          };
+        }
+        return slide;
+      }).filter((slide) => {
+        if (slide.id === 'fund' && isZeroBalance) {
+          return true;
+        }
+        return !dismissedBanners.includes(slide.id);
+      }),
+    [isZeroBalance, dismissedBanners],
   );
+
   const isSingleSlide = visibleSlides.length === 1;
 
   const openUrl =
@@ -143,43 +162,44 @@ export const Carousel: FC<CarouselProps> = () => {
     [hasRendered, trackEvent, createEventBuilder],
   );
 
-  const handleSlideClick = (slideId: string, navigation: NavigationAction) => {
-    trackEvent(
-      createEventBuilder({
-        category: 'Banner Select',
-        properties: {
-          name: slideId,
-        },
-      }).build(),
-    );
+  const handleSlideClick = useCallback(
+    (slideId: string, navigation: NavigationAction) => {
+      trackEvent(
+        createEventBuilder({
+          category: 'Banner Select',
+          properties: {
+            name: slideId,
+          },
+        }).build(),
+      );
 
-    if (navigation.type === 'url') {
-      return openUrl(navigation.href)();
-    }
-
-    if (navigation.type === 'function') {
-      return navigate(...navigation.navigate());
-    }
-
-    if (navigation.type === 'route') {
-      if (navigation.navigationStack) {
-        return navigate(navigation.navigationStack, {
-          screen: navigation.route,
-        });
+      if (navigation.type === 'url') {
+        return openUrl(navigation.href)();
       }
-      return navigate(navigation.route);
-    }
-  };
 
-  const handleClose = (slideId: string) => {
-    dispatch(dismissBanner(slideId));
-  };
+      if (navigation.type === 'function') {
+        return navigate(...navigation.navigate());
+      }
+
+      if (navigation.type === 'route') {
+        return navigate(navigation.route);
+      }
+    },
+    [navigate, trackEvent, createEventBuilder],
+  );
+
+  const handleClose = useCallback(
+    (slideId: string) => {
+      dispatch(dismissBanner(slideId));
+    },
+    [dispatch],
+  );
 
   useEffect(() => {
     if (visibleSlides.length > 0) {
       handleRenderSlides(visibleSlides);
     }
-  }, [visibleSlides, handleRenderSlides]);
+  }, [visibleSlides, handleRenderSlides, isZeroBalance]);
 
   if (visibleSlides.length === 0) {
     return null;
@@ -187,7 +207,7 @@ export const Carousel: FC<CarouselProps> = () => {
 
   return (
     <View
-      style={styles.container}
+      style={[styles.container, style]}
       testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
     >
       <View style={styles.bannerContainer}>
