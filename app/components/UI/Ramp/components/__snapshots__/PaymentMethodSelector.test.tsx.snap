@@ -256,7 +256,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
           onError={[Function]}
           source={
             {
-              "uri": "https://on-ramp-content.api.cx.metamask.io/assets/Visa-regular@3x.png",
+              "uri": "https://on-ramp-content-uat.api.cx.metamask.io/assets/Visa-regular@3x.png",
             }
           }
           style={
@@ -271,7 +271,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
           onError={[Function]}
           source={
             {
-              "uri": "https://on-ramp-content.api.cx.metamask.io/assets/Mastercard-regular@3x.png",
+              "uri": "https://on-ramp-content-uat.api.cx.metamask.io/assets/Mastercard-regular@3x.png",
             }
           }
           style={
