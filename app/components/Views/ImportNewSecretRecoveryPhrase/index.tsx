@@ -4,6 +4,7 @@ import React, {
   useRef,
   useCallback,
   useMemo,
+  useContext,
 } from 'react';
 import {
   Alert,
@@ -39,6 +40,12 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import SelectComponent from '../../UI/SelectComponent';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import { useSelector } from 'react-redux';
+import { selectHDKeyrings } from '../../../selectors/keyringController';
 
 const defaultNumberOfWords = 12;
 
@@ -67,6 +74,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   const mounted = useRef<boolean>(false);
   const { colors, themeAppearance } = useAppTheme();
   const styles = createStyles(colors);
+  const { toastRef } = useContext(ToastContext);
 
   const [numberOfWords, setNumberOfWords] = useState(defaultNumberOfWords);
   const [secretRecoveryPhrase, setSecretRecoveryPhrase] = useState<string[]>(
@@ -78,6 +86,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   const [invalidSRPWords, setInvalidSRPWords] = useState<boolean[]>(
     Array(numberOfWords).fill(false),
   );
+  const hdKeyrings = useSelector(selectHDKeyrings);
 
   const copyToClipboard = useCopyClipboard();
 
@@ -296,6 +305,18 @@ const ImportNewSecretRecoveryPhrase = () => {
       await importNewSecretRecoveryPhrase(secretRecoveryPhrase.join(' '));
       setLoading(false);
       setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: `${strings('import_new_secret_recovery_phrase.success_1')} ${
+              hdKeyrings.length + 1
+            } ${strings('import_new_secret_recovery_phrase.success_2')}`,
+          },
+        ],
+        iconName: IconName.Check,
+        hasNoTimeout: false,
+      });
       navigation.navigate('WalletView');
     } catch (e) {
       Alert.alert(

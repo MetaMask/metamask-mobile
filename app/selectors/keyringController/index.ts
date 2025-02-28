@@ -22,6 +22,11 @@ export const selectKeyrings = createDeepEqualSelector(
     })),
 );
 
+export const selectHDKeyrings = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings) => keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd),
+);
+
 export const hasMultipleHDKeyrings = createDeepEqualSelector(
   selectKeyrings,
   (keyrings) =>

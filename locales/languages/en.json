@@ -2012,7 +2012,10 @@
     "error_multiple_srp_word_error_1": "Word ",
     "error_multiple_srp_word_error_2": " and ",
     "error_multiple_srp_word_error_3": " is incorrect or misspelled.",
-    "error_invalid_srp": "Invalid Secret Recovery Phrase"
+    "error_invalid_srp": "Invalid Secret Recovery Phrase",
+    "success_1": "Secret Recovery Phrase",
+    "success_2": "imported"
+
   },
   "first_incoming_transaction": {
     "title": "{{asset}} was deposited in your account",
