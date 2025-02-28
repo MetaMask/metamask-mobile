@@ -41,6 +41,10 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
   SEPOLIA_FAUCET,
 } from '../../constants/urls';
+import { isNonEvmChainId } from '../../core/Multichain/utils';
+import { SolScope } from '@metamask/keyring-api';
+import { store } from '../../store';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../selectors/multichainNetworkController';
 
 /**
  * List of the supported networks
@@ -114,23 +118,6 @@ export const NetworkList = {
 
 const NetworkListKeys = Object.keys(NetworkList);
 
-export const SECURITY_PROVIDER_SUPPORTED_CHAIN_IDS_FALLBACK_LIST = [
-  NETWORKS_CHAIN_ID.MAINNET,
-  NETWORKS_CHAIN_ID.BSC,
-  NETWORKS_CHAIN_ID.BASE,
-  NETWORKS_CHAIN_ID.POLYGON,
-  NETWORKS_CHAIN_ID.ARBITRUM,
-  NETWORKS_CHAIN_ID.OPTIMISM,
-  NETWORKS_CHAIN_ID.AVAXCCHAIN,
-  NETWORKS_CHAIN_ID.LINEA_MAINNET,
-  NETWORKS_CHAIN_ID.SEPOLIA,
-  NETWORKS_CHAIN_ID.OPBNB,
-  NETWORKS_CHAIN_ID.ZKSYNC_ERA,
-  NETWORKS_CHAIN_ID.SCROLL,
-  NETWORKS_CHAIN_ID.BERACHAIN,
-  NETWORKS_CHAIN_ID.METACHAIN_ONE,
-];
-
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
   [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
@@ -170,8 +157,15 @@ export const isMainNet = (chainId) => chainId === '0x1';
 
 export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
+export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
+
 export const getDecimalChainId = (chainId) => {
-  if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
+  if (
+    !chainId ||
+    typeof chainId !== 'string' ||
+    !chainId.startsWith('0x') ||
+    isNonEvmChainId(chainId)
+  ) {
     return chainId;
   }
   return parseInt(chainId, 16).toString(10);
@@ -300,6 +294,21 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
   }
 
   return undefined;
+}
+/**
+ * Returns block explorer for non-evm chain id
+ *
+ * @param {string} chainId - Chain ID of the network
+ * @returns {string} - Block explorer url
+ */
+export function findBlockExplorerForNonEvmChainId(chainId) {
+  const nonEvmNetworks = selectNonEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
+  const network = Object.values(nonEvmNetworks).find(
+    (network) => network.chainId === chainId,
+  );
+  return network?.blockExplorers?.urls[network?.blockExplorers?.defaultIndex];
 }
 
 /**

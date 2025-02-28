@@ -2,6 +2,7 @@ import useCurrencyRatePolling from './useCurrencyRatePolling';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -17,6 +18,12 @@ describe('useCurrencyRatePolling', () => {
     const state = {
       engine: {
         backgroundState: {
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+            multichainNetworkConfigurationsByChainId: {},
+          },
           NetworkController: {
             selectedNetworkClientId: 'selectedNetworkClientId',
             networkConfigurationsByChainId: {
@@ -61,6 +68,12 @@ describe('useCurrencyRatePolling', () => {
     const state = {
       engine: {
         backgroundState: {
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+            multichainNetworkConfigurationsByChainId: {},
+          },
           NetworkController: {
             selectedNetworkClientId: 'selectedNetworkClientId',
             networkConfigurationsByChainId: {

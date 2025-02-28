@@ -44,8 +44,8 @@ interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
   chainId: Hex;
 
-  /** Change type to be displayed in value tooltip */
-  labelChangeType: string;
+  /** Header text to be displayed in the value modal */
+  modalHeaderText: string;
 
   /** The network client ID */
   networkClientId?: NetworkClientId;
@@ -80,7 +80,7 @@ interface SimulationValueDisplayParams {
 
 const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   chainId,
-  labelChangeType,
+  modalHeaderText,
   networkClientId,
   primaryType,
   tokenContract,
@@ -92,9 +92,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 }) => {
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
-    const { colors } = useTheme();
+  const { colors } = useTheme();
 
-    const styles = styleSheet(colors);
+  const styles = styleSheet(colors);
 
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId),
@@ -105,11 +105,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
       ? contractExchangeRates[tokenContract as `0x${string}`]?.price
       : undefined;
 
-    const {
-      details: tokenDetails,
-      isPending: isPendingTokenDetails,
-    } = useGetTokenStandardAndDetails(tokenContract, networkClientId);
-    const { decimalsNumber: tokenDecimals } = tokenDetails;
+  const { details: tokenDetails, isPending: isPendingTokenDetails } =
+    useGetTokenStandardAndDetails(tokenContract, networkClientId);
+  const { decimalsNumber: tokenDecimals } = tokenDetails;
 
   useTrackERC20WithoutDecimalInformation(
     chainId,
@@ -117,18 +115,21 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     tokenDetails as TokenDetailsERC20,
   );
 
+  const isNFT = tokenId !== undefined && tokenId !== '0';
+
   const tokenAmount =
     isNumberValue(value) && !tokenId
       ? calcTokenAmount(value as number | string, tokenDecimals)
       : null;
   const isValidTokenAmount =
+    !isNFT &&
     tokenAmount !== null &&
     tokenAmount !== undefined &&
     tokenAmount instanceof BigNumber;
 
   const fiatValue =
     isValidTokenAmount && exchangeRate && !tokenId
-      ? tokenAmount.multipliedBy(exchangeRate).toNumber()
+      ? tokenAmount.multipliedBy(exchangeRate)
       : undefined;
 
   const tokenValue = isValidTokenAmount
@@ -152,6 +153,11 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     return null;
   }
 
+  // Avoid empty button pill container
+  const showValueButtonPill = Boolean(isPendingTokenDetails
+    || shouldShowUnlimitedValue
+    || (tokenValue !== null || tokenId));
+
   function handlePressTokenValue() {
     setHasValueModalOpen(true);
   }
@@ -160,10 +166,10 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
       <View style={styles.wrapper}>
         <View style={styles.flexRowTokenValueAndAddress}>
           <View style={styles.valueAndAddress}>
-            {
+            {showValueButtonPill &&
               <AnimatedPulse isPulsing={isPendingTokenDetails} testID="simulation-value-display-loader">
                 <ButtonPill
-                  isDisabled={!!tokenId || tokenId === '0'}
+                  isDisabled={isNFT}
                   onPress={handlePressTokenValue}
                   onPressIn={handlePressTokenValue}
                   onPressOut={handlePressTokenValue}
@@ -179,30 +185,29 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                       ? strings('confirm.unlimited')
                       : tokenValue !== null &&
                         shortenString(tokenValue || '', {
-                        truncatedCharLimit: 15,
-                        truncatedStartChars: 15,
-                        truncatedEndChars: 0,
-                        skipCharacterInEnd: true,
-                      })}
-                      {tokenId && `#${tokenId}`}
-                    </Text>
-                  }
-                </ButtonPill>
-              </AnimatedPulse>
-            }
-            <View style={styles.marginStart4}>
-              <Address address={tokenContract} chainId={chainId} />
-            </View>
+                          truncatedCharLimit: 15,
+                          truncatedStartChars: 15,
+                          truncatedEndChars: 0,
+                          skipCharacterInEnd: true,
+                        })}
+                    {tokenId && `#${tokenId}`}
+                  </Text>
+                }
+              </ButtonPill>
+            </AnimatedPulse>
+          }
+          <View style={styles.marginStart4}>
+            <Address address={tokenContract} chainId={chainId} />
           </View>
         </View>
-        <View style={styles.fiatDisplay}>
-          {/**
-            TODO - add fiat shorten prop after tooltip logic has been updated
-            {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
-          */}
-        {fiatValue && (
-          <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />
-        )}
+      </View>
+      <View>
+        {fiatValue &&
+          (isPendingTokenDetails ? (
+            <View style={styles.loadingFiatValue} />
+          ) : (
+            <IndividualFiatDisplay fiatAmount={fiatValue} />
+          ))}
       </View>
       {hasValueModalOpen && (
         /**
@@ -224,7 +229,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                   iconName={IconName.ArrowLeft}
                 />
                 <Text style={styles.valueModalHeaderText}>
-                  {labelChangeType}
+                  {modalHeaderText}
                 </Text>
               </View>
               <Text style={styles.valueModalText}>

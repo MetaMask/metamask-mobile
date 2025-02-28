@@ -2,14 +2,14 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   EthAccountType,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  SolScope,
   BtcAccountType,
-  ///: END:ONLY_INCLUDE_IF
+  BtcScope,
 } from '@metamask/keyring-api';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { validate, Network } from 'bitcoin-address-validation';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
-///: END:ONLY_INCLUDE_IF
+import Engine from '../Engine';
+import { CaipChainId, Hex } from '@metamask/utils';
+import { validate, Network } from 'bitcoin-address-validation';
 
 /**
  * Returns whether an account is an EVM account.
@@ -39,7 +39,64 @@ export function getFormattedAddressFromInternalAccount(
   return account.address;
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+/**
+ * Returns whether an address is a valid Solana address, specifically an account's.
+ * Derived addresses (like Program's) will return false.
+ * See: https://stackoverflow.com/questions/71200948/how-can-i-validate-a-solana-wallet-address-with-web3js
+ *
+ * @param address - The address to check.
+ * @returns `true` if the address is a valid Solana address, `false` otherwise.
+ */
+export function isSolanaAccount(account: InternalAccount): boolean {
+  return isSolanaAddress(account.address);
+}
+
+/**
+ * Returns whether an address is a non-EVM address.
+ *
+ * @param address - The address to check.
+ * @returns `true` if the address is a non-EVM address, `false` otherwise.
+ */
+export function isNonEvmAddress(address: string): boolean {
+  return isSolanaAddress(address) || isBtcMainnetAddress(address);
+}
+
+/**
+ * Returns the chain id of the non-EVM network based on the account address.
+ *
+ * @param address - The address to check.
+ * @returns The chain id of the non-EVM network.
+ */
+export function nonEvmNetworkChainIdByAccountAddress(address: string): string {
+  if (isSolanaAddress(address)) {
+    return SolScope.Mainnet;
+  }
+  return BtcScope.Mainnet;
+}
+
+export function lastSelectedAccountAddressByNonEvmNetworkChainId(
+  chainId: CaipChainId,
+): string | undefined {
+  const { AccountsController } = Engine.context;
+  // TODO: Add teh logic if there is none last selected account what to do
+  return AccountsController.getSelectedMultichainAccount(chainId)?.address;
+}
+
+export function lastSelectedAccountAddressInEvmNetwork(): string | undefined {
+  const { AccountsController } = Engine.context;
+  // TODO: Add teh logic if there is none last selected account what to do
+  return AccountsController.getSelectedAccount()?.address;
+}
+
+/**
+ * Returns whether a chain id is a non-EVM chain id.
+ *
+ * @param chainId - The chain id to check.
+ * @returns `true` if the chain id is a non-EVM chain id, `false` otherwise.
+ */
+export function isNonEvmChainId(chainId: string | Hex | CaipChainId): boolean {
+  return chainId === SolScope.Mainnet || chainId === BtcScope.Mainnet;
+}
 
 /**
  * Returns whether an account is a Bitcoin account.
@@ -78,16 +135,3 @@ export function isBtcMainnetAddress(address: string): boolean {
 export function isBtcTestnetAddress(address: string): boolean {
   return validate(address, Network.testnet);
 }
-
-/**
- * Returns whether an address is a valid Solana address, specifically an account's.
- * Derived addresses (like Program's) will return false.
- * See: https://stackoverflow.com/questions/71200948/how-can-i-validate-a-solana-wallet-address-with-web3js
- *
- * @param address - The address to check.
- * @returns `true` if the address is a valid Solana address, `false` otherwise.
- */
-export function isSolanaAccount(account: InternalAccount): boolean {
-  return isSolanaAddress(account.address);
-}
-///: END:ONLY_INCLUDE_IF

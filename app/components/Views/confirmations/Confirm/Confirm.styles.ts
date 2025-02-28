@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    mainContainer: {
+    flatContainer: {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -18,15 +18,20 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       paddingHorizontal: 16,
     },
-    container: {
+    modalContainer: {
       backgroundColor: theme.colors.background.alternative,
       paddingHorizontal: 16,
       paddingVertical: 24,
-      minHeight: '70%',
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
-      justifyContent: 'space-between',
+      height: '85%',
+    },
+    scrollableSection: {
+      padding: 4,
+    },
+    scrollable: {
+      height: '75%',
     },
   });
 };

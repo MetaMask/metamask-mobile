@@ -1,4 +1,5 @@
 import { ConfirmationPageSectionsSelectorIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import Gestures from '../../../utils/Gestures';
 import Matchers from '../../../utils/Matchers';
 
 class PageSections {
@@ -11,6 +12,12 @@ class PageSections {
   get OriginInfoSection() {
     return Matchers.getElementByID(
       ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION,
+    );
+  }
+
+  get SiweSigningAccountInfoSection() {
+    return Matchers.getElementByID(
+      ConfirmationPageSectionsSelectorIDs.SIWE_SIGNING_ACCOUNT_INFO_SECTION,
     );
   }
 

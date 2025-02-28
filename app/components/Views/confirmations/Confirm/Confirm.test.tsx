@@ -4,9 +4,13 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
   securityAlertResponse,
+  stakingDepositConfirmationState,
   typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
-import Confirm from './index';
+// eslint-disable-next-line import/no-namespace
+import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
+
+import { Confirm } from './Confirm';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -16,6 +20,13 @@ jest.mock('../../../../core/Engine', () => ({
         keyrings: [],
       },
       getOrAddQRKeyring: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkConfigurationByNetworkClientId: jest.fn(),
+    },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
   },
   controllerMessenger: {
@@ -32,8 +43,25 @@ jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    addListener: jest.fn(),
+    dispatch: jest.fn(),
+    setOptions: jest.fn(),
+  }),
+}));
+
 describe('Confirm', () => {
-  it('should render correct information for personal sign', async () => {
+  it('renders modal confirmation', async () => {
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: typedSignV1ConfirmationState,
+    });
+    expect(getByTestId('modal-confirmation-container')).toBeDefined();
+  });
+
+  it('renders correct information for personal sign', async () => {
     const { getAllByRole, getByText } = renderWithProvider(<Confirm />, {
       state: personalSignatureConfirmationState,
     });
@@ -48,7 +76,7 @@ describe('Confirm', () => {
     expect(getAllByRole('button')).toHaveLength(2);
   });
 
-  it('should render correct information for typed sign v1', async () => {
+  it('renders correct information for typed sign v1', async () => {
     const { getAllByRole, getAllByText, getByText, queryByText } =
       renderWithProvider(<Confirm />, {
         state: typedSignV1ConfirmationState,
@@ -62,7 +90,19 @@ describe('Confirm', () => {
     expect(queryByText('This is a deceptive request')).toBeNull();
   });
 
-  it('should render blockaid banner if confirmation has blockaid error response', async () => {
+  it('renders correct information for staking deposit', async () => {
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(getByText('APR')).toBeDefined();
+    expect(getByText('Est. annual reward')).toBeDefined();
+    expect(getByText('Reward frequency')).toBeDefined();
+    expect(getByText('Withdrawal time')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
+    expect(getByText('Advanced details')).toBeDefined();
+  });
+
+  it('renders blockaid banner if confirmation has blockaid error response', async () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: {
         ...typedSignV1ConfirmationState,
@@ -71,5 +111,18 @@ describe('Confirm', () => {
     });
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
+  });
+
+  it('returns null if re-design is not enabled for confirmation', () => {
+    jest
+      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+      .mockReturnValue({ isRedesignedEnabled: false });
+    const { queryByText } = renderWithProvider(<Confirm />, {
+      state: {
+        ...typedSignV1ConfirmationState,
+        signatureRequest: { securityAlertResponse },
+      },
+    });
+    expect(queryByText('Signature request')).toBeNull();
   });
 });

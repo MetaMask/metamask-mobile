@@ -113,10 +113,15 @@ jest.mock('../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
+let mockState = {};
+
 jest.mock('../../store', () => ({
   store: {
-    getState: jest.fn(),
+    getState: jest.fn().mockImplementation(() => mockState),
     dispatch: jest.fn(),
+  },
+  _updateMockState: (state) => {
+    mockState = state;
   },
 }));
 
@@ -345,6 +350,11 @@ global.__DEV__ = false;
 jest.mock('../../core/Engine', () =>
   require('../../core/__mocks__/MockedEngine'),
 );
+
+jest.mock('react-native-safe-area-context', () => ({
+  ...jest.requireActual('react-native-safe-area-context'),
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
 
 afterEach(() => {
   jest.restoreAllMocks();

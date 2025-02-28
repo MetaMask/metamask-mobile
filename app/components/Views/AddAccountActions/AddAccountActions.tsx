@@ -23,10 +23,9 @@ import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-snap-client';
 import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
-import { MultichainNetworks } from '../../../core/Multichain/constants';
 import { useSelector } from 'react-redux';
 import {
-  hasCreatedBtcMainnetAccount,
+  selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
 } from '../../../selectors/accountsController';
 import {
@@ -34,6 +33,7 @@ import {
   selectIsBitcoinTestnetSupportEnabled,
   selectIsSolanaSupportEnabled,
 } from '../../../selectors/multichain';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
@@ -92,7 +92,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const isSolanaSupportEnabled = useSelector(selectIsSolanaSupportEnabled);
 
   const isBtcMainnetAccountAlreadyCreated = useSelector(
-    hasCreatedBtcMainnetAccount,
+    selectHasCreatedBtcMainnetAccount,
   );
   const isBtcTestnetAccountAlreadyCreated = useSelector(
     hasCreatedBtcTestnetAccount,
@@ -121,7 +121,6 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       setIsLoading(true);
       // Client to create the account using the Solana Snap
       const client = new KeyringClient(new SolanaWalletSnapSender());
-
       // This will trigger the Snap account creation flow (+ account renaming)
       await client.createAccount({
         scope,
@@ -158,7 +157,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               actionTitle={strings('account_actions.add_solana_account')}
               iconName={IconName.Add}
               onPress={async () => {
-                await createSolanaAccount(MultichainNetworks.SOLANA);
+                await createSolanaAccount(SolScope.Mainnet);
               }}
               disabled={isLoading}
               testID={
@@ -173,7 +172,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               )}
               iconName={IconName.Add}
               onPress={async () => {
-                await createBitcoinAccount(MultichainNetworks.BITCOIN);
+                await createBitcoinAccount(BtcScope.Mainnet);
               }}
               disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
               testID={
@@ -188,7 +187,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               )}
               iconName={IconName.Add}
               onPress={async () => {
-                await createBitcoinAccount(MultichainNetworks.BITCOIN_TESTNET);
+                await createBitcoinAccount(BtcScope.Testnet);
               }}
               disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
               testID={
