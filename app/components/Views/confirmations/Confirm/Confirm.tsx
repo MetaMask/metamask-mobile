@@ -20,17 +20,16 @@ import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import styleSheet from './Confirm.styles';
 import { AlertsContextProvider } from '../AlertSystem/context';
 import useConfirmationAlerts from '../hooks/useConfirmationAlerts';
-import { Alert } from '../types/alerts';
 import GeneralAlertBanner from '../AlertSystem/GeneralAlertBanner';
-import MultipleAlertModal from '../AlertSystem/MultipleAlertModal';
 
 const ConfirmWrapped = ({
   styles,
-  alerts,
 }: {
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
-  alerts: Alert[];
-}) => (
+}) => {
+  const alerts = useConfirmationAlerts();
+
+  return (
   <AlertsContextProvider alerts={alerts}>
   <QRHardwareContextProvider>
     <LedgerContextProvider>
@@ -45,17 +44,16 @@ const ConfirmWrapped = ({
       </ScrollView>
       <Footer />
     </LedgerContextProvider>
-    <MultipleAlertModal />
   </QRHardwareContextProvider>
   </AlertsContextProvider>
 );
+};
 
 export const Confirm = () => {
   const { approvalRequest } = useApprovalRequest();
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const { onReject } = useConfirmActions();
-  const alerts = useConfirmationAlerts();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -66,7 +64,7 @@ export const Confirm = () => {
   if (isFlatConfirmation) {
     return (
       <View style={styles.flatContainer} testID="flat-confirmation-container">
-        <ConfirmWrapped styles={styles} alerts={alerts} />
+        <ConfirmWrapped styles={styles} />
       </View>
     );
   }
@@ -74,7 +72,7 @@ export const Confirm = () => {
   return (
     <BottomModal onClose={onReject} testID="modal-confirmation-container">
       <View style={styles.modalContainer} testID={approvalRequest?.type}>
-        <ConfirmWrapped styles={styles} alerts={alerts} />
+        <ConfirmWrapped styles={styles} />
       </View>
     </BottomModal>
   );
