@@ -11,7 +11,6 @@ import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './AlertModal.styles';
 import { strings } from '../../../../../../locales/i18n';
 import { Alert, Severity } from '../../types/alerts';
-import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 import { getSeverityStyle } from '../utils';
 
 interface HeaderProps {
@@ -97,9 +96,10 @@ interface ButtonsProps {
   hideAlertModal: () => void;
   onHandleActionClick: (callback: () => void) => void;
   styles: Record<string, ViewStyle>;
+  isConfirmed: boolean;
 }
 
-const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHandleActionClick }) => (
+const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHandleActionClick, isConfirmed }) => (
   <View style={styles.buttonsContainer}>
     <Button
       onPress={hideAlertModal}
@@ -108,6 +108,7 @@ const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHan
       size={ButtonSize.Lg}
       variant={action ? ButtonVariants.Secondary : ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
+      isDisabled={!isConfirmed}
     />
     {action ? (
       <>
@@ -133,8 +134,7 @@ interface AlertModalProps {
 const AlertModal: React.FC<AlertModalProps> = ({headerAccessory, onAcknowledgeClick}) => {
   const { colors } = useTheme();
   const styles = (useStyles(styleSheet, {})).styles as Record<string, ViewStyle>;
-  const { hideAlertModal, alertModalVisible, fieldAlerts, alertKey } = useAlerts();
-  const { isAlertConfirmed, setAlertConfirmed } = useAlertsConfirmed(fieldAlerts);
+  const { hideAlertModal, alertModalVisible, fieldAlerts, alertKey, isAlertConfirmed, setAlertConfirmed } = useAlerts();
 
   const handleClose = useCallback(
     () => {
@@ -198,6 +198,7 @@ const AlertModal: React.FC<AlertModalProps> = ({headerAccessory, onAcknowledgeCl
           action={selectedAlert.action}
           styles={styles}
           onHandleActionClick={handleActionClick}
+          isConfirmed={isConfirmed}
         />
       </View>
     </BottomModal>

@@ -25,7 +25,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingEnd: 4,
     },
     label: {
-      color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
       alignItems: 'center',
