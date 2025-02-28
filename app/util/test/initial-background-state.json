@@ -1,7 +1,8 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": []
+    "keyrings": [],
+    "keyringsMetadata": []
   },
   "LoggingController": {
     "logs": {}
@@ -218,6 +219,9 @@
     "snaps": {},
     "unencryptedSnapStates": {}
   },
+  "SnapInterfaceController": {
+    "interfaces": {}
+  },
   "SnapsRegistry": {
     "database": null,
     "databaseUnavailable": false,
@@ -324,7 +328,9 @@
     "subscriptionAccountsSeen": []
   },
   "NotificationServicesPushController": {
-    "fcmToken": ""
+    "fcmToken": "",
+    "isPushEnabled": true,
+    "isUpdatingFCMToken": false
   },
   "UserStorageController": {
     "hasAccountSyncingSyncedAtLeastOnce": false,

@@ -26,6 +26,16 @@ const stateChangesApprove = [
   },
 ];
 
+const stateChangesRevoke = [
+  {
+    assetType: 'ERC20',
+    changeType: DecodingDataChangeType.Revoke,
+    address: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
+    amount: '12345',
+    contractAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  },
+];
+
 const stateChangesListingERC1155: DecodingDataStateChanges = [
   {
     assetType: 'NATIVE',
@@ -128,6 +138,17 @@ describe('DecodedSimulation', () => {
 
     // Loading renders before the token value renders
     expect(getByTestId('simulation-value-display-loader')).toBeDefined();
+
+    await waitFor(() => expect(getByText('12,345')).toBeDefined());
+  });
+
+  it('renders for ERC20 revoke', async () => {
+    const { getByText } = renderWithProvider(<TypedSignDecoded />, {
+      state: mockState(stateChangesRevoke),
+    });
+
+    expect(await getByText('Estimated changes')).toBeDefined();
+    expect(await getByText('Revoke')).toBeDefined();
 
     await waitFor(() => expect(getByText('12,345')).toBeDefined());
   });

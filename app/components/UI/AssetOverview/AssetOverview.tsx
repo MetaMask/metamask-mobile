@@ -10,10 +10,10 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectSelectedNetworkClientId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -102,10 +102,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const tokenBalances = useSelector(selectContractBalances);
-  const selectedChainId = useSelector((state: RootState) =>
-    selectChainId(state),
+  const selectedChainId = useSelector(selectEvmChainId);
+
+  const selectedTicker = useSelector((state: RootState) =>
+    selectEvmTicker(state),
   );
-  const selectedTicker = useSelector((state: RootState) => selectTicker(state));
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -188,9 +189,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   const goToPortfolioBridge = useGoToBridge('TokenDetails');
 
-  const goToBridge = process.env.MM_BRIDGE_UI_ENABLED === 'true'
-    ? handleBridgeNavigation
-    : goToPortfolioBridge;
+  const goToBridge =
+    process.env.MM_BRIDGE_UI_ENABLED === 'true'
+      ? handleBridgeNavigation
+      : goToPortfolioBridge;
 
   const onSend = async () => {
     if (isPortfolioViewEnabled()) {

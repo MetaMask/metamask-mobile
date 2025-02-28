@@ -24,19 +24,18 @@ describe('Confirm', () => {
     jest.clearAllMocks();
   });
 
-  it('renders flat confirmation', async () => {
-    renderWithProvider(<ConfirmRoot />, {
-      state: stakingDepositConfirmationState,
-    });
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CONFIRM_FLAT_PAGE);
-  });
-
-  it('renders modal confirmation', async () => {
+  it('navigates to modal confirmation', async () => {
     renderWithProvider(<ConfirmRoot />, {
       state: personalSignatureConfirmationState,
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenLastCalledWith(Routes.CONFIRM_MODAL);
+  });
+
+  it('does not navigate if confirmation is standalone', async () => {
+    renderWithProvider(<ConfirmRoot />, {
+      state: stakingDepositConfirmationState,
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

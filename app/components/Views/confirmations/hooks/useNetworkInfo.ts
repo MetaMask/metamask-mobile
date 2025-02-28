@@ -2,17 +2,23 @@ import { useSelector } from 'react-redux';
 import { toHex } from '@metamask/controller-utils';
 
 import { getNetworkImageSource } from '../../../../util/networks';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 const useNetworkInfo = (chainId?: string) => {
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   if (!chainId) {
     return {};
   }
 
-  const networkConfiguration = networkConfigurations[toHex(chainId)];
+  if (isNonEvmChainId(chainId)) {
+    return {};
+  }
 
+  const networkConfiguration = networkConfigurations[toHex(chainId)];
   if (!networkConfiguration) {
     return {};
   }

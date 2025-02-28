@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { StateWithPartialEngine } from './types';
-import { isRemoteFeatureFlagOverrideActivated } from '../../core/Engine/controllers/RemoteFeatureFlagController/utils';
+import { isRemoteFeatureFlagOverrideActivated } from '../../core/Engine/controllers/remote-feature-flag-controller';
 
 export interface ConfirmationRedesignRemoteFlags {
   signatures: boolean;

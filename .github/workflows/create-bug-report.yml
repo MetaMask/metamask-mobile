@@ -21,9 +21,16 @@ jobs:
         if: steps.extract_version.outputs.version
         uses: actions/checkout@v4
 
-      - name: Setup environment
+      - name: Set up Node.js
         if: steps.extract_version.outputs.version
-        uses: metamask/github-tools/.github/actions/setup-environment@main
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        if: steps.extract_version.outputs.version
+        run: yarn --immutable
+        working-directory: '.github/scripts'
 
       - name: Create bug report issue on planning repo
         if: steps.extract_version.outputs.version

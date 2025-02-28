@@ -171,6 +171,11 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     || showUnlimitedValue
     || (tokenValue !== null || tokenId);
 
+  // Avoid empty button pill container
+  const showValueButtonPill = Boolean(isPendingTokenDetails
+    || shouldShowUnlimitedValue
+    || (tokenValue !== null || tokenId));
+
   function handlePressTokenValue() {
     setHasValueModalOpen(true);
   }
