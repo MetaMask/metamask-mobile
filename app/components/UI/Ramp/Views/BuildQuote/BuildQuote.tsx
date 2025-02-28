@@ -83,6 +83,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 // TODO: Replace "any" with type
@@ -874,7 +875,11 @@ const BuildQuote = () => {
               )}
             {hasInsufficientBalance && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error} testID={BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR}
+                >
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
                 </Text>
               </Row>
@@ -891,7 +896,11 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error} testID={BuildQuoteSelectors.MIN_LIMIT_ERROR}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.MIN_LIMIT_ERROR}
+                >
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.minimum')}{' '}
@@ -906,7 +915,11 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && amountIsAboveMaximum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error} testID={BuildQuoteSelectors.MAX_LIMIT_ERROR}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.MAX_LIMIT_ERROR}
+                >
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.maximum')}{' '}
