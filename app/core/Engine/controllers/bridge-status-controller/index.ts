@@ -1,9 +1,11 @@
 import {
   BridgeStatusController,
   type BridgeStatusControllerMessenger,
+  type BridgeStatusControllerState,
 } from '@metamask/bridge-status-controller';
 import { ControllerInitFunction } from '../../types';
 import { BridgeClientId } from '@metamask/bridge-controller';
+import { defaultBridgeStatusControllerState } from './constants';
 
 /**
  * Initialize the BridgeStatusController.
@@ -17,9 +19,12 @@ export const bridgeStatusControllerInit: ControllerInitFunction<
 > = (request) => {
   const { controllerMessenger, persistedState } = request;
 
+  const bridgeStatusControllerState = (persistedState.BridgeStatusController ??
+    defaultBridgeStatusControllerState) as BridgeStatusControllerState;
+
   const controller = new BridgeStatusController({
     messenger: controllerMessenger,
-    state: persistedState.BridgeStatusController,
+    state: bridgeStatusControllerState,
     clientId: BridgeClientId.MOBILE,
     fetchFn: fetch,
   });
