@@ -514,8 +514,10 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
  * Specify controllers to initialize.
  */
 export type ControllersToInitialize =
-  | 'AccountsController'
-  | 'CronjobController';
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  | 'CronjobController'
+  ///: END:ONLY_INCLUDE_IF
+  | 'AccountsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

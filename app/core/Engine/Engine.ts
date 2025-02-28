@@ -391,7 +391,9 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         CronjobController: cronjobControllerInit,
+        ///: END:ONLY_INCLUDE_IF
       },
       persistedState: initialState as EngineState,
       existingControllersByName: {},
@@ -402,7 +404,7 @@ export class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const cronjobController = controllersByName.CronjobController;
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    ///: END:ONLY_INCLUDE_IF
 
     const multichainAssetsControllerMessenger =
       this.controllerMessenger.getRestricted({
