@@ -27,7 +27,7 @@ const usePooledStakes = () => {
     setError(null);
 
     try {
-      await Engine.context.EarnController.refreshPooledStakes();
+      await Engine.context.EarnController.refreshPooledStakes(true);
     } catch (err) {
       setError('Failed to fetch pooled stakes');
     } finally {
