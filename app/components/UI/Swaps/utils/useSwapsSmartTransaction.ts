@@ -39,7 +39,6 @@ const createSignedTransactions = async (
 };
 
 
-
 const submitSmartTransaction = async ({
   unsignedTransaction,
   smartTransactionFees,
@@ -49,8 +48,8 @@ const submitSmartTransaction = async ({
 }: {
   unsignedTransaction: Partial<TransactionParams> & { from: string; chainId: string };
   smartTransactionFees: {
-    fees: TemporarySmartTransactionGasFees[];
-    cancelFees: TemporarySmartTransactionGasFees[];
+    fees?: Fee[];
+    cancelFees?: Fee[];
   };
   chainId: Hex;
   isEIP1559Network: boolean;
@@ -74,7 +73,10 @@ const submitSmartTransaction = async ({
 
   const signedTransactions = await createSignedTransactions(
     unsignedTransactionWithGasFeeEstimates,
-    smartTransactionFees.fees,
+    smartTransactionFees.fees?.map((fee) => ({
+      maxFeePerGas: fee.maxFeePerGas.toString(),
+      maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
+    })) || [],
   );
 
   try {
@@ -93,10 +95,7 @@ const submitSmartTransaction = async ({
   }
 };
 
-const convertFees = (fees?: Fee[]) => fees?.map((fee) => ({
-    maxFeePerGas: fee.maxFeePerGas.toString(),
-    maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
-  })) || [];
+
 
 export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quote, gasEstimates: {
   gasPrice: string;
@@ -129,7 +128,7 @@ export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quot
           gas: approvalGas,
         },
         smartTransactionFees: {
-          fees: convertFees(smartTransactionFees.approvalTxFees.fees),
+          fees: smartTransactionFees.approvalTxFees.fees,
           cancelFees: [],
         },
         chainId,
@@ -153,7 +152,7 @@ export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quot
       tradeTxUuid = await submitSmartTransaction({
         unsignedTransaction: {...tradeTransaction, chainId, gas: tradeGas},
       smartTransactionFees: {
-        fees: convertFees(smartTransactionFees.tradeTxFees?.fees),
+        fees: smartTransactionFees.tradeTxFees?.fees,
         cancelFees: [],
       },
       chainId,
