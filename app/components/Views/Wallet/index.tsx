@@ -43,6 +43,10 @@ import {
 } from '../../../util/networks';
 import {
   selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
@@ -52,10 +56,11 @@ import {
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
 import {
+  selectAllDetectedTokensFlat,
+  selectDetectedTokens,
   selectTokens,
-  selectTokensByChainIdAndAddress,
+  selectTransformedTokens,
 } from '../../../selectors/tokensController';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import {
   NavigationProp,
   ParamListBase,
@@ -93,6 +98,17 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectTokenNetworkFilter,
+  selectUseTokenDetection,
+} from '../../../selectors/preferencesController';
+import { TokenI } from '../../UI/Tokens/types';
+import { Hex } from '@metamask/utils';
+import { Token } from '@metamask/assets-controllers';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import NonEvmTokens from '../../UI/NonEvmTokens';
+///: END:ONLY_INCLUDE_IF
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -163,6 +179,9 @@ const Wallet = ({
   const { colors } = theme;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   /**
    * Object containing the balance of the current selected account
@@ -189,9 +208,7 @@ const Wallet = ({
   /**
    * An array that represents the user tokens by chainId and address
    */
-  const tokensByChainIdAndAddress = useSelector(
-    selectTokensByChainIdAndAddress,
-  );
+  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
   /**
    * Current provider ticker
    */
@@ -206,7 +223,9 @@ const Wallet = ({
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
-  const prevChainId = usePrevious(providerConfig.chainId);
+  const chainId = useSelector(selectChainId);
+
+  const prevChainId = usePrevious(chainId);
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -303,13 +322,28 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const chainId = useSelector(selectChainId);
   const name = useSelector(selectNetworkName);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
+  const isPopularNetworks = useSelector(selectIsPopularNetwork);
+  const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+
+  const allDetectedTokens = useSelector(
+    selectAllDetectedTokensFlat,
+  ) as TokenI[];
+  const currentDetectedTokens =
+    isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
+      ? allDetectedTokens
+      : detectedTokens;
+  const selectedNetworkClientId = useSelector(selectNetworkClientId);
+
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
@@ -330,14 +364,15 @@ const Wallet = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
         .addProperties({
-          chain_id: getDecimalChainId(providerConfig.chainId),
+          chain_id: getDecimalChainId(chainId),
         })
         .build(),
     );
-  }, [navigate, providerConfig.chainId, trackEvent, createEventBuilder]);
+  }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   /**
    * Handle network filter called when app is mounted and tokenNetworkFilter is empty
+   * TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
    */
   const handleNetworkFilter = useCallback(() => {
     // TODO: Come back possibly just add the chain id of the eth
@@ -368,25 +403,25 @@ const Wallet = ({
    * Check to see if we need to show What's New modal
    */
   useEffect(() => {
+    // TODO: [SOLANA] Revisit this before shipping, we need to check if this logic supports non evm networks
     const networkOnboarded = getIsNetworkOnboarded(
-      providerConfig.chainId,
+      chainId,
       networkOnboardingState,
     );
 
-    if (
-      wizardStep > 0 ||
-      (!networkOnboarded && prevChainId !== providerConfig.chainId)
-    ) {
+    if (wizardStep > 0 || (!networkOnboarded && prevChainId !== chainId)) {
       // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
   }, [
     wizardStep,
     navigation,
-    providerConfig.chainId,
+    chainId,
+    // TODO: Is this providerConfig.rpcUrl needed in this useEffect dependencies?
     providerConfig.rpcUrl,
     networkOnboardingState,
     prevChainId,
+    // TODO: Is this accountBalanceByChainId?.balance needed in this useEffect dependencies?
     accountBalanceByChainId?.balance,
   ]);
 
@@ -395,7 +430,7 @@ const Wallet = ({
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
 
-        Object.values(networkConfigurations).forEach(
+        Object.values(evmNetworkConfigurations).forEach(
           ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
             AccountTrackerController.refresh(
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
@@ -405,7 +440,9 @@ const Wallet = ({
       });
     },
     /* eslint-disable-next-line */
-    [navigation, providerConfig.chainId],
+    // TODO: The need of usage of this chainId as a dependency is not clear, we shouldn't need to refresh the native balances when the chainId changes. Since the pooling is always working in the back. Check with assets team.
+    // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
+    [navigation, chainId, evmNetworkConfigurations],
   );
 
   useEffect(() => {
@@ -427,7 +464,6 @@ const Wallet = ({
         readNotificationCount,
       ),
     );
-    /* eslint-disable-next-line */
   }, [
     selectedInternalAccount,
     accountName,
@@ -441,6 +477,74 @@ const Wallet = ({
     isProfileSyncingEnabled,
     unreadNotificationCount,
     readNotificationCount,
+  ]);
+
+  useEffect(() => {
+    const importAllDetectedTokens = async () => {
+      // If autodetect tokens toggle is OFF, return
+      if (!isTokenDetectionEnabled) {
+        return;
+      }
+      const { TokensController } = Engine.context;
+      if (currentDetectedTokens.length > 0) {
+        if (isPortfolioViewEnabled()) {
+          // Group tokens by their `chainId` using a plain object
+          const tokensByChainId: Record<Hex, Token[]> = {};
+
+          for (const token of currentDetectedTokens) {
+            // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
+            const tokenChainId: Hex =
+              (token as TokenI & { chainId: Hex }).chainId ?? chainId;
+
+            if (!tokensByChainId[tokenChainId]) {
+              tokensByChainId[tokenChainId] = [];
+            }
+
+            tokensByChainId[tokenChainId].push(token);
+          }
+
+          // Process grouped tokens in parallel
+          const importPromises = Object.entries(tokensByChainId).map(
+            async ([networkId, allTokens]) => {
+              const chainConfig = evmNetworkConfigurations[networkId as Hex];
+              const { defaultRpcEndpointIndex } = chainConfig;
+              const { networkClientId: networkInstanceId } =
+                chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+
+              await TokensController.addTokens(allTokens, networkInstanceId);
+            },
+          );
+
+          await Promise.all(importPromises);
+        } else {
+          await TokensController.addTokens(
+            currentDetectedTokens,
+            selectedNetworkClientId,
+          );
+        }
+
+        currentDetectedTokens.forEach(({ address, symbol }) =>
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+              .addProperties({
+                token_address: address,
+                token_symbol: symbol,
+                chain_id: getDecimalChainId(chainId),
+                source: 'detected',
+              })
+              .build(),
+          ),
+        );
+      }
+    };
+    importAllDetectedTokens();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isTokenDetectionEnabled,
+    evmNetworkConfigurations,
+    chainId,
+    currentDetectedTokens,
+    selectedNetworkClientId,
   ]);
 
   const renderTabBar = useCallback(
@@ -493,6 +597,49 @@ const Wallet = ({
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
   }, [navigation]);
+
+  function renderTokensContent(assets: Token[]) {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // TODO: [SOLANA] Consider please reusing the Tokens UI, since it handles portion of the UI already (If not please remove dead code from it)
+    if (!isEvmSelected) {
+      return (
+        <ScrollableTabView
+          renderTabBar={renderTabBar}
+          onChangeTab={onChangeTab}
+        >
+          <NonEvmTokens
+            tabLabel={strings('wallet.tokens')}
+            key={'tokens-tab'}
+          />
+        </ScrollableTabView>
+      );
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    return (
+      <ScrollableTabView
+        renderTabBar={renderTabBar}
+        // eslint-disable-next-line react/jsx-no-bind
+        onChangeTab={onChangeTab}
+      >
+        <Tokens
+          tabLabel={strings('wallet.tokens')}
+          key={'tokens-tab'}
+          navigation={navigation}
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error - TODO: Consolidate into the correct type.
+          tokens={assets}
+        />
+        <CollectibleContracts
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error - TODO: Consolidate into the correct type.
+          tabLabel={strings('wallet.collectibles')}
+          key={'nfts-tab'}
+          navigation={navigation}
+        />
+      </ScrollableTabView>
+    );
+  }
 
   const renderContent = useCallback(() => {
     // TODO: Replace "any" with type
@@ -571,30 +718,8 @@ const Wallet = ({
           </View>
         ) : null}
         <>
-          {accountBalanceByChainId && <PortfolioBalance />}
-          <ScrollableTabView
-            renderTabBar={renderTabBar}
-            // eslint-disable-next-line react/jsx-no-bind
-            onChangeTab={onChangeTab}
-          >
-            <Tokens
-              tabLabel={strings('wallet.tokens')}
-              key={'tokens-tab'}
-              navigation={navigation}
-              // TODO - Consolidate into the correct type.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              tokens={assets}
-            />
-            <CollectibleContracts
-              // TODO - Extend component to support injected tabLabel prop.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              tabLabel={strings('wallet.collectibles')}
-              key={'nfts-tab'}
-              navigation={navigation}
-            />
-          </ScrollableTabView>
+          <PortfolioBalance />
+          {renderTokensContent(assets)}
         </>
       </View>
     );
@@ -613,6 +738,10 @@ const Wallet = ({
     conversionRate,
     currentCurrency,
     contractBalances,
+    isEvmSelected,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    tokensByChainIdAndAddress,
+    ///: END:ONLY_INCLUDE_IF
   ]);
   const renderLoader = useCallback(
     () => (

@@ -1,7 +1,8 @@
 import Engine from '../Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
-import { selectNetworkConfigurations } from '../../selectors/networkController';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { selectEvmNetworkConfigurationsByChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import {
   validateChainId,
@@ -18,6 +19,7 @@ const wallet_switchEthereumChain = async ({
   const {
     CurrencyRateController,
     NetworkController,
+    MultichainNetworkController,
     PermissionController,
     SelectedNetworkController,
   } = Engine.context;
@@ -42,8 +44,10 @@ const wallet_switchEthereumChain = async ({
     );
   }
   const _chainId = validateChainId(chainId);
-
-  const networkConfigurations = selectNetworkConfigurations(store.getState());
+  // TODO: [SOLANA] - This do not support non evm networks
+  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
   const existingNetwork = findExistingNetwork(_chainId, networkConfigurations);
   if (existingNetwork) {
     const currentDomainSelectedNetworkClientId =
@@ -63,7 +67,7 @@ const wallet_switchEthereumChain = async ({
       chainId: _chainId,
       controllers: {
         CurrencyRateController,
-        NetworkController,
+        MultichainNetworkController,
         PermissionController,
         SelectedNetworkController,
       },
@@ -74,8 +78,7 @@ const wallet_switchEthereumChain = async ({
     });
 
     MetaMetrics.getInstance().trackEvent(
-      MetaMetrics.getInstance()
-        .createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
         .addProperties(analyticsParams)
         .build(),
     );

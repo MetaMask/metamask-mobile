@@ -155,7 +155,6 @@ exports[`QuotesView should render quote screen 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -166,9 +165,9 @@ exports[`QuotesView should render quote screen 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -184,23 +183,6 @@ exports[`QuotesView should render quote screen 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -208,14 +190,14 @@ exports[`QuotesView should render quote screen 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
-                    Private Network
+                    Ethereum Main Network
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -488,7 +470,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                       "paddingVertical": 8,
                                     },
                                     {
-                                      "backgroundColor": "#0376c91a",
+                                      "backgroundColor": "#0376C91A",
                                       "borderColor": "#0376c9",
                                     },
                                     undefined,
@@ -1240,7 +1222,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                 style={
                                   [
                                     {
-                                      "backgroundColor": "#0376c91a",
+                                      "backgroundColor": "#0376C91A",
                                       "borderColor": "#0376c9",
                                       "borderTopLeftRadius": 10,
                                       "borderTopRightRadius": 10,
@@ -1674,7 +1656,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderTopColor": "#bbc0c566",
+                                        "borderTopColor": "#BBC0C566",
                                         "borderTopWidth": 1,
                                         "height": 0,
                                         "marginVertical": 6,

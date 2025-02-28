@@ -44,15 +44,13 @@ import {
   stopGasPolling,
 } from '../../../../../core/GasPolling/GasPolling';
 import {
-  selectChainId,
-  selectProviderType,
-  selectTicker,
-  selectRpcUrl,
-  selectNetworkConfigurations,
-  selectNetworkClientId,
+  selectNativeCurrencyByChainId,
+  selectEvmNetworkConfigurationsByChainId,
+  selectProviderTypeByChainId,
+  selectRpcUrlByChainId,
 } from '../../../../../selectors/networkController';
 import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
@@ -85,6 +83,7 @@ import {
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 import Routes from '../../../../../constants/navigation/Routes';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -282,7 +281,8 @@ class Approve extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const { networkClientId, setNonce, setProposedNonce, transaction } =
+      this.props;
     const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
@@ -308,8 +308,13 @@ class Approve extends PureComponent {
   };
 
   handleGetGasLimit = async () => {
+    const { networkClientId } = this.props;
     const { setTransactionObject, transaction } = this.props;
-    const estimation = await getGasLimit({ ...transaction, gas: undefined });
+    const estimation = await getGasLimit(
+      { ...transaction, gas: undefined },
+      false,
+      networkClientId,
+    );
     setTransactionObject({ gas: estimation.gas });
   };
 
@@ -507,7 +512,7 @@ class Approve extends PureComponent {
       metrics,
       chainId,
       shouldUseSmartTransaction,
-      simulationData: { isUpdatedAfterSecurityCheck },
+      simulationData: { isUpdatedAfterSecurityCheck } = {},
       navigation,
     } = this.props;
     const {
@@ -562,7 +567,10 @@ class Approve extends PureComponent {
                 assetType: 'ETH',
               });
             } else {
-              throw transactionMeta.error;
+              Logger.error(
+                transactionMeta.error,
+                'error while trying to finish a transaction (Approve)',
+              );
             }
           },
           (transactionMeta) => transactionMeta.id === transaction.id,
@@ -627,6 +635,8 @@ class Approve extends PureComponent {
           [{ text: 'OK' }],
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
       } else {
         metrics.trackEvent(
           metrics
@@ -816,7 +826,6 @@ class Approve extends PureComponent {
     }
 
     if (!transaction.id) return null;
-
     return (
       <Modal
         isVisible={this.props.modalVisible && !isChangeInSimulationModalOpen}
@@ -844,7 +853,7 @@ class Approve extends PureComponent {
             savedContactListToArray={savedContactListToArray}
             addressNickname={addressNickname}
           />
-        ) : this.state.isBlockExplorerVisible ? (
+        ) : this.state.isBlockExplorerVisible && !isNonEvmChainId(chainId) ? (
           <ShowBlockExplorer
             setIsBlockExplorerVisible={this.setIsBlockExplorerVisible}
             type={providerType}
@@ -937,6 +946,7 @@ class Approve extends PureComponent {
                   error={legacyGasTransaction.error}
                   onUpdatingValuesStart={this.onUpdatingValuesStart}
                   onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+                  chainId={chainId}
                 />
               ))}
           </KeyboardAwareScrollView>
@@ -947,28 +957,34 @@ class Approve extends PureComponent {
   };
 }
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  ticker: selectTicker(state),
-  transaction: getNormalizedTxState(state),
-  transactions: selectTransactions(state),
-  tokensLength: selectTokensLength(state),
-  accountsLength: selectAccountsLength(state),
-  primaryCurrency: selectPrimaryCurrency(state),
-  chainId: selectChainId(state),
-  networkClientId: selectNetworkClientId(state),
-  gasFeeEstimates: selectGasFeeEstimates(state),
-  gasEstimateType: selectGasFeeControllerEstimateType(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  showCustomNonce: selectShowCustomNonce(state),
-  addressBook: selectAddressBook(state),
-  providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcUrl(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+  const networkClientId = transaction?.networkId;
+
+  return {
+    accounts: selectAccounts(state),
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    transaction,
+    transactions: selectTransactions(state),
+    tokensLength: selectTokensLength(state),
+    accountsLength: selectAccountsLength(state),
+    primaryCurrency: selectPrimaryCurrency(state),
+    chainId,
+    networkClientId,
+    gasFeeEstimates: selectGasFeeEstimates(state),
+    gasEstimateType: selectGasFeeControllerEstimateType(state),
+    conversionRate: selectConversionRateByChainId(state, chainId),
+    currentCurrency: selectCurrentCurrency(state),
+    showCustomNonce: selectShowCustomNonce(state),
+    addressBook: selectAddressBook(state),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    providerRpcTarget: selectRpcUrlByChainId(state, chainId),
+    networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

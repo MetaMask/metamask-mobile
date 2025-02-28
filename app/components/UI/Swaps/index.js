@@ -67,16 +67,16 @@ import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
-  selectProviderConfig,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
+  selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import AccountSelector from '../Ramp/components/AccountSelector';
@@ -181,10 +181,10 @@ const MAX_TOP_ASSETS = 20;
 function SwapsAmountView({
   swapsTokens,
   swapsControllerTokens,
-  accounts,
+  accountsByChainId,
   selectedAddress,
   chainId,
-  providerConfig,
+  selectedNetworkClientId,
   networkConfigurations,
   balances,
   tokensWithBalance,
@@ -194,6 +194,7 @@ function SwapsAmountView({
   currentCurrency,
   setLiveness,
 }) {
+  const accounts = accountsByChainId[chainId];
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
@@ -202,7 +203,7 @@ function SwapsAmountView({
 
   const previousSelectedAddress = useRef();
 
-  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
+  const explorer = useBlockExplorer(networkConfigurations);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const initialDestination = route.params?.destinationToken;
 
@@ -297,8 +298,12 @@ function SwapsAmountView({
     (async () => {
       const { SwapsController } = Engine.context;
       try {
-        await SwapsController.fetchAggregatorMetadataWithCache();
-        await SwapsController.fetchTopAssetsWithCache();
+        await SwapsController.fetchAggregatorMetadataWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
+        await SwapsController.fetchTopAssetsWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
       } catch (error) {
         Logger.error(
           error,
@@ -306,7 +311,7 @@ function SwapsAmountView({
         );
       }
     })();
-  }, []);
+  }, [selectedNetworkClientId]);
 
   useEffect(() => {
     (async () => {
@@ -320,7 +325,9 @@ function SwapsAmountView({
           setInitialLoadingTokens(true);
         }
         setLoadingTokens(true);
-        await SwapsController.fetchTokenWithCache();
+        await SwapsController.fetchTokenWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
         setLoadingTokens(false);
         setInitialLoadingTokens(false);
       } catch (error) {
@@ -333,7 +340,7 @@ function SwapsAmountView({
         setInitialLoadingTokens(false);
       }
     })();
-  }, [swapsControllerTokens, swapsTokens]);
+  }, [swapsControllerTokens, swapsTokens, selectedNetworkClientId]);
 
   const canSetAnInitialSourceToken =
     !isSourceSet &&
@@ -955,9 +962,9 @@ SwapsAmountView.propTypes = {
   tokensWithBalance: PropTypes.arrayOf(PropTypes.object),
   tokensTopAssets: PropTypes.arrayOf(PropTypes.object),
   /**
-   * Map of accounts to information objects including balances
+   * Map of chainId to accounts to information objects including balances
    */
-  accounts: PropTypes.object,
+  accountsByChainId: PropTypes.object,
   /**
    * A string that represents the selected address
    */
@@ -979,13 +986,13 @@ SwapsAmountView.propTypes = {
    */
   tokenExchangeRates: PropTypes.object,
   /**
-   * Current network provider configuration
-   */
-  providerConfig: PropTypes.object,
-  /**
    * Chain Id
    */
   chainId: PropTypes.string,
+  /**
+   * Selected network client ID
+   */
+  selectedNetworkClientId: PropTypes.string,
   /**
    * Network configurations
    */
@@ -999,15 +1006,15 @@ SwapsAmountView.propTypes = {
 const mapStateToProps = (state) => ({
   swapsTokens: swapsTokensSelector(state),
   swapsControllerTokens: swapsControllerTokens(state),
-  accounts: selectAccounts(state),
+  accountsByChainId: selectAccountsByChainId(state),
   balances: selectContractBalances(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   tokenExchangeRates: selectContractExchangeRates(state),
-  providerConfig: selectProviderConfig(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  chainId: selectChainId(state),
+  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
+  chainId: selectEvmChainId(state),
+  selectedNetworkClientId: selectSelectedNetworkClientId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
 });

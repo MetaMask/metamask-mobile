@@ -118,6 +118,9 @@ jest.mock('../../../../../core/Engine', () => ({
         },
       }),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
@@ -181,6 +184,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   isBuy: true,
   isSell: false,
   rampType: RampType.BUY,
+  setIntent: jest.fn(),
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -275,13 +279,14 @@ describe('NetworkSwitcher View', () => {
     expect(cancelButtons3.length).toBe(1);
   });
 
-  it('switches network by calling setProviderType', async () => {
+  it('switches network by calling setActiveNetwork', async () => {
     render(NetworkSwitcher);
     const lineaNetworkText = screen.getByText('Linea Main Network');
     fireEvent.press(lineaNetworkText);
+
     expect(
-      (Engine.context.NetworkController.setProviderType as jest.Mock).mock
-        .calls,
+      (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
+        .mock.calls,
     ).toMatchInlineSnapshot(`
       [
         [
@@ -290,12 +295,14 @@ describe('NetworkSwitcher View', () => {
       ]
     `);
 
+    jest.clearAllMocks();
     render(NetworkSwitcher);
     const polygonNetworkTest = screen.getByText('Polygon Mainnet');
     fireEvent.press(polygonNetworkTest);
+
     expect(
-      (Engine.context.NetworkController.setActiveNetwork as jest.Mock).mock
-        .calls,
+      (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
+        .mock.calls,
     ).toMatchInlineSnapshot(`
       [
         [

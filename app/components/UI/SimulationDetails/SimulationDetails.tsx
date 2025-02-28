@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import { View, Pressable } from 'react-native';
 import {
-  SimulationData,
   SimulationErrorCode,
   SimulationError,
+  TransactionMeta,
 } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../locales/i18n';
@@ -25,8 +25,7 @@ import styleSheet from './SimulationDetails.styles';
 import { useSimulationMetrics } from './useSimulationMetrics';
 
 export interface SimulationDetailsProps {
-  simulationData?: SimulationData;
-  transactionId: string;
+  transaction: TransactionMeta;
   enableMetrics: boolean;
 }
 
@@ -140,12 +139,12 @@ const SimulationDetailsLayout: React.FC<{
  * @returns The simulation details.
  */
 export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
-  simulationData,
+  transaction,
   enableMetrics = false,
-  transactionId,
 }: SimulationDetailsProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const balanceChangesResult = useBalanceChanges(simulationData);
+  const { chainId, id: transactionId, simulationData } = transaction;
+  const balanceChangesResult = useBalanceChanges({ chainId, simulationData });
   const loading = !simulationData || balanceChangesResult.pending;
 
   useSimulationMetrics({

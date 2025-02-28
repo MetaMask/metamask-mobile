@@ -30,7 +30,7 @@ import ImageIcons from '../../../UI/ImageIcon';
 import { ADD_NETWORK_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
 import {
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import {
@@ -41,10 +41,13 @@ import AvatarNetwork from '../../../../component-library/components/Avatars/Avat
 import Routes from '../../../../constants/navigation/Routes';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
-import { NetworksTicker } from '@metamask/controller-utils';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { getGlobalChainId } from '../../../../util/networks/global-network';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { SolScope } from '@metamask/keyring-api';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
+///: END:ONLY_INCLUDE_IF
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -67,6 +70,9 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       paddingVertical: 12,
       alignItems: 'center',
+    },
+    networkDisabled: {
+      opacity: 0.5,
     },
     networkWrapper: {
       flex: 0,
@@ -132,6 +138,12 @@ class NetworksSettings extends PureComponent {
      * Current network provider configuration
      */
     providerConfig: PropTypes.object,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    /**
+     * Non evm network configurations
+     */
+    nonEvmNetworkConfigurations: PropTypes.object,
+    ///: END:ONLY_INCLUDE_IF
   };
 
   actionSheet = null;
@@ -196,7 +208,7 @@ class NetworksSettings extends PureComponent {
     }, 1000);
   };
 
-  removeNetwork = () => {
+  removeNetwork = async () => {
     // Check if it's the selected network and then switch to mainnet first
     const { providerConfig } = this.props;
     if (
@@ -205,7 +217,7 @@ class NetworksSettings extends PureComponent {
     ) {
       this.switchToMainnet();
     }
-    const { NetworkController } = Engine.context;
+    const { NetworkController, MultichainNetworkController } = Engine.context;
 
     const { networkConfigurations } = this.props;
     const entry = Object.entries(networkConfigurations).find(
@@ -228,7 +240,7 @@ class NetworksSettings extends PureComponent {
 
     if (this.networkToRemove === selectedNetworkClientId) {
       // if we delete selected network, switch to mainnet before removing the selected network
-      NetworkController.setActiveNetwork('mainnet');
+      await MultichainNetworkController.setActiveNetwork('mainnet');
     }
 
     NetworkController.removeNetwork(chainId);
@@ -326,7 +338,8 @@ class NetworksSettings extends PureComponent {
           isTestNet(chainId) ||
           isMainNet(chainId) ||
           chainId === CHAIN_IDS.LINEA_MAINNET ||
-          chainId === CHAIN_IDS.GOERLI
+          chainId === CHAIN_IDS.GOERLI ||
+          isNonEvmChainId(chainId)
         ) {
           return null;
         }
@@ -436,6 +449,40 @@ class NetworksSettings extends PureComponent {
     );
   }
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  renderSolanaMainnet() {
+    // TODO: [SOLANA] - Please revisit this since it's supported on a constant array in mobile and should come from multichain network controller
+    const { name: solanaMainnetName } = Object.values(
+      this.props.nonEvmNetworkConfigurations,
+    ).find((network) => network.chainId === SolScope.Mainnet);
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <View style={styles.mainnetHeader}>
+        <TouchableOpacity
+          style={{ ...styles.network, ...styles.networkDisabled }}
+          key={`network-${solanaMainnetName}`}
+          onPress={() => null}
+          disabled
+        >
+          <View style={styles.networkWrapper}>
+            <ImageIcons image={'SOLANA'} style={styles.networkIcon} />
+            <View style={styles.networkInfo}>
+              <Text style={styles.networkLabel}>{solanaMainnetName}</Text>
+            </View>
+          </View>
+          <FontAwesome
+            name="lock"
+            size={20}
+            color={colors.icon.default}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+  ///: END:ONLY_INCLUDE_IF
   handleSearchTextChange = (text) => {
     this.setState({ searchString: text });
     const defaultNetwork = getAllNetworks().map((networkType, i) => {
@@ -452,7 +499,7 @@ class NetworksSettings extends PureComponent {
       (networkConfiguration, i) => {
         const defaultRpcEndpoint =
           networkConfiguration.rpcEndpoints[
-          networkConfiguration.defaultRpcEndpointIndex
+            networkConfiguration.defaultRpcEndpointIndex
           ];
         const { color, name, url, chainId } = {
           name: networkConfiguration.name || defaultRpcEndpoint.url,
@@ -539,6 +586,11 @@ class NetworksSettings extends PureComponent {
               </Text>
               {this.renderMainnet()}
               {this.renderLineaMainnet()}
+              {
+                ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+                this.renderSolanaMainnet()
+                ///: END:ONLY_INCLUDE_IF
+              }
               {this.renderRpcNetworksView()}
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.test_network_name')}
@@ -576,7 +628,11 @@ NetworksSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
-  networkConfigurations: selectNetworkConfigurations(state),
+  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  nonEvmNetworkConfigurations:
+    selectNonEvmNetworkConfigurationsByChainId(state),
+  ///: END:ONLY_INCLUDE_IF
 });
 
 export default connect(mapStateToProps)(NetworksSettings);

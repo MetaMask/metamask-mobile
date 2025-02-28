@@ -12,7 +12,11 @@ import LINEA_TESTNET from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
 import APE_TOKEN from './ape-token.png';
+import SOLANA from './solana-logo.png';
 import GRAVITY from './gravity.png';
+import KAIA_MAINNET from './kaia.png';
+import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
+import BTC from './bitcoin-logo.png';
 
 export default {
   PALM,
@@ -31,4 +35,9 @@ export default {
   'LINEA-MAINNET': LINEA_MAINNET,
   APE: APE_TOKEN,
   G: GRAVITY,
+  'KAIA-MAINNET': KAIA_MAINNET,
+  'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
+  SOLANA,
+  FOX_LOGO,
+  BTC,
 };

@@ -13,23 +13,15 @@ class NetworkAddedBottomSheet {
   }
 
   get switchNetworkButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(
-        NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
-        )
-      : Matchers.getElementByID(
-        NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
-        );
+    return Matchers.getElementByID(
+      NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+    );
   }
 
   get closeNetworkButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(
-        NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
-        )
-      : Matchers.getElementByID(
-        NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
-        );
+    return Matchers.getElementByID(
+      NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
+    );
   }
 
   async tapSwitchToNetwork() {

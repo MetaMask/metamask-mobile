@@ -6,6 +6,8 @@ interface GasImpactModalRouteParams {
   annualRewardsETH: string;
   annualRewardsFiat: string;
   annualRewardRate: string;
+  estimatedGasFee: string;
+  estimatedGasFeePercentage: string;
 }
 
 export interface GasImpactModalProps {

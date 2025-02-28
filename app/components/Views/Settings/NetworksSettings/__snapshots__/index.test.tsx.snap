@@ -382,7 +382,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                         style={
                           {
                             "alignItems": "center",
-                            "borderColor": "#bbc0c5",
+                            "borderColor": "#848c96",
                             "borderRadius": 5,
                             "borderWidth": 1,
                             "color": "#141618",
@@ -420,7 +420,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           placeholderTextColor="#141618"
                           style={
                             {
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "color": "#141618",
                               "flex": 1,
                               "fontFamily": "EuclidCircularB-Regular",
@@ -470,11 +470,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,
@@ -546,11 +542,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,
@@ -573,6 +565,80 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     }
                                   >
                                     Linea Main Network
+                                  </Text>
+                                </View>
+                              </View>
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  [
+                                    {
+                                      "color": "#141618",
+                                      "fontSize": 20,
+                                    },
+                                    {
+                                      "marginLeft": 8,
+                                    },
+                                    {
+                                      "fontFamily": "FontAwesome",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <View>
+                            <TouchableOpacity
+                              disabled={true}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "opacity": 0.5,
+                                  "paddingVertical": 12,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 0,
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <Image
+                                  source={1}
+                                  style={
+                                    {
+                                      "borderRadius": 10,
+                                      "height": 20,
+                                      "marginRight": 16,
+                                      "marginTop": 2,
+                                      "width": 20,
+                                    }
+                                  }
+                                />
+                                <View>
+                                  <Text
+                                    style={
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                      }
+                                    }
+                                  >
+                                    Solana Mainnet
                                   </Text>
                                 </View>
                               </View>
@@ -629,11 +695,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,
@@ -697,11 +759,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,

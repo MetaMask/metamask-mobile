@@ -3,6 +3,8 @@ import Engine from '../../../core/Engine';
 import useTokenListPolling from './useTokenListPolling';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -22,6 +24,12 @@ describe('useTokenListPolling', () => {
   const state = {
     engine: {
       backgroundState: {
+        MultichainNetworkController: {
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+          multichainNetworkConfigurationsByChainId: {},
+        },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
           networkConfigurationsByChainId: {
@@ -33,12 +41,26 @@ describe('useTokenListPolling', () => {
                 },
               ],
             },
-            '0x89': {},
+            '0x89': {
+              chainId: '0x89',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId2',
+                },
+              ],
+            },
+          },
+        },
+        PreferencesController: {
+          useTokenDetection: true,
+          tokenNetworkFilter: {
+            '0x1': true,
+            '0x89': true,
           },
         },
       },
     },
-  };
+  } as unknown as RootState;
 
   it('Should poll by selected chain id, and stop polling on dismount', async () => {
     const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
@@ -88,5 +110,62 @@ describe('useTokenListPolling', () => {
     expect(
       mockedTokenListController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(2);
+  });
+
+  it('should poll only for current network if selected one is not popular', () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+
+    const stateToTest = {
+      engine: {
+        backgroundState: {
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+            multichainNetworkConfigurationsByChainId: {},
+          },
+          NetworkController: {
+            selectedNetworkClientId: 'selectedNetworkClientId',
+            networkConfigurationsByChainId: {
+              '0x82750': {
+                chainId: '0x82750',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'selectedNetworkClientId',
+                  },
+                ],
+              },
+            },
+          },
+          PreferencesController: {
+            useTokenDetection: true,
+            tokenNetworkFilter: {
+              '0x82750': true,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
+      state: stateToTest,
+    });
+
+    const mockedTokenListController = jest.mocked(
+      Engine.context.TokenListController,
+    );
+
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(1);
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
+      chainId: '0x82750',
+    });
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
+      chainId: '0x82750',
+    });
+
+    unmount();
+    expect(
+      mockedTokenListController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(1);
   });
 });

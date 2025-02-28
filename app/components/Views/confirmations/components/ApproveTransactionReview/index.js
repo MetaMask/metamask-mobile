@@ -74,11 +74,10 @@ import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import Routes from '../../../../../constants/navigation/Routes';
 import createStyles from './styles';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
-  selectProviderType,
-  selectTicker,
-  selectRpcUrl,
+  selectNativeCurrencyByChainId,
+  selectEvmNetworkConfigurationsByChainId,
+  selectProviderTypeByChainId,
+  selectRpcUrlByChainId,
 } from '../../../../../selectors/networkController';
 import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
@@ -104,7 +103,9 @@ import SDKConnect from '../../../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { WC2Manager } from '../../../../../core/WalletConnect/WalletConnectV2';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
+import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -348,8 +349,8 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
-      transaction: { origin, to, data, from },
-      transaction,
+      // We need to extract transaction.transaction here to retrieve up-to-date nonce
+      transaction: { origin, to, data, from, transaction },
       setTransactionObject,
       tokenList,
       tokenAllowanceState,
@@ -852,11 +853,14 @@ class ApproveTransactionReview extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
-    const hasBlockExplorer = shouldShowBlockExplorer(
-      providerType,
-      providerRpcTarget,
-      networkConfigurations,
-    );
+    // TODO: [SOLANA] - before ship make sure block explorer supports Solana
+    const hasBlockExplorer = isNonEvmChainId(chainId)
+      ? false
+      : shouldShowBlockExplorer(
+          providerType,
+          providerRpcTarget,
+          networkConfigurations,
+        );
 
     const tokenLabel = `${
       tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
@@ -921,6 +925,9 @@ class ApproveTransactionReview extends PureComponent {
                       transactionId={transactionId}
                       style={styles.blockaidWarning}
                       onContactUsClicked={this.onContactUsClicked}
+                    />
+                    <SmartTransactionsMigrationBanner
+                      style={styles.smartTransactionsMigrationBanner}
                     />
                     <Text variant={TextVariant.HeadingMD} style={styles.title}>
                       {this.getTrustTitle(
@@ -1076,6 +1083,7 @@ class ApproveTransactionReview extends PureComponent {
                           <TouchableOpacity
                             style={styles.actionTouchable}
                             onPress={this.toggleViewDetails}
+                            testID="view-transaction-details"
                           >
                             <View style={styles.iconContainer}>
                               <Text reset style={styles.viewDetailsText}>
@@ -1332,25 +1340,30 @@ class ApproveTransactionReview extends PureComponent {
   };
 }
 
-const mapStateToProps = (state) => ({
-  ticker: selectTicker(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  transaction: getNormalizedTxState(state),
-  tokensLength: selectTokensLength(state),
-  accountsLength: selectAccountsLength(state),
-  providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcUrl(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  activeTabUrl: getActiveTabUrl(state),
-  chainId: selectChainId(state),
-  tokenList: selectTokenList(state),
-  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+
+  return {
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
+    transaction: getNormalizedTxState(state),
+    tokensLength: selectTokensLength(state),
+    accountsLength: selectAccountsLength(state),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    providerRpcTarget: selectRpcUrlByChainId(state, chainId),
+    primaryCurrency: state.settings.primaryCurrency,
+    activeTabUrl: getActiveTabUrl(state),
+    chainId,
+    tokenList: selectTokenList(state),
+    isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
+      chainId,
+      getRampNetworks(state),
+    ),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

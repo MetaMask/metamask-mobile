@@ -76,14 +76,20 @@ module.exports = {
     {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',
-        'app/components/hooks/DisplayName/**/*.{js,ts,tsx}'
+        'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
+        'app/components/hooks/DisplayName/**/*.{js,ts,tsx}',
+        'app/components/Views/confirmations/**/*.{js,ts,tsx}'
       ],
+      excludedFiles: [
+        'app/components/Views/confirmations/components/WatchAssetRequest/**/*.{js,ts,tsx}'],
       rules: {
         'no-restricted-syntax': [
           'error',
           {
             selector: `ImportSpecifier[imported.name=/${[
               'selectChainId',
+              'selectContractExchangeRates',
+              'selectConversionRate',
               'selectNetworkClientId',
               'selectNetworkStatus',
               'selectNickname',
@@ -91,9 +97,9 @@ module.exports = {
               'selectProviderType',
               'selectRpcUrl',
               'selectSelectedNetworkClientId',
-              'selectTicker'
+              'selectTicker',
             ]
-              .map((method) => `(${method})`)
+              .map((method) => `^${method}$`)
               .join('|')}/]`,
             message: 'Avoid using global network selectors in confirmations',
           },

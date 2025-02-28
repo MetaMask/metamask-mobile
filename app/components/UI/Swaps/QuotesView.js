@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BigNumber from 'bignumber.js';
@@ -94,9 +94,9 @@ import {
   isHardwareAccount,
 } from '../../../util/address';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectIsEIP1559Network,
-  selectNetworkClientId,
+  selectSelectedNetworkClientId,
   selectTicker,
 } from '../../../selectors/networkController';
 import {
@@ -118,6 +118,7 @@ import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeCon
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 import { getTransaction1559GasFeeEstimates } from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -146,6 +147,10 @@ const createStyles = (colors) =>
     alertBar: {
       paddingHorizontal: 20,
       marginVertical: 10,
+      width: '100%',
+    },
+    smartTransactionsMigrationBanner: {
+      paddingHorizontal: 20,
       width: '100%',
     },
     timerWrapper: {
@@ -304,6 +309,7 @@ async function resetAndStartPolling({
   destinationToken,
   sourceAmount,
   walletAddress,
+  networkClientId,
 }) {
   if (!sourceToken || !destinationToken) {
     return;
@@ -316,6 +322,7 @@ async function resetAndStartPolling({
     destinationToken,
     sourceAmount,
     walletAddress,
+    networkClientId,
   });
   await SwapsController.stopPollingAndResetState();
   await SwapsController.startFetchAndSetQuotes(
@@ -762,6 +769,8 @@ function SwapsQuotesView({
     }
   }, [error, navigation]);
 
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+
   const handleRetryFetchQuotes = useCallback(() => {
     if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
       navigation.setParams({ leftAction: strings('navigation.back') });
@@ -776,6 +785,7 @@ function SwapsQuotesView({
         destinationToken,
         sourceAmount,
         walletAddress: selectedAddress,
+        networkClientId: selectedNetworkClientId,
       });
     } else {
       navigation.pop();
@@ -788,6 +798,7 @@ function SwapsQuotesView({
     sourceAmount,
     selectedAddress,
     navigation,
+    selectedNetworkClientId,
   ]);
 
   const updateSwapsTransactions = useCallback(
@@ -876,7 +887,7 @@ function SwapsQuotesView({
         slippage,
         custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
         best_quote_source: selectedQuote.aggregator,
-        available_quotes: allQuotes,
+        available_quotes: allQuotes.length,
         other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
         network_fees_USD: weiToFiat(
           toWei(selectedQuoteValue?.ethFee),
@@ -1412,6 +1423,7 @@ function SwapsQuotesView({
       destinationToken,
       sourceAmount,
       walletAddress: selectedAddress,
+      networkClientId: selectedNetworkClientId,
     });
 
     return () => {
@@ -1425,6 +1437,7 @@ function SwapsQuotesView({
     slippage,
     sourceAmount,
     sourceToken.address,
+    selectedNetworkClientId,
   ]);
 
   /** selectedQuote alert effect */
@@ -1780,6 +1793,11 @@ function SwapsQuotesView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.topBar}>
+        {shouldUseSmartTransaction && (
+          <View style={styles.smartTransactionsMigrationBanner}>
+            <SmartTransactionsMigrationBanner />
+          </View>
+        )}
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
           <View style={styles.alertBar}>
             <Alert small type={AlertType.Info}>
@@ -2402,8 +2420,8 @@ SwapsQuotesView.propTypes = {
 
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
-  chainId: selectChainId(state),
-  networkClientId: selectNetworkClientId(state),
+  chainId: selectEvmChainId(state),
+  networkClientId: selectSelectedNetworkClientId(state),
   ticker: selectTicker(state),
   balances: selectContractBalances(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),

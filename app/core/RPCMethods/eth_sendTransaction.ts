@@ -1,6 +1,12 @@
-import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
+import type {
+  Json,
+  JsonRpcParams,
+  JsonRpcRequest,
+  PendingJsonRpcResponse,
+} from '@metamask/utils';
 import {
   TransactionController,
+  TransactionParams,
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { rpcErrors } from '@metamask/rpc-errors';
@@ -46,6 +52,11 @@ const hasProperty = <
 ): objectToCheck is ObjectToCheck & Record<Property, unknown> =>
   Object.hasOwnProperty.call(objectToCheck, name);
 
+interface SendArgs {
+  from: string;
+  chainId?: number;
+}
+
 /**
  * Handle a `eth_sendTransaction` request.
  *
@@ -66,16 +77,13 @@ async function eth_sendTransaction({
   validateAccountAndChainId,
 }: {
   hostname: string;
-  req: JsonRpcRequest<unknown> & {
+  req: JsonRpcRequest<[TransactionParams & JsonRpcParams]> & {
     method: 'eth_sendTransaction';
     networkClientId: string;
   };
-  res: PendingJsonRpcResponse<unknown>;
+  res: PendingJsonRpcResponse<Json>;
   sendTransaction: TransactionController['addTransaction'];
-  validateAccountAndChainId: (args: {
-    from: string;
-    chainId?: number;
-  }) => Promise<void>;
+  validateAccountAndChainId: (args: SendArgs) => Promise<void>;
 }) {
   if (
     !Array.isArray(req.params) &&
@@ -91,9 +99,13 @@ async function eth_sendTransaction({
       message: `Invalid parameters: expected the first parameter to be an object`,
     });
   }
+  // TODO: Normalize chainId to Hex string
+  const nChainId = typeof req.params[0].chainId === 'number'
+    ? req.params[0].chainId
+    : parseInt(req.params[0].chainId || '0x0', 16);
   await validateAccountAndChainId({
     from: req.params[0].from,
-    chainId: req.params[0].chainId,
+    chainId: nChainId,
   });
 
   const { result, transactionMeta } = await sendTransaction(req.params[0], {

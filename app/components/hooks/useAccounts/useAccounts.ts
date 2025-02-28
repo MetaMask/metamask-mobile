@@ -31,11 +31,14 @@ import {
   UseAccounts,
   UseAccountsParams,
 } from './useAccounts.types';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getChainIdsToPoll } from '../../../selectors/tokensController';
 import { useGetFormattedTokensPerChain } from '../useGetFormattedTokensPerChain';
 import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCrossChains';
-import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import {
+  getFormattedAddressFromInternalAccount,
+  isNonEvmAddress,
+} from '../../../core/Multichain/utils';
 import { getAccountBalances } from './utils';
 
 /**
@@ -49,6 +52,7 @@ const useAccounts = ({
 }: UseAccountsParams = {}): UseAccounts => {
   const isMountedRef = useRef(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
   const chainId = useSelector(selectChainId);
@@ -69,7 +73,7 @@ const useAccounts = ({
   );
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
     internalAccounts,
-    isTokenNetworkFilterEqualCurrentNetwork,
+    !isTokenNetworkFilterEqualCurrentNetwork,
     allChainIDs,
   );
   const totalFiatBalancesCrossChain = useGetTotalFiatBalanceCrossChains(
@@ -199,6 +203,11 @@ const useAccounts = ({
       );
 
       setAccounts(flattenedAccounts);
+      setEVMAccounts(
+        flattenedAccounts.filter(
+          (account) => !isNonEvmAddress(account.address),
+        ),
+      );
       fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
     }, // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -228,6 +237,7 @@ const useAccounts = ({
 
   return {
     accounts,
+    evmAccounts,
     ensByAccountAddress,
   };
 };

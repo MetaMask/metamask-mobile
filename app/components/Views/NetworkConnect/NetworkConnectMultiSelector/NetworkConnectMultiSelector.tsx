@@ -27,8 +27,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
@@ -54,8 +54,10 @@ const NetworkConnectMultiSelector = ({
   const { navigate } = useNavigation();
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const [originalChainIds, setOriginalChainIds] = useState<string[]>([]);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const currentChainId = useSelector(selectChainId);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const currentChainId = useSelector(selectEvmChainId);
 
   useEffect(() => {
     if (propSelectedChainIds && !isInitializedWithPermittedChains) {
@@ -95,8 +97,16 @@ const NetworkConnectMultiSelector = ({
     if (onNetworksSelected) {
       onNetworksSelected(selectedChainIds);
     } else {
-      // Check if current network is being removed from permissions
-      if (!selectedChainIds.includes(currentChainId)) {
+      // Check if current network was originally permitted and is now being removed
+      const wasCurrentNetworkOriginallyPermitted =
+        originalChainIds.includes(currentChainId);
+      const isCurrentNetworkStillPermitted =
+        selectedChainIds.includes(currentChainId);
+
+      if (
+        wasCurrentNetworkOriginallyPermitted &&
+        !isCurrentNetworkStillPermitted
+      ) {
         // Find the network configuration for the first permitted chain
         const networkToSwitch = Object.entries(networkConfigurations).find(
           ([, { chainId }]) => chainId === selectedChainIds[0],
@@ -108,7 +118,7 @@ const NetworkConnectMultiSelector = ({
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
           // Switch to the network using networkClientId
-          await Engine.context.NetworkController.setActiveNetwork(
+          await Engine.context.MultichainNetworkController.setActiveNetwork(
             networkClientId,
           );
         }
@@ -124,7 +134,6 @@ const NetworkConnectMultiSelector = ({
       } catch (e) {
         Logger.error(e as Error, 'Error checking for permitted chains caveat');
       }
-
       if (hasPermittedChains) {
         Engine.context.PermissionController.updateCaveat(
           hostname,
@@ -153,13 +162,14 @@ const NetworkConnectMultiSelector = ({
     }
   }, [
     selectedChainIds,
+    originalChainIds,
     hostname,
     onUserAction,
     onNetworksSelected,
     currentChainId,
     networkConfigurations,
   ]);
-
+  // TODO: [SOLANA]  When we support non evm networks, refactor this
   const networks = Object.entries(networkConfigurations).map(
     ([key, network]: [string, NetworkConfiguration]) => ({
       id: key,

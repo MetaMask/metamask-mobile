@@ -4,6 +4,10 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { personalSignatureConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import AccountNetworkInfoCollapsed from './AccountNetworkInfoCollapsed';
 
+jest.mock('../../../../../../../core/Engine', () => ({
+  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+}));
+
 describe('AccountNetworkInfoCollapsed', () => {
   it('should render correctly', async () => {
     const { getByText } = renderWithProvider(<AccountNetworkInfoCollapsed />, {

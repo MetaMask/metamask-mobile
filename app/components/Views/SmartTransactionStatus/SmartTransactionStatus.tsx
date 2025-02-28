@@ -14,7 +14,7 @@ import {
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonVariants,
@@ -25,7 +25,8 @@ import TransactionBackgroundBottom from '../../../images/transaction-background-
 import LoopingScrollAnimation from './LoopingScrollAnimation';
 import { hexToDecimal } from '../../../util/conversions';
 import useRemainingTime from './useRemainingTime';
-import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import { ThemeColors } from '@metamask/design-tokens';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -253,8 +254,8 @@ const SmartTransactionStatus = ({
   onConfirm,
 }: Props) => {
   const { status, creationTime, uuid } = smartTransaction;
-  const providerConfig = useSelector(selectProviderConfig);
-
+  const chainId = useSelector(selectEvmChainId);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -313,7 +314,8 @@ const SmartTransactionStatus = ({
   });
 
   // Set block explorer link and show explorer on click
-  const txUrl = getPortfolioStxLink(providerConfig.chainId, uuid);
+  // TODO: [SOLANA] Smart transactions will support solana? Flagging this revisit this before shipping.
+  const txUrl = getPortfolioStxLink(chainId, uuid);
 
   const onViewTransaction = () => {
     navigation.navigate('Webview', {
@@ -378,7 +380,7 @@ const SmartTransactionStatus = ({
         <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
 
-          {renderViewTransactionLink()}
+          {isEvmSelected ? renderViewTransactionLink() : null}
         </View>
       </View>
       <LoopingScrollAnimation width={800}>

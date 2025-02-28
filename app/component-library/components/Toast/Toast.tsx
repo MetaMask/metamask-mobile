@@ -40,6 +40,7 @@ import {
 import styles from './Toast.styles';
 import { ToastSelectorsIDs } from '../../../../e2e/selectors/wallet/ToastModal.selectors';
 import { ButtonProps } from '../Buttons/Button/Button.types';
+import { TAB_BAR_HEIGHT } from '../Navigation/TabBar/TabBar.constants';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
@@ -53,7 +54,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
   const translateYProgress = useSharedValue(screenHeight);
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateYProgress.value }],
+    transform: [{ translateY: translateYProgress.value - TAB_BAR_HEIGHT }],
   }));
   const baseStyle: StyleProp<Animated.AnimateStyle<StyleProp<ViewStyle>>> =
     useMemo(

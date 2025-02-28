@@ -30,7 +30,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import { ThemeColors } from '@metamask/design-tokens';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
 
 interface IConnectQRHardwareProps {

@@ -23,6 +23,18 @@ class PermissionSummaryBottomSheet {
     );
   }
 
+  get ethereumMainnetText() {
+    return Matchers.getElementByText(
+      PermissionSummaryBottomSheetSelectorsText.ETHEREUM_MAINNET_LABEL,
+    );
+  }
+
+  get accountPermissionLabelContainer() {
+    return Matchers.getElementByID(
+      PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER,
+    );
+  }
+
   async swipeToDismissModal() {
     await Gestures.swipe(this.container, 'down', 'fast');
   }

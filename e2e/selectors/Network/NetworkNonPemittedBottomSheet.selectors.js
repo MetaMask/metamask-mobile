@@ -6,6 +6,7 @@ export const NetworkNonPemittedBottomSheetSelectorsText = {
   SEPOLIA_NETWORK_NAME: CustomNetworks.Sepolia.providerConfig.nickname,
   ETHEREUM_MAIN_NET_NETWORK_NAME: 'Ethereum Main Network',
   LINEA_SEPOLIA_NETWORK_NAME: 'Linea Sepolia',
+  ELYSIUM_TESTNET_NETWORK_NAME: 'Elysium Testnet',
 };
 
 export const NetworkNonPemittedBottomSheetSelectorsIDs = {
