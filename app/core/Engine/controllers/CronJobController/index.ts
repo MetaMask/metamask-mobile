@@ -1,22 +1,32 @@
 import {
   CronjobController,
-  CronjobControllerMessenger,
+  type CronjobControllerMessenger,
   CronjobControllerState,
 } from '@metamask/snaps-controllers';
-import Logger from '../../../../util/Logger';
+import type { ControllerInitFunction } from '../../types';
 
-export const createCronJobController = (
-  controllerMessenger: CronjobControllerMessenger,
-  initialState?: CronjobControllerState,
-): CronjobController => {
-  try {
-    const cronjobController = new CronjobController({
-      messenger: controllerMessenger,
-      state: initialState ?? undefined,
-    });
-    return cronjobController;
-  } catch (error) {
-    Logger.error(error as Error, 'Failed to initialize CronjobController');
-    throw error;
-  }
+// Export constants
+// export * from './constants';
+
+/**
+ * Initialize the CronjobController.
+ *
+ * @param request - The request object.
+ * @returns The CronjobController.
+ */
+export const cronjobControllerInit: ControllerInitFunction<
+  CronjobController,
+  CronjobControllerMessenger
+> = (request) => {
+  const { controllerMessenger, persistedState } = request;
+
+  const cronjobControllerState = (persistedState.CronjobController ??
+    undefined) as CronjobControllerState;
+
+  const controller = new CronjobController({
+    messenger: controllerMessenger,
+    state: cronjobControllerState,
+  });
+
+  return { controller };
 };

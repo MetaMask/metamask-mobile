@@ -3,11 +3,8 @@ import {
   ControllerInitRequest,
   BaseControllerMessenger,
   ControllerInitFunction,
+  Controller,
 } from '../types';
-import {
-  AccountsController,
-  AccountsControllerMessenger,
-} from '@metamask/accounts-controller';
 
 /**
  * Build a mock for the ControllerInitRequest.
@@ -25,15 +22,28 @@ export function buildControllerInitRequestMock(
   };
 }
 
-export const mockControllerInitFunction: ControllerInitFunction<
-  AccountsController,
-  AccountsControllerMessenger
-> = (request) => {
-  const { getController } = request;
+/**
+ * Create a generic mock controller init function
+ *
+ * @template T - The controller type
+ * @template M - The messenger type
+ * @returns A mock controller init function
+ */
+export function createMockControllerInitFunction<
+  T extends Controller,
+  M extends BaseRestrictedControllerMessenger,
+>(): ControllerInitFunction<T, M> {
+  return (request) => {
+    const { getController } = request;
 
-  getController('NetworkController');
+    try {
+      getController('NetworkController');
+    } catch (error) {
+      // Ignore error in tests
+    }
 
-  return {
-    controller: jest.fn() as unknown as AccountsController,
+    return {
+      controller: jest.fn() as unknown as T,
+    };
   };
-};
+}
