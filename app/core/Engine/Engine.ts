@@ -399,91 +399,6 @@ export class Engine {
 
     const accountsController = controllersByName.AccountsController;
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
-    const multichainAssetsControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'MultichainAssetsController',
-        allowedEvents: [
-          'AccountsController:accountAdded',
-          'AccountsController:accountRemoved',
-          'AccountsController:accountAssetListUpdated',
-          'AccountsController:accountBalancesUpdated',
-        ],
-        allowedActions: [
-          'PermissionController:getPermissions',
-          'AccountsController:listMultichainAccounts',
-          'SnapController:getAll',
-          SnapControllerHandleRequestAction,
-        ],
-      });
-
-    const multichainAssetsController = createMultichainAssetsController({
-      messenger: multichainAssetsControllerMessenger,
-      initialState: initialState.MultichainAssetsController,
-    });
-
-    const multichainBalancesControllerMessenger: MultichainBalancesControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'MultichainBalancesController',
-        allowedEvents: [
-          'AccountsController:accountAdded',
-          'AccountsController:accountRemoved',
-          'AccountsController:accountBalancesUpdated',
-          'MultichainAssetsController:stateChange',
-        ],
-        allowedActions: [
-          'AccountsController:listMultichainAccounts',
-          SnapControllerHandleRequestAction,
-          'MultichainAssetsController:getState',
-        ],
-      });
-
-    const multichainBalancesController = createMultichainBalancesController({
-      messenger: multichainBalancesControllerMessenger,
-      initialState: initialState.MultichainBalancesController,
-    });
-
-    const multichainRatesControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'RatesController',
-        allowedActions: [],
-        allowedEvents: ['CurrencyRateController:stateChange'],
-      });
-
-    const multichainRatesController = createMultichainRatesController({
-      messenger: multichainRatesControllerMessenger,
-      initialState: initialState.RatesController,
-    });
-
-    // Set up currency rate sync
-    setupCurrencyRateSync(
-      multichainRatesControllerMessenger,
-      multichainRatesController,
-    );
-
-    const cronjobControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'CronjobController',
-      allowedEvents: [
-        'SnapController:snapInstalled',
-        'SnapController:snapUpdated',
-        'SnapController:snapUninstalled',
-        'SnapController:snapEnabled',
-        'SnapController:snapDisabled',
-      ],
-      allowedActions: [
-        `PermissionController:getPermissions`,
-        'SnapController:handleRequest',
-        'SnapController:getAll',
-      ],
-    });
-
-    const cronjobController = createCronJobController(
-      cronjobControllerMessenger,
-      initialState.CronjobController,
-    );
-    ///: END:ONLY_INCLUDE_IF
-
     const nftController = new NftController({
       chainId: getGlobalChainId(networkController),
       useIpfsSubdomains: false,
@@ -1261,6 +1176,91 @@ export class Engine {
         initialState: initialState.NotificationServicesPushController,
       });
 
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+    const multichainAssetsControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'MultichainAssetsController',
+        allowedEvents: [
+          'AccountsController:accountAdded',
+          'AccountsController:accountRemoved',
+          'AccountsController:accountAssetListUpdated',
+          'AccountsController:accountBalancesUpdated',
+        ],
+        allowedActions: [
+          'PermissionController:getPermissions',
+          'AccountsController:listMultichainAccounts',
+          'SnapController:getAll',
+          SnapControllerHandleRequestAction,
+        ],
+      });
+
+    const multichainAssetsController = createMultichainAssetsController({
+      messenger: multichainAssetsControllerMessenger,
+      initialState: initialState.MultichainAssetsController,
+    });
+
+    const multichainBalancesControllerMessenger: MultichainBalancesControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'MultichainBalancesController',
+        allowedEvents: [
+          'AccountsController:accountAdded',
+          'AccountsController:accountRemoved',
+          'AccountsController:accountBalancesUpdated',
+          'MultichainAssetsController:stateChange',
+        ],
+        allowedActions: [
+          'AccountsController:listMultichainAccounts',
+          SnapControllerHandleRequestAction,
+          'MultichainAssetsController:getState',
+        ],
+      });
+
+    const multichainBalancesController = createMultichainBalancesController({
+      messenger: multichainBalancesControllerMessenger,
+      initialState: initialState.MultichainBalancesController,
+    });
+
+    const multichainRatesControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'RatesController',
+        allowedActions: [],
+        allowedEvents: ['CurrencyRateController:stateChange'],
+      });
+
+    const multichainRatesController = createMultichainRatesController({
+      messenger: multichainRatesControllerMessenger,
+      initialState: initialState.RatesController,
+    });
+
+    // Set up currency rate sync
+    setupCurrencyRateSync(
+      multichainRatesControllerMessenger,
+      multichainRatesController,
+    );
+
+    const cronjobControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'CronjobController',
+      allowedEvents: [
+        'SnapController:snapInstalled',
+        'SnapController:snapUpdated',
+        'SnapController:snapUninstalled',
+        'SnapController:snapEnabled',
+        'SnapController:snapDisabled',
+      ],
+      allowedActions: [
+        `PermissionController:getPermissions`,
+        'SnapController:handleRequest',
+        'SnapController:getAll',
+      ],
+    });
+
+    const cronjobController = createCronJobController(
+      cronjobControllerMessenger,
+      initialState.CronjobController,
+    );
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
