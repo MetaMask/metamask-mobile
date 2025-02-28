@@ -295,4 +295,108 @@ describe('Encryptor', () => {
       },
     );
   });
+
+  describe('encryptWithDetail', () => {
+    it('should encrypt data and return vault with exported key string', async () => {
+      const password = 'testPassword';
+      const dataToEncrypt = { test: 'data' };
+      const mockSalt = 'mockSalt';
+
+      const result = await encryptor.encryptWithDetail(
+        password,
+        dataToEncrypt,
+        mockSalt,
+        LEGACY_DERIVATION_OPTIONS,
+      );
+
+      // Check structure of result
+      expect(result).toHaveProperty('vault');
+      expect(result).toHaveProperty('exportedKeyString');
+
+      // Parse vault to verify contents
+      const vaultObj = JSON.parse(result.vault);
+      expect(vaultObj).toHaveProperty('cipher');
+      expect(vaultObj).toHaveProperty('iv');
+      expect(vaultObj).toHaveProperty('salt', mockSalt);
+      expect(vaultObj).toHaveProperty('lib', 'original');
+      expect(vaultObj).toHaveProperty('keyMetadata', LEGACY_DERIVATION_OPTIONS);
+
+      // Verify we can import the exported key
+      const importedKey = await encryptor.importKey(result.exportedKeyString);
+      expect(importedKey).toHaveProperty('exportable', true);
+      expect(importedKey).toHaveProperty('lib', 'original');
+      expect(importedKey).toHaveProperty(
+        'keyMetadata',
+        LEGACY_DERIVATION_OPTIONS,
+      );
+    });
+  });
+
+  describe('decryptWithDetail', () => {
+    beforeEach(() => {
+      // Mock the decrypt function to return our test data
+      const mockDecrypt = jest
+        .fn()
+        .mockResolvedValue(JSON.stringify({ test: 'data' }));
+      jest.spyOn(Aes, 'decrypt').mockImplementation(mockDecrypt);
+      jest.spyOn(AesForked, 'decrypt').mockImplementation(mockDecrypt);
+
+      // Mock the key derivation function
+      jest.spyOn(Aes, 'pbkdf2').mockResolvedValue('mockedKey');
+      jest.spyOn(AesForked, 'pbkdf2').mockResolvedValue('mockedKeyForked');
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should decrypt vault and return data with key details', async () => {
+      // First encrypt some data to get a valid vault
+      const password = 'testPassword';
+      const originalData = { test: 'data' };
+      const { vault } = await encryptor.encryptWithDetail(
+        password,
+        originalData,
+      );
+
+      // Now test decryption
+      const result = await encryptor.decryptWithDetail(password, vault);
+
+      expect(result).toHaveProperty('exportedKeyString');
+      expect(result).toHaveProperty('vault');
+      expect(result).toHaveProperty('salt');
+
+      // Verify the decrypted data matches original
+      expect(result.vault).toEqual(originalData);
+
+      // Verify we can import the exported key
+      const importedKey = await encryptor.importKey(result.exportedKeyString);
+      expect(importedKey).toHaveProperty('exportable', true);
+      expect(importedKey).toHaveProperty('lib', 'original');
+      expect(importedKey).toHaveProperty('keyMetadata');
+    });
+
+    it('should handle legacy vaults without keyMetadata', async () => {
+      const password = 'testPassword';
+      const mockVault = {
+        cipher: 'mockedCipher',
+        iv: 'mockedIV',
+        salt: 'mockedSalt',
+        lib: 'original',
+      };
+
+      const result = await encryptor.decryptWithDetail(
+        password,
+        JSON.stringify(mockVault),
+      );
+
+      expect(result).toHaveProperty('exportedKeyString');
+      expect(result).toHaveProperty('vault');
+      expect(result).toHaveProperty('salt', 'mockedSalt');
+
+      // Verify the exported key uses legacy derivation options
+      const importedKey = await encryptor.importKey(result.exportedKeyString);
+      expect(importedKey.keyMetadata).toEqual(LEGACY_DERIVATION_OPTIONS);
+    });
+  });
 });
