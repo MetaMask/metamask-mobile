@@ -1,14 +1,187 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Carousel should only render fund banner when all banners are dismissed 1`] = `
+<View
+  style={
+    [
+      {
+        "alignSelf": "center",
+        "height": 77,
+        "overflow": "visible",
+        "width": 728,
+      },
+      undefined,
+    ]
+  }
+  testID="carousel-container"
+>
+  <View
+    style={
+      {
+        "height": 59,
+        "overflow": "visible",
+      }
+    }
+  >
+    <div
+      onClick={[Function]}
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "backgroundColor": "#f2f4f6",
+              "borderColor": "#BBC0C566",
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "height": 59,
+              "marginHorizontal": 5,
+              "position": "relative",
+              "width": 718,
+            },
+            false,
+          ]
+        }
+        testID="carousel-second-slide"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "height": "100%",
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 59,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 60,
+              }
+            }
+          >
+            <Image
+              resizeMode="contain"
+              source={
+                {
+                  "uri": "aggregated-image",
+                }
+              }
+              style={
+                {
+                  "height": 59,
+                  "width": 60,
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "gap": 0,
+                  "width": 658,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 12,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                    "marginLeft": 14,
+                  }
+                }
+                testID="carousel-second-slide-title"
+              >
+                banner.fund.title
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 10.4,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                    "marginLeft": 14,
+                    "marginTop": -4,
+                  }
+                }
+              >
+                banner.fund.subtitle
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </div>
+  </View>
+</View>
+`;
+
 exports[`Carousel should render correctly 1`] = `
 <View
   style={
-    {
-      "alignSelf": "center",
-      "height": 77,
-      "overflow": "visible",
-      "width": 728,
-    }
+    [
+      {
+        "alignSelf": "center",
+        "height": 77,
+        "overflow": "visible",
+        "width": 728,
+      },
+      undefined,
+    ]
   }
   testID="carousel-container"
 >
@@ -339,42 +512,6 @@ exports[`Carousel should render correctly 1`] = `
               </Text>
             </View>
           </View>
-          <TouchableOpacity
-            onPress={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "height": 26,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": 6,
-                "top": 4,
-                "width": 26,
-              }
-            }
-            testID="carousel-second-slide-close-button"
-          >
-            <Text
-              allowFontScaling={false}
-              style={
-                [
-                  {
-                    "color": "#141618",
-                    "fontSize": 18,
-                  },
-                  undefined,
-                  {
-                    "fontFamily": "Material Design Icons",
-                    "fontStyle": "normal",
-                    "fontWeight": "normal",
-                  },
-                  {},
-                ]
-              }
-            >
-              
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
     </div>

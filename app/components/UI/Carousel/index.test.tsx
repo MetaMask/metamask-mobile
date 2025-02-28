@@ -4,6 +4,35 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Linking } from 'react-native';
 import Carousel from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { backgroundState } from '../../../util/test/initial-root-state';
+
+jest.mock('../../../core/Engine', () => ({
+  getTotalFiatAccountBalance: jest.fn(),
+  context: {
+    TokensController: {
+      ignoreTokens: jest.fn(() => Promise.resolve()),
+    },
+    PreferencesController: {
+      setPrivacyMode: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      state: {
+        selectedNetworkClientId: 'mainnet',
+      },
+    },
+    settings: {
+      showFiatOnTestnets: true,
+    },
+  },
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -15,6 +44,12 @@ jest.mock('@react-navigation/native', () => ({
     navigate: jest.fn(),
   }),
 }));
+
+jest.mock('../../../core/Engine', () => ({
+  getTotalFiatAccountBalance: jest.fn(),
+}));
+
+const selectShowFiatInTestnets = jest.fn();
 
 // Mock ScrollableTabView as a simple View component that renders children
 jest.mock('react-native-scrollable-tab-view', () => {
@@ -109,9 +144,28 @@ describe('Carousel', () => {
         browser: {
           tabs: [],
         },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: '0xSomeAddress',
+                  },
+                },
+              },
+            },
+          },
+        },
+        settings: {
+          showFiatOnTestnets: false,
+        },
       }),
     );
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (selectShowFiatInTestnets as jest.Mock).mockReturnValue(false); // Also mock the selector directly
     jest.clearAllMocks();
   });
 
@@ -120,7 +174,7 @@ describe('Carousel', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('does not render when all banners are dismissed', () => {
+  it('should only render fund banner when all banners are dismissed', () => {
     (useSelector as jest.Mock).mockImplementation((selector) =>
       selector({
         banners: {
@@ -129,11 +183,23 @@ describe('Carousel', () => {
         browser: {
           tabs: [],
         },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            MultichainNetworkController: {
+              ...backgroundState.MultichainNetworkController,
+              isEvmSelected: false,
+            },
+          },
+        },
+        settings: {
+          showFiatOnTestnets: false,
+        },
       }),
     );
 
     const { toJSON } = render(<Carousel />);
-    expect(toJSON()).toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('opens correct URLs or navigates to correct screens when banners are clicked', async () => {
