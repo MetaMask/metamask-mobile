@@ -85,43 +85,41 @@ describe('AlertsContext', () => {
     });
   });
 
-  describe('useAlertsManagement', () => {
-    it('returns all alerts', () => {
-      const { result } = renderHookWithProvider(() => useAlerts());
-      expect(result.current.alerts).toEqual(alertsMock);
-      expect(result.current.hasAlerts).toEqual(true);
-    });
 
-    it('returns alerts ordered by severity', () => {
-      const { result } = renderHookWithProvider(() => useAlerts());
-      const orderedAlerts = result.current.alerts;
-      expect(orderedAlerts[0].severity).toEqual(Severity.Danger);
-    });
+  it('returns all alerts', () => {
+    const { result } = renderHookWithProvider(() => useAlerts());
+    expect(result.current.alerts).toEqual(alertsMock);
+    expect(result.current.hasAlerts).toEqual(true);
+  });
 
-    it('returns general alerts sorted by severity', () => {
-      const { result } = renderHookWithProvider(() => useAlerts());
-      const generalAlerts = result.current.generalAlerts;
-      expect(generalAlerts[0]?.severity).toEqual(Severity.Warning);
-    });
+  it('returns alerts ordered by severity', () => {
+    const { result } = renderHookWithProvider(() => useAlerts());
+    const orderedAlerts = result.current.alerts;
+    expect(orderedAlerts[0].severity).toEqual(Severity.Danger);
+  });
 
-    it('returns all alerts with field property', () => {
-      const { result } = renderHookWithProvider(() => useAlerts());
-      expect(result.current.fieldAlerts).toEqual([dangerAlertMock]);
-    });
+  it('returns general alerts sorted by severity', () => {
+    const { result } = renderHookWithProvider(() => useAlerts());
+    const generalAlerts = result.current.generalAlerts;
+    expect(generalAlerts[0]?.severity).toEqual(Severity.Warning);
+  });
 
-    it('initializes with the correct alert key', () => {
-      const { result } = renderHookWithProvider(() => useAlerts());
-      expect(result.current.alertKey).toBe(dangerAlertMock.key);
-    });
+  it('returns all alerts with field property', () => {
+    const { result } = renderHookWithProvider(() => useAlerts());
+    expect(result.current.fieldAlerts).toEqual([dangerAlertMock]);
+  });
 
-    it('sets a new alert key', () => {
-      const { result } = renderHookWithProvider(() => useAlerts());
+  it('initializes with the correct alert key', () => {
+    const { result } = renderHookWithProvider(() => useAlerts());
+    expect(result.current.alertKey).toBe(dangerAlertMock.key);
+  });
 
-      act(() => {
-        result.current.setAlertKey(warningAlertMock.key);
-      });
-      expect(result.current.alertKey).toBe(warningAlertMock.key);
+  it('sets a new alert key', () => {
+    const { result } = renderHookWithProvider(() => useAlerts());
+    act(() => {
+      result.current.setAlertKey(warningAlertMock.key);
     });
+    expect(result.current.alertKey).toBe(warningAlertMock.key);
   });
 
   describe('AlertsContextProvider', () => {
