@@ -12,7 +12,7 @@ import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
 
 import { updateWC2Metadata } from '../../../app/actions/sdk';
-import { selectChainId } from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
@@ -96,7 +96,7 @@ export class WC2Manager {
     );
 
     // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-    const chainId = selectChainId(store.getState());
+    const chainId = selectEvmChainId(store.getState());
     DevLogger.log(
       `[WC2Manager::constructor chainId=${chainId} type=${typeof chainId}`,
       this.navigation,
@@ -219,7 +219,7 @@ export class WC2Manager {
     const currentRouteName = navigation.getCurrentRoute()?.name;
 
     let core;
-    const chainId = parseInt(selectChainId(store.getState()), 16);
+    const chainId = parseInt(selectEvmChainId(store.getState()), 16);
 
     DevLogger.log(
       `WalletConnectV2::init() chainId=${chainId} currentRouteName=${currentRouteName}`,
@@ -443,7 +443,7 @@ export class WC2Manager {
       // use Permission controller
       const approvedAccounts = await getPermittedAccounts(url);
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-      const chainId = selectChainId(store.getState());
+      const chainId = selectEvmChainId(store.getState());
       DevLogger.log(
         `WC2::session_proposal getPermittedAccounts for id=${id} hostname=${url}, chainId=${chainId}`,
         approvedAccounts,

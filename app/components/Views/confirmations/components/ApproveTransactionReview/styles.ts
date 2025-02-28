@@ -167,12 +167,12 @@ const createStyles = (colors: any) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    blockaidWarning: {
+    blockaidBannerContainer: {
       marginBottom: 10,
       marginTop: 20,
       marginHorizontal: 10,
     },
-    SmartTransactionsMigrationBanner: {
+    smartTransactionsMigrationBanner: {
       marginHorizontal: 16,
     },
   });

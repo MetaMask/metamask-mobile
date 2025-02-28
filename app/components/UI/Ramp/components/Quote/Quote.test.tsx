@@ -12,7 +12,7 @@ import { RampType } from '../../types';
 import { QuoteTags } from '@consensys/on-ramp-sdk/dist/API';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectIpfsGateway } from '../../../../../selectors/preferencesController';
-
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 // Mock the selectIpfsGateway selector
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
@@ -40,7 +40,7 @@ const mockQuote: QuoteResponse = {
     logos: { light: 'logo-url', dark: 'logo-url-dark', width: 50, height: 50 },
   } as Provider,
   crypto: { symbol: 'ETH', decimals: 18 } as CryptoCurrency,
-  tags: { isBestRate: true } as QuoteTags,
+  tags: { isBestRate: true, isMostReliable: true } as QuoteTags,
   amountOutInFiat: 98,
   isNativeApplePay: false,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -61,10 +61,17 @@ const mockSellQuote: SellQuoteResponse = {
   sell: () => undefined,
 };
 
+const defaultState = {
+  engine: {
+    backgroundState,
+  },
+};
+
 describe('Quote Component', () => {
   it('renders correctly with buy quote', () => {
     const { getByText } = renderWithProvider(
       <Quote quote={mockQuote} showInfo={jest.fn()} rampType={RampType.BUY} />,
+      { state: defaultState },
     );
 
     expect(getByText('Continue with Mock Provider')).toBeTruthy();
@@ -79,6 +86,7 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.SELL}
       />,
+      { state: defaultState },
     );
 
     expect(getByText('Continue with Mock Sell Provider')).toBeTruthy();
@@ -95,6 +103,7 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.BUY}
       />,
+      { state: defaultState },
     );
 
     fireEvent.press(getByLabelText('Mock Provider'));
@@ -109,6 +118,7 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.BUY}
       />,
+      { state: defaultState },
     );
 
     expect(getByTestId('buy-button-loading')).toBeTruthy();
@@ -122,6 +132,7 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.BUY}
       />,
+      { state: defaultState },
     );
 
     expect(getByText('Previously used')).toBeTruthy();
@@ -130,6 +141,7 @@ describe('Quote Component', () => {
   it('displays best rate tag', () => {
     const { getByText } = renderWithProvider(
       <Quote quote={mockQuote} showInfo={jest.fn()} rampType={RampType.BUY} />,
+      { state: defaultState },
     );
 
     expect(getByText('Best rate')).toBeTruthy();
@@ -144,9 +156,52 @@ describe('Quote Component', () => {
         showInfo={jest.fn()}
         rampType={RampType.BUY}
       />,
+      { state: defaultState },
     );
 
     fireEvent.press(getByText('Continue with Mock Provider'));
     expect(onPressCTAMock).toHaveBeenCalled();
+  });
+
+  it('displays most reliable tag', () => {
+    const mockQuoteWithReliableTag = {
+      ...mockQuote,
+      tags: { isMostReliable: true } as QuoteTags,
+    };
+    const { getByText } = renderWithProvider(
+      <Quote
+        quote={mockQuoteWithReliableTag}
+        showInfo={jest.fn()}
+        rampType={RampType.BUY}
+      />,
+      { state: defaultState },
+    );
+
+    expect(getByText('Most reliable')).toBeTruthy();
+  });
+
+  it('displays provider logo correctly', () => {
+    const { getByLabelText } = renderWithProvider(
+      <Quote quote={mockQuote} showInfo={jest.fn()} rampType={RampType.BUY} />,
+      { state: defaultState },
+    );
+
+    expect(getByLabelText('Mock Provider logo')).toBeTruthy();
+  });
+
+  it('calls showInfo when info icon is pressed and highlighted', () => {
+    const showInfoMock = jest.fn();
+    const { getByLabelText } = renderWithProvider(
+      <Quote
+        quote={mockQuote}
+        showInfo={showInfoMock}
+        rampType={RampType.BUY}
+        highlighted
+      />,
+      { state: defaultState },
+    );
+
+    fireEvent.press(getByLabelText('Mock Provider logo'));
+    expect(showInfoMock).toHaveBeenCalled();
   });
 });

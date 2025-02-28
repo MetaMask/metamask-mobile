@@ -43,9 +43,10 @@ describe(SmokeRamps('On-Ramp Limits'), () => {
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapBuyButton();
         await BuyGetStartedView.tapGetStartedButton();
-        await BuildQuoteView.enterFiatAmount('1');
+        await BuildQuoteView.enterAmount('1');
         await Assertions.checkIfVisible(BuildQuoteView.minLimitErrorMessage);
-        await BuildQuoteView.enterFiatAmount('55555');
+        await BuildQuoteView.tapKeypadDeleteButton(1);
+        await BuildQuoteView.enterAmount('55555');
         await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
         await BuildQuoteView.tapCancelButton();
       },
