@@ -32,6 +32,35 @@ export interface WCMultiVersionParams {
   handshakeTopic?: string;
 }
 
+export const getHostname = (uri: string): string => {
+  try {
+    // Handle empty or invalid URIs
+    if (!uri) return '';
+    
+    // For standard URLs, use URL API
+    if (uri.includes('://')) {
+      try {
+        const url = new URL(uri);
+        return url.hostname;
+      } catch (e) {
+        // If URL parsing fails, continue with manual parsing
+      }
+    }
+    
+    // For protocol-based URIs like wc: or ethereum:
+    const pathStart: number = uri.indexOf(':');
+    if (pathStart !== -1) {
+      return uri.substring(0, pathStart);
+    }
+    
+    // If no protocol separator found, return the original string
+    return uri;
+  } catch (error) {
+    DevLogger.log('Error in getHostname:', error);
+    return uri;
+  }
+};
+
 export const parseWalletConnectUri = (uri: string): WCMultiVersionParams => {
   // Handle wc:{} and wc://{} format
   const str = uri.startsWith('wc://') ? uri.replace('wc://', 'wc:') : uri;
@@ -129,33 +158,33 @@ export const waitForNetworkModalOnboarding = async ({
   }
 };
 
-export const normalizeOrigin = (origin: string): string => {
-  try {
-    // If origin is null or undefined, return empty string
-    if (!origin) {
-      DevLogger.log('WC::normalizeOrigin received null/undefined origin');
-      return '';
-    }
+// export const normalizeOrigin = (origin: string): string => {
+//   try {
+//     // If origin is null or undefined, return empty string
+//     if (!origin) {
+//       DevLogger.log('WC::normalizeOrigin received null/undefined origin');
+//       return '';
+//     }
 
-    // If already a domain without protocol, return it
-    if (!origin.includes('://')) {
-      return origin;
-    }
+//     // If already a domain without protocol, return it
+//     if (!origin.includes('://')) {
+//       return origin;
+//     }
 
-    // Parse URL to extract just the hostname (domain)
-    try {
-      const url = new URL(origin);
-      return url.hostname;
-    } catch (urlError) {
-      // If URL parsing fails, try a simple regex approach
-      const match = origin.match(/^(?:https?:\/\/)?([^\/]+)/i);
-      return match ? match[1] : origin;
-    }
-  } catch (error) {
-    DevLogger.log('WC::normalizeOrigin error:', error);
-    return origin;
-  }
-};
+//     // Parse URL to extract just the hostname (domain)
+//     try {
+//       const url = new URL(origin);
+//       return url.hostname;
+//     } catch (urlError) {
+//       // If URL parsing fails, try a simple regex approach
+//       const match = origin.match(/^(?:https?:\/\/)?([^\/]+)/i);
+//       return match ? match[1] : origin;
+//     }
+//   } catch (error) {
+//     DevLogger.log('WC::normalizeOrigin error:', error);
+//     return origin;
+//   }
+// };
 
 export const getApprovedSessionMethods = (_: {
   origin: string;
@@ -199,9 +228,12 @@ export const getApprovedSessionMethods = (_: {
 };
 
 export const getScopedPermissions = async ({ origin }: { origin: string }) => {
+  console.log("🔴 getScopedPermissions origin", origin);
   // origin is already normalized by this point - no need to normalize again
   const approvedAccounts = await getPermittedAccounts(origin);
-  const chains = await getPermittedChains(origin);
+  console.log("🔴 getScopedPermissions approvedAccounts", approvedAccounts);
+  const chains = await getPermittedChains(getHostname(origin));
+  console.log("🔴 getScopedPermissions chains", chains);
 
   DevLogger.log(
     `WC::getScopedPermissions for ${origin}, found accounts:`,
@@ -215,7 +247,7 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
 
   const scopedPermissions = {
     chains,
-    methods: getApprovedSessionMethods({ origin }),
+    methods: getApprovedSessionMethods({ origin: getHostname(origin) }),
     events: ['chainChanged', 'accountsChanged'],
     accounts: accountsPerChains,
   };
@@ -229,9 +261,10 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
   };
 };
 
-const requestUserApproval = async ({
+const requestUserApproval = (origin: string) => async ({
   type = '',
 }: { type: string; requestData: Record<string, unknown> }) => {
+  console.log("🟢 requestUserApproval", JSON.stringify({ origin, type }, null, 2));
   await Engine.context.ApprovalController.clear(
     providerErrors.userRejectedRequest(),
   );
@@ -246,23 +279,19 @@ export const checkWCPermissions = async ({
   origin,
   caip2ChainId,
 }: { origin: string; caip2ChainId: string }) => {
+  console.log("🟢 checkWCPermissions", JSON.stringify({ origin, caip2ChainId }, null, 2));
   const networkConfigurations = selectNetworkConfigurations(store.getState());
+  console.log("🟢 checkWCPermissions networkConfigurations", networkConfigurations);
   const decimalChainId = caip2ChainId.split(':')[1];
+  console.log("🟢 checkWCPermissions decimalChainId", decimalChainId);
   const hexChainIdString = `0x${parseInt(decimalChainId, 10).toString(16)}`;
+  console.log("🟢 checkWCPermissions hexChainIdString", hexChainIdString);
 
   const existingNetwork = findExistingNetwork(
     hexChainIdString,
     networkConfigurations,
   );
-
-  const permittedChains = await getPermittedChains(origin);
-  const isAllowedChainId = permittedChains.includes(caip2ChainId);
-  const providerConfig = selectProviderConfig(store.getState());
-  const activeCaip2ChainId = `${EVM_IDENTIFIER}:${parseInt(providerConfig.chainId, 16)}`;
-
-  DevLogger.log(
-    `WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`,
-  );
+  console.log("🟢 checkWCPermissions existingNetwork", existingNetwork);
 
   if (!existingNetwork) {
     DevLogger.log(`WC::checkWCPermissions no existing network found`);
@@ -270,6 +299,21 @@ export const checkWCPermissions = async ({
       message: `Invalid parameters: active chainId is different than the one provided.`,
     });
   }
+  
+  const permittedChains = await getPermittedChains(getHostname(origin));
+  console.log("🟢 checkWCPermissions permittedChains", permittedChains);
+  const isAllowedChainId = permittedChains.includes(caip2ChainId);
+  console.log("🟢 checkWCPermissions isAllowedChainId", isAllowedChainId);
+
+  const providerConfig = selectProviderConfig(store.getState());
+  console.log("🟢 checkWCPermissions providerConfig", providerConfig);
+  const activeCaip2ChainId = `${EVM_IDENTIFIER}:${parseInt(providerConfig.chainId, 16)}`;
+  console.log("🟢 checkWCPermissions activeCaip2ChainId", activeCaip2ChainId);
+
+  DevLogger.log(
+    `WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`,
+  );
+
 
   if (!isAllowedChainId) {
     DevLogger.log(`WC::checkWCPermissions chainId is not permitted`);
@@ -283,17 +327,32 @@ export const checkWCPermissions = async ({
     existingNetwork,
   );
 
+  console.log("🟢 checkWCPermissions caip2ChainId !== activeCaip2ChainId", caip2ChainId !== activeCaip2ChainId);
   if (caip2ChainId !== activeCaip2ChainId) {
     try {
-      await switchToNetwork({
+      const result = await switchToNetwork({
         network: existingNetwork,
         chainId: hexChainIdString,
         controllers: Engine.context,
-        requestUserApproval,
+        // requestUserApproval: requestUserApproval(origin),
+        requestUserApproval: async (args: any) => {
+          console.log("🟢 requestUserApproval", JSON.stringify({args}, null, 2));
+          await Engine.context.ApprovalController.clear(
+            providerErrors.userRejectedRequest(),
+          );
+          const responseData = await Engine.context.ApprovalController.add({
+            origin,
+            type: args.type,
+            requestData: args.requestData,
+          });
+          return responseData;
+        },
         analytics: {},
         origin,
         isAddNetworkFlow: false,
       });
+
+      console.log("🟢 checkWCPermissions result", result);
     } catch (error) {
       DevLogger.log(
         `WC::checkWCPermissions error switching to network:`,
