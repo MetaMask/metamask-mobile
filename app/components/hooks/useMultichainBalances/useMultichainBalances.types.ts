@@ -12,5 +12,6 @@ export interface MultichainBalancesData {
 }
 
 export interface UseMultichainBalancesHook {
-  multichainBalances: MultichainBalancesData;
+  // map of account id and multichain balance data
+  multichainBalances: Record<string, MultichainBalancesData>;
 }
