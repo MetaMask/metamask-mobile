@@ -9,6 +9,7 @@ import { getGasFeeEstimatesForTransaction } from './gas';
 import { Hex } from '@metamask/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Logger from '../../../../util/Logger';
+import { Fee } from '@metamask/smart-transactions-controller/dist/types';
 
 interface TemporarySmartTransactionGasFees {
   maxFeePerGas: string;
@@ -92,6 +93,11 @@ const submitSmartTransaction = async ({
   }
 };
 
+const convertFees = (fees?: Fee[]) => fees?.map((fee) => ({
+    maxFeePerGas: fee.maxFeePerGas.toString(),
+    maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
+  })) || [];
+
 export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quote, gasEstimates: {
   gasPrice: string;
   medium: string;
@@ -123,10 +129,7 @@ export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quot
           gas: approvalGas,
         },
         smartTransactionFees: {
-          fees: smartTransactionFees.approvalTxFees.fees.map((fee) => ({
-            maxFeePerGas: fee.maxFeePerGas.toString(),
-            maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
-          })),
+          fees: convertFees(smartTransactionFees.approvalTxFees.fees),
           cancelFees: [],
         },
         chainId,
@@ -150,10 +153,7 @@ export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quot
       tradeTxUuid = await submitSmartTransaction({
         unsignedTransaction: {...tradeTransaction, chainId, gas: tradeGas},
       smartTransactionFees: {
-        fees: smartTransactionFees.tradeTxFees?.fees.map((fee) => ({
-          maxFeePerGas: fee.maxFeePerGas.toString(),
-          maxPriorityFeePerGas: fee.maxPriorityFeePerGas.toString(),
-        })) || [],
+        fees: convertFees(smartTransactionFees.tradeTxFees?.fees),
         cancelFees: [],
       },
       chainId,
