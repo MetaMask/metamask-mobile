@@ -227,11 +227,10 @@ import {
 } from './controllers/SnapController/constants';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
-///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
 import { createMultichainAssetsRatesController } from './controllers/MultichainAssetsRatesController/utils';
-import { setupMultichainAssetsSync } from './controllers/MultichainAssetsController/subscriptions';
 import { createCronJobController } from './controllers/CronJobController/utils';
+///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -463,8 +462,6 @@ export class Engine {
       multichainRatesControllerMessenger,
       multichainRatesController,
     );
-
-    setupMultichainAssetsSync(multichainAssetsControllerMessenger);
 
     const cronjobControllerMessenger = this.controllerMessenger.getRestricted({
       name: 'CronjobController',

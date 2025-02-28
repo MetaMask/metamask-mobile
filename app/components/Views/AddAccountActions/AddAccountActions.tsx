@@ -105,13 +105,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       const client = new KeyringClient(new BitcoinWalletSnapSender());
 
       // This will trigger the Snap account creation flow (+ account renaming)
-      const account = await client.createAccount({
+      await client.createAccount({
         scope,
       });
-      console.log(
-        ' createBitcoinAccount -- Account assets: ',
-        await client.listAccountAssets(account.id),
-      );
     } catch (error) {
       Logger.error(error as Error, 'Bitcoin account creation failed');
     } finally {
@@ -126,13 +122,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       // Client to create the account using the Solana Snap
       const client = new KeyringClient(new SolanaWalletSnapSender());
       // This will trigger the Snap account creation flow (+ account renaming)
-      const account = await client.createAccount({
+      await client.createAccount({
         scope,
       });
-      console.log(
-        ' createSolanaAccount -- Account assets: ',
-        await client.listAccountAssets(account.id),
-      );
     } catch (error) {
       Logger.error(error as Error, 'Solana account creation failed');
     } finally {
