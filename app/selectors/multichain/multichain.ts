@@ -19,6 +19,7 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
+import { CaipAssetId, parseCaipAssetType } from '@metamask/utils';
 
 export enum MultichainNetworks {
   BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
@@ -187,6 +188,73 @@ export const selectMultichainConversionRate = createDeepEqualSelector(
     return nonEvmTicker
       ? multichaincCoinRates?.[nonEvmTicker.toLowerCase()]?.conversionRate
       : undefined;
+  },
+);
+
+export function selectMultichainAssets(state: RootState) {
+  return state.engine.backgroundState.MultichainAssetsController.accountsAssets;
+}
+
+export function selectMultichainAssetsMetadata(state: RootState) {
+  return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
+}
+
+export const selectMultichainTokenList = createDeepEqualSelector(
+  selectSelectedNonEvmNetworkChainId,
+  selectSelectedInternalAccount,
+  selectMultichainBalances,
+  selectMultichainAssets,
+  selectMultichainAssetsMetadata,
+  (
+    chainId,
+    selectedAccountAddress,
+    multichainBalances,
+    assets,
+    assetsMetadata,
+  ) => {
+    if (!selectedAccountAddress) {
+      return [];
+    }
+    const assetIds = assets?.[selectedAccountAddress.id] || [];
+    const balances = multichainBalances?.[selectedAccountAddress.id];
+    console.log('assetIds............', balances);
+    // @ts-ignore
+    return assetIds.map((assetId: CaipAssetId) => {
+      const { chainId, assetNamespace } = parseCaipAssetType(assetId);
+      const isNative = assetNamespace === 'slip44';
+      const balance = balances?.[assetId] || { amount: '0', unit: '' };
+      // const rate = assetRates?.[assetId]?.rate || '0';
+      // const balanceInFiat = new BigNumber(balance.amount).times(rate);
+
+      const assetMetadataFallback = {
+        name: balance.unit,
+        symbol: balance.unit || '',
+        fungible: true,
+        units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
+      };
+
+      const metadata = assetsMetadata[assetId] || assetMetadataFallback;
+      const decimals = metadata.units[0]?.decimals || 0;
+
+      return {
+        name: metadata.name,
+        address: assetId,
+        symbol: metadata.symbol,
+        image: metadata.iconUrl,
+        logo: metadata.iconUrl,
+        decimals,
+        chainId,
+        isNative,
+        balance: balance.amount,
+        secondary: 0,
+        string: '',
+        balanceFiat: '0', // for now we are keeping this is to satisfy sort, this should be fiat amount
+        isStakeable: false,
+        aggregators: [],
+        isETH: false,
+        ticker: metadata.symbol,
+      };
+    });
   },
 );
 ///: END:ONLY_INCLUDE_IF

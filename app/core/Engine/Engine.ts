@@ -408,7 +408,7 @@ export class Engine {
           'AccountsController:accountAdded',
           'AccountsController:accountRemoved',
           'AccountsController:accountAssetListUpdated',
-          'AccountsController:accountBalancesUpdated',
+          // 'AccountsController:accountBalancesUpdated',
         ],
         allowedActions: [
           'PermissionController:getPermissions',

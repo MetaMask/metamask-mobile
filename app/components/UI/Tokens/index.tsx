@@ -55,7 +55,10 @@ import {
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
+import {
+  selectAccountTokensAcrossChains,
+  selectMultichainBalances,
+} from '../../../selectors/multichain';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
