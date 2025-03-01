@@ -4,7 +4,6 @@ import Crypto from 'react-native-quick-crypto';
 import {
   AccountTrackerController,
   AssetsContractController,
-  CurrencyRateController,
   NftController,
   NftDetectionController,
   TokenBalancesController,
@@ -228,6 +227,7 @@ import {
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
+import { currencyRateControllerInit } from './controllers/CurrencyRateController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -389,6 +389,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        CurrencyRateController: currencyRateControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         CronjobController: cronjobControllerInit,
         ///: END:ONLY_INCLUDE_IF
@@ -403,6 +404,7 @@ export class Engine {
     });
 
     const accountsController = controllersByName.AccountsController;
+    const currencyRateController = controllersByName.CurrencyRateController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const cronjobController = controllersByName.CronjobController;
@@ -529,33 +531,6 @@ export class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
-    const currencyRateController = new CurrencyRateController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'CurrencyRateController',
-        allowedActions: [`${networkController.name}:getNetworkClientById`],
-        allowedEvents: [],
-      }),
-      // normalize `null` currencyRate to `0`
-      // TODO: handle `null` currencyRate by hiding fiat values instead
-      state: {
-        ...initialState.CurrencyRateController,
-        currencyRates: Object.fromEntries(
-          Object.entries(
-            initialState.CurrencyRateController?.currencyRates ?? {
-              ETH: {
-                conversionRate: 0,
-                conversionDate: 0,
-                usdConversionRate: null,
-              },
-            },
-          ).map(([k, v]) => [
-            k,
-            { ...v, conversionRate: v.conversionRate ?? 0 },
-          ]),
-        ),
-      },
-    });
-
     const gasFeeController = new GasFeeController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
