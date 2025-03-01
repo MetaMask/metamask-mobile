@@ -1,42 +1,34 @@
 import {
   MultichainAssetsRatesController,
-  MultichainAssetsRatesControllerMessenger,
+  type MultichainAssetsRatesControllerMessenger,
   MultichainAssetsRatesControllerState,
 } from '@metamask/assets-controllers';
-import Logger from '../../../../util/Logger';
+import { defaultMultichainBalancesControllerState } from './constants';
+import type { ControllerInitFunction } from '../../types';
 
-export const defaultMultichainBalancesControllerState: MultichainAssetsRatesControllerState =
-  {
-    conversionRates: {},
-  };
+// Export constants
+export * from './constants';
 
 /**
- * Creates instance of MultichainAssetsRatesController
+ * Initialize the MultichainAssetsRatesController.
  *
- * @param options.messenger - Controller messenger instance
- * @param options.initialState - Initial state of MultichainAssetsRatesController
- * @returns - MultichainAssetsRatesController instance
+ * @param request - The request object.
+ * @returns The MultichainAssetsRatesController.
  */
-export const createMultichainAssetsRatesController = ({
-  messenger,
-  initialState,
-}: {
-  messenger: MultichainAssetsRatesControllerMessenger;
-  initialState?: MultichainAssetsRatesControllerState;
-}): MultichainAssetsRatesController => {
-  try {
-    const multichainAssetsRatesController = new MultichainAssetsRatesController(
-      {
-        messenger,
-        state: initialState ?? defaultMultichainBalancesControllerState,
-      },
-    );
-    return multichainAssetsRatesController;
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to initialize multichainAssetsRatesController',
-    );
-    throw error;
-  }
+export const multichainAssetsRatesControllerInit: ControllerInitFunction<
+  MultichainAssetsRatesController,
+  MultichainAssetsRatesControllerMessenger
+> = (request) => {
+  const { controllerMessenger, persistedState } = request;
+
+  const multichainAssetsRatesControllerState =
+    (persistedState.MultichainAssetsRatesController ??
+      defaultMultichainBalancesControllerState) as MultichainAssetsRatesControllerState;
+
+  const controller = new MultichainAssetsRatesController({
+    messenger: controllerMessenger,
+    state: multichainAssetsRatesControllerState,
+  });
+
+  return { controller };
 };

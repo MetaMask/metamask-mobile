@@ -517,6 +517,9 @@ export type ControllersToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'CronjobController'
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  | 'MultichainAssetsRatesController'
+  ///: END:ONLY_INCLUDE_IF
   | 'AccountsController';
 
 /**

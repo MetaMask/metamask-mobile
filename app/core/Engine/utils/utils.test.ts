@@ -10,6 +10,11 @@ import {
 import { cronjobControllerInit } from '../controllers/CronJobController';
 import { CronjobController } from '@metamask/snaps-controllers';
 import { BaseRestrictedControllerMessenger } from '../types';
+import { multichainAssetsRatesControllerInit } from '../controllers/MultichainAssetsRatesController';
+import {
+  MultichainAssetsRatesController,
+  MultichainAssetsRatesControllerMessenger,
+} from '@metamask/assets-controllers';
 
 describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
@@ -18,6 +23,7 @@ describe('initModularizedControllers', () => {
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
         CronjobController: cronjobControllerInit,
+        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
       },
       persistedState: {},
       baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -38,6 +44,10 @@ describe('initModularizedControllers', () => {
           CronjobController: createMockControllerInitFunction<
             CronjobController,
             BaseRestrictedControllerMessenger
+          >(),
+          MultichainAssetsRatesController: createMockControllerInitFunction<
+            MultichainAssetsRatesController,
+            MultichainAssetsRatesControllerMessenger
           >(),
         },
         persistedState: {},
@@ -62,6 +72,10 @@ describe('initModularizedControllers', () => {
           CronjobController: createMockControllerInitFunction<
             CronjobController,
             BaseRestrictedControllerMessenger
+          >(),
+          MultichainAssetsRatesController: createMockControllerInitFunction<
+            MultichainAssetsRatesController,
+            MultichainAssetsRatesControllerMessenger
           >(),
         },
         persistedState: {},
