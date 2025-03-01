@@ -46,13 +46,9 @@ export const currencyRateControllerInit: ControllerInitFunction<
 
   // Normalize the currency rates to ensure conversionRate is never null
   const normalizedCurrencyRates: Record<string, CurrencyRateEntry> = {};
-  const currencyRates = persistedCurrencyRateState.currencyRates ?? {
-    ETH: {
-      conversionRate: 0,
-      conversionDate: 0,
-      usdConversionRate: null,
-    },
-  };
+  const currencyRates =
+    persistedCurrencyRateState.currencyRates ??
+    defaultCurrencyRateState.currencyRates;
 
   // Normalize each currency rate to ensure conversionRate is never null
   Object.entries(currencyRates).forEach(([key, value]) => {
