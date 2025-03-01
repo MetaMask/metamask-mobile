@@ -59,9 +59,10 @@ export class EngineService {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
         hasState: Object.keys(state).length > 0,
       });
-
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      Engine.init(state, null, metaMetricsId);
+      setTimeout(() => {
+        Engine.init(state, null, metaMetricsId);
+      }, 5000);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.updateControllers(Engine as unknown as TypedEngine);
     } catch (error) {
