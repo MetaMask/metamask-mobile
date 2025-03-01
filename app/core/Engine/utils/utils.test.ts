@@ -17,9 +17,12 @@ import {
   MultichainAssetsControllerMessenger,
   MultichainAssetsRatesController,
   MultichainAssetsRatesControllerMessenger,
+  MultichainBalancesController,
+  MultichainBalancesControllerMessenger,
 } from '@metamask/assets-controllers';
 import { multichainAssetsControllerInit } from '../controllers/MultichainAssetsController';
 import { currencyRateControllerInit } from '../controllers/CurrencyRateController';
+import { multichainBalancesControllerInit } from '../controllers/MultichainBalancesController';
 
 describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
@@ -31,6 +34,7 @@ describe('initModularizedControllers', () => {
         CronjobController: cronjobControllerInit,
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
+        MultichainBalancesController: multichainBalancesControllerInit,
       },
       persistedState: {},
       baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -63,6 +67,10 @@ describe('initModularizedControllers', () => {
           MultichainAssetsRatesController: createMockControllerInitFunction<
             MultichainAssetsRatesController,
             MultichainAssetsRatesControllerMessenger
+          >(),
+          MultichainBalancesController: createMockControllerInitFunction<
+            MultichainBalancesController,
+            MultichainBalancesControllerMessenger
           >(),
         },
         persistedState: {},
@@ -99,6 +107,10 @@ describe('initModularizedControllers', () => {
           MultichainAssetsRatesController: createMockControllerInitFunction<
             MultichainAssetsRatesController,
             MultichainAssetsRatesControllerMessenger
+          >(),
+          MultichainBalancesController: createMockControllerInitFunction<
+            MultichainBalancesController,
+            MultichainBalancesControllerMessenger
           >(),
         },
         persistedState: {},
