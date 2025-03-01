@@ -224,7 +224,7 @@ import {
   SnapControllerHandleRequestAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
-import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
+import { multichainNetworkControllerInit } from './controllers/MultichainNetworkController';
 import { currencyRateControllerInit } from './controllers/CurrencyRateController';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -352,21 +352,6 @@ export class Engine {
 
     networkController.initializeProvider();
 
-    const multichainNetworkControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'MultichainNetworkController',
-        allowedActions: [
-          'NetworkController:setActiveNetwork',
-          'NetworkController:getState',
-        ],
-        allowedEvents: ['AccountsController:selectedAccountChange'],
-      });
-
-    const multichainNetworkController = createMultichainNetworkController({
-      messenger: multichainNetworkControllerMessenger,
-      initialState: initialState.MultichainNetworkController,
-    });
-
     const assetsContractController = new AssetsContractController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'AssetsContractController',
@@ -388,6 +373,7 @@ export class Engine {
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
         CurrencyRateController: currencyRateControllerInit,
+        MultichainNetworkController: multichainNetworkControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         CronjobController: cronjobControllerInit,
         ///: END:ONLY_INCLUDE_IF
@@ -402,6 +388,8 @@ export class Engine {
       baseControllerMessenger: this.controllerMessenger,
     });
 
+    const multichainNetworkController =
+      controllersByName.MultichainNetworkController;
     const accountsController = controllersByName.AccountsController;
     const currencyRateController = controllersByName.CurrencyRateController;
 

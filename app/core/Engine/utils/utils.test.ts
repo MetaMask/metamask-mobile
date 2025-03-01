@@ -23,6 +23,11 @@ import {
 import { multichainAssetsControllerInit } from '../controllers/MultichainAssetsController';
 import { currencyRateControllerInit } from '../controllers/CurrencyRateController';
 import { multichainBalancesControllerInit } from '../controllers/MultichainBalancesController';
+import { multichainNetworkControllerInit } from '../controllers/MultichainNetworkController';
+import {
+  MultichainNetworkController,
+  MultichainNetworkControllerMessenger,
+} from '@metamask/multichain-network-controller';
 
 describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
@@ -30,6 +35,7 @@ describe('initModularizedControllers', () => {
       existingControllersByName: {},
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        MultichainNetworkController: multichainNetworkControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         CronjobController: cronjobControllerInit,
         MultichainAssetsController: multichainAssetsControllerInit,
@@ -51,6 +57,10 @@ describe('initModularizedControllers', () => {
           AccountsController: createMockControllerInitFunction<
             AccountsController,
             AccountsControllerMessenger
+          >(),
+          MultichainNetworkController: createMockControllerInitFunction<
+            MultichainNetworkController,
+            MultichainNetworkControllerMessenger
           >(),
           CurrencyRateController: createMockControllerInitFunction<
             CurrencyRateController,
@@ -91,6 +101,10 @@ describe('initModularizedControllers', () => {
           AccountsController: createMockControllerInitFunction<
             AccountsController,
             AccountsControllerMessenger
+          >(),
+          MultichainNetworkController: createMockControllerInitFunction<
+            MultichainNetworkController,
+            MultichainNetworkControllerMessenger
           >(),
           CurrencyRateController: createMockControllerInitFunction<
             CurrencyRateController,

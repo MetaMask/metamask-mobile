@@ -5,6 +5,7 @@ import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets
 import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger';
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger';
+import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -15,6 +16,9 @@ export const CONTROLLER_MESSENGERS: ControllerMessengerByControllerName = {
   },
   CurrencyRateController: {
     getMessenger: getCurrencyRateControllerMessenger,
+  },
+  MultichainNetworkController: {
+    getMessenger: getMultichainNetworkControllerMessenger,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   CronjobController: {
