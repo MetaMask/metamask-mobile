@@ -523,7 +523,8 @@ export type ControllersToInitialize =
   | 'MultichainBalancesController'
   ///: END:ONLY_INCLUDE_IF
   | 'CurrencyRateController'
-  | 'AccountsController';
+  | 'AccountsController'
+  | 'MultichainNetworkController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
