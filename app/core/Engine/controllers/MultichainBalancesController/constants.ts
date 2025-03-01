@@ -1,5 +1,6 @@
-import { MultichainBalancesControllerStateChange as MultichainBalancesControllerStateChangeEventType } from '@metamask/assets-controllers';
+import { MultichainBalancesControllerState } from '@metamask/assets-controllers';
 
-// Events
-export const MultichainBalancesControllerStateChangeEvent: MultichainBalancesControllerStateChangeEventType['type'] =
-  'MultichainBalancesController:stateChange';
+export const defaultMultichainBalancesControllerState: MultichainBalancesControllerState =
+  {
+    balances: {},
+  };
