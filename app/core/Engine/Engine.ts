@@ -189,7 +189,7 @@ import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermis
 import { createMultichainBalancesController } from './controllers/MultichainBalancesController/utils';
 import { createMultichainRatesController } from './controllers/RatesController/utils';
 import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
-import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
+import { multichainAssetsControllerInit } from './controllers/MultichainAssetsController';
 import { multichainAssetsRatesControllerInit } from './controllers/MultichainAssetsRatesController';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -393,6 +393,7 @@ export class Engine {
         CronjobController: cronjobControllerInit,
         ///: END:ONLY_INCLUDE_IF
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         ///: END:ONLY_INCLUDE_IF
       },
@@ -408,33 +409,13 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainAssetsController =
+      controllersByName.MultichainAssetsController;
     const multichainAssetsRatesController =
       controllersByName.MultichainAssetsRatesController;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainAssetsControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'MultichainAssetsController',
-        allowedEvents: [
-          'AccountsController:accountAdded',
-          'AccountsController:accountRemoved',
-          'AccountsController:accountAssetListUpdated',
-          'AccountsController:accountBalancesUpdated',
-        ],
-        allowedActions: [
-          'PermissionController:getPermissions',
-          'AccountsController:listMultichainAccounts',
-          'SnapController:getAll',
-          SnapControllerHandleRequestAction,
-        ],
-      });
-
-    const multichainAssetsController = createMultichainAssetsController({
-      messenger: multichainAssetsControllerMessenger,
-      initialState: initialState.MultichainAssetsController,
-    });
-
     const multichainBalancesControllerMessenger: MultichainBalancesControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'MultichainBalancesController',
