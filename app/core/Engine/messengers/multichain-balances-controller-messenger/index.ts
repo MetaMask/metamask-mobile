@@ -2,7 +2,7 @@ import { BaseControllerMessenger } from '../../types';
 import { MultichainBalancesControllerMessenger } from '@metamask/assets-controllers';
 
 // Export the types
-// export * from './types';
+export * from './types';
 
 /**
  * Get the MultichainBalancesControllerMessenger for the MultichainBalancesController.

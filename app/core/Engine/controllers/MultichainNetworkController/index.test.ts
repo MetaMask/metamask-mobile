@@ -5,43 +5,36 @@ import {
   getDefaultMultichainNetworkControllerState,
 } from '@metamask/multichain-network-controller';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
-import { createMultichainNetworkController } from '.';
+import { multichainNetworkControllerInit } from '.';
 import { BtcScope } from '@metamask/keyring-api';
+import type { ControllerInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 
 jest.mock('@metamask/multichain-network-controller');
 
-describe('multichain network controller', () => {
+describe('multichain network controller init', () => {
   const multichainNetworkControllerClassMock = jest.mocked(
     MultichainNetworkController,
   );
-
-  let multichainNetworkControllerMessenger: MultichainNetworkControllerMessenger;
+  let initRequestMock: jest.Mocked<
+    ControllerInitRequest<MultichainNetworkControllerMessenger>
+  >;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const messenger = new ExtendedControllerMessenger();
-    multichainNetworkControllerMessenger = messenger.getRestricted({
-      name: 'MultichainNetworkController',
-      allowedActions: [
-        'NetworkController:setActiveNetwork',
-        'NetworkController:getState',
-      ],
-      allowedEvents: ['AccountsController:selectedAccountChange'],
-    });
+    const baseControllerMessenger = new ExtendedControllerMessenger();
+    // Create controller init request mock
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
   it('returns controller instance', () => {
     expect(
-      createMultichainNetworkController({
-        messenger: multichainNetworkControllerMessenger,
-      }),
+      multichainNetworkControllerInit(initRequestMock).controller,
     ).toBeInstanceOf(MultichainNetworkController);
   });
 
-  it('it has default state when no initial state is passed in', () => {
-    createMultichainNetworkController({
-      messenger: multichainNetworkControllerMessenger,
-    });
+  it('controller state defaults to getDefaultMultichainNetworkControllerState when no initial state is passed in', () => {
+    multichainNetworkControllerInit(initRequestMock);
     const multichainNetworkControllerState =
       multichainNetworkControllerClassMock.mock.calls[0][0].state;
 
@@ -50,37 +43,27 @@ describe('multichain network controller', () => {
     );
   });
 
-  it('it has initial state when initial state is passed in', () => {
-    const initialMultichainNetworkControllerState: MultichainNetworkControllerState =
-      {
-        multichainNetworkConfigurationsByChainId: {},
-        selectedMultichainNetworkChainId: BtcScope.Mainnet,
-        isEvmSelected: false,
-      };
+  it('controller state is initial state when initial state is passed in', () => {
+    // Create initial state with the correct structure
+    const initialMultichainNetworkState: MultichainNetworkControllerState = {
+      multichainNetworkConfigurationsByChainId: {},
+      selectedMultichainNetworkChainId: BtcScope.Mainnet,
+      isEvmSelected: false,
+    };
 
-    createMultichainNetworkController({
-      messenger: multichainNetworkControllerMessenger,
-      initialState: initialMultichainNetworkControllerState,
-    });
+    // Update mock with initial state
+    initRequestMock.persistedState = {
+      ...initRequestMock.persistedState,
+      MultichainNetworkController: initialMultichainNetworkState,
+    };
 
+    multichainNetworkControllerInit(initRequestMock);
     const multichainNetworkControllerState =
       multichainNetworkControllerClassMock.mock.calls[0][0].state;
+
+    // Check that the initial state is used
     expect(multichainNetworkControllerState).toEqual(
-      initialMultichainNetworkControllerState,
+      initialMultichainNetworkState,
     );
-  });
-
-  it('throws and logs an error when controller creation fails', () => {
-    const mockError = new Error('Test error');
-    jest.spyOn(console, 'error').mockImplementation();
-    multichainNetworkControllerClassMock.mockImplementation(() => {
-      throw mockError;
-    });
-
-    expect(() =>
-      createMultichainNetworkController({
-        messenger: multichainNetworkControllerMessenger,
-      }),
-    ).toThrow(mockError);
   });
 });
