@@ -167,13 +167,8 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     Number(value) > TOKEN_VALUE_UNLIMITED_THRESHOLD);
 
   // Avoid empty button pill container
-  const showValueButtonPill = isPendingTokenDetails
-    || showUnlimitedValue
-    || (tokenValue !== null || tokenId);
-
-  // Avoid empty button pill container
   const showValueButtonPill = Boolean(isPendingTokenDetails
-    || shouldShowUnlimitedValue
+    || showUnlimitedValue
     || (tokenValue !== null || tokenId));
 
   function handlePressTokenValue() {
