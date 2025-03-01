@@ -2,6 +2,7 @@ import { getAccountsControllerMessenger } from './accounts-controller-messenger'
 import type { ControllerMessengerByControllerName } from '../types';
 import { getCronJobControllerMessenger } from './cron-job-controller-messenger';
 import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets-rates-controller-messenger';
+import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -16,6 +17,9 @@ export const CONTROLLER_MESSENGERS: ControllerMessengerByControllerName = {
   },
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainAssetsController: {
+    getMessenger: getMultichainAssetsControllerMessenger,
+  },
   MultichainAssetsRatesController: {
     getMessenger: getMultichainAssetsRatesControllerMessenger,
   },

@@ -1,41 +1,34 @@
 import {
   MultichainAssetsController,
-  MultichainAssetsControllerMessenger,
+  type MultichainAssetsControllerMessenger,
   MultichainAssetsControllerState,
 } from '@metamask/assets-controllers';
-import Logger from '../../../../util/Logger';
+import type { ControllerInitFunction } from '../../types';
+import { defaultMultichainAssetsControllerState } from './constants';
 
-const defaultMultichainAssetsControllerState: MultichainAssetsControllerState =
-  {
-    accountsAssets: {},
-    assetsMetadata: {},
-  };
+// Export constants
+export * from './constants';
 
 /**
- * Creates instance of MultichainAssetsController
+ * Initialize the MultichainAssetsController.
  *
- * @param options.messenger - Controller messenger instance
- * @param options.initialState - Initial state of MultichainAssetsController
- * @returns - MultichainAssetsController instance
+ * @param request - The request object.
+ * @returns The MultichainAssetsController.
  */
-export const createMultichainAssetsController = ({
-  messenger,
-  initialState,
-}: {
-  messenger: MultichainAssetsControllerMessenger;
-  initialState?: MultichainAssetsControllerState;
-}): MultichainAssetsController => {
-  try {
-    const multichainAssetsController = new MultichainAssetsController({
-      messenger,
-      state: initialState ?? defaultMultichainAssetsControllerState,
-    });
-    return multichainAssetsController;
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to initialize MultichainAssetsController',
-    );
-    throw error;
-  }
+export const multichainAssetsControllerInit: ControllerInitFunction<
+  MultichainAssetsController,
+  MultichainAssetsControllerMessenger
+> = (request) => {
+  const { controllerMessenger, persistedState } = request;
+
+  const multichainAssetsControllerState =
+    (persistedState.MultichainAssetsController ??
+      defaultMultichainAssetsControllerState) as MultichainAssetsControllerState;
+
+  const controller = new MultichainAssetsController({
+    messenger: controllerMessenger,
+    state: multichainAssetsControllerState,
+  });
+
+  return { controller };
 };
