@@ -12,12 +12,14 @@ import { CronjobController } from '@metamask/snaps-controllers';
 import { BaseRestrictedControllerMessenger } from '../types';
 import { multichainAssetsRatesControllerInit } from '../controllers/MultichainAssetsRatesController';
 import {
+  CurrencyRateController,
   MultichainAssetsController,
   MultichainAssetsControllerMessenger,
   MultichainAssetsRatesController,
   MultichainAssetsRatesControllerMessenger,
 } from '@metamask/assets-controllers';
 import { multichainAssetsControllerInit } from '../controllers/MultichainAssetsController';
+import { currencyRateControllerInit } from '../controllers/CurrencyRateController';
 
 describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
@@ -25,6 +27,7 @@ describe('initModularizedControllers', () => {
       existingControllersByName: {},
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        CurrencyRateController: currencyRateControllerInit,
         CronjobController: cronjobControllerInit,
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
@@ -44,6 +47,10 @@ describe('initModularizedControllers', () => {
           AccountsController: createMockControllerInitFunction<
             AccountsController,
             AccountsControllerMessenger
+          >(),
+          CurrencyRateController: createMockControllerInitFunction<
+            CurrencyRateController,
+            BaseRestrictedControllerMessenger
           >(),
           CronjobController: createMockControllerInitFunction<
             CronjobController,
@@ -76,6 +83,10 @@ describe('initModularizedControllers', () => {
           AccountsController: createMockControllerInitFunction<
             AccountsController,
             AccountsControllerMessenger
+          >(),
+          CurrencyRateController: createMockControllerInitFunction<
+            CurrencyRateController,
+            BaseRestrictedControllerMessenger
           >(),
           CronjobController: createMockControllerInitFunction<
             CronjobController,

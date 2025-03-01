@@ -521,6 +521,7 @@ export type ControllersToInitialize =
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
   ///: END:ONLY_INCLUDE_IF
+  | 'CurrencyRateController'
   | 'AccountsController';
 
 /**
