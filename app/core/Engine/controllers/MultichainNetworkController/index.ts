@@ -3,33 +3,27 @@ import {
   MultichainNetworkControllerMessenger,
   MultichainNetworkControllerState,
 } from '@metamask/multichain-network-controller';
-import Logger from '../../../../util/Logger';
+import { ControllerInitFunction } from '../../types';
 
 /**
- * Creates instance of MultichainNetworkController
+ * Initialize the MultichainNetworkController.
  *
- * @param options.messenger - Controller messenger instance
- * @param options.initialState - Initial state of MultichainNetworkController
- * @returns - MultichainNetworkController instance
+ * @param request - The request object.
+ * @returns The MultichainNetworkController.
  */
-export const createMultichainNetworkController = ({
-  messenger,
-  initialState,
-}: {
-  messenger: MultichainNetworkControllerMessenger;
-  initialState?: MultichainNetworkControllerState;
-}): MultichainNetworkController => {
-  try {
-    const multichainNetworkController = new MultichainNetworkController({
-      messenger,
-      state: initialState,
-    });
-    return multichainNetworkController;
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to initialize MultichainNetworkController',
-    );
-    throw error;
-  }
+export const multichainNetworkControllerInit: ControllerInitFunction<
+  MultichainNetworkController,
+  MultichainNetworkControllerMessenger
+> = (request) => {
+  const { controllerMessenger, persistedState } = request;
+
+  const multichainNetworkControllerState =
+    persistedState.MultichainNetworkController as MultichainNetworkControllerState;
+
+  const controller = new MultichainNetworkController({
+    messenger: controllerMessenger,
+    state: multichainNetworkControllerState,
+  });
+
+  return { controller };
 };
