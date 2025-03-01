@@ -190,7 +190,7 @@ import { createMultichainBalancesController } from './controllers/MultichainBala
 import { createMultichainRatesController } from './controllers/RatesController/utils';
 import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
-import { createMultichainAssetsRatesController } from './controllers/MultichainAssetsRatesController';
+import { multichainAssetsRatesControllerInit } from './controllers/MultichainAssetsRatesController';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
@@ -392,6 +392,9 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         CronjobController: cronjobControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
+        ///: END:ONLY_INCLUDE_IF
       },
       persistedState: initialState as EngineState,
       existingControllersByName: {},
@@ -402,6 +405,11 @@ export class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const cronjobController = controllersByName.CronjobController;
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainAssetsRatesController =
+      controllersByName.MultichainAssetsRatesController;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -566,33 +574,6 @@ export class Engine {
         ),
       },
     });
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainAssetsRatesControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'MultichainAssetsRatesController',
-        allowedEvents: [
-          'AccountsController:accountAdded',
-          'KeyringController:lock',
-          'KeyringController:unlock',
-          'CurrencyRateController:stateChange',
-          'MultichainAssetsController:stateChange',
-        ],
-        allowedActions: [
-          'AccountsController:listMultichainAccounts',
-          SnapControllerHandleRequestAction,
-          'CurrencyRateController:getState',
-          'MultichainAssetsController:getState',
-          'CurrencyRateController:getState',
-        ],
-      });
-
-    const multichainAssetsRatesController =
-      createMultichainAssetsRatesController({
-        messenger: multichainAssetsRatesControllerMessenger,
-        initialState: initialState.MultichainAssetsRatesController,
-      });
-    ///: END:ONLY_INCLUDE_IF
 
     const gasFeeController = new GasFeeController({
       messenger: this.controllerMessenger.getRestricted({
