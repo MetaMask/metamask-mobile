@@ -4,6 +4,7 @@ import { getCronJobControllerMessenger } from './cron-job-controller-messenger';
 import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets-rates-controller-messenger';
 import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger';
+import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -26,6 +27,9 @@ export const CONTROLLER_MESSENGERS: ControllerMessengerByControllerName = {
   },
   MultichainAssetsRatesController: {
     getMessenger: getMultichainAssetsRatesControllerMessenger,
+  },
+  MultichainBalancesController: {
+    getMessenger: getMultichainBalancesControllerMessenger,
   },
   ///: END:ONLY_INCLUDE_IF
 } as const;

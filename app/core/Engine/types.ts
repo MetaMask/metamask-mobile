@@ -520,6 +520,7 @@ export type ControllersToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
+  | 'MultichainBalancesController'
   ///: END:ONLY_INCLUDE_IF
   | 'CurrencyRateController'
   | 'AccountsController';
