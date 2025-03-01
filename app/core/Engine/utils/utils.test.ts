@@ -12,9 +12,12 @@ import { CronjobController } from '@metamask/snaps-controllers';
 import { BaseRestrictedControllerMessenger } from '../types';
 import { multichainAssetsRatesControllerInit } from '../controllers/MultichainAssetsRatesController';
 import {
+  MultichainAssetsController,
+  MultichainAssetsControllerMessenger,
   MultichainAssetsRatesController,
   MultichainAssetsRatesControllerMessenger,
 } from '@metamask/assets-controllers';
+import { multichainAssetsControllerInit } from '../controllers/MultichainAssetsController';
 
 describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
@@ -23,6 +26,7 @@ describe('initModularizedControllers', () => {
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
         CronjobController: cronjobControllerInit,
+        MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
       },
       persistedState: {},
@@ -44,6 +48,10 @@ describe('initModularizedControllers', () => {
           CronjobController: createMockControllerInitFunction<
             CronjobController,
             BaseRestrictedControllerMessenger
+          >(),
+          MultichainAssetsController: createMockControllerInitFunction<
+            MultichainAssetsController,
+            MultichainAssetsControllerMessenger
           >(),
           MultichainAssetsRatesController: createMockControllerInitFunction<
             MultichainAssetsRatesController,
@@ -72,6 +80,10 @@ describe('initModularizedControllers', () => {
           CronjobController: createMockControllerInitFunction<
             CronjobController,
             BaseRestrictedControllerMessenger
+          >(),
+          MultichainAssetsController: createMockControllerInitFunction<
+            MultichainAssetsController,
+            MultichainAssetsControllerMessenger
           >(),
           MultichainAssetsRatesController: createMockControllerInitFunction<
             MultichainAssetsRatesController,

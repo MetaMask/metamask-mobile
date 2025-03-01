@@ -518,6 +518,7 @@ export type ControllersToInitialize =
   | 'CronjobController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountsController';
