@@ -4,9 +4,6 @@ import {
   View,
 } from 'react-native';
 import ScreenView from '../../Base/ScreenView';
-import { useTheme } from '../../../util/theme';
-import Text from '../../../component-library/components/Texts/Text';
-import { ThemeColors } from '@metamask/design-tokens';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -17,13 +14,11 @@ const createStyles = (colors: ThemeColors) =>
   });
 
 const BridgeView = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   return (
     <ScreenView>
       <View style={styles.content}>
-        <Text>Bridge</Text>
       </View>
     </ScreenView>
   );
