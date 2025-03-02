@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import ScreenView from '../../Base/ScreenView';
 
-const createStyles = (colors: ThemeColors) =>
+const createStyles = () =>
   StyleSheet.create({
     content: {
       flexGrow: 1,
