@@ -5,11 +5,12 @@ import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selector
 import { strings } from '../../../../../../../locales/i18n';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useStyles } from '../../../../../../component-library/hooks';
-import Button, {
+import {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
@@ -25,7 +26,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMeta
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
 
-const Footer = () => {
+export const Footer = () => {
   const { fieldAlerts, hasDangerAlerts } = useAlerts();
   const { hasUnconfirmedDangerAlerts } = useAlertsConfirmed(fieldAlerts);
   const { onConfirm, onReject } = useConfirmActions();
@@ -96,6 +97,26 @@ const Footer = () => {
     }
   }, [hasUnconfirmedDangerAlerts, hasDangerAlerts]);
 
+  const buttons = [
+    {
+      variant: ButtonVariants.Secondary,
+      label: strings('confirm.reject'),
+      size: ButtonSize.Lg,
+      onPress: onReject,
+      testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
+    },
+    {
+      variant: ButtonVariants.Primary,
+      isDanger: securityAlertResponse?.result_type === ResultType.Malicious || hasDangerAlerts,
+      isDisabled: needsCameraPermission,
+      label: confirmButtonLabel,
+      size: ButtonSize.Lg,
+      onPress: onSignConfirm,
+      testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+      startIconName: getStartIcon,
+    },
+  ];
+
   return (
     <>
       {confirmAlertModalVisible && (
@@ -104,30 +125,11 @@ const Footer = () => {
           onConfirm={onHandleConfirm}
         />
       )}
-      <View style={styles.buttonsContainer}>
-        <Button
-          onPress={onReject}
-          label={strings('confirm.reject')}
-          style={styles.rejectButton}
-          size={ButtonSize.Lg}
-          testID={ConfirmationFooterSelectorIDs.CANCEL_BUTTON}
-          variant={ButtonVariants.Secondary}
-          width={ButtonWidthTypes.Full}
-        />
-        <View style={styles.buttonDivider} />
-        <Button
-          onPress={onSignConfirm}
-          label={confirmButtonLabel}
-          style={styles.confirmButton}
-          size={ButtonSize.Lg}
-          testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-          isDanger={securityAlertResponse?.result_type === ResultType.Malicious || hasDangerAlerts}
-          startIconName={getStartIcon}
-          disabled={confirmDisabled}
-        />
-      </View>
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        buttonPropsArray={buttons}
+        style={styles.base}
+      />
       {isStakingConfirmation && (
         <View style={styles.textContainer}>
           <Text variant={TextVariant.BodySM}>
@@ -160,5 +162,3 @@ const Footer = () => {
     </>
   );
 };
-
-export default Footer;

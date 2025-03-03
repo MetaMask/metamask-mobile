@@ -9,7 +9,7 @@ import { personalSignatureConfirmationState, stakingDepositConfirmationState } f
 import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareContext';
 // eslint-disable-next-line import/no-namespace
 import * as LedgerContext from '../../../context/LedgerContext/LedgerContext';
-import Footer from './index';
+import { Footer } from './Footer';
 import { useAlerts } from '../../../AlertSystem/context';
 import { useAlertsConfirmed } from '../../../../../hooks/useAlertsConfirmed';
 import { Severity } from '../../../types/alerts';
