@@ -8,12 +8,9 @@ import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { siweSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 
-jest.mock('@metamask/controller-utils', () => ({
-  isValidSIWEOrigin: jest.fn(),
-}));
-
 jest.mock('../../useApprovalRequest');
 jest.mock('../../useSignatureRequest');
+jest.mock('@metamask/controller-utils');
 jest.mock('../../../utils/signature');
 
 describe('useDomainMismatchAlerts', () => {
@@ -29,7 +26,7 @@ describe('useDomainMismatchAlerts', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useApprovalRequest as jest.Mock).mockReturnValue({ approvalRequest: mockApprovalRequest });
+    (useApprovalRequest as jest.Mock).mockResolvedValue({ approvalRequest: mockApprovalRequest });
     (useSignatureRequest as jest.Mock).mockReturnValue(mockSignatureRequest);
   });
 

@@ -26,8 +26,8 @@ export default function useDomainMismatchAlerts(): Alert[] {
       {
         field: RowAlertKey.RequestFrom,
         key: RowAlertKey.RequestFrom,
-        message: strings('alert_system.domain_mismatch_alert.message'),
-        title: strings('alert_system.domain_mismatch_alert.title'),
+        message: strings('alert_system.domain_mismatch.message'),
+        title: strings('alert_system.domain_mismatch.title'),
         severity: Severity.Danger,
       },
     ] as Alert[];
