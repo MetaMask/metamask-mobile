@@ -40,6 +40,24 @@ export const mockedEngine = {
         }),
       },
     },
+    RatesController: {
+      fetchMultiExchangeRate: jest.fn().mockResolvedValue({
+        ETH: {
+          USD: 2000,
+        },
+      }),
+      start: jest.fn(),
+      stop: jest.fn(),
+      state: {
+        rates: {
+          ETH: {
+            conversionRate: 2000,
+            usdConversionRate: 2000,
+            conversionDate: Date.now(),
+          },
+        },
+      },
+    },
   },
   hasFunds: jest.fn(),
 };
