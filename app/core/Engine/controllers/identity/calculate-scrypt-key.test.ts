@@ -3,6 +3,13 @@ import storageWrapper from '../../../../store/storage-wrapper';
 import { scrypt } from 'react-native-fast-crypto';
 import Logger from '../../../../util/Logger';
 
+// we are using this node import for testing purposes
+// eslint-disable-next-line import/no-nodejs-modules
+import mockCrypto from 'crypto';
+jest.mock('react-native-quick-crypto', () => ({
+  createHash: (algorithm: string) => mockCrypto.createHash(algorithm),
+}));
+
 jest.mock('../../../../store/storage-wrapper');
 jest.mock('react-native-fast-crypto', () => ({
   scrypt: jest.fn(),

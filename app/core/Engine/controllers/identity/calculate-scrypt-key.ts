@@ -1,5 +1,4 @@
-import { sha256 } from '@noble/hashes/sha256';
-import { bytesToHex } from '@noble/hashes/utils';
+import Crypto from 'react-native-quick-crypto';
 import { scrypt } from 'react-native-fast-crypto';
 import storageWrapper from '../../../../store/storage-wrapper';
 import { SCRYPT_COMPUTED_KEY } from '../../../../constants/storage';
@@ -18,8 +17,7 @@ export const generateKeyHash = (
     ...salt,
     ...new Uint8Array([N, r, p, size]),
   ]);
-  const hash = sha256(combined);
-  return bytesToHex(hash);
+  return Crypto.createHash('sha256').update(combined).digest('hex');
 };
 
 export async function calculateScryptKey(
