@@ -27,6 +27,7 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
   error,
   form,
   disabled,
+  style,
   ...props
 }) => {
   const { handleInputChange, getValue } = useSnapInterfaceContext();
@@ -47,11 +48,12 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
   };
 
   return (
-    <Box flexDirection={FlexDirection.Column}>
+    <Box style={style} flexDirection={FlexDirection.Column}>
       {fieldLabel && (
         <Label variant={TextVariant.BodyMDMedium}>{fieldLabel}</Label>
       )}
       <Checkbox
+        {...props}
         onPress={handleChange}
         isChecked={value}
         label={label}
@@ -59,7 +61,6 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
           borderColor: BorderColor.borderMuted,
         }}
         isDisabled={disabled}
-        {...props}
       />
       {error && (
         // eslint-disable-next-line react-native/no-inline-styles

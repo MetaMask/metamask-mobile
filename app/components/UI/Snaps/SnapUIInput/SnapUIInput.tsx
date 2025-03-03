@@ -23,6 +23,7 @@ export const SnapUIInput = ({
   form,
   label,
   error,
+  style,
   ...props
 }: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =
@@ -59,7 +60,7 @@ export const SnapUIInput = ({
   const handleBlur = () => setCurrentFocusedInput(null);
 
   return (
-    <Box>
+    <Box style={style}>
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <TextField
         {...props}

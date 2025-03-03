@@ -66,6 +66,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   label,
   error,
   disabled,
+  style,
 }) => {
   const { styles } = useStyles(stylesheet, {});
   const { handleInputChange, getValue } = useSnapInterfaceContext();
@@ -101,7 +102,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
 
   return (
     <>
-      <Box flexDirection={FlexDirection.Column}>
+      <Box style={style} flexDirection={FlexDirection.Column}>
         {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
         <ButtonBase
           width={ButtonWidthTypes.Full}
