@@ -1165,7 +1165,6 @@ const mapStateToProps = (state) => ({
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
-  ticker: selectTicker(state),
   wizard: state.wizard,
   ticker: selectEvmTicker(state),
   tokens: selectTokens(state),
