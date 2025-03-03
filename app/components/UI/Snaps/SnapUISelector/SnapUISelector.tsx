@@ -119,20 +119,26 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
       </Box>
       <ApprovalModal isVisible={isModalOpen} onCancel={handleModalClose}>
         <View style={styles.modal}>
-          <BottomSheetHeader onBack={handleModalClose}>{title}</BottomSheetHeader>
+          <BottomSheetHeader onBack={handleModalClose}>
+            {title}
+          </BottomSheetHeader>
           <ScrollView>
-          <Box flexDirection={FlexDirection.Column} gap={8} style={styles.content}>
-            {optionComponents.map((component, index) => (
-              <SelectorItem
-                key={options[index].value}
-                value={options[index].value}
-                disabled={options[index]?.disabled}
-                onSelect={handleSelect}
-              >
-                {component}
-              </SelectorItem>
-            ))}
-          </Box>
+            <Box
+              flexDirection={FlexDirection.Column}
+              gap={8}
+              style={styles.content}
+            >
+              {optionComponents.map((component, index) => (
+                <SelectorItem
+                  key={options[index].value}
+                  value={options[index].value}
+                  disabled={options[index]?.disabled}
+                  onSelect={handleSelect}
+                >
+                  {component}
+                </SelectorItem>
+              ))}
+            </Box>
           </ScrollView>
         </View>
       </ApprovalModal>

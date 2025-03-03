@@ -52,7 +52,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     helpText: {
       marginBottom: 4,
-    }
+    },
   });
 };
 
