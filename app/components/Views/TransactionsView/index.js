@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, View, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -27,13 +27,17 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAllTokensFlat, selectTokens } from '../../../selectors/tokensController';
+import {
+  selectAllTokensFlat,
+  selectTokens,
+} from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
 import { selectNonReplacedTransactions } from '../../../selectors/transactionController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -50,6 +54,7 @@ const TransactionsView = ({
   transactions,
   chainId,
   tokens,
+  tokenNetworkFilter,
 }) => {
   const [allTransactions, setAllTransactions] = useState([]);
   const [submittedTxs, setSubmittedTxs] = useState([]);
@@ -62,6 +67,7 @@ const TransactionsView = ({
 
   const filterTransactions = useCallback(
     (networkId) => {
+      console.log('filterTransactions ..........', Date.now());
       if (networkId === NETWORK_ID_LOADING) return;
 
       let accountAddedTimeInsertPointFound = false;
@@ -83,6 +89,7 @@ const TransactionsView = ({
           selectedAddress,
           networkId,
           chainId,
+          tokenNetworkFilter,
         );
 
         if (!filter) return false;
@@ -143,7 +150,14 @@ const TransactionsView = ({
       setConfirmedTxs(confirmedTxs);
       setLoading(false);
     },
-    [transactions, selectedInternalAccount, selectedAddress, tokens, chainId],
+    [
+      transactions,
+      selectedInternalAccount,
+      selectedAddress,
+      tokens,
+      chainId,
+      tokenNetworkFilter,
+    ],
   );
 
   useEffect(() => {
@@ -210,6 +224,10 @@ TransactionsView.propTypes = {
    * Current chainId
    */
   chainId: PropTypes.string,
+  /**
+   * Array of network tokens filter
+   */
+  tokenNetworkFilter: PropTypes.array,
 };
 
 const mapStateToProps = (state) => {
@@ -233,6 +251,7 @@ const mapStateToProps = (state) => {
     ].sort((a, b) => b.time - a.time),
     networkType: selectProviderType(state),
     chainId,
+    tokenNetworkFilter: selectTokenNetworkFilter(state),
   };
 };
 

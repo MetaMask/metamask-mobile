@@ -17,8 +17,13 @@ export const selectTransactions = createDeepEqualSelector(
 
 export const selectNonReplacedTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
-  (transactions) =>
-    transactions.filter((tx) => !(tx.replacedBy && tx.replacedById && tx.hash)),
+  (transactions) => {
+    console.log('selectNonReplacedTransactions ..........', Date.now());
+    return transactions.filter(
+      ({ replacedBy, replacedById, hash }) =>
+        !(replacedBy && replacedById && hash),
+    );
+  },
 );
 
 export const selectSwapsTransactions = createSelector(

@@ -70,6 +70,7 @@ export const filterByAddressAndNetwork = (
   selectedAddress: string,
   networkId: string,
   chainId: string,
+  tokenNetworkFilter: { [key: string]: boolean }[],
 ): boolean => {
   const {
     txParams: { from, to },
@@ -79,7 +80,9 @@ export const filterByAddressAndNetwork = (
 
   if (
     isFromOrToSelectedAddress(from, to, selectedAddress) &&
-    isFromCurrentChain(tx, networkId, chainId) &&
+    (Object.keys(tokenNetworkFilter).length === 1
+      ? isFromCurrentChain(tx, networkId, chainId)
+      : true) &&
     tx.status !== TX_UNAPPROVED
   ) {
     return isTransfer

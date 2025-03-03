@@ -10,58 +10,72 @@ import {
 } from '@metamask/smart-transactions-controller/dist/types';
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
+import { createSelectorCreator, defaultMemoize } from 'reselect';
+import isEqual from 'lodash/isEqual';
 
-export const selectSmartTransactionsEnabled = (state: RootState) => {
-  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
-  const addrIshardwareAccount = selectedAddress
-    ? isHardwareAccount(selectedAddress)
-    : false;
-  const chainId = selectEvmChainId(state);
-  const providerConfigRpcUrl = selectProviderConfig(state).rpcUrl;
+// Create a deep equal selector creator that uses Lodash's isEqual for result equality.
+const createDeepEqualSelector = createSelectorCreator(defaultMemoize, isEqual);
 
-  const isAllowedNetwork =
-    getAllowedSmartTransactionsChainIds().includes(chainId);
+export const selectSmartTransactionsEnabled = createDeepEqualSelector(
+  [
+    selectSelectedInternalAccountFormattedAddress,
+    selectEvmChainId,
+    (state: RootState) => selectProviderConfig(state).rpcUrl,
+    swapsSmartTxFlagEnabled,
+    (state: RootState) =>
+      state.engine.backgroundState.SmartTransactionsController
+        .smartTransactionsState?.liveness,
+  ],
+  (
+    selectedAddress,
+    chainId,
+    providerConfigRpcUrl,
+    smartTransactionsFeatureFlagEnabled,
+    smartTransactionsLiveness,
+  ) => {
+    const addrIshardwareAccount = selectedAddress
+      ? isHardwareAccount(selectedAddress)
+      : false;
+    const isAllowedNetwork =
+      getAllowedSmartTransactionsChainIds().includes(chainId);
+    // Only bypass RPC if we're on the default mainnet RPC.
+    const canBypassRpc =
+      chainId === NETWORKS_CHAIN_ID.MAINNET
+        ? providerConfigRpcUrl === undefined
+        : true;
+    return Boolean(
+      isAllowedNetwork &&
+        canBypassRpc &&
+        !addrIshardwareAccount &&
+        smartTransactionsFeatureFlagEnabled &&
+        smartTransactionsLiveness,
+    );
+  },
+);
 
-  // E.g. if a user has a Mainnet Flashbots RPC, we do not want to bypass it
-  // Only want to bypass on default mainnet RPC
-  const canBypassRpc =
-    chainId === NETWORKS_CHAIN_ID.MAINNET
-      ? providerConfigRpcUrl === undefined
-      : true;
+export const selectShouldUseSmartTransaction = createDeepEqualSelector(
+  [selectSmartTransactionsEnabled, selectSmartTransactionsOptInStatus],
+  (smartTransactionsEnabled, smartTransactionsOptInStatus) =>
+    smartTransactionsEnabled && smartTransactionsOptInStatus,
+);
 
-  const smartTransactionsFeatureFlagEnabled = swapsSmartTxFlagEnabled(state);
-
-  const smartTransactionsLiveness =
-    state.engine.backgroundState.SmartTransactionsController
-      .smartTransactionsState?.liveness;
-
-  return Boolean(
-    isAllowedNetwork &&
-      canBypassRpc &&
-      !addrIshardwareAccount &&
-      smartTransactionsFeatureFlagEnabled &&
-      smartTransactionsLiveness,
-  );
-};
-export const selectShouldUseSmartTransaction = (state: RootState) => {
-  const isSmartTransactionsEnabled = selectSmartTransactionsEnabled(state);
-  const smartTransactionsOptInStatus =
-    selectSmartTransactionsOptInStatus(state);
-
-  return isSmartTransactionsEnabled && smartTransactionsOptInStatus;
-};
-
-export const selectPendingSmartTransactionsBySender = (state: RootState) => {
-  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
-  const chainId = selectEvmChainId(state);
-
-  const smartTransactions: SmartTransaction[] =
-    state.engine.backgroundState.SmartTransactionsController
-      ?.smartTransactionsState?.smartTransactions?.[chainId] || [];
-
-  const pendingSmartTransactions =
-    smartTransactions
-      ?.filter((stx) => {
+export const selectPendingSmartTransactionsBySender = createDeepEqualSelector(
+  [
+    selectSelectedInternalAccountFormattedAddress,
+    selectEvmChainId,
+    (state: RootState) =>
+      state.engine.backgroundState.SmartTransactionsController
+        ?.smartTransactionsState?.smartTransactions || {},
+  ],
+  (
+    selectedAddress,
+    chainId,
+    smartTransactionsByChainId,
+  ): SmartTransaction[] => {
+    const smartTransactions: SmartTransaction[] =
+      smartTransactionsByChainId[chainId] || [];
+    return smartTransactions
+      .filter((stx) => {
         const { txParams } = stx;
         return (
           txParams?.from.toLowerCase() === selectedAddress?.toLowerCase() &&
@@ -73,16 +87,12 @@ export const selectPendingSmartTransactionsBySender = (state: RootState) => {
       })
       .map((stx) => ({
         ...stx,
-        // stx.uuid is one from sentinel API, not the same as tx.id which is generated client side
-        // Doesn't matter too much because we only care about the pending stx, confirmed txs are handled like normal
-        // However, this does make it impossible to read Swap data from TxController.swapsTransactions as that relies on client side tx.id
-        // To fix that we create a duplicate swaps transaction for the stx.uuid in the smart publish hook.
+        // Use stx.uuid as the id since tx.id is generated client-side.
         id: stx.uuid,
         status: stx.status?.startsWith(SmartTransactionStatuses.CANCELLED)
           ? SmartTransactionStatuses.CANCELLED
           : stx.status,
         isSmartTransaction: true,
-      })) ?? [];
-
-  return pendingSmartTransactions;
-};
+      }));
+  },
+);
