@@ -7,20 +7,16 @@ import { TransactionMeta, TransactionType, WalletDevice } from '@metamask/transa
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import AppConstants from '../../../core/AppConstants';
 import { TxData } from '../../../components/UI/Bridge/types';
-import { GasFeeEstimates } from '@metamask/gas-fee-controller';
+import { EthGasPriceEstimate, GasFeeEstimates, LegacyGasPriceEstimate } from '@metamask/gas-fee-controller';
 import BigNumber from 'bignumber.js';
 import { getTransaction1559GasFeeEstimates } from '../../../components/UI/Swaps/utils/gas';
 import { addTransaction, updateTransaction } from '../../transaction-controller';
-
-type GasEstimatesWithPrice = GasFeeEstimates & {
-  gasPrice?: string;
-};
 
 const DEFAULT_GAS_FEE_OPTION_LEGACY = AppConstants.GAS_OPTIONS.MEDIUM;
 
 async function getGasFeeEstimatesForTransaction(
   transaction: TxData,
-  gasEstimates: GasEstimatesWithPrice,
+  gasEstimates: GasFeeEstimates | EthGasPriceEstimate | LegacyGasPriceEstimate | Record<string, never>,
   { chainId, isEIP1559Network }: { chainId: `0x${string}`, isEIP1559Network: boolean },
 ) {
   if (isEIP1559Network) {
@@ -28,7 +24,7 @@ async function getGasFeeEstimatesForTransaction(
       {
         ...transaction,
         chainId: transaction.chainId.toString() as `0x${string}`,
-        gasLimit: transaction.gasLimit?.toString() as string | undefined,
+        gasLimit: transaction.gasLimit?.toString(),
       },
       chainId,
     );
@@ -38,7 +34,9 @@ async function getGasFeeEstimatesForTransaction(
   return {
     gasPrice: addHexPrefix(
       String(decGWEIToHexWEI(
-        gasEstimates.gasPrice || gasEstimates[DEFAULT_GAS_FEE_OPTION_LEGACY],
+        'gasPrice' in gasEstimates 
+          ? gasEstimates.gasPrice 
+          : (gasEstimates as GasFeeEstimates | LegacyGasPriceEstimate)[DEFAULT_GAS_FEE_OPTION_LEGACY],
       )),
     ),
   };
@@ -58,7 +56,7 @@ export default function useHandleTx() {
     resetTransaction();
     const gasFeeEstimates = await getGasFeeEstimatesForTransaction(
       txParams,
-      gasEstimates as GasEstimatesWithPrice,
+      gasEstimates,
       { chainId: chainId as `0x${string}`, isEIP1559Network },
     );
 

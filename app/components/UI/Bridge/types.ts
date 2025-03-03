@@ -50,8 +50,7 @@ export type BridgeToken = {
 export enum BridgeFlag {
   EXTENSION_CONFIG = 'extension-config',
 }
-type DecimalChainId = string;
-export type GasMultiplierByChainId = Record<DecimalChainId, number>;
+export type GasMultiplierByChainId = Record<string, number>;
 
 export interface FeatureFlagResponse {
   [BridgeFlag.EXTENSION_CONFIG]: {
