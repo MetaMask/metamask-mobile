@@ -48,6 +48,7 @@ jest.mock('../../../core/Engine', () => ({
     },
     RatesController: {
       fetchMultiExchangeRate: jest.fn(),
+      start: jest.fn(),
     },
   },
 }));
