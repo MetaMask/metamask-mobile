@@ -9,13 +9,15 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useDispatch } from 'react-redux';
 import { removeBookmark } from '../../../actions/bookmarks';
 import stylesheet from './styles';
+import { AutocompleteSearchResult } from './types';
+import AssetIcon from '../AssetIcon';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 
 interface ResultProps {
-    result: {
-        url: string;
-        name: string;
-        type: string;
-    };
+    result: AutocompleteSearchResult;
     onPress: () => void;
 }
 
@@ -37,18 +39,34 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress }) => {
         onPress={onPress}
       >
         <View style={styles.itemWrapper}>
-          <WebsiteIcon
-            style={styles.bookmarkIco}
-            url={result.url}
-            title={name}
-            textStyle={styles.fallbackTextStyle}
-          />
+          {result.type === 'tokens' ? (
+            <BadgeWrapper
+              badgeElement={(
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={NetworkBadgeSource(result.chainId, '')}
+                />
+              )}
+            >
+              <AvatarToken
+                imageSource={result.logoUrl ? {uri: result.logoUrl} : undefined}
+                name={result.name}
+              />
+            </BadgeWrapper>
+          ) : (
+            <WebsiteIcon
+              style={styles.bookmarkIco}
+              url={result.url}
+              title={name}
+              textStyle={styles.fallbackTextStyle}
+            />
+          )}
           <View style={styles.textContent}>
             <Text style={styles.name} numberOfLines={1}>
-              {name}
+              {result.name}
             </Text>
             <Text style={styles.url} numberOfLines={1}>
-              {result.url}
+              {result.type === 'tokens' ? result.symbol : result.url}
             </Text>
           </View>
           {

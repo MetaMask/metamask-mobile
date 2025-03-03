@@ -57,6 +57,7 @@ export type TokenSearchResult = {
   symbol: string;
   address: string;
   chainId: Hex;
+  logoUrl?: string;
 };
 
 export type AutocompleteSearchResult = FuseSearchResult | TokenSearchResult;

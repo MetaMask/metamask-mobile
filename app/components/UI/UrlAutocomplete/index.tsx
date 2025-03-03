@@ -12,6 +12,8 @@ import {
   View,
   Text,
   SectionList,
+  ActivityIndicator,
+  SectionListRenderItem,
 } from 'react-native';
 import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
@@ -30,10 +32,14 @@ import { strings } from '../../../../locales/i18n';
 import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
 import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
 import { Result } from './Result';
+import useTokenSearchDiscovery from '../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery';
+import { Hex } from '@metamask/utils';
 
 export * from './types';
 
 const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'} as const));
+
+const TOKEN_SEARCH_LIMIT = 10;
 
 /**
  * Autocomplete list that appears when the browser url bar is focused
@@ -43,12 +49,22 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
   const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([]);
-  const [tokenResults, setTokenResults] = useState<TokenSearchResult[]>([]);
+  const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearchDiscovery();
+  const tokenResults: TokenSearchResult[] = useMemo(() => tokenSearchResults.map(({tokenAddress, usdPricePercentChange: _, chainId, ...rest}) => ({
+    ...rest,
+    type: 'tokens',
+    address: tokenAddress,
+    chainId: chainId as Hex,
+  })), [tokenSearchResults]);
+
   const hasResults = fuseResults.length > 0 || tokenResults.length > 0;
 
   const resultsByCategory: {category: string, data: AutocompleteSearchResult[]}[] = useMemo(() => (
     ORDERED_CATEGORIES.flatMap((category) => {
       if (category === 'tokens') {
+        if (tokenResults.length === 0 && !isTokenSearchLoading) {
+          return [];
+        }
         return {
           category,
           data: tokenResults,
@@ -70,7 +86,7 @@ const UrlAutocomplete = forwardRef<
         data,
       };
     })
-  ), [fuseResults, tokenResults]);
+  ), [fuseResults, tokenResults, isTokenSearchLoading]);
 
   const browserHistory = useSelector(selectBrowserHistoryWithType);
   const bookmarks = useSelector(selectBrowserBookmarksWithType);
@@ -93,15 +109,7 @@ const UrlAutocomplete = forwardRef<
         ...browserHistory,
         ...bookmarks,
       ]);
-      setTokenResults([
-        {
-          type: 'tokens',
-          name: 'DEGEN',
-          symbol: 'DEGEN',
-          address: '0x4ed4e862860bed51a9570b96d89af5e1b0efefed',
-          chainId: '0x2105',
-        }
-      ]);
+      resetTokenSearch();
       return;
     }
     const fuseSearchResult = fuseRef.current?.search(text);
@@ -110,7 +118,13 @@ const UrlAutocomplete = forwardRef<
     } else {
       setFuseResults([]);
     }
-  }, [browserHistory, bookmarks]);
+
+    searchTokens({
+      query: text,
+      limit: TOKEN_SEARCH_LIMIT.toString(),
+    });
+
+  }, [browserHistory, bookmarks, resetTokenSearch, searchTokens]);
 
   /**
    * Debounce the search function
@@ -125,8 +139,8 @@ const UrlAutocomplete = forwardRef<
     debouncedSearch.cancel();
     resultsRef.current?.setNativeProps({ style: { display: 'none' } });
     setFuseResults([]);
-    setTokenResults([]);
-  }, [debouncedSearch]);
+    resetTokenSearch();
+  }, [debouncedSearch, resetTokenSearch]);
 
   const dismissAutocomplete = () => {
     hide();
@@ -167,10 +181,15 @@ const UrlAutocomplete = forwardRef<
   }, [browserHistory, bookmarks, search]);
 
   const renderSectionHeader = useCallback(({section: {category}}) => (
-    <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
-  ), [styles]);
+    <View style={styles.categoryWrapper}>
+      <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
+      {category === 'tokens' && isTokenSearchLoading && (
+        <ActivityIndicator size="small" />
+      )}
+    </View>
+  ), [styles, isTokenSearchLoading]);
 
-  const renderItem = useCallback(({item}) => (
+  const renderItem: SectionListRenderItem<AutocompleteSearchResult> = useCallback(({item}) => (
     <Result
       result={item}
       onPress={() => {

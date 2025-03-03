@@ -13,10 +13,15 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     contentContainer: {
       paddingVertical: 15,
     },
+    categoryWrapper: {
+      padding: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     category: {
       color: colors.text.default,
-      padding: 10,
       backgroundColor: colors.background.default,
+      marginRight: 10,
       ...typography.lHeadingSM,
     } as TextStyle,
     bookmarkIco: {
