@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
-import { zeroAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -65,6 +64,8 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -167,13 +168,15 @@ export const TokenListItem = React.memo(
         : 0;
 
       pricePercentChange1d = asset.isNative
-        ? multiChainMarketData?.[chainId as Hex]?.[zeroAddress() as Hex]
-            ?.pricePercentChange1d
+        ? multiChainMarketData?.[chainId as Hex]?.[
+            getNativeTokenAddress(chainId as Hex) as Hex
+          ]?.pricePercentChange1d
         : tokenPercentageChange;
     } else {
       pricePercentChange1d = itemAddress
         ? exchangeRates?.[itemAddress as Hex]?.pricePercentChange1d
-        : exchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+        : exchangeRates?.[getNativeTokenAddress(chainId as Hex) as Hex]
+            ?.pricePercentChange1d;
     }
 
     // render balances according to primary currency
