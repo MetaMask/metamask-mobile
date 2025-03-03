@@ -59,12 +59,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "LoggingController": {
         "logs": {},
       },
+      "MultiChainAssetsRatesController": {
+        "conversionRates": {},
+      },
       "MultichainAssetsController": {
         "accountsAssets": {},
         "assetsMetadata": {},
-      },
-      "MultichainAssetsRatesController": {
-        "conversionRates": {},
       },
       "MultichainBalancesController": {
         "balances": {},
