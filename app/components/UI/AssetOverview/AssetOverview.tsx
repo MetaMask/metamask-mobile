@@ -13,7 +13,7 @@ import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectSelectedNetworkClientId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -104,7 +104,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenBalances = useSelector(selectContractBalances);
   const selectedChainId = useSelector(selectEvmChainId);
 
-  const selectedTicker = useSelector((state: RootState) => selectTicker(state));
+  const selectedTicker = useSelector((state: RootState) =>
+    selectEvmTicker(state),
+  );
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
