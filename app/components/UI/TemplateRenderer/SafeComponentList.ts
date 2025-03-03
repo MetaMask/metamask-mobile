@@ -4,7 +4,7 @@ import Text from '../../../component-library/components/Texts/Text';
 import Icon from '../../../component-library/components/Icons/Icon';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import SmartTransactionStatus from '../../Views/SmartTransactionStatus/SmartTransactionStatus';
-import { View, Text as RNText } from 'react-native';
+import { View, Text as RNText, ScrollView } from 'react-native';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { SnapUIImage } from '../../UI/Snaps/SnapUIImage/SnapUIImage';
 import { SnapAvatar } from '../Snaps/SnapAvatar/SnapAvatar';
@@ -22,6 +22,7 @@ import { SnapUIBanner } from '../../Snaps/SnapUIBanner/SnapUIBanner';
 import { SnapUICheckbox } from '../../Snaps/SnapUICheckbox/SnapUICheckbox';
 import { SnapUIAddress } from '../../UI/Snaps/SnapUIAddress/SnapUIAddress';
 import { SnapUIAvatar } from '../../UI/Snaps/SnapUIAvatar/SnapUIAvatar';
+import { SnapUISelector } from '../../UI/Snaps/SnapUISelector/SnapUISelector';
 import InfoRow from '../../Views/confirmations/components/UI/InfoRow';
 
 export const safeComponentList = {
@@ -49,8 +50,10 @@ export const safeComponentList = {
   SnapUIAvatar,
   SnapUIAddress,
   SnapUIBanner,
+  SnapUISelector,
   InfoRow,
   RNText,
+  ScrollView,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;
