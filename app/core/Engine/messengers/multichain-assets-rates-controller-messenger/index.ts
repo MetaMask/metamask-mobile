@@ -14,7 +14,7 @@ export function getMultichainAssetsRatesControllerMessenger(
   baseControllerMessenger: BaseControllerMessenger,
 ): MultichainAssetsRatesControllerMessenger {
   return baseControllerMessenger.getRestricted({
-    name: 'MultichainAssetsRatesController',
+    name: 'MultiChainAssetsRatesController',
     allowedEvents: [
       'AccountsController:accountAdded',
       'KeyringController:lock',

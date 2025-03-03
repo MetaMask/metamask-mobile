@@ -377,7 +377,7 @@
     "accountsAssets": {},
     "assetsMetadata": {}
   },
-  "MultichainAssetsRatesController": {
+  "MultiChainAssetsRatesController": {
     "conversionRates": {}
   },
   "CronjobController": {

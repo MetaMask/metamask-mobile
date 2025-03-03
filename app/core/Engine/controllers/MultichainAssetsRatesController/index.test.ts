@@ -1,5 +1,5 @@
 import {
-  MultichainAssetsRatesController,
+  MultiChainAssetsRatesController as MultichainAssetsRatesController, // TODO: Remove this once the assets-controllers package is updated > 51.0.0
   type MultichainAssetsRatesControllerMessenger,
   MultichainAssetsRatesControllerState,
 } from '@metamask/assets-controllers';

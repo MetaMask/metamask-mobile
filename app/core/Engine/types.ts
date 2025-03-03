@@ -46,7 +46,7 @@ import {
   MultichainAssetsControllerState,
   MultichainAssetsControllerEvents,
   MultichainAssetsControllerActions,
-  MultichainAssetsRatesController,
+  MultiChainAssetsRatesController as MultichainAssetsRatesController, // TODO: Remove this once the assets-controllers package is updated > 51.0.0
   MultichainAssetsRatesControllerState,
   MultichainAssetsRatesControllerEvents,
   MultichainAssetsRatesControllerActions,
