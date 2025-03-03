@@ -12,7 +12,8 @@ function generateBorderRadius(
     case 'medium':
       return 6;
 
-    // TODO: Support Full border radius (50%)
+    case 'full':
+      return 100;
   }
 }
 
