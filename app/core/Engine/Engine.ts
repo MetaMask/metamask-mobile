@@ -1955,9 +1955,6 @@ export class Engine {
       SnapController,
       ///: END:ONLY_INCLUDE_IF
       LoggingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      RatesController,
-      ///: END:ONLY_INCLUDE_IF
     } = this.context;
 
     // Remove all permissions.
