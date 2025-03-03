@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
@@ -74,8 +74,7 @@ export const Footer = () => {
     confirmDisabled,
     isStakingConfirmation,
   });
-
-  const confirmButtonLabel = useMemo(() => {
+  const confirmButtonLabel = () => {
     if (isQRSigningInProgress) {
       return strings('confirm.qr_get_sign');
     }
@@ -86,16 +85,16 @@ export const Footer = () => {
       return fieldAlerts.length > 1 ? strings('alert_system.review_alerts') : strings('alert_system.review_alert');
     }
     return strings('confirm.confirm');
-  }, [isQRSigningInProgress, isLedgerAccount, hasUnconfirmedDangerAlerts, fieldAlerts.length]);
+  };
 
-  const getStartIcon = useMemo(() => {
+  const getStartIcon = () => {
     if (hasUnconfirmedDangerAlerts) {
       return IconName.SecuritySearch;
     }
     if (hasDangerAlerts) {
       return IconName.Danger;
     }
-  }, [hasUnconfirmedDangerAlerts, hasDangerAlerts]);
+  };
 
   const buttons = [
     {
@@ -109,11 +108,11 @@ export const Footer = () => {
       variant: ButtonVariants.Primary,
       isDanger: securityAlertResponse?.result_type === ResultType.Malicious || hasDangerAlerts,
       isDisabled: needsCameraPermission,
-      label: confirmButtonLabel,
+      label: confirmButtonLabel(),
       size: ButtonSize.Lg,
       onPress: onSignConfirm,
       testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-      startIconName: getStartIcon,
+      startIconName: getStartIcon(),
     },
   ];
 

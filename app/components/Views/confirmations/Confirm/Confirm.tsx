@@ -8,7 +8,7 @@ import {
 
 import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
-import Footer from '../components/Confirm/Footer';
+import { Footer } from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
 import { LedgerContextProvider } from '../context/LedgerContext';
 import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';

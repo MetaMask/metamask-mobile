@@ -88,18 +88,18 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({ alertDetail
           ))}
         </View>
         <View style={styles.attributionBase}>
-            <Text
-              variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
-              data-testid={FALSE_POSITIVE_REPOST_LINE_TEST_ID}
-            >
-              {strings('blockaid_banner.does_not_look_right')}
-            </Text>
-            <BlockaidBannerLink
-              text={strings('blockaid_banner.report_an_issue')}
-              link={reportUrl}
-              onContactUsClicked={onContactUsClicked}
-            />
-          </View>
+          <Text
+            variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
+            data-testid={FALSE_POSITIVE_REPOST_LINE_TEST_ID}
+          >
+            {strings('blockaid_banner.does_not_look_right')}
+          </Text>
+          <BlockaidBannerLink
+            text={strings('blockaid_banner.report_an_issue')}
+            link={reportUrl}
+            onContactUsClicked={onContactUsClicked}
+          />
+        </View>
       </Accordion>
     </>
   );
