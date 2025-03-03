@@ -879,6 +879,7 @@
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
+    "enable_push_notifications": "Enable push notifications",
     "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.",
     "notifications_opts": {
       "customize_session_title": "Customize your notifications",
@@ -1744,7 +1745,8 @@
     "sign_description_1": "After you have signed with your hardware wallet,",
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature",
-    "network_fee": "Network Fee"
+    "network_fee": "Network Fee",
+    "network_fee_tooltip": "Amount paid to process the transaction on network."
   },
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
@@ -2600,6 +2602,7 @@
     "more_options": "{{count}} more options",
     "previously_used": "Previously used",
     "best_rate": "Best rate",
+    "most_reliable": "Most reliable",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
     "terms_of_service": "Terms of Service",
@@ -2614,6 +2617,7 @@
     "done": "Done",
     "fetching_quotes": "Fetching quotes",
     "select_a_quote": "Select a Quote",
+    "recommended_quote": "Recommended quote",
     "select_a_cryptocurrency": "Select a cryptocurrency",
     "select_a_cryptocurrency_description": "Select from the list of tokens available on {{network}}.",
     "search_by_cryptocurrency": "Search by cryptocurrency",
@@ -3150,7 +3154,9 @@
     "enable_token_detection": "Enable auto token detection",
     "token_detection_mainnet_title": "Token detection is enabled so tokens will automatically show up in your wallet.",
     "token_detection_mainnet_link": "You can also add tokens manually.",
-    "or": "or"
+    "or": "or",
+    "non_evm_first_description": "The native asset on this network is {{ticker}}. It is used for transaction fees.",
+    "non_evm_second_description": "You will loose your assets if you try to send them from or to another network."
   },
   "download_files": {
     "error": "Failed to download attachment.",
