@@ -1,3 +1,4 @@
+import { KeyringTypes } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import {
@@ -75,7 +76,10 @@ describe('MultiSRP Actions', () => {
 
       await createNewSecretRecoveryPhrase();
 
-      expect(mockAddNewKeyring).toHaveBeenCalledWith('HD Key Tree');
+      expect(mockAddNewKeyring).toHaveBeenCalledWith(
+        KeyringTypes.hd,
+        undefined,
+      );
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
     });
 
