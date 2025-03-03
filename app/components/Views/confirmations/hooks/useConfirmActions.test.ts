@@ -1,4 +1,7 @@
+import { useNavigation } from '@react-navigation/native';
+
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
@@ -13,9 +16,7 @@ import { useConfirmActions } from './useConfirmActions';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    goBack: jest.fn(),
-  }),
+  useNavigation: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -41,8 +42,15 @@ const createUseLedgerContextSpy = (mockedValues = {}) => {
 };
 
 describe('useConfirmAction', () => {
+  const useNavigationMock = jest.mocked(useNavigation);
+  const navigateMock = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
+    useNavigationMock.mockReturnValue({
+      goBack: jest.fn(),
+      navigate: navigateMock,
+    } as unknown as ReturnType<typeof useNavigation>);
   });
 
   it('call setScannerVisible if QR signing is in progress', async () => {
@@ -159,5 +167,16 @@ describe('useConfirmAction', () => {
     expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
     expect(mockCaptureSignatureMetrics).toHaveBeenCalledTimes(1);
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to transactions view if confirmation is of type staking deposit', async () => {
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 });
