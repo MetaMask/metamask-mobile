@@ -6,7 +6,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import * as AddressUtils from '../../../../../util/address';
 import { LedgerContextProvider, useLedgerContext } from './LedgerContext';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
-import Footer from '../../components/Confirm/Footer';
+import { Footer } from '../../components/Confirm/Footer';
 import { fireEvent } from '@testing-library/react-native';
 
 jest.mock('@react-navigation/native', () => ({
