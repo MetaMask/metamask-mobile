@@ -28,7 +28,6 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
-      fontWeight: '500',
       alignItems: 'center',
       justifyContent: 'center',
     },
