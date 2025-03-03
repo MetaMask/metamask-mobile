@@ -12,7 +12,8 @@ import { Container } from '@metamask/snaps-sdk/jsx';
 import { strings } from '../../../../locales/i18n';
 import styles from './SnapUIRenderer.styles';
 import { RootState } from '../../../reducers';
-import { TemplateRendererInput } from '../../UI/TemplateRenderer/types';
+import { TemplateRendererComponent } from '../../UI/TemplateRenderer/types';
+import { useTheme } from '../../../util/theme';
 
 interface SnapUIRendererProps {
   snapId: string;
@@ -40,6 +41,8 @@ const SnapUIRendererComponent = ({
   useFooter,
   PERF_DEBUG,
 }: SnapUIRendererProps) => {
+  const theme = useTheme();
+
   const interfaceState = useSelector(
     (state: RootState) => getMemoizedInterface(state, interfaceId),
     (oldState, newState) =>
@@ -61,8 +64,9 @@ const SnapUIRendererComponent = ({
         useFooter,
         onCancel,
         t: strings,
-      }) as TemplateRendererInput),
-    [content, useFooter, onCancel],
+        theme,
+      }) as TemplateRendererComponent),
+    [content, useFooter, onCancel, theme],
   );
 
   if (isLoading || !content) {

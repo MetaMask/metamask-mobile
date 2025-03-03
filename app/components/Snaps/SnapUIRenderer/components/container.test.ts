@@ -1,6 +1,7 @@
 import { BoxElement } from '@metamask/snaps-sdk/jsx';
 import { container } from './container';
 import { mapToTemplate } from '../utils';
+import { mockTheme } from '../../../../util/theme';
 
 // First, properly mock the utils module
 jest.mock('../utils', () => ({
@@ -39,24 +40,38 @@ describe('container', () => {
       useFooter: false,
       t: mockT,
       map: {},
+      theme: mockTheme,
     });
 
-    expect(result).toEqual({
-      element: 'Box',
-      children: [
-        {
-          element: 'text',
-          props: {},
-          children: ['Hello'],
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "children": [
+          {
+            "children": {
+              "children": [
+                "Hello",
+              ],
+              "element": "text",
+              "props": {},
+            },
+            "element": "ScrollView",
+            "key": "default-scrollview",
+            "props": {
+              "style": {
+                "marginBottom": 0,
+              },
+            },
+          },
+        ],
+        "element": "Box",
+        "props": {
+          "style": {
+            "flex": 1,
+            "flexDirection": "column",
+          },
         },
-      ],
-      props: {
-        style: {
-          flex: 1,
-          flexDirection: 'column',
-        },
-      },
-    });
+      }
+    `);
   });
 
   it('add footer button when useFooter is true and onCancel is provided', () => {
@@ -69,24 +84,48 @@ describe('container', () => {
       onCancel: mockOnCancel,
       t: mockT,
       map: {},
+      theme: mockTheme,
     });
 
     expect(Array.isArray(result.children)).toBe(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.children as any[])[0]).toEqual({
-      element: 'Box',
-      props: {
-        style: { alignItems: 'center' },
-      },
-      children: {
-        element: 'SnapUIFooterButton',
-        key: 'default-button',
-        props: {
-          onCancel: mockOnCancel,
-          isSnapAction: false,
+    expect((result.children as any[])[0]).toMatchInlineSnapshot(`
+      {
+        "children": {
+          "children": {
+            "children": "navigation.close",
+            "element": "SnapUIFooterButton",
+            "key": "default-button",
+            "props": {
+              "isSnapAction": false,
+              "onCancel": [MockFunction],
+            },
+          },
+          "element": "Box",
+          "key": "default-footer",
+          "props": {
+            "flexDirection": "row",
+            "gap": 16,
+            "padding": 16,
+            "style": {
+              "alignItems": "center",
+              "bottom": 0,
+              "height": 80,
+              "justifyContent": "space-evenly",
+              "paddingVertical": 16,
+              "position": "absolute",
+              "width": "100%",
+            },
+          },
         },
-        children: 'close',
-      },
-    });
+        "element": "ScrollView",
+        "key": "default-scrollview",
+        "props": {
+          "style": {
+            "marginBottom": 0,
+          },
+        },
+      }
+    `);
   });
 });

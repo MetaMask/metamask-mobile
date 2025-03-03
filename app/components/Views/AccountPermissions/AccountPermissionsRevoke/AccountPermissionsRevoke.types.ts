@@ -10,7 +10,8 @@ import { AvatarAccountType } from '../../../../component-library/components/Avat
 /**
  * AccountPermissionsRevoke props.
  */
-export interface AccountPermissionsRevokeProps extends UseAccounts {
+export interface AccountPermissionsRevokeProps
+  extends Omit<UseAccounts, 'evmAccounts'> {
   isLoading?: boolean;
   permittedAddresses: string[];
   onSetPermissionsScreen: (screen: AccountPermissionsScreens) => void;

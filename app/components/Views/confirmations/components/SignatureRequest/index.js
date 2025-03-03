@@ -116,7 +116,7 @@ const createStyles = (colors) =>
     arrowIcon: {
       color: colors.icon.muted,
     },
-    blockaidBanner: {
+    blockaidBannerContainer: {
       marginHorizontal: 20,
       marginBottom: 20,
     },
@@ -361,11 +361,12 @@ class SignatureRequest extends PureComponent {
                 {strings('signature_request.signing')}
               </Text>
             </View>
-            <BlockaidBanner
-              securityAlertResponse={securityAlertResponse}
-              style={styles.blockaidBanner}
-              onContactUsClicked={this.onContactUsClicked}
-            />
+            <View style={styles.blockaidBannerContainer}>
+              <BlockaidBanner
+                securityAlertResponse={securityAlertResponse}
+                onContactUsClicked={this.onContactUsClicked}
+              />
+            </View>
             {this.renderActionViewChildren()}
           </View>
         </ActionView>

@@ -10,7 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
 import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../../../selectors/networkController';
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import Engine from '../../../../../../core/Engine';
@@ -32,7 +32,7 @@ const StakingButtons = ({
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const { isStakingSupportedChain } = useStakingChain();
   const { MultichainNetworkController } = Engine.context;
 

@@ -2,6 +2,7 @@ import { InputElement } from '@metamask/snaps-sdk/jsx';
 
 import { UIComponentFactory } from './types';
 
+// TODO: Support min, max, type etc.
 export const input: UIComponentFactory<InputElement> = ({
   element: e,
   form,
@@ -10,6 +11,7 @@ export const input: UIComponentFactory<InputElement> = ({
   props: {
     id: e.props.name,
     placeholder: e.props.placeholder,
+    disabled: e.props.disabled,
     name: e.props.name,
     form,
   },

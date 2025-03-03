@@ -22,6 +22,7 @@ import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
+import { getNftImage } from '../../../util/get-nft-image';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,
@@ -52,7 +53,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     if (address) {
       if (small && imagePreview && imagePreview !== '')
         setSourceUri(imagePreview);
-      else setSourceUri((image || imageOriginal) ?? null);
+      else setSourceUri((getNftImage(image) || imageOriginal) ?? null);
     }
   }, [collectible, small, big, setSourceUri]);
 
