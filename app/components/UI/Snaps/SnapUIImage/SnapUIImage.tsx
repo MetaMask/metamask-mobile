@@ -1,6 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { useMemo, useState } from 'react';
-import { ImageStyle, StyleProp, View } from 'react-native';
+import { ImageStyle, StyleProp } from 'react-native';
 import { SvgUri } from 'react-native-svg';
 
 export interface SnapUIImageProps {
@@ -25,25 +25,19 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
   );
 
   return (
-    <View
-      style={[
-        // eslint-disable-next-line react-native/no-inline-styles
-        {
-          borderRadius:
-            borderRadius === 100
-              ? Math.min(dimensions.width, dimensions.height) / 2
-              : borderRadius,
-          overflow: 'hidden',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: width ?? dimensions?.width,
-          height: height ?? dimensions?.height
-        },
-        style,
-      ]}
-    >
       <SvgUri
         testID="snaps-ui-image"
+        style={[
+          // eslint-disable-next-line react-native/no-inline-styles
+          {
+            borderRadius:
+              borderRadius === 100
+                ? Math.min(dimensions.width, dimensions.height) / 2
+                : borderRadius,
+            overflow: 'hidden',
+          },
+          style,
+        ]}
         uri={uri}
         {...(width ? { width } : {})}
         {...(height ? { height } : {})}
@@ -59,7 +53,6 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
           }
         }}
       />
-    </View>
   );
 };
 ///: END:ONLY_INCLUDE_IF
