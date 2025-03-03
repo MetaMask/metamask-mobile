@@ -18,10 +18,10 @@ const selectKeyringControllerState = (state: RootState) =>
 export const selectKeyrings = createDeepEqualSelector(
   selectKeyringControllerState,
   (keyringControllerState) =>
-    keyringControllerState.keyrings.map((keyring, index) => ({
+    keyringControllerState.keyrings.map((keyring, _index) => ({
       ...keyring,
       ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-      metadata: keyringControllerState.keyringsMetadata?.[index] || {},
+      metadata: keyringControllerState.keyringsMetadata?.[_index] || {},
       ///: END:ONLY_INCLUDE_IF
     })),
 );

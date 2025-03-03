@@ -145,7 +145,9 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { Confirm } from '../../Views/confirmations/Confirm';
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
+///: END:ONLY_INCLUDE_IF
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -548,6 +550,7 @@ const ImportPrivateKeyView = () => (
   </Stack.Navigator>
 );
 
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 const ImportSRPView = () => (
   <Stack.Navigator
     screenOptions={{
@@ -557,6 +560,7 @@ const ImportSRPView = () => (
     <Stack.Screen name="ImportSRP" component={ImportNewSecretRecoveryPhrase} />
   </Stack.Navigator>
 );
+///: END:ONLY_INCLUDE_IF
 
 const ConnectQRHardwareFlow = () => (
   <Stack.Navigator
@@ -984,11 +988,15 @@ const App = (props) => {
             component={ImportPrivateKeyView}
             options={{ animationEnabled: true }}
           />
-          <Stack.Screen
-            name="ImportSRPView"
-            component={ImportSRPView}
-            options={{ animationEnabled: true }}
-          />
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+            <Stack.Screen
+              name="ImportSRPView"
+              component={ImportSRPView}
+              options={{ animationEnabled: true }}
+            />
+            ///: END:ONLY_INCLUDE_IF
+          }
           <Stack.Screen
             name="ConnectQRHardwareFlow"
             component={ConnectQRHardwareFlow}

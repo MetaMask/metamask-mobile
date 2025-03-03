@@ -4,8 +4,11 @@ import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selec
 import ClipboardManager from '../../../core/ClipboardManager';
 import { act, fireEvent } from '@testing-library/react-native';
 import messages from '../../../../locales/languages/en.json';
-
-jest.mock('../../../util/Logger');
+import {
+  MOCK_HD_ACCOUNTS,
+  MOCK_HD_KEYRING_METADATA,
+} from '../../../selectors/keyringController/testUtils';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -28,6 +31,10 @@ jest.mock('../../../actions/multiSrp', () => ({
     mockImportNewSecretRecoveryPhrase(srp),
 }));
 
+jest.mock('../../../core/ClipboardManager', () => ({
+  getString: jest.fn(),
+}));
+
 const valid12WordMnemonic =
   'lazy youth dentist air relief leave neither liquid belt aspect bone frame';
 
@@ -39,9 +46,13 @@ const mockPaste = jest
   .mockResolvedValue(valid24WordMnemonic);
 
 const initialState = {
-  user: {
-    passwordSet: true,
-    seedphraseBackedUp: false,
+  engine: {
+    backgroundState: {
+      KeyringController: {
+        keyrings: [{ type: KeyringTypes.hd, accounts: MOCK_HD_ACCOUNTS }],
+        keyringsMetadata: [MOCK_HD_KEYRING_METADATA],
+      },
+    },
   },
 };
 

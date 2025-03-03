@@ -82,5 +82,5 @@ export const MOCK_KEYRINGS: KeyringObject[] = [
 export const MOCK_KEYRING_CONTROLLER: KeyringControllerState = {
   isUnlocked: true,
   keyrings: MOCK_KEYRINGS,
-  keyringsMetadata: [],
+  keyringsMetadata: MOCK_KEYRING_METADATA,
 };
