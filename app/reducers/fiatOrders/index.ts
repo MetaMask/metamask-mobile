@@ -256,8 +256,7 @@ export const networkShortNameSelector = createSelector(
   getRampNetworks,
   (chainId, networks) => {
     const network = networks.find(
-      // TODO(ramp, chainId-string): remove once chainId is a string
-      (aggregatorNetwork) => `${aggregatorNetwork.chainId}` === chainId,
+      (aggregatorNetwork) => aggregatorNetwork.chainId === chainId,
     );
 
     return network?.shortName;

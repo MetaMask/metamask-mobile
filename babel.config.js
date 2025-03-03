@@ -42,6 +42,12 @@ module.exports = {
       test: './app/core/NavigationService/NavigationService.ts',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
+    // TODO: Remove this once we have a fix for the private methods
+    // Do not apply this plugin globally since it breaks FlatList props.getItem
+    {
+      test: './app/core/Engine/Engine.ts',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
   ],
   env: {
     production: {

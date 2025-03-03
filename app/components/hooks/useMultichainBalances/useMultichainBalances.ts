@@ -7,7 +7,7 @@ import {
   selectChainId,
   selectIsPopularNetwork,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../../../selectors/preferencesController';
@@ -21,12 +21,12 @@ import { UseMultichainBalancesHook } from './useMultichainBalances.types';
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
-  selectMultichainIsEvm,
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainDefaultToken,
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
 } from '../../../selectors/multichain';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
 
 /**
@@ -45,7 +45,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   );
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const { type } = useSelector(selectProviderConfig);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
 
   // Production hooks (EVM)
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
@@ -66,7 +66,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const isEvm = useSelector(selectMultichainIsEvm);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const multichainSelectedAccountCachedBalance = useSelector(
     selectMultichainSelectedAccountCachedBalance,
   );
@@ -132,7 +132,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
 
   const getDisplayBalance = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (!isEvm) {
+    if (!isEvmSelected) {
       return getNonEvmDisplayBalance();
     }
     ///: END:ONLY_INCLUDE_IF
@@ -151,7 +151,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
 
   const getShouldShowAggregatedPercentage = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    return !isTestNet(chainId) && isEvm;
+    return !isTestNet(chainId) && isEvmSelected;
     ///: END:ONLY_INCLUDE_IF
 
     // Note: This code marked as unreachable however when the above block gets removed after code fencing this return becomes necessary

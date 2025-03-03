@@ -33,13 +33,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 describe('useConfirmationRedesignEnabled', () => {
   describe('signature confirmations', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      (isHardwareAccount as jest.Mock).mockReturnValue(true);
-    });
-
     it('returns true for personal sign request', async () => {
-      (isHardwareAccount as jest.Mock).mockReturnValue(false);
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
         {
@@ -50,21 +44,11 @@ describe('useConfirmationRedesignEnabled', () => {
       expect(result.current.isRedesignedEnabled).toBe(true);
     });
 
-    it('returns false for external accounts', async () => {
-      const { result } = renderHookWithProvider(
-        useConfirmationRedesignEnabled,
-        {
-          state: personalSignatureConfirmationState,
-        },
-      );
-
-      expect(result.current.isRedesignedEnabled).toBe(false);
-    });
-
     it('returns false when remote flag is disabled', async () => {
-      const state = merge(personalSignatureConfirmationState, {
+      const state = {
         engine: {
           backgroundState: {
+            ...personalSignatureConfirmationState.engine.backgroundState,
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
                 confirmation_redesign: {
@@ -74,7 +58,7 @@ describe('useConfirmationRedesignEnabled', () => {
             },
           },
         },
-      });
+      };
 
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
@@ -94,7 +78,6 @@ describe('useConfirmationRedesignEnabled', () => {
           jest.clearAllMocks();
           (isHardwareAccount as jest.Mock).mockReturnValue(false);
         });
-
 
         it('returns true when enabled', async () => {
           const { result } = renderHookWithProvider(

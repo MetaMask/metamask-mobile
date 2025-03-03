@@ -139,7 +139,7 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
-import { selectUserLoggedIn } from '../../../reducers/user';
+import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
 
 const clearStackNavigatorOptions = {
@@ -646,12 +646,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRM_FLAT_PAGE}
         component={ConfirmRequest}
-        options={{ animationEnabled: true }}
       />
       <Stack.Screen
         name={Routes.CONFIRM_MODAL}
         component={ConfirmDappRequest}
-        options={{ animationEnabled: true }}
       />
     </Stack.Navigator>
   );
