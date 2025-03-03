@@ -520,6 +520,11 @@ type ControllerPersistedState = Partial<{
 }>;
 
 /**
+ * Map of controller messengers by controller name.
+ */
+export type ControllerMessengerByControllerName = typeof CONTROLLER_MESSENGERS;
+
+/**
  * Request to initialize and return a controller instance.
  * Includes standard data and methods not coupled to any specific controller.
  */
@@ -546,15 +551,17 @@ export type ControllerInitRequest<
 
   /**
    * Get the chain id set in the engine.
-   * 
+   *
    * @deprecated Will be removed in the future pending multi-chain support.
    */
-  getCurrentChainId: () => Hex;
+  getGlobalChainId: () => Hex;
 
   /**
-   * Get the root state of UI.
+   * Get the UI state of the app, returning the current Redux state including transient UI data,
+   * whereas `persistedState` contains only the subset of state persisted across sessions.
+   * For example: `{ settings, user, engine: { backgroundState: EngineState } }`.
    */
-  getRootState: () => RootState;
+  getUIState: () => RootState;
 
   /**
    * Required initialization messenger instance.
@@ -599,11 +606,11 @@ export type ControllerInitFunctionByControllerName = {
  * Function to initialize the controllers in the engine.
  */
 export type InitModularizedControllersFunction = (request: {
-  controllerInitFunctions: ControllerInitFunctionByControllerName;
   baseControllerMessenger: BaseControllerMessenger;
+  controllerInitFunctions: ControllerInitFunctionByControllerName;
   existingControllersByName?: Partial<ControllerByName>;
-  getCurrentChainId: () => Hex;
-  getRootState: () => RootState;
+  getGlobalChainId: () => Hex;
+  getUIState: () => RootState;
   persistedState: ControllerPersistedState;
 }) => {
   controllersByName: ControllerByName;

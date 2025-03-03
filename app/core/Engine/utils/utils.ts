@@ -30,17 +30,18 @@ type InitFunction<Name extends ControllersToInitialize> =
  * Initializes the controllers in the engine in a modular way.
  *
  * @param options - Options bag.
- * @param options.controllerInitFunctions - Array of init functions.
- * @param options.initRequest - Base request used to initialize the controllers.
- * @param options.initRequest.getFlatState - Get the flat state of the engine.
- * @param options.initRequest.getCurrentChainId - Get the current chain id of the engine.
+ * @param options.baseControllerMessenger - Unrestricted base controller messenger.
+ * @param options.controllerInitFunctions - Map of init functions keyed by controller name.
+ * @param options.existingControllersByName - All required controllers that have already been initialized.
+ * @param options.getGlobalChainId - Get settled chain id in the engine.
+ * @param options.getUIState - Get the root state of the engine.
+ * @param options.persistedState - The full persisted state for all controllers.
  * @returns The initialized controllers and associated data.
  */
 export const initModularizedControllers: InitModularizedControllersFunction = ({
   baseControllerMessenger,
-  existingControllersByName,
   controllerInitFunctions,
-  persistedState,
+  existingControllersByName,
   ...initRequest
 }) => {
   log('Initializing controllers', Object.keys(controllerInitFunctions).length);
@@ -67,12 +68,12 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
     const messengerCallbacks = CONTROLLER_MESSENGERS[controllerName];
 
     const controllerMessengerCallback =
-      messengerCallbacks?.getMessenger as ControllerMessengerCallback;
+      messengerCallbacks.getMessenger as ControllerMessengerCallback;
 
     const initMessengerCallback =
       messengerCallbacks?.getInitMessenger as ControllerMessengerCallback;
 
-    const controllerMessenger = controllerMessengerCallback?.(
+    const controllerMessenger = controllerMessengerCallback(
       baseControllerMessenger,
     );
 
@@ -82,7 +83,6 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
       controllerMessenger,
       getController,
       initMessenger,
-      persistedState,
       ...initRequest,
     };
 

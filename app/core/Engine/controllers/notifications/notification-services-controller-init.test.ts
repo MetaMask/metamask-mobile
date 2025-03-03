@@ -3,7 +3,9 @@ import {
   defaultState,
   Controller as NotificationServicesController,
 } from '@metamask/notification-services-controller/notification-services';
+
 import Logger from '../../../../util/Logger';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 // eslint-disable-next-line import/no-namespace
 import * as createNotificationServicesControllerModule from './create-notification-services-controller';
 import { notificationServicesControllerInit } from './notification-services-controller-init';
@@ -17,24 +19,24 @@ describe('notificationServicesControllerInit', () => {
         'createNotificationServicesController',
       )
       .mockReturnValue({} as NotificationServicesController);
-    const fakeMessenger = {} as NotificationServicesControllerMessenger;
+
+    const initRequestMock =
+      buildControllerInitRequestMock<NotificationServicesControllerMessenger>();
+
     return {
       mockLog,
       mockCreateController,
-      fakeMessenger,
+      initMessenger: jest.fn() as unknown as void,
+      ...initRequestMock,
     };
   };
 
   it('logs and returns controller with default state', () => {
-    const { fakeMessenger, mockCreateController, mockLog } = arrangeMocks();
+    const { mockCreateController, mockLog, ...othersMocks } = arrangeMocks();
 
     notificationServicesControllerInit({
-      controllerMessenger: fakeMessenger,
+      ...othersMocks,
       persistedState: { NotificationServicesController: undefined },
-      getController: jest.fn(),
-      getCurrentChainId: jest.fn(),
-      getRootState: jest.fn(),
-      initMessenger: jest.fn() as unknown as void,
     });
 
     expect(mockCreateController).toHaveBeenCalled();
@@ -47,17 +49,13 @@ describe('notificationServicesControllerInit', () => {
   });
 
   it('logs and returns controller with initial state', () => {
-    const { fakeMessenger, mockCreateController, mockLog } = arrangeMocks();
+    const { mockCreateController, mockLog, ...othersMocks } = arrangeMocks();
 
     notificationServicesControllerInit({
-      controllerMessenger: fakeMessenger,
+      ...othersMocks,
       persistedState: {
         NotificationServicesController: { isNotificationServicesEnabled: true },
       },
-      getController: jest.fn(),
-      getCurrentChainId: jest.fn(),
-      getRootState: jest.fn(),
-      initMessenger: jest.fn() as unknown as void,
     });
 
     expect(mockCreateController).toHaveBeenCalled();
