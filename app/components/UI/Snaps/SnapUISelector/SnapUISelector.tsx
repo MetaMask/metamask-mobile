@@ -11,7 +11,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonWidthTypes } from '../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../hooks/useStyles';
 import stylesheet from './SnapUISelector.styles';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, ViewStyle } from 'react-native';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ApprovalModal from '../../../Approvals/ApprovalModal';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
@@ -25,6 +25,7 @@ export interface SnapUISelectorProps {
   label?: string;
   error?: string;
   disabled?: boolean;
+  style?: ViewStyle;
 }
 
 interface SelectorItemProps {

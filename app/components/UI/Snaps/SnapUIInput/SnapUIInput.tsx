@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
-import { TextInput } from 'react-native';
+import { TextInput, ViewStyle } from 'react-native';
 import TextField, {
   TextFieldSize,
 } from '../../../../component-library/components/Form/TextField';
@@ -16,6 +16,7 @@ export interface SnapUIInputProps {
   form?: string;
   label?: string;
   error?: string;
+  style?: ViewStyle;
 }
 
 export const SnapUIInput = ({

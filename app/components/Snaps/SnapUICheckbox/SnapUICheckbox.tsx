@@ -7,6 +7,7 @@ import HelpText from '../../../component-library/components/Form/HelpText';
 import Label from '../../../component-library/components/Form/Label';
 import { Box } from '../../UI/Box/Box';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
+import { ViewStyle } from 'react-native';
 
 export interface SnapUICheckboxProps {
   name: string;
@@ -17,6 +18,7 @@ export interface SnapUICheckboxProps {
   error?: string;
   form?: string;
   disabled?: boolean;
+  style?: ViewStyle;
 }
 
 export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
