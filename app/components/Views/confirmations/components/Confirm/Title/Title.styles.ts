@@ -8,7 +8,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     titleContainer: {
-      marginBottom: 24,
+      marginVertical: 24,
     },
     title: {
       color: theme.colors.text.default,
