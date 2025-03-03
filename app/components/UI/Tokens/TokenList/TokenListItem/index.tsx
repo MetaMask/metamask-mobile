@@ -281,7 +281,7 @@ export const TokenListItem = React.memo(
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
           .addProperties({
-            source: 'Mobile',
+            source: 'mobile-token-list',
             chain_id: token.chainId,
             token_symbol: token.symbol,
           })
