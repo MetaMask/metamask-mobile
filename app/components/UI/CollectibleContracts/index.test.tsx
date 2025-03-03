@@ -46,6 +46,9 @@ jest.mock('../../../core/Engine', () => ({
     NftDetectionController: {
       detectNfts: jest.fn(),
     },
+    RatesController: {
+      fetchMultiExchangeRate: jest.fn(),
+    },
   },
 }));
 
