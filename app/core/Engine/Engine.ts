@@ -1472,6 +1472,7 @@ export class Engine {
       TokenSearchDiscoveryController: tokenSearchDiscoveryController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      CronjobController: cronjobController,
       SnapController: this.snapController,
       SnapsRegistry: snapsRegistry,
       SubjectMetadataController: this.subjectMetadataController,
@@ -1480,7 +1481,6 @@ export class Engine {
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
       SnapInterfaceController: snapInterfaceController,
-      CronjobController: cronjobController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
