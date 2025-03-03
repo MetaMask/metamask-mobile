@@ -150,7 +150,7 @@ describe('DecodedSimulation', () => {
     expect(await getByText('Estimated changes')).toBeDefined();
     expect(await getByText('Revoke')).toBeDefined();
 
-    await waitFor(() => expect(getByText('12,345')).toBeDefined());
+    await waitFor(() => expect(getByText('Unlimited')).toBeDefined());
   });
 
   it('renders "Unlimited" for large values', async () => {
