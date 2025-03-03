@@ -16,9 +16,9 @@ export const selector: UIComponentFactory<SelectorElement> = ({
   const children = getJsxChildren(e) as SelectorOptionElement[];
 
   const options = children.map((child) => ({
-      value: child.props.value,
-      disabled: child.props.disabled,
-    }));
+    value: child.props.value,
+    disabled: child.props.disabled,
+  }));
 
   const optionComponents = children.map((child) =>
     mapToTemplate({

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
 import Label from '../../../../component-library/components/Form/Label';
 import HelpText, {
@@ -8,15 +8,15 @@ import { Box } from '../../Box/Box';
 import { FlexDirection } from '../../Box/box.types';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import React from 'react';
 import { ButtonWidthTypes } from '../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../hooks/useStyles';
 import stylesheet from './SnapUISelector.styles';
-import { ScrollView, View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ApprovalModal from '../../../Approvals/ApprovalModal';
+import { TextVariant } from '../../../../component-library/components/Texts/Text';
 
-export type SnapUISelectorProps = {
+export interface SnapUISelectorProps {
   name: string;
   title: string;
   options: { value: string; disabled: boolean }[];
@@ -25,14 +25,14 @@ export type SnapUISelectorProps = {
   label?: string;
   error?: string;
   disabled?: boolean;
-};
+}
 
-type SelectorItemProps = {
+interface SelectorItemProps {
   value: string;
   children: React.ReactNode;
   onSelect: (value: string) => void;
   disabled?: boolean;
-};
+}
 
 const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
   value,
@@ -102,7 +102,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   return (
     <>
       <Box flexDirection={FlexDirection.Column}>
-        {label && <Label>{label}</Label>}
+        {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
         <ButtonBase
           width={ButtonWidthTypes.Full}
           label={selectedOption}
@@ -112,7 +112,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
           style={styles.button}
         />
         {error && (
-          <HelpText severity={HelpTextSeverity.Error} style={{ marginTop: 4 }}>
+          <HelpText severity={HelpTextSeverity.Error} style={styles.helpText}>
             {error}
           </HelpText>
         )}
@@ -120,9 +120,11 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
       <ApprovalModal isVisible={isModalOpen} onCancel={handleModalClose}>
         <View style={styles.modal}>
           <BottomSheetHeader onBack={handleModalClose}>{title}</BottomSheetHeader>
+          <ScrollView>
           <Box flexDirection={FlexDirection.Column} gap={8} style={styles.content}>
             {optionComponents.map((component, index) => (
               <SelectorItem
+                key={options[index].value}
                 value={options[index].value}
                 disabled={options[index]?.disabled}
                 onSelect={handleSelect}
@@ -131,6 +133,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
               </SelectorItem>
             ))}
           </Box>
+          </ScrollView>
         </View>
       </ApprovalModal>
     </>

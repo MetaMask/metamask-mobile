@@ -827,14 +827,9 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               flexDirection="row"
               justifyContent="space-between"
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": 1,
+                }
               }
               testID="snaps-ui-card"
             >
@@ -1390,9 +1385,9 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
-                    "fontWeight": "400",
+                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
@@ -1591,9 +1586,9 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
-                    "fontWeight": "400",
+                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
@@ -1669,9 +1664,9 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
-                    "fontWeight": "400",
+                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }

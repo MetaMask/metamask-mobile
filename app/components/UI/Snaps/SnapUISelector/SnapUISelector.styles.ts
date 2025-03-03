@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 import Device from '../../../../util/device';
+import { colors as importedColors } from '../../../../styles/common';
 
 /**
  *
@@ -39,7 +40,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingLeft: 16,
     },
     modalButton: {
-      backgroundColor: 'transparent',
+      backgroundColor: importedColors.transparent,
       height: 'auto',
       minHeight: 48,
       maxHeight: 64,
@@ -48,6 +49,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 8,
       paddingRight: 16,
       paddingLeft: 16,
+    },
+    helpText: {
+      marginBottom: 4,
     }
   });
 };
