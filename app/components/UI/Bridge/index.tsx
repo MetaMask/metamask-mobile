@@ -18,7 +18,7 @@ const BridgeView = () => {
 
   return (
     <ScreenView>
-      <View style={styles.content}>
+      <View style={styles.content} testID="bridge-view">
       </View>
     </ScreenView>
   );
