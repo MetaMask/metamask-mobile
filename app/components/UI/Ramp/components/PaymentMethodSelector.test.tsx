@@ -38,6 +38,16 @@ describe('PaymentMethodSelector', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
+  it('renders correctly if there are no icons', () => {
+    renderWithProvider(
+      <PaymentMethodSelector {...mockProps} paymentMethodIcons={undefined} />,
+      {
+        state: defaultState,
+      },
+    );
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
   it('calls onPress when pressed', () => {
     const mockOnPress = jest.fn();
     renderWithProvider(
