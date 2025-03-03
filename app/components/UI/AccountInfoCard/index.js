@@ -13,7 +13,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectTicker } from '../../../selectors/networkController';
+import { selectEvmTicker } from '../../../selectors/networkController';
 import { fontStyles } from '../../../styles/common';
 import {
   getLabelTextByAddress,
@@ -247,7 +247,7 @@ const mapStateToProps = (state) => ({
   internalAccounts: selectInternalAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
 });
