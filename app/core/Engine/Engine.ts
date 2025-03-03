@@ -108,7 +108,7 @@ import {
   addHexPrefix,
   hexToBN,
 } from '../../util/number';
-import NotificationManager from '../NotificationManager';
+// import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
 import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
@@ -1603,12 +1603,12 @@ export class Engine {
       nfts.setApiKey(process.env.MM_OPENSEA_KEY);
     }
 
-    this.controllerMessenger.subscribe(
-      'TransactionController:incomingTransactionsReceived',
-      (incomingTransactions: TransactionMeta[]) => {
-        NotificationManager.gotIncomingTransaction(incomingTransactions);
-      },
-    );
+    // this.controllerMessenger.subscribe(
+    //   'TransactionController:incomingTransactionsReceived',
+    //   (incomingTransactions: TransactionMeta[]) => {
+    //     NotificationManager.gotIncomingTransaction(incomingTransactions);
+    //   },
+    // );
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
