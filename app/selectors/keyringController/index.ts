@@ -1,4 +1,6 @@
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
+///: END:ONLY_INCLUDE_IF
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 
@@ -18,7 +20,9 @@ export const selectKeyrings = createDeepEqualSelector(
   (keyringControllerState) =>
     keyringControllerState.keyrings.map((keyring, index) => ({
       ...keyring,
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
       metadata: keyringControllerState.keyringsMetadata?.[index] || {},
+      ///: END:ONLY_INCLUDE_IF
     })),
 );
 

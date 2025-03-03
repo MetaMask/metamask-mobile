@@ -58,11 +58,12 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET).build(),
     );
   }, [onBack, navigate, trackEvent, createEventBuilder]);
-
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const openImportSrp = useCallback(() => {
     navigate(Routes.MULTI_SRP.IMPORT);
     onBack();
   }, [onBack, navigate]);
+  ///: END:ONLY_INCLUDE_IF
 
   const createNewAccount = useCallback(async () => {
     const { KeyringController } = Engine.context;
@@ -219,13 +220,17 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON
             }
           />
-          <AccountAction
-            actionTitle={strings('account_actions.import_srp')}
-            iconName={IconName.Hardware}
-            onPress={openImportSrp}
-            disabled={isLoading}
-            testID={AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON}
-          />
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+            <AccountAction
+              actionTitle={strings('account_actions.import_srp')}
+              iconName={IconName.Hardware}
+              onPress={openImportSrp}
+              disabled={isLoading}
+              testID={AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON}
+            />
+            ///: END:ONLY_INCLUDE_IF
+          }
         </View>
       </Fragment>
     </SafeAreaView>
