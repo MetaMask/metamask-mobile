@@ -132,7 +132,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioVieEna
           }
         }
       >
-        $100
+        $0
       </Text>
     </View>
   </View>
