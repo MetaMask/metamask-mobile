@@ -1,11 +1,14 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   assertIsFeatureEnabled,
   disablePushNotifications as disablePushNotificationsHelper,
   enablePushNotifications as enablePushNotificationsHelper,
 } from '../../../actions/notification/helpers';
-import { selectIsMetaMaskPushNotificationsEnabled } from '../../../selectors/notifications';
+import {
+  selectIsMetaMaskPushNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsLoading,
+} from '../../../selectors/notifications';
 import {
   hasPushPermission,
   requestPushPermissions,
@@ -21,11 +24,10 @@ export function usePushNotificationsToggle(
   props: UsePushNotificationsToggleProps = { nudgeEnablePush: true },
 ) {
   const data = useSelector(selectIsMetaMaskPushNotificationsEnabled);
-  const [loading, setLoading] = useState(false);
+  const loading = useSelector(selectIsMetaMaskPushNotificationsLoading);
 
   const enablePushNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
-    setLoading(true);
     const pushPermCallback = props.nudgeEnablePush
       ? requestPushPermissions
       : hasPushPermission;
@@ -36,17 +38,13 @@ export function usePushNotificationsToggle(
     await enablePushNotificationsHelper().catch(() => {
       /* Do Nothing */
     });
-
-    setLoading(false);
   }, [props.nudgeEnablePush]);
 
   const disablePushNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
-    setLoading(true);
     await disablePushNotificationsHelper().catch(() => {
       /* Do Nothing */
     });
-    setLoading(false);
   }, []);
 
   const togglePushNotification = useCallback(

@@ -6,6 +6,7 @@ import { HelpTextSeverity } from '../../../component-library/components/Form/Hel
 import HelpText from '../../../component-library/components/Form/HelpText';
 import Label from '../../../component-library/components/Form/Label';
 import { Box } from '../../UI/Box/Box';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
 
 export interface SnapUICheckboxProps {
   name: string;
@@ -47,7 +48,9 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
 
   return (
     <Box flexDirection={FlexDirection.Column}>
-      {fieldLabel && <Label>{fieldLabel}</Label>}
+      {fieldLabel && (
+        <Label variant={TextVariant.BodyMDMedium}>{fieldLabel}</Label>
+      )}
       <Checkbox
         onPress={handleChange}
         isChecked={value}

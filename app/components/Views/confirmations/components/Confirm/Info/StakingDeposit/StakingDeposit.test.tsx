@@ -2,7 +2,9 @@ import React from 'react';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
+import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import StakingDeposit from './StakingDeposit';
+import { getStakingDepositNavbar } from './Navbar';
 
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -17,6 +19,14 @@ jest.mock('../../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(),
+}));
+
+jest.mock('./Navbar', () => ({
+  getStakingDepositNavbar: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -29,7 +39,24 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('StakingDeposit', () => {
+  const mockGetStakingDepositNavbar = jest.mocked(getStakingDepositNavbar);
+  const mockUseConfirmActions = jest.mocked(useConfirmActions);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseConfirmActions.mockReturnValue({
+      onReject: jest.fn(),
+      onConfirm: jest.fn(),
+    });
+  });
+
   it('should render correctly', () => {
+    const mockOnReject = jest.fn();
+    mockUseConfirmActions.mockImplementation(() => ({
+      onConfirm: jest.fn(),
+      onReject: mockOnReject,
+    }));
+
     const { getByText } = renderWithProvider(<StakingDeposit />, {
       state: stakingDepositConfirmationState,
     });
@@ -39,5 +66,11 @@ describe('StakingDeposit', () => {
     expect(getByText('Withdrawal time')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
+
+    expect(mockGetStakingDepositNavbar).toHaveBeenCalled();
+    expect(mockGetStakingDepositNavbar).toHaveBeenCalledWith({
+      title: 'Stake',
+      onReject: mockOnReject,
+    });
   });
 });
