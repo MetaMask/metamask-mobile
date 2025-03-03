@@ -69,5 +69,6 @@ export const box: UIComponentFactory<BoxElement> = ({
     justifyContent: generateJustifyContent(e.props.alignment),
     alignItems: generateAlignItems(e.props.crossAlignment, e.props.center),
     color: TextColor.Default,
+    gap: 8,
   },
 });
