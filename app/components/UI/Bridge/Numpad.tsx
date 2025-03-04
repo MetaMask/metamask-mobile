@@ -32,12 +32,13 @@ const createStyles = ({ theme }: { theme: Theme }) => StyleSheet.create({
       width: '100%',
       borderWidth: 0,
       backgroundColor: theme.colors.background.default,
-      height: 48,
+      height: 56,
       justifyContent: 'center',
       alignItems: 'center',
     },
     buttonText: {
       fontSize: 24,
+      lineHeight: 32,
     },
   });
 

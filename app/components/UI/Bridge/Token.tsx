@@ -8,7 +8,7 @@ import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
 
 interface TokenProps {
   symbol: string;
-  address?: string;
+  subtitle?: string;
   iconUrl?: ImageSourcePropType;
 }
 
@@ -20,7 +20,7 @@ const createStyles = (params: StylesParams) => {
   const { theme } = params;
   const { shadows } = theme;
   return StyleSheet.create({
-    tokenAddress: {
+    subtitle: {
       color: theme.colors.text.alternative,
       fontSize: 12,
     },
@@ -31,15 +31,16 @@ const createStyles = (params: StylesParams) => {
     },
     pillContainer: {
       backgroundColor: theme.colors.background.default,
-      borderRadius: 16,
-      paddingVertical: 4,
-      paddingHorizontal: 8,
+      borderRadius: 100,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
       marginBottom: 4,
       ...shadows.size.xs,
     },
     tokenSymbol: {
       color: theme.colors.text.default,
       fontSize: 24,
+      lineHeight: 28,
     },
     symbolSpacing: {
       marginLeft: 4,
@@ -49,7 +50,7 @@ const createStyles = (params: StylesParams) => {
 
 export const Token: React.FC<TokenProps> = ({
   symbol,
-  address,
+  subtitle,
   iconUrl,
 }) => {
   const { styles } = useStyles(createStyles, {});
@@ -71,9 +72,9 @@ export const Token: React.FC<TokenProps> = ({
           </Text>
         </Box>
       </Box>
-      {address && (
-        <Text style={styles.tokenAddress}>
-          {address.slice(0, 6)}...{address.slice(-4)}
+      {subtitle && (
+        <Text style={styles.subtitle}>
+          {subtitle}
         </Text>
       )}
     </Box>
