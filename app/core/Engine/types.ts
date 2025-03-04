@@ -576,6 +576,11 @@ type ControllerPersistedState = Partial<{
 }>;
 
 /**
+ * Map of controller messengers by controller name.
+ */
+export type ControllerMessengerByControllerName = typeof CONTROLLER_MESSENGERS;
+
+/**
  * Request to initialize and return a controller instance.
  * Includes standard data and methods not coupled to any specific controller.
  */
