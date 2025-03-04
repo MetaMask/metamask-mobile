@@ -22,19 +22,21 @@ describe('notificationServicesControllerInit', () => {
       mockLog,
       mockCreateController,
       fakeMessenger,
-    };
-  };
-
-  it('logs and returns controller with default state', () => {
-    const { fakeMessenger, mockCreateController, mockLog } = arrangeMocks();
-
-    notificationServicesControllerInit({
-      controllerMessenger: fakeMessenger,
-      persistedState: { NotificationServicesController: undefined },
       getController: jest.fn(),
       getCurrentChainId: jest.fn(),
       getRootState: jest.fn(),
       initMessenger: jest.fn() as unknown as void,
+    };
+  };
+
+  it('logs and returns controller with default state', () => {
+    const { fakeMessenger, mockCreateController, mockLog, ...othersMocks } =
+      arrangeMocks();
+
+    notificationServicesControllerInit({
+      controllerMessenger: fakeMessenger,
+      persistedState: { NotificationServicesController: undefined },
+      ...othersMocks,
     });
 
     expect(mockCreateController).toHaveBeenCalled();
@@ -47,17 +49,15 @@ describe('notificationServicesControllerInit', () => {
   });
 
   it('logs and returns controller with initial state', () => {
-    const { fakeMessenger, mockCreateController, mockLog } = arrangeMocks();
+    const { fakeMessenger, mockCreateController, mockLog, ...othersMocks } =
+      arrangeMocks();
 
     notificationServicesControllerInit({
       controllerMessenger: fakeMessenger,
       persistedState: {
         NotificationServicesController: { isNotificationServicesEnabled: true },
       },
-      getController: jest.fn(),
-      getCurrentChainId: jest.fn(),
-      getRootState: jest.fn(),
-      initMessenger: jest.fn() as unknown as void,
+      ...othersMocks,
     });
 
     expect(mockCreateController).toHaveBeenCalled();
