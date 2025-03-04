@@ -12,10 +12,6 @@ import Text, { TextColor } from '../../../component-library/components/Texts/Tex
 import ETHLogo from '../../../images/eth-logo-new.png';
 import BTCLogo from '../../../images/bitcoin-logo.png';
 
-interface BridgeState {
-  sourceAmount: string;
-}
-
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
@@ -57,30 +53,31 @@ const createStyles = (params: { theme: Theme }) => {
 };
 
 const BridgeView = () => {
-  const [state, setState] = useState<BridgeState>({
-    sourceAmount: '0',
-  });
+  const [sourceAmount, setSourceAmount] = useState<string>();
+  const [destinationAmount, setDestinationAmount] = useState<string>();
 
   const { styles } = useStyles(createStyles, {});
 
   const handleNumberPress = (num: string) => {
-    setState((prev) => ({
-      sourceAmount: prev.sourceAmount === '0' ? num : prev.sourceAmount + num,
-    }));
+    setSourceAmount((prev) => {
+      if (!prev || prev === '0') return num;
+      return prev + num;
+    });
   };
 
   const handleBackspacePress = () => {
-    setState((prev) => ({
-      sourceAmount: prev.sourceAmount.slice(0, -1) || '0',
-    }));
+    setSourceAmount((prev) => {
+      if (!prev) return undefined;
+      const newAmount = prev.slice(0, -1);
+      return newAmount || undefined;
+    });
   };
 
   const handleDecimalPress = () => {
-    setState((prev) => {
-      if (prev.sourceAmount.includes('.')) return prev;
-      return {
-        sourceAmount: prev.sourceAmount + '.',
-      };
+    setSourceAmount((prev) => {
+      if (!prev) return '0.';
+      if (prev.includes('.')) return prev;
+      return prev + '.';
     });
   };
 
@@ -101,10 +98,11 @@ const BridgeView = () => {
       >
         <Box style={styles.inputsContainer}>
           <TokenInputArea
-            value={state.sourceAmount}
+            value={sourceAmount}
             tokenSymbol="ETH"
             tokenBalance="0.5"
             tokenIconUrl={ETHLogo}
+            autoFocus
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
@@ -112,10 +110,11 @@ const BridgeView = () => {
             </Box>
           </Box>
           <TokenInputArea
-            value="0"
+            value={destinationAmount}
             tokenSymbol="BTC"
             tokenAddress="0x32...2939"
             tokenIconUrl={BTCLogo}
+            isReadonly
           />
         </Box>
         <Box>
