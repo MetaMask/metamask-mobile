@@ -259,7 +259,7 @@ describe('Transaction Controller Init', () => {
         },
       },
       {
-        getCurrentChainId: () => MOCK_CHAIN_ID,
+        getGlobalChainId: () => MOCK_CHAIN_ID,
       },
     );
 

@@ -610,7 +610,7 @@ export type ControllerInitRequest<
    *
    * @deprecated Will be removed in the future pending multi-chain support.
    */
-  getCurrentChainId: () => Hex;
+  getGlobalChainId: () => Hex;
 
   /**
    * Get the root state of UI.
@@ -663,7 +663,7 @@ export type InitModularizedControllersFunction = (request: {
   controllerInitFunctions: ControllerInitFunctionByControllerName;
   baseControllerMessenger: BaseControllerMessenger;
   existingControllersByName?: Partial<ControllerByName>;
-  getCurrentChainId: () => Hex;
+  getGlobalChainId: () => Hex;
   getRootState: () => RootState;
   persistedState: ControllerPersistedState;
 }) => {

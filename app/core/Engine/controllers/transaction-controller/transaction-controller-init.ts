@@ -34,7 +34,7 @@ export const TransactionControllerInit: ControllerInitFunction<
   const {
     controllerMessenger,
     getRootState,
-    getCurrentChainId,
+    getGlobalChainId,
     initMessenger,
     persistedState,
   } = request;
@@ -84,7 +84,7 @@ export const TransactionControllerInit: ControllerInitFunction<
             isIncomingTransactionsEnabled(
               preferencesController,
               networkController,
-              getCurrentChainId,
+              getGlobalChainId,
             ),
           updateTransactions: true,
         },
@@ -132,12 +132,12 @@ function publishHook(
 function isIncomingTransactionsEnabled(
   preferencesController: PreferencesController,
   networkController: NetworkController,
-  getCurrentChainId: () => string,
+  getGlobalChainId: () => string,
 ): boolean {
   const currentHexChainId = getGlobalChainId(networkController);
   const showIncomingTransactions =
     preferencesController.state?.showIncomingTransactions;
-  const currentChainId = getCurrentChainId();
+  const currentChainId = getGlobalChainId();
   return Boolean(
     hasProperty(showIncomingTransactions, currentChainId) &&
       showIncomingTransactions?.[

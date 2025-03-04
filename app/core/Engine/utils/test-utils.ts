@@ -18,7 +18,7 @@ export function buildControllerInitRequestMock<ControllerMessenger>() {
     controllerMessenger: messenger as unknown as ControllerMessenger,
     getController: jest.fn(),
     persistedState: {},
-    getCurrentChainId: jest.fn(),
+    getGlobalChainId: jest.fn(),
     getRootState: jest.fn(),
   };
 }
