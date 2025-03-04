@@ -1,7 +1,5 @@
 import {
   BaseRestrictedControllerMessenger,
-  ControllerInitRequest,
-  BaseControllerMessenger,
   ControllerInitFunction,
   Controller,
 } from '../types';
@@ -11,17 +9,12 @@ import {
  *
  * @returns A mocked ControllerInitRequest.
  */
-export function buildControllerInitRequestMock(
-  controllerMessenger: BaseControllerMessenger,
-): jest.Mocked<ControllerInitRequest<BaseRestrictedControllerMessenger>> {
+export function buildControllerInitRequestMock() {
   return {
     getController: jest.fn(),
     persistedState: {},
-    controllerMessenger:
-      controllerMessenger as unknown as BaseRestrictedControllerMessenger,
     getCurrentChainId: jest.fn(),
     getRootState: jest.fn(),
-    initMessenger: jest.fn() as unknown as void,
   };
 }
 

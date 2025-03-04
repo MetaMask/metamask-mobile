@@ -572,7 +572,7 @@ export type ControllerInitRequest<
 
   /**
    * Get the chain id set in the engine.
-   * 
+   *
    * @deprecated Will be removed in the future pending multi-chain support.
    */
   getCurrentChainId: () => Hex;
