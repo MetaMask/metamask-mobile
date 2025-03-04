@@ -1,5 +1,4 @@
 import {
-  NotificationServicesControllerMessenger,
   defaultState,
   Controller as NotificationServicesController,
 } from '@metamask/notification-services-controller/notification-services';
@@ -9,6 +8,7 @@ import { buildControllerInitRequestMock } from '../../utils/test-utils';
 // eslint-disable-next-line import/no-namespace
 import * as createNotificationServicesControllerModule from './create-notification-services-controller';
 import { notificationServicesControllerInit } from './notification-services-controller-init';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 describe('notificationServicesControllerInit', () => {
   const arrangeMocks = () => {
@@ -20,13 +20,15 @@ describe('notificationServicesControllerInit', () => {
       )
       .mockReturnValue({} as NotificationServicesController);
 
-    const initRequestMock =
-      buildControllerInitRequestMock<NotificationServicesControllerMessenger>();
+    const baseControllerMessenger = new ExtendedControllerMessenger();
+
+    const initRequestMock = buildControllerInitRequestMock(
+      baseControllerMessenger,
+    );
 
     return {
       mockLog,
       mockCreateController,
-      initMessenger: jest.fn() as unknown as void,
       ...initRequestMock,
     };
   };
