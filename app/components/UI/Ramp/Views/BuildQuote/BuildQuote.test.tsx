@@ -500,6 +500,15 @@ describe('BuildQuote View', () => {
       expect(screen.toJSON()).toMatchSnapshot();
     });
 
+    it('renders no icons if there are no payment methods', async () => {
+      mockUsePaymentMethodsValues = {
+        ...mockUsePaymentMethodsInitialValues,
+        data: null,
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
     it('renders an error page when there is a payment method error', async () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
