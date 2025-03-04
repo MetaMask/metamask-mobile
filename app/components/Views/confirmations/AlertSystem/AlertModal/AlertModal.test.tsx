@@ -97,9 +97,9 @@ describe('AlertModal', () => {
       setAlertConfirmed,
     });
 
-    const { getByText } = render(<AlertModal />);
+    const { getByTestId } = render(<AlertModal />);
 
-    const checkbox = getByText(CHECKBOX_LABEL);
+    const checkbox = getByTestId('confirm-alert-checkbox');
 
     await act(async () => {
       fireEvent.press(checkbox);

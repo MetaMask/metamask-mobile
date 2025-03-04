@@ -41,7 +41,7 @@ const InfoRow = ({
       {typeof children === 'string' ? (
         <Text style={styles.value}>{children}</Text>
       ) : (
-        <>{children}</>
+        <View style={labelChildren ? styles.value : styles.valueComponent}>{children}</View>
       )}
     </View>
   );
