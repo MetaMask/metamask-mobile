@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  View,
-} from 'react-native';
+import { StyleSheet } from 'react-native';
 import ScreenView from '../../Base/ScreenView';
 import { Numpad } from './Numpad';
 import { TokenInputArea } from './TokenInputArea';
 import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
+import { Box } from '../Box/Box';
+import { FlexDirection, JustifyContent } from '../Box/box.types';
 
 interface BridgeState {
   sourceAmount: string;
@@ -18,7 +17,6 @@ interface BridgeState {
 const createStyles = (_: { theme: Theme }) => StyleSheet.create({
     content: {
       flexGrow: 1,
-      justifyContent: 'space-between',
       padding: 16,
     },
     inputsContainer: {
@@ -70,8 +68,12 @@ const BridgeView = () => {
 
   return (
     <ScreenView>
-      <View style={styles.content}>
-        <View style={styles.inputsContainer}>
+      <Box
+        style={styles.content}
+        flexDirection={FlexDirection.Column}
+        justifyContent={JustifyContent.spaceBetween}
+      >
+        <Box style={styles.inputsContainer}>
           <TokenInputArea
             value={state.sourceAmount}
             tokenSymbol="ETH"
@@ -83,8 +85,8 @@ const BridgeView = () => {
             tokenSymbol="USDC"
             tokenAddress="0x32...2939"
           />
-        </View>
-        <View>
+        </Box>
+        <Box>
           <Numpad
             onNumberPress={handleNumberPress}
             onBackspacePress={handleBackspacePress}
@@ -96,8 +98,8 @@ const BridgeView = () => {
             onPress={handleContinue}
             style={styles.button}
           />
-        </View>
-      </View>
+        </Box>
+      </Box>
     </ScreenView>
   );
 };
