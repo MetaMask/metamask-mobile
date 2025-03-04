@@ -130,13 +130,15 @@ export function* basicFunctionalityToggle() {
  */
 export function* startAppServices() {
   // Wait for persisted data to be loaded and navigation to be ready
-  yield all([
-    take(UserActionType.ON_PERSISTED_DATA_LOADED),
-    take(NavigationActionType.ON_NAVIGATION_READY),
-  ]);
-  // Start services
-  EngineService.start();
-  AppStateEventProcessor.start();
+  while (true) {
+    yield all([
+      take(UserActionType.ON_PERSISTED_DATA_LOADED),
+      take(NavigationActionType.ON_NAVIGATION_READY),
+    ]);
+    // Start services
+    EngineService.start();
+    AppStateEventProcessor.start();
+  }
   // TODO: Track a property in redux to gate keep the app until services are initialized
 }
 
