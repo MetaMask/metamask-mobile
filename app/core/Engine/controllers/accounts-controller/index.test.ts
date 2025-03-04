@@ -27,11 +27,10 @@ describe('accounts controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    // Create controller init request mock
     const baseControllerMessenger = new ExtendedControllerMessenger();
+    // Create controller init request mock
     initRequestMock = {
       ...buildControllerInitRequestMock(baseControllerMessenger),
-      initMessenger: jest.fn() as unknown as void,
     };
   });
 
