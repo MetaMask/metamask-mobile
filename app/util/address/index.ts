@@ -171,6 +171,10 @@ export async function importAccountFromPrivateKey(private_key: string) {
   Engine.setSelectedAddress(checksummedAddress);
 }
 
+export function isHdAccount(account: InternalAccount) {
+  return account.metadata.keyring.type === ExtendedKeyringTypes.hd;
+}
+
 /**
  * judge address is QR hardware account or not
  *
