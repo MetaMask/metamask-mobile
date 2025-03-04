@@ -14,9 +14,15 @@ async function main(): Promise<void> {
     // Get the commit hash from the GitHub context
     const commitHash = await getCommitHash();
     // Determine the E2E run flags
-    const e2eFlags = await determineE2ERunFlags();
+    const flags = await determineE2ERunFlags();
 
-    const [shouldRun, reason] = shouldRunBitriseE2E(e2eFlags);
+    console.log(`Docs: ${flags.isDocs}`);
+    console.log(`Fork: ${flags.isFork}`);
+    console.log(`Merge Queue: ${flags.isMQ}`);
+    console.log(`Has smoke test label: ${flags.hasSmokeTestLabel}`);
+    console.log(`Anti label: ${flags.hasAntiLabel}`);
+
+    const [shouldRun, reason] = shouldRunBitriseE2E(flags);
     console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
     // If the E2E tests should run, check the Bitrise test status

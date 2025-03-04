@@ -18,6 +18,10 @@ export enum BitriseTestStatus {
   NotFound
 }
 
+interface Label {
+  name: string;
+}
+
 
 export interface E2ERunFlags {
     isFork : boolean;
@@ -71,7 +75,7 @@ export async function determineE2ERunFlags(): Promise<E2ERunFlags> {
   const antiLabel = process.env.NO_E2E_LABEL;
 
     // Grab flags & labels
-    const labels = prData?.labels ?? [];
+    const labels: Label[] = prData?.labels ?? [];
     const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
     const hasAntiLabel = labels.some((label) => label.name === antiLabel);
     const fork = context.payload.pull_request?.head.repo.fork || false;
