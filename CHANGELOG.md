@@ -9,47 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.42.0]
 
-### Uncategorized
-
-- bump semvar version to 7.42.0 && build version to 1587
-- feat(ramps): adds some properties to ramp quote analytics events ([#13754](https://github.com/MetaMask/metamask-mobile/pull/13754))
-- chore: 7.41.0 updated changelog and version numbers from stable ([#13753](https://github.com/MetaMask/metamask-mobile/pull/13753))
-- feat(ramps): adds most reliable tag to ramp quotes ([#13495](https://github.com/MetaMask/metamask-mobile/pull/13495))
-- chore: point slack channels to prod ([#13748](https://github.com/MetaMask/metamask-mobile/pull/13748))
-- feat(snaps): Add Snap UI Banner component ([#13735](https://github.com/MetaMask/metamask-mobile/pull/13735))
-- test: Disable stake tests ([#13738](https://github.com/MetaMask/metamask-mobile/pull/13738))
-- chore: Revert "feat: Limit Segment tracked events to only random 1% of users" ([#13715](https://github.com/MetaMask/metamask-mobile/pull/13715))
-- chore: upgrade shared workflow refs slack ([#13699](https://github.com/MetaMask/metamask-mobile/pull/13699))
-- test(3664): more unit tests around chain permissions ([#13603](https://github.com/MetaMask/metamask-mobile/pull/13603))
-- chore: Assign platform team as codeowners to Engine files ([#13670](https://github.com/MetaMask/metamask-mobile/pull/13670))
-- test(ramp): MMQA-217: Add off-ramp e2e test cases for quotes ([#13482](https://github.com/MetaMask/metamask-mobile/pull/13482))
-- chore: Update Engine controller readme for assigning codeowners ([#13654](https://github.com/MetaMask/metamask-mobile/pull/13654))
-- fix(action): revert recent change, due to impossibility to indicate working directory for reusable workflows from github-tools repo ([#13629](https://github.com/MetaMask/metamask-mobile/pull/13629))
-- chore: Add Bridge component to Swaps team CODEOWNERS ([#13611](https://github.com/MetaMask/metamask-mobile/pull/13611))
-- perf: Improve Snaps execution performance ([#13420](https://github.com/MetaMask/metamask-mobile/pull/13420))
-- cp-7.41.0 ([#13590](https://github.com/MetaMask/metamask-mobile/pull/13590))
-- chore: Adding e2e for confirmation page scroll button ([#13575](https://github.com/MetaMask/metamask-mobile/pull/13575))
-- fix(action): Improve bug report creation ([#13562](https://github.com/MetaMask/metamask-mobile/pull/13562))
-- test: Fix Stake Claim smoke test flakiness on Android ([#13602](https://github.com/MetaMask/metamask-mobile/pull/13602))
-- chore: Bump deploy to bitrise step to 2.2.3 ([#13610](https://github.com/MetaMask/metamask-mobile/pull/13610))
-- test: ApproveView nonce to avoid nonce too low issue ([#13455](https://github.com/MetaMask/metamask-mobile/pull/13455))
-- chore: bump test-dapp version to 9.0.0 ([#13596](https://github.com/MetaMask/metamask-mobile/pull/13596))
-- chore: sync 7.40.0 changelog and versions ([#13592](https://github.com/MetaMask/metamask-mobile/pull/13592))
-- chore: Update setActiveNetwork function to be called from MultichainNetworkController ([#13556](https://github.com/MetaMask/metamask-mobile/pull/13556))
-- test(3664): add unit tests for network permissions components ([#13401](https://github.com/MetaMask/metamask-mobile/pull/13401))
-- chore: Core controllers v300 ([#13528](https://github.com/MetaMask/metamask-mobile/pull/13528))
-- chore: Fix dependency version ([#13554](https://github.com/MetaMask/metamask-mobile/pull/13554))
-- chore: bump detox version to 20.33.0 ([#13471](https://github.com/MetaMask/metamask-mobile/pull/13471))
-- test: remove old permission system test ([#13514](https://github.com/MetaMask/metamask-mobile/pull/13514))
-- fix(13492): background shapes animation stories and centering fix ([#13503](https://github.com/MetaMask/metamask-mobile/pull/13503))
-- test: Fixed swap chart test and remove bug workarounds ([#13509](https://github.com/MetaMask/metamask-mobile/pull/13509))
-- chore: remove SRP videos ([#13507](https://github.com/MetaMask/metamask-mobile/pull/13507))
-- test: Modify Stake smoke test not to use default test account for funding ([#13458](https://github.com/MetaMask/metamask-mobile/pull/13458))
-- chore: refactor header for tokens ([#11855](https://github.com/MetaMask/metamask-mobile/pull/11855))
-- chore: Update accounts controller to v23 and related packages (transaction controller etc) ([#13436](https://github.com/MetaMask/metamask-mobile/pull/13436))
-
 ### Added
 
+- feat(snaps): Add Snap UI Banner component ([#13735](https://github.com/MetaMask/metamask-mobile/pull/13735))
+- feat(ramps): adds some properties to ramp quote analytics events ([#13754](https://github.com/MetaMask/metamask-mobile/pull/13754))
+- feat(ramps): adds most reliable tag to ramp quotes ([#13495](https://github.com/MetaMask/metamask-mobile/pull/13495))
 - feat: Make Snaps UI footers properly sticky ([#13736](https://github.com/MetaMask/metamask-mobile/pull/13736))
 - feat: Add token hero rounded amount tooltip ([#13685](https://github.com/MetaMask/metamask-mobile/pull/13685))
 - feat: make Snap account creation flow async + displayAccountNameSuggestion flag ([#13703](https://github.com/MetaMask/metamask-mobile/pull/13703))
@@ -88,6 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix(action): Improve bug report creation ([#13562](https://github.com/MetaMask/metamask-mobile/pull/13562))
+- fix(action): revert recent change, due to impossibility to indicate working directory for reusable workflows from github-tools repo ([#13629](https://github.com/MetaMask/metamask-mobile/pull/13629))
+- fix(13492): background shapes animation stories and centering fix ([#13503](https://github.com/MetaMask/metamask-mobile/pull/13503))
 - fix: Adhere to locale settings for Annual Rewards in ETH and in Fiat ([#13660](https://github.com/MetaMask/metamask-mobile/pull/13660))
 - fix: Analytics issue where anonymousId and userId are not properly defined on first sent event ([#13405](https://github.com/MetaMask/metamask-mobile/pull/13405))
 - fix: app store icon ([#13724](https://github.com/MetaMask/metamask-mobile/pull/13724))
