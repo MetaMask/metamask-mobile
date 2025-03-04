@@ -128,6 +128,7 @@ const Main = (props) => {
   const { chainId, networkClientId, showIncomingTransactionsNetworks } = props;
 
   useEffect(() => {
+    // NOT IT
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
       setShowDeprecatedAlert(true);
     } else {
@@ -135,13 +136,13 @@ const Main = (props) => {
     }
   }, [props.chainId]);
 
-  useEffect(() => {
-    stopIncomingTransactionPolling();
+  // useEffect(() => {
+  //   stopIncomingTransactionPolling();
 
-    if (showIncomingTransactionsNetworks[chainId]) {
-      startIncomingTransactionPolling([chainId]);
-    }
-  }, [chainId, networkClientId, showIncomingTransactionsNetworks]);
+  //   if (showIncomingTransactionsNetworks[chainId]) {
+  //     startIncomingTransactionPolling([chainId]);
+  //   }
+  // }, [chainId, networkClientId, showIncomingTransactionsNetworks]);
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
@@ -349,33 +350,33 @@ const Main = (props) => {
     removeNotVisibleNotifications();
   }, [removeNotVisibleNotifications]);
 
-  useEffect(() => {
-    const appStateListener = AppState.addEventListener(
-      'change',
-      handleAppStateChange,
-    );
+  // useEffect(() => {
+  //   const appStateListener = AppState.addEventListener(
+  //     'change',
+  //     handleAppStateChange,
+  //   );
 
-    setTimeout(() => {
-      NotificationManager.init({
-        navigation: props.navigation,
-        showTransactionNotification: props.showTransactionNotification,
-        hideCurrentNotification: props.hideCurrentNotification,
-        showSimpleNotification: props.showSimpleNotification,
-        removeNotificationById: props.removeNotificationById,
-      });
-      checkInfuraAvailability();
-      removeConnectionStatusListener.current = NetInfo.addEventListener(
-        connectionChangeHandler,
-      );
-    }, 1000);
+  //   setTimeout(() => {
+  //     NotificationManager.init({
+  //       navigation: props.navigation,
+  //       showTransactionNotification: props.showTransactionNotification,
+  //       hideCurrentNotification: props.hideCurrentNotification,
+  //       showSimpleNotification: props.showSimpleNotification,
+  //       removeNotificationById: props.removeNotificationById,
+  //     });
+  //     checkInfuraAvailability();
+  //     removeConnectionStatusListener.current = NetInfo.addEventListener(
+  //       connectionChangeHandler,
+  //     );
+  //   }, 1000);
 
-    return function cleanup() {
-      appStateListener.remove();
-      removeConnectionStatusListener.current &&
-        removeConnectionStatusListener.current();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectionChangeHandler]);
+  //   return function cleanup() {
+  //     appStateListener.remove();
+  //     removeConnectionStatusListener.current &&
+  //       removeConnectionStatusListener.current();
+  //   };
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [connectionChangeHandler]);
 
   const termsOfUse = useCallback(async () => {
     if (props.navigation) {
@@ -415,12 +416,7 @@ const Main = (props) => {
 
   return (
     <React.Fragment>
-      {!forceReload ? (
-        <MainNavigator navigation={props.navigation} />
-      ) : (
-        renderLoader()
-      )}
-      {/* <AssetPollingProvider>
+      <AssetPollingProvider>
         <View style={styles.flex}>
           {!forceReload ? (
             <MainNavigator navigation={props.navigation} />
@@ -450,7 +446,7 @@ const Main = (props) => {
           <ProtectYourWalletModal navigation={props.navigation} />
           <RootRPCMethodsUI navigation={props.navigation} />
         </View>
-      </AssetPollingProvider> */}
+      </AssetPollingProvider>
     </React.Fragment>
   );
 };
