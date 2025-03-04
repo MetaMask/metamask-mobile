@@ -71,9 +71,9 @@ const AssetFiatConversion = ({
   </Text>
 );
 
-const TokenHero = () => {
+const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { tokenAmountValue, tokenAmountDisplayValue, fiatDisplayValue } = useTokenValues();
+  const { tokenAmountValue, tokenAmountDisplayValue, fiatDisplayValue } = useTokenValues({ amountWei });
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const displayTokenAmountIsRounded = tokenAmountValue !== tokenAmountDisplayValue;

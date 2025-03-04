@@ -1,13 +1,13 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { getStakingDepositNavbar } from './Navbar';
+import { getStakingNavbar } from './Navbar';
 
 describe('getStakingDepositNavbar', () => {
   it('renders the header title correctly', () => {
     const title = 'Test Title';
     const { getByText } = render(
       <>
-        {getStakingDepositNavbar({ title, onReject: jest.fn() }).headerTitle()}
+        {getStakingNavbar({ title, onReject: jest.fn() }).headerTitle()}
       </>,
     );
 
@@ -18,7 +18,7 @@ describe('getStakingDepositNavbar', () => {
     const onRejectMock = jest.fn();
     const { getByTestId } = render(
       <>
-        {getStakingDepositNavbar({
+        {getStakingNavbar({
           title: 'Test Title',
           onReject: onRejectMock,
         }).headerLeft()}

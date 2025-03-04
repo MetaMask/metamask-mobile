@@ -19,7 +19,10 @@ const REDESIGNED_SIGNATURE_TYPES = [
   ApprovalType.PersonalSign,
 ];
 
-const REDESIGNED_TRANSACTION_TYPES = [TransactionType.stakingDeposit];
+const REDESIGNED_TRANSACTION_TYPES = [
+  TransactionType.stakingDeposit,
+  TransactionType.stakingUnstake,
+];
 
 function isRedesignedSignature({
   approvalRequestType,
@@ -59,7 +62,12 @@ function isRedesignedTransaction({
     return false;
   }
 
-  if (transactionMetadata.type === TransactionType.stakingDeposit) {
+  if (
+    transactionMetadata.type && [
+      TransactionType.stakingDeposit,
+      TransactionType.stakingUnstake
+    ].includes(transactionMetadata.type)
+  ) {
     return confirmationRedesignFlags?.staking_transactions;
   }
 
