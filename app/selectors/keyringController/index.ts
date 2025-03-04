@@ -1,6 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-///: END:ONLY_INCLUDE_IF
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 
@@ -26,7 +24,7 @@ export const selectKeyrings = createDeepEqualSelector(
     })),
 );
 
-export const selectHDKeyrings = createDeepEqualSelector(
+export const selectHdKeyrings = createDeepEqualSelector(
   selectKeyrings,
   (keyrings) => keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd),
 );
@@ -48,9 +46,4 @@ export const selectFlattenedKeyringAccounts = createDeepEqualSelector(
     );
     return flattenedKeyringAccounts;
   },
-);
-
-export const selectHdKeyrings = createDeepEqualSelector(
-  selectKeyrings,
-  (keyrings) => keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd),
 );

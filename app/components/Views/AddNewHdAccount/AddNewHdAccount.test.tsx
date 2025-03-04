@@ -3,7 +3,6 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import AddNewHdAccount from './AddNewHdAccount';
-import { addNewHdAccount } from '../../../actions/multiSrp';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,

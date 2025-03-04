@@ -375,7 +375,11 @@ const DetectedTokensFlow = () => (
   </Stack.Navigator>
 );
 
-const RootModalFlow = (props) => (
+const RootModalFlow = (
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  props,
+  ///: END:ONLY_INCLUDE_IF
+) => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -487,11 +491,17 @@ const RootModalFlow = (props) => (
       name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
       component={EnableAutomaticSecurityChecksModal}
     />
-    <Stack.Screen name={Routes.MODAL.SELECT_SRP} component={SelectSRP} />
+    {
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+      <Stack.Screen name={Routes.MODAL.SELECT_SRP} component={SelectSRP} />
+      ///: END:ONLY_INCLUDE_IF
+    }
     <Stack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
       component={SRPQuiz}
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
       initialParams={{ ...props.route.params }}
+      ///: END:ONLY_INCLUDE_IF
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_ACTIONS}
@@ -1093,11 +1103,13 @@ App.propTypes = {
   }),
 };
 
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 RootModalFlow.propTypes = {
   route: PropTypes.shape({
     params: PropTypes.object,
   }),
 };
+///: END:ONLY_INCLUDE_IF
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
