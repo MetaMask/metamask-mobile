@@ -165,7 +165,7 @@ export function getOctokitInstance(): InstanceType<typeof GitHub> {
 export function shouldRunBitriseE2E(flags : E2ERunFlags): [boolean, string] {
 
   const conditions = [
-    {condition: flags.hasAntiLabel, message: "The smoke test label is present.", shouldRun: true},
+    {condition: flags.hasSmokeTestLabel, message: "The smoke test label is present.", shouldRun: true},
     {condition: flags.isFork, message: "The pull request is from a fork.", shouldRun: false},
     {condition: flags.isDocs, message: "The pull request is documentation related.", shouldRun: false},
     {condition: flags.isMQ, message: "The pull request is part of a merge queue.", shouldRun: false},
