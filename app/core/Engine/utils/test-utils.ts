@@ -1,27 +1,24 @@
 import {
-  BaseRestrictedControllerMessenger,
-  ControllerInitRequest,
-  BaseControllerMessenger,
-  ControllerInitFunction,
-} from '../types';
-import {
   AccountsController,
   AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
+
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ControllerInitFunction } from '../types';
 
 /**
  * Build a mock for the ControllerInitRequest.
  *
  * @returns A mocked ControllerInitRequest.
  */
-export function buildControllerInitRequestMock(
-  controllerMessenger: BaseControllerMessenger,
-): jest.Mocked<ControllerInitRequest<BaseRestrictedControllerMessenger>> {
+export function buildControllerInitRequestMock<ControllerMessenger>() {
+  const messenger = new ExtendedControllerMessenger();
   return {
+    controllerMessenger: messenger as unknown as ControllerMessenger,
     getController: jest.fn(),
     persistedState: {},
-    controllerMessenger:
-      controllerMessenger as unknown as BaseRestrictedControllerMessenger,
+    getGlobalChainId: jest.fn(),
+    getUIState: jest.fn(),
   };
 }
 
