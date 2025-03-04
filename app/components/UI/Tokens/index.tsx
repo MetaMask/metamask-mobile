@@ -247,36 +247,75 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     return tokensToDisplay.filter((token) => token.chainId === currentChainId);
   };
 
-  const tokensList = useMemo((): TokenI[] => {
-    trace({
-      name: TraceName.Tokens,
-      tags: getTraceTags(store.getState()),
-    });
-    if (isPortfolioViewEnabled()) {
+  const tokensList = useMemo(
+    (): TokenI[] => {
       trace({
         name: TraceName.Tokens,
         tags: getTraceTags(store.getState()),
       });
+      if (isPortfolioViewEnabled()) {
+        trace({
+          name: TraceName.Tokens,
+          tags: getTraceTags(store.getState()),
+        });
 
-      // MultiChain implementation
-      const allTokens = Object.values(
-        selectedAccountTokensChains,
-      ).flat() as TokenI[];
+        // MultiChain implementation
+        const allTokens = Object.values(
+          selectedAccountTokensChains,
+        ).flat() as TokenI[];
 
-      /*
+        /*
         If hideZeroBalanceTokens is ON and user is on "all Networks" we respect the setting and filter native and ERC20 tokens when zero
         If user is on "current Network" we want to show native tokens, even with zero balance
       */
-      const tokensToDisplay = getTokensToDisplay(allTokens);
+        const tokensToDisplay = getTokensToDisplay(allTokens);
 
-      const filteredTokens: TokenI[] = filterTokensByNetwork(tokensToDisplay);
+        const filteredTokens: TokenI[] = filterTokensByNetwork(tokensToDisplay);
 
-      const assets = categorizeTokens(filteredTokens);
+        const assets = categorizeTokens(filteredTokens);
+
+        // Calculate fiat balances for tokens
+        const tokenFiatBalances = calculateFiatBalances(assets);
+
+        const tokensWithBalances = assets.map((token, i) => ({
+          ...token,
+          tokenFiatAmount: tokenFiatBalances[i],
+        }));
+
+        const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
+        endTrace({
+          name: TraceName.Tokens,
+        });
+        return tokensSorted;
+      }
+      // Previous implementation
+      // Filter tokens based on hideZeroBalanceTokens flag
+      const tokensToDisplay = hideZeroBalanceTokens
+        ? tokens.filter(
+            ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
+          )
+        : tokens;
 
       // Calculate fiat balances for tokens
-      const tokenFiatBalances = calculateFiatBalances(assets);
+      const tokenFiatBalances = conversionRate
+        ? tokensToDisplay.map((asset) =>
+            asset.isETH
+              ? parseFloat(asset.balance) * conversionRate
+              : deriveBalanceFromAssetMarketDetails(
+                  asset,
+                  tokenExchangeRates || {},
+                  tokenBalances || {},
+                  conversionRate || 0,
+                  currentCurrency || '',
+                ).balanceFiatCalculation,
+          )
+        : [];
 
-      const tokensWithBalances = assets.map((token, i) => ({
+      // Combine tokens with their fiat balances
+      // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
+      // this key in the controller is also used by extension, so this is for consistency in syntax and config
+      // actual balance rendering for each token list item happens in TokenListItem component
+      const tokensWithBalances = tokensToDisplay.map((token, i) => ({
         ...token,
         tokenFiatAmount: tokenFiatBalances[i],
       }));
@@ -286,56 +325,20 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
         name: TraceName.Tokens,
       });
       return tokensSorted;
-    }
-    // Previous implementation
-    // Filter tokens based on hideZeroBalanceTokens flag
-    const tokensToDisplay = hideZeroBalanceTokens
-      ? tokens.filter(
-          ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
-        )
-      : tokens;
-
-    // Calculate fiat balances for tokens
-    const tokenFiatBalances = conversionRate
-      ? tokensToDisplay.map((asset) =>
-          asset.isETH
-            ? parseFloat(asset.balance) * conversionRate
-            : deriveBalanceFromAssetMarketDetails(
-                asset,
-                tokenExchangeRates || {},
-                tokenBalances || {},
-                conversionRate || 0,
-                currentCurrency || '',
-              ).balanceFiatCalculation,
-        )
-      : [];
-
-    // Combine tokens with their fiat balances
-    // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
-    // this key in the controller is also used by extension, so this is for consistency in syntax and config
-    // actual balance rendering for each token list item happens in TokenListItem component
-    const tokensWithBalances = tokensToDisplay.map((token, i) => ({
-      ...token,
-      tokenFiatAmount: tokenFiatBalances[i],
-    }));
-
-    const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
-    endTrace({
-      name: TraceName.Tokens,
-    });
-    return tokensSorted;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    hideZeroBalanceTokens,
-    tokenSortConfig,
-    // Dependencies for multichain implementation
-    debouncedMultiChainTokenBalance,
-    debouncedMultiChainMarketData,
-    debouncedMultiChainCurrencyRates,
-    selectedAccountTokensChains,
-    selectedInternalAccountAddress,
-    isUserOnCurrentNetwork,
-  ]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [
+      // hideZeroBalanceTokens,
+      // tokenSortConfig,
+      // // Dependencies for multichain implementation
+      // debouncedMultiChainTokenBalance,
+      // debouncedMultiChainMarketData,
+      // debouncedMultiChainCurrencyRates,
+      // selectedAccountTokensChains,
+      // selectedInternalAccountAddress,
+      // isUserOnCurrentNetwork,
+    ],
+  );
 
   const showRemoveMenu = (token: TokenI) => {
     if (actionSheet.current) {
