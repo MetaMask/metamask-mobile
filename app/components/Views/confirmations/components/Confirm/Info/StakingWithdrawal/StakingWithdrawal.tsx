@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
+import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import AdvancedDetails from '../../AdvancedDetails/AdvancedDetails';
 import StakingDetails from '../../StakingDetails';
@@ -8,14 +9,14 @@ import TokenHero from '../../TokenHero';
 import GasFeesDetails from '../GasFeesDetails';
 import { getStakingNavbar } from '../Navbar/Navbar';
 
-const StakingDeposit = () => {
+const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getStakingNavbar({
-        title: strings('stake.stake'),
+        title: strings('stake.unstake'),
         onReject,
       }),
     );
@@ -25,11 +26,11 @@ const StakingDeposit = () => {
 
   return (
     <>
-      <TokenHero />
+      <TokenHero amountWei={route.params.amountWei} />
       <StakingDetails />
       <GasFeesDetails />
       <AdvancedDetails />
     </>
   );
 };
-export default StakingDeposit;
+export default StakingWithdrawal;

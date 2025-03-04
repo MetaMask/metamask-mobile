@@ -9,7 +9,7 @@ import ButtonIcon, {
 } from '../../../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
 
-export function getStakingDepositNavbar({
+export function getStakingNavbar({
   title,
   onReject,
 }: {
