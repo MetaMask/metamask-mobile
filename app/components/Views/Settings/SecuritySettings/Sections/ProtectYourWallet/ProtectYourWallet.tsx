@@ -27,7 +27,6 @@ import Banner, {
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { hasMultipleHDKeyrings } from '../../../../../../selectors/keyringController';
-import Logger from '../../../../../../util/Logger';
 ///: END:ONLY_INCLUDE_IF
 
 interface IProtectYourWalletProps {
