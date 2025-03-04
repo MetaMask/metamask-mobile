@@ -662,8 +662,8 @@ export type ControllerInitFunctionByControllerName = {
  * Function to initialize the controllers in the engine.
  */
 export type InitModularizedControllersFunction = (request: {
-  controllerInitFunctions: ControllerInitFunctionByControllerName;
   baseControllerMessenger: BaseControllerMessenger;
+  controllerInitFunctions: ControllerInitFunctionByControllerName;
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
   getUIState: () => RootState;
