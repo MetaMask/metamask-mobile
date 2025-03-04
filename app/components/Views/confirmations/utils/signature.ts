@@ -67,10 +67,12 @@ interface TypedSignatureRequest {
  * Support backwards compatibility DAI while it's still being deprecated. See EIP-2612 for more info.
  */
 export const isPermitDaiUnlimited = (tokenAddress: string, allowed?: number|string|boolean) =>
-  tokenAddress === TOKEN_ADDRESS.DAI && Number(allowed) > 0;
+  tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase()
+    && Number(allowed) > 0;
 
 export const isPermitDaiRevoke = (tokenAddress: string, allowed?: number|string|boolean) =>
-  tokenAddress === TOKEN_ADDRESS.DAI && (allowed === 0 || allowed === false || allowed === 'false');
+  tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase()
+    && (allowed === 0 || allowed === false || allowed === 'false');
 
 /**
  * Returns true if the request is Typed Sign V3 or V4 request
