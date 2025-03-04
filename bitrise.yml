@@ -1133,6 +1133,13 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release e2e/specs/accounts/reveal-secret-recovery-phrase.spec.js
+      - script@1:
+          title: Keep build open
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                sleep 5400
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
