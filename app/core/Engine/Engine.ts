@@ -962,7 +962,6 @@ export class Engine {
           getRpcMethodMiddleware({
             hostname,
             getProviderState,
-            navigation: null,
             title: { current: 'Snap' },
             icon: { current: undefined },
             isHomepage: () => false,

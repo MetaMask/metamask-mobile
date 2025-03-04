@@ -3,7 +3,6 @@ import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
 import Engine from '../../core/Engine';
 import AndroidService from './AndroidSDK/AndroidService';
 import addDappConnection from './AndroidSDK/addDappConnection';
@@ -53,7 +52,6 @@ export interface approveHostProps {
 }
 
 export interface SDKConnectState {
-  navigation?: NavigationContainerRef;
   reconnected: boolean;
 
   // Track init status to ensure connection recovery priority and prevent double initialization.
@@ -91,7 +89,6 @@ export class SDKConnect {
   private static instance: SDKConnect;
 
   public state: SDKConnectState = {
-    navigation: undefined,
     reconnected: false,
     _initialized: false,
     _initializing: undefined,
@@ -353,14 +350,8 @@ export class SDKConnect {
     return this.state.connections;
   }
 
-  public async init({
-    navigation,
-    context,
-  }: {
-    navigation: NavigationContainerRef;
-    context?: string;
-  }) {
-    return init({ navigation, context, instance: this });
+  public async init({ context }: { context?: string }) {
+    return init({ context, instance: this });
   }
 
   async postInit(callback?: () => void) {

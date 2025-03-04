@@ -55,7 +55,6 @@ export const setupBridge = ({
         channelId: connection.channelId,
         getProviderState,
         isMMSDK: true,
-        navigation: null, //props.navigation,
         // Website info
         url: {
           current: originatorInfo?.url,

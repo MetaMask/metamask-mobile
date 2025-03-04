@@ -887,7 +887,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           getRpcMethodMiddleware({
             hostname,
             getProviderState,
-            navigation,
             // Website info
             url: resolvedUrlRef,
             title: titleRef,

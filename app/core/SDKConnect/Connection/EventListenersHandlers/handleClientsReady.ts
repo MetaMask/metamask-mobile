@@ -7,6 +7,7 @@ import SDKConnect, { approveHostProps } from '../../SDKConnect';
 import handleConnectionReady from '../../handlers/handleConnectionReady';
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
+import NavigationService from '../../../NavigationService';
 
 function handleClientsReady({
   instance,
@@ -46,9 +47,12 @@ function handleClientsReady({
             instance.trigger === 'deeplink' &&
             instance.origin !== AppConstants.DEEPLINKS.ORIGIN_QR_CODE
           ) {
-            instance.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-            });
+            NavigationService.navigation?.navigate(
+              Routes.MODAL.ROOT_MODAL_FLOW,
+              {
+                screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+              },
+            );
           }
         },
         disapprove,

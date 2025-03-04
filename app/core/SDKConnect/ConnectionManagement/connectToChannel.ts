@@ -16,6 +16,7 @@ import checkPermissions from '../handlers/checkPermissions';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait, waitForCondition } from '../utils/wait.util';
+import NavigationService from '../../NavigationService';
 import { SDKConnect } from './../SDKConnect';
 
 import packageJSON from '../../../../package.json';
@@ -97,7 +98,6 @@ async function connectToChannel({
       trigger,
       rpcQueueManager: instance.state.rpcqueueManager,
       originatorInfo,
-      navigation: instance.state.navigation,
       updateOriginatorInfos: instance.updateOriginatorInfos.bind(instance),
       approveHost: instance._approveHost.bind(instance),
       disapprove: instance.disapproveChannel.bind(instance),
@@ -146,7 +146,7 @@ async function connectToChannel({
         await waitForCondition({
           fn: () => {
             const currentRouteName =
-              connected.navigation?.getCurrentRoute()?.name;
+              NavigationService.navigation?.getCurrentRoute()?.name;
             DevLogger.log(
               `connectToChannel:: currentRouteName=${currentRouteName}`,
             );
@@ -183,7 +183,7 @@ async function connectToChannel({
         // cleanup connection
         await wait(100); // Add delay for connect modal to be fully closed
         await instance.updateSDKLoadingState({ channelId: id, loading: false });
-        connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
         });
         return;
@@ -238,7 +238,8 @@ async function connectToChannel({
       // Make sure connect modal has enough time to fully close.
       await waitForCondition({
         fn: () => {
-          const checkRoute = connected.navigation?.getCurrentRoute()?.name;
+          const checkRoute =
+            NavigationService.navigation?.getCurrentRoute()?.name;
           return checkRoute !== Routes.SHEET.ACCOUNT_CONNECT;
         },
         context: 'connectToChannel',
@@ -247,7 +248,8 @@ async function connectToChannel({
 
       await instance.updateSDKLoadingState({ channelId: id, loading: false });
 
-      const currentRouteName = connected.navigation?.getCurrentRoute()?.name;
+      const currentRouteName =
+        NavigationService.navigation?.getCurrentRoute()?.name;
       DevLogger.log(
         `connectToChannel:: initialConnection=${initialConnection} trigger=${trigger} origin=${origin}  routeName: ${currentRouteName}`,
       );
@@ -257,7 +259,7 @@ async function connectToChannel({
         connected.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
       ) {
         DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_MODAL`);
-        connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
         });
       }

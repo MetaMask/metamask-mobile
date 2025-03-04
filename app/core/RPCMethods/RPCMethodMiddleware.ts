@@ -48,6 +48,7 @@ import {
   MessageParamsTyped,
   SignatureController,
 } from '@metamask/signature-controller';
+import NavigationService from '../NavigationService';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,9 +89,6 @@ export interface RPCMethodsMiddleParameters {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getProviderState: (origin?: string) => any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
   url: MutableRefObject<string>;
   title: MutableRefObject<string>;
   icon: MutableRefObject<ImageSourcePropType | undefined>;
@@ -299,7 +297,6 @@ export const getRpcMethodMiddleware = ({
   hostname,
   channelId,
   getProviderState,
-  navigation,
   // Website info
   url,
   title,
@@ -739,7 +736,7 @@ export const getRpcMethodMiddleware = ({
       wallet_scanQRCode: () =>
         new Promise<void>((resolve, reject) => {
           checkTabActive();
-          navigation.navigate(Routes.QR_TAB_SWITCHER, {
+          NavigationService.navigation?.navigate(Routes.QR_TAB_SWITCHER, {
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onScanSuccess: (data: any) => {
@@ -828,7 +825,7 @@ export const getRpcMethodMiddleware = ({
 
         store.dispatch(setOnboardingWizardStep(1));
 
-        navigation.navigate('WalletView');
+        NavigationService.navigation?.navigate('WalletView');
 
         res.result = true;
       },
@@ -937,7 +934,6 @@ export const getRpcMethodMiddleware = ({
           code?: number;
         },
         store,
-        navigation,
       });
       isWhiteListedMethod &&
         store.dispatch(setEventStageError(req.method, error));

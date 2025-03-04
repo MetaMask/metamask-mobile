@@ -9,6 +9,7 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
+import NavigationService from '../../NavigationService';
 import extractURLParams from './extractURLParams';
 
 function handleUniversalLink({
@@ -53,8 +54,11 @@ function handleUniversalLink({
     }
 
     if (action === ACTIONS.CONNECT) {
-      if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-        SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      if (
+        params.redirect &&
+        origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+      ) {
+        NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
         });
       } else if (params.channelId) {

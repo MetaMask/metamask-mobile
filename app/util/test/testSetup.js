@@ -183,9 +183,7 @@ jest.mock('react-native-keychain', () => ({
 
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-branch', () => ({
-  BranchSubscriber: () => {
-    () => 'RNBranch';
-  },
+  subscribe: jest.fn(),
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
@@ -328,14 +326,23 @@ jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   },
 }));
 
-jest.mock('redux-persist', () => ({
-  persistStore: jest.fn(),
-  persistReducer: (_, reducer) => {
-    return reducer || ((state) => state);
-  },
-  createTransform: jest.fn(),
-  createMigrate: jest.fn(),
-}));
+jest.mock('redux-persist', () => {
+  const mockPersistor = {
+    subscribe: jest.fn(),
+    purge: jest.fn(),
+    pause: jest.fn(),
+    persist: jest.fn(),
+    flush: jest.fn(),
+  };
+  return {
+    persistStore: jest.fn(() => mockPersistor),
+    persistReducer: (_, reducer) => {
+      return reducer || ((state) => state);
+    },
+    createTransform: jest.fn(),
+    createMigrate: jest.fn(),
+  };
+});
 
 jest.mock('../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
