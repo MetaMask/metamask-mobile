@@ -43,6 +43,24 @@ describe('initModularizedControllers', () => {
     expect(controllers.controllersByName.TransactionController).toBeDefined();
   });
 
+  it('should throw when controller is not found', async () => {
+    expect(() =>
+      initModularizedControllers({
+        existingControllersByName: {},
+        controllerInitFunctions: {
+          AccountsController: mockControllerInitFunction,
+          TransactionController: TransactionControllerInit,
+        },
+        persistedState: {},
+        baseControllerMessenger: new ExtendedControllerMessenger(),
+        getGlobalChainId: jest.fn(),
+        getUIState: jest.fn(),
+      }),
+    ).toThrow(
+      'Controller requested before it was initialized: NetworkController',
+    );
+  });
+
   it('should not throw when when existing controller is found', async () => {
     expect(() =>
       initModularizedControllers({

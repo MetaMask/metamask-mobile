@@ -68,12 +68,12 @@ export const initModularizedControllers: InitModularizedControllersFunction = ({
     const messengerCallbacks = CONTROLLER_MESSENGERS[controllerName];
 
     const controllerMessengerCallback =
-      messengerCallbacks?.getMessenger as ControllerMessengerCallback;
+      messengerCallbacks.getMessenger as ControllerMessengerCallback;
 
     const initMessengerCallback =
       messengerCallbacks?.getInitMessenger as ControllerMessengerCallback;
 
-    const controllerMessenger = controllerMessengerCallback?.(
+    const controllerMessenger = controllerMessengerCallback(
       baseControllerMessenger,
     );
 
