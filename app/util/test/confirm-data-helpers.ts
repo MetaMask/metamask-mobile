@@ -13,6 +13,7 @@ import {
 } from '@metamask/transaction-controller';
 
 import { backgroundState } from './initial-root-state';
+
 export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
     confirmation_redesign: {
@@ -21,6 +22,13 @@ export const confirmationRedesignRemoteFlagsState = {
     },
   },
 };
+
+const mockTypeDefEIP712Domain = [
+  { name: 'name', type: 'string' },
+  { name: 'version', type: 'string' },
+  { name: 'chainId', type: 'uint256' },
+  { name: 'verifyingContract', type: 'address' }
+];
 
 export const personalSignSignatureRequest = {
   chainId: '0x1',
@@ -665,3 +673,91 @@ export const stakingDepositConfirmationState = {
     showFiatOnTestnets: true,
   },
 };
+
+export enum SignTypedDataMockType {
+  DAI = 'DAI',
+}
+
+const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
+  [SignTypedDataMockType.DAI]: JSON.stringify({
+    domain: {
+      name: 'Dai Stablecoin',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+    },
+    types: {
+      EIP712Domain: mockTypeDefEIP712Domain,
+      Permit: [
+        { name: 'holder', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'expiry', type: 'uint256' },
+        { name: 'allowed', type: 'bool' }
+      ]
+    },
+    primaryType: 'Permit',
+    message: {
+      spender: '0x5B38Da6a701c568545dCfcB03FcB875f56beddC4',
+      tokenId: '3606393',
+      nonce: 0,
+      expiry: 0,
+      allowed: false
+    },
+  }),
+};
+
+export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
+  const mockSignatureRequest = {
+    id: 'c5067710-87cf-11ef-916c-71f266571322',
+    chainId: '0x1' as Hex,
+    type: SignatureRequestType.TypedSign,
+    messageParams: {
+      data: SIGN_TYPE_DATA[mockType],
+      from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+      version: 'V4',
+      requestId: 14,
+      signatureMethod: 'eth_signTypedData_v4',
+      origin: 'https://metamask.github.io',
+      metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+      meta: {
+        url: 'https://metamask.github.io/test-dapp/',
+        title: 'E2E Test Dapp',
+        icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+        analytics: { request_source: 'In-App-Browser' },
+      },
+    },
+    networkClientId: '1',
+    status: SignatureRequestStatus.Unapproved,
+    time: 1733143817088,
+  } as SignatureRequest;
+
+  return {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        ApprovalController: {
+          pendingApprovals: {
+            'c5067710-87cf-11ef-916c-71f266571322': {
+              id: 'c5067710-87cf-11ef-916c-71f266571322',
+              origin: 'metamask.github.io',
+              type: SignatureRequestType.TypedSign,
+              time: 1733143817088,
+              requestData: { ...mockSignatureRequest },
+              requestState: null,
+              expectsResult: true,
+            },
+          },
+          pendingApprovalCount: 1,
+          approvalFlows: [],
+        },
+        SignatureController: {
+          signatureRequests: {
+            'c5067710-87cf-11ef-916c-71f266571322':
+            mockSignatureRequest,
+          },
+        },
+      },
+    },
+  };
+}
