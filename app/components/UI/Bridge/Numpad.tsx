@@ -15,15 +15,11 @@ interface NumpadProps {
 }
 
 const createStyles = () => StyleSheet.create({
-    container: {
-      paddingHorizontal: 16,
-    },
     row: {
       width: '100%',
     },
     buttonContainer: {
       flex: 1,
-      paddingHorizontal: 8,
     },
     button: {
       width: '100%',
@@ -53,7 +49,7 @@ export const Numpad: React.FC<NumpadProps> = ({
   const { styles } = useStyles(createStyles, {});
 
   return (
-    <Box style={styles.container} gap={24}>
+    <Box gap={24}>
       {NUMPAD_LAYOUT.map((row) => (
         <Box
           key={row.join('-')}
