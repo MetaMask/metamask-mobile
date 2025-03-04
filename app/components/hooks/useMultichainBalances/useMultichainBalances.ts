@@ -2,7 +2,6 @@
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { isTestNet, isPortfolioViewEnabled } from '../../../util/networks';
-import { renderFiat } from '../../../util/number';
 import {
   selectChainId,
   selectIsPopularNetwork,
@@ -116,7 +115,10 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   ) => {
     const multichainBalance = Number(nativeTokenBalance);
     const fiatBalance = multichainBalance * conversionRate;
-    return renderFiat(fiatBalance, currency);
+    return formatWithThreshold(fiatBalance, 0, I18n.locale, {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+    });
   };
 
   const getNonEvmDisplayBalance = () => {
