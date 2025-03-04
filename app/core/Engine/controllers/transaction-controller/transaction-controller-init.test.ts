@@ -133,15 +133,28 @@ describe('Transaction Controller Init', () => {
     expect(state).toBe(MOCK_TRANSACTION_CONTROLLER_STATE);
   });
 
-  it('throws error if requested controller is not found', () => {
-    const requestMock = buildInitRequestMock({
-      getController: () => {
-        throw new Error('Controller not found');
-      },
+  describe('throws error', () => {
+    it('if requested controller is not found', () => {
+      const requestMock = buildInitRequestMock({
+        getController: () => {
+          throw new Error('Controller not found');
+        },
+      });
+      expect(() => TransactionControllerInit(requestMock)).toThrow(
+        'Controller not found',
+      );
     });
-    expect(() => TransactionControllerInit(requestMock)).toThrow(
-      'Controller not found',
-    );
+
+    it('if controller initialisation fails', () => {
+      transactionControllerClassMock.mockImplementationOnce(() => {
+        throw new Error('Controller initialisation failed');
+      });
+      const requestMock = buildInitRequestMock();
+
+      expect(() => TransactionControllerInit(requestMock)).toThrow(
+        'Controller initialisation failed',
+      );
+    });
   });
 
   it.each([
@@ -258,5 +271,18 @@ describe('Transaction Controller Init', () => {
 
     expect(isEnabledFn?.()).toBe(true);
     expect(updateTransactionsProp).toBe(true);
+  });
+
+  it('gets network state from network controller on option getNetworkState', () => {
+    const MOCK_NETWORK_STATE = {
+      chainId: '0x1',
+    };
+    const option = testConstructorOption('getNetworkState', {
+      state: {
+        ...MOCK_NETWORK_STATE,
+      },
+    });
+
+    expect(option?.()).toStrictEqual(MOCK_NETWORK_STATE);
   });
 });
