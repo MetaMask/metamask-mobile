@@ -83,13 +83,17 @@ const PermitSimulation = () => {
     labelChangeType = strings('confirm.simulation.label_change_type_revoke');
   }
 
+  const infoText = isDaiRevoke
+    ? strings('confirm.simulation.info_revoke')
+    : strings('confirm.simulation.info_permit');
+
   return (
     <InfoSection>
       <InfoRow
         label={strings('confirm.simulation.title')}
         tooltip={strings('confirm.simulation.tooltip')}
       >
-        {strings('confirm.simulation.info_permit')}
+        {infoText}
       </InfoRow>
 
       <InfoRow label={labelChangeType}>
