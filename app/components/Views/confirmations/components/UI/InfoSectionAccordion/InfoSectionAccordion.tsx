@@ -112,7 +112,7 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
         testID={`${testID}-header`}
       >
         {typeof header === 'string' ? (
-          <Animated.Text style={styles.headerTitle}><Text style={styles.headerTitle}>{header}</Text></Animated.Text>
+          <Animated.Text><Text style={styles.headerTitle}>{header}</Text></Animated.Text>
         ) : (
             header
         )}
