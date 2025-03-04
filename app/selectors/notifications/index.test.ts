@@ -13,6 +13,7 @@ import {
   getMetamaskNotificationsUnreadCount,
   getMetamaskNotificationsReadCount,
   getOnChainMetamaskNotificationsUnreadCount,
+  selectIsMetaMaskPushNotificationsLoading,
 } from './index';
 import { RootState } from '../../reducers';
 import {
@@ -40,6 +41,12 @@ describe('Notification Selectors', () => {
   it('selectIsMetaMaskPushNotificationsEnabled returns correct value', () => {
     expect(selectIsMetaMaskPushNotificationsEnabled(mockState)).toEqual(
       MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER.isPushEnabled,
+    );
+  });
+
+  it('selectIsMetaMaskPushNotificationsLoading returns correct value', () => {
+    expect(selectIsMetaMaskPushNotificationsLoading(mockState)).toEqual(
+      MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER.isUpdatingFCMToken,
     );
   });
 

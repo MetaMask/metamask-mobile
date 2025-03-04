@@ -61,11 +61,8 @@ import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/R
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import {
-  isBtcAccount,
-  isSolanaAccount,
-  getFormattedAddressFromInternalAccount,
-} from '../../../core/Multichain/utils';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+
 ///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 
@@ -882,6 +879,7 @@ export function getOfflineModalNavbar() {
  * @param {boolean | null} isProfileSyncingEnabled - Whether profile syncing is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
+ * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -1007,7 +1005,7 @@ export function getWalletNavbarOptions(
   }
 
   const renderNetworkPicker = () => {
-    let networkPicker = (
+    const networkPicker = (
       <PickerNetwork
         label={networkName}
         imageSource={networkImageSource}
@@ -1016,33 +1014,6 @@ export function getWalletNavbarOptions(
         hideNetworkName
       />
     );
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (isSolanaAccount(selectedInternalAccount)) {
-      networkPicker = (
-        <PickerNetwork
-          label={'Solana'}
-          imageSource={require('../../../images/solana-logo.png')}
-          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-          hideNetworkName
-          isDisabled
-        />
-      );
-    }
-
-    if (isBtcAccount(selectedInternalAccount)) {
-      networkPicker = (
-        <PickerNetwork
-          label={'Bitcoin'}
-          imageSource={require('../../../images/bitcoin-logo.png')}
-          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-          hideNetworkName
-          isDisabled
-        />
-      );
-    }
-
-    ///: END:ONLY_INCLUDE_IF
 
     return <View style={styles.leftElementContainer}>{networkPicker}</View>;
   };

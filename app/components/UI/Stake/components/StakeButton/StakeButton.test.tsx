@@ -10,6 +10,8 @@ import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventB
 import { mockNetworkState } from '../../../../../util/test/network';
 import AppConstants from '../../../../../core/AppConstants';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
+import { RootState } from '../../../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
 
@@ -92,9 +94,29 @@ const STATE_MOCK = {
           chainId: '0x1',
         }),
       },
+      MultichainNetworkController: {
+        isEvmSelected: true,
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+        multichainNetworkConfigurationsByChainId: {
+          'bip122:000000000019d6689c085ae165831e93': {
+            chainId: 'bip122:000000000019d6689c085ae165831e93',
+            name: 'Bitcoin Mainnet',
+            nativeCurrency: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+            isEvm: false,
+          },
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            name: 'Solana Mainnet',
+            nativeCurrency:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            isEvm: false,
+          },
+        },
+      },
     },
   },
-};
+} as unknown as RootState;
 
 const renderComponent = (state = STATE_MOCK) =>
   renderWithProvider(<StakeButton asset={MOCK_ETH_MAINNET_ASSET} />, {
@@ -171,9 +193,31 @@ describe('StakeButton', () => {
               chainId: '0x89', // Polygon
             }),
           },
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+            multichainNetworkConfigurationsByChainId: {
+              'bip122:000000000019d6689c085ae165831e93': {
+                chainId: 'bip122:000000000019d6689c085ae165831e93',
+                name: 'Bitcoin Mainnet',
+                nativeCurrency:
+                  'bip122:000000000019d6689c085ae165831e93/slip44:0',
+                isEvm: false,
+              },
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                name: 'Solana Mainnet',
+                nativeCurrency:
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                isEvm: false,
+              },
+            },
+          },
         },
       },
-    };
+    } as unknown as RootState;
+
     const spySetActiveNetwork = jest.spyOn(
       Engine.context.MultichainNetworkController,
       'setActiveNetwork',
