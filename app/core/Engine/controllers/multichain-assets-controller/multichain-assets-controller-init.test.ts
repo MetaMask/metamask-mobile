@@ -1,52 +1,44 @@
 import {
   MultichainAssetsController,
-  MultichainAssetsControllerMessenger,
+  type MultichainAssetsControllerMessenger,
   MultichainAssetsControllerState,
 } from '@metamask/assets-controllers';
+import type { ControllerInitRequest } from '../../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { multichainAssetsControllerInit } from './multichain-assets-controller-init';
+import { defaultMultichainAssetsControllerState } from './constants';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
-import { createMultichainAssetsController } from '.';
 
 jest.mock('@metamask/assets-controllers');
 
-describe('multichain assets controller', () => {
+describe('multichain assets controller init', () => {
   const multichainAssetsControllerClassMock = jest.mocked(
     MultichainAssetsController,
   );
-
-  let multichainAssetsControllerMessenger: MultichainAssetsControllerMessenger;
+  let initRequestMock: jest.Mocked<
+    ControllerInitRequest<MultichainAssetsControllerMessenger>
+  >;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const messenger = new ExtendedControllerMessenger();
-    multichainAssetsControllerMessenger = messenger.getRestricted({
-      name: 'MultichainAssetsController',
-      allowedEvents: [
-        'AccountsController:accountAdded',
-        'AccountsController:accountAdded',
-        'AccountsController:accountAssetListUpdated',
-      ],
-      allowedActions: ['AccountsController:listMultichainAccounts'],
-    });
+    const baseControllerMessenger = new ExtendedControllerMessenger();
+    // Create controller init request mock
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
   it('returns controller instance', () => {
     expect(
-      createMultichainAssetsController({
-        messenger: multichainAssetsControllerMessenger,
-      }),
+      multichainAssetsControllerInit(initRequestMock).controller,
     ).toBeInstanceOf(MultichainAssetsController);
   });
 
   it('controller state should be default state when no initial state is passed in', () => {
-    createMultichainAssetsController({
-      messenger: multichainAssetsControllerMessenger,
-    });
+    multichainAssetsControllerInit(initRequestMock);
     const multichainAssetsControllerState =
       multichainAssetsControllerClassMock.mock.calls[0][0].state;
-    expect(multichainAssetsControllerState).toEqual({
-      accountsAssets: {},
-      assetsMetadata: {},
-    });
+    expect(multichainAssetsControllerState).toEqual(
+      defaultMultichainAssetsControllerState,
+    );
   });
 
   it('controller state should be initial state when initial state is passed in', () => {
@@ -72,10 +64,13 @@ describe('multichain assets controller', () => {
         },
       };
 
-    createMultichainAssetsController({
-      messenger: multichainAssetsControllerMessenger,
-      initialState: initialMultichainAssetsControllerState,
-    });
+    // Update mock with initial state
+    initRequestMock.persistedState = {
+      ...initRequestMock.persistedState,
+      MultichainAssetsController: initialMultichainAssetsControllerState,
+    };
+
+    multichainAssetsControllerInit(initRequestMock);
 
     const multichainAssetsControllerState =
       multichainAssetsControllerClassMock.mock.calls[0][0].state;
@@ -84,17 +79,15 @@ describe('multichain assets controller', () => {
     );
   });
 
-  it('should throw and log error when controller creation fails', () => {
+  it('should throw when controller creation fails', () => {
     const mockError = new Error('Test error');
     jest.spyOn(console, 'error').mockImplementation();
     multichainAssetsControllerClassMock.mockImplementation(() => {
       throw mockError;
     });
 
-    expect(() =>
-      createMultichainAssetsController({
-        messenger: multichainAssetsControllerMessenger,
-      }),
-    ).toThrow(mockError);
+    expect(() => multichainAssetsControllerInit(initRequestMock)).toThrow(
+      mockError,
+    );
   });
 });

@@ -150,8 +150,6 @@ import {
   CronjobControllerEvents,
   CronjobControllerActions,
   CronjobController,
-  ExecutionServiceEvents,
-  ExecutionServiceActions,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -513,7 +511,18 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize = 'AccountsController';
+export type ControllersToInitialize =
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  | 'CronjobController'
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  | 'MultichainAssetsController'
+  | 'MultichainAssetsRatesController'
+  | 'MultichainBalancesController'
+  ///: END:ONLY_INCLUDE_IF
+  | 'CurrencyRateController'
+  | 'AccountsController'
+  | 'MultichainNetworkController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
