@@ -55,32 +55,6 @@ export const Numpad: React.FC<NumpadProps> = ({
 }) => {
   const { styles } = useStyles(createStyles, {});
 
-  const renderButton = (key: string) => {
-    const buttonContent = key === 'backspace' ? (
-      <ButtonIcon
-        key={key}
-        iconName={IconName.Delete}
-        onPress={onBackspacePress}
-        style={styles.button}
-        size={ButtonIconSizes.Lg}
-      />
-    ) : (
-      <Button
-        key={key}
-        variant={ButtonVariants.Secondary}
-        label={<Text variant={TextVariant.BodyMD} style={styles.buttonText}>{key}</Text>}
-        onPress={key === '.' ? onDecimalPress : () => onNumberPress(key)}
-        style={styles.button}
-      />
-    );
-
-    return (
-      <Box key={key} style={styles.buttonContainer}>
-        {buttonContent}
-      </Box>
-    );
-  };
-
   return (
     <Box style={styles.container}>
       {NUMPAD_LAYOUT.map((row) => (
@@ -91,7 +65,44 @@ export const Numpad: React.FC<NumpadProps> = ({
           justifyContent={JustifyContent.spaceBetween}
           alignItems={AlignItems.center}
         >
-          {row.map((key) => renderButton(key))}
+          {row.map((key) => {
+            let button: React.ReactNode;
+
+            if (key === 'backspace') {
+              button = (
+                <ButtonIcon
+                  iconName={IconName.Delete}
+                  onPress={onBackspacePress}
+                  style={styles.button}
+                  size={ButtonIconSizes.Lg}
+                />
+              );
+            } else if (key === '.') {
+              button = (
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  label={<Text variant={TextVariant.BodyMD} style={styles.buttonText}>{key}</Text>}
+                  onPress={onDecimalPress}
+                  style={styles.button}
+                />
+              );
+            } else {
+              button = (
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  label={<Text variant={TextVariant.BodyMD} style={styles.buttonText}>{key}</Text>}
+                  onPress={() => onNumberPress(key)}
+                  style={styles.button}
+                />
+              );
+            }
+
+            return (
+              <Box key={key} style={styles.buttonContainer}>
+                {button}
+              </Box>
+            );
+          })}
         </Box>
       ))}
     </Box>
