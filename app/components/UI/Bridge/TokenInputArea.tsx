@@ -1,17 +1,19 @@
 import React from 'react';
 import { StyleSheet, ImageSourcePropType } from 'react-native';
-import TextField, { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { useStyles } from '../../../component-library/hooks';
 import { Box } from '../Box/Box';
-import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
+import Text, { TextColor } from '../../../component-library/components/Texts/Text';
+import Input from '../../../component-library/components/Form/TextField/foundation/Input';
 import { Token } from './Token';
 
 interface TokenInputAreaProps {
-  value: string;
+  value?: string;
   tokenSymbol: string;
   tokenAddress?: string;
   tokenBalance?: string;
   tokenIconUrl?: ImageSourcePropType;
+  autoFocus?: boolean;
+  isReadonly?: boolean;
 }
 
 const createStyles = () =>
@@ -22,24 +24,37 @@ const createStyles = () =>
     content: {
       padding: 16,
     },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
     amountContainer: {
       flex: 1,
     },
-    textField: {
+    input: {
       fontSize: 40,
       borderWidth: 0,
       padding: 0,
+      lineHeight: 40,
+      height: 40,
+      minHeight: 40,
+    },
+    subtitleRow: {
+      marginTop: 4,
     },
   });
 
 const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
 
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
-  value = '0',
+  value,
   tokenSymbol = 'ETH',
   tokenAddress,
   tokenBalance,
   tokenIconUrl,
+  autoFocus,
+  isReadonly = false,
 }) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -48,28 +63,41 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
 
   const subtitle = formattedBalance ?? formattedAddress;
 
+  // Hardcoded conversion rate for demonstration
+  const fiatValue = value ? parseFloat(value) * 2000 : 0;
+  const formattedFiatValue = fiatValue.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  });
+
   return (
     <Box style={styles.container}>
-      <Box
-        style={styles.content}
-        flexDirection={FlexDirection.Row}
-        justifyContent={JustifyContent.spaceBetween}
-        alignItems={AlignItems.center}
-      >
-        <Box style={styles.amountContainer}>
-          <TextField
-            value={value}
-            style={styles.textField}
-            isDisabled
-            placeholder="0"
-            size={TextFieldSize.Lg}
+      <Box style={styles.content}>
+        <Box style={styles.row}>
+          <Box style={styles.amountContainer}>
+            <Input
+              value={value}
+              style={styles.input}
+              isReadonly={isReadonly}
+              autoFocus={autoFocus}
+              placeholder="0"
+            />
+          </Box>
+          <Token
+            symbol={tokenSymbol}
+            iconUrl={tokenIconUrl}
           />
         </Box>
-        <Token
-          symbol={tokenSymbol}
-          subtitle={subtitle}
-          iconUrl={tokenIconUrl}
-        />
+        <Box style={[styles.row, styles.subtitleRow]}>
+          <Text color={TextColor.Alternative}>
+            {formattedFiatValue}
+          </Text>
+          {subtitle && (
+            <Text color={TextColor.Alternative}>
+              {subtitle}
+            </Text>
+          )}
+        </Box>
       </Box>
     </Box>
   );
