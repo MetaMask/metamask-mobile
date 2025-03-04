@@ -1153,7 +1153,7 @@ export class Engine {
 
     const initRequest = {
       getRootState: () => store.getState(),
-      getCurrentChainId: () => currentChainId,
+      getGlobalChainId: () => currentChainId,
     };
 
     const { controllersByName } = initModularizedControllers({

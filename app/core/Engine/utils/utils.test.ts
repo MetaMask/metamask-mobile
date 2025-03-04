@@ -34,7 +34,7 @@ describe('initModularizedControllers', () => {
         TransactionController: mockTransactionControllerInit,
       },
       existingControllersByName: {},
-      getCurrentChainId: jest.fn(),
+      getGlobalChainId: jest.fn(),
       getRootState: jest.fn(),
       persistedState: {},
     });
@@ -55,7 +55,7 @@ describe('initModularizedControllers', () => {
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
-        getCurrentChainId: jest.fn(),
+        getGlobalChainId: jest.fn(),
         getRootState: jest.fn(),
       }),
     ).not.toThrow();
