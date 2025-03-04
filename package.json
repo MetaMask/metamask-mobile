@@ -455,7 +455,7 @@
     "jest-junit": "^15.0.0",
     "jetifier": "2.0.0",
     "koa": "^2.15.3",
-    "lint-staged": "10.5.4",
+    "lint-staged": "15.4.3",
     "listr2": "^8.0.2",
     "metro-react-native-babel-preset": "~0.76.9",
     "metro-react-native-babel-transformer": "~0.76.9",
