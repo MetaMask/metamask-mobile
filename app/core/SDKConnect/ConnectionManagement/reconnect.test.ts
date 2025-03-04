@@ -38,7 +38,6 @@ describe('reconnect', () => {
   const mockSetTrigger = jest.fn();
   const mockApproveHost = jest.fn();
   const mockDisapproveChannel = jest.fn();
-  const mockGetApprovedHosts = jest.fn();
   const mockRevalidateChannel = jest.fn();
   const mockIsApproved = jest.fn();
   const mockUpdateOriginatorInfos = jest.fn();
@@ -81,7 +80,6 @@ describe('reconnect', () => {
       updateSDKLoadingState: mockUpdateSDKLoadingState,
       _approveHost: mockApproveHost,
       disapproveChannel: mockDisapproveChannel,
-      getApprovedHosts: mockGetApprovedHosts,
       revalidateChannel: mockRevalidateChannel,
       isApproved: mockIsApproved,
       removeChannel: mockRemoveChannel,

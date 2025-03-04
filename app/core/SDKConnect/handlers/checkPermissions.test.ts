@@ -7,6 +7,7 @@ import checkPermissions from './checkPermissions';
 import { PermissionController } from '@metamask/permission-controller';
 import { getPermittedAccounts } from '../../../core/Permissions';
 import { KeyringController } from '@metamask/keyring-controller';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 
 jest.mock('../Connection', () => ({
   RPC_METHODS: jest.requireActual('../Connection').RPC_METHODS,
@@ -125,13 +126,15 @@ describe('checkPermissions', () => {
     mockGetPermittedAccounts.mockResolvedValue([]);
     permissionController.getPermission = jest.fn().mockReturnValue(null);
     requestPermissions.mockResolvedValue({});
-    mockGetPermittedAccounts.mockResolvedValueOnce([]).mockResolvedValueOnce(['0x123']);
+    mockGetPermittedAccounts
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce(['0x123']);
 
     const result = await checkPermissions({ connection, engine });
     expect(requestPermissions).toHaveBeenCalledWith(
-      { origin: connection.channelId },
+      { origin: `${PROTOCOLS.METAMASK}://${connection.channelId}` },
       { eth_accounts: {} },
-      { preserveExistingPermissions: false }
+      { preserveExistingPermissions: false },
     );
     expect(result).toBe(true);
   });

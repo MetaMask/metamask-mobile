@@ -17,7 +17,7 @@ export interface AccountConnectSingleProps {
   onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
   onSetScreen: (screen: AccountConnectScreens) => void;
   onSetSelectedAddresses: (addresses: string[]) => void;
-  urlWithProtocol: string;
+  origin: string;
   favicon: ImageSourcePropType;
   secureIcon: IconName;
   connection?: ConnectionProps;

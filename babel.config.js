@@ -40,6 +40,10 @@ module.exports = {
       test: './app/core/Engine/Engine.ts',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
+    {
+      test: './app/core/BackgroundBridge/BackgroundBridge.ts',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
   ],
   env: {
     production: {

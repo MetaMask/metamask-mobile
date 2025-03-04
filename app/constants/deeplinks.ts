@@ -10,6 +10,7 @@ export enum PROTOCOLS {
   ETHEREUM = 'ethereum',
   DAPP = 'dapp',
   METAMASK = 'metamask',
+  SNAP = 'snap',
 }
 
 export enum ACTIONS {
