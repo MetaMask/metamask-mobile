@@ -34,12 +34,11 @@ jobs:
         run: yarn --immutable
         working-directory: '.github/scripts'
 
-      - name: Check Bitrise E2E Status
+      - name: Check Bitrise E2E Gate
         env:
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
           BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # The status check created under this workflow may be bucketed under another check suite in Github actions. This is a result of workflows with the same triggers.
-        # For example, the status check may show as `CLA Signature Bot / Bitrise E2E Status`. This is a bug on Github's UI. https://github.com/orgs/community/discussions/24616
         run: yarn run bitrise-results-check
         working-directory: '.github/scripts'
+
