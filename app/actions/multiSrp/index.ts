@@ -59,13 +59,13 @@ export async function createNewSecretRecoveryPhrase() {
 
 export async function addNewHdAccount(
   name?: string,
-  keyringId?: string,
+  _keyringId?: string,
 ): Promise<void> {
   const { KeyringController } = Engine.context;
   try {
-    const keyringSelector: KeyringSelector = keyringId
+    const keyringSelector: KeyringSelector = _keyringId
       ? {
-          id: keyringId,
+          id: _keyringId,
         }
       : {
           type: ExtendedKeyringTypes.hd,
