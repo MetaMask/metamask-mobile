@@ -43,7 +43,7 @@ const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
   const onSubmit = async () => {
     setIsLoading(true);
     try {
-      await addNewHdAccount(keyringId, accountName);
+      await addNewHdAccount(accountName, keyringId);
       onBack();
     } catch (e) {
       Logger.error(e, 'ADD_NEW_HD_ACCOUNT_ERROR');
