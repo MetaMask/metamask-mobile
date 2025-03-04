@@ -422,28 +422,28 @@ const Main = (props) => {
         ) : (
           renderLoader()
         )}
-        {/* <GlobalAlert />
-          <FadeOutOverlay />
-          <Notification navigation={props.navigation} />
-          <RampOrders />
-          <SwapsLiveness />
-          <BackupAlert
-            onDismiss={toggleRemindLater}
-            navigation={props.navigation}
-          /> */}
-        {/* {renderDeprecatedNetworkAlert(
-            props.chainId,
-            props.backUpSeedphraseVisible,
-          )}
-          <SkipAccountSecurityModal
-            modalVisible={showRemindLaterModal}
-            onCancel={skipAccountModalSecureNow}
-            onConfirm={skipAccountModalSkip}
-            skipCheckbox={skipCheckbox}
-            toggleSkipCheckbox={toggleSkipCheckbox}
-          />
-          <ProtectYourWalletModal navigation={props.navigation} />
-          <RootRPCMethodsUI navigation={props.navigation} /> */}
+        <GlobalAlert />
+        <FadeOutOverlay />
+        <Notification navigation={props.navigation} />
+        <RampOrders />
+        <SwapsLiveness />
+        <BackupAlert
+          onDismiss={toggleRemindLater}
+          navigation={props.navigation}
+        />
+        {renderDeprecatedNetworkAlert(
+          props.chainId,
+          props.backUpSeedphraseVisible,
+        )}
+        <SkipAccountSecurityModal
+          modalVisible={showRemindLaterModal}
+          onCancel={skipAccountModalSecureNow}
+          onConfirm={skipAccountModalSkip}
+          skipCheckbox={skipCheckbox}
+          toggleSkipCheckbox={toggleSkipCheckbox}
+        />
+        <ProtectYourWalletModal navigation={props.navigation} />
+        <RootRPCMethodsUI navigation={props.navigation} />
       </View>
       {/* </AssetPollingProvider> */}
     </React.Fragment>
