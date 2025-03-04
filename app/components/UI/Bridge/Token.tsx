@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Image, ImageSourcePropType } from 'react-native';
-import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
+import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
@@ -39,6 +39,7 @@ const createStyles = (params: StylesParams) => {
     },
     tokenSymbol: {
       color: theme.colors.text.default,
+      fontSize: 24,
     },
     symbolSpacing: {
       marginLeft: 4,
@@ -65,7 +66,7 @@ export const Token: React.FC<TokenProps> = ({
           <Image source={iconUrl} style={styles.icon} />
         )}
         <Box style={styles.symbolSpacing}>
-          <Text variant={TextVariant.BodyMD} style={styles.tokenSymbol}>
+          <Text style={styles.tokenSymbol}>
             {symbol}
           </Text>
         </Box>
