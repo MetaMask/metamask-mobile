@@ -424,26 +424,26 @@ export class Engine {
       multichainRatesController,
     );
 
-    const cronjobControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'CronjobController',
-      allowedEvents: [
-        'SnapController:snapInstalled',
-        'SnapController:snapUpdated',
-        'SnapController:snapUninstalled',
-        'SnapController:snapEnabled',
-        'SnapController:snapDisabled',
-      ],
-      allowedActions: [
-        `PermissionController:getPermissions`,
-        'SnapController:handleRequest',
-        'SnapController:getAll',
-      ],
-    });
+    // const cronjobControllerMessenger = this.controllerMessenger.getRestricted({
+    //   name: 'CronjobController',
+    //   allowedEvents: [
+    //     'SnapController:snapInstalled',
+    //     'SnapController:snapUpdated',
+    //     'SnapController:snapUninstalled',
+    //     'SnapController:snapEnabled',
+    //     'SnapController:snapDisabled',
+    //   ],
+    //   allowedActions: [
+    //     `PermissionController:getPermissions`,
+    //     'SnapController:handleRequest',
+    //     'SnapController:getAll',
+    //   ],
+    // });
 
-    const cronjobController = createCronJobController(
-      cronjobControllerMessenger,
-      initialState.CronjobController,
-    );
+    // const cronjobController = createCronJobController(
+    //   cronjobControllerMessenger,
+    //   initialState.CronjobController,
+    // );
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
