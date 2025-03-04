@@ -1,25 +1,28 @@
 import {
   BaseRestrictedControllerMessenger,
+  BaseControllerMessenger,
   ControllerInitFunction,
   Controller,
+  ControllerName,
+  ControllerInitRequest,
 } from '../types';
-
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
-import { ControllerInitFunction } from '../types';
 
 /**
  * Build a mock for the ControllerInitRequest.
  *
  * @returns A mocked ControllerInitRequest.
  */
-export function buildControllerInitRequestMock<ControllerMessenger>() {
-  const messenger = new ExtendedControllerMessenger();
+export function buildControllerInitRequestMock(
+  controllerMessenger: BaseControllerMessenger,
+): jest.Mocked<ControllerInitRequest<BaseRestrictedControllerMessenger>> {
   return {
-    controllerMessenger: messenger as unknown as ControllerMessenger,
+    controllerMessenger:
+      controllerMessenger as unknown as BaseRestrictedControllerMessenger,
     getController: jest.fn(),
-    persistedState: {},
     getGlobalChainId: jest.fn(),
     getUIState: jest.fn(),
+    initMessenger: jest.fn() as unknown as void,
+    persistedState: {},
   };
 }
 
@@ -33,12 +36,13 @@ export function buildControllerInitRequestMock<ControllerMessenger>() {
 export function createMockControllerInitFunction<
   T extends Controller,
   M extends BaseRestrictedControllerMessenger,
->(): ControllerInitFunction<T, M> {
+>(requiredController?: string): ControllerInitFunction<T, M> {
   return (request) => {
     const { getController } = request;
 
-    // This will throw an error if NetworkController is not found
-    getController('NetworkController');
+    if (requiredController) {
+      getController(requiredController as unknown as ControllerName);
+    }
 
     return {
       controller: jest.fn() as unknown as T,

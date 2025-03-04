@@ -30,24 +30,30 @@ export const CONTROLLER_MESSENGERS = {
   },
   CurrencyRateController: {
     getMessenger: getCurrencyRateControllerMessenger,
+    getInitMessenger: noop,
   },
   MultichainNetworkController: {
     getMessenger: getMultichainNetworkControllerMessenger,
+    getInitMessenger: noop,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   CronjobController: {
     getMessenger: getCronjobControllerMessenger,
+    getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainAssetsController: {
     getMessenger: getMultichainAssetsControllerMessenger,
+    getInitMessenger: noop,
   },
   MultichainAssetsRatesController: {
     getMessenger: getMultichainAssetsRatesControllerMessenger,
+    getInitMessenger: noop,
   },
   MultichainBalancesController: {
     getMessenger: getMultichainBalancesControllerMessenger,
+    getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
 } as const;
