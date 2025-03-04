@@ -7,7 +7,7 @@ import Button, { ButtonVariants } from '../../../component-library/components/Bu
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
-import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
+import { FlexDirection, JustifyContent, AlignItems, Display } from '../Box/box.types';
 import Text, { TextColor } from '../../../component-library/components/Texts/Text';
 import ETHLogo from '../../../images/eth-logo-new.png';
 import BTCLogo from '../../../images/bitcoin-logo.png';
@@ -42,19 +42,23 @@ const createStyles = (params: { theme: Theme }) => {
       width: 32,
       height: 32,
       borderRadius: 16,
-      justifyContent: 'center',
-      alignItems: 'center',
+      display: 'flex',
     },
     arrow: {
-      fontSize: 24,
+      fontSize: 20,
       color: theme.colors.text.default,
+      lineHeight: 20,
+      height: 20,
+      includeFontPadding: false,
+      textAlignVertical: 'center',
+      paddingTop: 1, // Fine-tune vertical alignment
     },
   });
 };
 
 const BridgeView = () => {
   const [sourceAmount, setSourceAmount] = useState<string>();
-  const [destinationAmount, setDestinationAmount] = useState<string>();
+  const [destinationAmount] = useState<string>();
 
   const { styles } = useStyles(createStyles, {});
 
@@ -105,7 +109,11 @@ const BridgeView = () => {
             autoFocus
           />
           <Box style={styles.arrowContainer}>
-            <Box style={styles.arrowCircle}>
+            <Box
+              style={styles.arrowCircle}
+              alignItems={AlignItems.center}
+              justifyContent={JustifyContent.center}
+            >
               <Text style={styles.arrow}>↓</Text>
             </Box>
           </Box>
