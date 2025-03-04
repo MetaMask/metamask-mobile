@@ -29,9 +29,7 @@ describe('accounts controller init', () => {
     jest.resetAllMocks();
     const baseControllerMessenger = new ExtendedControllerMessenger();
     // Create controller init request mock
-    initRequestMock = {
-      ...buildControllerInitRequestMock(baseControllerMessenger),
-    };
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
   describe('logs are registered during controller creation', () => {
