@@ -10,7 +10,11 @@ import { useTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+  selectTicker,
+} from '../../../selectors/networkController';
 import {
   selectNetworkName,
   selectNetworkImageSource,
@@ -20,6 +24,8 @@ import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import { NetworkEducationModalSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkEducationModal.selectors';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { Hex } from '@metamask/utils';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -105,19 +111,20 @@ const createStyles = (colors: {
 
 interface NetworkInfoProps {
   onClose: () => void;
-  type: string;
-  ticker: string;
   isTokenDetectionEnabled: boolean;
 }
 
 const NetworkInfo = (props: NetworkInfoProps) => {
-  const { onClose, ticker, isTokenDetectionEnabled } = props;
+  const { onClose, isTokenDetectionEnabled } = props;
   const providerConfig = useSelector(selectProviderConfig);
-  const { type, ticker: networkTicker, rpcUrl, chainId } = providerConfig;
+  const chainId = useSelector(selectChainId);
+  const ticker = useSelector(selectTicker);
+  const { type, rpcUrl } = providerConfig;
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const isTokenDetectionSupported =
-    isTokenDetectionSupportedForNetwork(chainId);
+  const isTokenDetectionSupported = isNonEvmChainId(chainId)
+    ? false
+    : isTokenDetectionSupportedForNetwork(chainId as Hex);
 
   const isTokenDetectionEnabledForNetwork = useMemo(() => {
     if (isTokenDetectionSupported && isTokenDetectionEnabled) {
@@ -162,10 +169,14 @@ const NetworkInfo = (props: NetworkInfoProps) => {
         <View style={styles.descriptionViews}>
           <Description
             description={
-              type !== RPC
+              isNonEvmChainId(chainId)
+                ? strings('network_information.non_evm_first_description', {
+                    ticker,
+                  })
+                : type !== RPC
                 ? strings('network_information.first_description', { ticker })
                 : [
-                    networkTicker === undefined
+                    ticker === undefined
                       ? strings('network_information.private_network')
                       : strings('network_information.first_description', {
                           ticker,
@@ -176,27 +187,37 @@ const NetworkInfo = (props: NetworkInfoProps) => {
             clickableText={undefined}
           />
           <Description
-            description={strings('network_information.second_description')}
-            clickableText={strings('network_information.learn_more')}
-            number={2}
-          />
-          <Description
             description={
-              isTokenDetectionEnabledForNetwork
-                ? strings('network_information.token_detection_mainnet_title')
-                : strings('network_information.third_description')
+              isNonEvmChainId(chainId)
+                ? strings('network_information.non_evm_second_description')
+                : strings('network_information.second_description')
             }
             clickableText={
-              isTokenDetectionEnabledForNetwork
-                ? strings('network_information.token_detection_mainnet_link')
-                : strings('network_information.add_token_manually')
+              isNonEvmChainId(chainId)
+                ? undefined
+                : strings('network_information.learn_more')
             }
-            number={3}
-            isTokenDetectionLinkEnabled={
-              isTokenDetectionSupported && !isTokenDetectionEnabled
-            }
-            onClose={onClose}
+            number={2}
           />
+          {!isNonEvmChainId(chainId) && (
+            <Description
+              description={
+                isTokenDetectionEnabledForNetwork
+                  ? strings('network_information.token_detection_mainnet_title')
+                  : strings('network_information.third_description')
+              }
+              clickableText={
+                isTokenDetectionEnabledForNetwork
+                  ? strings('network_information.token_detection_mainnet_link')
+                  : strings('network_information.add_token_manually')
+              }
+              number={3}
+              isTokenDetectionLinkEnabled={
+                isTokenDetectionSupported && !isTokenDetectionEnabled
+              }
+              onClose={onClose}
+            />
+          )}
         </View>
         <StyledButton
           type="confirm"
