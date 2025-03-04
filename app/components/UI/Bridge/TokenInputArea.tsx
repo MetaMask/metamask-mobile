@@ -1,9 +1,11 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
 import Card from '../../../component-library/components/Cards/Card';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
+import { Box } from '../../UI/Box/Box';
+import { FlexDirection, JustifyContent, AlignItems } from '../../UI/Box/box.types';
 
 interface TokenInputAreaProps {
   value: string;
@@ -26,17 +28,10 @@ const createStyles = (params: StylesParams) => {
       marginVertical: 8,
     },
     content: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
       padding: 16,
     },
     amountContainer: {
       flex: 1,
-    },
-    tokenContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
     },
     tokenInfo: {
       marginLeft: 8,
@@ -71,15 +66,20 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
 
   return (
     <Card style={styles.container} onPress={onPress}>
-      <View style={styles.content}>
-        <View style={styles.amountContainer}>
+      <Box
+        style={styles.content}
+        flexDirection={FlexDirection.Row}
+        justifyContent={JustifyContent.spaceBetween}
+        alignItems={AlignItems.center}
+      >
+        <Box style={styles.amountContainer}>
           <Text style={styles.value}>
             {isSource ? `↓ $${value}` : `$${value}`}
           </Text>
           {label && <Text style={styles.label}>{label}</Text>}
-        </View>
-        <View style={styles.tokenContainer}>
-          <View style={styles.tokenInfo}>
+        </Box>
+        <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
+          <Box style={styles.tokenInfo}>
             <Text variant={TextVariant.BodyMD} style={styles.tokenSymbol}>
               {value} {tokenSymbol}
             </Text>
@@ -88,9 +88,9 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
                 {tokenAddress.slice(0, 6)}...{tokenAddress.slice(-4)}
               </Text>
             )}
-          </View>
-        </View>
-      </View>
+          </Box>
+        </Box>
+      </Box>
     </Card>
   );
 };

@@ -1,10 +1,12 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
+import { Box } from '../../UI/Box/Box';
+import { FlexDirection, JustifyContent } from '../../UI/Box/box.types';
 
 interface NumpadProps {
   onNumberPress: (num: string) => void;
@@ -17,8 +19,6 @@ const createStyles = (_: { theme: Theme }) => StyleSheet.create({
       marginVertical: 16,
     },
     row: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
       marginBottom: 12,
     },
     button: {
@@ -77,12 +77,17 @@ export const Numpad: React.FC<NumpadProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <Box style={styles.container}>
       {NUMPAD_LAYOUT.map((row, index) => (
-        <View key={index} style={styles.row}>
+        <Box
+          key={index}
+          style={styles.row}
+          flexDirection={FlexDirection.Row}
+          justifyContent={JustifyContent.spaceBetween}
+        >
           {row.map((key) => renderButton(key))}
-        </View>
+        </Box>
       ))}
-    </View>
+    </Box>
   );
 };
