@@ -20,7 +20,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
       paddingHorizontal: 16,
       backgroundColor: colors.background.default,
-      margin: 8,
     },
     accountInputContainer: {
       width: '100%',

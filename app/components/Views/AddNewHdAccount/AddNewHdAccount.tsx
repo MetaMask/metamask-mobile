@@ -113,9 +113,6 @@ const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
                 />
               </View>
               <View style={styles.srpSelectorContainer}>
-                <Text variant={TextVariant.BodyMDMedium}>
-                  {strings('accounts.select_secret_recovery_phrase')}
-                </Text>
                 <TouchableOpacity
                   style={styles.srpSelector}
                   onPress={() => setShowSRPList(true)}

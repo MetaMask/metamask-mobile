@@ -152,7 +152,9 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS));
+    fireEvent.press(
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS),
+    );
 
     expect(Share.open).toHaveBeenCalledWith({
       message: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
@@ -190,7 +192,9 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT));
+    fireEvent.press(
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT),
+    );
 
     expect(mockNavigate).toHaveBeenCalledWith('EditAccountName', {
       selectedAccount: {
@@ -218,7 +222,9 @@ describe('AccountActions', () => {
       );
 
       fireEvent.press(
-        getByTestId(AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
+        getByTestId(
+          AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT,
+        ),
       );
 
       const alertFnMock = Alert.alert as jest.MockedFn<typeof Alert.alert>;

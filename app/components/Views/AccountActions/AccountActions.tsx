@@ -43,6 +43,9 @@ import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  isHdAccount,
+  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
   ///: END:ONLY_INCLUDE_IF
@@ -57,6 +60,9 @@ import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import { selectHdKeyrings } from '../../../selectors/keyringController';
+///: END:ONLY_INCLUDE_IF
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -78,6 +84,17 @@ const AccountActions = () => {
     const { KeyringController, PreferencesController } = Engine.context;
     return { KeyringController, PreferencesController };
   }, []);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  const existingHdKeyrings = useSelector(selectHdKeyrings);
+
+  const keyringId = useMemo(() => {
+    const keyring = existingHdKeyrings.find((kr) =>
+      kr.accounts.includes(selectedAccount.address.toLowerCase()),
+    );
+    return keyring?.metadata.id;
+  }, [existingHdKeyrings, selectedAccount.address]);
+  ///: END:ONLY_INCLUDE_IF
 
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
@@ -180,6 +197,18 @@ const AccountActions = () => {
       });
     });
   };
+
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  const goToExportSRP = () => {
+    Logger.log('keyring id', keyringId);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+        keyringId,
+      });
+    });
+  };
+  ///: END:ONLY_INCLUDE_IF
 
   const showRemoveHWAlert = useCallback(() => {
     Alert.alert(
@@ -406,6 +435,20 @@ const AccountActions = () => {
           onPress={goToExportPrivateKey}
           testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
         />
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+          selectedAddress && isHdAccount(selectedAccount) && (
+            <AccountAction
+              actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+              iconName={IconName.Key}
+              onPress={goToExportSRP}
+              testID={
+                AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+              }
+            />
+          )
+          ///: END:ONLY_INCLUDE_IF
+        }
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
