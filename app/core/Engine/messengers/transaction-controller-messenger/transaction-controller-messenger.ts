@@ -14,8 +14,6 @@ import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionDroppedEvent,
   TransactionControllerTransactionFailedEvent,
-  TransactionControllerTransactionNewSwapApprovalEvent,
-  TransactionControllerTransactionNewSwapEvent,
   TransactionControllerTransactionRejectedEvent,
   TransactionControllerTransactionSubmittedEvent,
   TransactionControllerUnapprovedTransactionAddedEvent,
@@ -34,11 +32,8 @@ type MessengerEvents =
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionDroppedEvent
   | TransactionControllerTransactionFailedEvent
-  | TransactionControllerTransactionNewSwapApprovalEvent
-  | TransactionControllerTransactionNewSwapEvent
   | TransactionControllerTransactionRejectedEvent
   | TransactionControllerTransactionSubmittedEvent
-  | TransactionControllerPostTransactionBalanceUpdatedEvent
   | TransactionControllerUnapprovedTransactionAddedEvent
   | NetworkControllerStateChangeEvent
   | SmartTransactionsControllerSmartTransactionEvent;
@@ -73,11 +68,8 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionDropped',
       'TransactionController:transactionFailed',
-      'TransactionController:transactionNewSwapApproval',
-      'TransactionController:transactionNewSwap',
       'TransactionController:transactionRejected',
       'TransactionController:transactionSubmitted',
-      'TransactionController:postTransactionBalanceUpdated',
       'TransactionController:unapprovedTransactionAdded',
       'SmartTransactionsController:smartTransaction',
     ],
