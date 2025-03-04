@@ -17,7 +17,7 @@ import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCros
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import useIsOriginalNativeTokenSymbol from '../useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { UseMultichainBalancesHook } from './useMultichainBalances.types';
-
+import { formatWithThreshold } from '../../../util/assets';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   selectMultichainSelectedAccountCachedBalance,
@@ -26,7 +26,6 @@ import {
   selectMultichainConversionRate,
 } from '../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { formatWithThreshold } from '../../../util/assets';
 ///: END:ONLY_INCLUDE_IF
 // eslint-disable-next-line import/no-extraneous-dependencies
 import I18n from 'i18n-js';
