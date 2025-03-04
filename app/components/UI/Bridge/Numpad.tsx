@@ -46,7 +46,7 @@ export const Numpad: React.FC<NumpadProps> = ({
       return (
         <ButtonIcon
           key={key}
-          iconName={IconName.Close}
+          iconName={IconName.Delete}
           onPress={onBackspacePress}
           style={styles.button}
         />
