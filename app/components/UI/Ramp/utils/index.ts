@@ -217,12 +217,13 @@ export function isSellOrder(order: Order): order is SellOrder {
 export function isSellFiatOrder(order: FiatOrder): order is FiatOrder {
   return order.orderType === OrderOrderTypeEnum.Sell;
 }
-
-export function sortQuotes(
-  quotes?: (QuoteResponse | QuoteError | SellQuoteResponse)[] | undefined,
+export function sortQuotes<
+  T extends QuoteResponse | QuoteError | SellQuoteResponse,
+>(
+  quotes?: T[] | undefined,
   sortingArray?: QuoteSortMetadata[],
   quoteSortBy?: QuoteSortBy,
-): (QuoteResponse | QuoteError | SellQuoteResponse)[] | undefined {
+): T[] | undefined {
   if (!quotes || !sortingArray) {
     return quotes;
   }

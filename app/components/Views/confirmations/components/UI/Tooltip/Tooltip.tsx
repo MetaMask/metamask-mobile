@@ -13,14 +13,53 @@ import BottomModal from '../BottomModal';
 import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
-  content: ReactNode;
+  content: string | ReactNode;
   title?: string;
   tooltipTestId?: string;
 }
 
-const Tooltip = ({ content, title, tooltipTestId }: TooltipProps) => {
-  const [open, setOpen] = useState(false);
+interface TooltipModalProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  content: string | ReactNode;
+  title?: string;
+  tooltipTestId?: string;
+}
+
+export const TooltipModal = ({ open, setOpen, content, title, tooltipTestId = 'tooltip-modal' }: TooltipModalProps) => {
   const { styles } = useStyles(styleSheet, { title: title ?? '' });
+
+  return (
+    <BottomModal
+      visible={open}
+      onClose={() => setOpen(false)}
+    >
+      <View style={styles.modalView}>
+        <View style={styles.modalHeader}>
+          <ButtonIcon
+            iconColor={IconColor.Default}
+            iconName={IconName.ArrowLeft}
+            onPress={() => setOpen(false)}
+            size={ButtonIconSizes.Sm}
+            style={styles.closeModalBtn}
+            testID={`${tooltipTestId}-close-btn`}
+            />
+          {<Text style={styles.modalTitle}>{title ?? ''}</Text>}
+        </View>
+        <View style={styles.modalContent}>
+          {typeof content === 'string' ? (
+            <Text style={styles.modalContentValue}>{content}</Text>
+          ) : (
+            content
+          )}
+        </View>
+      </View>
+    </BottomModal>
+  );
+};
+
+const Tooltip = ({ content, title, tooltipTestId = 'info-row-tooltip' }: TooltipProps) => {
+  const [open, setOpen] = useState(false);
 
   return (
     <View>
@@ -29,25 +68,15 @@ const Tooltip = ({ content, title, tooltipTestId }: TooltipProps) => {
         iconName={IconName.Info}
         onPress={() => setOpen(true)}
         size={ButtonIconSizes.Sm}
-        testID={tooltipTestId ?? 'tooltipTestId'}
+        testID={`${tooltipTestId}-open-btn`}
       />
-      <BottomModal
-        visible={open}
-        onClose={() => setOpen(false)}
-      >
-        <View style={styles.modalView}>
-          <ButtonIcon
-            iconColor={IconColor.Default}
-            iconName={IconName.Close}
-            onPress={() => setOpen(false)}
-            size={ButtonIconSizes.Sm}
-            style={styles.closeModalBtn}
-            testID={tooltipTestId ?? 'tooltipTestId'}
-          />
-          {title && <Text style={styles.modalTitle}>{title}</Text>}
-          <Text style={styles.modalContent}>{content}</Text>
-        </View>
-      </BottomModal>
+      <TooltipModal
+        open={open}
+        setOpen={setOpen}
+        content={content}
+        title={title}
+        tooltipTestId={tooltipTestId}
+      />
     </View>
   );
 };
