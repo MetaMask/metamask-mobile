@@ -11,7 +11,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import {
-  Linking,
+  // Linking,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   View,
   ///: END:ONLY_INCLUDE_IF
@@ -34,7 +34,7 @@ import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import branch from 'react-native-branch';
+// import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { useDispatch, useSelector } from 'react-redux';
@@ -45,8 +45,8 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
-import Device from '../../../util/device';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+// import Device from '../../../util/device';
+// import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
@@ -89,10 +89,10 @@ import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import WC2Manager, {
-  isWC2Enabled,
-} from '../../../../app/core/WalletConnect/WalletConnectV2';
-import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
+// import WC2Manager, {
+//   isWC2Enabled,
+// } from '../../../../app/core/WalletConnect/WalletConnectV2';
+// import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -747,46 +747,46 @@ const App: React.FC = () => {
   // to deeplinks used to open the app
   // when it is in background (so not closed)
   // Documentation: https://reactnative.dev/docs/linking#handling-deep-links
-  useEffect(() => {
-    if (Device.isAndroid())
-      Linking.addEventListener('url', (params) => {
-        const { url } = params;
-        if (url) {
-          handleDeeplink({ uri: url });
-        }
-      });
-  }, [handleDeeplink]);
+  // useEffect(() => {
+  //   if (Device.isAndroid())
+  //     Linking.addEventListener('url', (params) => {
+  //       const { url } = params;
+  //       if (url) {
+  //         handleDeeplink({ uri: url });
+  //       }
+  //     });
+  // }, [handleDeeplink]);
 
-  useEffect(() => {
-    // Initialize deep link manager
-    SharedDeeplinkManager.init({
-      navigation,
-      dispatch,
-    });
+  // useEffect(() => {
+  //   // Initialize deep link manager
+  //   SharedDeeplinkManager.init({
+  //     navigation,
+  //     dispatch,
+  //   });
 
-    // Subscribe to incoming deeplinks
-    // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
-    branch.subscribe((opts) => {
-      const { error } = opts;
+  //   // Subscribe to incoming deeplinks
+  //   // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
+  //   branch.subscribe((opts) => {
+  //     const { error } = opts;
 
-      if (error) {
-        // Log error for analytics and continue handling deeplink
-        const branchError = new Error(error);
-        Logger.error(branchError, 'Error subscribing to branch.');
-      }
+  //     if (error) {
+  //       // Log error for analytics and continue handling deeplink
+  //       const branchError = new Error(error);
+  //       Logger.error(branchError, 'Error subscribing to branch.');
+  //     }
 
-      if (sdkInit.current) {
-        handleDeeplink(opts);
-      } else {
-        queueOfHandleDeeplinkFunctions.current =
-          queueOfHandleDeeplinkFunctions.current.concat([
-            () => {
-              handleDeeplink(opts);
-            },
-          ]);
-      }
-    });
-  }, [dispatch, handleDeeplink, navigation, queueOfHandleDeeplinkFunctions]);
+  //     if (sdkInit.current) {
+  //       handleDeeplink(opts);
+  //     } else {
+  //       queueOfHandleDeeplinkFunctions.current =
+  //         queueOfHandleDeeplinkFunctions.current.concat([
+  //           () => {
+  //             handleDeeplink(opts);
+  //           },
+  //         ]);
+  //     }
+  //   });
+  // }, [dispatch, handleDeeplink, navigation, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
     const initMetrics = async () => {
@@ -798,44 +798,44 @@ const App: React.FC = () => {
     });
   }, []);
 
-  useEffect(() => {
-    // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
-    async function initSDKConnect() {
-      if (onboarded && sdkInit.current === undefined && userLoggedIn) {
-        sdkInit.current = false;
-        try {
-          const sdkConnect = SDKConnect.getInstance();
-          await sdkConnect.init({ context: 'Nav/App' });
-          await SDKConnect.getInstance().postInit(() => {
-            setTimeout(() => {
-              queueOfHandleDeeplinkFunctions.current = [];
-            }, 1000);
-          });
-          sdkInit.current = true;
-        } catch (err) {
-          sdkInit.current = undefined;
-          console.error(`Cannot initialize SDKConnect`, err);
-        }
-      }
-    }
+  // useEffect(() => {
+  //   // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
+  //   async function initSDKConnect() {
+  //     if (onboarded && sdkInit.current === undefined && userLoggedIn) {
+  //       sdkInit.current = false;
+  //       try {
+  //         const sdkConnect = SDKConnect.getInstance();
+  //         await sdkConnect.init({ context: 'Nav/App' });
+  //         await SDKConnect.getInstance().postInit(() => {
+  //           setTimeout(() => {
+  //             queueOfHandleDeeplinkFunctions.current = [];
+  //           }, 1000);
+  //         });
+  //         sdkInit.current = true;
+  //       } catch (err) {
+  //         sdkInit.current = undefined;
+  //         console.error(`Cannot initialize SDKConnect`, err);
+  //       }
+  //     }
+  //   }
 
-    initSDKConnect()
-      .then(() => {
-        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
-      })
-      .catch((err) => {
-        Logger.error(err, 'Error initializing SDKConnect');
-      });
-  }, [onboarded, userLoggedIn]);
+  //   initSDKConnect()
+  //     .then(() => {
+  //       queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
+  //     })
+  //     .catch((err) => {
+  //       Logger.error(err, 'Error initializing SDKConnect');
+  //     });
+  // }, [onboarded, userLoggedIn]);
 
-  useEffect(() => {
-    if (isWC2Enabled) {
-      DevLogger.log(`WalletConnect: Initializing WalletConnect Manager`);
-      WC2Manager.init().catch((err) => {
-        console.error('Cannot initialize WalletConnect Manager.', err);
-      });
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (isWC2Enabled) {
+  //     DevLogger.log(`WalletConnect: Initializing WalletConnect Manager`);
+  //     WC2Manager.init().catch((err) => {
+  //       console.error('Cannot initialize WalletConnect Manager.', err);
+  //     });
+  //   }
+  // }, []);
 
   useEffect(() => {
     async function startApp() {
