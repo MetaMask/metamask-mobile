@@ -159,6 +159,9 @@ const createStyles = (colors: Colors) =>
       marginTop: 4,
     },
     screen: { justifyContent: 'flex-end' },
+    keyboardView: {
+      minHeight: Device.getDeviceHeight() * 0.5,
+    },
     scrollableDescription: {
       maxHeight: Device.getDeviceHeight() * 0.7,
     },
