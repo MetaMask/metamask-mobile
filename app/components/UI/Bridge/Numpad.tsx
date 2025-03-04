@@ -1,12 +1,13 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
+import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { Box } from '../../UI/Box/Box';
-import { FlexDirection, JustifyContent } from '../../UI/Box/box.types';
+import { FlexDirection, JustifyContent, AlignItems } from '../../UI/Box/box.types';
 
 interface NumpadProps {
   onNumberPress: (num: string) => void;
@@ -14,16 +15,29 @@ interface NumpadProps {
   onDecimalPress: () => void;
 }
 
-const createStyles = (_: { theme: Theme }) => StyleSheet.create({
+const createStyles = ({ theme }: { theme: Theme }) => StyleSheet.create({
     container: {
       marginVertical: 16,
+      paddingHorizontal: 16,
     },
     row: {
-      marginBottom: 12,
+      marginBottom: 24,
+      width: '100%',
+    },
+    buttonContainer: {
+      flex: 1,
+      paddingHorizontal: 8,
     },
     button: {
-      flex: 1,
-      marginHorizontal: 4,
+      width: '100%',
+      borderWidth: 0,
+      backgroundColor: theme.colors.background.default,
+      height: 48,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    buttonText: {
+      fontSize: 24,
     },
   });
 
@@ -42,48 +56,40 @@ export const Numpad: React.FC<NumpadProps> = ({
   const { styles } = useStyles(createStyles, {});
 
   const renderButton = (key: string) => {
-    if (key === 'backspace') {
-      return (
-        <ButtonIcon
-          key={key}
-          iconName={IconName.Delete}
-          onPress={onBackspacePress}
-          style={styles.button}
-        />
-      );
-    }
-
-    if (key === '.') {
-      return (
-        <Button
-          key={key}
-          variant={ButtonVariants.Secondary}
-          label={key}
-          onPress={onDecimalPress}
-          style={styles.button}
-        />
-      );
-    }
-
-    return (
+    const buttonContent = key === 'backspace' ? (
+      <ButtonIcon
+        key={key}
+        iconName={IconName.Delete}
+        onPress={onBackspacePress}
+        style={styles.button}
+        size={ButtonIconSizes.Lg}
+      />
+    ) : (
       <Button
         key={key}
         variant={ButtonVariants.Secondary}
-        label={key}
-        onPress={() => onNumberPress(key)}
+        label={<Text variant={TextVariant.BodyMD} style={styles.buttonText}>{key}</Text>}
+        onPress={key === '.' ? onDecimalPress : () => onNumberPress(key)}
         style={styles.button}
       />
+    );
+
+    return (
+      <Box key={key} style={styles.buttonContainer}>
+        {buttonContent}
+      </Box>
     );
   };
 
   return (
     <Box style={styles.container}>
-      {NUMPAD_LAYOUT.map((row, index) => (
+      {NUMPAD_LAYOUT.map((row) => (
         <Box
-          key={index}
+          key={row.join('-')}
           style={styles.row}
           flexDirection={FlexDirection.Row}
           justifyContent={JustifyContent.spaceBetween}
+          alignItems={AlignItems.center}
         >
           {row.map((key) => renderButton(key))}
         </Box>
