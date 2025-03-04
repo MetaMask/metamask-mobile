@@ -29,6 +29,35 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AuthenticationController": {
         "isSignedIn": false,
       },
+      "BridgeController": {
+        "bridgeFeatureFlags": {
+          "extensionConfig": {
+            "chains": {},
+            "maxRefreshCount": 5,
+            "refreshRate": 30000,
+            "support": false,
+          },
+          "mobileConfig": {
+            "chains": {},
+            "maxRefreshCount": 5,
+            "refreshRate": 30000,
+            "support": false,
+          },
+        },
+        "quoteFetchError": null,
+        "quoteRequest": {
+          "slippage": 0.5,
+          "srcTokenAddress": "0x0000000000000000000000000000000000000000",
+        },
+        "quotes": [],
+        "quotesInitialLoadTime": null,
+        "quotesLastFetched": null,
+        "quotesLoadingStatus": null,
+        "quotesRefreshCount": 0,
+      },
+      "BridgeStatusController": {
+        "txHistory": {},
+      },
       "CurrencyRateController": {
         "currencyRates": {
           "ETH": {
