@@ -8,9 +8,6 @@ import { RestrictedMessenger } from '@metamask/base-controller';
 import type { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
 import { defaultCurrencyRateState } from './constants';
 
-// Export constants
-export * from './constants';
-
 /**
  * Initialize the CurrencyRateController.
  *

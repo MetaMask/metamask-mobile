@@ -10,9 +10,6 @@ import {
   SnapControllerGetAllSnapsAction,
 } from '../../controllers/SnapController/constants';
 
-// Export the types
-export * from './types';
-
 /**
  * Get the CronjobControllerMessenger for the CronjobController.
  *

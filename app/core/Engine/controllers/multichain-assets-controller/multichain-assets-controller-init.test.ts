@@ -5,7 +5,7 @@ import {
 } from '@metamask/assets-controllers';
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { multichainAssetsControllerInit } from '.';
+import { multichainAssetsControllerInit } from './multichain-assets-controller-init';
 import { defaultMultichainAssetsControllerState } from './constants';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 

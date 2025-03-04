@@ -1,13 +1,10 @@
 import { BaseControllerMessenger } from '../../types';
 import { MultichainNetworkControllerMessenger } from '@metamask/multichain-network-controller';
 
-// Export the types
-export * from './types';
-
 /**
  * Get the MultichainNetworkControllerMessenger for the MultichainNetworkController.
  *
- * @param baseControllerMessenger - The base controller messenger.
+ * @param baseControllerMessenger - The base controllyer messenger.
  * @returns The MultichainNetworkControllerMessenger.
  */
 export function getMultichainNetworkControllerMessenger(

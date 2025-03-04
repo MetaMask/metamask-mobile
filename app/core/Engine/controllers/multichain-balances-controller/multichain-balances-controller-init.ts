@@ -6,9 +6,6 @@ import {
 import type { ControllerInitFunction } from '../../types';
 import { defaultMultichainBalancesControllerState } from './constants';
 
-// Export constants
-export * from './constants';
-
 /**
  * Initialize the MultichainBalancesController.
  *
