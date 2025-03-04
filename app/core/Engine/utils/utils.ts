@@ -31,10 +31,10 @@ type InitFunction<Name extends ControllersToInitialize> =
  *
  * @param options - Options bag.
  * @param options.baseControllerMessenger - Unrestricted base controller messenger.
- * @param options.controllerInitFunctions - Map of init functions keyed by controller name. 
+ * @param options.controllerInitFunctions - Map of init functions keyed by controller name.
  * @param options.existingControllersByName - All required controllers that have already been initialized.
  * @param options.getCurrentChainId - Get the current chain id of the engine.
- * @param options.getRootState - Get the root state of the engine. 
+ * @param options.getRootState - Get the root state of the engine.
  * @param options.persistedState - The full persisted state for all controllers.
  * @returns The initialized controllers and associated data.
  */
