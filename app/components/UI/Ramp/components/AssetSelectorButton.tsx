@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { View } from 'react-native';
 import Box from './Box';
-import CurrencyChevron from './CurrencyChevron';
+import DownChevronText from './DownChevronText';
 import ListItem from '../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -52,7 +52,7 @@ const AssetSelectorButton: React.FC<Props> = ({
         </ListItemColumn>
 
         <ListItemColumn>
-          <CurrencyChevron currency={assetSymbol} />
+          <DownChevronText text={assetSymbol} />
         </ListItemColumn>
       </ListItem>
     </View>
