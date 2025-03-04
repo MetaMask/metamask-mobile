@@ -9,7 +9,6 @@ import {
 } from '@metamask/network-controller';
 import {
   TransactionControllerMessenger,
-  TransactionControllerPostTransactionBalanceUpdatedEvent,
   TransactionControllerTransactionApprovedEvent,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionDroppedEvent,

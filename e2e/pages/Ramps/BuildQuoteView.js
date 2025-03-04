@@ -78,12 +78,12 @@ class BuildQuoteView {
   }
 
   async enterAmount(amount) {
-    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT))
+    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT));
     for (let digit = 0; digit < amount.length; digit++) {
       const numberButton = Matchers.getElementByText(amount[digit]);
       await Gestures.waitAndTap(numberButton);
     }
-    await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON))
+    await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON));
   }
 
   async tapGetQuotesButton() {
@@ -100,7 +100,7 @@ class BuildQuoteView {
   }
 
   async tapKeypadDeleteButton(times) {
-    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT))
+    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT));
     for (let i = 0; i < times; i++) {
       await Gestures.waitAndTap(this.keypadDeleteButton);
     }
