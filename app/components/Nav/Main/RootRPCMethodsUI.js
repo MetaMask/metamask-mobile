@@ -40,7 +40,7 @@ import {
 } from '../../../util/address';
 
 import {
-  selectChainId,
+  selectEvmChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
@@ -62,7 +62,7 @@ import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import Confirm from '../../../components/Views/confirmations/Confirm';
+import { ConfirmRoot } from '../../../components/Views/confirmations/Confirm';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
@@ -74,6 +74,7 @@ import { updateSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapsDialogApproval';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
@@ -392,6 +393,7 @@ const RootRPCMethodsUI = (props) => {
         autoSign(transactionMeta);
       } else {
         const {
+          chainId,
           networkClientId,
           txParams: { value, gas, gasPrice, data },
         } = transactionMeta;
@@ -448,6 +450,7 @@ const RootRPCMethodsUI = (props) => {
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
             networkClientId,
+            chainId,
             ...transactionMeta.txParams,
           });
         } else {
@@ -460,6 +463,7 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
+            chainId,
             networkClientId,
             ...transactionMeta.txParams,
           });
@@ -512,7 +516,7 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
-      <Confirm />
+      <ConfirmRoot />
       <SignatureApproval />
       <WalletConnectApproval />
       <TransactionApproval
@@ -531,6 +535,7 @@ const RootRPCMethodsUI = (props) => {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       }
       <InstallSnapApproval />
+      <SnapDialogApproval />
       {
         ///: END:ONLY_INCLUDE_IF
       }
@@ -578,7 +583,7 @@ RootRPCMethodsUI.propTypes = {
 
 const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
   tokens: selectTokens(state),
   providerType: selectProviderType(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),

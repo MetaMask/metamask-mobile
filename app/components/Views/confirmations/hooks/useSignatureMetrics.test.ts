@@ -1,26 +1,15 @@
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  securityAlertResponse,
+  typedSignV4ConfirmationState,
+  typedSignV4SignatureRequest,
+} from '../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { useSignatureMetrics } from './useSignatureMetrics';
 
-const mockSigRequest = {
-  type: 'personal_sign',
-  messageParams: {
-    data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
-    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-    meta: {
-      url: 'https://metamask.github.io/test-dapp/',
-      title: 'E2E Test Dapp',
-      icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
-      analytics: { request_source: 'In-App-Browser' },
-    },
-    origin: 'metamask.github.io',
-    metamaskId: '76b33b40-7b5c-11ef-bc0a-25bce29dbc09',
-  },
-  chainId: '0x0',
-};
-
+const mockTypedSignV4SignatureRequest = typedSignV4SignatureRequest;
 jest.mock('./useSignatureRequest', () => ({
-  useSignatureRequest: () => mockSigRequest,
+  useSignatureRequest: () => mockTypedSignV4SignatureRequest,
 }));
 
 jest.mock('../../../../util/address', () => ({
@@ -35,23 +24,53 @@ jest.mock('../../../../core/Analytics', () => ({
   },
 }));
 
+const mockAddProperties = jest
+  .fn()
+  .mockImplementation(() => ({ build: () => ({}) }));
+jest.mock('../../../../core/Analytics/MetricsEventBuilder', () => ({
+  ...jest.requireActual('../../../../core/Analytics/MetricsEventBuilder'),
+  MetricsEventBuilder: {
+    createEventBuilder: () => ({ addProperties: mockAddProperties }),
+  },
+}));
+
+const SignatureMetrics = {
+  account_type: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+  chain_id: '1',
+  dapp_host_name: 'metamask.github.io',
+  eip712_primary_type: 'Permit',
+  request_source: 'In-App-Browser',
+  security_alert_reason: 'permit_farming',
+  security_alert_response: 'Malicious',
+  security_alert_source: 'api',
+  signature_type: 'eth_signTypedData',
+  ui_customizations: ['flagged_as_malicious'],
+  version: 'V4',
+};
+
 describe('useSignatureMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
   it('should capture metrics events correctly', async () => {
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
-      state: {},
+      state: {
+        ...typedSignV4ConfirmationState,
+        signatureRequest: { securityAlertResponse },
+      },
     });
     // first call for 'SIGNATURE_REQUESTED' event
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockAddProperties).toHaveBeenCalledWith(SignatureMetrics);
     result?.current?.captureSignatureMetrics(
       MetaMetricsEvents.SIGNATURE_APPROVED,
     );
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    expect(mockAddProperties).toHaveBeenLastCalledWith(SignatureMetrics);
     result?.current?.captureSignatureMetrics(
       MetaMetricsEvents.SIGNATURE_REJECTED,
     );
     expect(mockTrackEvent).toHaveBeenCalledTimes(3);
+    expect(mockAddProperties).toHaveBeenLastCalledWith(SignatureMetrics);
   });
 });

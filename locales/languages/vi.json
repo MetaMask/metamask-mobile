@@ -48,7 +48,10 @@
     "connector": "tại"
   },
   "autocomplete": {
-    "placeholder": "Tìm hoặc nhập URL"
+    "placeholder": "Tìm kiếm theo trang web hoặc địa chỉ",
+    "recents": "Gần đây",
+    "favorites": "Yêu thích",
+    "sites": "Trang web"
   },
   "navigation": {
     "back": "Quay lại",
@@ -449,6 +452,7 @@
     "next": "Tiếp theo",
     "buy_asset": "Mua {{asset}}",
     "no_tokens": "Bạn không có token nào!",
+    "show_tokens_without_balance": "Hiển thị token không kèm số dư",
     "no_nfts_yet": "Chưa có NFT",
     "nfts_autodetection_title": "Phát hiện NFT",
     "nfts_autodetection_desc": "Cho phép MetaMask tự động phát hiện và hiển thị NFT trong ví của bạn.",
@@ -470,7 +474,7 @@
     "learn_more": "Tìm hiểu thêm",
     "add_collectibles": "Nhập NFT",
     "no_transactions": "Bạn không có giao dịch nào!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Vui lòng chuyển mạng để xem giao dịch",
     "send_button": "Gửi",
     "deposit_button": "Nạp",
     "copy_address": "Sao chép",
@@ -722,6 +726,7 @@
     "connected_and_active": "đã được kết nối và đang hoạt động.",
     "now_active": "đang hoạt động.",
     "network_added": "đã được thêm thành công",
+    "network_removed": "đã được xóa thành công",
     "network_deleted": "đã xóa thành công",
     "network_permissions_updated": "Đã cập nhật quyền truy cập mạng",
     "revoked": "đã bị thu hồi.",
@@ -1264,16 +1269,19 @@
     "sell_button": "Bán",
     "receive_button": "Nhận",
     "portfolio_button": "Danh mục đầu tư",
+    "earn_button": "Kiếm tiền",
     "add_collectible_button": "Thêm",
     "info": "Thông tin",
     "swap": "Hoán đổi",
     "bridge": "Cầu nối",
+    "earn": "Kiếm tiền",
     "disabled_button": {
       "buy": "Không hỗ trợ mua cho tài khoản này",
       "sell": "Không hỗ trợ bán cho tài khoản này",
       "swap": "Không hỗ trợ hoán đổi cho tài khoản này",
       "bridge": "Không hỗ trợ cầu nối cho tài khoản này",
       "send": "Không hỗ trợ gửi cho tài khoản này",
+      "earn": "Không hỗ trợ kiếm tiền cho tài khoản này",
       "action": "Hành động này không được hỗ trợ cho tài khoản này"
     },
     "description": "Mô tả",
@@ -1290,6 +1298,7 @@
     "bridge_description": "Chuyển token giữa các mạng",
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
     "receive_description": "Nhận tiền mã hóa",
+    "earn_description": "Kiếm phần thưởng trên token của bạn",
     "chart_time_period": {
       "1d": "Hôm nay",
       "7d": "7 ngày qua",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "Mã chuỗi",
     "network_rpc_url": "URL mạng",
     "network_rpc_url_label": "URL Mạng RPC",
+    "network_rpc_url_warning_punycode": "Những kẻ tấn công đôi khi bắt chước các trang web bằng cách thực hiện các thay đổi nhỏ trong địa chỉ trang web. Hãy chắc chắn rằng bạn đang tương tác với URL Mạng mà bạn dự định trước khi tiếp tục. Phiên bản Punycode:",
     "new_default_network_url": "URL mạng mặc định mới",
     "current_label": "Hiện tại",
     "new_label": "Mới",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "Thêm ví cứng",
     "import_account": "Nhập tài khoản",
     "add_bitcoin_account_testnet": "Thêm Tài khoản Bitcoin mới (Mạng thử nghiệm)",
-    "add_bitcoin_account_mainnet": "Thêm Tài khoản Bitcoin mới (Beta)"
+    "add_bitcoin_account_mainnet": "Thêm Tài khoản Bitcoin mới (Beta)",
+    "add_solana_account": "Thêm Tài khoản Solana mới (Beta)"
   },
   "show_nft": {
     "show_nft_title": "Hiển thị NFT",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "Yêu cầu chữ ký"
     },
+    "sub_title": {
+      "signature": "Xem lại thông tin yêu cầu trước khi bạn xác nhận."
+    },
     "request_from": "Yêu cầu từ",
     "message": "Thông báo",
+    "primary_type": "Loại chính",
     "personal_sign_tooltip": "Trang web này đang yêu cầu chữ ký của bạn",
     "details": "Chi tiết",
     "account": "Tài khoản",
     "balance": "Số dư",
     "network": "Mạng",
     "simulation": {
-      "title": "Thay đổi ước tính",
+      "decoded_tooltip_bid_nft": "NFT sẽ được hiển thị trong ví của bạn khi giá thầu được chấp nhận.",
+      "decoded_tooltip_list_nft": "Chỉ thay đổi khi có người mua NFT của bạn.",
+      "info_permit": "Bạn đang cho phép người chi tiêu sử dụng số lượng token này từ tài khoản của bạn.",
+      "label_change_type_bidding": "Bạn đặt giá",
+      "label_change_type_listing": "Bạn niêm yết",
+      "label_change_type_nft_listing": "Giá niêm yết",
+      "label_change_type_permit": "Giới hạn chi tiêu",
+      "label_change_type_permit_nft": "Rút tiền",
+      "label_change_type_receive": "Bạn nhận được",
+      "label_change_type_revoke": "Thu hồi",
+      "label_change_type_transfer": "Bạn gửi",
       "personal_sign_info": "Bạn đang đăng nhập vào một trang web và dự kiến không có thay đổi nào đối với tài khoản của bạn.",
-      "tooltip": "Thay đổi ước tính là những gì có thể xảy ra nếu bạn thực hiện giao dịch này. Đây chỉ là dự đoán, không phải là đảm bảo."
-    }
+      "title": "Thay đổi ước tính",
+      "tooltip": "Thay đổi ước tính là những gì có thể xảy ra nếu bạn thực hiện giao dịch này. Đây chỉ là dự đoán, không phải là đảm bảo.",
+      "unavailable": "Không khả dụng"
+    },
+    "unlimited": "Không giới hạn",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Kết quả đã thay đổi",

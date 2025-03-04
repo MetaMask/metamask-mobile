@@ -46,7 +46,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#d738471a",
+            "backgroundColor": "#D738471A",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",
@@ -255,7 +255,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#1c82341a",
+            "backgroundColor": "#1C82341A",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",

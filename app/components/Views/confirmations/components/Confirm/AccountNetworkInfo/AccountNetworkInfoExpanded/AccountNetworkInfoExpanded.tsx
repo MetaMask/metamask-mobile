@@ -1,34 +1,39 @@
 import React from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../../locales/i18n';
-import { selectChainId } from '../../../../../../../selectors/networkController';
-import { renderShortAddress } from '../../../../../../../util/address';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
 import Network from '../../../UI/InfoRow/InfoValue/Network';
+import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
+import { Hex } from '@metamask/utils';
+import { renderShortAddress } from '../../../../../../../util/address';
+import { useMultichainBalances } from '../../../../../../hooks/useMultichainBalances';
 
 const AccountNetworkInfoExpanded = () => {
-  const { approvalRequest } = useApprovalRequest();
-  const chainId = useSelector(selectChainId);
-  const fromAddress = approvalRequest?.requestData?.from;
+  const signatureRequest = useSignatureRequest();
+  const chainId = signatureRequest?.chainId as Hex;
+
+  const fromAddress = signatureRequest?.messageParams?.from as string;
   const { accountAddress, accountFiatBalance } = useAccountInfo(fromAddress);
+  const { multichainBalances } = useMultichainBalances();
+  const balanceToDisplay = multichainBalances.isPortfolioVieEnabled
+    ? multichainBalances.displayBalance
+    : accountFiatBalance;
 
   return (
     <View>
       <InfoSection>
-        <InfoRow label={strings('confirm.account')}>
+        <InfoRow label={strings('confirm.label.account')}>
           {renderShortAddress(accountAddress, 5)}
         </InfoRow>
-        <InfoRow label={strings('confirm.balance')}>
-          {accountFiatBalance}
+        <InfoRow label={strings('confirm.label.balance')}>
+          {balanceToDisplay}
         </InfoRow>
       </InfoSection>
       <InfoSection>
-        <InfoRow label={strings('confirm.network')}>
+        <InfoRow label={strings('confirm.label.network')}>
           <Network chainId={chainId} />
         </InfoRow>
       </InfoSection>

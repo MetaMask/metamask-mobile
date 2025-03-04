@@ -12,7 +12,7 @@ export enum AssetType {
  * Describes an amount of fiat.
  */
 export const FIAT_UNAVAILABLE = null;
-export type FiatAmountAvailable = number;
+export type FiatAmountAvailable = number | string;
 export type FiatAmount = FiatAmountAvailable | typeof FIAT_UNAVAILABLE;
 
 /**
@@ -38,6 +38,17 @@ export interface TokenAssetIdentifier {
 export type AssetIdentifier = Readonly<
   NativeAssetIdentifier | TokenAssetIdentifier
 >;
+
+export enum TokenStandard {
+  /** A token that conforms to the ERC20 standard. */
+  ERC20 = 'ERC20',
+  /** A token that conforms to the ERC721 standard. */
+  ERC721 = 'ERC721',
+  /** A token that conforms to the ERC1155 standard. */
+  ERC1155 = 'ERC1155',
+  /** Not a token, but rather the base asset of the selected chain. */
+  none = 'NONE',
+}
 
 /**
  * Describes a change in an asset's balance to a user's wallet.

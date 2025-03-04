@@ -21,6 +21,7 @@ import Networks, {
   isPrivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
+  isPortfolioViewEnabled,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -51,6 +52,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import {
+  selectIsAllNetworks,
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
@@ -66,7 +68,10 @@ import { updateIncomingTransactions } from '../../../../../util/transaction-cont
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectUseSafeChainsListValidation } from '../../../../../../app/selectors/preferencesController';
+import {
+  selectTokenNetworkFilter,
+  selectUseSafeChainsListValidation,
+} from '../../../../../../app/selectors/preferencesController';
 import withIsOriginalNativeToken from './withIsOriginalNativeToken';
 import { compose } from 'redux';
 import Icon, {
@@ -436,6 +441,16 @@ export class NetworkSettings extends PureComponent {
      * Matched object from third provider
      */
     matchedChainNetwork: PropTypes.object,
+
+    /**
+     * Checks if all networks are selected
+     */
+    isAllNetworks: PropTypes.bool,
+
+    /**
+     * Token network filter
+     */
+    tokenNetworkFilter: PropTypes.object,
   };
 
   state = {
@@ -888,7 +903,13 @@ export class NetworkSettings extends PureComponent {
     } = this.state;
 
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
-    const { navigation, networkOnboardedState, route } = this.props;
+    const {
+      navigation,
+      networkOnboardedState,
+      route,
+      isAllNetworks,
+      tokenNetworkFilter,
+    } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
 
     const shouldNetworkSwitchPopToWallet =
@@ -932,6 +953,21 @@ export class NetworkSettings extends PureComponent {
 
     if (!(await this.validateChainIdOnSubmit(formChainId, chainId, rpcUrl))) {
       return;
+    }
+
+    // Set tokenNetworkFilter
+    if (isPortfolioViewEnabled()) {
+      const { PreferencesController } = Engine.context;
+      if (!isAllNetworks) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      } else {
+        PreferencesController.setTokenNetworkFilter({
+          ...tokenNetworkFilter,
+          [chainId]: true,
+        });
+      }
     }
 
     await this.handleNetworkUpdate({
@@ -1528,8 +1564,8 @@ export class NetworkSettings extends PureComponent {
     this.setState({ showMultiBlockExplorerAddModal: { isVisible: false } });
   };
 
-  switchToMainnet = () => {
-    const { NetworkController } = Engine.context;
+  switchToMainnet = async () => {
+    const { MultichainNetworkController } = Engine.context;
     const { networkConfigurations } = this.props;
 
     const { networkClientId } =
@@ -1537,21 +1573,21 @@ export class NetworkSettings extends PureComponent {
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    NetworkController.setActiveNetwork(networkClientId);
+    await MultichainNetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {
       await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);
   };
 
-  removeRpcUrl = () => {
+  removeRpcUrl = async () => {
     const { navigation, networkConfigurations, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
       compareSanitizedUrl(rpcUrl, providerConfig.rpcUrl) &&
       providerConfig.type === RPC
     ) {
-      this.switchToMainnet();
+      await this.switchToMainnet();
     }
 
     const entry = Object.entries(networkConfigurations).find(
@@ -2567,6 +2603,8 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
   useSafeChainsListValidation: selectUseSafeChainsListValidation(state),
+  isAllNetworks: selectIsAllNetworks(state),
+  tokenNetworkFilter: selectTokenNetworkFilter(state),
 });
 
 export default compose(

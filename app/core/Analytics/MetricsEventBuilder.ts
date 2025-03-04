@@ -9,57 +9,29 @@ import {
  * the event tracking object to be produced by MetricsEventBuilder
  */
 class TrackingEvent implements ITrackingEvent {
-  readonly #name: string;
-  #properties: JsonMap;
-  #sensitiveProperties: JsonMap;
-  #saveDataRecording: boolean;
+  readonly name: string;
+  properties: JsonMap;
+  sensitiveProperties: JsonMap;
+  saveDataRecording: boolean;
 
   constructor(event: IMetaMetricsEvent) {
-    this.#name = event.category;
-    this.#properties = event.properties || {};
-    this.#sensitiveProperties = {};
-    this.#saveDataRecording = true;
-  }
-
-  get name(): string {
-    return this.#name;
-  }
-
-  get properties(): JsonMap {
-    return this.#properties;
-  }
-
-  set properties(properties: JsonMap) {
-    this.#properties = properties;
-  }
-
-  get sensitiveProperties(): JsonMap {
-    return this.#sensitiveProperties;
-  }
-
-  set sensitiveProperties(sensitiveProperties: JsonMap) {
-    this.#sensitiveProperties = sensitiveProperties;
-  }
-
-  get saveDataRecording(): boolean {
-    return this.#saveDataRecording;
-  }
-
-  set saveDataRecording(saveDataRecording: boolean) {
-    this.#saveDataRecording = saveDataRecording;
+    this.name = event.category;
+    this.properties = event.properties || {};
+    this.sensitiveProperties = {};
+    this.saveDataRecording = true;
   }
 
   get isAnonymous(): boolean {
     return !!(
-      this.#sensitiveProperties && Object.keys(this.#sensitiveProperties).length
+      this.sensitiveProperties && Object.keys(this.sensitiveProperties).length
     );
   }
 
   get hasProperties(): boolean {
     return !!(
-      (this.#properties && Object.keys(this.#properties).length) ||
-      (this.#sensitiveProperties &&
-        Object.keys(this.#sensitiveProperties).length)
+      (this.properties && Object.keys(this.properties).length) ||
+      (this.sensitiveProperties &&
+        Object.keys(this.sensitiveProperties).length)
     );
   }
 }
@@ -85,6 +57,11 @@ class MetricsEventBuilder {
 
   protected constructor(event: IMetaMetricsEvent | ITrackingEvent) {
     if (isTrackingEvent(event)) {
+      // Be careful that in case the event is already a ITrackingEvent
+      // we don't want to create a new one so this passes the reference.
+      // Changes applied to the source event will be reflected in the new event.
+      // If at any point you need to clone the ITrackingEvent, it will require to
+      // create a new ITrackingEvent object by copying the values.
       this.#trackingEvent = event;
       return;
     }

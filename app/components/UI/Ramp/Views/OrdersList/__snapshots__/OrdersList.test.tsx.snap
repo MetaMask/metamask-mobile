@@ -297,7 +297,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -352,13 +352,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -486,7 +480,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -541,13 +535,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -675,7 +663,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -730,13 +718,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -1173,7 +1155,7 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -1228,13 +1210,7 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -1362,7 +1338,7 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -1417,13 +1393,7 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -1551,7 +1521,7 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -1606,13 +1576,7 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -1740,7 +1704,7 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -1795,13 +1759,7 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -2672,7 +2630,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -2727,13 +2685,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -3106,7 +3058,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -3161,13 +3113,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -3604,7 +3550,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -3659,13 +3605,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -3793,7 +3733,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -3848,13 +3788,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -3982,7 +3916,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -4037,13 +3971,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -4171,7 +4099,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
           }
         }
         underlayColor="#f2f4f6"
@@ -4226,13 +4154,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,

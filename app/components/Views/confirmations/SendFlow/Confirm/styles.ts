@@ -135,7 +135,7 @@ const createStyles = (colors: any) =>
       textDecorationLine: 'underline',
       ...fontStyles.bold,
     },
-    blockaidBanner: {
+    blockaidBannerContainer: {
       marginBottom: 10,
       marginTop: 20,
       marginHorizontal: 10,
@@ -152,6 +152,9 @@ const createStyles = (colors: any) =>
       marginLeft: 24,
       marginRight: 24,
       marginBottom: 24,
+    },
+    smartTransactionsMigrationBanner: {
+      marginHorizontal: 16,
     },
   });
 

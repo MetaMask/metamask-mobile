@@ -16,7 +16,7 @@ import {
   selectCurrentCurrency,
 } from '../../selectors/currencyRateController';
 import { MarketDataDetails, Token } from '@metamask/assets-controllers';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isTestNet } from '../../util/networks';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
 
@@ -60,6 +60,7 @@ export const useGetFormattedTokensPerChain = (
     tokensWithBalances: TokensWithBalances[];
   }[];
 } => {
+  // TODO: [SOLANA] Revisit this before shipping, `selectAllTokenBalances` selector needs to most likely be replaced by a non evm supported version
   const currentChainId = useSelector(selectChainId);
   const importedTokens: AllTokens = useSelector(selectAllTokens);
   const allNetworks: Record<

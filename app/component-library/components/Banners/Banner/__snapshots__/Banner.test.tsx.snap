@@ -4,7 +4,7 @@ exports[`Banner should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#d738471a",
+      "backgroundColor": "#D738471A",
       "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
@@ -81,7 +81,7 @@ exports[`Banner should render correctly with a close button 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#d738471a",
+      "backgroundColor": "#D738471A",
       "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
@@ -236,7 +236,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#d738471a",
+      "backgroundColor": "#D738471A",
       "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
@@ -316,7 +316,7 @@ exports[`Banner should render correctly with an action button 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#d738471a",
+      "backgroundColor": "#D738471A",
       "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,

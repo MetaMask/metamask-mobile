@@ -32,16 +32,12 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../../../../constants/error';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-  selectProviderType,
-  selectRpcUrl,
-} from '../../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/networkController';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
+import { selectIsEvmNetworkSelected } from '../../../../../../selectors/multichainNetworkController';
 
 const getAnalyticsParams = () => ({});
 
@@ -66,6 +62,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
@@ -162,11 +159,13 @@ const AddNickname = (props: AddNicknameProps) => {
     return errorMessage;
   };
 
-  const hasBlockExplorer = shouldShowBlockExplorer(
-    providerType,
-    providerRpcTarget,
-    networkConfigurations,
-  );
+  const hasBlockExplorer = !isEvmSelected
+    ? false
+    : shouldShowBlockExplorer(
+        providerType,
+        providerRpcTarget,
+        networkConfigurations,
+      );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -268,10 +267,10 @@ const AddNickname = (props: AddNicknameProps) => {
 const mapStateToProps = (state: RootState) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
-  providerChainId: selectChainId(state),
+  providerChainId: selectEvmChainId(state),
   addressBook: selectAddressBook(state),
   internalAccounts: selectInternalAccounts(state),
-  networkConfigurations: selectNetworkConfigurations(state),
+  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
 });
 
 // TODO: Replace "any" with type

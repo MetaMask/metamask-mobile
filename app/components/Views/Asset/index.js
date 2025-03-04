@@ -36,6 +36,7 @@ import { sortTransactions } from '../../../util/activity';
 import { safeToChecksumAddress } from '../../../util/address';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
+  findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
   isMainnetByChainId,
   isPortfolioViewEnabled,
@@ -65,6 +66,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -210,10 +212,9 @@ class Asset extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const isNativeToken = route.params.isNative ?? route.params.isETH;
     const isMainnet = isMainnetByChainId(chainId);
-    const blockExplorer = findBlockExplorerForRpc(
-      rpcUrl,
-      networkConfigurations,
-    );
+    const blockExplorer = isNonEvmChainId(chainId)
+      ? findBlockExplorerForNonEvmChainId(chainId)
+      : findBlockExplorerForRpc(rpcUrl, networkConfigurations);
 
     const shouldShowMoreOptionsInNavBar =
       isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
@@ -234,6 +235,7 @@ class Asset extends PureComponent {
                   isNativeCurrency: isNativeToken,
                   address: route.params?.address,
                   chainId: route.params?.chainId,
+                  asset,
                 },
               })
           : undefined,
@@ -521,10 +523,7 @@ class Asset extends PureComponent {
       asset.address?.toLowerCase() in this.props.swapsTokens;
 
     const displaySwapsButton =
-      isSwapsFeatureLive &&
-      isNetworkAllowed &&
-      isAssetAllowed &&
-      AppConstants.SWAPS.ACTIVE;
+      isNetworkAllowed && isAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
@@ -541,6 +540,10 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
+                  swapsIsLive={isSwapsFeatureLive}
+                  networkName={
+                    this.props.networkConfigurations[asset.chainId]?.name
+                  }
                 />
                 <ActivityHeader asset={asset} />
               </>

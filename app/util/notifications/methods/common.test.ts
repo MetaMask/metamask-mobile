@@ -1,12 +1,11 @@
 import {
   formatMenuItemDate,
-  parseNotification,
+  shortenString,
   getLeadingZeroCount,
   formatAmount,
   getUsdAmount,
 } from './common';
 import { strings } from '../../../../locales/i18n';
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 
 describe('formatMenuItemDate', () => {
   beforeAll(() => {
@@ -200,21 +199,29 @@ describe('getUsdAmount', () => {
   });
 });
 
-describe('parseNotification', () => {
-  it('parses notification', () => {
-    const notification = {
-      data: {
-        data: {
-          type: 'eth_received',
-          data: { kind: 'eth_received' },
-        },
-      },
-    } as unknown as FirebaseMessagingTypes.RemoteMessage;
+describe('shortenString', () => {
+  it('should return the same string if it is shorter than TRUNCATED_NAME_CHAR_LIMIT', () => {
+    expect(shortenString('string')).toStrictEqual('string');
+  });
 
-    expect(parseNotification(notification)).toEqual({
-      type: 'eth_received',
-      transaction: { kind: 'eth_received' },
-      duration: 5000,
-    });
+  it('should return the shortened string according to the specified options', () => {
+    expect(
+      shortenString('0x1234567890123456789012345678901234567890', {
+        truncatedCharLimit: 10,
+        truncatedStartChars: 4,
+        truncatedEndChars: 4,
+      }),
+    ).toStrictEqual('0x12...7890');
+  });
+
+  it('should shorten the string and remove all characters from the end if skipCharacterInEnd is true', () => {
+    expect(
+      shortenString('0x1234567890123456789012345678901234567890', {
+        truncatedCharLimit: 10,
+        truncatedStartChars: 4,
+        truncatedEndChars: 4,
+        skipCharacterInEnd: true,
+      }),
+    ).toStrictEqual('0x12...');
   });
 });

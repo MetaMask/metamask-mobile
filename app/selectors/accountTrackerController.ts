@@ -1,4 +1,3 @@
-
 import { createSelector } from 'reselect';
 import {
   AccountTrackerControllerState,
@@ -6,7 +5,7 @@ import {
 } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
-import { selectChainId } from './networkController';
+import { selectEvmChainId } from './networkController';
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 
 const selectAccountTrackerControllerState = (state: RootState) =>
@@ -29,7 +28,7 @@ export const selectAccountsLength = createSelector(
 );
 export const selectAccountBalanceByChainId = createDeepEqualSelector(
   selectAccountsByChainId,
-  selectChainId,
+  selectEvmChainId,
   selectSelectedInternalAccountFormattedAddress,
   (accountsByChainId, chainId, selectedInternalAccountChecksummedAddress) => {
     const accountsBalance = selectedInternalAccountChecksummedAddress

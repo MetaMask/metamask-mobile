@@ -9,7 +9,7 @@ exports[`ContractTag render matches snapshot 1`] = `
     {
       "alignSelf": "flex-start",
       "backgroundColor": "#f2f4f6",
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 999,
       "borderWidth": 0,
       "color": "#6a737d",

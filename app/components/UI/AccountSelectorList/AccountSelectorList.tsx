@@ -11,7 +11,7 @@ import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useStyles } from '../../../component-library/hooks';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
@@ -146,7 +146,7 @@ const AccountSelectorList = ({
                       safeToChecksumAddress(accountAddress)
                     : isAccountSelected,
               ) as Account;
-              let nextActiveAddress = account?.address;
+              let nextActiveAddress = account.address;
               if (isSelected) {
                 const nextActiveIndex = index === 0 ? 1 : index - 1;
                 nextActiveAddress = accounts[nextActiveIndex]?.address;

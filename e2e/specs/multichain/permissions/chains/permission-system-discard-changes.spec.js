@@ -33,6 +33,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
         await Browser.navigateToTestDApp();
+
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
         // Navigate to chain permissions and add Sepolia

@@ -22,6 +22,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
           "marginTop": 16,
         }
       }
+      testID="main-notification-toggle"
     >
       <Text
         accessibilityRole="text"
@@ -55,14 +56,15 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
                 "alignSelf": "flex-end",
               },
               {
-                "backgroundColor": "#bbc0c566",
+                "backgroundColor": "#BBC0C566",
                 "borderRadius": 16,
               },
             ],
           ]
         }
+        testID="main-notification-toggle--switch"
         thumbTintColor="#ffffff"
-        tintColor="#bbc0c566"
+        tintColor="#BBC0C566"
         value={false}
       />
     </View>
@@ -101,6 +103,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
               "lineHeight": 22,
             }
           }
+          testID="main-notification-toggle--learn-more-button"
         >
           Learn how we protect your privacy while using this feature.
         </Text>

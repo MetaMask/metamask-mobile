@@ -11,19 +11,27 @@ interface BottomModalProps {
   children: ReactChild;
   onClose?: () => void;
   hideBackground?: boolean;
+  testID?: string;
+  visible?: boolean;
 }
 
+/**
+ * TODO replace BottomModal instances with BottomSheet
+ * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
+ */
 const BottomModal = ({
   children,
   hideBackground,
   onClose,
+  testID,
+  visible = true,
 }: BottomModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <Modal
-      isVisible
+      isVisible={visible}
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
@@ -32,9 +40,11 @@ const BottomModal = ({
       animationInTiming={600}
       animationOutTiming={600}
       onBackButtonPress={onClose}
+      onBackdropPress={onClose}
       onSwipeComplete={onClose}
       swipeDirection={'down'}
       propagateSwipe
+      testID={testID}
     >
       <View style={styles.wrapper}>
         <View style={styles.topBar} />

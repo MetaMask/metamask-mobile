@@ -310,7 +310,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                       "height": 32,
                       "justifyContent": "center",
                       "overflow": "hidden",
-                      "shadowColor": "#0000001a",
+                      "shadowColor": "#0000001A",
                       "shadowOffset": {
                         "height": 2,
                         "width": 0,
@@ -568,7 +568,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                       "height": 32,
                       "justifyContent": "center",
                       "overflow": "hidden",
-                      "shadowColor": "#0000001a",
+                      "shadowColor": "#0000001A",
                       "shadowOffset": {
                         "height": 2,
                         "width": 0,

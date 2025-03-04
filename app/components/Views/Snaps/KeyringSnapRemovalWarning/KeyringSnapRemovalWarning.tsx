@@ -15,7 +15,7 @@ import BottomSheet, {
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import BannerAlert from '../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../component-library/components/Banners/Banner';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
@@ -170,56 +170,56 @@ export default function KeyringSnapRemovalWarning({
             'app_settings.snaps.snap_settings.remove_account_snap_warning.banner_title',
           )}
         />
-          {showConfirmation ? (
-            <>
-              <Text variant={TextVariant.BodyMD} style={styles.description}>
-                {`${strings(
-                  'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_account_snap_alert_description_1',
-                )} `}
-                <Text variant={TextVariant.BodyMDBold}>
-                  {snap.manifest.proposedName}
-                </Text>
-                {` ${strings(
-                  'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_account_snap_alert_description_2',
-                )}`}
+        {showConfirmation ? (
+          <>
+            <Text variant={TextVariant.BodyMD} style={styles.description}>
+              {`${strings(
+                'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_account_snap_alert_description_1',
+              )} `}
+              <Text variant={TextVariant.BodyMDBold}>
+                {snap.manifest.proposedName}
               </Text>
-              <TextInput
-                style={styles.input}
-                value={confirmationInput}
-                onChangeText={handleConfirmationInputChange}
-                testID={KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT}
-              />
-              {error && (
-                <Text variant={TextVariant.BodySM} style={styles.errorText}>
-                  {strings(
-                    'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_snap_error',
-                    {
-                      snapName: snap.manifest.proposedName,
-                    },
-                  )}
-                </Text>
-              )}
-            </>
-          ) : (
-            <>
-              <Text variant={TextVariant.BodyMD} style={styles.description}>
+              {` ${strings(
+                'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_account_snap_alert_description_2',
+              )}`}
+            </Text>
+            <TextInput
+              style={styles.input}
+              value={confirmationInput}
+              onChangeText={handleConfirmationInputChange}
+              testID={KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT}
+            />
+            {error && (
+              <Text variant={TextVariant.BodySM} style={styles.errorText}>
                 {strings(
-                  'app_settings.snaps.snap_settings.remove_account_snap_warning.description',
+                  'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_snap_error',
+                  {
+                    snapName: snap.manifest.proposedName,
+                  },
                 )}
               </Text>
-              <NativeViewGestureHandler disallowInterruption>
+            )}
+          </>
+        ) : (
+          <>
+            <Text variant={TextVariant.BodyMD} style={styles.description}>
+              {strings(
+                'app_settings.snaps.snap_settings.remove_account_snap_warning.description',
+              )}
+            </Text>
+            <NativeViewGestureHandler disallowInterruption>
               <ScrollView style={styles.scrollView}>
-                  {accountListItems}
-                </ScrollView>
-              </NativeViewGestureHandler>
-            </>
-          )}
-        </View>
-        <BottomSheetFooter
-          style={styles.buttonContainer}
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-          buttonPropsArray={buttonPropsArray}
-        />
+                {accountListItems}
+              </ScrollView>
+            </NativeViewGestureHandler>
+          </>
+        )}
+      </View>
+      <BottomSheetFooter
+        style={styles.buttonContainer}
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        buttonPropsArray={buttonPropsArray}
+      />
     </BottomSheet>
   );
 }

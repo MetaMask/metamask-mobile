@@ -15,8 +15,8 @@ import Icon, {
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 import {
   createProviderConfig,
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
@@ -30,9 +30,10 @@ import {
   isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
-import { BrowserTab } from '../../../components/UI/Tokens/types';
+import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
 import { Hex } from '../../../util/smart-transactions/smart-publish-hook';
+import { appendURLParams } from '../../../util/browser';
 interface Option {
   label: string;
   onPress: () => void;
@@ -45,20 +46,28 @@ interface Props {
       address: string;
       isNativeCurrency: boolean;
       chainId: string;
+      asset: TokenI;
     };
   };
 }
 
 const AssetOptions = (props: Props) => {
-  const { address, isNativeCurrency, chainId: networkId } = props.route.params;
+  const {
+    address,
+    isNativeCurrency,
+    chainId: networkId,
+    asset,
+  } = props.route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
   const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const tokenList = useSelector(selectTokenList);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -90,8 +99,8 @@ const AssetOptions = (props: Props) => {
   }, [networkId, networkConfigurations, providerConfig]);
 
   const explorer = useBlockExplorer(
-    providerConfigTokenExplorer,
     networkConfigurations,
+    providerConfigTokenExplorer,
   );
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
@@ -125,6 +134,7 @@ const AssetOptions = (props: Props) => {
       navigation.navigate('AssetDetails', {
         address,
         chainId: networkId,
+        asset,
       });
     });
   };
@@ -140,19 +150,12 @@ const AssetOptions = (props: Props) => {
       existingTabId = existingPortfolioTab.id;
     } else {
       const analyticsEnabled = isEnabled();
-      const portfolioUrl = new URL(AppConstants.PORTFOLIO.URL);
 
-      portfolioUrl.searchParams.append('metamaskEntry', 'mobile');
-
-      // Append user's privacy preferences for metrics + marketing on user navigation to Portfolio.
-      portfolioUrl.searchParams.append(
-        'metricsEnabled',
-        String(analyticsEnabled),
-      );
-      portfolioUrl.searchParams.append(
-        'marketingEnabled',
-        String(!!isDataCollectionForMarketingEnabled),
-      );
+      const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
+        metamaskEntry: 'mobile',
+        metricsEnabled: analyticsEnabled,
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      });
 
       newTabUrl = portfolioUrl.href;
     }

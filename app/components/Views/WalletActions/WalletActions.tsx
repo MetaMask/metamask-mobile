@@ -12,7 +12,7 @@ import BottomSheet, {
 import AppConstants from '../../../core/AppConstants';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
@@ -40,18 +40,18 @@ import {
 } from '../../UI/Ramp/routes/utils';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
+import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
+import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
-  const goToBridge = useGoToBridge('TabBar');
 
   const chainId = useSelector(selectChainId);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
   const dispatch = useDispatch();
-
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -87,6 +87,30 @@ const WalletActions = () => {
     trackEvent,
     chainId,
     createEventBuilder,
+  ]);
+
+  const onEarn = useCallback(async () => {
+    closeBottomSheetAndNavigate(() => {
+      navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+      });
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Earn',
+          location: STAKE_EVENT_LOCATIONS.WALLET_ACTIONS_BOTTOM_SHEET,
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    chainId,
+    createEventBuilder,
+    trackEvent,
   ]);
 
   const onBuy = useCallback(() => {
@@ -188,6 +212,42 @@ const WalletActions = () => {
     createEventBuilder,
   ]);
 
+  const handleBridgeNavigation = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourcePage: 'MainView',
+        },
+      });
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Bridge',
+          tokenSymbol: '',
+          location: 'TabBar',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    chainId,
+    createEventBuilder,
+  ]);
+
+  const goToPortfolioBridge = useGoToBridge('TabBar');
+
+  const goToBridge =
+    process.env.MM_BRIDGE_UI_ENABLED === 'true'
+      ? handleBridgeNavigation
+      : goToPortfolioBridge;
+
   const sendIconStyle = useMemo(
     () => ({
       transform: [{ rotate: '-45deg' }],
@@ -207,7 +267,6 @@ const WalletActions = () => {
             actionID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
           />
         )}
         {isNetworkRampSupported && (
@@ -221,19 +280,17 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
-        {AppConstants.SWAPS.ACTIVE &&
-          swapsIsLive &&
-          isSwapsAllowed(chainId) && (
-            <WalletAction
-              actionType={WalletActionType.Swap}
-              iconName={IconName.SwapHorizontal}
-              onPress={goToSwaps}
-              actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-              iconStyle={styles.icon}
-              iconSize={AvatarSize.Md}
-              disabled={!canSignTransactions}
-            />
-          )}
+        {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
+          <WalletAction
+            actionType={WalletActionType.Swap}
+            iconName={IconName.SwapHorizontal}
+            onPress={goToSwaps}
+            actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions || !swapsIsLive}
+          />
+        )}
         {isBridgeAllowed(chainId) && (
           <WalletAction
             actionType={WalletActionType.Bridge}
@@ -263,6 +320,17 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
+        {isStablecoinLendingFeatureEnabled() && (
+          <WalletAction
+            actionType={WalletActionType.Earn}
+            iconName={IconName.Plant}
+            onPress={onEarn}
+            actionID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
       </View>
     </BottomSheet>
   );

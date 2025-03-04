@@ -452,13 +452,7 @@ exports[`GetStarted renders correctly 1`] = `
                                   }
                                 >
                                   <Image
-                                    source={
-                                      {
-                                        "default": {
-                                          "uri": "MockImage",
-                                        },
-                                      }
-                                    }
+                                    source={1}
                                   />
                                 </View>
                               </View>
@@ -1109,13 +1103,7 @@ exports[`GetStarted renders correctly 2`] = `
                                   }
                                 >
                                   <Image
-                                    source={
-                                      {
-                                        "default": {
-                                          "uri": "MockImage",
-                                        },
-                                      }
-                                    }
+                                    source={1}
                                   />
                                 </View>
                               </View>

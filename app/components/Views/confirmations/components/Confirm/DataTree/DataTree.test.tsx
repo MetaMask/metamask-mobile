@@ -3,6 +3,10 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import DataTree, { DataTreeInput } from './DataTree';
+import { PrimaryTypeOrder } from '../../../constants/signatures';
+import { NONE_DATE_VALUE } from '../../../utils/date';
+
+const timestamp = 1647359825; // March 15, 2022  15:57:05 UTC
 
 const mockSanitizedTypedSignV3Message = {
   from: {
@@ -24,6 +28,18 @@ const mockSanitizedTypedSignV3Message = {
       },
     },
     type: 'Person',
+  },
+  endTime: {
+    value: timestamp.toString(),
+    type: 'uint256',
+  },
+  startTime: {
+    value: NONE_DATE_VALUE,
+    type: 'uint256',
+  },
+  buyAmount: {
+    value: 10000,
+    type: 'uint256',
   },
   contents: { value: 'Hello, Bob!', type: 'string' },
 };
@@ -52,11 +68,13 @@ describe('NoChangeSimulation', () => {
     expect(getByText('1337')).toBeDefined();
   });
 
-  it('should display types sign v3/v4 message correctly', async () => {
+  it('displays types sign v3/v4 message', async () => {
     const { getByText, getAllByText } = renderWithProvider(
       <DataTree
         data={mockSanitizedTypedSignV3Message as unknown as DataTreeInput}
         chainId="0x1"
+        primaryType={PrimaryTypeOrder.Order}
+        tokenDecimals={2}
       />,
       {
         state: {
@@ -72,5 +90,13 @@ describe('NoChangeSimulation', () => {
     expect(getByText('Cow')).toBeDefined();
     expect(getByText('To')).toBeDefined();
     expect(getByText('Bob')).toBeDefined();
+    // date field displayed for permit types
+    expect(getByText('End Time')).toBeDefined();
+    expect(getByText('15 March 2022, 15:57')).toBeDefined();
+    expect(getByText('Start Time')).toBeDefined();
+    expect(getByText('None')).toBeDefined();
+    // token value field
+    expect(getByText('Buy Amount')).toBeDefined();
+    expect(getByText('100')).toBeDefined();
   });
 });

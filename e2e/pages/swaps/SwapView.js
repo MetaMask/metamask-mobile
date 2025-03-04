@@ -5,6 +5,7 @@ import {
 
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import TestHelpers from '../..//helpers';
 
 class SwapView {
   get quoteSummary() {
@@ -19,8 +20,10 @@ class SwapView {
     return Matchers.getElementByText(SwapViewSelectorsTexts.FETCHING_QUOTES);
   }
 
-  get swipeToSwapButton() {
-    return Matchers.getElementByID(SwapsViewSelectors.SWIPE_TO_SWAP_BUTTON);
+  get swapButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(SwapsViewSelectors.SWAP_BUTTON)
+      : Matchers.getElementByLabel(SwapsViewSelectors.SWAP_BUTTON);
   }
 
   get iUnderstandLabel() {
@@ -34,25 +37,19 @@ class SwapView {
     return title;
   }
 
-  async swipeToSwap() {
-    const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.95;
-
-    // Swipe could happen at the same time when gas fees are falshing
-    // and that's when the swipe button becomes disabled
-    // that's the need to retry
-    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
-    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
+  // Function to check if the button is enabled
+  async isButtonEnabled(element) {
+    const attributes = await element.getAttributes();
+    return attributes.enabled === true; // Check if enabled is true
   }
 
-  swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
-    return Matchers.getElementByText(
-      this.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
-    );
+  async tapSwapButton() {
+    await Gestures.waitAndTap(this.swapButton);
   }
 
   async tapIUnderstandPriceWarning() {
     try {
-      await Gestures.waitAndTap(this.iUnderstandLabel, 5000);
+      await Gestures.waitAndTap(this.iUnderstandLabel, 3000);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(`Price warning not displayed: ${e}`);

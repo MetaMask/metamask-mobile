@@ -8,9 +8,9 @@ import {
 import { fetchTokenContractExchangeRates } from '@metamask/assets-controllers';
 
 import { getTokenDetails } from '../../../util/address';
-import { selectConversionRate } from '../../../selectors/currencyRateController';
 import useBalanceChanges from './useBalanceChanges';
 import { FIAT_UNAVAILABLE, AssetType } from './types';
+import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -18,7 +18,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../selectors/currencyRateController', () => ({
-  selectConversionRate: jest.fn(),
+  selectConversionRateByChainId: jest.fn(),
   selectCurrentCurrency: jest.fn(),
 }));
 
@@ -37,7 +37,7 @@ jest.mock('@metamask/assets-controllers', () => ({
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockSelectConversionRate = selectConversionRate as any;
+const mockSelectConversionRate = selectConversionRateByChainId as any;
 const mockGetTokenDetails = getTokenDetails as jest.Mock;
 const mockFetchTokenContractExchangeRates =
   fetchTokenContractExchangeRates as jest.Mock;

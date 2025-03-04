@@ -1,17 +1,13 @@
 // Third party dependencies.
-import React, { useCallback } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../locales/i18n';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
 import {
   getDecimalChainId,
-  isMultichainVersion1Enabled,
   getNetworkImageSource,
 } from '../../../../util/networks';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
@@ -20,10 +16,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectProviderConfig,
   ProviderConfig,
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
+  selectEvmChainId,
 } from '../../../../selectors/networkController';
-import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import {
   IconColor,
   IconName,
@@ -56,39 +51,21 @@ import Button, {
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
 
-const AccountPermissionsConnected = ({
+const NetworkPermissionsConnected = ({
   onSetPermissionsScreen,
   onDismissSheet,
   hostname,
   favicon,
-  secureIcon,
-  urlWithProtocol,
 }: NetworkPermissionsConnectedProps) => {
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectEvmChainId);
 
-  const { networkName, networkImageSource } = useNetworkInfo(hostname);
-
-  const openRevokePermissions = () =>
-    onSetPermissionsScreen(AccountPermissionsScreens.Revoke);
-
-  const switchNetwork = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
-        .addProperties({
-          chain_id: getDecimalChainId(providerConfig.chainId),
-        })
-        .build(),
-    );
-  }, [providerConfig.chainId, navigate, trackEvent, createEventBuilder]);
-
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   // Get permitted chain IDs
   const getPermittedChainIds = () => {
@@ -107,7 +84,7 @@ const AccountPermissionsConnected = ({
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
     // If no permitted chains found, default to current chain
-    return providerConfig?.chainId ? [providerConfig.chainId] : [];
+    return chainId ? [chainId] : [];
   };
 
   const permittedChainIds = getPermittedChainIds();
@@ -128,77 +105,50 @@ const AccountPermissionsConnected = ({
 
   return (
     <>
-      {!isMultichainVersion1Enabled && (
-        <SheetHeader title={strings('accounts.connected_accounts_title')} />
-      )}
-      {isMultichainVersion1Enabled && (
-        <View style={styles.header}>
-          <Avatar
-            variant={AvatarVariant.Favicon}
-            imageSource={favicon}
-            size={AvatarSize.Md}
-          />
-        </View>
-      )}
+      <View style={styles.header}>
+        <Avatar
+          variant={AvatarVariant.Favicon}
+          imageSource={favicon}
+          size={AvatarSize.Md}
+        />
+      </View>
       <View style={styles.body}>
-        {!isMultichainVersion1Enabled && (
-          <TagUrl
-            imageSource={favicon}
-            label={urlWithProtocol}
-            cta={{
-              label: strings('accounts.permissions'),
-              onPress: openRevokePermissions,
-            }}
-            iconName={secureIcon}
-          />
-        )}
-        {isMultichainVersion1Enabled && (
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle} variant={TextVariant.HeadingSM}>
-              {strings('permissions.permitted_networks')}
-            </Text>
-            <View style={styles.infoButtonContainer}>
-              <ButtonIcon
-                size={ButtonIconSizes.Md}
-                iconName={IconName.Info}
-                iconColor={IconColor.Default}
-                onPress={() => {
-                  navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                    screen: Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET,
-                  });
-                }}
-              />
-            </View>
+        <View style={styles.sectionTitleContainer}>
+          <Text style={styles.sectionTitle} variant={TextVariant.HeadingSM}>
+            {strings('permissions.permitted_networks')}
+          </Text>
+          <View style={styles.infoButtonContainer}>
+            <ButtonIcon
+              size={ButtonIconSizes.Md}
+              iconName={IconName.Info}
+              iconColor={IconColor.Default}
+              onPress={() => {
+                navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                  screen: Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET,
+                });
+              }}
+            />
           </View>
-        )}
-        {!isMultichainVersion1Enabled && (
-          <PickerNetwork
-            label={providerConfig?.nickname || networkName}
-            imageSource={networkImageSource}
-            onPress={switchNetwork}
-            style={styles.networkPicker}
-            testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-          />
-        )}
+        </View>
       </View>
       <View style={styles.networkSelectorListContainer}>
         <NetworkSelectorList
           networks={networks}
-          onSelectNetwork={(chainId) => {
-            if (chainId === providerConfig?.chainId) {
+          onSelectNetwork={(onSelectChainId) => {
+            if (onSelectChainId === chainId) {
               onDismissSheet();
               return;
             }
 
             const theNetworkName = handleNetworkSwitch(
-              getDecimalChainId(chainId),
+              getDecimalChainId(onSelectChainId),
             );
 
             if (theNetworkName) {
               trackEvent(
                 createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
                   .addProperties({
-                    chain_id: getDecimalChainId(chainId),
+                    chain_id: getDecimalChainId(onSelectChainId),
                     from_network: providerConfig?.nickname || theNetworkName,
                     to_network: theNetworkName,
                   })
@@ -211,25 +161,21 @@ const AccountPermissionsConnected = ({
           isMultiSelect={false}
         />
       </View>
-      {isMultichainVersion1Enabled && (
-        <Button
-          style={styles.managePermissionsButton}
-          variant={ButtonVariants.Secondary}
-          label={strings('permissions.edit_permissions')}
-          testID={
-            NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON
-          }
-          size={ButtonSize.Lg}
-          onPress={() => {
-            onSetPermissionsScreen(
-              AccountPermissionsScreens.ConnectMoreNetworks,
-            );
-          }}
-          width={ButtonWidthTypes.Full}
-        />
-      )}
+      <Button
+        style={styles.managePermissionsButton}
+        variant={ButtonVariants.Secondary}
+        label={strings('permissions.edit_permissions')}
+        testID={
+          NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON
+        }
+        size={ButtonSize.Lg}
+        onPress={() => {
+          onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks);
+        }}
+        width={ButtonWidthTypes.Full}
+      />
     </>
   );
 };
 
-export default AccountPermissionsConnected;
+export default NetworkPermissionsConnected;

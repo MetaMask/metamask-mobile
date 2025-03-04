@@ -1,10 +1,11 @@
+import { ApprovalType } from '@metamask/controller-utils';
 import {
   SignatureRequest,
   SignatureRequestType,
 } from '@metamask/signature-controller';
+
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { useSignatureRequest } from './useSignatureRequest';
-import { ApprovalType } from '@metamask/controller-utils';
 
 const ID_MOCK = '123-456-789';
 

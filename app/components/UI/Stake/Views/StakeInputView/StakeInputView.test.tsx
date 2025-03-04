@@ -1,38 +1,48 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
-import StakeInputView from './StakeInputView';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { Stake } from '../../sdk/stakeSdkProvider';
+import { fireEvent } from '@testing-library/react-native';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
-import { MOCK_GET_VAULT_RESPONSE } from '../../__mocks__/mockData';
+import StakeInputView from './StakeInputView';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
+import { Stake } from '../../sdk/stakeSdkProvider';
+import { MOCK_ETH_MAINNET_ASSET } from '../../__mocks__/mockData';
 import { toWei } from '../../../../../util/number';
 import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
 import * as useStakingGasFee from '../../hooks/useStakingGasFee';
+import {
+  STAKE_INPUT_VIEW_ACTIONS,
+  StakeInputViewProps,
+} from './StakeInputView.types';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../../../reducers';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { MOCK_VAULT_APY_AVERAGES } from '../../components/PoolStakingLearnMoreModal/mockVaultRewards';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import {
+  selectConfirmationRedesignFlags,
+  type ConfirmationRedesignRemoteFlags,
+} from '../../../../../selectors/featureFlagController';
+import { flushPromises } from '../../../../../util/test/utils';
+import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 
-function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    {
-      name: Routes.STAKING.STAKE,
-    },
-    {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
-    },
-  );
-}
+const MOCK_SELECTED_INTERNAL_ACCOUNT = {
+  address: '0x123',
+} as InternalAccount;
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockPop = jest.fn();
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn().mockImplementation((selector) => selector()),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -40,9 +50,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
+      setOptions: mockSetOptions,
       reset: mockReset,
       dangerouslyGetParent: () => ({
         pop: mockPop,
@@ -72,6 +80,15 @@ jest.mock('../../../../../selectors/multichain', () => ({
       },
     ],
   })),
+}));
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+  selectSelectedInternalAccount: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/featureFlagController', () => ({
+  selectConfirmationRedesignFlags: jest.fn(),
 }));
 
 const mockBalanceBN = toWei('1.5'); // 1.5 ETH
@@ -123,9 +140,7 @@ jest.mock('../../hooks/useStakingGasFee', () => ({
   }),
 }));
 
-const mockVaultData = MOCK_GET_VAULT_RESPONSE;
 // Mock hooks
-
 jest.mock('../../hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: () => ({
@@ -136,119 +151,226 @@ jest.mock('../../hooks/useStakingEligibility', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useVaultData', () => ({
+jest.mock('../../hooks/useVaultApyAverages', () => ({
   __esModule: true,
   default: () => ({
-    vaultData: mockVaultData,
-    loading: false,
-    error: null,
-    refreshVaultData: jest.fn(),
-    annualRewardRate: '2.5%',
-    annualRewardRateDecimal: 0.025,
+    vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
+    isLoadingVaultApyAverages: false,
+    refreshVaultApyAverages: jest.fn(),
   }),
 }));
 
+jest.mock('../../hooks/usePoolStakedDeposit', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockInitialState: DeepPartial<RootState> = {
+  settings: {},
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
+  },
+};
+
 describe('StakeInputView', () => {
+  const usePoolStakedDepositMock = jest.mocked(usePoolStakedDeposit);
+  const selectConfirmationRedesignFlagsMock = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
+  const selectSelectedInternalAccountMock = jest.mocked(
+    selectSelectedInternalAccount,
+  );
+  const baseProps: StakeInputViewProps = {
+    route: {
+      params: {
+        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        token: MOCK_ETH_MAINNET_ASSET,
+      },
+      key: Routes.STAKING.STAKE,
+      name: 'params',
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    selectSelectedInternalAccountMock.mockImplementation(
+      () => MOCK_SELECTED_INTERNAL_ACCOUNT,
+    );
+    selectConfirmationRedesignFlagsMock.mockImplementation(
+      () =>
+        ({
+          staking_transactions: false,
+        } as ConfirmationRedesignRemoteFlags),
+    );
+    usePoolStakedDepositMock.mockReturnValue({
+      attemptDepositTransaction: jest.fn(),
+    });
+  });
+
+  const renderComponent = () =>
+    renderWithProvider(<StakeInputView {...baseProps} />, {
+      state: mockInitialState,
+    });
+
   it('render matches snapshot', () => {
-    render(StakeInputView);
-    expect(screen.toJSON()).toMatchSnapshot();
+    const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('when values are entered in the keypad', () => {
     it('updates ETH and fiat values', () => {
-      render(StakeInputView);
+      const { toJSON, getByText } = renderComponent();
 
-      fireEvent.press(screen.getByText('2'));
+      expect(toJSON()).toMatchSnapshot();
 
-      expect(screen.getByText('4000 USD')).toBeTruthy();
+      fireEvent.press(getByText('2'));
+
+      expect(getByText('4000 USD')).toBeTruthy();
     });
   });
 
   describe('currency toggle functionality', () => {
     it('switches between ETH and fiat correctly', () => {
-      render(StakeInputView);
+      const { getByText } = renderComponent();
 
-      expect(screen.getByText('ETH')).toBeTruthy();
-      fireEvent.press(screen.getByText('0 USD'));
+      expect(getByText('ETH')).toBeTruthy();
+      fireEvent.press(getByText('0 USD'));
 
-      expect(screen.getByText('USD')).toBeTruthy();
+      expect(getByText('USD')).toBeTruthy();
     });
   });
 
   describe('when calculating rewards', () => {
     it('calculates estimated annual rewards based on input', () => {
-      render(StakeInputView);
+      const { getByText } = renderComponent();
 
-      fireEvent.press(screen.getByText('2'));
+      fireEvent.press(getByText('2'));
 
-      expect(screen.getByText('0.05 ETH')).toBeTruthy();
+      expect(getByText('0.06515 ETH')).toBeTruthy();
     });
   });
 
   describe('quick amount buttons', () => {
     it('handles 25% quick amount button press correctly', () => {
-      render(StakeInputView);
+      const { getByText } = renderComponent();
 
-      fireEvent.press(screen.getByText('25%'));
+      fireEvent.press(getByText('25%'));
 
-      expect(screen.getByText('0.375')).toBeTruthy();
+      expect(getByText('0.375')).toBeTruthy();
     });
   });
 
   describe('stake button states', () => {
     it('displays `Enter amount` if input is 0', () => {
-      render(StakeInputView);
+      const { getByText } = renderComponent();
 
-      expect(screen.getByText('Enter amount')).toBeTruthy();
+      expect(getByText('Enter amount')).toBeTruthy();
     });
 
     it('displays `Review` on stake button if input is valid', () => {
-      render(StakeInputView);
+      const { getByText } = renderComponent();
 
-      fireEvent.press(screen.getByText('1'));
-      expect(screen.getByText('Review')).toBeTruthy();
+      fireEvent.press(getByText('1'));
+      expect(getByText('Review')).toBeTruthy();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
-      render(StakeInputView);
+      const { getByText, queryAllByText } = renderComponent();
 
-      fireEvent.press(screen.getByText('4'));
-      expect(screen.queryAllByText('Not enough ETH')).toHaveLength(2);
+      fireEvent.press(getByText('4'));
+      expect(queryAllByText('Not enough ETH')).toHaveLength(2);
     });
 
     it('navigates to Learn more modal when learn icon is pressed', () => {
-      render(StakeInputView);
-      fireEvent.press(screen.getByLabelText('Learn More'));
+      const { getByLabelText } = renderComponent();
+      fireEvent.press(getByLabelText('Learn More'));
       expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
       });
     });
 
-    it('navigates to gas impact modal when gas cost is 30% or more of deposit amount', () => {
-      jest.spyOn(useStakingGasFee, 'default').mockReturnValue({
-        estimatedGasFeeWei: toWei('0.25'),
-        isLoadingStakingGasFee: false,
-        isStakingGasFeeError: false,
-        refreshGasValues: jest.fn(),
+    describe('navigates to ', () => {
+      it('gas impact modal when gas cost is 30% or more of deposit amount', async () => {
+        jest.spyOn(useStakingGasFee, 'default').mockReturnValue({
+          estimatedGasFeeWei: toWei('0.25'),
+          isLoadingStakingGasFee: false,
+          isStakingGasFeeError: false,
+          refreshGasValues: jest.fn(),
+        });
+
+        const { getByText } = renderComponent();
+
+        fireEvent.press(getByText('25%'));
+
+        fireEvent.press(getByText(strings('stake.review')));
+
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenLastCalledWith('StakeModals', {
+          screen: Routes.STAKING.MODALS.GAS_IMPACT,
+          params: {
+            amountFiat: '750',
+            amountWei: '375000000000000000',
+            annualRewardRate: '3.3%',
+            annualRewardsETH: '0.01222 ETH',
+            annualRewardsFiat: '24.43 USD',
+            estimatedGasFee: '0.25',
+            estimatedGasFeePercentage: '66%',
+          },
+        });
       });
 
-      render(StakeInputView);
+      it('redesigned stake deposit confirmation view', async () => {
+        const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
+        selectConfirmationRedesignFlagsMock.mockReturnValue({
+          staking_transactions: true,
+        } as ConfirmationRedesignRemoteFlags);
 
-      fireEvent.press(screen.getByText('25%'));
+        usePoolStakedDepositMock.mockReturnValue({
+          attemptDepositTransaction: attemptDepositTransactionMock,
+        });
 
-      fireEvent.press(screen.getByText(strings('stake.review')));
+        const { getByText } = renderComponent();
 
-      expect(mockNavigate).toHaveBeenLastCalledWith('StakeModals', {
-        screen: Routes.STAKING.MODALS.GAS_IMPACT,
-        params: {
-          amountFiat: '750',
-          amountWei: '375000000000000000',
-          annualRewardRate: '2.5%',
-          annualRewardsETH: '0.00938 ETH',
-          annualRewardsFiat: '18.75 USD',
-          estimatedGasFee: '0.25',
-          estimatedGasFeePercentage: '66%',
-        },
+        fireEvent.press(getByText('25%'));
+
+        fireEvent.press(getByText(strings('stake.review')));
+
+        // Wait for approval to be processed
+        await flushPromises();
+
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
+          screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+        });
+
+        expect(attemptDepositTransactionMock).toHaveBeenCalledTimes(1);
+        expect(attemptDepositTransactionMock).toHaveBeenCalledWith(
+          '375000000000000000',
+          MOCK_SELECTED_INTERNAL_ACCOUNT.address,
+        );
+      });
+
+      it('stake confirmation view', async () => {
+        const { getByText } = renderComponent();
+
+        fireEvent.press(getByText('25%'));
+
+        fireEvent.press(getByText(strings('stake.review')));
+
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
+          screen: Routes.STAKING.STAKE_CONFIRMATION,
+          params: {
+            amountFiat: '750',
+            amountWei: '375000000000000000',
+            annualRewardRate: '3.3%',
+            annualRewardsETH: '0.01222 ETH',
+            annualRewardsFiat: '24.43 USD',
+          },
+        });
       });
     });
   });

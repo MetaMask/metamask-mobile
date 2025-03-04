@@ -6,25 +6,28 @@ import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { getBlockExplorerByChainId } from '../../../../../util/notifications';
 import { ModalFooterBlockExplorer } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { type Notification } from '../../../../../util/notifications/types';
+import { type INotification } from '../../../../../util/notifications/types';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 type BlockExplorerFooterProps = ModalFooterBlockExplorer & {
-  notification: Notification;
+  notification: INotification;
 };
 
 export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const { styles } = useStyles();
   const { notification } = props;
   const { trackEvent, createEventBuilder } = useMetrics();
+
   const defaultBlockExplorer = getBlockExplorerByChainId(props.chainId);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const networkBlockExplorer = useMemo(() => {
     const hexChainId = toHex(props.chainId);
     return Object.values(networkConfigurations).find(

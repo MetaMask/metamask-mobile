@@ -78,11 +78,10 @@ module.exports = {
         'app/components/UI/Name/**/*.{js,ts,tsx}',
         'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
         'app/components/hooks/DisplayName/**/*.{js,ts,tsx}',
-        'app/components/Views/confirmations/components/Confirm/DataTree/**/*.{js,ts,tsx}',
-        'app/components/Views/confirmations/components/Confirm/Info/**/*.{js,ts,tsx}',
-        'app/components/Views/confirmations/components/PersonalSign/**/*.{js,ts,tsx}',
-        'app/components/Views/confirmations/components/SignatureRequest/**/*.{js,ts,tsx}',
-        'app/components/Views/confirmations/components/TypedSign/**/*.{js,ts,tsx}',
+        'app/components/Views/confirmations/**/*.{js,ts,tsx}',
+      ],
+      excludedFiles: [
+        'app/components/Views/confirmations/components/WatchAssetRequest/**/*.{js,ts,tsx}',
       ],
       rules: {
         'no-restricted-syntax': [
@@ -90,6 +89,8 @@ module.exports = {
           {
             selector: `ImportSpecifier[imported.name=/${[
               'selectChainId',
+              'selectContractExchangeRates',
+              'selectConversionRate',
               'selectNetworkClientId',
               'selectNetworkStatus',
               'selectNickname',
@@ -97,9 +98,9 @@ module.exports = {
               'selectProviderType',
               'selectRpcUrl',
               'selectSelectedNetworkClientId',
-              'selectTicker',
+              'selectEvmTicker',
             ]
-              .map((method) => `(${method})`)
+              .map((method) => `^${method}$`)
               .join('|')}/]`,
             message: 'Avoid using global network selectors in confirmations',
           },
