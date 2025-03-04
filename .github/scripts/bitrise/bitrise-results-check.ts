@@ -33,20 +33,24 @@ async function main(): Promise<void> {
 
         switch (status) {
             case BitriseTestStatus.Pending:
-                console.log("Bitrise test is pending.");
-                core.setFailed("Bitrise test is still pending.");
+                const pendingMessage = `Bitrise test is still pending for the commit ${commitHash}.`;
+                console.log(pendingMessage);
+                core.setFailed(pendingMessage);
                 break;
             case BitriseTestStatus.Success:
-                console.log("Bitrise test succeeded.");
+                const successMessage = `Bitrise test succeeded for the commit ${commitHash}.`;
+                console.log(successMessage);
                 core.setOutput("bitriseteststatus", "success");
                 break;
             case BitriseTestStatus.Failure:
-                console.log("Bitrise test failed.");
-                core.setFailed("Bitrise test failed.");
+                const failureMessage = `Bitrise test failed for the commit ${commitHash}.`;
+                console.log(failureMessage);
+                core.setFailed(failureMessage);
                 break;
             case BitriseTestStatus.NotFound:
-                console.log("No Bitrise comment found for the commit.");
-                core.setFailed("No Bitrise comment found for the commit.");
+                const notFoundMessage = `No Bitrise comment found for the commit ${commitHash}. Apply the E2E label to the PR for the latest commit to generate a bitrise comment/status.`;
+                console.log(notFoundMessage);
+                core.setFailed(notFoundMessage);
                 break;
         }
     } else {
