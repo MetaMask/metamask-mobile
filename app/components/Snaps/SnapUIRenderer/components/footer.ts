@@ -37,7 +37,7 @@ const getDefaultButtons = (
       key: 'default-button',
       props: {
         onCancel,
-        variant: ButtonVariant.Secondary,
+        variant: ButtonVariants.Secondary,
         isSnapAction: false,
       },
       children: t(TemplateConfirmation.CANCEL),
