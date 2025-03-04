@@ -132,10 +132,12 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     ),
   ];
 
-  // Problem
-  const selectedAccountTokensChains = useSelector((state: RootState) =>
-    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
-  );
+  let selectedAccountTokensChains = {}
+  if (isPortfolioViewEnabled()) {
+    selectedAccountTokensChains = useSelector((state: RootState) =>
+      selectAccountTokensAcrossChains(state)
+    );
+  }
 
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
@@ -175,7 +177,7 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
       for (const curToken of allTokens) {
         const multiChainTokenBalances =
           multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-            curToken.chainId as Hex
+          curToken.chainId as Hex
           ];
         const balance =
           multiChainTokenBalances?.[curToken.address as Hex] ||
@@ -223,7 +225,7 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
       const multiChainExchangeRates = multiChainMarketData?.[chainId];
       const multiChainTokenBalances =
         multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-          chainId
+        chainId
         ];
       const nativeCurrency =
         networkConfigurationsByChainId[chainId].nativeCurrency;
@@ -233,12 +235,12 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
       return token.isETH || token.isNative
         ? parseFloat(token.balance) * multiChainConversionRate
         : deriveBalanceFromAssetMarketDetails(
-            token,
-            multiChainExchangeRates || {},
-            multiChainTokenBalances || {},
-            multiChainConversionRate || 0,
-            currentCurrency || '',
-          ).balanceFiatCalculation;
+          token,
+          multiChainExchangeRates || {},
+          multiChainTokenBalances || {},
+          multiChainConversionRate || 0,
+          currentCurrency || '',
+        ).balanceFiatCalculation;
     });
 
   const filterTokensByNetwork = (tokensToDisplay: TokenI[]): TokenI[] => {
@@ -292,23 +294,23 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     // Filter tokens based on hideZeroBalanceTokens flag
     const tokensToDisplay = hideZeroBalanceTokens
       ? tokens.filter(
-          ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
-        )
+        ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
+      )
       : tokens;
 
     // Calculate fiat balances for tokens
     const tokenFiatBalances = conversionRate
       ? tokensToDisplay.map((asset) =>
-          asset.isETH
-            ? parseFloat(asset.balance) * conversionRate
-            : deriveBalanceFromAssetMarketDetails(
-                asset,
-                tokenExchangeRates || {},
-                tokenBalances || {},
-                conversionRate || 0,
-                currentCurrency || '',
-              ).balanceFiatCalculation,
-        )
+        asset.isETH
+          ? parseFloat(asset.balance) * conversionRate
+          : deriveBalanceFromAssetMarketDetails(
+            asset,
+            tokenExchangeRates || {},
+            tokenBalances || {},
+            conversionRate || 0,
+            currentCurrency || '',
+          ).balanceFiatCalculation,
+      )
       : [];
 
     // Combine tokens with their fiat balances
@@ -467,8 +469,8 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
                 <Text style={styles.controlButtonText} numberOfLines={1}>
                   {isAllNetworks && isPopularNetwork && isEvmSelected
                     ? `${strings('app_settings.popular')} ${strings(
-                        'app_settings.networks',
-                      )}`
+                      'app_settings.networks',
+                    )}`
                     : networkName ?? strings('wallet.current_network')}
                 </Text>
               }
