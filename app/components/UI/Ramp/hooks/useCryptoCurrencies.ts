@@ -26,7 +26,7 @@ export default function useCryptoCurrencies() {
   ] = useSDKMethod(
     isBuy ? 'getCryptoCurrencies' : 'getSellCryptoCurrencies',
     selectedRegion?.id,
-    selectedPaymentMethodId,
+    selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
     selectedFiatCurrencyId,
   );
 
