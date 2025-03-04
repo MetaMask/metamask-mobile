@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
-import { TextInput } from 'react-native';
+import { TextInput, ViewStyle } from 'react-native';
 import TextField, {
   TextFieldSize,
 } from '../../../../component-library/components/Form/TextField';
@@ -16,6 +16,7 @@ export interface SnapUIInputProps {
   form?: string;
   label?: string;
   error?: string;
+  style?: ViewStyle;
 }
 
 export const SnapUIInput = ({
@@ -23,6 +24,7 @@ export const SnapUIInput = ({
   form,
   label,
   error,
+  style,
   ...props
 }: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =
@@ -59,7 +61,7 @@ export const SnapUIInput = ({
   const handleBlur = () => setCurrentFocusedInput(null);
 
   return (
-    <Box>
+    <Box style={style}>
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <TextField
         {...props}

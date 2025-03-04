@@ -23,6 +23,13 @@ export const field: UIComponentFactory<FieldElement> = ({
   );
   const child = children[primaryChildIndex] as JSXElement;
 
+  // Fields have special styling that let's developers place two of them next to each other taking up 50% space.
+  const style = {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '50%',
+  };
+
   switch (child.type) {
     case 'Input': {
       const getLeftAccessory = () =>
@@ -62,6 +69,7 @@ export const field: UIComponentFactory<FieldElement> = ({
           form,
           error: e.props.error,
           disabled: child.props.disabled,
+          style,
         },
         propComponents: {
           startAccessory: leftAccessoryMapped && {
@@ -95,6 +103,7 @@ export const field: UIComponentFactory<FieldElement> = ({
           form,
           error: e.props.error,
           disabled: child.props.disabled,
+          style,
         },
       };
     }
@@ -114,6 +123,7 @@ export const field: UIComponentFactory<FieldElement> = ({
           form,
           error: e.props.error,
           disabled: child.props.disabled,
+          style,
         },
       };
     }
