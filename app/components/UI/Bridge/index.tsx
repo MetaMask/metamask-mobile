@@ -4,12 +4,10 @@ import {
   View,
 } from 'react-native';
 import ScreenView from '../../Base/ScreenView';
-import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text';
 
-const createStyles = (colors) =>
+const createStyles = () =>
   StyleSheet.create({
-    container: { backgroundColor: colors.background.default },
     content: {
       flexGrow: 1,
       justifyContent: 'center',
@@ -17,15 +15,10 @@ const createStyles = (colors) =>
   });
 
 const BridgeView = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   return (
-    <ScreenView
-      style={styles.container}
-      contentContainerStyle={styles.screen}
-      keyboardShouldPersistTaps="handled"
-    >
+    <ScreenView>
       <View style={styles.content}>
         <Text>Bridge</Text>
       </View>
