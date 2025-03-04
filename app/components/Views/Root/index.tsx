@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { store, persistor } from '../../../store';
@@ -25,16 +25,19 @@ const Root = ({ foxCode }: RootProps) => {
    * Wait for store to be initialized in Detox tests
    * Note: This is a workaround for an issue with Detox where the store is not initialized
    */
-  const waitForStore = () =>
-    new Promise((resolve) => {
-      const intervalId = setInterval(() => {
-        if (store && persistor) {
-          clearInterval(intervalId);
-          setIsLoading(false);
-          resolve(null);
-        }
-      }, 100);
-    });
+  const waitForStore = useCallback(
+    () =>
+      new Promise((resolve) => {
+        const intervalId = setInterval(() => {
+          if (store && persistor) {
+            clearInterval(intervalId);
+            setIsLoading(false);
+            resolve(null);
+          }
+        }, 150);
+      }),
+    [setIsLoading, store, persistor],
+  );
 
   useEffect(() => {
     if (foxCode === '') {
@@ -47,8 +50,9 @@ const Root = ({ foxCode }: RootProps) => {
     // Wait for store to be initialized in Detox tests
     if (isTest) {
       waitForStore();
+      setIsLoading(false);
     }
-  }, [foxCode]);
+  }, [foxCode, waitForStore, setIsLoading]);
 
   if (isTest && isLoading) {
     return null;
