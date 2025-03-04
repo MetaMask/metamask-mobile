@@ -1,6 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapControllerStateChangeEvent } from './controllers/SnapController/constants';
-import { CronjobControllerStateChangeEvent } from './controllers/CronjobController';
 ///: END:ONLY_INCLUDE_IF
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -52,7 +51,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NotificationServicesController:stateChange',
   'NotificationServicesPushController:stateChange',
   'SnapInterfaceController:stateChange',
-  CronjobControllerStateChangeEvent,
+  'CronjobController:stateChange',
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   'MultichainBalancesController:stateChange',

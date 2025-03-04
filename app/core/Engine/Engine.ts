@@ -191,7 +191,7 @@ import { multichainAssetsRatesControllerInit } from './controllers/MultichainAss
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
-import { cronjobControllerInit } from './controllers/CronjobController';
+import { cronjobControllerInit } from './controllers/cronjob-controller/cronjob-controller-init';
 ///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
