@@ -1,10 +1,14 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectMultichainDefaultToken,
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainConversionRate,
   selectMultichainShouldShowFiat,
+  selectMultichainBalances,
+  selectMultichainAssetsMetadata,
+  selectMultichainAssets,
+  selectMultichainTokenList,
 } from '../../../selectors/multichain';
 import { TokenList } from '../Tokens/TokenList';
 import { TokenI } from '../Tokens/types';
@@ -20,6 +24,9 @@ import {
   selectSelectedNonEvmNetworkSymbol,
 } from '../../../selectors/multichainNetworkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { filterAssets } from '../Tokens/util/filterAssets';
+import { selectTokenSortConfig } from '../../../selectors/preferencesController';
+import { sortAssets } from '../Tokens/util';
 
 // We need this type to match ScrollableTabView's requirements
 interface NonEvmTokensProps {
@@ -30,53 +37,39 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   // Get all the data we need from selectors
-  const defaultToken = useSelector(selectMultichainDefaultToken);
-  const nativeTokenBalance = useSelector(
-    selectMultichainSelectedAccountCachedBalance,
-  );
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const { symbol } = useSelector(selectMultichainDefaultToken);
-  const conversionRate = useSelector(selectMultichainConversionRate);
-  const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
+
   const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
-  const nonEvmTicker = useSelector(selectSelectedNonEvmNetworkSymbol);
+
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const decimals = useSelector(selectSelectedNonEvmNetworkDecimals);
-  function getMultiChainFiatBalance(): string {
-    if (conversionRate) {
-      const multichainBalance = Number(nativeTokenBalance);
-      const fiatBalance = multichainBalance * conversionRate;
-      return renderFiat(fiatBalance, currentCurrency);
+
+  // function getMultiChainFiatBalance(): string {
+  //   if (conversionRate) {
+  //     const multichainBalance = Number(nativeTokenBalance);
+  //     const fiatBalance = multichainBalance * conversionRate;
+  //     return renderFiat(fiatBalance, currentCurrency);
+  //   }
+  //   return `${nativeTokenBalance} ${symbol}`;
+  // }
+
+  const multichainBalances = useSelector(selectMultichainBalances);
+  const tokenList = useSelector(selectMultichainTokenList);
+  const tokenSortConfig = useSelector(selectTokenSortConfig);
+
+  const sortedFilteredTokens = useMemo(() => {
+    if (!multichainBalances) {
+      return [];
     }
-    return `${nativeTokenBalance} ${symbol}`;
-  }
+    const filteredAssets: TokenI[] = filterAssets(tokenList, [
+      {
+        key: 'chainId',
+        opts: { [nonEvmNetworkChainId]: true },
+        filterCallback: 'inclusive',
+      },
+    ]);
 
-  // Get the token image based on the network
-  const getTokenImage = () => {
-    const imageSource =
-      MULTICHAIN_TOKEN_IMAGES[
-        nonEvmNetworkChainId as unknown as keyof typeof MULTICHAIN_TOKEN_IMAGES
-      ];
-    return imageSource ? Image.resolveAssetSource(imageSource).uri : '';
-  };
-
-  // Format the token data to match TokenI interface
-  const formattedTokens: TokenI[] = [
-    {
-      address: '', // Non-EVM chains don't use EVM-style addresses for native tokens
-      aggregators: [],
-      decimals,
-      image: getTokenImage(),
-      name: nonEvmTicker,
-      symbol: defaultToken.symbol,
-      balance: nativeTokenBalance || '0',
-      balanceFiat: shouldShowFiat ? getMultiChainFiatBalance() : '',
-      logo: getTokenImage(),
-      isETH: false,
-      isNative: true,
-      ticker: defaultToken.symbol,
-    },
-  ];
+    // sort filtered tokens based on the tokenSortConfig in state
+    return sortAssets([...filteredAssets], tokenSortConfig);
+  }, [tokenList, nonEvmNetworkChainId, tokenSortConfig, multichainBalances]);
 
   const onRefresh = () => {
     requestAnimationFrame(async () => {
@@ -104,18 +97,16 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   }, []);
 
   return (
-    <>
-      <TokenList
-        tokens={formattedTokens}
-        refreshing={refreshing}
-        isAddTokenEnabled={false}
-        onRefresh={onRefresh}
-        showRemoveMenu={showRemoveMenu}
-        goToAddToken={goToAddToken}
-        showPercentageChange={false}
-        showNetworkBadge={false}
-      />
-    </>
+    <TokenList
+      tokens={sortedFilteredTokens}
+      refreshing={refreshing}
+      isAddTokenEnabled={false}
+      onRefresh={onRefresh}
+      showRemoveMenu={showRemoveMenu}
+      goToAddToken={goToAddToken}
+      showPercentageChange={false}
+      showNetworkBadge={false}
+    />
   );
 };
 
