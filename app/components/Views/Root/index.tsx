@@ -50,7 +50,6 @@ const Root = ({ foxCode }: RootProps) => {
     // Wait for store to be initialized in Detox tests
     if (isTest) {
       waitForStore();
-      setIsLoading(false);
     }
   }, [foxCode, waitForStore, setIsLoading]);
 
