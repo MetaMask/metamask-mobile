@@ -5,7 +5,6 @@ import ButtonIcon, { ButtonIconSizes } from '../../../component-library/componen
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
-import { Theme } from '../../../util/theme/models';
 import { Box } from '../../UI/Box/Box';
 import { FlexDirection, JustifyContent, AlignItems } from '../../UI/Box/box.types';
 
@@ -15,13 +14,11 @@ interface NumpadProps {
   onDecimalPress: () => void;
 }
 
-const createStyles = ({ theme }: { theme: Theme }) => StyleSheet.create({
+const createStyles = () => StyleSheet.create({
     container: {
-      marginVertical: 16,
       paddingHorizontal: 16,
     },
     row: {
-      marginBottom: 24,
       width: '100%',
     },
     buttonContainer: {
@@ -31,7 +28,6 @@ const createStyles = ({ theme }: { theme: Theme }) => StyleSheet.create({
     button: {
       width: '100%',
       borderWidth: 0,
-      backgroundColor: theme.colors.background.default,
       height: 56,
       justifyContent: 'center',
       alignItems: 'center',
@@ -57,7 +53,7 @@ export const Numpad: React.FC<NumpadProps> = ({
   const { styles } = useStyles(createStyles, {});
 
   return (
-    <Box style={styles.container}>
+    <Box style={styles.container} gap={24}>
       {NUMPAD_LAYOUT.map((row) => (
         <Box
           key={row.join('-')}

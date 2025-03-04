@@ -21,9 +21,6 @@ interface TokenInputAreaProps {
 
 const createStyles = () =>
   StyleSheet.create({
-    container: {
-      marginVertical: 8,
-    },
     content: {
       padding: 16,
     },
@@ -42,9 +39,6 @@ const createStyles = () =>
       lineHeight: 40,
       height: 40,
       minHeight: 40,
-    },
-    subtitleRow: {
-      marginTop: 4,
     },
   });
 
@@ -76,8 +70,8 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   });
 
   return (
-    <Box style={styles.container}>
-      <Box style={styles.content}>
+    <Box>
+      <Box style={styles.content} gap={4}>
         <Box style={styles.row}>
           <Box style={styles.amountContainer}>
             <Input
@@ -95,7 +89,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
             networkName={networkName}
           />
         </Box>
-        <Box style={[styles.row, styles.subtitleRow]}>
+        <Box style={styles.row}>
           <Text color={TextColor.Alternative}>
             {formattedFiatValue}
           </Text>
