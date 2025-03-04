@@ -1,59 +1,37 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { useEffect, useCallback, useState } from 'react';
-import { selectEvmChainId } from '../../../../selectors/networkController';
-import { hexToNumber } from '@metamask/utils';
-import {
-  selectVaultData,
-  setVaultData,
-} from '../../../../core/redux/slices/staking';
-import { stakingApiService } from '../sdk/stakeSdkProvider';
+import { useSelector } from 'react-redux';
+import { useState } from 'react';
+import { pooledStakingSelectors } from '../../../../selectors/earnController';
+import Engine from '../../../../core/Engine';
 
 const useVaultData = () => {
-  const dispatch = useDispatch();
-  const chainId = useSelector(selectEvmChainId);
-  const { vaultData } = useSelector(selectVaultData);
+  const { selectVaultMetadata, selectVaultApy } = pooledStakingSelectors;
+
+  const vaultData = useSelector(selectVaultMetadata);
+  const { apyDecimal, apyPercentString } = useSelector(selectVaultApy);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchVaultData = useCallback(async () => {
-    if (!stakingApiService) return;
-
+  const fetchVaultData = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const numericChainId = hexToNumber(chainId);
-      const vaultDataResponse = await stakingApiService.getVaultData(
-        numericChainId,
-      );
-      dispatch(setVaultData(vaultDataResponse));
+      await Engine.context.EarnController.refreshPooledStakingVaultMetadata();
     } catch (err) {
-      setError('Failed to fetch vault data');
+      setError('Failed to fetch vault metadata');
     } finally {
       setIsLoading(false);
     }
-  }, [chainId, dispatch]);
-
-  useEffect(() => {
-    fetchVaultData();
-  }, [fetchVaultData]);
-
-  const apy = vaultData?.apy || '0';
-  const annualRewardRatePercentage = apy ? parseFloat(apy) : 0;
-  const annualRewardRateDecimal = annualRewardRatePercentage / 100;
-
-  const annualRewardRate =
-    annualRewardRatePercentage === 0
-      ? '0%'
-      : `${annualRewardRatePercentage.toFixed(1)}%`;
+  };
 
   return {
     vaultData,
     isLoadingVaultData: isLoading,
     error,
-    annualRewardRate,
-    annualRewardRateDecimal,
+    annualRewardRate: apyPercentString,
+    annualRewardRateDecimal: apyDecimal,
+    refreshPoolStakingVaultMetadata: fetchVaultData,
   };
 };
 
