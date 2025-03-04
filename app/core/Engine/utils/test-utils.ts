@@ -19,7 +19,7 @@ export function buildControllerInitRequestMock<ControllerMessenger>() {
     getController: jest.fn(),
     persistedState: {},
     getGlobalChainId: jest.fn(),
-    getRootState: jest.fn(),
+    getUIState: jest.fn(),
   };
 }
 

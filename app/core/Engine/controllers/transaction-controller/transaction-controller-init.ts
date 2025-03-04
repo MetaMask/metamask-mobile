@@ -13,7 +13,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
-import { getGlobalChainId } from '../../../../util/networks/global-network';
+import { getGlobalChainId as getGlobalChainIdSelector } from '../../../../util/networks/global-network';
 import {
   submitSmartTransactionHook,
   type SubmitSmartTransactionRequest,
@@ -33,7 +33,7 @@ export const TransactionControllerInit: ControllerInitFunction<
 > = (request) => {
   const {
     controllerMessenger,
-    getRootState,
+    getUIState,
     getGlobalChainId,
     initMessenger,
     persistedState,
@@ -72,7 +72,7 @@ export const TransactionControllerInit: ControllerInitFunction<
           publish: (transactionMeta: TransactionMeta) =>
             publishHook(
               transactionMeta,
-              getRootState,
+              getUIState,
               transactionController,
               smartTransactionsController,
               approvalController,
@@ -107,13 +107,13 @@ export const TransactionControllerInit: ControllerInitFunction<
 
 function publishHook(
   transactionMeta: TransactionMeta,
-  getRootState: () => RootState,
+  getUIState: () => RootState,
   transactionController: TransactionController,
   smartTransactionsController: SmartTransactionsController,
   approvalController: ApprovalController,
   initMessenger: TransactionControllerInitMessenger,
 ): Promise<{ transactionHash: string }> {
-  const state = getRootState();
+  const state = getUIState();
   const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
 
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
@@ -134,7 +134,7 @@ function isIncomingTransactionsEnabled(
   networkController: NetworkController,
   getGlobalChainId: () => string,
 ): boolean {
-  const currentHexChainId = getGlobalChainId(networkController);
+  const currentHexChainId = getGlobalChainIdSelector(networkController);
   const showIncomingTransactions =
     preferencesController.state?.showIncomingTransactions;
   const currentChainId = getGlobalChainId();

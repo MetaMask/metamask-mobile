@@ -613,9 +613,11 @@ export type ControllerInitRequest<
   getGlobalChainId: () => Hex;
 
   /**
-   * Get the root state of UI.
+   * Get the UI state of the app, returning the current Redux state including transient UI data,
+   * whereas `persistedState` contains only the subset of state persisted across sessions.
+   * For example: `{ settings, user, engine: { backgroundState: EngineState } }`.
    */
-  getRootState: () => RootState;
+  getUIState: () => RootState;
 
   /**
    * Required initialization messenger instance.
@@ -664,7 +666,7 @@ export type InitModularizedControllersFunction = (request: {
   baseControllerMessenger: BaseControllerMessenger;
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
-  getRootState: () => RootState;
+  getUIState: () => RootState;
   persistedState: ControllerPersistedState;
 }) => {
   controllersByName: ControllerByName;

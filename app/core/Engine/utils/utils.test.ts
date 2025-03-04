@@ -68,7 +68,7 @@ describe('initModularizedControllers', () => {
       persistedState: {},
       baseControllerMessenger: new ExtendedControllerMessenger(),
       getGlobalChainId: jest.fn(),
-      getRootState: jest.fn(),
+      getUIState: jest.fn(),
     });
 
     expect(controllers.controllersByName.AccountsController).toBeDefined();
@@ -159,7 +159,7 @@ describe('initModularizedControllers', () => {
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
         getGlobalChainId: jest.fn(),
-        getRootState: jest.fn(),
+        getUIState: jest.fn(),
       }),
     ).not.toThrow();
   });

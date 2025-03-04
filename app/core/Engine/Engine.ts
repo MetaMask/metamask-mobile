@@ -1116,7 +1116,7 @@ export class Engine {
     };
 
     const initRequest = {
-      getRootState: () => store.getState(),
+      getUIState: () => store.getState(),
       getGlobalChainId: () => currentChainId,
     };
 
