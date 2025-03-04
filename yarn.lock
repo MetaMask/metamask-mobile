@@ -4554,10 +4554,8 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^51.0.2":
-  version "51.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-51.0.2.tgz#fc8ed8981fce62e4c7327393faffc2017874644d"
-  integrity sha512-dEJJw6qc5HMEiMJUTOrKhTYTMS8tuf3+gofZ9PHGSvPibUx/DivC1L3bouiMNgi2xzzH9ktfmkFyCN1lzFk22w==
+"@metamask/assets-controllers@^50.0.0", "@metamask/assets-controllers@file:../metamask-core/packages/assets-controllers":
+  version "50.0.0"
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -5204,7 +5202,7 @@
 
 "@metamask/polling-controller@^12.0.0", "@metamask/polling-controller@^12.0.3":
   version "12.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-12.0.3.tgz#377716f6c8610373aed1319d2a10d75c12a50f6f"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/polling-controller/-/polling-controller-12.0.3.tgz#377716f6c8610373aed1319d2a10d75c12a50f6f"
   integrity sha512-YOsFgyqd5s32WQfTWwBS4hGOGrIVL92AUh+WeF3Gb2Q7vblnz7152PW354+fT9xG3Uk/zdtss35LrltxQvlc/A==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
@@ -29838,5 +29836,5 @@ zstd-codec@^0.1.5:
 
 zxcvbn@4.4.2:
   version "4.4.2"
-  resolved "https://registry.yarnpkg.com/zxcvbn/-/zxcvbn-4.4.2.tgz#28ec17cf09743edcab056ddd8b1b06262cc73c30"
-  integrity sha1-KOwXzwl0PtyrBW3dixsGJizHPDA=
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/zxcvbn/-/zxcvbn-4.4.2.tgz#28ec17cf09743edcab056ddd8b1b06262cc73c30"
+  integrity sha512-Bq0B+ixT/DMyG8kgX2xWcI5jUvCwqrMxSFam7m0lAf78nf04hv6lNCsyLYdyYTrCVMqNDY/206K7eExYCeSyUQ==

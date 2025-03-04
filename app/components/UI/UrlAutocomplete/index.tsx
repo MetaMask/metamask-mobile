@@ -12,6 +12,8 @@ import {
   View,
   Text,
   SectionList,
+  ActivityIndicator,
+  SectionListRenderItem,
 } from 'react-native';
 import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
@@ -21,6 +23,8 @@ import { useStyles } from '../../../component-library/hooks';
 import {
   UrlAutocompleteComponentProps,
   FuseSearchResult,
+  TokenSearchResult,
+  AutocompleteSearchResult,
   UrlAutocompleteRef,
 } from './types';
 import { debounce } from 'lodash';
@@ -28,10 +32,20 @@ import { strings } from '../../../../locales/i18n';
 import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
 import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
 import { Result } from './Result';
+import useTokenSearchDiscovery from '../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery';
+import { Hex } from '@metamask/utils';
+import Engine from '../../../core/Engine';
+import { selectEvmChainId } from '../../../selectors/networkController';
+import { useAddNetwork } from '../../hooks/useAddNetwork';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { useNavigation } from '@react-navigation/native';
 
 export * from './types';
 
-const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'}));
+const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'} as const));
+
+const TOKEN_SEARCH_LIMIT = 10;
 
 /**
  * Autocomplete list that appears when the browser url bar is focused
@@ -40,8 +54,45 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
-  const [resultsByCategory, setResultsByCategory] = useState<{category: string, data: FuseSearchResult[]}[]>([]);
-  const hasResults = resultsByCategory.length > 0;
+  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([]);
+  const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearchDiscovery();
+  const tokenResults: TokenSearchResult[] = useMemo(() => tokenSearchResults.map(({tokenAddress, usdPricePercentChange: _, chainId, ...rest}) => ({
+    ...rest,
+    type: 'tokens',
+    address: tokenAddress,
+    chainId: chainId as Hex,
+  })), [tokenSearchResults]);
+
+  const hasResults = fuseResults.length > 0 || tokenResults.length > 0;
+
+  const resultsByCategory: {category: string, data: AutocompleteSearchResult[]}[] = useMemo(() => (
+    ORDERED_CATEGORIES.flatMap((category) => {
+      if (category === 'tokens') {
+        if (tokenResults.length === 0 && !isTokenSearchLoading) {
+          return [];
+        }
+        return {
+          category,
+          data: tokenResults,
+        };
+      }
+
+      let data = fuseResults.filter((result, index, self) =>
+        result.type === category &&
+        index === self.findIndex(r => r.url === result.url && r.type === result.type)
+      );
+      if (data.length === 0) {
+        return [];
+      }
+      if (category === 'recents') {
+        data = data.slice(0, MAX_RECENTS);
+      }
+      return {
+        category,
+        data,
+      };
+    })
+  ), [fuseResults, tokenResults, isTokenSearchLoading]);
 
   const browserHistory = useSelector(selectBrowserHistoryWithType);
   const bookmarks = useSelector(selectBrowserBookmarksWithType);
@@ -56,44 +107,30 @@ const UrlAutocomplete = forwardRef<
     resultsRef.current?.setNativeProps({ style: { display: 'flex' } });
   };
 
-  const updateResults = useCallback((results: FuseSearchResult[]) => {
-    const newResultsByCategory = ORDERED_CATEGORIES.flatMap((category) => {
-      let data = results.filter((result, index, self) =>
-        result.type === category &&
-        index === self.findIndex(r => r.url === result.url && r.type === result.type)
-      );
-      if (data.length === 0) {
-        return [];
-      }
-      if (category === 'recents') {
-        data = data.slice(0, MAX_RECENTS);
-      }
-      return {
-        category,
-        data,
-      };
-    });
-
-    setResultsByCategory(newResultsByCategory);
-  }, []);
-
   const latestSearchTerm = useRef<string | null>(null);
   const search = useCallback((text: string) => {
     latestSearchTerm.current = text;
     if (!text) {
-      updateResults([
+      setFuseResults([
         ...browserHistory,
         ...bookmarks,
       ]);
+      resetTokenSearch();
       return;
     }
     const fuseSearchResult = fuseRef.current?.search(text);
     if (Array.isArray(fuseSearchResult)) {
-      updateResults([...fuseSearchResult]);
+      setFuseResults(fuseSearchResult);
     } else {
-      updateResults([]);
+      setFuseResults([]);
     }
-  }, [updateResults, browserHistory, bookmarks]);
+
+    searchTokens({
+      query: text,
+      limit: TOKEN_SEARCH_LIMIT.toString(),
+    });
+
+  }, [browserHistory, bookmarks, resetTokenSearch, searchTokens]);
 
   /**
    * Debounce the search function
@@ -107,8 +144,9 @@ const UrlAutocomplete = forwardRef<
     // Cancel the search
     debouncedSearch.cancel();
     resultsRef.current?.setNativeProps({ style: { display: 'none' } });
-    setResultsByCategory([]);
-  }, [debouncedSearch]);
+    setFuseResults([]);
+    resetTokenSearch();
+  }, [debouncedSearch, resetTokenSearch]);
 
   const dismissAutocomplete = () => {
     hide();
@@ -148,19 +186,102 @@ const UrlAutocomplete = forwardRef<
     }
   }, [browserHistory, bookmarks, search]);
 
-  const renderSectionHeader = useCallback(({section: {category}}) => (
-    <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
-  ), [styles]);
+  useEffect(() => {
+    const chainIds = tokenResults.reduce((acc, result) => {
+      if (!acc.includes(result.chainId)) {
+        acc.push(result.chainId);
+      }
+      return acc;
+    }, [] as Hex[]);
 
-  const renderItem = useCallback(({item}) => (
+    for (const chainId of chainIds) {
+      Engine.context.TokenSearchDiscoveryDataController.fetchSwapsTokens(chainId);
+    }
+
+  }, [tokenResults]);
+
+  const selectedChainId = useSelector(selectEvmChainId);
+
+  const { addPopularNetwork, networkModal } = useAddNetwork();
+
+  const navigation = useNavigation();
+
+  const handleSwapNavigation = useCallback((result: TokenSearchResult) => {
+    hide();
+    onDismiss();
+    navigation.navigate('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+      sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      destinationToken: result.address,
+      sourcePage: 'MainView',
+      chainId: result.chainId,
+    }});
+  }, [navigation, hide, onDismiss]);
+
+  const goToSwaps = useCallback(async (result: TokenSearchResult) => {
+    if (result.chainId !== selectedChainId) {
+      const { NetworkController, MultichainNetworkController } =
+        Engine.context;
+      let networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(
+          result.chainId as Hex,
+        );
+
+      if (!networkConfiguration) {
+        const network = PopularList.find((popularNetwork) => popularNetwork.chainId === result.chainId);
+        if (network) {
+          try {
+            await addPopularNetwork(network);
+          } catch (error) {
+            return;
+          }
+          networkConfiguration = NetworkController.getNetworkConfigurationByChainId(
+            result.chainId,
+          );
+        }
+      }
+
+      const networkClientId =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.networkClientId;
+
+      await MultichainNetworkController.setActiveNetwork(
+        networkClientId as string,
+      );
+
+      setTimeout(() => {
+        handleSwapNavigation(result);
+      }, 500);
+    } else {
+      handleSwapNavigation(result);
+    }
+  }, [
+    selectedChainId,
+    handleSwapNavigation,
+    addPopularNetwork,
+  ]);
+
+  const renderSectionHeader = useCallback(({section: {category}}) => (
+    <View style={styles.categoryWrapper}>
+      <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
+      {category === 'tokens' && isTokenSearchLoading && (
+        <ActivityIndicator size="small" />
+      )}
+    </View>
+  ), [styles, isTokenSearchLoading]);
+
+  const renderItem: SectionListRenderItem<AutocompleteSearchResult> = useCallback(({item}) => (
     <Result
       result={item}
       onPress={() => {
         hide();
-        onSelect(item.url);
+        onSelect(item);
       }}
+      onSwapPress={goToSwaps}
     />
-  ), [hide, onSelect]);
+  ), [hide, onSelect, goToSwaps]);
 
   if (!hasResults) {
     return (
@@ -177,11 +298,12 @@ const UrlAutocomplete = forwardRef<
       <SectionList
         contentContainerStyle={styles.contentContainer}
         sections={resultsByCategory}
-        keyExtractor={(item) => `${item.type}-${item.url}`}
+        keyExtractor={(item) => `${item.type}-${item.type === 'tokens' ? `${item.chainId}-${item.address}` : item.url}`}
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
-    />
+      />
+      {networkModal}
     </View>
   );
 });

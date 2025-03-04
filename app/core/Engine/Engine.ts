@@ -12,6 +12,10 @@ import {
   TokenRatesController,
   TokensController,
   CodefiTokenPricesServiceV2,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesControllerMessenger,
+  ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -207,6 +211,7 @@ import {
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
   STATELESS_NON_CONTROLLER_NAMES,
+  swapsSupportedChainIds,
 } from './constants';
 import {
   getGlobalChainId,
@@ -1280,6 +1285,20 @@ export class Engine {
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
+    const tokenSearchDiscoveryDataController = new TokenSearchDiscoveryDataController({
+      tokenPricesService: codefiTokenApiV2,
+      swapsSupportedChainIds,
+      fetchSwapsTokensThresholdMs: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+      fetchTokens: swapsUtils.fetchTokens,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TokenSearchDiscoveryDataController',
+        allowedActions: [
+          'CurrencyRateController:getState'
+        ],
+        allowedEvents: [],
+      }),
+    });
+
     this.context = {
       KeyringController: this.keyringController,
       AccountTrackerController: accountTrackerController,
@@ -1413,18 +1432,7 @@ export class Engine {
           AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
         fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
         fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-        supportedChainIds: [
-          swapsUtils.ETH_CHAIN_ID,
-          swapsUtils.BSC_CHAIN_ID,
-          swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-          swapsUtils.POLYGON_CHAIN_ID,
-          swapsUtils.AVALANCHE_CHAIN_ID,
-          swapsUtils.ARBITRUM_CHAIN_ID,
-          swapsUtils.OPTIMISM_CHAIN_ID,
-          swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-          swapsUtils.LINEA_CHAIN_ID,
-          swapsUtils.BASE_CHAIN_ID,
-        ],
+        supportedChainIds: swapsSupportedChainIds,
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
@@ -1520,6 +1528,7 @@ export class Engine {
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
     };
 
@@ -2145,6 +2154,7 @@ export default {
       RatesController,
       MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
       MultichainNetworkController,
     } = instance.datamodel.state;
 
@@ -2188,6 +2198,7 @@ export default {
       RatesController,
       MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
+      TokenSearchDiscoveryDataController,
       MultichainNetworkController,
     };
   },
