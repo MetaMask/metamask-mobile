@@ -35,7 +35,7 @@ describe('initModularizedControllers', () => {
       },
       existingControllersByName: {},
       getGlobalChainId: jest.fn(),
-      getRootState: jest.fn(),
+      getUIState: jest.fn(),
       persistedState: {},
     });
 
@@ -56,7 +56,7 @@ describe('initModularizedControllers', () => {
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
         getGlobalChainId: jest.fn(),
-        getRootState: jest.fn(),
+        getUIState: jest.fn(),
       }),
     ).not.toThrow();
   });
