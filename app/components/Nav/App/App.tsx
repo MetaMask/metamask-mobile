@@ -666,20 +666,20 @@ const App: React.FC = () => {
 
   const isFirstRender = useRef(true);
 
-  if (isFirstRender.current) {
-    trace({
-      name: TraceName.NavInit,
-      parentContext: getUIStartupSpan(),
-      op: TraceOperation.NavInit,
-    });
+  // if (isFirstRender.current) {
+  //   trace({
+  //     name: TraceName.NavInit,
+  //     parentContext: getUIStartupSpan(),
+  //     op: TraceOperation.NavInit,
+  //   });
 
-    isFirstRender.current = false;
-  }
+  //   isFirstRender.current = false;
+  // }
 
-  useEffect(() => {
-    // End trace when first render is complete
-    endTrace({ name: TraceName.UIStartup });
-  }, []);
+  // useEffect(() => {
+  //   // End trace when first render is complete
+  //   endTrace({ name: TraceName.UIStartup });
+  // }, []);
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
@@ -726,22 +726,22 @@ const App: React.FC = () => {
     });
   }, [navigation, queueOfHandleDeeplinkFunctions]);
 
-  const handleDeeplink = useCallback(({ error, params, uri }) => {
-    if (error) {
-      trackErrorAsAnalytics(error, 'Branch:');
-    }
-    const deeplink = params?.['+non_branch_link'] || uri || null;
-    try {
-      if (deeplink) {
-        AppStateEventProcessor.setCurrentDeeplink(deeplink);
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        });
-      }
-    } catch (e) {
-      Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
-    }
-  }, []);
+  // const handleDeeplink = useCallback(({ error, params, uri }) => {
+  //   if (error) {
+  //     trackErrorAsAnalytics(error, 'Branch:');
+  //   }
+  //   const deeplink = params?.['+non_branch_link'] || uri || null;
+  //   try {
+  //     if (deeplink) {
+  //       AppStateEventProcessor.setCurrentDeeplink(deeplink);
+  //       SharedDeeplinkManager.parse(deeplink, {
+  //         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+  //       });
+  //     }
+  //   } catch (e) {
+  //     Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
+  //   }
+  // }, []);
 
   // on Android devices, this creates a listener
   // to deeplinks used to open the app
@@ -788,15 +788,15 @@ const App: React.FC = () => {
   //   });
   // }, [dispatch, handleDeeplink, navigation, queueOfHandleDeeplinkFunctions]);
 
-  useEffect(() => {
-    const initMetrics = async () => {
-      await MetaMetrics.getInstance().configure();
-    };
+  // useEffect(() => {
+  //   const initMetrics = async () => {
+  //     await MetaMetrics.getInstance().configure();
+  //   };
 
-    initMetrics().catch((err) => {
-      Logger.error(err, 'Error initializing MetaMetrics');
-    });
-  }, []);
+  //   initMetrics().catch((err) => {
+  //     Logger.error(err, 'Error initializing MetaMetrics');
+  //   });
+  // }, []);
 
   // useEffect(() => {
   //   // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
@@ -837,77 +837,77 @@ const App: React.FC = () => {
   //   }
   // }, []);
 
-  useEffect(() => {
-    async function startApp() {
-      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-      if (!existingUser) {
-        // List of chainIds to add (as hex strings)
-        const chainIdsToAdd: `0x${string}`[] = [
-          CHAIN_IDS.ARBITRUM,
-          CHAIN_IDS.BASE,
-          CHAIN_IDS.BSC,
-          CHAIN_IDS.OPTIMISM,
-          CHAIN_IDS.POLYGON,
-        ];
+  // useEffect(() => {
+  //   async function startApp() {
+  //     const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+  //     if (!existingUser) {
+  //       // List of chainIds to add (as hex strings)
+  //       const chainIdsToAdd: `0x${string}`[] = [
+  //         CHAIN_IDS.ARBITRUM,
+  //         CHAIN_IDS.BASE,
+  //         CHAIN_IDS.BSC,
+  //         CHAIN_IDS.OPTIMISM,
+  //         CHAIN_IDS.POLYGON,
+  //       ];
 
-        // Filter the PopularList to get only the specified networks based on chainId
-        const selectedNetworks = PopularList.filter((network) =>
-          chainIdsToAdd.includes(network.chainId),
-        );
-        const { NetworkController } = Engine.context;
+  //       // Filter the PopularList to get only the specified networks based on chainId
+  //       const selectedNetworks = PopularList.filter((network) =>
+  //         chainIdsToAdd.includes(network.chainId),
+  //       );
+  //       const { NetworkController } = Engine.context;
 
-        // Loop through each selected network and call NetworkController.addNetwork
-        for (const network of selectedNetworks) {
-          try {
-            await NetworkController.addNetwork({
-              chainId: network.chainId,
-              blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
-              defaultRpcEndpointIndex: 0,
-              defaultBlockExplorerUrlIndex: 0,
-              name: network.nickname,
-              nativeCurrency: network.ticker,
-              rpcEndpoints: [
-                {
-                  url: network.rpcUrl,
-                  name: network.nickname,
-                  type: RpcEndpointType.Custom,
-                },
-              ],
-            });
-          } catch (error) {
-            Logger.error(error as Error);
-          }
-        }
-      }
+  //       // Loop through each selected network and call NetworkController.addNetwork
+  //       for (const network of selectedNetworks) {
+  //         try {
+  //           await NetworkController.addNetwork({
+  //             chainId: network.chainId,
+  //             blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
+  //             defaultRpcEndpointIndex: 0,
+  //             defaultBlockExplorerUrlIndex: 0,
+  //             name: network.nickname,
+  //             nativeCurrency: network.ticker,
+  //             rpcEndpoints: [
+  //               {
+  //                 url: network.rpcUrl,
+  //                 name: network.nickname,
+  //                 type: RpcEndpointType.Custom,
+  //               },
+  //             ],
+  //           });
+  //         } catch (error) {
+  //           Logger.error(error as Error);
+  //         }
+  //       }
+  //     }
 
-      try {
-        const currentVersion = getVersion();
-        const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
-        if (currentVersion !== savedVersion) {
-          if (savedVersion)
-            await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
-          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
-        }
+  //     try {
+  //       const currentVersion = getVersion();
+  //       const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
+  //       if (currentVersion !== savedVersion) {
+  //         if (savedVersion)
+  //           await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
+  //         await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
+  //       }
 
-        const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
-        if (!lastVersion) {
-          if (existingUser) {
-            // Setting last version to first version if user exists and lastVersion does not, to simulate update
-            await StorageWrapper.setItem(LAST_APP_VERSION, '0.0.1');
-          } else {
-            // Setting last version to current version so that it's not treated as an update
-            await StorageWrapper.setItem(LAST_APP_VERSION, currentVersion);
-          }
-        }
-      } catch (error) {
-        Logger.error(error as Error);
-      }
-    }
+  //       const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
+  //       if (!lastVersion) {
+  //         if (existingUser) {
+  //           // Setting last version to first version if user exists and lastVersion does not, to simulate update
+  //           await StorageWrapper.setItem(LAST_APP_VERSION, '0.0.1');
+  //         } else {
+  //           // Setting last version to current version so that it's not treated as an update
+  //           await StorageWrapper.setItem(LAST_APP_VERSION, currentVersion);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       Logger.error(error as Error);
+  //     }
+  //   }
 
-    startApp().catch((error) => {
-      Logger.error(error, 'Error starting app');
-    });
-  }, []);
+  //   startApp().catch((error) => {
+  //     Logger.error(error, 'Error starting app');
+  //   });
+  // }, []);
 
   return (
     <>
