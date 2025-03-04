@@ -3,7 +3,7 @@ import type { ControllerMessengerByControllerName } from '../types';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { getCronJobControllerMessenger } from './cron-job-controller-messenger';
+import { getCronjobControllerMessenger } from './cron-job-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets-rates-controller-messenger';
@@ -26,7 +26,7 @@ export const CONTROLLER_MESSENGERS: ControllerMessengerByControllerName = {
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   CronjobController: {
-    getMessenger: getCronJobControllerMessenger,
+    getMessenger: getCronjobControllerMessenger,
   },
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

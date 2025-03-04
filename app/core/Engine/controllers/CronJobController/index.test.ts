@@ -5,7 +5,7 @@ import {
 } from '@metamask/snaps-controllers';
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { cronjobControllerInit } from '.';
+import { cronjobControllerInit, defaultCronjobControllerState } from '.';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 jest.mock('@metamask/snaps-controllers');
@@ -33,7 +33,7 @@ describe('cronjob controller init', () => {
     cronjobControllerInit(initRequestMock);
     const cronjobControllerState =
       cronjobControllerClassMock.mock.calls[0][0].state;
-    expect(cronjobControllerState).toBeUndefined();
+    expect(cronjobControllerState).toEqual(defaultCronjobControllerState);
   });
 
   it('controller state should be initial state when initial state is passed in', () => {
