@@ -9,6 +9,8 @@ import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
 import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
 import Text, { TextColor } from '../../../component-library/components/Texts/Text';
+import ETHLogo from '../../../images/eth-logo-new.png';
+import BTCLogo from '../../../images/bitcoin-logo.png';
 
 interface BridgeState {
   sourceAmount: string;
@@ -90,12 +92,14 @@ const BridgeView = () => {
             value={state.sourceAmount}
             tokenSymbol="ETH"
             tokenAddress="0x32...2939"
+            tokenIconUrl={ETHLogo}
           />
           <Text style={styles.arrow}>↓</Text>
           <TokenInputArea
             value={state.destinationAmount}
-            tokenSymbol="USDC"
+            tokenSymbol="BTC"
             tokenAddress="0x32...2939"
+            tokenIconUrl={BTCLogo}
           />
         </Box>
         <Box>

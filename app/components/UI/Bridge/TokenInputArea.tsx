@@ -1,28 +1,22 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import Text from '../../../component-library/components/Texts/Text';
+import { StyleSheet, ImageSourcePropType } from 'react-native';
+import TextField, { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Card from '../../../component-library/components/Cards/Card';
 import { useStyles } from '../../../component-library/hooks';
-import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
 import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
 import { Token } from './Token';
 
 interface TokenInputAreaProps {
   value: string;
-  label?: string;
   tokenSymbol: string;
   tokenAddress?: string;
+  tokenIconUrl?: ImageSourcePropType;
   onPress?: () => void;
 }
 
-interface StylesParams {
-  theme: Theme;
-}
-
-const createStyles = (params: StylesParams) => {
-  const { theme } = params;
-  return StyleSheet.create({
+const createStyles = () =>
+  StyleSheet.create({
     container: {
       marginVertical: 8,
     },
@@ -32,21 +26,18 @@ const createStyles = (params: StylesParams) => {
     amountContainer: {
       flex: 1,
     },
-    value: {
+    textField: {
       fontSize: 24,
-      color: theme.colors.text.default,
-    },
-    label: {
-      color: theme.colors.text.alternative,
+      borderWidth: 0,
+      padding: 0,
     },
   });
-};
 
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   value = '0',
-  label,
   tokenSymbol = 'ETH',
   tokenAddress,
+  tokenIconUrl,
   onPress,
 }) => {
   const { styles } = useStyles(createStyles, {});
@@ -60,15 +51,18 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
         alignItems={AlignItems.center}
       >
         <Box style={styles.amountContainer}>
-          <Text style={styles.value}>
-            ${value}
-          </Text>
-          {label && <Text style={styles.label}>{label}</Text>}
+          <TextField
+            value={value}
+            style={styles.textField}
+            isDisabled
+            placeholder="0"
+            size={TextFieldSize.Lg}
+          />
         </Box>
         <Token
-          value={value}
           symbol={tokenSymbol}
           address={tokenAddress}
+          iconUrl={tokenIconUrl}
         />
       </Box>
     </Card>
