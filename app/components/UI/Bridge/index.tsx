@@ -28,6 +28,11 @@ const createStyles = (_: { theme: Theme }) => StyleSheet.create({
     button: {
       width: '100%',
     },
+    arrow: {
+      fontSize: 24,
+      textAlign: 'center',
+      marginVertical: 8,
+    },
   });
 
 const BridgeView = () => {
@@ -85,8 +90,8 @@ const BridgeView = () => {
             value={state.sourceAmount}
             tokenSymbol="ETH"
             tokenAddress="0x32...2939"
-            isSource
           />
+          <Text style={styles.arrow}>↓</Text>
           <TokenInputArea
             value={state.destinationAmount}
             tokenSymbol="USDC"
