@@ -8,7 +8,7 @@ export interface SnapUIImageProps {
   style?: StyleProp<ImageStyle>;
   width?: number;
   height?: number;
-  borderRadius?: number | string;
+  borderRadius?: number | 'full';
 }
 
 export const SnapUIImage: React.FC<SnapUIImageProps> = ({
@@ -24,22 +24,16 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
     [value],
   );
 
-  function getRNSvgBorderRadiusValue(
-    borderRadiusValue: number | string | undefined,
-  ): number {
-    if (typeof borderRadiusValue === 'string' && borderRadiusValue === 'full') {
-      return Math.min(dimensions.width, dimensions.height) / 2;
-    }
-    return typeof borderRadiusValue === 'number' ? borderRadiusValue : 0;
-  }
-
   return (
     <SvgUri
       testID="snaps-ui-image"
       style={[
         // eslint-disable-next-line react-native/no-inline-styles
         {
-          borderRadius: getRNSvgBorderRadiusValue(borderRadius),
+          borderRadius:
+            borderRadius === 'full'
+              ? Math.min(dimensions.width, dimensions.height) / 2
+              : borderRadius,
           overflow: 'hidden',
         },
         style,
