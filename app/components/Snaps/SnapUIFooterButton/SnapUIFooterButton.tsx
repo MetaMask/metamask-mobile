@@ -114,8 +114,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       {...props}
       variant={buttonVariant}
       onPress={handlePress}
-      disabled={disabled}
-      loading={loading}
+      isDisabled={disabled}
       label={buttonLabel()}
       size={ButtonSize.Lg}
       style={styles.button}
