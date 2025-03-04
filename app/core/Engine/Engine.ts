@@ -229,6 +229,7 @@ import {
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
+import { EarnController } from '@metamask/earn-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1578,6 +1579,20 @@ export class Engine {
       MultichainAssetsController: multichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController: multichainNetworkController,
+      EarnController: new EarnController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'EarnController',
+          allowedEvents: [
+            'AccountsController:selectedAccountChange',
+            'NetworkController:stateChange',
+          ],
+          allowedActions: [
+            'AccountsController:getSelectedAccount',
+            'NetworkController:getNetworkClientById',
+            'NetworkController:getState',
+          ],
+        }),
+      }),
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2203,6 +2218,7 @@ export default {
       MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
+      EarnController,
     } = instance.datamodel.state;
 
     return {
@@ -2246,6 +2262,7 @@ export default {
       MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
+      EarnController,
     };
   },
 
