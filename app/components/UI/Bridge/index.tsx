@@ -111,7 +111,7 @@ const BridgeView = () => {
           <TokenInputArea
             value={state.sourceAmount}
             tokenSymbol="ETH"
-            tokenAddress="0x32...2939"
+            tokenBalance="0.5"
             tokenIconUrl={ETHLogo}
           />
           <Box style={styles.arrowContainer}>

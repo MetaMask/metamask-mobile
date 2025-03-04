@@ -10,6 +10,7 @@ interface TokenInputAreaProps {
   value: string;
   tokenSymbol: string;
   tokenAddress?: string;
+  tokenBalance?: string;
   tokenIconUrl?: ImageSourcePropType;
 }
 
@@ -31,13 +32,21 @@ const createStyles = () =>
     },
   });
 
+const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
+
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   value = '0',
   tokenSymbol = 'ETH',
   tokenAddress,
+  tokenBalance,
   tokenIconUrl,
 }) => {
   const { styles } = useStyles(createStyles, {});
+
+  const formattedBalance = tokenBalance ? `${tokenBalance} ${tokenSymbol}` : undefined;
+  const formattedAddress = tokenAddress ? formatAddress(tokenAddress) : undefined;
+
+  const subtitle = formattedBalance ?? formattedAddress;
 
   return (
     <Box style={styles.container}>
@@ -58,7 +67,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
         </Box>
         <Token
           symbol={tokenSymbol}
-          address={tokenAddress}
+          subtitle={subtitle}
           iconUrl={tokenIconUrl}
         />
       </Box>
