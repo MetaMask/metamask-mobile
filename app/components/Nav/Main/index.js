@@ -415,14 +415,14 @@ const Main = (props) => {
 
   return (
     <React.Fragment>
-      <AssetPollingProvider>
-        <View style={styles.flex}>
-          {!forceReload ? (
-            <MainNavigator navigation={props.navigation} />
-          ) : (
-            renderLoader()
-          )}
-          {/* <GlobalAlert />
+      {/* <AssetPollingProvider> */}
+      <View style={styles.flex}>
+        {!forceReload ? (
+          <MainNavigator navigation={props.navigation} />
+        ) : (
+          renderLoader()
+        )}
+        {/* <GlobalAlert />
           <FadeOutOverlay />
           <Notification navigation={props.navigation} />
           <RampOrders />
@@ -431,7 +431,7 @@ const Main = (props) => {
             onDismiss={toggleRemindLater}
             navigation={props.navigation}
           /> */}
-          {/* {renderDeprecatedNetworkAlert(
+        {/* {renderDeprecatedNetworkAlert(
             props.chainId,
             props.backUpSeedphraseVisible,
           )}
@@ -444,8 +444,8 @@ const Main = (props) => {
           />
           <ProtectYourWalletModal navigation={props.navigation} />
           <RootRPCMethodsUI navigation={props.navigation} /> */}
-        </View>
-      </AssetPollingProvider>
+      </View>
+      {/* </AssetPollingProvider> */}
     </React.Fragment>
   );
 };
