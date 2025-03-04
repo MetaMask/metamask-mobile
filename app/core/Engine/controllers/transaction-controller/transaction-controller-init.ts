@@ -49,19 +49,19 @@ export const TransactionControllerInit: ControllerInitFunction<
       disableHistory: true,
       disableSendFlowHistory: true,
       disableSwaps: true,
-      // @ts-expect-error - TransactionController is missing networkClientId argument in type
-      getCurrentNetworkEIP1559Compatibility:
-        networkController.getEIP1559Compatibility.bind(networkController),
+      getCurrentNetworkEIP1559Compatibility: (...args) =>
+        // @ts-expect-error Controller type does not support undefined return value
+        networkController.getEIP1559Compatibility(...args),
       // @ts-expect-error - TransactionController expects TransactionMeta[] but SmartTransactionsController returns SmartTransaction[]
       getExternalPendingTransactions: (address: string) =>
         smartTransactionsController.getTransactions({
           addressFrom: address,
           status: SmartTransactionStatuses.PENDING,
         }),
-      getGasFeeEstimates:
-        gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
-      getNetworkClientRegistry:
-        networkController.getNetworkClientRegistry.bind(networkController),
+      getGasFeeEstimates: (...args) =>
+        gasFeeController.fetchGasFeeEstimates(...args),
+      getNetworkClientRegistry: (...args) =>
+        networkController.getNetworkClientRegistry(...args),
       getNetworkState: () => networkController.state,
       hooks: {
         publish: ((transactionMeta: TransactionMeta) => {
@@ -102,7 +102,7 @@ export const TransactionControllerInit: ControllerInitFunction<
         isResubmitEnabled: () => false,
       },
       // @ts-expect-error - Keyring controller expects TxData returned but TransactionController expects TypedTransaction
-      sign: keyringController.signTransaction.bind(keyringController),
+      sign: (...args) => keyringController.signTransaction(...args),
       state: persistedState.TransactionController,
     });
     return { controller: transactionController };
