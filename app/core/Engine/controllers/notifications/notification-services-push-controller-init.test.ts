@@ -3,7 +3,9 @@ import {
   defaultState,
   Controller as NotificationServicesPushController,
 } from '@metamask/notification-services-controller/push-services';
+
 import Logger from '../../../../util/Logger';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 // eslint-disable-next-line import/no-namespace
 import * as createNotificationServicesPushControllerModule from './create-notification-services-push-controller';
 import { notificationServicesPushControllerInit } from './notification-services-push-controller-init';
@@ -17,27 +19,24 @@ describe('notificationServicesControllerInit', () => {
         'createNotificationServicesPushController',
       )
       .mockReturnValue({} as NotificationServicesPushController);
-    const fakeMessenger = {} as NotificationServicesPushControllerMessenger;
+
+    const initRequestMock =
+      buildControllerInitRequestMock<NotificationServicesPushControllerMessenger>();
 
     return {
       mockLog,
       mockCreateController,
-      fakeMessenger,
-      getController: jest.fn(),
-      getCurrentChainId: jest.fn(),
-      getRootState: jest.fn(),
       initMessenger: jest.fn() as unknown as void,
+      ...initRequestMock,
     };
   };
 
   it('logs and returns controller with default state', () => {
-    const { fakeMessenger, mockCreateController, mockLog, ...othersMocks } =
-      arrangeMocks();
+    const { mockCreateController, mockLog, ...othersMocks } = arrangeMocks();
 
     notificationServicesPushControllerInit({
-      controllerMessenger: fakeMessenger,
-      persistedState: { NotificationServicesPushController: undefined },
       ...othersMocks,
+      persistedState: { NotificationServicesPushController: undefined },
     });
 
     expect(mockCreateController).toHaveBeenCalled();
@@ -50,15 +49,13 @@ describe('notificationServicesControllerInit', () => {
   });
 
   it('logs and returns controller with initial state', () => {
-    const { fakeMessenger, mockCreateController, mockLog, ...othersMocks } =
-      arrangeMocks();
+    const { mockCreateController, mockLog, ...othersMocks } = arrangeMocks();
 
     notificationServicesPushControllerInit({
-      controllerMessenger: fakeMessenger,
+      ...othersMocks,
       persistedState: {
         NotificationServicesPushController: { isPushEnabled: true },
       },
-      ...othersMocks,
     });
 
     expect(mockCreateController).toHaveBeenCalled();
