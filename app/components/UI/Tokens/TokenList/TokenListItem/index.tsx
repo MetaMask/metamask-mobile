@@ -64,7 +64,6 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 interface TokenListItemProps {
