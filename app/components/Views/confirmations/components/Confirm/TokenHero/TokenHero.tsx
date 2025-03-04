@@ -99,7 +99,7 @@ const TokenHero = () => {
           setOpen={setIsModalVisible}
           content={tokenAmountValue}
           title={strings('send.amount')}
-          tooltipTestId='token-hero-amount'
+          tooltipTestId="token-hero-amount"
         />
       )}
     </View>
