@@ -1,4 +1,5 @@
 import { accountsControllerInit } from '../controllers/accounts-controller';
+import { TransactionControllerInit } from '../controllers/transaction-controller';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { NetworkController } from '@metamask/network-controller';
@@ -11,9 +12,12 @@ describe('initModularizedControllers', () => {
       existingControllersByName: {},
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        TransactionController: TransactionControllerInit,
       },
       persistedState: {},
       baseControllerMessenger: new ExtendedControllerMessenger(),
+      getCurrentChainId: jest.fn(),
+      getRootState: jest.fn(),
     });
 
     expect(controllers.controllersByName.AccountsController).toBeDefined();
@@ -25,9 +29,12 @@ describe('initModularizedControllers', () => {
         existingControllersByName: {},
         controllerInitFunctions: {
           AccountsController: mockControllerInitFunction,
+          TransactionController: TransactionControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
+        getCurrentChainId: jest.fn(),
+        getRootState: jest.fn(),
       }),
     ).toThrow(
       'Controller requested before it was initialized: NetworkController',
@@ -42,9 +49,12 @@ describe('initModularizedControllers', () => {
         },
         controllerInitFunctions: {
           AccountsController: mockControllerInitFunction,
+          TransactionController: TransactionControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
+        getCurrentChainId: jest.fn(),
+        getRootState: jest.fn(),
       }),
     ).not.toThrow();
   });

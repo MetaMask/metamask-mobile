@@ -217,6 +217,10 @@ import {
   MultichainNetworkControllerState,
   MultichainNetworkControllerEvents,
 } from '@metamask/multichain-network-controller';
+import { Hex } from '@metamask/utils';
+
+import { CONTROLLER_MESSENGERS } from './messengers';
+import type { RootState } from '../../reducers';
 
 /**
  * Controllers that area always instantiated
@@ -493,12 +497,14 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize = 'AccountsController';
+export type ControllersToInitialize =
+  | 'AccountsController'
+  | 'TransactionController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
  */
-type ControllerMessengerCallback = (
+export type ControllerMessengerCallback = (
   baseControllerMessenger: BaseControllerMessenger,
 ) => BaseRestrictedControllerMessenger;
 
@@ -514,21 +520,13 @@ type ControllerPersistedState = Partial<{
 }>;
 
 /**
- * Map of controller messengers by controller name.
- */
-export type ControllerMessengerByControllerName = {
-  [key in ControllersToInitialize]: {
-    getMessenger: ControllerMessengerCallback;
-  };
-};
-
-/**
  * Request to initialize and return a controller instance.
  * Includes standard data and methods not coupled to any specific controller.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ControllerInitRequest<
   ControllerMessengerType extends BaseRestrictedControllerMessenger,
+  InitMessengerType extends void | BaseRestrictedControllerMessenger = void,
 > = {
   /**
    * Controller messenger for the client.
@@ -547,6 +545,24 @@ export type ControllerInitRequest<
   ): ControllerByName[Name];
 
   /**
+   * Get the chain id set in the engine.
+   * 
+   * @deprecated Will be removed in the future pending multi-chain support.
+   */
+  getCurrentChainId: () => Hex;
+
+  /**
+   * Get the root state of UI.
+   */
+  getRootState: () => RootState;
+
+  /**
+   * Required initialization messenger instance.
+   * Generated using the callback specified in `getInitMessenger`.
+   */
+  initMessenger: InitMessengerType;
+
+  /**
    * The full persisted state for all controllers.
    * Includes controller name properties.
    * e.g. `{ TransactionController: { transactions: [] } }`.
@@ -560,17 +576,22 @@ export type ControllerInitRequest<
 export type ControllerInitFunction<
   ControllerType extends Controller,
   ControllerMessengerType extends BaseRestrictedControllerMessenger,
-> = (request: ControllerInitRequest<ControllerMessengerType>) => {
+  InitMessengerType extends void | BaseRestrictedControllerMessenger = void,
+> = (
+  request: ControllerInitRequest<ControllerMessengerType, InitMessengerType>,
+) => {
   controller: ControllerType;
 };
 
 /**
  * Map of controller init functions by controller name.
  */
-type ControllerInitFunctionByControllerName = {
+export type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
     ControllerByName[Name],
-    ReturnType<ControllerMessengerByControllerName[Name]['getMessenger']>
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
+    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
   >;
 };
 
@@ -579,9 +600,11 @@ type ControllerInitFunctionByControllerName = {
  */
 export type InitModularizedControllersFunction = (request: {
   controllerInitFunctions: ControllerInitFunctionByControllerName;
-  persistedState: ControllerPersistedState;
-  existingControllersByName?: Partial<ControllerByName>;
   baseControllerMessenger: BaseControllerMessenger;
+  existingControllersByName?: Partial<ControllerByName>;
+  getCurrentChainId: () => Hex;
+  getRootState: () => RootState;
+  persistedState: ControllerPersistedState;
 }) => {
   controllersByName: ControllerByName;
 };
