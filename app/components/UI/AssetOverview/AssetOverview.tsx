@@ -78,6 +78,7 @@ interface AssetOverviewProps {
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
   swapsIsLive?: boolean;
+  networkName?: string;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
@@ -85,6 +86,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   displayBuyButton,
   displaySwapsButton,
   swapsIsLive,
+  networkName,
 }: AssetOverviewProps) => {
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
@@ -165,6 +167,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: QRTabSwitcherScreens.Receive,
       disableTabber: true,
+      networkName,
     });
   };
 

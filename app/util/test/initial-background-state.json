@@ -376,5 +376,12 @@
   "MultichainAssetsController": {
     "accountsAssets": {},
     "assetsMetadata": {}
+  },
+  "MultichainAssetsRatesController": {
+    "conversionRates": {}
+  },
+  "CronjobController": {
+    "events": {},
+    "jobs": {}
   }
 }

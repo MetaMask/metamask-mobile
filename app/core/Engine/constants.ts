@@ -3,7 +3,6 @@ import { SnapControllerStateChangeEvent } from './controllers/SnapController/con
 ///: END:ONLY_INCLUDE_IF
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { MultichainBalancesControllerStateChangeEvent } from './controllers/MultichainBalancesController/constants';
 import { RatesControllerStateChangeEvent } from './controllers/RatesController/constants';
 ///: END:ONLY_INCLUDE_IF
 
@@ -56,10 +55,12 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NotificationServicesController:stateChange',
   'NotificationServicesPushController:stateChange',
   'SnapInterfaceController:stateChange',
+  'CronjobController:stateChange',
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  MultichainBalancesControllerStateChangeEvent,
+  'MultichainBalancesController:stateChange',
   RatesControllerStateChangeEvent,
+  'MultichainAssetsRatesController:stateChange',
   // TODO: Export this from the assets controller
   'MultichainAssetsController:stateChange',
   ///: END:ONLY_INCLUDE_IF
