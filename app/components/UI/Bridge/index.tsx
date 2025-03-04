@@ -7,7 +7,8 @@ import Button, { ButtonVariants } from '../../../component-library/components/Bu
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
-import { FlexDirection, JustifyContent } from '../Box/box.types';
+import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
+import Text, { TextColor } from '../../../component-library/components/Texts/Text';
 
 interface BridgeState {
   sourceAmount: string;
@@ -17,13 +18,15 @@ interface BridgeState {
 const createStyles = (_: { theme: Theme }) => StyleSheet.create({
     content: {
       flexGrow: 1,
-      padding: 16,
     },
     inputsContainer: {
-      marginTop: 16,
+    },
+    buttonContainer: {
+      width: '100%',
+      padding: 24,
     },
     button: {
-      marginTop: 16,
+      width: '100%',
     },
   });
 
@@ -66,6 +69,10 @@ const BridgeView = () => {
     // TODO: Implement bridge transaction with source and destination amounts
   };
 
+  const handleTermsPress = () => {
+    // TODO: Implement terms and conditions navigation
+  };
+
   return (
     <ScreenView>
       <Box
@@ -92,12 +99,25 @@ const BridgeView = () => {
             onBackspacePress={handleBackspacePress}
             onDecimalPress={handleDecimalPress}
           />
-          <Button
-            variant={ButtonVariants.Primary}
-            label="Continue"
-            onPress={handleContinue}
-            style={styles.button}
-          />
+          <Box
+            style={styles.buttonContainer}
+            flexDirection={FlexDirection.Column}
+            justifyContent={JustifyContent.center}
+            alignItems={AlignItems.center}
+            gap={12}
+          >
+            <Button
+              variant={ButtonVariants.Primary}
+              label="Continue"
+              onPress={handleContinue}
+              style={styles.button}
+            />
+            <Button
+              variant={ButtonVariants.Link}
+              label={<Text color={TextColor.Alternative}>Terms & Conditions</Text>}
+              onPress={handleTermsPress}
+            />
+          </Box>
         </Box>
       </Box>
     </ScreenView>
