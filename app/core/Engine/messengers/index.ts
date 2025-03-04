@@ -1,13 +1,13 @@
 import { getAccountsControllerMessenger } from './accounts-controller-messenger';
 import type { ControllerMessengerByControllerName } from '../types';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger';
+import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { getCronJobControllerMessenger } from './cron-job-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets-rates-controller-messenger';
 import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger';
-import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger';
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
 
