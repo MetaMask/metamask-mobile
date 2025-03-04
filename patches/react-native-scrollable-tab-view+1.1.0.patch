@@ -1,0 +1,45 @@
+diff --git a/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js b/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
+index 81a8a70..590f0b5 100644
+--- a/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
++++ b/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
+@@ -87,7 +87,7 @@ const DefaultTabBar = createReactClass({
+                 { translateX },
+               ]
+             },
+-            this.props.tabBarUnderlineStyle,
++            this.props.underlineStyle,
+           ]}
+         />
+       </View>
+diff --git a/node_modules/react-native-scrollable-tab-view/index.js b/node_modules/react-native-scrollable-tab-view/index.js
+index dc9d4f4..e337921 100644
+--- a/node_modules/react-native-scrollable-tab-view/index.js
++++ b/node_modules/react-native-scrollable-tab-view/index.js
+@@ -15,7 +15,7 @@ const {
+ 
+ const ViewPagerAndroid = require('@react-native-community/viewpager');
+ const TimerMixin = require('react-timer-mixin');
+-const ViewPager = require('@react-native-community/viewpager');
++const ViewPager = require('react-native-pager-view');
+ 
+ const SceneComponent = require('./SceneComponent');
+ const DefaultTabBar = require('./DefaultTabBar');
+@@ -235,7 +235,6 @@ const ScrollableTabView = createReactClass({
+         ref={(scrollView) => { this.scrollView = scrollView; }}
+         onScroll={Animated.event(
+           [{ nativeEvent: { contentOffset: { x: this.state.scrollXIOS, }, }, }, ],
+-          { useNativeDriver: true, listener: this._onScroll, }
+         )}
+         onMomentumScrollBegin={this._onMomentumScrollBeginAndEnd}
+         onMomentumScrollEnd={this._onMomentumScrollBeginAndEnd}
+@@ -266,10 +265,6 @@ const ScrollableTabView = createReactClass({
+               offset: this.state.offsetAndroid,
+             },
+           }, ],
+-          {
+-            useNativeDriver: true,
+-            listener: this._onScroll,
+-          },
+         )}
+         ref={(scrollView) => { this.scrollView = scrollView; }}
+         {...this.props.contentProps}

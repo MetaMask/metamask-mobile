@@ -346,7 +346,7 @@
     "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "^4.6.0",
-    "react-native-scrollable-tab-view": "zichengbohan/react-native-scrollable-tab-view#a6a1d4e4a16d82ee35a7017243320f4468a35e80",
+    "react-native-scrollable-tab-view": "ptomasroos/react-native-scrollable-tab-view#583a66f7fd3eb2cac1a05c71d7167d78a8ad9de6",
     "react-native-sensors": "5.3.0",
     "react-native-share": "7.3.7",
     "react-native-size-matters": "0.4.0",

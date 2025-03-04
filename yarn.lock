@@ -25095,9 +25095,9 @@ react-native-screens@^4.6.0:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native-scrollable-tab-view@zichengbohan/react-native-scrollable-tab-view#a6a1d4e4a16d82ee35a7017243320f4468a35e80:
+react-native-scrollable-tab-view@ptomasroos/react-native-scrollable-tab-view#583a66f7fd3eb2cac1a05c71d7167d78a8ad9de6:
   version "1.1.0"
-  resolved "https://codeload.github.com/zichengbohan/react-native-scrollable-tab-view/tar.gz/a6a1d4e4a16d82ee35a7017243320f4468a35e80"
+  resolved "https://codeload.github.com/ptomasroos/react-native-scrollable-tab-view/tar.gz/583a66f7fd3eb2cac1a05c71d7167d78a8ad9de6"
   dependencies:
     "@react-native-community/viewpager" "3.3.0"
     create-react-class "^15.6.2"
