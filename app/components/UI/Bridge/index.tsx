@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,25 +7,96 @@ import ScreenView from '../../Base/ScreenView';
 import { Numpad } from './Numpad';
 import { TokenInputArea } from './TokenInputArea';
 import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import { useStyles } from '../../../component-library/hooks';
+import { Theme } from '../../../util/theme/models';
 
-const createStyles = () =>
-  StyleSheet.create({
+interface BridgeState {
+  sourceAmount: string;
+  destinationAmount: string;
+}
+
+const createStyles = (_: { theme: Theme }) => StyleSheet.create({
     content: {
       flexGrow: 1,
-      justifyContent: 'center',
+      justifyContent: 'space-between',
+      padding: 16,
+    },
+    inputsContainer: {
+      marginTop: 16,
+    },
+    button: {
+      marginTop: 16,
     },
   });
 
 const BridgeView = () => {
-  const styles = createStyles();
+  const [state, setState] = useState<BridgeState>({
+    sourceAmount: '0',
+    destinationAmount: '0',
+  });
+
+  const { styles } = useStyles(createStyles, {});
+
+  const handleNumberPress = (num: string) => {
+    setState((prev) => ({
+      ...prev,
+      sourceAmount: prev.sourceAmount === '0' ? num : prev.sourceAmount + num,
+      destinationAmount: prev.sourceAmount === '0' ? num : prev.sourceAmount + num,
+    }));
+  };
+
+  const handleBackspacePress = () => {
+    setState((prev) => ({
+      ...prev,
+      sourceAmount: prev.sourceAmount.slice(0, -1) || '0',
+      destinationAmount: prev.sourceAmount.slice(0, -1) || '0',
+    }));
+  };
+
+  const handleDecimalPress = () => {
+    setState((prev) => {
+      if (prev.sourceAmount.includes('.')) return prev;
+      return {
+        ...prev,
+        sourceAmount: prev.sourceAmount + '.',
+        destinationAmount: prev.sourceAmount + '.',
+      };
+    });
+  };
+
+  const handleContinue = () => {
+    // TODO: Implement bridge transaction with source and destination amounts
+  };
 
   return (
     <ScreenView>
       <View style={styles.content}>
-        <TokenInputArea />
-        <TokenInputArea />
-        <Numpad />
-        <Button variant={ButtonVariants.Primary} label="Continue" onPress={() => {}} />
+        <View style={styles.inputsContainer}>
+          <TokenInputArea
+            value={state.sourceAmount}
+            tokenSymbol="ETH"
+            tokenAddress="0x32...2939"
+            isSource
+          />
+          <TokenInputArea
+            value={state.destinationAmount}
+            tokenSymbol="USDC"
+            tokenAddress="0x32...2939"
+          />
+        </View>
+        <View>
+          <Numpad
+            onNumberPress={handleNumberPress}
+            onBackspacePress={handleBackspacePress}
+            onDecimalPress={handleDecimalPress}
+          />
+          <Button
+            variant={ButtonVariants.Primary}
+            label="Continue"
+            onPress={handleContinue}
+            style={styles.button}
+          />
+        </View>
       </View>
     </ScreenView>
   );
