@@ -20,8 +20,8 @@ import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
-import TransactionBackgroundTop from '../../../images/transaction-background-top.svg';
-import TransactionBackgroundBottom from '../../../images/transaction-background-bottom.svg';
+import TransactionBackgroundTop from '../../../../images/transaction-background-top.svg';
+import TransactionBackgroundBottom from '../../../../images/transaction-background-bottom.svg';
 import LoopingScrollAnimation from './LoopingScrollAnimation';
 import { hexToDecimal } from '../../../../util/conversions';
 import useRemainingTime from './useRemainingTime';
