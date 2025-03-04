@@ -28,8 +28,9 @@ import {
 } from '../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { formatWithThreshold } from '../../../util/assets';
-import I18n from 'i18n-js';
 ///: END:ONLY_INCLUDE_IF
+// eslint-disable-next-line import/no-extraneous-dependencies
+import I18n from 'i18n-js';
 
 /**
  * Hook to manage portfolio balance data across chains.

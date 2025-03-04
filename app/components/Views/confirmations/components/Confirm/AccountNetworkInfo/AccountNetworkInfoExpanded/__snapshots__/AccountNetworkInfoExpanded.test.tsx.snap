@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioVieEnabled is true 1`] = `
+exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEnabled is true 1`] = `
 <View>
   <View
     style={
@@ -132,7 +132,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioVieEna
           }
         }
       >
-        $0
+        $0.00
       </Text>
     </View>
   </View>
