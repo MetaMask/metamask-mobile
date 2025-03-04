@@ -1,3 +1,8 @@
+import { AccountsController } from '@metamask/accounts-controller';
+import { NetworkController } from '@metamask/network-controller';
+import { TransactionController } from '@metamask/transaction-controller';
+
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { accountsControllerInit } from '../controllers/accounts-controller';
 import { TransactionControllerInit } from '../controllers/transaction-controller';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
@@ -30,7 +35,23 @@ import {
   MultichainNetworkControllerMessenger,
 } from '@metamask/multichain-network-controller';
 
+jest.mock('../controllers/transaction-controller');
+
 describe('initModularizedControllers', () => {
+  const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
+  const mockTransactionControllerInit = jest.mocked(TransactionControllerInit);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAccountsControllerInit.mockReturnValue({
+      controller: {} as unknown as AccountsController,
+    });
+
+    mockTransactionControllerInit.mockReturnValue({
+      controller: {} as unknown as TransactionController,
+    });
+  });
+
   it('should initialize controllers', () => {
     const controllers = initModularizedControllers({
       existingControllersByName: {},
@@ -42,7 +63,7 @@ describe('initModularizedControllers', () => {
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
-        TransactionController: TransactionControllerInit,
+        TransactionController: mockTransactionControllerInit,
       },
       persistedState: {},
       baseControllerMessenger: new ExtendedControllerMessenger(),
