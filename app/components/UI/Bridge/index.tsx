@@ -4,7 +4,9 @@ import {
   View,
 } from 'react-native';
 import ScreenView from '../../Base/ScreenView';
-import Text from '../../../component-library/components/Texts/Text';
+import { Numpad } from './Numpad';
+import { TokenInputArea } from './TokenInputArea';
+import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -20,7 +22,10 @@ const BridgeView = () => {
   return (
     <ScreenView>
       <View style={styles.content}>
-        <Text>Bridge</Text>
+        <TokenInputArea />
+        <TokenInputArea />
+        <Numpad />
+        <Button variant={ButtonVariants.Primary} label="Continue" onPress={() => {}} />
       </View>
     </ScreenView>
   );
