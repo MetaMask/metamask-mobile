@@ -32,4 +32,4 @@ export const useStakingDetails = () => {
     const annualRewardsFiat = annualRewardsFiatValue && fiatFormatter(annualRewardsFiatValue);
 
     return { apr, annualRewardsFiat, annualRewardsETH };
-}
+};
