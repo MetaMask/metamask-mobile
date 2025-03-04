@@ -224,7 +224,7 @@ import {
 import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
 ///: END:ONLY_INCLUDE_IF
 import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
-import { TransactionControllerInit } from './controllers/TransactionController';
+import { TransactionControllerInit } from './controllers/transaction-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
