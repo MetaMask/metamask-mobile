@@ -415,7 +415,12 @@ const Main = (props) => {
 
   return (
     <React.Fragment>
-      <AssetPollingProvider>
+      {!forceReload ? (
+        <MainNavigator navigation={props.navigation} />
+      ) : (
+        renderLoader()
+      )}
+      {/* <AssetPollingProvider>
         <View style={styles.flex}>
           {!forceReload ? (
             <MainNavigator navigation={props.navigation} />
@@ -445,7 +450,7 @@ const Main = (props) => {
           <ProtectYourWalletModal navigation={props.navigation} />
           <RootRPCMethodsUI navigation={props.navigation} />
         </View>
-      </AssetPollingProvider>
+      </AssetPollingProvider> */}
     </React.Fragment>
   );
 };
