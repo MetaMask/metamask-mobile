@@ -33,15 +33,11 @@ interface ReceiveAddressProps {
 export const ReceiveAddress: React.FC<ReceiveAddressProps> = ({ address }) => {
   const { styles } = useStyles(createStyles, {});
 
-  if (!address) {
-    return <Box style={styles.container}><></></Box>;
-  }
-
   return (
     <Box style={styles.container}>
       <Box flexDirection={FlexDirection.Column} gap={4}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          Receive at Solana account
+          Receive at
         </Text>
         <Text variant={TextVariant.BodyLGMedium}>
           {address}

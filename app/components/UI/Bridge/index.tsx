@@ -128,7 +128,9 @@ const BridgeView = () => {
           />
         </Box>
         <Box style={styles.bottomSection}>
-          <ReceiveAddress address="HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH" />
+          {/* TODO Just a placeholder for now */}
+          {false && <ReceiveAddress address={undefined} />}
+
           <Numpad
             onNumberPress={handleNumberPress}
             onBackspacePress={handleBackspacePress}
