@@ -1,3 +1,4 @@
+/* eslint-disable */
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
@@ -175,11 +176,6 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      height: Device.getDeviceHeight() * 0.7,
-    },
-    sheetContent: {
-      flex: 1,
-      flexShrink: 1,
     },
     notch: {
       width: 48,
@@ -2169,7 +2165,6 @@ export class NetworkSettings extends PureComponent {
               </Text>
             </BottomSheetHeader>
             <KeyboardAwareScrollView
-              style={styles.sheetContent}
               enableOnAndroid
               keyboardShouldPersistTaps="handled"
             >
@@ -2248,7 +2243,6 @@ export class NetworkSettings extends PureComponent {
               </Text>
             </BottomSheetHeader>
             <KeyboardAwareScrollView
-              style={styles.sheetContent}
               enableOnAndroid
               keyboardShouldPersistTaps="handled"
             >
