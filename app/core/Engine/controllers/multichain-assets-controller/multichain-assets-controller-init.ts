@@ -4,10 +4,6 @@ import {
   MultichainAssetsControllerState,
 } from '@metamask/assets-controllers';
 import type { ControllerInitFunction } from '../../types';
-import { defaultMultichainAssetsControllerState } from './constants';
-
-// Export constants
-export * from './constants';
 
 /**
  * Initialize the MultichainAssetsController.
@@ -22,8 +18,7 @@ export const multichainAssetsControllerInit: ControllerInitFunction<
   const { controllerMessenger, persistedState } = request;
 
   const multichainAssetsControllerState =
-    (persistedState.MultichainAssetsController ??
-      defaultMultichainAssetsControllerState) as MultichainAssetsControllerState;
+    persistedState.MultichainAssetsController as MultichainAssetsControllerState;
 
   const controller = new MultichainAssetsController({
     messenger: controllerMessenger,

@@ -3,7 +3,6 @@ import {
   type MultichainAssetsRatesControllerMessenger,
   MultichainAssetsRatesControllerState,
 } from '@metamask/assets-controllers';
-import { defaultMultichainBalancesControllerState } from './constants';
 import type { ControllerInitFunction } from '../../types';
 
 /**
@@ -19,8 +18,7 @@ export const multichainAssetsRatesControllerInit: ControllerInitFunction<
   const { controllerMessenger, persistedState } = request;
 
   const multichainAssetsRatesControllerState =
-    (persistedState.MultichainAssetsRatesController ??
-      defaultMultichainBalancesControllerState) as MultichainAssetsRatesControllerState;
+    persistedState.MultichainAssetsRatesController as MultichainAssetsRatesControllerState;
 
   const controller = new MultichainAssetsRatesController({
     messenger: controllerMessenger,

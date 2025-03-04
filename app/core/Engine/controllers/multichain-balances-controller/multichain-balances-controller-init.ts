@@ -4,7 +4,6 @@ import {
   MultichainBalancesControllerMessenger,
 } from '@metamask/assets-controllers';
 import type { ControllerInitFunction } from '../../types';
-import { defaultMultichainBalancesControllerState } from './constants';
 
 /**
  * Initialize the MultichainBalancesController.
@@ -19,8 +18,7 @@ export const multichainBalancesControllerInit: ControllerInitFunction<
   const { controllerMessenger, persistedState } = request;
 
   const multichainBalancesControllerState =
-    (persistedState.MultichainBalancesController ??
-      defaultMultichainBalancesControllerState) as MultichainBalancesControllerState;
+    persistedState.MultichainBalancesController as MultichainBalancesControllerState;
 
   const controller = new MultichainBalancesController({
     messenger: controllerMessenger,
