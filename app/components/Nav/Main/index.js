@@ -422,7 +422,7 @@ const Main = (props) => {
           ) : (
             renderLoader()
           )}
-          <GlobalAlert />
+          {/* <GlobalAlert />
           <FadeOutOverlay />
           <Notification navigation={props.navigation} />
           <RampOrders />
@@ -430,7 +430,7 @@ const Main = (props) => {
           <BackupAlert
             onDismiss={toggleRemindLater}
             navigation={props.navigation}
-          />
+          /> */}
           {/* {renderDeprecatedNetworkAlert(
             props.chainId,
             props.backUpSeedphraseVisible,
