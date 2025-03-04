@@ -6,9 +6,6 @@ import {
 import type { ControllerInitFunction } from '../../types';
 import { defaultCronjobControllerState } from './constants';
 
-// Export constants
-export * from './constants';
-
 /**
  * Initialize the CronjobController.
  *

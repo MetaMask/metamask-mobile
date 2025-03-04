@@ -5,8 +5,9 @@ import {
 } from '@metamask/snaps-controllers';
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { cronjobControllerInit, defaultCronjobControllerState } from '.';
+import { cronjobControllerInit } from './cronjob-controller-init';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { defaultCronjobControllerState } from './constants';
 
 jest.mock('@metamask/snaps-controllers');
 
