@@ -5,7 +5,7 @@ import {
   getDefaultMultichainNetworkControllerState,
 } from '@metamask/multichain-network-controller';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
-import { multichainNetworkControllerInit } from '.';
+import { multichainNetworkControllerInit } from './multichain-network-controller-init';
 import { BtcScope } from '@metamask/keyring-api';
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';

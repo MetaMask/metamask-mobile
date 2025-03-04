@@ -10,7 +10,7 @@ import {
 import { cronjobControllerInit } from '../controllers/cronjob-controller/cronjob-controller-init';
 import { CronjobController } from '@metamask/snaps-controllers';
 import { BaseRestrictedControllerMessenger } from '../types';
-import { multichainAssetsRatesControllerInit } from '../controllers/MultichainAssetsRatesController';
+import { multichainAssetsRatesControllerInit } from '../controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import {
   CurrencyRateController,
   MultichainAssetsController,
@@ -20,10 +20,10 @@ import {
   MultichainBalancesController,
   MultichainBalancesControllerMessenger,
 } from '@metamask/assets-controllers';
-import { multichainAssetsControllerInit } from '../controllers/MultichainAssetsController';
-import { currencyRateControllerInit } from '../controllers/CurrencyRateController';
-import { multichainBalancesControllerInit } from '../controllers/MultichainBalancesController';
-import { multichainNetworkControllerInit } from '../controllers/MultichainNetworkController';
+import { multichainAssetsControllerInit } from '../controllers/multichain-assets-controller/multichain-assets-controller-init';
+import { currencyRateControllerInit } from '../controllers/currency-rate-controller/currency-rate-controller-init';
+import { multichainBalancesControllerInit } from '../controllers/multichain-balances-controller/multichain-balances-controller-init';
+import { multichainNetworkControllerInit } from '../controllers/multichain-network-controller/multichain-network-controller-init';
 import {
   MultichainNetworkController,
   MultichainNetworkControllerMessenger,

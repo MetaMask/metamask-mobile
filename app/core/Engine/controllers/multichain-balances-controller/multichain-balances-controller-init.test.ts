@@ -5,7 +5,7 @@ import {
 } from '@metamask/assets-controllers';
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { multichainBalancesControllerInit } from '.';
+import { multichainBalancesControllerInit } from './multichain-balances-controller-init';
 import { defaultMultichainBalancesControllerState } from './constants';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
