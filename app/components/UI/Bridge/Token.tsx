@@ -5,10 +5,16 @@ import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
 import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import images from '../../../images/image-icons';
 
 interface TokenProps {
   symbol: string;
   iconUrl?: ImageSourcePropType;
+  networkImageSource?: ImageSourcePropType;
+  networkName?: string;
 }
 
 interface StylesParams {
@@ -20,9 +26,23 @@ const createStyles = (params: StylesParams) => {
   const { shadows } = theme;
   return StyleSheet.create({
     icon: {
-      width: 20,
-      height: 20,
-      borderRadius: 10,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+    },
+    fallbackIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.colors.background.alternative,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    fallbackText: {
+      fontSize: 16,
+      color: theme.colors.text.default,
+      textAlign: 'center',
+      textTransform: 'uppercase',
     },
     pillContainer: {
       backgroundColor: theme.colors.background.default,
@@ -45,6 +65,8 @@ const createStyles = (params: StylesParams) => {
 export const Token: React.FC<TokenProps> = ({
   symbol,
   iconUrl,
+  networkImageSource = images.ETHEREUM,
+  networkName,
 }) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -55,9 +77,24 @@ export const Token: React.FC<TokenProps> = ({
       alignItems={AlignItems.center}
       justifyContent={JustifyContent.flexEnd}
     >
-      {iconUrl && (
-        <Image source={iconUrl} style={styles.icon} />
-      )}
+      <BadgeWrapper
+        badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImageSource}
+            name={networkName}
+          />
+        }
+      >
+        {iconUrl ? (
+          <Image source={iconUrl} style={styles.icon} />
+        ) : (
+          <Box style={styles.fallbackIcon}>
+            <Text style={styles.fallbackText}>{symbol[0]}</Text>
+          </Box>
+        )}
+      </BadgeWrapper>
       <Box style={styles.symbolSpacing}>
         <Text style={styles.tokenSymbol}>
           {symbol}

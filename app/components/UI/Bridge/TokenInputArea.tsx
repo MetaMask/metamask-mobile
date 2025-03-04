@@ -5,6 +5,7 @@ import { Box } from '../Box/Box';
 import Text, { TextColor } from '../../../component-library/components/Texts/Text';
 import Input from '../../../component-library/components/Form/TextField/foundation/Input';
 import { Token } from './Token';
+import images from '../../../images/image-icons';
 
 interface TokenInputAreaProps {
   value?: string;
@@ -12,6 +13,8 @@ interface TokenInputAreaProps {
   tokenAddress?: string;
   tokenBalance?: string;
   tokenIconUrl?: ImageSourcePropType;
+  networkImageSource?: ImageSourcePropType;
+  networkName?: string;
   autoFocus?: boolean;
   isReadonly?: boolean;
 }
@@ -53,6 +56,8 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   tokenAddress,
   tokenBalance,
   tokenIconUrl,
+  networkImageSource = images.ETHEREUM,
+  networkName,
   autoFocus,
   isReadonly = false,
 }) => {
@@ -86,6 +91,8 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
           <Token
             symbol={tokenSymbol}
             iconUrl={tokenIconUrl}
+            networkImageSource={networkImageSource}
+            networkName={networkName}
           />
         </Box>
         <Box style={[styles.row, styles.subtitleRow]}>
