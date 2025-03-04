@@ -32,27 +32,31 @@ const MOCK_DEFAULT_KEYRINGS: KeyringObject[] = [
   },
 ];
 
+const MOCK_SIMPLE_KEYRING_METADATA: KeyringMetadata = {
+  id: '01JNG66ATK17YSN0TSS6H51EE3',
+  name: '',
+};
+
+const MOCK_QR_KEYRING_METADATA: KeyringMetadata = {
+  id: '01JNG66NARF27JY9TGWJX385QW',
+  name: '',
+};
+
+const MOCK_HD_KEYRING_METADATA: KeyringMetadata = {
+  id: '01JNG7170V9X27V5NFDTY04PJ4',
+  name: '',
+};
+
+const MOCK_SNAP_KEYRING_METADATA: KeyringMetadata = {
+  id: '01JNG71B7GTWH0J1TSJY9891S0',
+  name: '',
+};
+
 const MOCK_DEFAULT_KEYRINGS_METADATA: KeyringMetadata[] = [
-  {
-    id: '01JNG66ATK17YSN0TSS6H51EE3',
-    name: '',
-  },
-  {
-    id: '01JNG66NARF27JY9TGWJX385QW',
-    name: '',
-  },
-  {
-    id: '01JNG7170V9X27V5NFDTY04PJ4',
-    name: '',
-  },
-  {
-    id: '01JNG71B7GTWH0J1TSJY9891S0',
-    name: '',
-  },
-  {
-    id: '01JNG71ET30E6Y59XW8JGBE0F7',
-    name: '',
-  },
+  MOCK_SIMPLE_KEYRING_METADATA,
+  MOCK_QR_KEYRING_METADATA,
+  MOCK_HD_KEYRING_METADATA,
+  MOCK_SNAP_KEYRING_METADATA,
 ];
 
 export const MOCK_KEYRING_CONTROLLER_STATE = {
