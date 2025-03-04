@@ -1725,7 +1725,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title, showBack = true, showCancel = true } = {},
+  { title = 'Buy', showBack = true, showCancel = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -1747,7 +1747,6 @@ export function getFiatOnRampAggNavbar(
       ...(!showBack && { textAlign: 'center' }),
     },
   });
-  const headerTitle = title ?? 'Buy';
 
   const leftActionText = strings('navigation.back');
 
@@ -1757,7 +1756,7 @@ export function getFiatOnRampAggNavbar(
 
   return {
     headerTitle: () => (
-      <NavbarTitle title={headerTitle} disableNetwork translate={false} />
+      <NavbarTitle title={title} disableNetwork translate={false} />
     ),
     headerLeft: () => {
       if (!showBack) return <View />;
