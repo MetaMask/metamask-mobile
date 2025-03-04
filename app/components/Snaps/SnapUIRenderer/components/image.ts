@@ -3,7 +3,7 @@ import { UIComponentFactory } from './types';
 
 function generateBorderRadius(
   borderRadius?: ImageElement['props']['borderRadius'],
-) {
+): number | 'full' {
   switch (borderRadius) {
     default:
     case 'none':
@@ -13,7 +13,7 @@ function generateBorderRadius(
       return 6;
 
     case 'full':
-      return 100;
+      return 'full';
   }
 }
 

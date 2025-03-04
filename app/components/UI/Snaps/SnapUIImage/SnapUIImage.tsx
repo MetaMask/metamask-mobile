@@ -8,7 +8,7 @@ export interface SnapUIImageProps {
   style?: StyleProp<ImageStyle>;
   width?: number;
   height?: number;
-  borderRadius?: number;
+  borderRadius?: number | string;
 }
 
 export const SnapUIImage: React.FC<SnapUIImageProps> = ({
@@ -24,35 +24,41 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
     [value],
   );
 
-  return (
-      <SvgUri
-        testID="snaps-ui-image"
-        style={[
-          // eslint-disable-next-line react-native/no-inline-styles
-          {
-            borderRadius:
-              borderRadius === 100
-                ? Math.min(dimensions.width, dimensions.height) / 2
-                : borderRadius,
-            overflow: 'hidden',
-          },
-          style,
-        ]}
-        uri={uri}
-        {...(width ? { width } : {})}
-        {...(height ? { height } : {})}
-        onLayout={(layoutChangeEvent) => {
-          if (!dimensions.width || !dimensions.height) {
-            const { width: layoutWidth, height: layoutHeight } =
-              layoutChangeEvent.nativeEvent.layout;
+  function getRNSvgBorderRadiusValue(
+    borderRadiusValue: number | string | undefined,
+  ): number {
+    if (typeof borderRadiusValue === 'string' && borderRadiusValue === 'full') {
+      return Math.min(dimensions.width, dimensions.height) / 2;
+    }
+    return typeof borderRadiusValue === 'number' ? borderRadiusValue : 0;
+  }
 
-            setDimensions({
-              width: layoutWidth,
-              height: layoutHeight,
-            });
-          }
-        }}
-      />
+  return (
+    <SvgUri
+      testID="snaps-ui-image"
+      style={[
+        // eslint-disable-next-line react-native/no-inline-styles
+        {
+          borderRadius: getRNSvgBorderRadiusValue(borderRadius),
+          overflow: 'hidden',
+        },
+        style,
+      ]}
+      uri={uri}
+      {...(width ? { width } : {})}
+      {...(height ? { height } : {})}
+      onLayout={(layoutChangeEvent) => {
+        if (!dimensions.width || !dimensions.height) {
+          const { width: layoutWidth, height: layoutHeight } =
+            layoutChangeEvent.nativeEvent.layout;
+
+          setDimensions({
+            width: layoutWidth,
+            height: layoutHeight,
+          });
+        }
+      }}
+    />
   );
 };
 ///: END:ONLY_INCLUDE_IF
