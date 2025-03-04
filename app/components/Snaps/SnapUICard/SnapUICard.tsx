@@ -32,6 +32,8 @@ export const SnapUICard: FunctionComponent<SnapUICardProps> = ({
     flexDirection={FlexDirection.Row}
     justifyContent={JustifyContent.spaceBetween}
     alignItems={AlignItems.center}
+    // eslint-disable-next-line react-native/no-inline-styles
+    style={{ flex: 1 }}
   >
     <Box
       gap={16}

@@ -9,6 +9,7 @@ import HelpText, {
 } from '../../../../component-library/components/Form/HelpText';
 import Label from '../../../../component-library/components/Form/Label';
 import { Box } from '../../Box/Box';
+import { TextVariant } from '../../../../component-library/components/Texts/Text';
 
 export interface SnapUIInputProps {
   name: string;
@@ -59,7 +60,7 @@ export const SnapUIInput = ({
 
   return (
     <Box>
-      {label && <Label>{label}</Label>}
+      {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       <TextField
         {...props}
         size={TextFieldSize.Lg}
