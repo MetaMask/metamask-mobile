@@ -253,88 +253,88 @@ const Main = (props) => {
   );
 
   // Show network switch confirmation.
-  useEffect(() => {
-    if (
-      hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
-    ) {
-      //set here token network filter if portfolio view is enabled
-      if (isPortfolioViewEnabled()) {
-        const { PreferencesController } = Engine.context;
-        PreferencesController.setTokenNetworkFilter({
-          ...(isAllNetworks ? tokenNetworkFilter : {}),
-          [chainId]: true,
-        });
-      }
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Network,
-        labelOptions: [
-          {
-            label: `${networkName} `,
-            isBold: true,
-          },
-          { label: strings('toast.now_active') },
-        ],
-        networkImageSource: networkImage,
-      });
-    }
-    previousProviderConfig.current = !isEvmSelected
-      ? { chainId }
-      : providerConfig;
-  }, [
-    providerConfig,
-    networkName,
-    networkImage,
-    toastRef,
-    chainId,
-    isEvmSelected,
-    hasNetworkChanged,
-    isAllNetworks,
-    tokenNetworkFilter,
-  ]);
+  // useEffect(() => {
+  //   if (
+  //     hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
+  //   ) {
+  //     //set here token network filter if portfolio view is enabled
+  //     if (isPortfolioViewEnabled()) {
+  //       const { PreferencesController } = Engine.context;
+  //       PreferencesController.setTokenNetworkFilter({
+  //         ...(isAllNetworks ? tokenNetworkFilter : {}),
+  //         [chainId]: true,
+  //       });
+  //     }
+  //     toastRef?.current?.showToast({
+  //       variant: ToastVariants.Network,
+  //       labelOptions: [
+  //         {
+  //           label: `${networkName} `,
+  //           isBold: true,
+  //         },
+  //         { label: strings('toast.now_active') },
+  //       ],
+  //       networkImageSource: networkImage,
+  //     });
+  //   }
+  //   previousProviderConfig.current = !isEvmSelected
+  //     ? { chainId }
+  //     : providerConfig;
+  // }, [
+  //   providerConfig,
+  //   networkName,
+  //   networkImage,
+  //   toastRef,
+  //   chainId,
+  //   isEvmSelected,
+  //   hasNetworkChanged,
+  //   isAllNetworks,
+  //   tokenNetworkFilter,
+  // ]);
 
-  // Show add network confirmation.
-  useEffect(() => {
-    if (!isNetworkUiRedesignEnabled()) return;
+  // // Show add network confirmation.
+  // useEffect(() => {
+  //   if (!isNetworkUiRedesignEnabled()) return;
 
-    // Memoized values to avoid recalculations
-    const currentNetworkValues = Object.values(networkConfigurations);
-    const previousNetworkValues = Object.values(
-      previousNetworkConfigurations.current ?? {},
-    );
+  //   // Memoized values to avoid recalculations
+  //   const currentNetworkValues = Object.values(networkConfigurations);
+  //   const previousNetworkValues = Object.values(
+  //     previousNetworkConfigurations.current ?? {},
+  //   );
 
-    if (
-      previousNetworkValues.length &&
-      currentNetworkValues.length !== previousNetworkValues.length
-    ) {
-      // Find the newly added network
-      const newNetwork = currentNetworkValues.find(
-        (network) => !previousNetworkValues.includes(network),
-      );
-      const deletedNetwork = previousNetworkValues.find(
-        (network) => !currentNetworkValues.includes(network),
-      );
+  //   if (
+  //     previousNetworkValues.length &&
+  //     currentNetworkValues.length !== previousNetworkValues.length
+  //   ) {
+  //     // Find the newly added network
+  //     const newNetwork = currentNetworkValues.find(
+  //       (network) => !previousNetworkValues.includes(network),
+  //     );
+  //     const deletedNetwork = previousNetworkValues.find(
+  //       (network) => !currentNetworkValues.includes(network),
+  //     );
 
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: `${
-              (newNetwork?.name || deletedNetwork?.name) ??
-              strings('asset_details.network')
-            } `,
-            isBold: true,
-          },
-          {
-            label: deletedNetwork
-              ? strings('toast.network_removed')
-              : strings('toast.network_added'),
-          },
-        ],
-        networkImageSource: networkImage,
-      });
-    }
-    previousNetworkConfigurations.current = networkConfigurations;
-  }, [networkConfigurations, networkName, networkImage, toastRef]);
+  //     toastRef?.current?.showToast({
+  //       variant: ToastVariants.Plain,
+  //       labelOptions: [
+  //         {
+  //           label: `${
+  //             (newNetwork?.name || deletedNetwork?.name) ??
+  //             strings('asset_details.network')
+  //           } `,
+  //           isBold: true,
+  //         },
+  //         {
+  //           label: deletedNetwork
+  //             ? strings('toast.network_removed')
+  //             : strings('toast.network_added'),
+  //         },
+  //       ],
+  //       networkImageSource: networkImage,
+  //     });
+  //   }
+  //   previousNetworkConfigurations.current = networkConfigurations;
+  // }, [networkConfigurations, networkName, networkImage, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
