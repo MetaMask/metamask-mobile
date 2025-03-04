@@ -14,7 +14,6 @@ import BTCLogo from '../../../images/bitcoin-logo.png';
 
 interface BridgeState {
   sourceAmount: string;
-  destinationAmount: string;
 }
 
 const createStyles = (params: { theme: Theme }) => {
@@ -60,24 +59,19 @@ const createStyles = (params: { theme: Theme }) => {
 const BridgeView = () => {
   const [state, setState] = useState<BridgeState>({
     sourceAmount: '0',
-    destinationAmount: '0',
   });
 
   const { styles } = useStyles(createStyles, {});
 
   const handleNumberPress = (num: string) => {
     setState((prev) => ({
-      ...prev,
       sourceAmount: prev.sourceAmount === '0' ? num : prev.sourceAmount + num,
-      destinationAmount: prev.sourceAmount === '0' ? num : prev.sourceAmount + num,
     }));
   };
 
   const handleBackspacePress = () => {
     setState((prev) => ({
-      ...prev,
       sourceAmount: prev.sourceAmount.slice(0, -1) || '0',
-      destinationAmount: prev.sourceAmount.slice(0, -1) || '0',
     }));
   };
 
@@ -85,9 +79,7 @@ const BridgeView = () => {
     setState((prev) => {
       if (prev.sourceAmount.includes('.')) return prev;
       return {
-        ...prev,
         sourceAmount: prev.sourceAmount + '.',
-        destinationAmount: prev.sourceAmount + '.',
       };
     });
   };
@@ -120,7 +112,7 @@ const BridgeView = () => {
             </Box>
           </Box>
           <TokenInputArea
-            value={state.destinationAmount}
+            value="0"
             tokenSymbol="BTC"
             tokenAddress="0x32...2939"
             tokenIconUrl={BTCLogo}
