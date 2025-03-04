@@ -11,6 +11,13 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
+import { TextMatch } from '@testing-library/react-native/build/matches';
+import {
+  CommonQueryOptions,
+  TextMatchOptions,
+} from '@testing-library/react-native/build/queries/options';
+import { GetByQuery } from '@testing-library/react-native/build/queries/makeQueries';
+import { SHEET_HEADER_BACK_BUTTON_ID } from '../../../component-library/components/Sheet/SheetHeader/SheetHeader.constants';
 
 const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
 const mockOnBack = jest.fn();
@@ -72,6 +79,16 @@ jest.mock('../../../core/Engine', () => {
 
 jest.mocked(Engine);
 
+const openSrpSelectorList = async (
+  getByText: GetByQuery<TextMatch, CommonQueryOptions & TextMatchOptions>,
+) => {
+  const srpSelector = getByText(
+    `${strings('accounts.secret_recovery_phrase')} 1`,
+  );
+
+  await fireEvent.press(srpSelector);
+};
+
 describe('AddNewHdAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -100,7 +117,7 @@ describe('AddNewHdAccount', () => {
     expect(input.props.value).toBe('My New Account');
   });
 
-  it('shows SRP list when selector is clicked', () => {
+  it('shows SRP list when selector is clicked', async () => {
     const { getByText } = renderWithProvider(
       <AddNewHdAccount onBack={mockOnBack} />,
       {
@@ -108,10 +125,7 @@ describe('AddNewHdAccount', () => {
       },
     );
 
-    const srpSelector = getByText(
-      strings('accounts.select_secret_recovery_phrase'),
-    );
-    fireEvent.press(srpSelector);
+    await openSrpSelectorList(getByText);
 
     expect(
       getByText(strings('accounts.select_secret_recovery_phrase')),
@@ -126,20 +140,14 @@ describe('AddNewHdAccount', () => {
       },
     );
 
-    const srpSelector = getByText(
-      strings('accounts.select_secret_recovery_phrase'),
-    );
-    fireEvent.press(srpSelector);
-
-    // clicking the first srp will display the srp list
-    const firstSRP = getByText('Secret Recovery Phrase 1');
-    fireEvent.press(firstSRP);
+    await openSrpSelectorList(getByText);
 
     const secondSRP = getByText('Secret Recovery Phrase 2');
     fireEvent.press(secondSRP);
 
     // The picker will now only show the second srp.
     expect(queryByText('Secret Recovery Phrase 1')).toBeNull();
+    expect(secondSRP).toBeDefined();
   });
 
   it('handles account creation', async () => {
@@ -154,8 +162,8 @@ describe('AddNewHdAccount', () => {
     fireEvent.press(addButton);
 
     expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyringMetadata1.id,
       mockNextAccountName,
+      mockKeyringMetadata1.id,
     );
   });
 
@@ -174,8 +182,8 @@ describe('AddNewHdAccount', () => {
     fireEvent.press(addButton);
 
     expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyringMetadata1.id,
       'My Custom Account',
+      mockKeyringMetadata1.id,
     );
   });
 
@@ -193,22 +201,17 @@ describe('AddNewHdAccount', () => {
     expect(mockOnBack).toHaveBeenCalled();
   });
 
-  it('handles back navigation from SRP list', () => {
-    const { getByText } = renderWithProvider(
+  it('handles back navigation from SRP list', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
       <AddNewHdAccount onBack={mockOnBack} />,
       {
         state: initialState,
       },
     );
 
-    const srpSelector = getByText(
-      strings('accounts.select_secret_recovery_phrase'),
-    );
-    fireEvent.press(srpSelector);
+    await openSrpSelectorList(getByText);
 
-    const backButton = getByText(
-      strings('accounts.select_secret_recovery_phrase'),
-    );
+    const backButton = getByTestId(SHEET_HEADER_BACK_BUTTON_ID);
     fireEvent.press(backButton);
 
     expect(getByText(strings('account_actions.add_account'))).toBeDefined();

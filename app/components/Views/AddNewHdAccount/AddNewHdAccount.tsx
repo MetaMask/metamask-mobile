@@ -45,8 +45,8 @@ const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
     try {
       await addNewHdAccount(accountName, keyringId);
       onBack();
-    } catch (e) {
-      Logger.error(e, 'ADD_NEW_HD_ACCOUNT_ERROR');
+    } catch (e: unknown) {
+      Logger.error(e as Error, 'ADD_NEW_HD_ACCOUNT_ERROR');
     } finally {
       setIsLoading(false);
     }
