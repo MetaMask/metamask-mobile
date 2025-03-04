@@ -22,6 +22,7 @@ import { SnapUIBanner } from '../../Snaps/SnapUIBanner/SnapUIBanner';
 import { SnapUICheckbox } from '../../Snaps/SnapUICheckbox/SnapUICheckbox';
 import { SnapUIAddress } from '../../UI/Snaps/SnapUIAddress/SnapUIAddress';
 import { SnapUIAvatar } from '../../UI/Snaps/SnapUIAvatar/SnapUIAvatar';
+import { SnapUISelector } from '../../UI/Snaps/SnapUISelector/SnapUISelector';
 import InfoRow from '../../Views/confirmations/components/UI/InfoRow';
 
 export const safeComponentList = {
@@ -49,6 +50,7 @@ export const safeComponentList = {
   SnapUIAvatar,
   SnapUIAddress,
   SnapUIBanner,
+  SnapUISelector,
   InfoRow,
   RNText,
   ScrollView,
