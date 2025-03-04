@@ -1,4 +1,8 @@
-import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
+import {
+  KeyringMetadata,
+  KeyringObject,
+  KeyringTypes,
+} from '@metamask/keyring-controller';
 
 export const mockSimpleKeyringAddress =
   '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -28,6 +32,29 @@ const MOCK_DEFAULT_KEYRINGS: KeyringObject[] = [
   },
 ];
 
+const MOCK_DEFAULT_KEYRINGS_METADATA: KeyringMetadata[] = [
+  {
+    id: '01JNG66ATK17YSN0TSS6H51EE3',
+    name: '',
+  },
+  {
+    id: '01JNG66NARF27JY9TGWJX385QW',
+    name: '',
+  },
+  {
+    id: '01JNG7170V9X27V5NFDTY04PJ4',
+    name: '',
+  },
+  {
+    id: '01JNG71B7GTWH0J1TSJY9891S0',
+    name: '',
+  },
+  {
+    id: '01JNG71ET30E6Y59XW8JGBE0F7',
+    name: '',
+  },
+];
+
 export const MOCK_KEYRING_CONTROLLER_STATE = {
   keyring: {
     keyrings: [
@@ -39,5 +66,6 @@ export const MOCK_KEYRING_CONTROLLER_STATE = {
   },
   state: {
     keyrings: MOCK_DEFAULT_KEYRINGS,
+    keyringsMetadata: MOCK_DEFAULT_KEYRINGS_METADATA,
   },
 };
