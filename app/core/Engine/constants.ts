@@ -1,6 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapControllerStateChangeEvent } from './controllers/SnapController/constants';
-import { CronjobControllerStateChangeEvent } from './controllers/CronJobController';
+import { CronjobControllerStateChangeEvent } from './controllers/CronjobController';
 ///: END:ONLY_INCLUDE_IF
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

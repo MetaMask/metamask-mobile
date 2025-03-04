@@ -191,7 +191,7 @@ import { multichainAssetsRatesControllerInit } from './controllers/MultichainAss
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
-import { cronjobControllerInit } from './controllers/CronJobController';
+import { cronjobControllerInit } from './controllers/CronjobController';
 ///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
@@ -740,7 +740,6 @@ export class Engine {
           target,
         ),
       getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
-      getIsLocked: () => AppState.currentState !== 'active',
     };
     ///: END:ONLY_INCLUDE_IF
 

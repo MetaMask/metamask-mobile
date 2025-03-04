@@ -7,7 +7,7 @@ import {
   AccountsController,
   AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
-import { cronjobControllerInit } from '../controllers/CronJobController';
+import { cronjobControllerInit } from '../controllers/CronjobController';
 import { CronjobController } from '@metamask/snaps-controllers';
 import { BaseRestrictedControllerMessenger } from '../types';
 import { multichainAssetsRatesControllerInit } from '../controllers/MultichainAssetsRatesController';

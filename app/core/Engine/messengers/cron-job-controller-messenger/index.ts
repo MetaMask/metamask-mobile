@@ -19,7 +19,7 @@ export * from './types';
  * @param baseControllerMessenger - The base controller messenger.
  * @returns The CronjobControllerMessenger.
  */
-export function getCronJobControllerMessenger(
+export function getCronjobControllerMessenger(
   baseControllerMessenger: BaseControllerMessenger,
 ): CronjobControllerMessenger {
   return baseControllerMessenger.getRestricted({
