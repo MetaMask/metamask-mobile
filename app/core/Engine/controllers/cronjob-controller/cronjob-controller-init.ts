@@ -4,7 +4,6 @@ import {
   CronjobControllerState,
 } from '@metamask/snaps-controllers';
 import type { ControllerInitFunction } from '../../types';
-import { defaultCronjobControllerState } from './constants';
 
 /**
  * Initialize the CronjobController.
@@ -18,8 +17,8 @@ export const cronjobControllerInit: ControllerInitFunction<
 > = (request) => {
   const { controllerMessenger, persistedState } = request;
 
-  const cronjobControllerState = (persistedState.CronjobController ??
-    defaultCronjobControllerState) as CronjobControllerState;
+  const cronjobControllerState =
+    persistedState.CronjobController as CronjobControllerState;
 
   const controller = new CronjobController({
     messenger: controllerMessenger,

@@ -6,7 +6,6 @@ import {
 import type { ControllerInitRequest } from '../../types';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { multichainBalancesControllerInit } from './multichain-balances-controller-init';
-import { defaultMultichainBalancesControllerState } from './constants';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 jest.mock('@metamask/assets-controllers');
@@ -38,9 +37,7 @@ describe('multichain balances controller init', () => {
       multichainBalancesControllerClassMock.mock.calls[0][0].state;
 
     // Check that the default state is used
-    expect(multichainBalancesControllerState).toEqual(
-      defaultMultichainBalancesControllerState,
-    );
+    expect(multichainBalancesControllerState).toBeUndefined();
   });
 
   it('controller state is initial state when initial state is passed in', () => {
