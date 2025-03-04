@@ -22,7 +22,7 @@ import {
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
- * * Native asset of each non evm network.
+ * Non evm network mapping.
  */
 export enum MultichainNetworks {
   BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
@@ -33,6 +33,10 @@ export enum MultichainNetworks {
   SOLANA_TESTNET = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
 }
 
+/**
+ * @deprecated TEMPORARY SOURCE OF TRUTH TBD
+ * Native asset of each non evm network.
+ */
 export enum MultichainNativeAssets {
   Bitcoin = `${BtcScope.Mainnet}/slip44:0`,
   BitcoinTestnet = `${BtcScope.Testnet}/slip44:0`,
