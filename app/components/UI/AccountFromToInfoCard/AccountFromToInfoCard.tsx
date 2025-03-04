@@ -6,7 +6,7 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { strings } from '../../../../locales/i18n';
 import {
   selectEvmChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { collectConfusables } from '../../../util/confusables';
 import { decodeTransferData } from '../../../util/transactions';
@@ -195,7 +195,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 const mapStateToProps = (state: RootState) => ({
   internalAccounts: selectInternalAccounts(state),
   chainId: selectEvmChainId(state),
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
 });
 
 export default connect(mapStateToProps)(AccountFromToInfoCard);

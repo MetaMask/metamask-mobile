@@ -15,6 +15,8 @@ import {
   Value,
   Card,
   Image as ImageComponent,
+  Selector,
+  SelectorOption,
 } from '@metamask/snaps-sdk/jsx';
 import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -345,10 +347,38 @@ describe('SnapUIRenderer', () => {
                 label: 'This is a checkbox',
               }),
             }),
+            Field({
+              label: 'My Selector',
+              children: Selector({
+                name: 'selector',
+                title: 'Select an option',
+                children: [
+                  SelectorOption({
+                    value: 'option1',
+                    children: Card({
+                      title: 'CardTitle1',
+                      description: 'CardDescription1',
+                      value: 'CardValue1',
+                      extra: 'CardExtra1',
+                    }),
+                  }),
+                  SelectorOption({
+                    value: 'option2',
+                    children: Card({
+                      title: 'CardTitle2',
+                      description: 'CardDescription2',
+                      value: 'CardValue2',
+                      extra: 'CardExtra2',
+                    }),
+                  }),
+                ],
+              }),
+            }),
             Button({ type: 'submit', name: 'submit', children: 'Submit' }),
           ],
         }),
       }),
+      { state: { form: { selector: 'option1' } } },
     );
 
     const input = getByTestId('input');
@@ -356,7 +386,9 @@ describe('SnapUIRenderer', () => {
 
     expect(
       mockEngine.context.SnapInterfaceController.updateInterfaceState,
-    ).toHaveBeenNthCalledWith(1, MOCK_INTERFACE_ID, { form: { input: 'abc' } });
+    ).toHaveBeenNthCalledWith(1, MOCK_INTERFACE_ID, {
+      form: { input: 'abc', selector: 'option1' },
+    });
 
     expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
       1,
@@ -383,7 +415,7 @@ describe('SnapUIRenderer', () => {
     expect(
       mockEngine.context.SnapInterfaceController.updateInterfaceState,
     ).toHaveBeenNthCalledWith(2, MOCK_INTERFACE_ID, {
-      form: { input: 'abc', checkbox: true },
+      form: { input: 'abc', checkbox: true, selector: 'option1' },
     });
 
     expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
@@ -405,11 +437,46 @@ describe('SnapUIRenderer', () => {
       },
     );
 
+    const selector = getByText('CardTitle1');
+    fireEvent.press(selector);
+
+    const selectorItem = getByText('CardTitle2');
+    fireEvent.press(selectorItem);
+
+    expect(
+      mockEngine.context.SnapInterfaceController.updateInterfaceState,
+    ).toHaveBeenNthCalledWith(3, MOCK_INTERFACE_ID, {
+      form: { input: 'abc', checkbox: true, selector: 'option2' },
+    });
+
+    expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
+      3,
+      'SnapController:handleRequest',
+      {
+        handler: 'onUserInput',
+        origin: '',
+        request: {
+          jsonrpc: '2.0',
+          method: ' ',
+          params: {
+            context: null,
+            event: {
+              name: 'selector',
+              type: 'InputChangeEvent',
+              value: 'option2',
+            },
+            id: MOCK_INTERFACE_ID,
+          },
+        },
+        snapId: MOCK_SNAP_ID,
+      },
+    );
+
     const button = getByText('Submit');
     fireEvent.press(button);
 
     expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
-      3,
+      4,
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
@@ -428,7 +495,7 @@ describe('SnapUIRenderer', () => {
     );
 
     expect(mockEngine.controllerMessenger.call).toHaveBeenNthCalledWith(
-      4,
+      5,
       'SnapController:handleRequest',
       {
         handler: 'onUserInput',
@@ -444,6 +511,7 @@ describe('SnapUIRenderer', () => {
               value: {
                 checkbox: true,
                 input: 'abc',
+                selector: 'option2',
               },
             },
             id: MOCK_INTERFACE_ID,

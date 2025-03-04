@@ -1,14 +1,14 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { StyleProp, Text, TextStyle, View } from 'react-native';
-
+import { fontStyles } from '../../../../../../styles/common';
 import InfoRow from './InfoRow';
 import InfoSection from './InfoSection';
 import DisplayURL from './InfoValue/DisplayURL';
 
 const style = {
   container: { padding: 8 },
-  title: { marginTop: 20, fontSize: 20, fontWeight: '700' },
+  title: { marginTop: 20, fontSize: 20, ...fontStyles.bold },
 };
 
 storiesOf('Confirmations / InfoRow', module)

@@ -11,7 +11,7 @@ import { TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
 import {
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
   selectNetworkConfigurations,
   selectNetworkConfigurationByChainId,
   selectChainId,
@@ -100,7 +100,7 @@ export const TokenListItem = React.memo(
     const chainId = isPortfolioViewEnabled()
       ? (asset.chainId as Hex)
       : selectedChainId;
-    const ticker = useSelector(selectTicker);
+    const ticker = useSelector(selectEvmTicker);
     const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
       chainId,
       ticker,

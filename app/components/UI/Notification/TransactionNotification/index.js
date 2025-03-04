@@ -25,7 +25,7 @@ import { collectibleContractsSelector } from '../../../../reducers/collectibles'
 import { useTheme } from '../../../../util/theme';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -449,7 +449,7 @@ const mapStateToProps = (state) => {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     transactions: TransactionController.transactions,
-    ticker: selectTicker(state),
+    ticker: selectEvmTicker(state),
     chainId,
     tokens: selectTokensByAddress(state),
     collectibleContracts: collectibleContractsSelector(state),

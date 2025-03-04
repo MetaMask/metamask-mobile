@@ -30,6 +30,7 @@ import styleSheet, {
 } from './NotificationsSettings.styles';
 import { ResetNotificationsButton } from './ResetNotificationsButton';
 import SessionHeader from './sectionHeader';
+import { PushNotificationToggle } from './PushNotificationToggle';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const theme = useTheme();
@@ -66,6 +67,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       {/* Additional Toggles only visible if main toggle is enabled */}
       {isMetamaskNotificationsEnabled && (
         <>
+          {/* Push Notifications Toggle */}
+          <PushNotificationToggle />
+
           {/* Feature Announcement Toggle */}
           <SessionHeader
             title={strings(
