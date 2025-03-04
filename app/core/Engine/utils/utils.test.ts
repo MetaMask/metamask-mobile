@@ -1,6 +1,7 @@
 import { AccountsController } from '@metamask/accounts-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { TransactionController } from '@metamask/transaction-controller';
+import { Messenger } from '@metamask/base-controller';
 
 import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { accountsControllerInit } from '../controllers/accounts-controller';
@@ -52,7 +53,7 @@ describe('initModularizedControllers', () => {
     });
   });
 
-  it('should initialize controllers', () => {
+  it('initializes controllers', () => {
     const controllers = initModularizedControllers({
       existingControllersByName: {},
       controllerInitFunctions: {
@@ -119,7 +120,31 @@ describe('initModularizedControllers', () => {
     );
   });
 
-  it('should throw when controller is not found', async () => {
+  it('initializes function including initMessenger', () => {
+    const baseControllerMessenger = new ExtendedControllerMessenger();
+    initModularizedControllers({
+      baseControllerMessenger,
+      controllerInitFunctions: {
+        AccountsController: mockAccountsControllerInit,
+        TransactionController: mockTransactionControllerInit,
+      },
+      existingControllersByName: {},
+      getGlobalChainId: jest.fn(),
+      getUIState: jest.fn(),
+      persistedState: {},
+    });
+
+    const initMessengerOfTransactionController =
+      mockTransactionControllerInit.mock.calls[0][0].initMessenger;
+
+    const initMessengerOfAccountsController =
+      mockAccountsControllerInit.mock.calls[0][0].initMessenger;
+
+    expect(initMessengerOfTransactionController).toBeDefined();
+    expect(initMessengerOfAccountsController).not.toBeDefined();
+  });
+
+  it('throws when controller is not found', async () => {
     expect(() =>
       initModularizedControllers({
         existingControllersByName: {},
@@ -137,7 +162,7 @@ describe('initModularizedControllers', () => {
     );
   });
 
-  it('should not throw when when existing controller is found', async () => {
+  it('not throws when when existing controller is found', async () => {
     expect(() =>
       initModularizedControllers({
         existingControllersByName: {
@@ -184,7 +209,7 @@ describe('initModularizedControllers', () => {
 });
 
 describe('getControllerOrThrow', () => {
-  it('should throw when controller is not found', () => {
+  it('throws when controller is not found', () => {
     expect(() =>
       getControllerOrThrow({
         controller: undefined,
@@ -193,7 +218,7 @@ describe('getControllerOrThrow', () => {
     ).toThrow();
   });
 
-  it('should not throw when controller is found', () => {
+  it('not throws when controller is found', () => {
     expect(() =>
       getControllerOrThrow({
         controller: jest.fn() as unknown as AccountsController,
