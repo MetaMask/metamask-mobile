@@ -1245,6 +1245,7 @@ export class Engine {
           'AssetsContractController:getERC721OwnerOf',
           'AssetsContractController:getERC1155BalanceOf',
           'AssetsContractController:getERC1155TokenURI',
+          'NetworkController:getNetworkClientById',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
