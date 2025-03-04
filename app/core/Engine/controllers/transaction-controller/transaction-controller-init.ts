@@ -1,11 +1,14 @@
 import {
   TransactionController,
-  type TransactionControllerOptions,
   type TransactionControllerMessenger,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { hasProperty } from '@metamask/utils';
+import { ApprovalController } from '@metamask/approval-controller';
+import { NetworkController } from '@metamask/network-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
 
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -20,6 +23,7 @@ import type {
   ControllerInitFunction,
   ControllerInitRequest,
 } from '../../types';
+import type { RootState } from '../../../../reducers';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -45,72 +49,102 @@ export const TransactionControllerInit: ControllerInitFunction<
   } = getControllers(request);
 
   try {
-    const transactionController = new TransactionController({
-      disableHistory: true,
-      disableSendFlowHistory: true,
-      disableSwaps: true,
-      getCurrentNetworkEIP1559Compatibility: (...args) =>
-        // @ts-expect-error Controller type does not support undefined return value
-        networkController.getEIP1559Compatibility(...args),
-      // @ts-expect-error - TransactionController expects TransactionMeta[] but SmartTransactionsController returns SmartTransaction[]
-      getExternalPendingTransactions: (address: string) =>
-        smartTransactionsController.getTransactions({
-          addressFrom: address,
-          status: SmartTransactionStatuses.PENDING,
-        }),
-      getGasFeeEstimates: (...args) =>
-        gasFeeController.fetchGasFeeEstimates(...args),
-      getNetworkClientRegistry: (...args) =>
-        networkController.getNetworkClientRegistry(...args),
-      getNetworkState: () => networkController.state,
-      hooks: {
-        publish: ((transactionMeta: TransactionMeta) => {
-          const state = getRootState();
-          const shouldUseSmartTransaction =
-            selectShouldUseSmartTransaction(state);
-          return submitSmartTransactionHook({
-            transactionMeta,
-            transactionController,
-            smartTransactionsController,
-            shouldUseSmartTransaction,
-            approvalController,
-            controllerMessenger:
-              initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
-            featureFlags: selectSwapsChainFeatureFlags(state),
-          });
-        }) as unknown as TransactionControllerOptions['hooks']['publish'],
-      },
-      incomingTransactions: {
-        isEnabled: () => {
-          const currentHexChainId = getGlobalChainId(networkController);
-          const showIncomingTransactions =
-            preferencesController.state?.showIncomingTransactions;
-          const currentChainId = getCurrentChainId();
-          return Boolean(
-            hasProperty(showIncomingTransactions, currentChainId) &&
-              showIncomingTransactions?.[
-                currentHexChainId as unknown as keyof typeof showIncomingTransactions
-              ],
-          );
+    const transactionController: TransactionController =
+      new TransactionController({
+        disableHistory: true,
+        disableSendFlowHistory: true,
+        disableSwaps: true,
+        getCurrentNetworkEIP1559Compatibility: (...args) =>
+          // @ts-expect-error Controller type does not support undefined return value
+          networkController.getEIP1559Compatibility(...args),
+        // @ts-expect-error - TransactionController expects TransactionMeta[] but SmartTransactionsController returns SmartTransaction[]
+        getExternalPendingTransactions: (address: string) =>
+          smartTransactionsController.getTransactions({
+            addressFrom: address,
+            status: SmartTransactionStatuses.PENDING,
+          }),
+        getGasFeeEstimates: (...args) =>
+          gasFeeController.fetchGasFeeEstimates(...args),
+        getNetworkClientRegistry: (...args) =>
+          networkController.getNetworkClientRegistry(...args),
+        getNetworkState: () => networkController.state,
+        hooks: {
+          publish: (transactionMeta: TransactionMeta) =>
+            publishHook(
+              transactionMeta,
+              getRootState,
+              transactionController,
+              smartTransactionsController,
+              approvalController,
+              initMessenger,
+            ),
         },
-        updateTransactions: true,
-      },
-      isSimulationEnabled: () =>
-        preferencesController.state.useTransactionSimulations,
-      messenger: controllerMessenger,
-      pendingTransactions: {
-        isResubmitEnabled: () => false,
-      },
-      // @ts-expect-error - Keyring controller expects TxData returned but TransactionController expects TypedTransaction
-      sign: (...args) => keyringController.signTransaction(...args),
-      state: persistedState.TransactionController,
-    });
+        incomingTransactions: {
+          isEnabled: () =>
+            isIncomingTransactionsEnabled(
+              preferencesController,
+              networkController,
+              getCurrentChainId,
+            ),
+          updateTransactions: true,
+        },
+        isSimulationEnabled: () =>
+          preferencesController.state.useTransactionSimulations,
+        messenger: controllerMessenger,
+        pendingTransactions: {
+          isResubmitEnabled: () => false,
+        },
+        // @ts-expect-error - Keyring controller expects TxData returned but TransactionController expects TypedTransaction
+        sign: (...args) => keyringController.signTransaction(...args),
+        state: persistedState.TransactionController,
+      });
     return { controller: transactionController };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize TransactionController');
     throw error;
   }
 };
+
+function publishHook(
+  transactionMeta: TransactionMeta,
+  getRootState: () => RootState,
+  transactionController: TransactionController,
+  smartTransactionsController: SmartTransactionsController,
+  approvalController: ApprovalController,
+  initMessenger: TransactionControllerInitMessenger,
+): Promise<{ transactionHash: string }> {
+  const state = getRootState();
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
+
+  // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
+  return submitSmartTransactionHook({
+    transactionMeta,
+    transactionController,
+    smartTransactionsController,
+    shouldUseSmartTransaction,
+    approvalController,
+    controllerMessenger:
+      initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
+    featureFlags: selectSwapsChainFeatureFlags(state),
+  });
+}
+
+function isIncomingTransactionsEnabled(
+  preferencesController: PreferencesController,
+  networkController: NetworkController,
+  getCurrentChainId: () => string,
+): boolean {
+  const currentHexChainId = getGlobalChainId(networkController);
+  const showIncomingTransactions =
+    preferencesController.state?.showIncomingTransactions;
+  const currentChainId = getCurrentChainId();
+  return Boolean(
+    hasProperty(showIncomingTransactions, currentChainId) &&
+      showIncomingTransactions?.[
+        currentHexChainId as unknown as keyof typeof showIncomingTransactions
+      ],
+  );
+}
 
 function getControllers(
   request: ControllerInitRequest<
