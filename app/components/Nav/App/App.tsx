@@ -572,7 +572,7 @@ const AppFlow = () => {
         name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
         component={VaultRecoveryFlow}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow}
       />
@@ -650,7 +650,7 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRM_MODAL}
         component={ConfirmDappRequest}
-      />
+      /> */}
     </Stack.Navigator>
   );
 };
@@ -911,7 +911,7 @@ const App: React.FC = () => {
 
   return (
     <>
-      {
+      {/* {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       }
       <View>
@@ -920,9 +920,9 @@ const App: React.FC = () => {
       {
         ///: END:ONLY_INCLUDE_IF
       }
-      <PPOMView />
+      <PPOMView /> */}
       <AppFlow />
-      <Toast ref={toastRef} />
+      {/* <Toast ref={toastRef} /> */}
     </>
   );
 };
