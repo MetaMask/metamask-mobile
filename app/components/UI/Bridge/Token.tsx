@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Image, ImageSourcePropType } from 'react-native';
+import { StyleSheet, Image, ImageSourcePropType, TouchableOpacity } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
@@ -9,6 +9,8 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import images from '../../../images/image-icons';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
 
 interface TokenProps {
   symbol: string;
@@ -69,37 +71,47 @@ export const Token: React.FC<TokenProps> = ({
   networkName,
 }) => {
   const { styles } = useStyles(createStyles, {});
+  const navigation = useNavigation();
+
+  const handlePress = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+      params: {},
+    });
+  };
 
   return (
-    <Box
-      style={styles.pillContainer}
-      flexDirection={FlexDirection.Row}
-      alignItems={AlignItems.center}
-      justifyContent={JustifyContent.flexEnd}
-    >
-      <BadgeWrapper
-        badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={networkImageSource}
-            name={networkName}
-          />
-        }
+    <TouchableOpacity onPress={handlePress}>
+      <Box
+        style={styles.pillContainer}
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        justifyContent={JustifyContent.flexEnd}
       >
-        {iconUrl ? (
-          <Image source={iconUrl} style={styles.icon} />
-        ) : (
-          <Box style={styles.fallbackIcon}>
-            <Text style={styles.fallbackText}>{symbol[0]}</Text>
-          </Box>
-        )}
-      </BadgeWrapper>
-      <Box style={styles.symbolSpacing}>
-        <Text style={styles.tokenSymbol}>
-          {symbol}
-        </Text>
+        <BadgeWrapper
+          badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkImageSource}
+              name={networkName}
+            />
+          }
+        >
+          {iconUrl ? (
+            <Image source={iconUrl} style={styles.icon} />
+          ) : (
+            <Box style={styles.fallbackIcon}>
+              <Text style={styles.fallbackText}>{symbol[0]}</Text>
+            </Box>
+          )}
+        </BadgeWrapper>
+        <Box style={styles.symbolSpacing}>
+          <Text style={styles.tokenSymbol}>
+            {symbol}
+          </Text>
+        </Box>
       </Box>
-    </Box>
+    </TouchableOpacity>
   );
 };
