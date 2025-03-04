@@ -7,7 +7,6 @@ import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { accountsControllerInit } from '.';
 import { defaultAccountsControllerState } from './constants';
 import { logAccountsControllerCreation } from './utils';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 jest.mock('./utils', () => ({
   logAccountsControllerCreation: jest.fn(),
@@ -27,12 +26,9 @@ describe('accounts controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    const baseControllerMessenger = new ExtendedControllerMessenger();
     // Create controller init request mock
     initRequestMock = {
-      ...buildControllerInitRequestMock(),
-      controllerMessenger:
-        baseControllerMessenger as unknown as AccountsControllerMessenger,
+      ...buildControllerInitRequestMock<AccountsControllerMessenger>(),
       initMessenger: jest.fn() as unknown as void,
     };
   });

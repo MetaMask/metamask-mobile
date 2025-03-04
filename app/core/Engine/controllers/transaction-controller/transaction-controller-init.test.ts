@@ -51,13 +51,10 @@ function buildInitRequestMock(
     TransactionControllerInitMessenger
   >
 > {
-  const baseControllerMessenger = new ExtendedControllerMessenger();
   const initMessenger = new ExtendedControllerMessenger();
 
   const requestMock = {
-    ...buildControllerInitRequestMock(),
-    controllerMessenger:
-      baseControllerMessenger as unknown as TransactionControllerMessenger,
+    ...buildControllerInitRequestMock<TransactionControllerMessenger>(),
     initMessenger:
       initMessenger as unknown as TransactionControllerInitMessenger,
     ...initRequestProperties,

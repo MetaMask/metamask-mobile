@@ -4,13 +4,18 @@ import {
   Controller,
 } from '../types';
 
+import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ControllerInitFunction } from '../types';
+
 /**
  * Build a mock for the ControllerInitRequest.
  *
  * @returns A mocked ControllerInitRequest.
  */
-export function buildControllerInitRequestMock() {
+export function buildControllerInitRequestMock<ControllerMessenger>() {
+  const messenger = new ExtendedControllerMessenger();
   return {
+    controllerMessenger: messenger as unknown as ControllerMessenger,
     getController: jest.fn(),
     persistedState: {},
     getCurrentChainId: jest.fn(),
