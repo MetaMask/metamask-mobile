@@ -45,7 +45,7 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { useSelector } from 'react-redux';
-import { selectHDKeyrings } from '../../../selectors/keyringController';
+import { selectHdKeyrings } from '../../../selectors/keyringController';
 
 const defaultNumberOfWords = 12;
 
@@ -86,7 +86,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   const [invalidSRPWords, setInvalidSRPWords] = useState<boolean[]>(
     Array(numberOfWords).fill(false),
   );
-  const hdKeyrings = useSelector(selectHDKeyrings);
+  const hdKeyrings = useSelector(selectHdKeyrings);
 
   const copyToClipboard = useCopyClipboard();
 

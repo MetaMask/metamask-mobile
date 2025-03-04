@@ -1,7 +1,9 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps,multi-srp)
 import { useSelector } from 'react-redux';
+///: END:ONLY_INCLUDE_IF
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -43,17 +45,27 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 
 ///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { selectHdKeyrings } from '../../../selectors/keyringController';
+///: END:ONLY_INCLUDE_IF
 
-const AddAccountActions = ({
-  onBack,
-  onAddHdAccount,
-}: AddAccountActionsProps) => {
+const AddAccountActions = (props: AddAccountActionsProps) => {
+  // The props is destructured here because of prettier
+  // causing the fence to be at the ending curly brace.
+  const {
+    onBack,
+    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+    onAddHdAccount,
+    ///: END:ONLY_INCLUDE_IF
+  } = props;
+
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const hdKeyrings = useSelector(selectHdKeyrings);
+  ///: END:ONLY_INCLUDE_IF
 
   const openImportAccount = useCallback(() => {
     navigate('ImportPrivateKeyView');
@@ -80,12 +92,14 @@ const AddAccountActions = ({
   ///: END:ONLY_INCLUDE_IF
 
   const createNewAccount = useCallback(async () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     const hasMultipleHdKeyrings = hdKeyrings.length > 1;
 
     if (hasMultipleHdKeyrings) {
       onAddHdAccount();
       return;
     }
+    ///: END:ONLY_INCLUDE_IF
 
     try {
       setIsLoading(true);
@@ -107,8 +121,10 @@ const AddAccountActions = ({
       setIsLoading(false);
     }
   }, [
+    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     hdKeyrings.length,
     onAddHdAccount,
+    ///: END:ONLY_INCLUDE_IF
     trackEvent,
     createEventBuilder,
     onBack,
