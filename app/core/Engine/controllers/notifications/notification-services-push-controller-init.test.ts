@@ -32,6 +32,9 @@ describe('notificationServicesControllerInit', () => {
       controllerMessenger: fakeMessenger,
       persistedState: { NotificationServicesPushController: undefined },
       getController: jest.fn(),
+      getCurrentChainId: jest.fn(),
+      getRootState: jest.fn(),
+      initMessenger: jest.fn() as unknown as void,
     });
 
     expect(mockCreateController).toHaveBeenCalled();
@@ -52,6 +55,9 @@ describe('notificationServicesControllerInit', () => {
         NotificationServicesPushController: { isPushEnabled: true },
       },
       getController: jest.fn(),
+      getCurrentChainId: jest.fn(),
+      getRootState: jest.fn(),
+      initMessenger: jest.fn() as unknown as void,
     });
 
     expect(mockCreateController).toHaveBeenCalled();

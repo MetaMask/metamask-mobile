@@ -219,7 +219,7 @@ import {
 } from './controllers/SnapController/constants';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-import { TransactionControllerInit } from './controllers/TransactionController';
+import { TransactionControllerInit } from './controllers/transaction-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
