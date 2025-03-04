@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
-import { scrypt } from 'react-native-fast-crypto';
 
 import {
   AccountTrackerController,
@@ -122,7 +121,7 @@ import {
   detectSnapLocation,
 } from '../Snaps';
 import { getRpcMethodMiddleware } from '../RPCMethods/RPCMethodMiddleware';
-
+import { calculateScryptKey } from './controllers/identity/calculate-scrypt-key';
 import {
   AuthenticationController,
   UserStorageController,
@@ -1185,7 +1184,7 @@ export class Engine {
           'NetworkController:networkRemoved',
         ],
       }),
-      nativeScryptCrypto: scrypt,
+      nativeScryptCrypto: calculateScryptKey,
     });
 
     const notificationServicesControllerMessenger =
