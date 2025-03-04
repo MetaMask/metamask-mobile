@@ -107,7 +107,6 @@ export const TransactionControllerInit: ControllerInitFunction<
     });
     return { controller: transactionController };
   } catch (error) {
-    console.log({error})
     Logger.error(error as Error, 'Failed to initialize TransactionController');
     throw error;
   }
