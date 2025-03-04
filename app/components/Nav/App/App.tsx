@@ -686,16 +686,17 @@ const App: React.FC = () => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
+          await Authentication.appTriggeredAuth();
           // This should only be called if the auth type is not password, which is not the case so consider removing it
-          await trace(
-            {
-              name: TraceName.AppStartBiometricAuthentication,
-              op: TraceOperation.BiometricAuthentication,
-            },
-            async () => {
-              await Authentication.appTriggeredAuth();
-            },
-          );
+          // await trace(
+          //   {
+          //     name: TraceName.AppStartBiometricAuthentication,
+          //     op: TraceOperation.BiometricAuthentication,
+          //   },
+          //   async () => {
+          //     await Authentication.appTriggeredAuth();
+          //   },
+          // );
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         } else {
@@ -713,11 +714,11 @@ const App: React.FC = () => {
         }
 
         await Authentication.lockApp({ reset: false });
-        trackErrorAsAnalytics(
-          'App: Max Attempts Reached',
-          errorMessage,
-          `Unlock attempts: 1`,
-        );
+        // trackErrorAsAnalytics(
+        //   'App: Max Attempts Reached',
+        //   errorMessage,
+        //   `Unlock attempts: 1`,
+        // );
       }
     };
     appTriggeredAuth().catch((error) => {
