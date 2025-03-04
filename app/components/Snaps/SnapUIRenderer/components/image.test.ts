@@ -13,7 +13,7 @@ describe('image component', () => {
     const imageElement: ImageElement = {
       type: 'Image',
       props: {
-        src: 'https://example.com/image.svg',
+        src: '<svg />',
         borderRadius: 'full',
       },
       key: null,
@@ -25,7 +25,7 @@ describe('image component', () => {
       element: 'SnapUIImage',
       props: {
         borderRadius: 'full',
-        value: 'https://example.com/image.svg',
+        value: '<svg />',
       },
     });
   });
