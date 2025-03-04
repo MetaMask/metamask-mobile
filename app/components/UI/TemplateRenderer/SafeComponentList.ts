@@ -24,6 +24,7 @@ import { SnapUIAddress } from '../../UI/Snaps/SnapUIAddress/SnapUIAddress';
 import { SnapUIAvatar } from '../../UI/Snaps/SnapUIAvatar/SnapUIAvatar';
 import { SnapUISelector } from '../../UI/Snaps/SnapUISelector/SnapUISelector';
 import InfoRow from '../../Views/confirmations/components/UI/InfoRow';
+import { SnapUISpinner } from '../../Snaps/SnapUISpinner/SnapUISpinner';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -51,6 +52,7 @@ export const safeComponentList = {
   SnapUIAddress,
   SnapUIBanner,
   SnapUISelector,
+  SnapUISpinner,
   InfoRow,
   RNText,
   ScrollView,
