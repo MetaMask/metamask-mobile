@@ -38,7 +38,7 @@ describe('AlertRow', () => {
     fieldAlerts: mockAlerts,
     showAlertModal: mockShowAlertModal,
     setAlertKey: mockSetAlertKey,
-  }
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();

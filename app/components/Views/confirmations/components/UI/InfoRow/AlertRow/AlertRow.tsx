@@ -49,7 +49,7 @@ const AlertRow = ({ alertKey, isShownWithAlertsOnly, ...props }: AlertRowProps) 
           />
       ) : null;
 
-    return <InfoRow {...alertRowProps} labelChildren={inlineAlert}/>;
+    return <InfoRow {...alertRowProps} labelChildren={inlineAlert} />;
 };
 
 export default AlertRow;

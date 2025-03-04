@@ -64,7 +64,7 @@ describe('useDomainMismatchAlerts', () => {
       field: RowAlertKey.RequestFrom,
       key: RowAlertKey.RequestFrom,
       message: `The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials.`,
-      title: 'Suspicious sign-in request title',
+      title: 'Suspicious sign-in request',
       severity: Severity.Danger,
     });
   });

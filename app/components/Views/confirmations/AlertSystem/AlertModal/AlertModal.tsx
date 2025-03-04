@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, ViewStyle } from 'react-native';
+import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { useAlerts } from '../context';
 import BottomModal from '../../components/UI/BottomModal';
@@ -80,14 +80,15 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({ selectedAlert, isConfirmed, on
   }
 
   return (
-    <View style={styles.checkboxContainer}>
-      <Checkbox
-        isChecked={isConfirmed}
-        onPress={() => onCheckboxClick(isConfirmed)}
-        label={strings('alert_system.alert_modal.checkbox_label')}
-        style={styles.checkboxLabel}
-      />
-    </View>
+    <TouchableOpacity
+      style={styles.checkboxContainer}
+      onPress={() => onCheckboxClick(isConfirmed)}
+      activeOpacity={1}
+      testID="confirm-alert-checkbox"
+    >
+      <Checkbox onPress={() => onCheckboxClick(isConfirmed)} isChecked={isConfirmed} />
+      <Text style={styles.checkboxText}>{strings('alert_system.confirm_modal.checkbox_label')}</Text>
+    </TouchableOpacity>
   );
 };
 
@@ -131,7 +132,7 @@ interface AlertModalProps {
   onAcknowledgeClick?: () => void;
 }
 
-const AlertModal: React.FC<AlertModalProps> = ({headerAccessory, onAcknowledgeClick}) => {
+const AlertModal: React.FC<AlertModalProps> = ({ headerAccessory, onAcknowledgeClick }) => {
   const { colors } = useTheme();
   const styles = (useStyles(styleSheet, {})).styles as Record<string, ViewStyle>;
   const { hideAlertModal, alertModalVisible, fieldAlerts, alertKey, isAlertConfirmed, setAlertConfirmed } = useAlerts();
