@@ -283,6 +283,7 @@ describe('NetworkSwitcher View', () => {
     render(NetworkSwitcher);
     const lineaNetworkText = screen.getByText('Linea Main Network');
     fireEvent.press(lineaNetworkText);
+
     expect(
       (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
         .mock.calls,
@@ -298,6 +299,7 @@ describe('NetworkSwitcher View', () => {
     render(NetworkSwitcher);
     const polygonNetworkTest = screen.getByText('Polygon Mainnet');
     fireEvent.press(polygonNetworkTest);
+
     expect(
       (Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock)
         .mock.calls,
