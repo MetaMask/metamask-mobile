@@ -3,7 +3,6 @@ import { Hex } from '@metamask/utils';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';

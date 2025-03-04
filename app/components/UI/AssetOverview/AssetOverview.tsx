@@ -177,19 +177,17 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         destinationToken: asset.address,
         sourcePage: 'MainView',
         chainId: asset.chainId,
-      },
-    });
+      }});
     } else {
-        navigation.navigate('Swaps', {
-          screen: 'SwapsAmountView',
-          params: {
-          sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-          sourcePage: 'MainView',
-          chainId: asset.chainId,
-        },
-      });
+      navigation.navigate('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+        sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        sourcePage: 'MainView',
+        chainId: asset.chainId,
+      }});
     }
-  }, [navigation, asset.address, asset.chainId]);
+  }, [navigation, asset]);
 
   const handleBridgeNavigation = useCallback(() => {
     navigation.navigate('Bridge', {
@@ -263,9 +261,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           NetworkController.getNetworkConfigurationByChainId(
             asset.chainId as Hex,
           );
-        
+
         if (!networkConfiguration) {
-          const network = PopularList.find((network) => network.chainId === asset.chainId);
+          const network = PopularList.find((popularNetwork) => popularNetwork.chainId === asset.chainId);
           if (network) {
             try {
               await addPopularNetwork(network);
@@ -308,12 +306,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     }
   }, [
     navigation,
-    asset.chainId,
     selectedChainId,
     trackEvent,
     createEventBuilder,
     handleSwapNavigation,
     addPopularNetwork,
+    asset,
   ]);
 
   const onBuy = () => {

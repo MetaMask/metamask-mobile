@@ -6,32 +6,40 @@ import WebsiteIcon from '../WebsiteIcon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { removeBookmark } from '../../../actions/bookmarks';
 import stylesheet from './styles';
-import { AutocompleteSearchResult } from './types';
-import AssetIcon from '../AssetIcon';
+import { AutocompleteSearchResult, TokenSearchResult } from './types';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { selectSupportedSwapTokenAddresses } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { RootState } from '../../../reducers';
+import { isSwapsAllowed } from '../Swaps/utils';
+import AppConstants from '../../../core/AppConstants';
 
 interface ResultProps {
     result: AutocompleteSearchResult;
     onPress: () => void;
+    onSwapPress: (result: TokenSearchResult) => void;
 }
 
-export const Result: React.FC<ResultProps> = memo(({ result, onPress }) => {
+export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPress }) => {
     const theme = useTheme();
     const styles = stylesheet({theme});
 
-    const name = typeof result.name === 'string' ? result.name : getHost(result.url);
+    const name = typeof result.name === 'string' || result.type === 'tokens' ? result.name : getHost(result.url);
 
     const dispatch = useDispatch();
 
     const onPressRemove = useCallback(() => {
         dispatch(removeBookmark(result));
     }, [dispatch, result]);
+
+    const swapTokenAddresses = useSelector((state: RootState) => selectSupportedSwapTokenAddresses(state, result.type === 'tokens' ? result.chainId : '0x'));
+
+    const displaySwapButton = result.type === 'tokens' && isSwapsAllowed(result.chainId) && swapTokenAddresses?.includes(result.address) && AppConstants.SWAPS.ACTIVE;
 
     return (
       <TouchableOpacity
@@ -73,9 +81,18 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress }) => {
             result.type === 'favorites' && (
               <ButtonIcon
                 testID={deleteFavoriteTestId(result.url)}
-                style={styles.deleteFavorite}
+                style={styles.resultActionButton}
                 iconName={IconName.Trash}
                 onPress={onPressRemove}
+              />
+            )
+          }
+          {
+            displaySwapButton && (
+              <ButtonIcon
+                style={styles.resultActionButton}
+                iconName={IconName.SwapHorizontal}
+                onPress={() => onSwapPress(result)}
               />
             )
           }

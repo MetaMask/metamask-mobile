@@ -34,6 +34,12 @@ import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
 import { Result } from './Result';
 import useTokenSearchDiscovery from '../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery';
 import { Hex } from '@metamask/utils';
+import Engine from '../../../core/Engine';
+import { selectEvmChainId } from '../../../selectors/networkController';
+import { useAddNetwork } from '../../hooks/useAddNetwork';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { useNavigation } from '@react-navigation/native';
 
 export * from './types';
 
@@ -180,6 +186,83 @@ const UrlAutocomplete = forwardRef<
     }
   }, [browserHistory, bookmarks, search]);
 
+  useEffect(() => {
+    const chainIds = tokenResults.reduce((acc, result) => {
+      if (!acc.includes(result.chainId)) {
+        acc.push(result.chainId);
+      }
+      return acc;
+    }, [] as Hex[]);
+
+    for (const chainId of chainIds) {
+      Engine.context.TokenSearchDiscoveryDataController.fetchSwapsTokens(chainId);
+    }
+
+  }, [tokenResults]);
+
+  const selectedChainId = useSelector(selectEvmChainId);
+
+  const { addPopularNetwork, networkModal } = useAddNetwork();
+
+  const navigation = useNavigation();
+
+  const handleSwapNavigation = useCallback((result: TokenSearchResult) => {
+    hide();
+    onDismiss();
+    navigation.navigate('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+      sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      destinationToken: result.address,
+      sourcePage: 'MainView',
+      chainId: result.chainId,
+    }});
+  }, [navigation, hide, onDismiss]);
+
+  const goToSwaps = useCallback(async (result: TokenSearchResult) => {
+    if (result.chainId !== selectedChainId) {
+      const { NetworkController, MultichainNetworkController } =
+        Engine.context;
+      let networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(
+          result.chainId as Hex,
+        );
+
+      if (!networkConfiguration) {
+        const network = PopularList.find((popularNetwork) => popularNetwork.chainId === result.chainId);
+        if (network) {
+          try {
+            await addPopularNetwork(network);
+          } catch (error) {
+            return;
+          }
+          networkConfiguration = NetworkController.getNetworkConfigurationByChainId(
+            result.chainId,
+          );
+        }
+      }
+
+      const networkClientId =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.networkClientId;
+
+      await MultichainNetworkController.setActiveNetwork(
+        networkClientId as string,
+      );
+
+      setTimeout(() => {
+        handleSwapNavigation(result);
+      }, 500);
+    } else {
+      handleSwapNavigation(result);
+    }
+  }, [
+    selectedChainId,
+    handleSwapNavigation,
+    addPopularNetwork,
+  ]);
+
   const renderSectionHeader = useCallback(({section: {category}}) => (
     <View style={styles.categoryWrapper}>
       <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
@@ -196,8 +279,9 @@ const UrlAutocomplete = forwardRef<
         hide();
         onSelect(item);
       }}
+      onSwapPress={goToSwaps}
     />
-  ), [hide, onSelect]);
+  ), [hide, onSelect, goToSwaps]);
 
   if (!hasResults) {
     return (
@@ -218,7 +302,8 @@ const UrlAutocomplete = forwardRef<
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
-    />
+      />
+      {networkModal}
     </View>
   );
 });

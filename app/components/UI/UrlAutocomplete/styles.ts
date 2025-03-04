@@ -56,7 +56,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     bg: {
       flex: 1,
     },
-    deleteFavorite: {
+    resultActionButton: {
       marginLeft: 10,
     },
   });
