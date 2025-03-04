@@ -17,11 +17,14 @@ interface BridgeState {
   destinationAmount: string;
 }
 
-const createStyles = (_: { theme: Theme }) => StyleSheet.create({
+const createStyles = (params: { theme: Theme }) => {
+  const { theme } = params;
+  return StyleSheet.create({
     content: {
       flexGrow: 1,
     },
     inputsContainer: {
+      position: 'relative',
     },
     buttonContainer: {
       width: '100%',
@@ -30,12 +33,29 @@ const createStyles = (_: { theme: Theme }) => StyleSheet.create({
     button: {
       width: '100%',
     },
+    arrowContainer: {
+      position: 'relative',
+      alignItems: 'center',
+      height: 1,
+      backgroundColor: theme.colors.border.muted,
+      marginVertical: 16,
+    },
+    arrowCircle: {
+      position: 'absolute',
+      top: -16,
+      backgroundColor: theme.colors.background.alternative,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     arrow: {
       fontSize: 24,
-      textAlign: 'center',
-      marginVertical: 8,
+      color: theme.colors.text.default,
     },
   });
+};
 
 const BridgeView = () => {
   const [state, setState] = useState<BridgeState>({
@@ -94,7 +114,11 @@ const BridgeView = () => {
             tokenAddress="0x32...2939"
             tokenIconUrl={ETHLogo}
           />
-          <Text style={styles.arrow}>↓</Text>
+          <Box style={styles.arrowContainer}>
+            <Box style={styles.arrowCircle}>
+              <Text style={styles.arrow}>↓</Text>
+            </Box>
+          </Box>
           <TokenInputArea
             value={state.destinationAmount}
             tokenSymbol="BTC"

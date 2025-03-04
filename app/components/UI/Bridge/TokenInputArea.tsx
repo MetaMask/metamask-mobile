@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, ImageSourcePropType } from 'react-native';
 import TextField, { TextFieldSize } from '../../../component-library/components/Form/TextField';
-import Card from '../../../component-library/components/Cards/Card';
 import { useStyles } from '../../../component-library/hooks';
 import { Box } from '../Box/Box';
 import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
@@ -12,7 +11,6 @@ interface TokenInputAreaProps {
   tokenSymbol: string;
   tokenAddress?: string;
   tokenIconUrl?: ImageSourcePropType;
-  onPress?: () => void;
 }
 
 const createStyles = () =>
@@ -27,7 +25,7 @@ const createStyles = () =>
       flex: 1,
     },
     textField: {
-      fontSize: 24,
+      fontSize: 40,
       borderWidth: 0,
       padding: 0,
     },
@@ -38,12 +36,11 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   tokenSymbol = 'ETH',
   tokenAddress,
   tokenIconUrl,
-  onPress,
 }) => {
   const { styles } = useStyles(createStyles, {});
 
   return (
-    <Card style={styles.container} onPress={onPress}>
+    <Box style={styles.container}>
       <Box
         style={styles.content}
         flexDirection={FlexDirection.Row}
@@ -65,6 +62,6 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
           iconUrl={tokenIconUrl}
         />
       </Box>
-    </Card>
+    </Box>
   );
 };
