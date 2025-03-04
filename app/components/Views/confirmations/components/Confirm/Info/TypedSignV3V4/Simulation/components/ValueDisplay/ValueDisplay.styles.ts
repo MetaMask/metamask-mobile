@@ -49,7 +49,6 @@ const styleSheet = (colors: Theme['colors']) =>
       rowGap: 8,
       flexDirection: 'row',
       alignItems: 'center',
-      alignSelf: 'center',
       justifyContent: 'flex-end',
       flexWrap: 'wrap',
     },
