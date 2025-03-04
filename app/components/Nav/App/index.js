@@ -1039,12 +1039,10 @@ const App = (props) => {
           <Stack.Screen
             name={Routes.CONFIRM_FLAT_PAGE}
             component={ConfirmRequest}
-            options={{ animationEnabled: true }}
           />
           <Stack.Screen
             name={Routes.CONFIRM_MODAL}
             component={ConfirmDappRequest}
-            options={{ animationEnabled: true }}
           />
         </Stack.Navigator>
       </NavigationContainer>

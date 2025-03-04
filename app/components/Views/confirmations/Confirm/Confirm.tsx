@@ -6,18 +6,18 @@ import {
   View,
 } from 'react-native';
 
+import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
-import BottomModal from '../components/UI/BottomModal';
-import Footer from '../components/Confirm/Footer';
+import { Footer } from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
 import { LedgerContextProvider } from '../context/LedgerContext';
 import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
 import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
-import useApprovalRequest from '../hooks/useApprovalRequest';
-import { useConfirmActions } from '../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
+import useApprovalRequest from '../hooks/useApprovalRequest';
+import { useConfirmActions } from '../hooks/useConfirmActions';
 import styleSheet from './Confirm.styles';
 
 const ConfirmWrapped = ({
@@ -28,12 +28,12 @@ const ConfirmWrapped = ({
   <QRHardwareContextProvider>
     <LedgerContextProvider>
       <Title />
-      <ScrollView style={styles.scrollable}>
+      <ScrollView style={styles.scrollView}>
         <TouchableWithoutFeedback>
-          <View style={styles.scrollableSection}>
+          <>
             <SignatureBlockaidBanner />
             <Info />
-          </View>
+          </>
         </TouchableWithoutFeedback>
       </ScrollView>
       <Footer />
@@ -62,10 +62,15 @@ export const Confirm = () => {
   }
 
   return (
-    <BottomModal onClose={onReject} testID="modal-confirmation-container">
-      <View style={styles.modalContainer} testID={approvalRequest?.type}>
+    <BottomSheet
+      isInteractable={false}
+      onClose={onReject}
+      style={styles.bottomSheetDialogSheet}
+      testID="modal-confirmation-container"
+    >
+      <View testID={approvalRequest?.type}>
         <ConfirmWrapped styles={styles} />
       </View>
-    </BottomModal>
+    </BottomSheet>
   );
 };
