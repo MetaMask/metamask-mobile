@@ -6,6 +6,19 @@ import AccountNetworkInfo from './AccountNetworkInfo';
 
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  context: {
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {
+            '1': {
+              address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+            },
+          },
+        },
+      },
+    },
+  },
 }));
 
 describe('AccountNetworkInfo', () => {

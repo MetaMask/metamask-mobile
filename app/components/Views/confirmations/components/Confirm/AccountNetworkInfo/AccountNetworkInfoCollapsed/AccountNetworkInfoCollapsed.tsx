@@ -11,6 +11,8 @@ import Badge, {
 } from '../../../../../../../component-library/components/Badges/Badge';
 import Text from '../../../../../../../component-library/components/Texts/Text';
 import BadgeWrapper from '../../../../../../../component-library/components/Badges/BadgeWrapper';
+import TagBase from '../../../../../../../component-library/base-components/TagBase';
+import { getLabelTextByAddress } from '../../../../../../../util/address';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
@@ -27,6 +29,7 @@ const AccountNetworkInfoCollapsed = () => {
   );
   const fromAddress = signatureRequest?.messageParams?.from as string;
   const { accountName } = useAccountInfo(fromAddress);
+  const accountLabel = getLabelTextByAddress(fromAddress);
   const { styles } = useStyles(styleSheet, {});
 
   return (
@@ -52,7 +55,14 @@ const AccountNetworkInfoCollapsed = () => {
         />
       </BadgeWrapper>
       <View>
-        <Text style={styles.accountName}>{accountName}</Text>
+        <View style={styles.accountInfo}>
+          <Text style={styles.accountName}>{accountName}</Text>
+          {accountLabel && (
+            <TagBase style={styles.accountLabelWrapper}>
+              <Text style={styles.accountLabel}>{accountLabel}</Text>
+            </TagBase>
+          )}
+        </View>
         <Text style={styles.networkName}>{networkName}</Text>
       </View>
     </View>

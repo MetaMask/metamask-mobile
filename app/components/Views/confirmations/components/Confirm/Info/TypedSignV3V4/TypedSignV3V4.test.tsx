@@ -21,6 +21,17 @@ jest.mock('../../../../../../../core/Engine', () => ({
     NetworkController: {
       findNetworkClientIdByChainId: () => 123,
     },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {
+            '1': {
+              address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+            },
+          },
+        },
+      },
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
@@ -32,7 +43,7 @@ jest.mock('../../../../hooks/useTokenDecimalsInTypedSignRequest', () => ({
 }));
 
 describe('TypedSignV3V4', () => {
-it('contains required text', () => {
+  it('contains required text', () => {
     const { getByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV3ConfirmationState,
     });
@@ -54,7 +65,7 @@ it('contains required text', () => {
     expect(queryByText('Mail')).toBeNull();
   });
 
-it('shows detailed message when message section is clicked', () => {
+  it('shows detailed message when message section is clicked', () => {
     const { getByText, getAllByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV4ConfirmationState,
     });
