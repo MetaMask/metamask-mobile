@@ -194,7 +194,7 @@ export async function getBitriseCommentForCommit(commitHash: string): Promise<Gi
   return bitriseComment;
 }
 
-export async function getRecentCommits(context: Context): Promise<string[]> {
+export async function getRecentCommits(): Promise<string[]> {
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
   const { owner, repo, number: pullRequestNumber } = context.issue;
 
