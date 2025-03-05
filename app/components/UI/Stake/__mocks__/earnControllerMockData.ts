@@ -1,4 +1,3 @@
-//NOSONAR
 export const MOCK_POOLED_STAKES_DATA = {
   account: '0x1234',
   lifetimeRewards: '100',
@@ -6,7 +5,6 @@ export const MOCK_POOLED_STAKES_DATA = {
   exitRequests: [],
 };
 
-//NOSONAR
 export const MOCK_VAULT_DATA = {
   apy: '3.3',
   capacity: '1000000',
@@ -15,5 +13,4 @@ export const MOCK_VAULT_DATA = {
   vaultAddress: '0xabcd',
 };
 
-//NOSONAR
 export const MOCK_EXCHANGE_RATE = '1.5';
