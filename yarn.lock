@@ -5118,10 +5118,10 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-1.0.0.tgz#54fe5f799bd01145875e87ad2ad6a76a072cb159"
-  integrity sha512-r9nfCPTu04QElJ5ErZVEiIFNanyS7zoibA++H2HhOUmVQPqiYRdzVDkW3IBN9aZ12Jhhr4/ZTgcnBGo+1JQ7og==
+"@metamask/notification-services-controller@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-2.0.0.tgz#bcc9f422f88c4d6bb867a92b729b2af99db5b330"
+  integrity sha512-1iiFm7IguoKz/uzTOgslPz95SGB4zp3JhPoTZ1Zxale8AhIFBiZcK4uakGIo/cbeCZKAcW6Sl6e6GuzjIK4AaQ==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
     "@metamask/base-controller" "^8.0.0"
