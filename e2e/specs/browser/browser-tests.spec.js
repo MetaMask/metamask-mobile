@@ -86,6 +86,7 @@ describe(SmokeCore('Browser Tests'), () => {
   });
 
   it('should test phishing sites', async () => {
+    await Browser.navigateToURL("https://www.google.com");
     await Browser.tapBottomSearchBar();
     // Clear text & Navigate to URL
     await Browser.navigateToURL(ExternalSites.PHISHING_SITE);
