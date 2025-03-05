@@ -76,12 +76,11 @@ export class EngineService {
         error as Error,
         'Failed to initialize Engine! Falling back to vault recovery.',
       );
-      setTimeout(() => {
-        // Navigate to vault recovery
-        NavigationService.navigation?.reset({
-          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
-        });
-      }, 1000);
+
+      // Navigate to vault recovery
+      NavigationService.navigation?.reset({
+        routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+      });
     }
     endTrace({ name: TraceName.EngineInitialization });
   };

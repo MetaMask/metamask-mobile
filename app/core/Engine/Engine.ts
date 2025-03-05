@@ -1601,8 +1601,6 @@ export class Engine {
     this.handleVaultBackup();
     this._addTransactionControllerListeners();
 
-    throw new Error('TEST');
-
     Engine.instance = this;
   }
 
