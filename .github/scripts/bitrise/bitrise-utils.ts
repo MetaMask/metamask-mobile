@@ -42,8 +42,23 @@ export interface GithubComment {
   html_url: string;
 }
 
-// given 5 commits
-// get all bitrise comments
+export async function getCommitHash() {
+
+  const { owner: owner, repo: repo, number: pullRequestNumber } = context.issue;
+
+  const { data: prData } = await getOctokitInstance().rest.pulls.get({
+    owner,
+    repo,
+    pull_number: pullRequestNumber,
+  });
+
+  // Get the latest commit hash
+  const prCommitHash = prData?.head?.sha;
+  // Determine the latest commit hash depending if it's a PR or MQ
+  const latestCommitHash = isMergeQueue() ? getMergeQueueCommitHash() : prCommitHash;
+
+  return latestCommitHash;
+}
 
 export async function getLatestAssociatedBitriseComment(commitHashes: string[]): Promise<GithubComment | undefined> {
 
@@ -130,13 +145,15 @@ export async function getAllBitriseComments(): Promise<GithubComment[]> {
 
   const { owner, repo, number: pullRequestNumber } = context.issue;
 
-    // Look for existing Bitrise comment.
-    const { data: comments } = await getOctokitInstance().rest.issues.listComments({
-      owner,
-      repo,
-      issue_number: pullRequestNumber,
+  // Look for existing Bitrise comments, requesting 30 comments per page, sorted by creation date in descending order
+  const { data: comments } = await getOctokitInstance().rest.issues.listComments({
+    owner,
+    repo,
+    issue_number: pullRequestNumber,
+    per_page: 30, // Set the number of comments to fetch per page
+    sort: 'created', // Sort by creation time
+    direction: 'desc' // Sort in descending order to have the newest comments first
   });
-
   // Filter comments to find those containing Bitrise tags
   const bitriseComments = comments.filter(({ body }: { body?: string }) => body?.includes(bitriseTag));
 
