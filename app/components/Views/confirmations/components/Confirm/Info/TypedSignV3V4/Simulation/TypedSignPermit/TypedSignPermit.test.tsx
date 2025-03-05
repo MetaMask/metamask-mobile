@@ -1,11 +1,12 @@
 import React from 'react';
-import { act, waitFor } from '@testing-library/react-native';
+import { waitFor } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../../../../util/test/renderWithProvider';
 import {
   SignTypedDataMockType,
   generateStateSignTypedData,
   typedSignV4ConfirmationState,
+  typedSignV4NFTConfirmationState,
 } from '../../../../../../../../../util/test/confirm-data-helpers';
 import PermitSimulation from './TypedSignPermit';
 
@@ -26,7 +27,7 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 describe('PermitSimulation', () => {
-  it('should render correctly for Permit', async () => {
+  it('renders for Permit', async () => {
     const { getByText } = renderWithProvider(<PermitSimulation />, {
       state: typedSignV4ConfirmationState,
     });
@@ -43,7 +44,7 @@ describe('PermitSimulation', () => {
     await waitFor(() => expect(getByText('3,000')).toBeTruthy());
   });
 
-  it('should render correctly for Permit NFTs', async () => {
+  it('renders for Permit NFTs', async () => {
     const { getByText } = renderWithProvider(<PermitSimulation />, {
       state: typedSignV4NFTConfirmationState,
     });
@@ -60,7 +61,7 @@ describe('PermitSimulation', () => {
     await waitFor(() => expect(getByText('#3606393')).toBeTruthy());
   });
 
-  it('should render correctly for DAI Revoke', async () => {
+  it('renders for DAI Revoke', async () => {
     const { getByText } = renderWithProvider(<PermitSimulation />, {
       state: generateStateSignTypedData(SignTypedDataMockType.DAI),
     });
