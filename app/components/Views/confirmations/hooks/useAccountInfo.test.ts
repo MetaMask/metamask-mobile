@@ -51,6 +51,6 @@ describe('useAccountInfo', () => {
     expect(result?.current?.accountName).toEqual('Account 1');
     expect(result?.current?.accountAddress).toEqual('0x0');
     expect(result?.current?.accountBalance).toEqual('< 0.00001 ETH');
-    expect(result?.current?.accountFiatBalance).toEqual('$10');
+    expect(result?.current?.accountFiatBalance).toEqual('$10.00');
   });
 });

@@ -89,7 +89,8 @@ describe('useMultichainBalances', () => {
     const { result } = renderHook(() => useMultichainBalances());
 
     expect(result.current.multichainBalances).toEqual({
-      displayBalance: '0 USD',
+      displayBalance: '$0.00',
+      displayCurrency: 'USD',
       tokenFiatBalancesCrossChains: [],
       totalFiatBalance: 0,
       totalTokenFiat: 0,
@@ -113,7 +114,7 @@ describe('useMultichainBalances', () => {
 
     const { result } = renderHook(() => useMultichainBalances());
 
-    expect(result.current.multichainBalances.displayBalance).toBe('150 USD');
+    expect(result.current.multichainBalances.displayBalance).toBe('$150.00');
     expect(result.current.multichainBalances.aggregatedBalance).toEqual(
       aggregatedBalance,
     );
@@ -168,7 +169,7 @@ describe('useMultichainBalances', () => {
     expect(result.current.multichainBalances.totalTokenFiat).toBe(
       mockTokenFiatBalance,
     );
-    expect(result.current.multichainBalances.displayBalance).toBe('1000 USD');
+    expect(result.current.multichainBalances.displayBalance).toBe('$1,000.00');
   });
 
   it('does not show aggregated percentage on test networks', () => {
