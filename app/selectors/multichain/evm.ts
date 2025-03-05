@@ -85,43 +85,57 @@ export const selectNativeTokensAcrossChains = createSelector(
       const logo = isETH ? '../images/eth-logo-new.png' : '';
       tokensByChain[nativeChainId] = [];
 
-      const nativeBalanceFormatted = renderFromWei(
-        nativeTokenInfoByChainId?.balance,
-      );
-      const stakedBalanceFormatted = renderFromWei(
-        nativeTokenInfoByChainId?.stakedBalance,
-      );
+      const earnBalances = useGetEarnBalances();
+      // const nativeBalanceFormatted = renderFromWei(
+      //   nativeTokenInfoByChainId?.balance,
+      // );
+      // const stakedBalanceFormatted = renderFromWei(
+      //   nativeTokenInfoByChainId?.stakedBalance,
+      // );
 
-      let balanceFiat = '';
-      let stakedBalanceFiat = '';
+      // const balanceFiat = '';
+      // const stakedBalanceFiat = '';
 
       const conversionRate =
         currencyRates?.[token.nativeCurrency]?.conversionRate ?? 0;
 
-      balanceFiat = weiToFiat(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        hexToBN(nativeTokenInfoByChainId?.balance) as any,
+      // balanceFiat = weiToFiat(
+      //   // TODO: Replace "any" with type
+      //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      //   hexToBN(nativeTokenInfoByChainId?.balance) as any,
+      //   conversionRate,
+      //   currentCurrency,
+      // );
+      // stakedBalanceFiat = weiToFiat(
+      //   // TODO: Replace "any" with type
+      //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      //   hexToBN(nativeTokenInfoByChainId?.stakedBalance) as any,
+      //   conversionRate,
+      //   currentCurrency,
+      // );
+
+      const totalBalanceWithStaked = hexToBN(
+        nativeTokenInfoByChainId?.balance,
+      ).add(hexToBN(nativeTokenInfoByChainId?.stakedBalance));
+
+      const totalBalanceFiat = weiToFiat(
+        totalBalanceWithStaked,
         conversionRate,
         currentCurrency,
       );
-      stakedBalanceFiat = weiToFiat(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        hexToBN(nativeTokenInfoByChainId?.stakedBalance) as any,
-        conversionRate,
-        currentCurrency,
+
+      const totalBalanceWithStakedFormatted = renderFromWei(
+        totalBalanceWithStaked,
       );
 
       const tokenByChain = {
         ...nativeTokenInfoByChainId,
         name,
         address: getNativeTokenAddress(nativeChainId),
-        balance: nativeBalanceFormatted,
+        balance: totalBalanceWithStakedFormatted,
         chainId: nativeChainId,
         isNative: true,
         aggregators: [],
-        balanceFiat,
         image: '',
         logo,
         isETH,
@@ -129,6 +143,7 @@ export const selectNativeTokensAcrossChains = createSelector(
         symbol: name,
         isStaked: false,
         ticker: token.nativeCurrency,
+        balanceFiat: totalBalanceFiat,
       };
 
       // Non-staked tokens
@@ -140,25 +155,25 @@ export const selectNativeTokensAcrossChains = createSelector(
         nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
         nativeTokenInfoByChainId.stakedBalance !== toHex(0)
       ) {
-        // Staked tokens
-        tokensByChain[nativeChainId].push({
-          ...nativeTokenInfoByChainId,
-          nativeAsset: tokenByChain,
-          chainId: nativeChainId,
-          address: getNativeTokenAddress(nativeChainId),
-          balance: stakedBalanceFormatted,
-          balanceFiat: stakedBalanceFiat,
-          isNative: true,
-          aggregators: [],
-          image: '',
-          logo,
-          isETH,
-          decimals: 18,
-          name: 'Staked Ethereum',
-          symbol: name,
-          isStaked: true,
-          ticker: token.nativeCurrency,
-        });
+        // // Staked tokens
+        // tokensByChain[nativeChainId].push({
+        //   ...nativeTokenInfoByChainId,
+        //   nativeAsset: tokenByChain,
+        //   chainId: nativeChainId,
+        //   address: getNativeTokenAddress(nativeChainId),
+        //   balance: stakedBalanceFormatted,
+        //   balanceFiat: stakedBalanceFiat,
+        //   isNative: true,
+        //   aggregators: [],
+        //   image: '',
+        //   logo,
+        //   isETH,
+        //   decimals: 18,
+        //   name: 'Staked Ethereum',
+        //   symbol: name,
+        //   isStaked: true,
+        //   ticker: token.nativeCurrency,
+        // });
       }
     }
 
