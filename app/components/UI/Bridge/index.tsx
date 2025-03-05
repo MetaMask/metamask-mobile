@@ -191,7 +191,7 @@ const BridgeView = () => {
 
   return (
     // Need this to be full height of screen
-    // @ts-expect-error
+    // @ts-expect-error The type is incorrect, this will work
     <ScreenView contentContainerStyle={styles.screen}>
       <Box
         style={styles.content}
