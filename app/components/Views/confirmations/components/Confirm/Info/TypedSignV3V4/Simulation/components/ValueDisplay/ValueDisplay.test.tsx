@@ -153,6 +153,63 @@ describe('SimulationValueDisplay', () => {
     expect(await findByText('Unlimited')).toBeDefined();
   });
 
+  it('renders Dai Revoke', async () => {
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
+
+    const { findByText } = renderWithProvider(
+      <SimulationValueDisplay
+        canDisplayValueAsUnlimited
+        modalHeaderText={'Revoke'}
+        tokenContract={'0x6b175474e89094c44da98b954eedeac495271d0f'}
+        value={'12345'}
+        chainId={'0x1'}
+        allowed={false}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(await findByText('0x6B175...71d0F')).toBeDefined();
+  });
+
+  it('renders Dai Revoke when value is 0', async () => {
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
+
+    const { findByText } = renderWithProvider(
+      <SimulationValueDisplay
+        canDisplayValueAsUnlimited
+        modalHeaderText={'Revoke'}
+        tokenContract={'0x6b175474e89094c44da98b954eedeac495271d0f'}
+        value={'0'}
+        chainId={'0x1'}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(await findByText('0x6B175...71d0F')).toBeDefined();
+  });
+
+  it('renders Dai Approve', async () => {
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
+
+    const { findByText } = renderWithProvider(
+      <SimulationValueDisplay
+        canDisplayValueAsUnlimited
+        modalHeaderText={'Spending cap'}
+        tokenContract={'0x6b175474e89094c44da98b954eedeac495271d0f'}
+        value={undefined}
+        chainId={'0x1'}
+        allowed
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(await findByText('0x6B175...71d0F')).toBeDefined();
+    expect(await findByText('Unlimited')).toBeDefined();
+  });
+
   it('invokes method to track missing decimal information for ERC20 tokens only once', async () => {
     (
       useGetTokenStandardAndDetails as jest.MockedFn<
