@@ -2,13 +2,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { type Hex, type CaipChainId, isCaipChainId } from '@metamask/utils';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
-import { getAddress } from 'ethers/lib/utils';
+import { formatUnits, getAddress } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectChainId } from '../../../selectors/networkController';
 import { getProviderByChainId } from '../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
-import { renderFromWei } from '../../../util/number';
 
 export async function fetchAtomicTokenBalance(
   address: string,
@@ -52,7 +51,6 @@ export const useLatestBalance = (
   token: {
     address?: string;
     decimals?: number;
-    symbol?: string;
   },
   chainId?: Hex | CaipChainId,
 ) => {
@@ -63,6 +61,7 @@ export const useLatestBalance = (
   const handleFetchAtomicBalance = useCallback(async () => {
     if (
       token.address &&
+      token.decimals &&
       chainId && !isCaipChainId(chainId) &&
       currentChainId === chainId &&
       selectedAddress
@@ -76,7 +75,7 @@ export const useLatestBalance = (
       );
       if (atomicBalance && token.decimals) {
         setBalance({
-          displayBalance: renderFromWei(atomicBalance.toString(), token.decimals),
+          displayBalance: formatUnits(atomicBalance, token.decimals),
           atomicBalance,
         });
       }
@@ -86,12 +85,6 @@ export const useLatestBalance = (
   useEffect(() => {
     handleFetchAtomicBalance();
   }, [handleFetchAtomicBalance]);
-
-  if (!token.decimals || !token.symbol) {
-    throw new Error(
-      `Failed to calculate latest balance - ${token.symbol} token is missing "decimals" value`,
-    );
-  }
 
   return balance;
 };
