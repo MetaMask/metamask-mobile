@@ -48,10 +48,9 @@ export const fetchAtomicBalance = async (
 export const useLatestBalance = (
   token: {
     address: string;
-    decimals: number;
-    symbol: string;
-    string?: string;
-  } | null,
+    decimals?: number;
+    symbol?: string;
+  },
   chainId?: Hex | CaipChainId,
 ) => {
   const [atomicBalance, setAtomicBalance] = useState<BigNumber | undefined>(undefined);
@@ -60,6 +59,7 @@ export const useLatestBalance = (
     selectSelectedInternalAccountFormattedAddress,
   );
   const currentChainId = useSelector(selectChainId);
+
 
   useEffect(() => {
     const handleFetchAtomicBalance = async () => {
@@ -88,7 +88,8 @@ export const useLatestBalance = (
     selectedAddress,
   ]);
 
-  if (token && !token.decimals) {
+
+  if (!token.decimals || !token.symbol) {
     throw new Error(
       `Failed to calculate latest balance - ${token.symbol} token is missing "decimals" value`,
     );

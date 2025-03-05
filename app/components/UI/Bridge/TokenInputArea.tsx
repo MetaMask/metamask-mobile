@@ -8,7 +8,7 @@ import { Token } from './Token';
 
 interface TokenInputAreaProps {
   value?: string;
-  tokenSymbol: string;
+  tokenSymbol?: string;
   tokenAddress?: string;
   tokenBalance?: string;
   tokenIconUrl?: ImageSourcePropType;
@@ -46,7 +46,7 @@ const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.s
 
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   value,
-  tokenSymbol = 'ETH',
+  tokenSymbol,
   tokenAddress,
   tokenBalance,
   tokenIconUrl,
@@ -57,7 +57,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
 }) => {
   const { styles } = useStyles(createStyles, {});
 
-  const formattedBalance = tokenBalance ? `${tokenBalance} ${tokenSymbol}` : undefined;
+  const formattedBalance = tokenSymbol && tokenBalance ? `${tokenBalance} ${tokenSymbol}` : undefined;
   const formattedAddress = tokenAddress ? formatAddress(tokenAddress) : undefined;
 
   const subtitle = formattedBalance ?? formattedAddress;

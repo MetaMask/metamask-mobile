@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 
 interface TokenProps {
-  symbol: string;
+  symbol?: string;
   iconUrl?: ImageSourcePropType;
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
@@ -99,7 +99,7 @@ export const Token: React.FC<TokenProps> = ({
             <Image source={iconUrl} style={styles.icon} />
           ) : (
             <Box style={styles.fallbackIcon}>
-              <Text style={styles.fallbackText}>{symbol[0]}</Text>
+              <Text style={styles.fallbackText}>{symbol?.[0] || '?'}</Text>
             </Box>
           )}
         </BadgeWrapper>

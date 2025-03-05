@@ -16,11 +16,13 @@ import ETHLogo from '../../../images/eth-logo-new.png';
 import BTCLogo from '../../../images/bitcoin-logo.png';
 import images from '../../../images/image-icons';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { Hex } from '@metamask/utils';
+import { Hex, isCaipChainId } from '@metamask/utils';
 import { isTestNet, getTestNetImageByChainId, isMainnetByChainId, isLineaMainnetByChainId } from '../../../util/networks';
 import { PopularList, UnpopularNetworkList, CustomNetworkImgMapping } from '../../../util/networks/customNetworks';
 import { ethers } from 'ethers';
 import { selectTokens } from '../../../selectors/tokensController';
+import { getNativeSwapsToken } from '@metamask/swaps-controller/dist/swapsUtil';
+import { useLatestBalance } from './useLatestBalance';
 
 const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -96,6 +98,7 @@ const BridgeView = () => {
   const { styles } = useStyles(createStyles, {});
 
   const currentChainId = useSelector(selectChainId);
+  const sourceTokens = useSelector(selectTokens);
 
   const [sourceAmount, setSourceAmount] = useState<string>();
   const [destAmount] = useState<string>();
@@ -104,9 +107,22 @@ const BridgeView = () => {
   const [sourceChainId] = useState<SupportedCaipChainId | Hex>(currentChainId);
   const [destChainId] = useState<SupportedCaipChainId | Hex>();
 
-  const sourceTokenSymbol = 'ETH';
-  const destTokenSymbol = 'BTC';
-  const sourceTokenBalance = '0.5';
+
+  const sourceToken = !isCaipChainId(sourceChainId) &&
+  sourceTokenAddress === ethers.constants.AddressZero
+  ? getNativeSwapsToken(sourceChainId)
+  : sourceTokens.find((token) => token.address === sourceTokenAddress);
+
+  const sourceBalance = useLatestBalance({
+    address: sourceTokenAddress,
+    decimals: sourceToken?.decimals,
+    symbol: sourceToken?.symbol,
+  }, sourceChainId);
+
+  const destToken = destChainId && !isCaipChainId(destChainId) &&
+  destTokenAddress === ethers.constants.AddressZero
+  ? getNativeSwapsToken(destChainId)
+  : sourceTokens.find((token) => token.address === destTokenAddress);
 
   const handleNumberPress = (num: string) => {
     setSourceAmount((prev) => {
@@ -149,8 +165,8 @@ const BridgeView = () => {
         <Box style={styles.inputsContainer} gap={8}>
           <TokenInputArea
             value={sourceAmount}
-            tokenSymbol={sourceTokenSymbol}
-            tokenBalance={sourceTokenBalance}
+            tokenSymbol={sourceToken?.symbol}
+            tokenBalance={sourceBalance?.displayBalance}
             tokenIconUrl={ETHLogo}
             tokenAddress={sourceTokenAddress}
             networkImageSource={getNetworkImage(sourceChainId)}
@@ -167,7 +183,7 @@ const BridgeView = () => {
           </Box>
           <TokenInputArea
             value={destAmount}
-            tokenSymbol={destTokenSymbol}
+            tokenSymbol={destToken?.symbol}
             tokenAddress={destTokenAddress}
             tokenIconUrl={BTCLogo}
             networkImageSource={destChainId ? getNetworkImage(destChainId) : undefined}
