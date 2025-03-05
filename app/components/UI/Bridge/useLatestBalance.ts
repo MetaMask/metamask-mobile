@@ -43,7 +43,7 @@ export const fetchAtomicBalance = async (
  *
  * @param token - The token object for which the balance is to be fetched. Can be null.
  * @param chainId - The chain ID to be used for fetching the balance. Optional.
- * @returns An object containing the balanceAmount as a non-atomic decimal string.
+ * @returns An object containing the the balance as a non-atomic decimal string and the atomic balance as a BigNumber.
  */
 export const useLatestBalance = (
   token: {
@@ -97,7 +97,10 @@ export const useLatestBalance = (
   return useMemo(
     () =>
       atomicBalance
-        ? formatUnits(atomicBalance, token?.decimals)
+        ? {
+          displayBalance: formatUnits(atomicBalance, token?.decimals),
+          atomicBalance,
+        }
         : undefined,
     [atomicBalance, token?.decimals],
   );
