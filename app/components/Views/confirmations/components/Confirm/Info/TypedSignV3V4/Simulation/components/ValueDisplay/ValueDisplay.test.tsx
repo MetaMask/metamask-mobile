@@ -101,6 +101,20 @@ describe('SimulationValueDisplay', () => {
     expect(await findByTestId('simulation-value-display-loader')).toBeDefined();
   });
 
+  it('renders null when tokenContract is not found', async () => {
+    const { queryByTestId } = renderWithProvider(
+      <SimulationValueDisplay
+        modalHeaderText={'Spending Cap'}
+        tokenContract={undefined}
+        value={'4321'}
+        chainId={'0x1'}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId('simulation-value-display-loader')).toBeNull();
+  });
+
   it('renders no value display if no value was loaded', () => {
     (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
       details: { decimalsNumber: undefined },
@@ -116,7 +130,7 @@ describe('SimulationValueDisplay', () => {
       />,
       { state: mockInitialState },
     );
-    expect(queryByTestId('simulation-value-display-loader')).not.toBeTruthy();
+    expect(queryByTestId('simulation-value-display-loader')).toBeNull();
   });
 
   it('renders "Unlimited" for large values when canDisplayValueAsUnlimited is true', async () => {
