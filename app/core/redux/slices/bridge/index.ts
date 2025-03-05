@@ -18,7 +18,7 @@ export interface BridgeState {
   destToken: BridgeToken | undefined;
 }
 
-const initialState: BridgeState = {
+export const initialState: BridgeState = {
   sourceAmount: undefined,
   destAmount: undefined,
   sourceChainId: '0x1',
