@@ -11,6 +11,14 @@ import { GitHub } from '@actions/github/lib/utils';
 
 let octokitInstance: InstanceType<typeof GitHub> | null = null;
 
+// Define an interface for the commit data returned by GitHub
+interface Commit {
+  sha: string;
+  commit: {
+    message: string;
+  };
+}
+
 export enum BitriseTestStatus {
   Pending,
   Success,
@@ -183,20 +191,24 @@ export async function getBitriseCommentForCommit(commitHash: string): Promise<Gi
 }
 
 export async function getRecentCommits(): Promise<string[]> {
-  
-  const { owner: owner, repo: repo, number: pullRequestNumber } = context.issue;
+  const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
+  const { owner, repo, number: pullRequestNumber } = context.issue;
 
   // Fetch commits associated with the pull request
   const { data: commits } = await getOctokitInstance().rest.pulls.listCommits({
     owner,
     repo,
     pull_number: pullRequestNumber,
-    per_page: 5  // Limit the number of commits to 5
+    per_page: 10  // Limit the number of commits to 10
+  });
+
+  // Exclude any commits that are merge commits from main
+  const filteredCommits = commits.filter((commit: Commit) => {
+    return !commit.commit.message.startsWith(mergeFromMainCommitMessagePrefix);
   });
 
   // Map the data to extract commit SHAs
-  return commits.map((commit: { sha: string }) => commit.sha);
-
+  return filteredCommits.map((commit: Commit) => commit.sha);
 }
 
 
