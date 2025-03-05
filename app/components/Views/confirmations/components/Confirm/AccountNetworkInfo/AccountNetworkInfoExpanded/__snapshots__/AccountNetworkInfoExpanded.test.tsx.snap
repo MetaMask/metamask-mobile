@@ -196,7 +196,9 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
       <View
         style={
           {
-            "marginLeft": "auto",
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
           }
         }
       >
@@ -204,54 +206,44 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           style={
             {
               "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 8,
+              "height": 16,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "width": 16,
             }
           }
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
             style={
               {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 8,
                 "height": 16,
-                "justifyContent": "center",
-                "overflow": "hidden",
                 "width": 16,
               }
             }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 16,
-                  "width": 16,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "marginLeft": 8,
-              }
-            }
-          >
-            Ethereum Mainnet
-          </Text>
+            testID="network-avatar-image"
+          />
         </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginLeft": 8,
+            }
+          }
+        >
+          Ethereum Mainnet
+        </Text>
       </View>
     </View>
   </View>
