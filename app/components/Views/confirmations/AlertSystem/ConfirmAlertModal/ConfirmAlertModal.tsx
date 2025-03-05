@@ -22,7 +22,7 @@ export interface ConfirmAlertModalProps {
 const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfirm }) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  const { showAlertModal, fieldAlerts } = useAlerts();
+  const { showAlertModal, fieldAlerts, hasUnconfirmedFieldDangerAlerts, alertModalVisible } = useAlerts();
 
   const [confirmCheckbox, setConfirmCheckbox] = useState<boolean>(false);
 
@@ -39,6 +39,11 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfi
   const handleReject = useCallback(() => {
     onReject();
   }, [onReject]);
+
+  if (!alertModalVisible && hasUnconfirmedFieldDangerAlerts) {
+    showAlertModal();
+    return null;
+  }
 
   return (
     <BottomModal onClose={handleReject}>
