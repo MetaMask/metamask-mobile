@@ -90,6 +90,7 @@ describe('useMultichainBalances', () => {
 
     expect(result.current.multichainBalances).toEqual({
       displayBalance: '$0.00',
+      displayCurrency: 'USD',
       tokenFiatBalancesCrossChains: [],
       totalFiatBalance: 0,
       totalTokenFiat: 0,
