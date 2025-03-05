@@ -6,6 +6,7 @@ import { METHODS_TO_DELAY, RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
+import NavigationService from '../../NavigationService';
 
 export const handleSendMessage = async ({
   msg,
@@ -79,7 +80,7 @@ export const handleSendMessage = async ({
       );
       connection.setLoading(false);
       return;
-      // const currentRoute = connection.navigation?.getCurrentRoute()?.name;
+      // const currentRoute = NavigationService.navigation?.getCurrentRoute()?.name;
       // if (!method && currentRoute === 'AccountConnect') {
       //   DevLogger.log(`[handleSendMessage] remove modal`);
       //   if (
@@ -110,7 +111,7 @@ export const handleSendMessage = async ({
       //       // Ignore temporarily until next stage of permissions system implementation
       //       DevLogger.log(`[handleSendMessage] error goBack()`, _e);
       //     }
-      //     connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      //     NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       //       screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
       //     });
       //   }
@@ -137,7 +138,7 @@ export const handleSendMessage = async ({
 
     // Trigger should be removed after redirect so we don't redirect the dapp next time and go back to nothing.
     connection.trigger = 'resume';
-    connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
     });
   } catch (err) {

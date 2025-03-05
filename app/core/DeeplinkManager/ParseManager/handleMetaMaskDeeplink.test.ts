@@ -9,7 +9,13 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
+import NavigationService from '../../NavigationService';
 
+jest.mock('../../NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
 jest.mock('../../../core/AppConstants');
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/SDKConnect/SDKConnect');
@@ -32,7 +38,6 @@ describe('handleMetaMaskProtocol', () => {
   const mockWC2ManagerConnect = jest.fn();
   const mockGetApprovedHosts = jest.fn();
   const mockBindAndroidSDK = jest.fn();
-  const mockNavigate = jest.fn();
 
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
   const mockSDKConnectGetInstance = SDKConnect.getInstance as jest.Mock;
@@ -46,7 +51,6 @@ describe('handleMetaMaskProtocol', () => {
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
-
 
   let url = '';
 
@@ -74,11 +78,6 @@ describe('handleMetaMaskProtocol', () => {
       reconnect: mockReconnect,
       getApprovedHosts: mockGetApprovedHosts,
       bindAndroidSDK: mockBindAndroidSDK,
-      state: {
-        navigation: {
-          navigate: mockNavigate,
-        },
-      }
     }));
 
     mockWC2ManagerGetInstance.mockResolvedValue({
@@ -286,11 +285,14 @@ describe('handleMetaMaskProtocol', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-      });
-    });
 
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        },
+      );
+    });
 
     it('should call handleDeeplink when channel exists and params.redirect is falsy', () => {
       origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
@@ -323,11 +325,6 @@ describe('handleMetaMaskProtocol', () => {
           reconnect: mockReconnect,
           getApprovedHosts: mockGetApprovedHosts,
           bindAndroidSDK: mockBindAndroidSDK,
-          state: {
-            navigation: {
-              navigate: mockNavigate,
-            },
-          },
         },
       });
     });

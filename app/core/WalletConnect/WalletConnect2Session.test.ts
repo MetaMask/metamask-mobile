@@ -3,7 +3,6 @@ import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Ignoring the import error for testing purposes
 import { Client } from '@walletconnect/se-sdk';
-import { NavigationContainerRef } from '@react-navigation/native';
 import { SessionTypes } from '@walletconnect/types';
 import { store } from '../../store';
 import Engine from '../Engine';
@@ -62,7 +61,6 @@ describe('WalletConnect2Session', () => {
   let session: WalletConnect2Session;
   let mockClient: Client;
   let mockSession: SessionTypes.Struct;
-  let mockNavigation: NavigationContainerRef;
 
   beforeEach(() => {
     mockClient = new Client();
@@ -73,7 +71,6 @@ describe('WalletConnect2Session', () => {
         metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
       },
     } as unknown as SessionTypes.Struct;
-    mockNavigation = {} as NavigationContainerRef;
 
     // Mock store state
     (store.getState as jest.Mock).mockReturnValue({
@@ -110,7 +107,6 @@ describe('WalletConnect2Session', () => {
       session: mockSession,
       channelId: 'test-channel',
       deeplink: true,
-      navigation: mockNavigation,
     });
 
     // Manually set the topicByRequestId to ensure it's populated correctly for tests

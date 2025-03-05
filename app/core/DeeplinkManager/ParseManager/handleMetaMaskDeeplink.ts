@@ -9,7 +9,9 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
+import NavigationService from '../../NavigationService';
 import extractURLParams from './extractURLParams';
+
 export function handleMetaMaskDeeplink({
   instance,
   handled,
@@ -40,7 +42,7 @@ export function handleMetaMaskDeeplink({
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-      SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
       });
     } else if (params.channelId) {

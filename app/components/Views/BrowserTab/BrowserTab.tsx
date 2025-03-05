@@ -887,7 +887,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           getRpcMethodMiddleware({
             hostname,
             getProviderState,
-            navigation,
             // Website info
             url: resolvedUrlRef,
             title: titleRef,
@@ -910,7 +909,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       });
       backgroundBridgeRef.current = newBridge;
     },
-    [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
+    [isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
   );
 
   const sendActiveAccount = useCallback(async () => {
