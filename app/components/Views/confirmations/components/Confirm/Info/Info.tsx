@@ -1,16 +1,16 @@
-import { TransactionType } from '@metamask/transaction-controller';
 import { ApprovalType } from '@metamask/controller-utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
-
+import { useQRHardwareContext } from '../../../context/QRHardwareContext';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
-import { useQRHardwareContext } from '../../../context/QRHardwareContext';
 import PersonalSign from './PersonalSign';
 import QRInfo from './QRInfo';
+import StakingDeposit from './StakingDeposit';
+import StakingWithdrawal from './StakingWithdrawal';
 import TypedSignV1 from './TypedSignV1';
 import TypedSignV3V4 from './TypedSignV3V4';
-import StakingDeposit from './StakingDeposit';
-
+import { UnstakeConfirmationViewProps } from '../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
   transactionType?: TransactionType;
@@ -27,13 +27,22 @@ const ConfirmationInfoComponentMap = {
   [ApprovalType.Transaction]: ({
     transactionType,
   }: ConfirmationInfoComponentRequest) => {
-    if (transactionType === TransactionType.stakingDeposit)
-      return StakingDeposit;
-    return null;
+    switch (transactionType) {
+      case TransactionType.stakingDeposit:
+        return StakingDeposit;
+      case TransactionType.stakingUnstake:
+        return StakingWithdrawal;
+      default:
+        return null;
+    }
   },
 };
 
-const Info = () => {
+interface InfoProps {
+  route?: UnstakeConfirmationViewProps['route'];
+}
+
+const Info = ({ route }: InfoProps) => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isSigningQRObject } = useQRHardwareContext();
@@ -54,9 +63,17 @@ const Info = () => {
 
   const InfoComponent = ConfirmationInfoComponentMap[
     approvalRequest?.type as keyof typeof ConfirmationInfoComponentMap
-  ]({ signatureRequestVersion, transactionType }) as React.FC;
+  ]({ signatureRequestVersion, transactionType });
 
-  return <InfoComponent />;
+  if (!InfoComponent) return null;
+
+  if (transactionType === TransactionType.stakingUnstake) {
+    const StakingWithdrawalComponent = InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
+    return <StakingWithdrawalComponent route={route as UnstakeConfirmationViewProps['route']} />;
+  }
+
+  const GenericComponent = InfoComponent as React.ComponentType<Record<string, never>>;
+  return <GenericComponent />;
 };
 
 export default Info;

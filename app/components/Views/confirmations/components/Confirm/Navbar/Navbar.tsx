@@ -3,13 +3,13 @@ import { StyleSheet, View } from 'react-native';
 import {
   default as MorphText,
   TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
+} from '../../../../../../component-library/components/Texts/Text';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
+} from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 
-export function getStakingDepositNavbar({
+export function getNavbar({
   title,
   onReject,
 }: {
@@ -43,7 +43,7 @@ export function getStakingDepositNavbar({
         iconName={IconName.ArrowLeft}
         onPress={handleBackPress}
         style={innerStyles.headerLeft}
-        testID="staking-deposit-navbar-back-button"
+        testID={`${title}-navbar-back-button`}
       />
     ),
   };
