@@ -19,7 +19,8 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
 import { isTestNet, getTestNetImageByChainId, isMainnetByChainId, isLineaMainnetByChainId } from '../../../util/networks';
 import { PopularList, UnpopularNetworkList, CustomNetworkImgMapping } from '../../../util/networks/customNetworks';
-import ethers from 'ethers';
+import { ethers } from 'ethers';
+import { selectTokens } from '../../../selectors/tokensController';
 
 const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
