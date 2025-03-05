@@ -16,7 +16,7 @@ const usePolling = <PollingInput extends Record<string, unknown>>(
 
   const flattenedInput = useMemo(
     () => usePollingOptions.input.flatMap((input) => Object.values(input)),
-    [usePollingOptions.input],
+    [usePollingOptions],
   );
 
   // Memoize the key generation
@@ -47,18 +47,15 @@ const usePolling = <PollingInput extends Record<string, unknown>>(
       }
     }
 
+    const currentPollingTokens = pollingTokens.current;
+
     // stop all polling on dismount
     return () => {
-      for (const token of pollingTokens.current.values()) {
+      for (const token of currentPollingTokens.values()) {
         usePollingOptions.stopPollingByPollingToken(token);
       }
     };
-  }, [
-    flattenedInput,
-    getKey,
-    usePollingOptions.startPolling,
-    usePollingOptions.stopPollingByPollingToken,
-  ]);
+  }, [flattenedInput, getKey, usePollingOptions]);
 };
 
 export default usePolling;
