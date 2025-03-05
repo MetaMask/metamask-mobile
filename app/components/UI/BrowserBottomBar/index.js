@@ -35,9 +35,8 @@ const createStyles = (colors) =>
       justifyContent: 'space-around',
       alignItems: 'center',
       textAlign: 'center',
+      height: 60,
       flex: 1,
-      paddingTop: 30,
-      paddingBottom: 30,
     },
     tabIcon: {
       marginTop: 0,

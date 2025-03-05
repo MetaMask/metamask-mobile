@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-native-svg/src/utils/fetchData.ts b/node_modules/react-native-svg/src/utils/fetchData.ts
+index d141be3..4da0fba 100644
+--- a/node_modules/react-native-svg/src/utils/fetchData.ts
++++ b/node_modules/react-native-svg/src/utils/fetchData.ts
+@@ -34,6 +34,16 @@ function dataUriToXml(uri: string): string | null {
+ 
+ async function fetchUriData(uri: string) {
+   const response = await fetch(uri);
++
++  // This is a temporary fix for dapps with bad metadata icon urls
++  // Remove this once we replace WebsiteIcon with AvatarFavicon component
++  const excludeList = ['text/html', ''];
++  const contentType = response.headers.get('content-type') || '';
++
++  if (excludeList.includes(contentType)) {
++    throw new Error(`Fetching ${uri} resulted in invalid content-type ${contentType}`);
++  }
++
+   if (response.ok || (response.status === 0 && uri.startsWith('file://'))) {
+     return await response.text();
+   }
