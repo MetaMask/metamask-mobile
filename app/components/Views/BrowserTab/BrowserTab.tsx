@@ -909,7 +909,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       });
       backgroundBridgeRef.current = newBridge;
     },
-    [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
+    [isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
   );
 
   const sendActiveAccount = useCallback(async () => {

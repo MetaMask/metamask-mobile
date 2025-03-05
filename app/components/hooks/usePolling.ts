@@ -14,9 +14,10 @@ const usePolling = <PollingInput extends Record<string, unknown>>(
 ) => {
   const pollingTokens = useRef<Map<string, string>>(new Map());
 
-  const flattenedInput = useMemo(() => {
-    return usePollingOptions.input.flatMap((input) => Object.values(input));
-  }, [usePollingOptions]);
+  const flattenedInput = useMemo(
+    () => usePollingOptions.input.flatMap((input) => Object.values(input)),
+    [usePollingOptions],
+  );
 
   // Memoize the key generation
   const getKey = useCallback(
@@ -46,13 +47,15 @@ const usePolling = <PollingInput extends Record<string, unknown>>(
       }
     }
 
+    const currentPollingTokens = pollingTokens.current;
+
     // stop all polling on dismount
     return () => {
-      for (const token of pollingTokens.current.values()) {
+      for (const token of currentPollingTokens.values()) {
         usePollingOptions.stopPollingByPollingToken(token);
       }
     };
-  }, [flattenedInput, getKey]);
+  }, [flattenedInput, getKey, usePollingOptions]);
 };
 
 export default usePolling;
