@@ -22,28 +22,6 @@ import {
 import { CaipAssetId, parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 
-export enum MultichainNetworks {
-  BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
-  BITCOIN_TESTNET = 'bip122:000000000933ea01ad0ee984209779ba',
-
-  SOLANA = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  SOLANA_DEVNET = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
-  SOLANA_TESTNET = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
-}
-
-/**
- * @deprecated TEMPORARY SOURCE OF TRUTH TBD
- * Non evm network mapping.
- */
-export enum MultichainNetworks {
-  BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
-  BITCOIN_TESTNET = 'bip122:000000000933ea01ad0ee984209779ba',
-
-  SOLANA = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  SOLANA_DEVNET = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
-  SOLANA_TESTNET = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
-}
-
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
  * Non evm network mapping.

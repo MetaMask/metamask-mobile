@@ -81,8 +81,6 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
     // Token management not supported for non-EVM chains yet
   }, []);
 
-  // console.log('sortedFilteredTokens', sortedFilteredTokens[0]);
-
   return (
     <TokenList
       tokens={sortedFilteredTokens}

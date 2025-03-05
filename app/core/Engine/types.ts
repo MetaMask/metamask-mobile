@@ -254,15 +254,13 @@ type SnapsGlobalActions =
   | SnapsRegistryActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions
-  | SnapsAllowedActions
-  | ExecutionServiceActions;
+  | SnapsAllowedActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents
-  | SnapsAllowedEvents
-  | ExecutionServiceEvents;
+  | SnapsAllowedEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =

@@ -16,7 +16,6 @@ import {
   SnapControllerGetSnapFileAction,
   SnapControllerInstallSnapsAction,
 } from '../Engine/controllers/SnapController/constants';
-import { AppState } from 'react-native';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
