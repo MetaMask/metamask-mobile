@@ -33,6 +33,7 @@ import {
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
+  DeFiPositionsController,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -46,6 +47,7 @@ import {
   MultichainAssetsControllerState,
   MultichainAssetsControllerEvents,
   MultichainAssetsControllerActions,
+  DeFiPositionsControllerState,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
@@ -389,6 +391,7 @@ export type Controllers = {
   TokenRatesController: TokenRatesController;
   TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
+  DeFiPositionsController: DeFiPositionsController;
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
@@ -441,6 +444,7 @@ export type EngineState = {
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
+  DeFiPositionsController: DeFiPositionsControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
