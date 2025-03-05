@@ -4,8 +4,10 @@ import { act } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
+  generateStateSignTypedData,
   personalSignatureConfirmationState,
   securityAlertResponse,
+  SignTypedDataMockType,
   stakingDepositConfirmationState,
   typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
@@ -53,7 +55,12 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [],
+        keyrings: [
+          {
+            type: 'HD Test Keyring',
+            accounts: ['0x935e73edb9ff52e23bac7f7e043a1ecd06d05477'],
+          },
+        ],
       },
       getOrAddQRKeyring: jest.fn(),
     },
@@ -149,6 +156,14 @@ describe('Confirm', () => {
     expect(getByText('Withdrawal time')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
+  });
+
+  it('renders for revoke DAI permit', async () => {
+    const { findByText } = renderWithProvider(<Confirm />, {
+      state: generateStateSignTypedData(SignTypedDataMockType.DAI),
+    });
+    expect(findByText('Remove permission')).toBeDefined();
+    expect(findByText('This site wants to revoke permission to spend your tokens.')).toBeDefined();
   });
 
   it('renders a blockaid banner if the confirmation has blockaid error response', async () => {
