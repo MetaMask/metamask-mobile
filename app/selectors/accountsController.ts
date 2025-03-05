@@ -4,7 +4,7 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
-import { EthMethod, SolMethod } from '@metamask/keyring-api';
+import { BtcMethod, EthMethod, SolMethod } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   getFormattedAddressFromInternalAccount,
@@ -100,7 +100,9 @@ export const selectCanSignTransactions = createSelector(
     (selectedAccount?.methods?.includes(EthMethod.SignTransaction) ||
       selectedAccount?.methods?.includes(SolMethod.SignTransaction) ||
       selectedAccount?.methods?.includes(SolMethod.SignMessage) ||
-      selectedAccount?.methods?.includes(SolMethod.SignAndSendTransaction)) ??
+      selectedAccount?.methods?.includes(SolMethod.SendAndConfirmTransaction) ||
+      selectedAccount?.methods?.includes(SolMethod.SignAndSendTransaction) ||
+      selectedAccount?.methods?.includes(BtcMethod.SendBitcoin)) ??
     false,
 );
 
