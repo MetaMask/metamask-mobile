@@ -19,7 +19,7 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
 import { isTestNet, getTestNetImageByChainId, isMainnetByChainId, isLineaMainnetByChainId } from '../../../util/networks';
 import { PopularList, UnpopularNetworkList, CustomNetworkImgMapping } from '../../../util/networks/customNetworks';
-import { ZERO_ADDRESS } from '@metamask/assets-controllers/dist/token-prices-service/codefi-v2.cjs';
+import ethers from 'ethers';
 
 const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -98,7 +98,7 @@ const BridgeView = () => {
 
   const [sourceAmount, setSourceAmount] = useState<string>();
   const [destAmount] = useState<string>();
-  const [sourceTokenAddress] = useState<string>(ZERO_ADDRESS);
+  const [sourceTokenAddress] = useState<string>(ethers.constants.AddressZero);
   const [destTokenAddress] = useState<string>();
   const [sourceChainId] = useState<SupportedCaipChainId | Hex>(currentChainId);
   const [destChainId] = useState<SupportedCaipChainId | Hex>();
