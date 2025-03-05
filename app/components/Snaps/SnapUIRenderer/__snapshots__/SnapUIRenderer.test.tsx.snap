@@ -3,18 +3,24 @@
 exports[`SnapUIRenderer adds a footer if required 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -38,7 +44,10 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -71,15 +80,21 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
       gap={16}
       padding={16}
       style={
-        {
-          "alignItems": "center",
-          "bottom": 0,
-          "height": 80,
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
-          "position": "absolute",
-          "width": "100%",
-        }
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "alignItems": "center",
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
       }
     >
       <TouchableOpacity
@@ -87,7 +102,6 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -111,7 +125,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -135,18 +149,24 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
 exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -170,7 +190,10 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -247,18 +270,24 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
 exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -282,7 +311,10 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -418,18 +450,24 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
 exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -453,7 +491,10 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -589,18 +630,24 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
 exports[`SnapUIRenderer renders basic UI 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -624,7 +671,10 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -663,18 +713,24 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
 exports[`SnapUIRenderer renders complex nested components 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -698,7 +754,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -731,8 +790,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   "flexDirection": "row",
                   "flexWrap": "wrap",
                   "justifyContent": "space-between",
-                  "paddingBottom": 8,
+                  "marginLeft": -8,
+                  "marginRight": -8,
+                  "paddingBottom": 0,
                   "paddingHorizontal": 8,
+                  "paddingTop": 0,
                 }
               }
               testID="info-row"
@@ -757,7 +819,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       "color": "#141618",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
-                      "fontWeight": "500",
+                      "fontWeight": "600",
                       "justifyContent": "center",
                       "letterSpacing": 0,
                       "lineHeight": 22,
@@ -768,58 +830,50 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                 </Text>
               </View>
               <View
+                alignItems="center"
+                flexDirection="row"
+                gap={4}
                 style={
-                  {
-                    "marginLeft": "auto",
-                  }
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 4,
+                    },
+                    undefined,
+                  ]
                 }
               >
-                <View
-                  alignItems="center"
-                  flexDirection="row"
-                  gap={4}
+                <Text
+                  accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "gap": 4,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#9fa6ae",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
                   }
                 >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#9fa6ae",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
+                  Extra
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
-                  >
-                    Extra
-                  </Text>
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Value
-                  </Text>
-                </View>
+                  }
+                >
+                  Value
+                </Text>
               </View>
             </View>
             <View
@@ -827,9 +881,16 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               flexDirection="row"
               justifyContent="space-between"
               style={
-                {
-                  "flex": 1,
-                }
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                  },
+                  {
+                    "flex": 1,
+                  },
+                ]
               }
               testID="snaps-ui-card"
             >
@@ -848,6 +909,45 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   ]
                 }
               >
+                <RNSVGSvgView
+                  bbHeight={32}
+                  bbWidth={32}
+                  focusable={false}
+                  height={32}
+                  onLayout={[Function]}
+                  style={
+                    [
+                      {
+                        "backgroundColor": "transparent",
+                        "borderWidth": 0,
+                      },
+                      [
+                        {
+                          "borderRadius": 0,
+                          "overflow": "hidden",
+                        },
+                        undefined,
+                      ],
+                      {
+                        "flex": 0,
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                  testID="snaps-ui-image"
+                  width={32}
+                  xml="<svg />"
+                >
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  />
+                </RNSVGSvgView>
                 <View
                   flexDirection="column"
                   style={
@@ -949,14 +1049,20 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
       gap={16}
       padding={16}
       style={
-        {
-          "bottom": 0,
-          "height": 80,
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
-          "position": "absolute",
-          "width": "100%",
-        }
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
       }
     >
       <TouchableOpacity
@@ -964,7 +1070,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -988,7 +1093,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -1005,7 +1110,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1097,18 +1201,24 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
 exports[`SnapUIRenderer renders footers 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -1132,7 +1242,10 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -1165,14 +1278,20 @@ exports[`SnapUIRenderer renders footers 1`] = `
       gap={16}
       padding={16}
       style={
-        {
-          "bottom": 0,
-          "height": 80,
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
-          "position": "absolute",
-          "width": "100%",
-        }
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
       }
     >
       <TouchableOpacity
@@ -1180,7 +1299,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1204,7 +1322,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -1221,7 +1339,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1320,18 +1437,24 @@ exports[`SnapUIRenderer renders loading state 1`] = `
 exports[`SnapUIRenderer supports fields with multiple components 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -1355,7 +1478,10 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -1376,7 +1502,11 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
               style={
                 [
                   {},
-                  undefined,
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
                 ]
               }
             >
@@ -1419,7 +1549,45 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     }
                   }
                   testID="textfield-startacccessory"
-                />
+                >
+                  <RNSVGSvgView
+                    bbHeight="100%"
+                    bbWidth="100%"
+                    focusable={false}
+                    onLayout={[Function]}
+                    style={
+                      [
+                        {
+                          "backgroundColor": "transparent",
+                          "borderWidth": 0,
+                        },
+                        [
+                          {
+                            "borderRadius": 0,
+                            "overflow": "hidden",
+                          },
+                          undefined,
+                        ],
+                        {
+                          "flex": 0,
+                          "height": "100%",
+                          "width": "100%",
+                        },
+                      ]
+                    }
+                    testID="snaps-ui-image"
+                    xml="<svg />"
+                  >
+                    <RNSVGGroup
+                      fill={
+                        {
+                          "payload": 4278190080,
+                          "type": 0,
+                        }
+                      }
+                    />
+                  </RNSVGSvgView>
+                </View>
                 <View
                   style={
                     {
@@ -1521,18 +1689,24 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
 exports[`SnapUIRenderer supports forms with fields 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -1556,7 +1730,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -1577,7 +1754,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
               style={
                 [
                   {},
-                  undefined,
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
                 ]
               }
             >
@@ -1655,7 +1836,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   {
                     "flexDirection": "column",
                   },
-                  undefined,
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
                 ]
               }
             >
@@ -1749,7 +1934,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   {
                     "flexDirection": "column",
                   },
-                  undefined,
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
                 ]
               }
             >
@@ -1800,9 +1989,16 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   flexDirection="row"
                   justifyContent="space-between"
                   style={
-                    {
-                      "flex": 1,
-                    }
+                    [
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
                   }
                   testID="snaps-ui-card"
                 >
@@ -2156,10 +2352,16 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         flexDirection="column"
                         gap={8}
                         style={
-                          {
-                            "paddingLeft": 16,
-                            "paddingRight": 16,
-                          }
+                          [
+                            {
+                              "flexDirection": "column",
+                              "gap": 8,
+                            },
+                            {
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                            },
+                          ]
                         }
                       >
                         <TouchableOpacity
@@ -2191,9 +2393,16 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                             flexDirection="row"
                             justifyContent="space-between"
                             style={
-                              {
-                                "flex": 1,
-                              }
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                },
+                                {
+                                  "flex": 1,
+                                },
+                              ]
                             }
                             testID="snaps-ui-card"
                           >
@@ -2334,9 +2543,16 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                             flexDirection="row"
                             justifyContent="space-between"
                             style={
-                              {
-                                "flex": 1,
-                              }
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                },
+                                {
+                                  "flex": 1,
+                                },
+                              ]
                             }
                             testID="snaps-ui-card"
                           >
@@ -2510,18 +2726,24 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
 exports[`SnapUIRenderer supports interactive inputs 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -2545,7 +2767,10 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -2622,18 +2847,24 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
 exports[`SnapUIRenderer supports the onCancel prop 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -2657,7 +2888,10 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -2690,14 +2924,20 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
       gap={16}
       padding={16}
       style={
-        {
-          "bottom": 0,
-          "height": 80,
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
-          "position": "absolute",
-          "width": "100%",
-        }
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
       }
     >
       <TouchableOpacity
@@ -2705,7 +2945,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -2729,7 +2968,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -2746,7 +2985,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
