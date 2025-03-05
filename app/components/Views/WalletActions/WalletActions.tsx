@@ -38,11 +38,6 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../../UI/Ramp/routes/utils';
-import {
-  selectCanSignTransactions,
-  selectSelectedInternalAccount,
-} from '../../../selectors/accountsController';
-import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
 import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
@@ -50,6 +45,11 @@ import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constan
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
+import {
+  selectCanSignTransactions,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
+import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 ///: END:ONLY_INCLUDE_IF
 
 const WalletActions = () => {
@@ -63,7 +63,9 @@ const WalletActions = () => {
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent, createEventBuilder } = useMetrics();
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  ///: END:ONLY_INCLUDE_IF
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
 
@@ -217,13 +219,13 @@ const WalletActions = () => {
       ticker && dispatch(newAssetTransaction(getEther(ticker)));
     });
   }, [
-    trackEvent,
-    createEventBuilder,
-    chainId,
     closeBottomSheetAndNavigate,
     navigate,
     ticker,
     dispatch,
+    trackEvent,
+    chainId,
+    createEventBuilder,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     selectedAccount,
     ///: END:ONLY_INCLUDE_IF
