@@ -90,6 +90,8 @@ const createStyles = (params: { theme: Theme }) => {
       height: 32,
       borderRadius: 16,
       display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     arrow: {
       fontSize: 20,
@@ -224,10 +226,7 @@ const BridgeView = () => {
             <TouchableOpacity 
               onPress={handleArrowPress}
               disabled={!destChainId || !destToken}
-              style={[
-                styles.arrowCircle,
-                { alignItems: 'center', justifyContent: 'center' }
-              ]}
+              style={styles.arrowCircle}
             >
               <Text style={styles.arrow}>↓</Text>
             </TouchableOpacity>
