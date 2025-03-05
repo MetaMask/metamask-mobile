@@ -1,4 +1,4 @@
-import type {UserTraits, GroupTraits, SegmentClient} from '@segment/analytics-react-native';
+import type { UserTraits, GroupTraits, SegmentClient } from '@segment/analytics-react-native';
 import { PublicInterface } from '@metamask/utils';
 
 /**
@@ -63,6 +63,10 @@ export interface IMetaMetrics {
   configure(): Promise<boolean>;
 
   getMetaMetricsId(): Promise<string | undefined>;
+
+  getShouldTrackExpectedErrors(): boolean;
+
+  setShouldTrackExpectedErrors(shouldTrack: boolean): void;
 }
 
 /**

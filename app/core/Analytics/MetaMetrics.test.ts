@@ -18,11 +18,13 @@ import {
 import { MetricsEventBuilder } from './MetricsEventBuilder';
 
 jest.mock('../../store/storage-wrapper');
-const mockGet = jest.fn();
-const mockSet = jest.fn();
-const mockClear = jest.fn();
+const mockGetStorage = jest.fn();
+const mockSetStorage = jest.fn();
+const mockClearStorage = jest.fn();
+const VALID_UUID = 'b7bff9d5-8928-488e-935e-4522c680242e';
 
 jest.mock('axios');
+
 
 /**
  * Extend MetaMetrics to allow reset of the singleton instance
@@ -39,16 +41,29 @@ interface GlobalWithSegmentClient {
 
 describe('MetaMetrics', () => {
   beforeEach(async () => {
-    StorageWrapper.getItem = mockGet;
-    StorageWrapper.setItem = mockSet;
-    StorageWrapper.clearAll = mockClear;
+    StorageWrapper.getItem = mockGetStorage;
+    StorageWrapper.setItem = mockSetStorage;
+    StorageWrapper.clearAll = mockClearStorage;
+
+    // Mock specific responses for different keys
+    mockGetStorage.mockImplementation((key) => {
+      switch (key) {
+        case METRICS_OPT_IN:
+          return Promise.resolve(AGREED);
+        case METAMETRICS_ID:
+          return Promise.resolve(VALID_UUID);
+        default:
+          return Promise.resolve(undefined);
+      }
+    });
+
     TestMetaMetrics.resetInstance();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    mockGet.mockReset();
-    mockSet.mockReset();
+    mockGetStorage.mockReset();
+    mockSetStorage.mockReset();
   });
 
   describe('Singleton', () => {
@@ -68,6 +83,7 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
     });
+
     it('fails silently', async () => {
       StorageWrapper.getItem = jest.fn().mockRejectedValue(new Error('error'));
       const metaMetrics = TestMetaMetrics.getInstance();
@@ -77,7 +93,7 @@ describe('MetaMetrics', () => {
 
   describe('Disabling', () => {
     it('defaults to disabled metrics', async () => {
-      mockGet.mockResolvedValue(undefined);
+      mockGetStorage.mockResolvedValue(undefined);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -86,9 +102,9 @@ describe('MetaMetrics', () => {
     });
 
     it('uses preference enabled value when set', async () => {
-      mockGet.mockImplementation(async () => AGREED);
       const metaMetrics = TestMetaMetrics.getInstance();
-      expect(await metaMetrics.configure()).toBeTruthy();
+      const isConfigured = await metaMetrics.configure();
+      expect(isConfigured).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
       expect(metaMetrics.isEnabled()).toBeTruthy();
@@ -418,7 +434,7 @@ describe('MetaMetrics', () => {
   describe('Ids', () => {
     it('is returned from StorageWrapper when instance not configured', async () => {
       const UUID = '00000000-0000-0000-0000-000000000000';
-      mockGet.mockImplementation(async (key: string) =>
+      mockGetStorage.mockImplementation(async (key: string) =>
         key === METAMETRICS_ID ? UUID : '',
       );
       const metaMetrics = TestMetaMetrics.getInstance();
@@ -428,12 +444,12 @@ describe('MetaMetrics', () => {
 
     it('is returned from memory when instance configured', async () => {
       const testID = '00000000-0000-0000-0000-000000000000';
-      mockGet.mockImplementation(async () => testID);
+      mockGetStorage.mockImplementation(async () => testID);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
       // reset the call count to checj no new calls are made
-      mockGet.mockClear();
+      mockGetStorage.mockClear();
 
       expect(await metaMetrics.getMetaMetricsId()).toEqual(testID);
       expect(StorageWrapper.getItem).not.toHaveBeenCalled();
@@ -441,7 +457,7 @@ describe('MetaMetrics', () => {
 
     it('uses Mixpanel ID if it is set', async () => {
       const mixPanelUUID = '00000000-0000-0000-0000-000000000000';
-      mockGet.mockImplementation(async () => mixPanelUUID);
+      mockGetStorage.mockImplementation(async () => mixPanelUUID);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -459,7 +475,7 @@ describe('MetaMetrics', () => {
 
     it('uses Metametrics ID if it is set', async () => {
       const UUID = '00000000-0000-0000-0000-000000000000';
-      mockGet.mockImplementation(async (key: string) =>
+      mockGetStorage.mockImplementation(async (key: string) =>
         key === METAMETRICS_ID ? UUID : '',
       );
       const metaMetrics = TestMetaMetrics.getInstance();

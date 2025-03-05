@@ -16,6 +16,8 @@ const trackErrorAsAnalytics = (
   errorMessage: string,
   otherInfo?: string,
 ) => {
+  if (!MetaMetrics.getInstance().getShouldTrackExpectedErrors()) return;
+
   InteractionManager.runAfterInteractions(async () => {
     MetaMetrics.getInstance().trackEvent(
       MetricsEventBuilder.createEventBuilder({ category: EVENT_NAME.ERROR })

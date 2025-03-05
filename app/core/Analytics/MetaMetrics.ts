@@ -36,6 +36,9 @@ import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsM
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
+import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
+
+const EXPECTED_ERRORS_PORTION_TO_TRACK: number = __DEV__ ? 1 : 0.01;
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -175,6 +178,12 @@ class MetaMetrics implements IMetaMetrics {
    * @private
    */
   private deleteRegulationDate: DataDeleteDate;
+
+  /**
+   * Whether to track expected "errors"
+   * @private
+   */
+  private shouldTrackExpectedErrors: boolean = false;
 
   /**
    * Retrieve state of metrics from the preference
@@ -549,6 +558,12 @@ class MetaMetrics implements IMetaMetrics {
 
       this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
 
+      // decide whether to track expected "errors"
+      console.log(`MetaMetrics #metametricsId: ${this.metametricsId}`);
+      const deterministicRandomNumber = generateDeterministicRandomNumber(this.metametricsId ?? '');
+      console.log(`Deterministic random number: ${deterministicRandomNumber}`);
+      this.shouldTrackExpectedErrors = deterministicRandomNumber < EXPECTED_ERRORS_PORTION_TO_TRACK;
+      console.log(`Should track expected errors: ${this.shouldTrackExpectedErrors}`);
       this.#isConfigured = true;
 
       // identify user with the latest traits
@@ -565,7 +580,9 @@ class MetaMetrics implements IMetaMetrics {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(error, 'Error initializing MetaMetrics');
+      console.log('Error initializing MetaMetrics', error);
     }
+    console.log(`MetaMetrics #isConfigured: ${this.#isConfigured}`);
     return this.#isConfigured;
   };
 
@@ -785,6 +802,20 @@ class MetaMetrics implements IMetaMetrics {
    */
   getMetaMetricsId = async (): Promise<string | undefined> =>
     this.metametricsId ?? (await this.#getMetaMetricsId());
+
+  /**
+   * Get whether to track expected "errors"
+   * @returns boolean
+   */
+  getShouldTrackExpectedErrors = () => this.shouldTrackExpectedErrors;
+
+  /**
+   * Set whether to track expected "errors"
+   * @param shouldTrack - boolean
+   */
+  setShouldTrackExpectedErrors = (shouldTrack: boolean) => {
+    this.shouldTrackExpectedErrors = shouldTrack;
+  };
 }
 
 export default MetaMetrics;

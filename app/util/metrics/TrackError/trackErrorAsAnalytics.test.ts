@@ -11,9 +11,12 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 
 const mockMetrics = {
   trackEvent: jest.fn(),
+  getShouldTrackExpectedErrors: jest.fn(() => true),
 };
 
-(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
+jest.mock('../../../core/Analytics/MetaMetrics', () => ({
+  getInstance: () => mockMetrics,
+}));
 
 describe('trackErrorAsAnalytics', () => {
   afterEach(() => {
@@ -76,5 +79,13 @@ describe('trackErrorAsAnalytics', () => {
       })
       .build();
     expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+  });
+
+  it('does not call trackEvent if shouldTrackExpectedErrors is false', async () => {
+    mockMetrics.getShouldTrackExpectedErrors.mockReturnValue(false);
+
+    trackErrorAsAnalytics('testEvent', 'This is an error message');
+
+    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
   });
 });
