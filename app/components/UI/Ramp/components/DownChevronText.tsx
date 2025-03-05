@@ -14,17 +14,17 @@ const createStyles = (colors: Colors) =>
   });
 
 interface Props {
-  currency?: string;
+  text?: string;
 }
 
-const CurrencyChevron = ({ currency, ...props }: Props) => {
+const DownChevronText = ({ text, ...props }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
     <View {...props}>
       <Text black>
         <Text black bold>
-          {currency}
+          {text}
         </Text>
         {'  '}
         <Entypo name="chevron-down" size={16} style={styles.chevron} />
@@ -33,4 +33,4 @@ const CurrencyChevron = ({ currency, ...props }: Props) => {
   );
 };
 
-export default CurrencyChevron;
+export default DownChevronText;
