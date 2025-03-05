@@ -6,6 +6,7 @@ import {
 } from '@metamask/profile-sync-controller/user-storage';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { createUserStorageController } from './create-user-storage-controller';
+import { calculateScryptKey } from './calculate-scrypt-key';
 
 jest.mock('@metamask/profile-sync-controller/user-storage');
 
@@ -49,6 +50,8 @@ describe('UserStorage Controller', () => {
         ],
       });
 
+    const nativeScryptCrypto = calculateScryptKey;
+
     const mockConstructor = jest.spyOn(
       UserStorageController.prototype,
       // @ts-expect-error - this is not something you should be able to call, but this is a mock
@@ -63,32 +66,37 @@ describe('UserStorage Controller', () => {
     return {
       globalMessenger,
       messenger,
+      nativeScryptCrypto,
       mockConstructor,
       assertGetConstructorCall,
     };
   };
 
   it('returns controller instance', () => {
-    const { messenger } = arrange();
+    const { messenger, nativeScryptCrypto } = arrange();
     const controller = createUserStorageController({
       messenger,
+      nativeScryptCrypto,
     });
     expect(controller).toBeInstanceOf(UserStorageController);
   });
 
   it('can pass undefined as initial state', () => {
-    const { messenger, assertGetConstructorCall } = arrange();
-    createUserStorageController({ messenger });
+    const { messenger, nativeScryptCrypto, assertGetConstructorCall } =
+      arrange();
+    createUserStorageController({ messenger, nativeScryptCrypto });
     const constructorParams = assertGetConstructorCall();
     expect(constructorParams?.state).toBe(undefined);
   });
 
   it('uses initial state that is provided', () => {
-    const { messenger, assertGetConstructorCall } = arrange();
+    const { messenger, nativeScryptCrypto, assertGetConstructorCall } =
+      arrange();
     const state = { ...defaultState, isAccountSyncingInProgress: true };
     createUserStorageController({
       messenger,
       initialState: state,
+      nativeScryptCrypto,
     });
     const constructorParams = assertGetConstructorCall();
     expect(constructorParams?.state).toEqual(state);
