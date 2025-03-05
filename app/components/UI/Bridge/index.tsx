@@ -12,6 +12,7 @@ import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
 import Text, { TextColor } from '../../../component-library/components/Texts/Text';
 import ETHLogo from '../../../images/eth-logo-new.png';
 import BTCLogo from '../../../images/bitcoin-logo.png';
+import images from '../../../images/image-icons';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -20,7 +21,7 @@ const createStyles = (params: { theme: Theme }) => {
       flexGrow: 1,
     },
     inputsContainer: {
-      position: 'relative',
+      paddingVertical: 12,
     },
     buttonContainer: {
       width: '100%',
@@ -59,10 +60,20 @@ const createStyles = (params: { theme: Theme }) => {
 };
 
 const BridgeView = () => {
-  const [sourceAmount, setSourceAmount] = useState<string>();
-  const [destinationAmount] = useState<string>();
-
   const { styles } = useStyles(createStyles, {});
+
+  const [sourceAmount, setSourceAmount] = useState<string>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [destAmount] = useState<string>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [sourceTokenAddress, setSourceTokenAddress] = useState<string>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [destTokenAddress, setDestTokenAddress] = useState<string>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [sourceChainId, setSourceChainId] = useState<string>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [destChainId, setDestChainId] = useState<string>();
+
 
   const handleNumberPress = (num: string) => {
     setSourceAmount((prev) => {
@@ -102,12 +113,14 @@ const BridgeView = () => {
         flexDirection={FlexDirection.Column}
         justifyContent={JustifyContent.spaceBetween}
       >
-        <Box style={styles.inputsContainer} gap={16}>
+        <Box style={styles.inputsContainer} gap={8}>
           <TokenInputArea
             value={sourceAmount}
             tokenSymbol="ETH"
             tokenBalance="0.5"
             tokenIconUrl={ETHLogo}
+            tokenAddress={sourceTokenAddress}
+            networkImageSource={images.ETHEREUM}
             autoFocus
           />
           <Box style={styles.arrowContainer}>
@@ -120,10 +133,11 @@ const BridgeView = () => {
             </Box>
           </Box>
           <TokenInputArea
-            value={destinationAmount}
+            value={destAmount}
             tokenSymbol="BTC"
-            tokenAddress="0x32...2939"
+            tokenAddress={destTokenAddress}
             tokenIconUrl={BTCLogo}
+            networkImageSource={images['LINEA-MAINNET']}
             isReadonly
           />
         </Box>

@@ -58,9 +58,6 @@ const createStyles = (params: StylesParams) => {
       fontSize: 24,
       lineHeight: 28,
     },
-    symbolSpacing: {
-      marginLeft: 4,
-    },
   });
 };
 
@@ -87,6 +84,7 @@ export const Token: React.FC<TokenProps> = ({
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.flexEnd}
+        gap={4}
       >
         <BadgeWrapper
           badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
@@ -106,11 +104,11 @@ export const Token: React.FC<TokenProps> = ({
             </Box>
           )}
         </BadgeWrapper>
-        <Box style={styles.symbolSpacing}>
+
           <Text style={styles.tokenSymbol}>
             {symbol}
           </Text>
-        </Box>
+
       </Box>
     </TouchableOpacity>
   );

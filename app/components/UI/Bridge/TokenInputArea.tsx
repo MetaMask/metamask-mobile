@@ -5,7 +5,6 @@ import { Box } from '../Box/Box';
 import Text, { TextColor } from '../../../component-library/components/Texts/Text';
 import Input from '../../../component-library/components/Form/TextField/foundation/Input';
 import { Token } from './Token';
-import images from '../../../images/image-icons';
 
 interface TokenInputAreaProps {
   value?: string;
@@ -21,6 +20,9 @@ interface TokenInputAreaProps {
 
 const createStyles = () =>
   StyleSheet.create({
+    container: {
+      paddingHorizontal: 24,
+    },
     content: {
       padding: 16,
     },
@@ -35,10 +37,8 @@ const createStyles = () =>
     input: {
       fontSize: 40,
       borderWidth: 0,
-      padding: 0,
       lineHeight: 40,
       height: 40,
-      minHeight: 40,
     },
   });
 
@@ -50,7 +50,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   tokenAddress,
   tokenBalance,
   tokenIconUrl,
-  networkImageSource = images.ETHEREUM,
+  networkImageSource,
   networkName,
   autoFocus,
   isReadonly = false,
@@ -70,7 +70,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   });
 
   return (
-    <Box>
+    <Box style={styles.container}>
       <Box style={styles.content} gap={4}>
         <Box style={styles.row}>
           <Box style={styles.amountContainer}>
