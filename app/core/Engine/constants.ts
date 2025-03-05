@@ -62,4 +62,5 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   ///: END:ONLY_INCLUDE_IF
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
+  'EarnController:stateChange',
 ] as const;
