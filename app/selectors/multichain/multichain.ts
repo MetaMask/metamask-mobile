@@ -214,14 +214,12 @@ export function selectMultichainAssetsRates(state: RootState) {
 }
 
 export const selectMultichainTokenList = createDeepEqualSelector(
-  // selectSelectedNonEvmNetworkChainId,
   selectSelectedInternalAccount,
   selectMultichainBalances,
   selectMultichainAssets,
   selectMultichainAssetsMetadata,
   selectMultichainAssetsRates,
   (
-    // chainId,
     selectedAccountAddress,
     multichainBalances,
     assets,
@@ -261,9 +259,9 @@ export const selectMultichainTokenList = createDeepEqualSelector(
         chainId,
         isNative,
         balance: balance.amount,
-        secondary: balanceInFiat,
+        secondary: balanceInFiat.toString(),
         string: '',
-        balanceFiat: balanceInFiat, // for now we are keeping this is to satisfy sort, this should be fiat amount
+        balanceFiat: balanceInFiat.toString(), // for now we are keeping this is to satisfy sort, this should be fiat amount
         isStakeable: false,
         aggregators: [],
         isETH: false,
