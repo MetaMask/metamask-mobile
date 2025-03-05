@@ -14,6 +14,7 @@ import Engine from '../../../core/Engine';
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
+import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
