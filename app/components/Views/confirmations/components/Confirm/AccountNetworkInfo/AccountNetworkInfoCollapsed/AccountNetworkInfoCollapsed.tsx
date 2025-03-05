@@ -11,6 +11,7 @@ import Badge, {
 } from '../../../../../../../component-library/components/Badges/Badge';
 import Text from '../../../../../../../component-library/components/Texts/Text';
 import BadgeWrapper from '../../../../../../../component-library/components/Badges/BadgeWrapper';
+import TagBase from '../../../../../../../component-library/base-components/TagBase';
 import { getLabelTextByAddress } from '../../../../../../../util/address';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
@@ -60,6 +61,11 @@ const AccountNetworkInfoCollapsed = () => {
             <View style={styles.accountLabelWrapper}>
               <Text style={styles.accountLabel}>{accountLabel}</Text>
             </View>
+          )}
+          {accountLabel && (
+            <TagBase style={styles.accountLabelWrapper}>
+              <Text style={styles.accountLabel}>{accountLabel}</Text>
+            </TagBase>
           )}
         </View>
         <Text style={styles.networkName}>{networkName}</Text>
