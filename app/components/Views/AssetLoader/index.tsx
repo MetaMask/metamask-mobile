@@ -7,6 +7,9 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
 import { selectTokenDisplayData } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { useStyles } from '../../../component-library/hooks';
+import styleSheet from './styles';
+
 export interface AssetLoaderProps {
     route: {
         params: {
@@ -19,6 +22,8 @@ export interface AssetLoaderProps {
 export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { address, chainId } } }) => {
     const tokenResult = useSelector((state: RootState) => selectTokenDisplayData(state, chainId, address));
     const navigation = useNavigation();
+
+    const { styles } = useStyles(styleSheet, {});
 
     useEffect(() => {
         Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(chainId, address);
@@ -35,7 +40,7 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { add
 
     if (!tokenResult) {
         return (
-            <View style={{flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center'}}>
+            <View style={styles.container}>
                 <ActivityIndicator size="large" />
             </View>
         );
@@ -43,7 +48,7 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { add
 
     if (!tokenResult.found) {
         return (
-            <View>
+            <View style={styles.container}>
                 <Text>Token not found</Text>
             </View>
         );
