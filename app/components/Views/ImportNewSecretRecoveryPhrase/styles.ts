@@ -4,8 +4,6 @@ import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { Colors } from '../../../util/theme/models';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     mainWrapper: {
