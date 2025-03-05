@@ -129,6 +129,7 @@ const snapMethodMiddlewareBuilder = (
       engineContext.ApprovalController.addAndShowApprovalRequest.bind(
         engineContext.ApprovalController,
       ),
+    getIsLocked: () => !engineContext.KeyringController.isUnlocked(),
   });
 
 export default snapMethodMiddlewareBuilder;
