@@ -17,6 +17,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
       padding: 10,
       flexDirection: 'row',
       alignItems: 'center',
+      backgroundColor: colors.background.default,
     },
     category: {
       color: colors.text.default,
@@ -59,6 +60,16 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     resultActionButton: {
       marginLeft: 10,
     },
+    hiddenButton: {
+      opacity: 0,
+    },
+    priceContainer: {
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+    },
+    price: {
+      color: colors.text.default,
+    }
   });
 
 export default styleSheet;

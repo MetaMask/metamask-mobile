@@ -56,6 +56,7 @@ export const currencyRateControllerInit: ControllerInitFunction<
   });
 
   const controller = new CurrencyRateController({
+    includeUsdRate: true,
     messenger: controllerMessenger,
     state: {
       ...persistedCurrencyRateState,

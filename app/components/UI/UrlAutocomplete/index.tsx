@@ -40,6 +40,7 @@ import { useAddNetwork } from '../../hooks/useAddNetwork';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { useNavigation } from '@react-navigation/native';
+import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selectors/currencyRateController';
 
 export * from './types';
 
@@ -56,14 +57,25 @@ const UrlAutocomplete = forwardRef<
 >(({ onSelect, onDismiss }, ref) => {
   const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([]);
   const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearchDiscovery();
-  const tokenResults: TokenSearchResult[] = useMemo(() => tokenSearchResults.map(({tokenAddress, usdPricePercentChange: _, chainId, ...rest}) => ({
+  const usdConversionRate = useSelector(selectUsdConversionRate);
+  const tokenResults: TokenSearchResult[] = useMemo(() => tokenSearchResults.map(({tokenAddress, usdPricePercentChange, usdPrice, chainId, ...rest}) => ({
     ...rest,
     type: 'tokens',
     address: tokenAddress,
     chainId: chainId as Hex,
-  })), [tokenSearchResults]);
+    price: usdConversionRate ? usdPrice / usdConversionRate : -1,
+    percentChange: usdPricePercentChange.oneDay,
+  })), [tokenSearchResults, usdConversionRate]);
 
   const hasResults = fuseResults.length > 0 || tokenResults.length > 0;
+
+  const currentCurrency = useSelector(selectCurrentCurrency);
+
+  useEffect(() => {
+    if (currentCurrency) {
+      Engine.context.CurrencyRateController.updateExchangeRate([currentCurrency]);
+    }
+  }, [currentCurrency]);
 
   const resultsByCategory: {category: string, data: AutocompleteSearchResult[]}[] = useMemo(() => (
     ORDERED_CATEGORIES.flatMap((category) => {

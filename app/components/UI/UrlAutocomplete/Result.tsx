@@ -18,6 +18,9 @@ import { selectSupportedSwapTokenAddresses } from '../../../selectors/tokenSearc
 import { RootState } from '../../../reducers';
 import { isSwapsAllowed } from '../Swaps/utils';
 import AppConstants from '../../../core/AppConstants';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import { addCurrencySymbol } from '../../../util/number';
+import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 
 interface ResultProps {
     result: AutocompleteSearchResult;
@@ -39,7 +42,9 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
 
     const swapTokenAddresses = useSelector((state: RootState) => selectSupportedSwapTokenAddresses(state, result.type === 'tokens' ? result.chainId : '0x'));
 
-    const displaySwapButton = result.type === 'tokens' && isSwapsAllowed(result.chainId) && swapTokenAddresses?.includes(result.address) && AppConstants.SWAPS.ACTIVE;
+    const swapsEnabled = result.type === 'tokens' && isSwapsAllowed(result.chainId) && swapTokenAddresses?.includes(result.address) && AppConstants.SWAPS.ACTIVE;
+
+    const currentCurrency = useSelector(selectCurrentCurrency);
 
     return (
       <TouchableOpacity
@@ -88,11 +93,25 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
             )
           }
           {
-            displaySwapButton && (
+            result.type === 'tokens' && (
+              <View style={styles.priceContainer}>
+                <Text style={styles.price}>
+                  {addCurrencySymbol(result.price, currentCurrency, true)}
+                </Text>
+                <PercentageChange value={result.percentChange ?? 0} />
+              </View>
+            )
+          }
+          {
+            result.type === 'tokens' && (
               <ButtonIcon
-                style={styles.resultActionButton}
+                style={{
+                  ...styles.resultActionButton,
+                  ...(swapsEnabled ? {} : styles.hiddenButton),
+                }}
                 iconName={IconName.SwapHorizontal}
                 onPress={() => onSwapPress(result)}
+                disabled={!swapsEnabled}
               />
             )
           }
