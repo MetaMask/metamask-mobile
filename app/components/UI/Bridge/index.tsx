@@ -162,6 +162,7 @@ const BridgeView = () => {
             tokenAddress={sourceToken?.address}
             networkImageSource={getNetworkImage(sourceChainId)}
             autoFocus
+            isReadonly
           />
           <Box style={styles.arrowContainer}>
             <Box
