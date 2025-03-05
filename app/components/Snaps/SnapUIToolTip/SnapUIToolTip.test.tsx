@@ -13,7 +13,7 @@ describe('SnapUITooltip', () => {
 
     expect(Tooltip).toHaveBeenCalledWith(
       expect.objectContaining({
-        content: content,
+        content,
       }),
       expect.any(Object),
     );
@@ -25,7 +25,7 @@ describe('SnapUITooltip', () => {
 
     expect(Tooltip).toHaveBeenCalledWith(
       expect.objectContaining({
-        content: content,
+        content,
       }),
       expect.any(Object),
     );

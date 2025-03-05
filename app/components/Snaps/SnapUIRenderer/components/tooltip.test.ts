@@ -1,9 +1,4 @@
-import {
-  Text,
-  SnapElement,
-  TextProps,
-  TooltipProps,
-} from '@metamask/snaps-sdk/jsx';
+import { Text, SnapElement, TooltipProps } from '@metamask/snaps-sdk/jsx';
 import { tooltip } from './tooltip';
 import { mockTheme } from '../../../../util/theme';
 
@@ -17,7 +12,7 @@ describe('tooltip component', () => {
   };
 
   it('should render tooltip with string content', () => {
-    const element = {
+    const e = {
       type: 'Tooltip' as const,
       props: {
         content: 'Tooltip content',
@@ -27,7 +22,7 @@ describe('tooltip component', () => {
     };
 
     const result = tooltip({
-      element: element as unknown as SnapElement<TooltipProps, 'Tooltip'>,
+      element: e as unknown as SnapElement<TooltipProps, 'Tooltip'>,
       ...defaultParams,
     });
 
@@ -81,7 +76,7 @@ describe('tooltip component', () => {
   });
 
   it('should render tooltip with complex content', () => {
-    const element = {
+    const e = {
       type: 'Tooltip' as const,
       props: {
         content: Text({ children: 'Complex content' }),
@@ -91,7 +86,7 @@ describe('tooltip component', () => {
     };
 
     const result = tooltip({
-      element: element as unknown as SnapElement<TooltipProps, 'Tooltip'>,
+      element: e as unknown as SnapElement<TooltipProps, 'Tooltip'>,
       ...defaultParams,
     });
 
@@ -145,7 +140,7 @@ describe('tooltip component', () => {
   });
 
   it('should handle nested children', () => {
-    const element = {
+    const e = {
       type: 'Tooltip' as const,
       props: {
         content: 'Tooltip content',
@@ -155,7 +150,7 @@ describe('tooltip component', () => {
     };
 
     const result = tooltip({
-      element: element as unknown as SnapElement<TooltipProps, 'Tooltip'>,
+      element: e as unknown as SnapElement<TooltipProps, 'Tooltip'>,
       ...defaultParams,
     });
 
