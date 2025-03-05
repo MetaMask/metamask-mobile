@@ -1162,6 +1162,10 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
             - zip_name: 'E2E_IOS_Failure_Artifacts'
+    meta:
+      bitrise.io:
+        stack: osx-xcode-15.0.x
+        machine_type_id: g2.mac.x-large
   start_e2e_tests:
     steps:
       - build-router-start@0:

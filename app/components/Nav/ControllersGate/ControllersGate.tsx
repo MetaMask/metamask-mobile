@@ -2,8 +2,8 @@ import React from 'react';
 import { ControllersGateProps } from './types';
 import { useSelector } from 'react-redux';
 import { selectIsControllersLoaded } from '../../../reducers/user';
-import { useStyles } from '../../../component-library/hooks';
-import styleSheet from './styles';
+// import { useStyles } from '../../../component-library/hooks';
+// import styleSheet from './styles';
 import FoxLoader from '../../UI/FoxLoader';
 /**
  * ControllersGate component
@@ -14,7 +14,7 @@ import FoxLoader from '../../UI/FoxLoader';
 const ControllersGate: React.FC<ControllersGateProps> = ({
   children,
 }: ControllersGateProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  //   const { styles } = useStyles(styleSheet, {});
   const isControllersLoaded = useSelector(selectIsControllersLoaded);
 
   return (
