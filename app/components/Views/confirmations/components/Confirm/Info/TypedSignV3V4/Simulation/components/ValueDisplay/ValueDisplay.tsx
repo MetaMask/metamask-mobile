@@ -133,6 +133,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   const isNFT = tokenId !== undefined && tokenId !== '0';
   const isDaiUnlimited = isPermitDaiUnlimited(tokenContract, allowed);
   const isDaiRevoke = isPermitDaiRevoke(tokenContract, allowed, value);
+  const isRevoke = isDaiRevoke || modalHeaderText === strings('confirm.title.permit_revoke');
 
   const tokenAmount =
     isNumberValue(value) && !tokenId
@@ -141,7 +142,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 
   const isValidTokenAmount =
     !isNFT &&
-    !isDaiRevoke &&
+    !isRevoke &&
     tokenAmount !== null &&
     tokenAmount !== undefined &&
     tokenAmount instanceof BigNumber;
