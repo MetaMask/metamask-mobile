@@ -17,29 +17,16 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-// Type to replace 'any' for style objects
-interface StyleObject {
-  [key: string]: string | number | undefined;
-}
-
 const customStyles = {
   alignStart: {
     alignSelf: 'flex-start' as FlexAlignType,
   },
 };
 
-// Helper function to safely check for opacity style
-const findOpacityStyle = (styles: StyleObject) => {
-  if (!styles) return undefined;
-  if (!Array.isArray(styles)) {
-    return 'opacity' in styles ? styles : undefined;
-  }
-  return styles.find(
-    (style) => style && typeof style === 'object' && 'opacity' in style,
-  );
-};
-
 describe('Skeleton', () => {
+  // Disable console.log warnings for tests
+  /* eslint-disable no-console */
+
   it('should render Skeleton without error', () => {
     const { getByTestId } = render(<Skeleton testID="skeleton" />);
     expect(getByTestId('skeleton')).toBeDefined();
@@ -55,7 +42,7 @@ describe('Skeleton', () => {
       <Skeleton testID="skeleton" style={customStyles.alignStart} />,
     );
     const skeletonElement = getByTestId('skeleton');
-    expect(skeletonElement.props.style[0].alignSelf).toBe('flex-start');
+    expect(skeletonElement.props.style.alignSelf).toBe('flex-start');
   });
 
   it('should render with explicit height and width', () => {
@@ -63,8 +50,8 @@ describe('Skeleton', () => {
       <Skeleton testID="skeleton" height={100} width={200} />,
     );
     const skeletonElement = getByTestId('skeleton');
-    expect(skeletonElement.props.style[0].height).toBe(100);
-    expect(skeletonElement.props.style[0].width).toBe(200);
+    expect(skeletonElement.props.style.height).toBe(100);
+    expect(skeletonElement.props.style.width).toBe(200);
   });
 
   it('should render with string dimensions', () => {
@@ -72,8 +59,8 @@ describe('Skeleton', () => {
       <Skeleton testID="skeleton" height="50%" width="100%" />,
     );
     const skeletonElement = getByTestId('skeleton');
-    expect(skeletonElement.props.style[0].height).toBe('50%');
-    expect(skeletonElement.props.style[0].width).toBe('100%');
+    expect(skeletonElement.props.style.height).toBe('50%');
+    expect(skeletonElement.props.style.width).toBe('100%');
   });
 
   it('should render with children', () => {
@@ -86,8 +73,10 @@ describe('Skeleton', () => {
       </Skeleton>,
     );
 
-    expect(getByTestId(childTestId)).toBeDefined();
-    expect(getByTestId(childrenWrapperId)).toBeDefined();
+    const childElement = getByTestId(childTestId);
+    const childrenWrapper = getByTestId(childrenWrapperId);
+    expect(childElement).toBeDefined();
+    expect(childrenWrapper).toBeDefined();
   });
 
   it('should hide children when hideChildren is true', () => {
@@ -96,7 +85,6 @@ describe('Skeleton', () => {
 
     const { getByTestId } = render(
       <Skeleton
-        testID="skeleton-parent"
         hideChildren
         childrenWrapperProps={{ testID: childrenWrapperId }}
       >
@@ -104,19 +92,8 @@ describe('Skeleton', () => {
       </Skeleton>,
     );
 
-    // Check that the child is rendered
-    const childElement = getByTestId(childTestId);
-    expect(childElement).toBeDefined();
-
-    // Directly get the children wrapper using its testID
     const childrenWrapper = getByTestId(childrenWrapperId);
-    expect(childrenWrapper).toBeDefined();
-
-    // Check that the opacity is 0 in the style array
-    const childWrapperStyles = childrenWrapper.props.style;
-    const opacityStyle = findOpacityStyle(childWrapperStyles);
-    expect(opacityStyle).toBeDefined();
-    expect(opacityStyle?.opacity).toBe(0);
+    expect(childrenWrapper.props.style[1]).toEqual({ opacity: 0 });
   });
 
   it('should display children normally when hideChildren is false', () => {
@@ -124,35 +101,13 @@ describe('Skeleton', () => {
     const childrenWrapperId = 'children-wrapper';
 
     const { getByTestId } = render(
-      <Skeleton
-        testID="skeleton-parent"
-        childrenWrapperProps={{ testID: childrenWrapperId }}
-      >
+      <Skeleton childrenWrapperProps={{ testID: childrenWrapperId }}>
         <View testID={childTestId} />
       </Skeleton>,
     );
 
-    // Check that the child is rendered
-    const childElement = getByTestId(childTestId);
-    expect(childElement).toBeDefined();
-
-    // Directly get the children wrapper using its testID
     const childrenWrapper = getByTestId(childrenWrapperId);
-    expect(childrenWrapper).toBeDefined();
-
-    // Check that the wrapper does not have opacity: 0
-    const childWrapperStyles = childrenWrapper.props.style;
-
-    // Use our safe helper to check for opacity
-    const opacityStyle = findOpacityStyle(childWrapperStyles);
-
-    // If opacity style exists, ensure it's not 0
-    if (opacityStyle) {
-      expect(opacityStyle.opacity).not.toBe(0);
-    } else {
-      // If no opacity style is found, that's also acceptable
-      expect(opacityStyle).toBeUndefined();
-    }
+    expect(childrenWrapper.props.style[1]).toBe(undefined);
   });
 
   it('should animate when no children are present', () => {
@@ -166,11 +121,16 @@ describe('Skeleton', () => {
     );
 
     const skeletonElement = getByTestId('skeleton');
-    expect(skeletonElement).toBeDefined();
-
-    // Check that the animated background is present
     const animatedBackground = getByTestId(animatedBackgroundId);
+    expect(skeletonElement).toBeDefined();
     expect(animatedBackground).toBeDefined();
+    expect(animatedBackground.props.style).toEqual(
+      expect.objectContaining({
+        position: 'absolute',
+        backgroundColor: expect.any(String),
+        borderRadius: 4,
+      }),
+    );
   });
 
   it('should animate when children are hidden', () => {
@@ -189,18 +149,11 @@ describe('Skeleton', () => {
       </Skeleton>,
     );
 
-    // Check for animated background
     const animatedBackground = getByTestId(animatedBackgroundId);
-    expect(animatedBackground).toBeDefined();
-
-    // Check that child is present but hidden
     const childElement = getByTestId(childTestId);
-    expect(childElement).toBeDefined();
-
-    // Check children wrapper has opacity 0
     const childrenWrapper = getByTestId(childrenWrapperId);
-    const childWrapperStyles = childrenWrapper.props.style;
-    const opacityStyle = findOpacityStyle(childWrapperStyles);
-    expect(opacityStyle?.opacity).toBe(0);
+    expect(animatedBackground).toBeDefined();
+    expect(childElement).toBeDefined();
+    expect(childrenWrapper.props.style[1]).toEqual({ opacity: 0 });
   });
 });
