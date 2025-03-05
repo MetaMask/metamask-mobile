@@ -22,6 +22,7 @@ export const userInitialState: UserState = {
   initialScreen: '',
   appTheme: AppThemeKey.os,
   ambiguousAddressEntries: {},
+  isControllersLoaded: false,
 };
 
 /**
@@ -108,6 +109,11 @@ const userReducer = (
       return {
         ...state,
         appTheme: action.payload.theme,
+      };
+    case UserActionType.SET_CONTROLLERS_LOADED:
+      return {
+        ...state,
+        isControllersLoaded: true,
       };
     default:
       return state;

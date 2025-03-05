@@ -97,7 +97,8 @@ const persistTransform = createTransform(
 
 const persistUserTransform = createTransform(
   (inboundState: UserState) => {
-    const { initialScreen, isAuthChecked, ...state } = inboundState;
+    const { initialScreen, isAuthChecked, isControllersLoaded, ...state } =
+      inboundState;
     // Reconstruct data to persist
     return state;
   },

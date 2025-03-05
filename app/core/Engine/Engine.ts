@@ -93,7 +93,6 @@ import {
   deprecatedGetNetworkId,
 } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
-import { store } from '../../store';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -225,6 +224,7 @@ import {
 } from './controllers/SnapController/constants';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
+import ReduxService from '../redux/ReduxService';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -294,7 +294,7 @@ export class Engine {
     this.controllerMessenger = new ExtendedControllerMessenger();
 
     const isBasicFunctionalityToggleEnabled = () =>
-      selectBasicFunctionalityEnabled(store.getState());
+      selectBasicFunctionalityEnabled(ReduxService.store.getState());
 
     const approvalController = new ApprovalController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1170,7 +1170,7 @@ export class Engine {
       hooks: {
         publish: (transactionMeta) => {
           const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-            store.getState(),
+            ReduxService.store.getState(),
           );
 
           return submitSmartTransactionHook({
@@ -1181,7 +1181,9 @@ export class Engine {
             approvalController,
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             controllerMessenger: this.controllerMessenger,
-            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
+            featureFlags: selectSwapsChainFeatureFlags(
+              ReduxService.store.getState(),
+            ),
           }) as Promise<{ transactionHash: string }>;
         },
       },
@@ -1275,7 +1277,8 @@ export class Engine {
       updateTransaction: this.transactionController.updateTransaction.bind(
         this.transactionController,
       ),
-      getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
+      getFeatureFlags: () =>
+        selectSwapsChainFeatureFlags(ReduxService.store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
@@ -1574,7 +1577,7 @@ export class Engine {
       async () => {
         try {
           const networkId = await deprecatedGetNetworkId();
-          store.dispatch(networkIdUpdated(networkId));
+          ReduxService.store.dispatch(networkIdUpdated(networkId));
         } catch (error) {
           console.error(
             error,
@@ -1589,7 +1592,7 @@ export class Engine {
     this.controllerMessenger.subscribe(
       `${networkController.name}:networkWillChange`,
       () => {
-        store.dispatch(networkIdWillUpdate());
+        ReduxService.store.dispatch(networkIdWillUpdate());
       },
     );
 
@@ -1597,6 +1600,8 @@ export class Engine {
     this.startPolling();
     this.handleVaultBackup();
     this._addTransactionControllerListeners();
+
+    throw new Error('TEST');
 
     Engine.instance = this;
   }
@@ -1607,7 +1612,7 @@ export class Engine {
     properties: JsonMap,
   ) => {
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-      store.getState(),
+      ReduxService.store.getState(),
     );
     if (
       !shouldUseSmartTransaction ||
@@ -1760,7 +1765,8 @@ export class Engine {
       const { chainId, ticker } = NetworkController.getNetworkClientById(
         getGlobalNetworkClientId(NetworkController),
       ).configuration;
-      const { settings: { showFiatOnTestnets } = {} } = store.getState();
+      const { settings: { showFiatOnTestnets } = {} } =
+        ReduxService.store.getState();
 
       if (isTestNet(chainId) && !showFiatOnTestnets) {
         return { ethFiat: 0, tokenFiat: 0, ethFiat1dAgo: 0, tokenFiat1dAgo: 0 };
@@ -1908,7 +1914,7 @@ export class Engine {
     try {
       const {
         engine: { backgroundState },
-      } = store.getState();
+      } = ReduxService.store.getState();
       // TODO: Check `allNfts[currentChainId]` property instead
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;

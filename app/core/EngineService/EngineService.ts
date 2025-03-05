@@ -15,6 +15,7 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { MetaMetrics } from '../Analytics';
+import { setControllersLoaded } from '../../actions/user';
 
 const LOG_TAG = 'EngineService';
 
@@ -64,15 +65,23 @@ export class EngineService {
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.updateControllers(Engine as unknown as TypedEngine);
+
+      // Let the app know that the controllers are finished processing
+      ReduxService.store.dispatch(setControllersLoaded());
     } catch (error) {
+      // Let the app know that the controllers are finished processing
+      ReduxService.store.dispatch(setControllersLoaded());
+
       Logger.error(
         error as Error,
         'Failed to initialize Engine! Falling back to vault recovery.',
       );
-      // Navigate to vault recovery
-      NavigationService.navigation?.reset({
-        routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
-      });
+      setTimeout(() => {
+        // Navigate to vault recovery
+        NavigationService.navigation?.reset({
+          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+        });
+      }, 1000);
     }
     endTrace({ name: TraceName.EngineInitialization });
   };

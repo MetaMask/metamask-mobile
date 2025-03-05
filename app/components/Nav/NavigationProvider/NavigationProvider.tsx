@@ -17,6 +17,8 @@ import {
   TraceName,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import FoxLoader from '../../../components/UI/FoxLoader';
+import Routes from '../../../constants/navigation/Routes';
 
 const Stack = createStackNavigator();
 
@@ -72,6 +74,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
         initialRouteName="NavigationProvider"
         screenOptions={{ headerShown: false }}
       >
+        {/* <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} /> */}
         <Stack.Screen name="NavigationChildren">
           {() => <>{children}</>}
         </Stack.Screen>

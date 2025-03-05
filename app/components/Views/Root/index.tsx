@@ -12,6 +12,7 @@ import { ToastContextWrapper } from '../../../component-library/components/Toast
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
+import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
 
 /**
@@ -60,11 +61,13 @@ const Root = ({ foxCode }: RootProps) => {
         <PersistGate persistor={persistor}>
           <ThemeContext.Provider value={mockTheme}>
             <NavigationProvider>
-              <ToastContextWrapper>
-                <ErrorBoundary view="Root">
-                  <App />
-                </ErrorBoundary>
-              </ToastContextWrapper>
+              <ControllersGate>
+                <ToastContextWrapper>
+                  <ErrorBoundary view="Root">
+                    <App />
+                  </ErrorBoundary>
+                </ToastContextWrapper>
+              </ControllersGate>
             </NavigationProvider>
           </ThemeContext.Provider>
         </PersistGate>

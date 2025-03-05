@@ -23,6 +23,7 @@ export enum UserActionType {
   SET_GAS_EDUCATION_CAROUSEL_SEEN = 'SET_GAS_EDUCATION_CAROUSEL_SEEN',
   SET_APP_THEME = 'SET_APP_THEME',
   CHECKED_AUTH = 'CHECKED_AUTH',
+  SET_CONTROLLERS_LOADED = 'SET_CONTROLLERS_LOADED',
 }
 
 // User actions
@@ -85,6 +86,9 @@ export type CheckedAuthAction = Action<UserActionType.CHECKED_AUTH> & {
   payload: { initialScreen: string };
 };
 
+export type SetControllersLoadedAction =
+  Action<UserActionType.SET_CONTROLLERS_LOADED>;
+
 /**
  * User actions union type
  */
@@ -108,4 +112,5 @@ export type UserAction =
   | LoadingUnsetAction
   | SetGasEducationCarouselSeenAction
   | SetAppThemeAction
-  | CheckedAuthAction;
+  | CheckedAuthAction
+  | SetControllersLoadedAction;

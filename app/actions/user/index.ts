@@ -21,6 +21,7 @@ import {
   type CheckedAuthAction,
   type PersistedDataLoadedAction,
   UserActionType,
+  SetControllersLoadedAction,
 } from './types';
 
 export * from './types';
@@ -157,5 +158,11 @@ export function checkedAuth(initialScreen: string): CheckedAuthAction {
 export function onPersistedDataLoaded(): PersistedDataLoadedAction {
   return {
     type: UserActionType.ON_PERSISTED_DATA_LOADED,
+  };
+}
+
+export function setControllersLoaded(): SetControllersLoadedAction {
+  return {
+    type: UserActionType.SET_CONTROLLERS_LOADED,
   };
 }
