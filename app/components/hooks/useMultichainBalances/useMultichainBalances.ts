@@ -168,6 +168,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   return {
     multichainBalances: {
       displayBalance: getDisplayBalance(),
+      displayCurrency: currentCurrency,
       tokenFiatBalancesCrossChains:
         totalFiatBalancesCrossChain[selectedInternalAccount?.address as string]
           ?.tokenFiatBalancesCrossChains ?? [],
