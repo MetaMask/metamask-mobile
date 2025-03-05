@@ -50,6 +50,36 @@ const initialState = {
           },
         },
       },
+      MultichainAssetsController: {
+        accountsAssets: {
+          [MOCK_SOLANA_ACCOUNT.id]: [MultichainNativeAssets.Solana],
+        },
+        assetsMetadata: {
+          [MultichainNativeAssets.Solana]: {
+            symbol: 'SOL',
+            fungible: true,
+            name: 'Solana',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+            units: [
+              {
+                symbol: 'SOL',
+                decimals: 9,
+                name: 'Solana',
+              },
+            ],
+          },
+        },
+      },
+      MultichainAssetsRatesController: {
+        conversionRates: {
+          [MultichainNativeAssets.Solana]: {
+            currency: 'swift:0/iso4217:USD',
+            conversionTime: 1741136755156,
+            rate: '142.86',
+          },
+        },
+      },
       MultichainBalancesController: {
         balances: {
           [MOCK_SOLANA_ACCOUNT.id]: {
@@ -78,6 +108,7 @@ const initialState = {
       PreferencesController: {
         selectedAddress: MOCK_SOLANA_ACCOUNT.address,
         shouldShowFiat: true,
+        tokenSortConfig: { key: 'symbol', order: 'asc' },
       },
       MultichainNetworkController: {
         isEvmSelected: false,
@@ -123,16 +154,15 @@ describe('NonEvmTokens', () => {
 
   it('should display the Solana token with correct balance', async () => {
     const { getByTestId, getByText } = renderComponent();
-    expect(getByText('SOL')).toBeDefined();
+    expect(getByText('Solana')).toBeDefined();
     const balanceText = getByTestId('fiat-balance-test-id');
-    expect(balanceText.props.children).toBe('5.5 SOL');
+    expect(balanceText.props.children).toBe('$785.73');
   });
 
   it('should show fiat value', async () => {
     const { getByTestId } = renderComponent();
-    // With balance 5.5 and conversion rate 100, fiat value should be $550.00
     const balanceText = getByTestId('main-balance-test-id');
-    expect(balanceText).toBeDefined();
+    expect(balanceText.props.children).toBe('5.5 SOL');
   });
 
   it('should disable add token functionality', () => {

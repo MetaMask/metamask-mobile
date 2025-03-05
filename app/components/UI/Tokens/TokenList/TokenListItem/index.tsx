@@ -65,6 +65,7 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { addCurrencySymbol } from '../../../../../util/number';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -182,8 +183,17 @@ export const TokenListItem = React.memo(
     const shouldNotShowBalanceOnTestnets =
       isTestNet(chainId) && !showFiatOnTestnets;
 
+    if (!isEvmNetworkSelected) {
+      mainBalance = balanceValueFormatted;
+      secondaryBalance =
+        Number(asset.balanceFiat) >= 0.01 || Number(asset.balanceFiat) === 0
+          ? addCurrencySymbol(asset.balanceFiat, currentCurrency)
+          : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+      // secondaryBalance = asset.balanceFiat.toString();
+    }
+
     // Set main and secondary balances based on the primary currency and asset type.
-    if (primaryCurrency === 'ETH') {
+    if (isEvmNetworkSelected && primaryCurrency === 'ETH') {
       // Default to displaying the formatted balance value and its fiat equivalent.
       mainBalance = balanceValueFormatted;
       secondaryBalance = balanceFiat;
@@ -200,7 +210,7 @@ export const TokenListItem = React.memo(
           secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
         }
       }
-    } else {
+    } else if (isEvmNetworkSelected && primaryCurrency !== 'ETH') {
       secondaryBalance = balanceValueFormatted;
       if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
         mainBalance = undefined;

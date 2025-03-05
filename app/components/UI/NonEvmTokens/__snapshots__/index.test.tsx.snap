@@ -310,16 +310,20 @@ exports[`NonEvmTokens should render correctly 1`] = `
                           tokens={
                             [
                               {
-                                "address": "",
+                                "address": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
                                 "aggregators": [],
                                 "balance": "5.5",
-                                "balanceFiat": "550 USD",
+                                "balanceFiat": "785.73",
+                                "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
                                 "decimals": 9,
-                                "image": undefined,
+                                "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
                                 "isETH": false,
                                 "isNative": true,
-                                "logo": undefined,
-                                "name": "SOL",
+                                "isStakeable": false,
+                                "logo": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
+                                "name": "Solana",
+                                "secondary": "785.73",
+                                "string": "",
                                 "symbol": "SOL",
                                 "ticker": "SOL",
                               },
@@ -330,16 +334,20 @@ exports[`NonEvmTokens should render correctly 1`] = `
                       data={
                         [
                           {
-                            "address": "",
+                            "address": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501",
                             "aggregators": [],
                             "balance": "5.5",
-                            "balanceFiat": "550 USD",
+                            "balanceFiat": "785.73",
+                            "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
                             "decimals": 9,
-                            "image": undefined,
+                            "image": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
                             "isETH": false,
                             "isNative": true,
-                            "logo": undefined,
-                            "name": "SOL",
+                            "isStakeable": false,
+                            "logo": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
+                            "name": "Solana",
+                            "secondary": "785.73",
+                            "string": "",
                             "symbol": "SOL",
                             "ticker": "SOL",
                           },
@@ -487,7 +495,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  SOL
+                                  Solana
                                 </Text>
                               </View>
                             </View>
@@ -543,7 +551,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                 }
                                 testID="fiat-balance-test-id"
                               >
-                                5.5 SOL
+                                $785.73
                               </Text>
                               <Text
                                 accessibilityRole="text"
@@ -561,35 +569,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                 }
                                 testID="main-balance-test-id"
                               >
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "backgroundColor": "#f2f4f6",
-                                        "borderRadius": 30,
-                                        "padding": 14,
-                                      },
-                                      {
-                                        "padding": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "width": 50,
-                                      },
-                                    ]
-                                  }
-                                />
+                                5.5 SOL
                               </Text>
                             </View>
                           </TouchableOpacity>

@@ -748,6 +748,7 @@ export class Engine {
           target,
         ),
       getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
+      getIsLocked: () => AppState.currentState !== 'active',
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -2216,6 +2217,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainAssetsRatesController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
       BridgeController,
@@ -2262,6 +2264,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainAssetsRatesController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
       BridgeController,

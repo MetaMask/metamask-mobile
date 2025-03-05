@@ -12,6 +12,7 @@ import {
   selectMultichainCoinRates,
   selectMultichainBalances,
   MULTICHAIN_NETWORK_TO_ASSET_TYPES,
+  selectMultichainTokenList,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -25,6 +26,7 @@ import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
 import { BtcScope, SolAccountType, SolScope } from '@metamask/keyring-api';
+import { MultichainAssetsController } from '@metamask/assets-controllers';
 
 function getEvmState(
   chainId?: Hex,
@@ -65,6 +67,8 @@ function getEvmState(
             },
           },
         },
+        MultichainAssetsController: {},
+        MultichainAssetsRatesController: {},
         MultichainBalancesController: {
           balances: {
             [mockBtcAccount.id]: {
@@ -496,6 +500,80 @@ describe('MultichainNonEvm Selectors', () => {
       expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Testnet]).toEqual([
         MultichainNativeAssets.BitcoinTestnet,
       ]);
+    });
+  });
+
+  describe('selectMultichainBalances and selectMultichainCoinRates', () => {
+    it('selectMultichainBalances returns balances from the MultichainBalancesController state', () => {
+      const state = getEvmState();
+      const mockBalances = {
+        'account-1': {
+          [MultichainNativeAssets.Bitcoin]: { amount: '10', unit: 'BTC' },
+        },
+      };
+      state.engine.backgroundState.MultichainBalancesController.balances =
+        mockBalances;
+      expect(selectMultichainBalances(state)).toEqual(mockBalances);
+    });
+
+    it('NETWORK_ASSETS_MAP has correct mappings', () => {
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Mainnet]).toEqual([
+        MultichainNativeAssets.Solana,
+      ]);
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Testnet]).toEqual([
+        MultichainNativeAssets.SolanaTestnet,
+      ]);
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Devnet]).toEqual([
+        MultichainNativeAssets.SolanaDevnet,
+      ]);
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Mainnet]).toEqual([
+        MultichainNativeAssets.Bitcoin,
+      ]);
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Testnet]).toEqual([
+        MultichainNativeAssets.BitcoinTestnet,
+      ]);
+    });
+  });
+
+  describe('selectMultichainTokenList', () => {
+    it('returns a list of tokens', () => {
+      const selectedInternalAccountId = '30786334-3936-4663-b064-363539643939';
+      const state = getEvmState();
+      const mockBalances = {
+        [selectedInternalAccountId]: {
+          [MultichainNativeAssets.Bitcoin]: { amount: '10', unit: 'BTC' },
+        },
+      };
+      const mockAssets = {
+        [selectedInternalAccountId]: [MultichainNativeAssets.Bitcoin],
+      };
+      const mockAssetsMetadata = {
+        [MultichainNativeAssets.Bitcoin]: {
+          name: 'Bitcoin',
+          symbol: 'BTC',
+          units: [{ name: 'Bitcoin', symbol: 'BTC', decimals: 8 }],
+          iconUrl: 'https://example.com/btc.png',
+          fungible: true as const,
+        },
+      };
+      const mockAssetsRates = {
+        [MultichainNativeAssets.Bitcoin]: { rate: '2000', conversionTime: 0 },
+      };
+      state.engine.backgroundState.MultichainBalancesController.balances =
+        mockBalances;
+      state.engine.backgroundState.MultichainAssetsController.accountsAssets =
+        mockAssets;
+      state.engine.backgroundState.MultichainAssetsController.assetsMetadata =
+        mockAssetsMetadata;
+      state.engine.backgroundState.MultichainAssetsRatesController.conversionRates =
+        mockAssetsRates;
+
+      const tokenList = selectMultichainTokenList(state);
+
+      expect(tokenList.length).toEqual(1);
+      expect(tokenList[0].name).toEqual('Bitcoin');
+      expect(tokenList[0].symbol).toEqual('BTC');
+      expect(tokenList[0].balance).toEqual('10');
     });
   });
 });
