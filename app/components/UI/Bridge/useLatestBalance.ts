@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
 import { type Hex, type CaipChainId, isCaipChainId } from '@metamask/utils';
-import { ZERO_ADDRESS } from '@metamask/assets-controllers/dist/token-prices-service/codefi-v2.cjs';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
 import { getAddress } from 'ethers/lib/utils';
@@ -8,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectChainId } from '../../../selectors/networkController';
 import { getProviderByChainId } from '../../../util/notifications/methods/common';
-import { BigNumber, Contract } from 'ethers';
+import { BigNumber, constants, Contract } from 'ethers';
 import { renderFromWei } from '../../../util/number';
 
 export async function fetchAtomicTokenBalance(
@@ -30,7 +29,7 @@ export const fetchAtomicBalance = async (
   chainId: Hex,
 ): Promise<BigNumber | undefined> => {
   if (tokenAddress && chainId) {
-    if (tokenAddress === ZERO_ADDRESS) {
+    if (tokenAddress === constants.AddressZero) {
       return await web3Provider.getBalance(getAddress(selectedAddress));
     }
     return await fetchAtomicTokenBalance(tokenAddress, selectedAddress, web3Provider);
