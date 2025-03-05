@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { type Hex, type CaipChainId, isCaipChainId } from '@metamask/utils';
 import { ZERO_ADDRESS } from '@metamask/assets-controllers/dist/token-prices-service/codefi-v2.cjs';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
-import { formatUnits, getAddress } from 'ethers/lib/utils';
+import { getAddress } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectChainId } from '../../../selectors/networkController';
 import { getProviderByChainId } from '../../../util/notifications/methods/common';
 import { BigNumber, Contract } from 'ethers';
+import { renderFromWei } from '../../../util/number';
 
 export async function fetchAtomicTokenBalance(
   address: string,
@@ -37,57 +38,55 @@ export const fetchAtomicBalance = async (
   return undefined;
 };
 
+interface Balance {
+  displayBalance: string;
+  atomicBalance: BigNumber;
+}
 
 /**
- * Custom hook to fetch and format the latest balance of a given token or native asset.
- *
- * @param token - The token object for which the balance is to be fetched. Can be null.
+ * A hook that fetches and returns the latest balance for a given token.
+ * @param token - The token object containing address, decimals, and symbol.
  * @param chainId - The chain ID to be used for fetching the balance. Optional.
  * @returns An object containing the the balance as a non-atomic decimal string and the atomic balance as a BigNumber.
  */
 export const useLatestBalance = (
   token: {
-    address: string;
+    address?: string;
     decimals?: number;
     symbol?: string;
   },
   chainId?: Hex | CaipChainId,
 ) => {
-  const [atomicBalance, setAtomicBalance] = useState<BigNumber | undefined>(undefined);
-
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const [balance, setBalance] = useState<Balance | undefined>(undefined);
+  const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
   const currentChainId = useSelector(selectChainId);
 
+  const handleFetchAtomicBalance = useCallback(async () => {
+    if (
+      token.address &&
+      chainId && !isCaipChainId(chainId) &&
+      currentChainId === chainId &&
+      selectedAddress
+    ) {
+      const web3Provider = getProviderByChainId(currentChainId);
+      const atomicBalance = await fetchAtomicBalance(
+        web3Provider,
+        selectedAddress,
+        token.address,
+        chainId,
+      );
+      if (atomicBalance && token.decimals) {
+        setBalance({
+          displayBalance: renderFromWei(atomicBalance.toString(), token.decimals),
+          atomicBalance,
+        });
+      }
+    }
+  }, [token.address, token.decimals, chainId, currentChainId, selectedAddress]);
 
   useEffect(() => {
-    const handleFetchAtomicBalance = async () => {
-      if (
-        token?.address &&
-        chainId && !isCaipChainId(chainId) &&
-        currentChainId === chainId &&
-        selectedAddress
-      ) {
-        const web3Provider = getProviderByChainId(currentChainId);
-        const balance = await fetchAtomicBalance(
-          web3Provider,
-          selectedAddress,
-          token.address,
-          chainId,
-        );
-        setAtomicBalance(balance);
-      }
-    };
-
     handleFetchAtomicBalance();
-  }, [
-    chainId,
-    currentChainId,
-    token,
-    selectedAddress,
-  ]);
-
+  }, [handleFetchAtomicBalance]);
 
   if (!token.decimals || !token.symbol) {
     throw new Error(
@@ -95,14 +94,5 @@ export const useLatestBalance = (
     );
   }
 
-  return useMemo(
-    () =>
-      atomicBalance
-        ? {
-          displayBalance: formatUnits(atomicBalance, token?.decimals),
-          atomicBalance,
-        }
-        : undefined,
-    [atomicBalance, token?.decimals],
-  );
+  return balance;
 };
