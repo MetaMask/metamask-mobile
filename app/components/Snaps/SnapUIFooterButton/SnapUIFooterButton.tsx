@@ -112,7 +112,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
         color={
           variant === ButtonVariants.Primary
             ? DEFAULT_BUTTONPRIMARY_LABEL_COLOR
-            : theme.colors.text.alternative
+            : theme.colors.primary.default
         }
       >
         {children}
