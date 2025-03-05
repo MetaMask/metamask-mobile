@@ -790,8 +790,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   "flexDirection": "row",
                   "flexWrap": "wrap",
                   "justifyContent": "space-between",
-                  "paddingBottom": 8,
+                  "marginLeft": -8,
+                  "marginRight": -8,
+                  "paddingBottom": 0,
                   "paddingHorizontal": 8,
+                  "paddingTop": 0,
                 }
               }
               testID="info-row"
