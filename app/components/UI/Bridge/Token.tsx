@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Image, ImageSourcePropType, TouchableOpacity } from 'react-native';
+import { StyleSheet, ImageSourcePropType, TouchableOpacity } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
@@ -10,6 +10,7 @@ import Badge, { BadgeVariant } from '../../../component-library/components/Badge
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
+import TokenIcon from '../Swaps/components/TokenIcon';
 
 interface TokenProps {
   symbol?: string;
@@ -30,20 +31,6 @@ const createStyles = (params: StylesParams) => {
       width: 32,
       height: 32,
       borderRadius: 16,
-    },
-    fallbackIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: theme.colors.background.alternative,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    fallbackText: {
-      fontSize: 16,
-      color: theme.colors.text.default,
-      textAlign: 'center',
-      textTransform: 'uppercase',
     },
     pillContainer: {
       backgroundColor: theme.colors.background.default,
@@ -95,19 +82,16 @@ export const Token: React.FC<TokenProps> = ({
             />
           }
         >
-          {iconUrl ? (
-            <Image source={iconUrl} style={styles.icon} />
-          ) : (
-            <Box style={styles.fallbackIcon}>
-              <Text style={styles.fallbackText}>{symbol?.[0] || '?'}</Text>
-            </Box>
-          )}
+          <TokenIcon
+            symbol={symbol}
+            icon={typeof iconUrl === 'string' ? iconUrl : undefined}
+            style={styles.icon}
+          />
         </BadgeWrapper>
 
-          <Text style={styles.tokenSymbol}>
-            {symbol}
-          </Text>
-
+        <Text style={styles.tokenSymbol}>
+          {symbol}
+        </Text>
       </Box>
     </TouchableOpacity>
   );

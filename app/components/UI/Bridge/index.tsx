@@ -11,8 +11,6 @@ import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
 import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
 import Text, { TextColor } from '../../../component-library/components/Texts/Text';
-import ETHLogo from '../../../images/eth-logo-new.png';
-import BTCLogo from '../../../images/bitcoin-logo.png';
 import images from '../../../images/image-icons';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
@@ -105,12 +103,12 @@ const BridgeView = () => {
   const dispatch = useDispatch();
 
   // Bridge state from Redux
+  const sourceToken = useSelector(selectSourceToken);
+  const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const destAmount = useSelector(selectDestAmount);
   const sourceChainId = useSelector(selectSourceChainId);
   const destChainId = useSelector(selectDestChainId);
-  const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
 
   const sourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -160,7 +158,7 @@ const BridgeView = () => {
             value={sourceAmount}
             tokenSymbol={sourceToken?.symbol}
             tokenBalance={sourceBalance?.displayBalance}
-            tokenIconUrl={ETHLogo}
+            tokenIconUrl={sourceToken?.image ? { uri: sourceToken.image } : undefined}
             tokenAddress={sourceToken?.address}
             networkImageSource={getNetworkImage(sourceChainId)}
             autoFocus
@@ -178,7 +176,7 @@ const BridgeView = () => {
             value={destAmount}
             tokenSymbol={destToken?.symbol}
             tokenAddress={destToken?.address}
-            tokenIconUrl={BTCLogo}
+            tokenIconUrl={destToken?.image ? { uri: destToken.image } : undefined}
             networkImageSource={destChainId ? getNetworkImage(destChainId) : undefined}
             isReadonly
           />
