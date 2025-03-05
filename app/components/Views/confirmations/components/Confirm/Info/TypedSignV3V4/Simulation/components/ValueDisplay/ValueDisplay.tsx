@@ -179,7 +179,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
             {showValueButtonPill &&
               <AnimatedPulse isPulsing={isPendingTokenDetails} testID="simulation-value-display-loader">
                 <ButtonPill
-                  isDisabled={isNFT}
+                  isDisabled={isNFT || tokenValueMaxPrecision === null}
                   onPress={handlePressTokenValue}
                   onPressIn={handlePressTokenValue}
                   onPressOut={handlePressTokenValue}
