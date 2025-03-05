@@ -236,9 +236,9 @@ const BridgeView = () => {
             isReadonly
           />
         </Box>
+        {/* TODO Just a placeholder for now */}
+        {false && <ReceiveAddress address={undefined} />}
         <Box style={styles.bottomSection}>
-          {/* TODO Just a placeholder for now */}
-          {false && <ReceiveAddress address={undefined} />}
 
           <Numpad
             onNumberPress={handleNumpadPress}
