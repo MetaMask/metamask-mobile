@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
@@ -28,6 +28,7 @@ import {
   resetBridgeState,
   switchTokens,
 } from '../../../core/redux/slices/bridge';
+import { ethers } from 'ethers';
 
 const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -117,6 +118,15 @@ const BridgeView = () => {
     symbol: sourceToken?.symbol,
   }, sourceChainId);
 
+  const hasInsufficientBalance = useMemo(() => {
+    if (!sourceAmount || !sourceBalance?.atomicBalance || !sourceToken?.decimals) {
+      return false;
+    }
+
+    const sourceAmountAtomic = ethers.utils.parseUnits(sourceAmount, sourceToken.decimals);
+    return sourceAmountAtomic.gt(sourceBalance.atomicBalance);
+  }, [sourceAmount, sourceBalance?.atomicBalance, sourceToken?.decimals]);
+
   // Reset bridge state when component unmounts
   useEffect(() => () => {
       dispatch(resetBridgeState());
@@ -151,6 +161,40 @@ const BridgeView = () => {
     if (destChainId && destToken) {
       dispatch(switchTokens());
     }
+  };
+
+  const renderBottomContent = () => {
+    if (!sourceAmount || (sourceToken?.decimals && ethers.utils.parseUnits(sourceAmount, sourceToken.decimals).isZero())) {
+      return (
+        <Text color={TextColor.Alternative}>
+          Select amount
+        </Text>
+      );
+    }
+
+    if (hasInsufficientBalance) {
+      return (
+        <Text color={TextColor.Error}>
+          Insufficient balance
+        </Text>
+      );
+    }
+
+    return (
+      <>
+        <Button
+          variant={ButtonVariants.Primary}
+          label="Continue"
+          onPress={handleContinue}
+          style={styles.button}
+        />
+        <Button
+          variant={ButtonVariants.Link}
+          label={<Text color={TextColor.Alternative}>Terms & Conditions</Text>}
+          onPress={handleTermsPress}
+        />
+      </>
+    );
   };
 
   return (
@@ -208,17 +252,7 @@ const BridgeView = () => {
             alignItems={AlignItems.center}
             gap={12}
           >
-            <Button
-              variant={ButtonVariants.Primary}
-              label="Continue"
-              onPress={handleContinue}
-              style={styles.button}
-            />
-            <Button
-              variant={ButtonVariants.Link}
-              label={<Text color={TextColor.Alternative}>Terms & Conditions</Text>}
-              onPress={handleTermsPress}
-            />
+            {renderBottomContent()}
           </Box>
         </Box>
       </Box>
