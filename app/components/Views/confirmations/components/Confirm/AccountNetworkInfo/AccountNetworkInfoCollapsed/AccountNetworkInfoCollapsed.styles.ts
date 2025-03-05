@@ -15,10 +15,25 @@ const styleSheet = (params: { theme: Theme }) => {
       marginRight: 16,
       alignSelf: 'center',
     },
+    accountInfo: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     accountName: {
       color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
+    },
+    accountLabelWrapper: {
+      backgroundColor: theme.colors.background.alternative,
+      borderRadius: 16,
+      paddingHorizontal: 12,
+      paddingVertical: 2,
+      marginLeft: 8,
+    },
+    accountLabel: {
+      color: theme.colors.text.alternative,
     },
     networkName: {
       color: theme.colors.text.default,
