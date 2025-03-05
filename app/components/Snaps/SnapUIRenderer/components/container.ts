@@ -2,12 +2,12 @@ import { BoxElement, JSXElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
+import { DEFAULT_FOOTER } from './footer';
 
 export const container: UIComponentFactory<BoxElement> = ({
   element: e,
   useFooter,
   onCancel,
-  promptLegacyProps,
   t,
   ...params
 }) => {
@@ -29,8 +29,10 @@ export const container: UIComponentFactory<BoxElement> = ({
 
   if (useFooter && onCancel && !children[1]) {
     templateChildren.push({
+      ...DEFAULT_FOOTER,
       props: {
-        style: { alignItems: 'center' },
+        ...DEFAULT_FOOTER.props,
+        style: { ...DEFAULT_FOOTER.props.style, alignItems: 'center' },
       },
       children: {
         element: 'SnapUIFooterButton',
@@ -39,18 +41,45 @@ export const container: UIComponentFactory<BoxElement> = ({
           onCancel,
           isSnapAction: false,
         },
-        children: t('close'),
+        children: t('navigation.close'),
       },
-      element: 'Box',
     });
   }
 
+  const content = templateChildren[0];
+  const footer = templateChildren[1];
+
+  // The first element inside the container has larger margins and gap.
+  const styledContent = {
+    ...content,
+    props: {
+      ...content.props,
+      style: {
+        ...(content.props?.style ?? {}),
+        gap: 16,
+        margin: 16,
+      },
+    },
+  };
+
   return {
     element: 'Box',
-    children: templateChildren,
+    children: [
+      {
+        element: 'ScrollView',
+        key: 'default-scrollview',
+        children: styledContent,
+        props: {
+          style: {
+            marginBottom: useFooter && footer ? 80 : 0,
+          },
+        },
+      },
+      ...(footer ? [footer] : []),
+    ],
     props: {
       style: {
-        flex: 1,
+        flexGrow: 1,
         flexDirection: 'column',
       },
     },

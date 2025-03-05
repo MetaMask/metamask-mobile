@@ -2,6 +2,7 @@ import { HeadingElement } from '@metamask/snaps-sdk/jsx';
 import { heading } from './heading';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import { FlexWrap } from '../../../UI/Box/box.types';
+import { mockTheme } from '../../../../util/theme';
 
 describe('heading UIComponentFactory', () => {
   it('transform HeadingElement into Text format with default size', () => {
@@ -17,6 +18,7 @@ describe('heading UIComponentFactory', () => {
       element: mockHeadingElement,
       map: {},
       t: (key: string) => key,
+      theme: mockTheme,
     });
 
     expect(result).toEqual({
@@ -42,6 +44,7 @@ describe('heading UIComponentFactory', () => {
       element: mockHeadingElement as HeadingElement,
       map: {},
       t: (key: string) => key,
+      theme: mockTheme,
     });
 
     expect(result).toEqual({
@@ -67,6 +70,7 @@ describe('heading UIComponentFactory', () => {
       element: mockHeadingElement as HeadingElement,
       map: {},
       t: (key: string) => key,
+      theme: mockTheme,
     });
 
     expect(result).toEqual({
@@ -101,6 +105,7 @@ describe('heading UIComponentFactory', () => {
         element: mockHeadingElement as HeadingElement,
         map: {},
         t: (key: string) => key,
+        theme: mockTheme,
       });
 
       expect(result).toEqual({

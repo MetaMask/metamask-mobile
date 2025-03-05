@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
-import { scrypt } from 'react-native-fast-crypto';
 
 import {
   AccountTrackerController,
   AssetsContractController,
-  CurrencyRateController,
   NftController,
   NftDetectionController,
   TokenBalancesController,
@@ -14,9 +12,6 @@ import {
   TokenRatesController,
   TokensController,
   CodefiTokenPricesServiceV2,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  MultichainBalancesControllerMessenger,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -44,6 +39,7 @@ import {
   TransactionMeta,
   TransactionControllerOptions,
   TransactionControllerMessenger,
+  type TransactionParams,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
@@ -68,7 +64,6 @@ import {
   SnapInterfaceController,
   SnapInterfaceControllerMessenger,
 } from '@metamask/snaps-controllers';
-
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { createWebView, removeWebView } from '../../lib/snaps';
@@ -88,12 +83,7 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import {
-  Encryptor,
-  hmacSha512,
-  LEGACY_DERIVATION_OPTIONS,
-  pbkdf2,
-} from '../Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import {
   isMainnetByChainId,
   isTestNet,
@@ -127,15 +117,15 @@ import {
   detectSnapLocation,
 } from '../Snaps';
 import { getRpcMethodMiddleware } from '../RPCMethods/RPCMethodMiddleware';
-
+import { calculateScryptKey } from './controllers/identity/calculate-scrypt-key';
 import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import {
-  NotificationServicesController,
-  NotificationServicesPushController,
-} from '@metamask/notification-services-controller';
+import { getNotificationServicesControllerMessenger } from './messengers/notifications/notification-services-controller-messenger';
+import { createNotificationServicesController } from './controllers/notifications/create-notification-services-controller';
+import { getNotificationServicesPushControllerMessenger } from './messengers/notifications/notification-services-push-controller-messenger';
+import { createNotificationServicesPushController } from './controllers/notifications/create-notification-services-push-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -178,7 +168,11 @@ import {
 } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
-import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
+import {
+  ApprovalType,
+  toChecksumHexAddress,
+  type ChainId,
+} from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
@@ -193,13 +187,16 @@ import {
 import { snapKeyringBuilder } from '../SnapKeyring';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
-import { createMultichainBalancesController } from './controllers/MultichainBalancesController/utils';
+import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
 import { createMultichainRatesController } from './controllers/RatesController/utils';
 import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
+import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
+import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
+import { cronjobControllerInit } from './controllers/cronjob-controller/cronjob-controller-init';
 ///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
@@ -231,10 +228,10 @@ import {
   SnapControllerHandleRequestAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { createMultichainAssetsController } from './controllers/MultichainAssetsController';
-///: END:ONLY_INCLUDE_IF
-import { createMultichainNetworkController } from './controllers/MultichainNetworkController';
+import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
+import { BridgeStatusController } from '@metamask/bridge-status-controller';
+import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
+import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -361,21 +358,6 @@ export class Engine {
 
     networkController.initializeProvider();
 
-    const multichainNetworkControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'MultichainNetworkController',
-        allowedActions: [
-          'NetworkController:setActiveNetwork',
-          'NetworkController:getState',
-        ],
-        allowedEvents: ['AccountsController:selectedAccountChange'],
-      });
-
-    const multichainNetworkController = createMultichainNetworkController({
-      messenger: multichainNetworkControllerMessenger,
-      initialState: initialState.MultichainNetworkController,
-    });
-
     const assetsContractController = new AssetsContractController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'AssetsContractController',
@@ -396,52 +378,41 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        CurrencyRateController: currencyRateControllerInit,
+        MultichainNetworkController: multichainNetworkControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        CronjobController: cronjobControllerInit,
+        ///: END:ONLY_INCLUDE_IF
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        MultichainAssetsController: multichainAssetsControllerInit,
+        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
+        MultichainBalancesController: multichainBalancesControllerInit,
+        ///: END:ONLY_INCLUDE_IF
       },
       persistedState: initialState as EngineState,
       existingControllersByName: {},
       baseControllerMessenger: this.controllerMessenger,
     });
 
+    const multichainNetworkController =
+      controllersByName.MultichainNetworkController;
     const accountsController = controllersByName.AccountsController;
+    const currencyRateController = controllersByName.CurrencyRateController;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    const cronjobController = controllersByName.CronjobController;
+    ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainAssetsController =
+      controllersByName.MultichainAssetsController;
+    const multichainAssetsRatesController =
+      controllersByName.MultichainAssetsRatesController;
+    const multichainBalancesController =
+      controllersByName.MultichainBalancesController;
+    ///: END:ONLY_INCLUDE_IF
 
-    const multichainAssetsControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'MultichainAssetsController',
-        allowedEvents: [
-          'AccountsController:accountAdded',
-          'AccountsController:accountRemoved',
-          'AccountsController:accountAssetListUpdated',
-        ],
-        allowedActions: ['AccountsController:listMultichainAccounts'],
-      });
-
-    const multichainAssetsController = createMultichainAssetsController({
-      messenger: multichainAssetsControllerMessenger,
-      initialState: initialState.MultichainAssetsController,
-    });
-
-    const multichainBalancesControllerMessenger: MultichainBalancesControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'MultichainBalancesController',
-        allowedEvents: [
-          'AccountsController:accountAdded',
-          'AccountsController:accountRemoved',
-          'AccountsController:accountBalancesUpdated',
-          'MultichainAssetsController:stateChange',
-        ],
-        allowedActions: [
-          'AccountsController:listMultichainAccounts',
-          SnapControllerHandleRequestAction,
-        ],
-      });
-
-    const multichainBalancesController = createMultichainBalancesController({
-      messenger: multichainBalancesControllerMessenger,
-      initialState: initialState.MultichainBalancesController,
-    });
-
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainRatesControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'RatesController',
@@ -534,33 +505,6 @@ export class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
-    const currencyRateController = new CurrencyRateController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'CurrencyRateController',
-        allowedActions: [`${networkController.name}:getNetworkClientById`],
-        allowedEvents: [],
-      }),
-      // normalize `null` currencyRate to `0`
-      // TODO: handle `null` currencyRate by hiding fiat values instead
-      state: {
-        ...initialState.CurrencyRateController,
-        currencyRates: Object.fromEntries(
-          Object.entries(
-            initialState.CurrencyRateController?.currencyRates ?? {
-              ETH: {
-                conversionRate: 0,
-                conversionDate: 0,
-                usdConversionRate: null,
-              },
-            },
-          ).map(([k, v]) => [
-            k,
-            { ...v, conversionRate: v.conversionRate ?? 0 },
-          ]),
-        ),
-      },
-    });
-
     const gasFeeController = new GasFeeController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
@@ -642,7 +586,7 @@ export class Engine {
 
     const hdKeyringBuilder = () =>
       new HDKeyring({
-        cryptographicFunctions: { pbkdf2Sha512: pbkdf2, hmacSha512 },
+        cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
       });
     hdKeyringBuilder.type = HDKeyring.type;
     additionalKeyrings.push(hdKeyringBuilder);
@@ -677,11 +621,10 @@ export class Engine {
     };
 
     additionalKeyrings.push(
-      snapKeyringBuilder(
-        snapKeyringBuildMessenger,
-        persistAndUpdateAccounts,
-        (address) => this.removeAccount(address),
-      ),
+      snapKeyringBuilder(snapKeyringBuildMessenger, {
+        persistKeyringHelper: () => persistAndUpdateAccounts(),
+        removeAccountHelper: (address) => this.removeAccount(address),
+      }),
     );
 
     ///: END:ONLY_INCLUDE_IF
@@ -691,7 +634,6 @@ export class Engine {
         preferencesController,
       ),
       encryptor,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
         allowedActions: [],
@@ -700,6 +642,7 @@ export class Engine {
       state: initialKeyringState || initialState.KeyringController,
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: additionalKeyrings,
+      cacheEncryptionKey: true,
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -803,7 +746,7 @@ export class Engine {
           origin,
           target,
         ),
-      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2, hmacSha512 }),
+      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -1088,7 +1031,6 @@ export class Engine {
       }),
       clientCryptography: {
         pbkdf2Sha512: pbkdf2,
-        hmacSha512,
       },
     });
 
@@ -1121,7 +1063,6 @@ export class Engine {
         allowedActions: [
           'KeyringController:getState',
           'KeyringController:getAccounts',
-
           SnapControllerHandleRequestAction,
           'UserStorageController:enableProfileSyncing',
         ],
@@ -1178,8 +1119,6 @@ export class Engine {
           'AuthenticationController:isSignedIn',
           'AuthenticationController:performSignOut',
           'AuthenticationController:performSignIn',
-          'NotificationServicesController:disableNotificationServices',
-          'NotificationServicesController:selectIsNotificationServicesEnabled',
           'AccountsController:listAccounts',
           'AccountsController:updateAccountMetadata',
           'NetworkController:getState',
@@ -1195,75 +1134,24 @@ export class Engine {
           'NetworkController:networkRemoved',
         ],
       }),
-      nativeScryptCrypto: scrypt,
+      nativeScryptCrypto: calculateScryptKey,
     });
 
-    const notificationServicesController =
-      new NotificationServicesController.Controller({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'NotificationServicesController',
-          allowedActions: [
-            'KeyringController:getState',
-            'KeyringController:getAccounts',
-            'AuthenticationController:getBearerToken',
-            'AuthenticationController:isSignedIn',
-            'UserStorageController:enableProfileSyncing',
-            'UserStorageController:getStorageKey',
-            'UserStorageController:performGetStorage',
-            'UserStorageController:performSetStorage',
-            'NotificationServicesPushController:enablePushNotifications',
-            'NotificationServicesPushController:disablePushNotifications',
-            'NotificationServicesPushController:updateTriggerPushNotifications',
-          ],
-          allowedEvents: [
-            'KeyringController:unlock',
-            'KeyringController:lock',
-            'KeyringController:stateChange',
-          ],
-        }),
-        state: initialState.NotificationServicesController,
-        env: {
-          isPushIntegrated: false,
-          featureAnnouncements: {
-            platform: 'mobile',
-            accessToken: process.env
-              .FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN as string,
-            spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID as string,
-          },
-        },
-      });
+    const notificationServicesControllerMessenger =
+      getNotificationServicesControllerMessenger(this.controllerMessenger);
+    const notificationServicesController = createNotificationServicesController(
+      {
+        messenger: notificationServicesControllerMessenger,
+        initialState: initialState.NotificationServicesController,
+      },
+    );
 
     const notificationServicesPushControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'NotificationServicesPushController',
-        allowedActions: ['AuthenticationController:getBearerToken'],
-        allowedEvents: [],
-      });
-
+      getNotificationServicesPushControllerMessenger(this.controllerMessenger);
     const notificationServicesPushController =
-      new NotificationServicesPushController.Controller({
+      createNotificationServicesPushController({
         messenger: notificationServicesPushControllerMessenger,
-        state: initialState.NotificationServicesPushController || {
-          fcmToken: '',
-        },
-        env: {
-          apiKey: process.env.FIREBASE_API_KEY ?? '',
-          authDomain: process.env.FIREBASE_AUTH_DOMAIN ?? '',
-          storageBucket: process.env.FIREBASE_STORAGE_BUCKET ?? '',
-          projectId: process.env.FIREBASE_PROJECT_ID ?? '',
-          messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID ?? '',
-          appId: process.env.FIREBASE_APP_ID ?? '',
-          measurementId: process.env.FIREBASE_MEASUREMENT_ID ?? '',
-          vapidKey: process.env.VAPID_KEY ?? '',
-        },
-        config: {
-          isPushEnabled: true,
-          platform: 'mobile',
-          // TODO: Implement optionability for push notification handlers (depending of the platform) on the NotificationServicesPushController.
-          onPushNotificationReceived: () => Promise.resolve(undefined),
-          onPushNotificationClicked: () => Promise.resolve(undefined),
-        },
+        initialState: initialState.NotificationServicesPushController,
       });
     ///: END:ONLY_INCLUDE_IF
 
@@ -1397,6 +1285,52 @@ export class Engine {
       ),
       getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
+    });
+
+    /* bridge controller Initialization */
+
+    const bridgeController = new BridgeController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'BridgeController',
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'NetworkController:findNetworkClientIdByChainId',
+          'NetworkController:getState',
+          'NetworkController:getNetworkClientById',
+        ],
+        allowedEvents: [],
+      }),
+      clientId: BridgeClientId.MOBILE,
+      // TODO: change getLayer1GasFee type to match transactionController.getLayer1GasFee
+      getLayer1GasFee: async ({
+        transactionParams,
+        chainId,
+      }: {
+        transactionParams: TransactionParams;
+        chainId: ChainId;
+      }) =>
+        this.transactionController.getLayer1GasFee({
+          transactionParams,
+          chainId,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as any,
+      fetchFn: fetch,
+    });
+
+    const bridgeStatusController = new BridgeStatusController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'BridgeStatusController',
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
+          'NetworkController:getState',
+          'TransactionController:getState',
+        ],
+        allowedEvents: [],
+      }),
+      clientId: BridgeClientId.MOBILE,
+      fetchFn: fetch,
     });
 
     this.context = {
@@ -1589,6 +1523,7 @@ export class Engine {
       TokenSearchDiscoveryController: tokenSearchDiscoveryController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      CronjobController: cronjobController,
       SnapController: this.snapController,
       SnapsRegistry: snapsRegistry,
       SubjectMetadataController: this.subjectMetadataController,
@@ -1636,8 +1571,11 @@ export class Engine {
       MultichainBalancesController: multichainBalancesController,
       RatesController: multichainRatesController,
       MultichainAssetsController: multichainAssetsController,
+      MultichainAssetsRatesController: multichainAssetsRatesController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController: multichainNetworkController,
+      BridgeController: bridgeController,
+      BridgeStatusController: bridgeStatusController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2016,7 +1954,6 @@ export class Engine {
     await removeAccountsFromPermissions([address]);
     // Remove account from the keyring
     await this.keyringController.removeAccount(address as Hex);
-    return address;
   };
   ///: END:ONLY_INCLUDE_IF
 
@@ -2264,6 +2201,8 @@ export default {
       MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
+      BridgeController,
+      BridgeStatusController,
     } = instance.datamodel.state;
 
     return {
@@ -2307,6 +2246,8 @@ export default {
       MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
+      BridgeController,
+      BridgeStatusController,
     };
   },
 
