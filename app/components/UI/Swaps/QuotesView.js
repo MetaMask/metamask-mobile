@@ -1147,6 +1147,7 @@ function SwapsQuotesView({
           Logger.log(LOG_PREFIX, 'Failed to submit smart transaction', e);
           setIsHandlingSwap(false);
 
+          // Fallback to regular transaction submission if STX fails
           await handleCompleteSwap({ hasSTXFailed: true });
         }
       } else {
