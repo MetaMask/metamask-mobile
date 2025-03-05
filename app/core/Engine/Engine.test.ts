@@ -28,6 +28,18 @@ jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('@metamask/assets-controllers', () => {
+  const actualControllers = jest.requireActual('@metamask/assets-controllers');
+  // Mock the RatesController start method since it takes a while to run and causes timeouts in tests
+  class MockRatesController extends actualControllers.RatesController {
+    start = jest.fn().mockImplementation(() => Promise.resolve());
+  }
+  return {
+    ...actualControllers,
+    RatesController: MockRatesController,
+  };
+});
+
 describe('Engine', () => {
   // Create a shared mock account for tests
   const validAddress = MOCK_ADDRESS_1;
@@ -67,6 +79,8 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('MultichainBalancesController');
     expect(engine.context).toHaveProperty('RatesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
+    expect(engine.context).toHaveProperty('BridgeController');
+    expect(engine.context).toHaveProperty('BridgeStatusController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {

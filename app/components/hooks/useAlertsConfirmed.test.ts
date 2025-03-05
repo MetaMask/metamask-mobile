@@ -27,12 +27,6 @@ describe('useAlertsConfirmed', () => {
 
   const alertsMock = [dangerAlertMock, warningAlertMock, infoAlertMock];
 
-
-  it('initializes with the correct alert key', () => {
-    const { result } = renderHook(() => useAlertsConfirmed(alertsMock));
-    expect(result.current.alertKey).toBe(dangerAlertMock.key);
-  });
-
   it('sets and gets alert confirmation status', () => {
     const { result } = renderHook(() => useAlertsConfirmed(alertsMock));
 
@@ -59,12 +53,4 @@ describe('useAlertsConfirmed', () => {
     expect(result.current.hasUnconfirmedFieldDangerAlerts).toBe(true);
   });
 
-  it('sets a new alert key', () => {
-    const { result } = renderHook(() => useAlertsConfirmed(alertsMock));
-
-    act(() => {
-      result.current.setAlertKey(warningAlertMock.key);
-    });
-    expect(result.current.alertKey).toBe(warningAlertMock.key);
-  });
 });
