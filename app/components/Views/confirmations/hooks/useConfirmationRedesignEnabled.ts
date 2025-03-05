@@ -6,7 +6,10 @@ import {
 } from '@metamask/transaction-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 
-import { isHardwareAccount } from '../../../../util/address';
+import {
+  isExternalHardwareAccount,
+  isHardwareAccount,
+} from '../../../../util/address';
 import {
   type ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
@@ -24,14 +27,17 @@ const REDESIGNED_TRANSACTION_TYPES = [TransactionType.stakingDeposit];
 function isRedesignedSignature({
   approvalRequestType,
   confirmationRedesignFlags,
+  fromAddress,
 }: {
   approvalRequestType: ApprovalType;
   confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
+  fromAddress: string;
 }) {
   return (
     confirmationRedesignFlags?.signatures &&
     approvalRequestType &&
-    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType)
+    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType) &&
+    !isExternalHardwareAccount(fromAddress)
   );
 }
 
@@ -81,6 +87,7 @@ export const useConfirmationRedesignEnabled = () => {
       isRedesignedSignature({
         approvalRequestType,
         confirmationRedesignFlags,
+        fromAddress,
       }) ||
       isRedesignedTransaction({
         approvalRequestType,
