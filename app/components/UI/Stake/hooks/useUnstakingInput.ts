@@ -1,4 +1,4 @@
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import useBalance from './useBalance';
 import useInputHandler from './useInputHandler';
 
@@ -22,7 +22,7 @@ const useUnstakingInputHandlers = () => {
     percentageOptions,
     handleQuickAmountPress,
     currentCurrency,
-  } = useInputHandler({ balance: new BN(stakedBalanceWei) });
+  } = useInputHandler({ balance: new BN4(stakedBalanceWei) });
 
   const stakedBalanceValue = isEth
     ? formattedStakedBalanceETH
