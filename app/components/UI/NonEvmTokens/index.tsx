@@ -1,28 +1,14 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  selectMultichainDefaultToken,
-  selectMultichainSelectedAccountCachedBalance,
-  selectMultichainConversionRate,
-  selectMultichainShouldShowFiat,
   selectMultichainBalances,
-  selectMultichainAssetsMetadata,
-  selectMultichainAssets,
   selectMultichainTokenList,
 } from '../../../selectors/multichain';
 import { TokenList } from '../Tokens/TokenList';
 import { TokenI } from '../Tokens/types';
-import { renderFiat } from '../../../util/number';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { Image } from 'react-native';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import { MULTICHAIN_TOKEN_IMAGES } from '../../../core/Multichain/constants';
-import {
-  selectSelectedNonEvmNetworkChainId,
-  selectSelectedNonEvmNetworkDecimals,
-  selectSelectedNonEvmNetworkSymbol,
-} from '../../../selectors/multichainNetworkController';
+import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichainNetworkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { filterAssets } from '../Tokens/util/filterAssets';
 import { selectTokenSortConfig } from '../../../selectors/preferencesController';
@@ -39,7 +25,6 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   // Get all the data we need from selectors
 
   const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
-
   const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   // function getMultiChainFiatBalance(): string {
@@ -95,6 +80,8 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const goToAddToken = useCallback(() => {
     // Token management not supported for non-EVM chains yet
   }, []);
+
+  // console.log('sortedFilteredTokens', sortedFilteredTokens[0]);
 
   return (
     <TokenList

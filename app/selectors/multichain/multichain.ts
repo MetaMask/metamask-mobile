@@ -20,6 +20,7 @@ import {
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
 import { CaipAssetId, parseCaipAssetType } from '@metamask/utils';
+import BigNumber from 'bignumber.js';
 
 export enum MultichainNetworks {
   BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
@@ -229,32 +230,38 @@ export function selectMultichainAssetsMetadata(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
 }
 
+export function selectMultichainAssetsRates(state: RootState) {
+  return state.engine.backgroundState.MultichainAssetsRatesController
+    .conversionRates;
+}
+
 export const selectMultichainTokenList = createDeepEqualSelector(
   // selectSelectedNonEvmNetworkChainId,
   selectSelectedInternalAccount,
   selectMultichainBalances,
   selectMultichainAssets,
   selectMultichainAssetsMetadata,
+  selectMultichainAssetsRates,
   (
     // chainId,
     selectedAccountAddress,
     multichainBalances,
     assets,
     assetsMetadata,
+    assetsRates,
   ) => {
     if (!selectedAccountAddress) {
       return [];
     }
     const assetIds = assets?.[selectedAccountAddress.id] || [];
     const balances = multichainBalances?.[selectedAccountAddress.id];
-    console.log('assetIds............', balances);
     // @ts-ignore
     return assetIds.map((assetId: CaipAssetId) => {
       const { chainId, assetNamespace } = parseCaipAssetType(assetId);
       const isNative = assetNamespace === 'slip44';
       const balance = balances?.[assetId] || { amount: '0', unit: '' };
-      // const rate = assetRates?.[assetId]?.rate || '0';
-      // const balanceInFiat = new BigNumber(balance.amount).times(rate);
+      const rate = assetsRates?.[assetId]?.rate || '0';
+      const balanceInFiat = new BigNumber(balance.amount).times(rate);
 
       const assetMetadataFallback = {
         name: balance.unit,
@@ -276,9 +283,9 @@ export const selectMultichainTokenList = createDeepEqualSelector(
         chainId,
         isNative,
         balance: balance.amount,
-        secondary: 0,
+        secondary: balanceInFiat,
         string: '',
-        balanceFiat: '0', // for now we are keeping this is to satisfy sort, this should be fiat amount
+        balanceFiat: balanceInFiat, // for now we are keeping this is to satisfy sort, this should be fiat amount
         isStakeable: false,
         aggregators: [],
         isETH: false,

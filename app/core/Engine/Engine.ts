@@ -2166,6 +2166,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainAssetsRatesController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
     } = instance.datamodel.state;
@@ -2209,6 +2210,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainAssetsRatesController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
     };
