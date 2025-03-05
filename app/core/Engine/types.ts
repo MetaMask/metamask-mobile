@@ -46,6 +46,10 @@ import {
   MultichainAssetsControllerState,
   MultichainAssetsControllerEvents,
   MultichainAssetsControllerActions,
+  MultichainAssetsRatesController,
+  MultichainAssetsRatesControllerState,
+  MultichainAssetsRatesControllerEvents,
+  MultichainAssetsRatesControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
@@ -142,6 +146,10 @@ import {
   SnapInterfaceController,
   SnapsRegistryActions,
   SnapsRegistryEvents,
+  CronjobControllerState,
+  CronjobControllerEvents,
+  CronjobControllerActions,
+  CronjobController,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -287,11 +295,13 @@ type GlobalActions =
   | UserStorageController.Actions
   | NotificationServicesControllerMessengerActions
   | NotificationServicesPushControllerActions
+  | CronjobControllerActions
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | RatesControllerActions
   | MultichainAssetsControllerActions
+  | MultichainAssetsRatesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -329,11 +339,13 @@ type GlobalEvents =
   | UserStorageController.Events
   | NotificationServicesControllerMessengerEvents
   | NotificationServicesPushControllerEvents
+  | CronjobControllerEvents
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | RatesControllerEvents
   | MultichainAssetsControllerEvents
+  | MultichainAssetsRatesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -417,10 +429,12 @@ export type Controllers = {
   NotificationServicesController: NotificationServicesController;
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
+  CronjobController: CronjobController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
+  MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
@@ -468,6 +482,7 @@ export type EngineState = {
   NotificationServicesController: NotificationServicesControllerState;
   NotificationServicesPushController: NotificationServicesPushControllerState;
   SnapInterfaceController: SnapInterfaceControllerState;
+  CronjobController: CronjobControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
@@ -480,6 +495,7 @@ export type EngineState = {
   MultichainBalancesController: MultichainBalancesControllerState;
   RatesController: RatesControllerState;
   MultichainAssetsController: MultichainAssetsControllerState;
+  MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
   BridgeController: BridgeControllerState;
@@ -513,7 +529,18 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize = 'AccountsController';
+export type ControllersToInitialize =
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  | 'CronjobController'
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  | 'MultichainAssetsController'
+  | 'MultichainAssetsRatesController'
+  | 'MultichainBalancesController'
+  ///: END:ONLY_INCLUDE_IF
+  | 'CurrencyRateController'
+  | 'AccountsController'
+  | 'MultichainNetworkController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

@@ -4515,16 +4515,17 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^24.0.1":
-  version "24.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-24.0.1.tgz#e2743744a0f4b48e74cccde7d8de6eb30f55662a"
-  integrity sha512-bjTaqriUplaMXBEPGfrK9UuU9/EVb8IqS3rzGsFA/v1MkgYmUF1JHNUCsLDrxE9DbANHXM4phsuXeXroIiz6eA==
+"@metamask/accounts-controller@^24.1.0":
+  version "24.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-24.1.0.tgz#749c2e9617610c058c38fa355a680152e81e08dd"
+  integrity sha512-Yip2kbWEc0p0axaIB5accPHsrnON8p2277xPIklRNcJnMxjnkzDdqUQy8nc2eSiQoFsWnQLErDLeoSt4pgfooA==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@metamask/base-controller" "^8.0.0"
     "@metamask/eth-snap-keyring" "^11.1.0"
     "@metamask/keyring-api" "^17.2.0"
     "@metamask/keyring-internal-api" "^4.0.3"
+    "@metamask/keyring-utils" "^2.3.1"
     "@metamask/network-controller" "^22.2.1"
     "@metamask/snaps-sdk" "^6.17.1"
     "@metamask/snaps-utils" "^8.10.0"
@@ -4553,10 +4554,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^50.0.0":
-  version "50.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-50.0.0.tgz#de2e30659a32ac9371cfc055c1c4107336145808"
-  integrity sha512-mPT5g0GovgxQrZp7n/U85qxECbbezSdEL7Da5tGlbE5LkEwcEaYYBwVnlrE7Tv1cOrrW/GENlR1eG0nyDPvVlQ==
+"@metamask/assets-controllers@^51.0.2":
+  version "51.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-51.0.2.tgz#fc8ed8981fce62e4c7327393faffc2017874644d"
+  integrity sha512-dEJJw6qc5HMEiMJUTOrKhTYTMS8tuf3+gofZ9PHGSvPibUx/DivC1L3bouiMNgi2xzzH9ktfmkFyCN1lzFk22w==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4569,12 +4570,12 @@
     "@metamask/contract-metadata" "^2.4.0"
     "@metamask/controller-utils" "^11.5.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/keyring-api" "^17.0.0"
+    "@metamask/keyring-api" "^17.2.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^12.0.3"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/snaps-utils" "^8.10.0"
-    "@metamask/utils" "^11.1.0"
+    "@metamask/utils" "^11.2.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.5.0"
@@ -5000,12 +5001,12 @@
     uuid "^9.0.1"
     webextension-polyfill "^0.12.0"
 
-"@metamask/keyring-api@^17.0.0", "@metamask/keyring-api@^17.2.0":
-  version "17.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-17.2.0.tgz#a70994762179de36f6acc83b27f79f4cdfa491d0"
-  integrity sha512-XFIcwyxIeDmQ1B+2fLZNziIbfHJNrNcppOvZBA8p2o2rdhGL/KtuiNQb0bnnmV3tTHTYUfxkjoAd9c5dyuJfTQ==
+"@metamask/keyring-api@^17.0.0", "@metamask/keyring-api@^17.2.0", "@metamask/keyring-api@^17.2.1":
+  version "17.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-17.2.1.tgz#315e14063abbe07b85a90d2933535d281ac7ec47"
+  integrity sha512-VfFfIsLvGTMtHgyB4lPHxUSo6iumlYwKSBsFtz+9kUk4+Dx3OA9osPN+Xtse+bUWOu5VtOepk0L1MbajEvbLQA==
   dependencies:
-    "@metamask/keyring-utils" "^2.3.0"
+    "@metamask/keyring-utils" "^2.3.1"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
@@ -5062,7 +5063,7 @@
     uuid "^9.0.1"
     webextension-polyfill "^0.12.0"
 
-"@metamask/keyring-utils@^2.3.0":
+"@metamask/keyring-utils@^2.3.0", "@metamask/keyring-utils@^2.3.1":
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-2.3.1.tgz#a30f9dd4a3d576980739ebdbee1e66ad66abfdc8"
   integrity sha512-NCmWZGoOPhDX8Krsx+NZvd3eUqeSmJoEXMUBxM8tKmoxajzRs2A1ZT5bv5rDUSCZoUy+R2D8w/HV+wT3PijTYQ==
@@ -5624,10 +5625,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.6.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.7.0.tgz#218a4f3a6cead9c3074b603fc0c26097ca04b975"
-  integrity sha512-sugayOl93m19e9rEnkZj3sy1QXpUqt9k3SfHUosOHSWAdT+tHtz8tGzy8Chgz9vECuZGwT7jotvbJ1PYBpOsjA==
+"@metamask/solana-wallet-snap@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.9.0.tgz#89b4b2ea80d9591b62958cd668cb595efd366b98"
+  integrity sha512-oDI6aBFHCnfYNTGKDxyAZdXvW5CsA/wVD9arVEsl5kLi2U7xZ1WERILU/buDEC3Q5bNelyK4bw8xLwXENIiWpw==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"

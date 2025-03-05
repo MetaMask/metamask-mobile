@@ -405,5 +405,12 @@
   },
   "BridgeStatusController": {
     "txHistory": {}
+  },
+  "MultichainAssetsRatesController": {
+    "conversionRates": {}
+  },
+  "CronjobController": {
+    "events": {},
+    "jobs": {}
   }
 }
