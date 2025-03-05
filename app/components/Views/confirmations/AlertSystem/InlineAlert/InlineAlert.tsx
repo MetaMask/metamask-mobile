@@ -1,14 +1,14 @@
 import React from 'react';
+import { TouchableOpacity, View, ViewStyle } from 'react-native';
+import { ThemeColors } from '@metamask/design-tokens';
+import { strings } from '../../../../../../locales/i18n';
+import { useStyles } from '../../../../../component-library/hooks';
 import Icon, { IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 import Text, { TextColor, TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { IconSizes } from '../../../../../component-library/components-temp/KeyValueRow';
-import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { Severity } from '../../types/alerts';
 import styleSheet from './InlineAlert.styles';
-import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
-import { ThemeColors } from '@metamask/design-tokens';
 
 export interface InlineAlertProps {
   /** The onClick handler for the inline alerts */
