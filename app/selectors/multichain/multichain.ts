@@ -19,7 +19,7 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
-import { CaipAssetId, parseCaipAssetType } from '@metamask/utils';
+import { parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 
 /**
@@ -231,8 +231,7 @@ export const selectMultichainTokenList = createDeepEqualSelector(
     }
     const assetIds = assets?.[selectedAccountAddress.id] || [];
     const balances = multichainBalances?.[selectedAccountAddress.id];
-    // @ts-ignore
-    return assetIds.map((assetId: CaipAssetId) => {
+    return assetIds.map((assetId) => {
       const { chainId, assetNamespace } = parseCaipAssetType(assetId);
       const isNative = assetNamespace === 'slip44';
       const balance = balances?.[assetId] || { amount: '0', unit: '' };
