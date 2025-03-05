@@ -38,10 +38,19 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../../UI/Ramp/routes/utils';
-import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import {
+  selectCanSignTransactions,
+  selectSelectedInternalAccount,
+} from '../../../selectors/accountsController';
+import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
 import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
+import { isEvmAccountType } from '@metamask/keyring-api';
+import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
+///: END:ONLY_INCLUDE_IF
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -54,6 +63,7 @@ const WalletActions = () => {
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
 
@@ -157,12 +167,7 @@ const WalletActions = () => {
     createEventBuilder,
   ]);
 
-  const onSend = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      navigate('SendFlowView');
-      ticker && dispatch(newAssetTransaction(getEther(ticker)));
-    });
-
+  const onSend = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SEND_BUTTON_CLICKED)
         .addProperties({
@@ -173,14 +178,55 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // Non-EVM (Snap) Send flow
+    if (selectedAccount && !isEvmAccountType(selectedAccount.type)) {
+      if (!selectedAccount.metadata.snap) {
+        throw new Error('Non-EVM needs to be Snap accounts');
+      }
+
+      // TODO: Remove this once we want to enable all non-EVM Snaps
+      if (!isMultichainWalletSnap(selectedAccount.metadata.snap.id as SnapId)) {
+        throw new Error(
+          `Non-EVM Snap is not whitelisted: ${selectedAccount.metadata.snap.id}`,
+        );
+      }
+
+      try {
+        await sendMultichainTransaction(
+          selectedAccount.metadata.snap.id as SnapId,
+          {
+            account: selectedAccount.id,
+            scope: chainId as CaipChainId,
+          },
+        );
+      } catch {
+        // Restore the previous page in case of any error
+        sheetRef.current?.onCloseBottomSheet();
+      }
+
+      // Early return, not to let the non-EVM flow slip into the native send flow.
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    // Native send flow
+    closeBottomSheetAndNavigate(() => {
+      navigate('SendFlowView');
+      ticker && dispatch(newAssetTransaction(getEther(ticker)));
+    });
   }, [
+    trackEvent,
+    createEventBuilder,
+    chainId,
     closeBottomSheetAndNavigate,
     navigate,
     ticker,
     dispatch,
-    trackEvent,
-    chainId,
-    createEventBuilder,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    selectedAccount,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   const goToSwaps = useCallback(() => {
