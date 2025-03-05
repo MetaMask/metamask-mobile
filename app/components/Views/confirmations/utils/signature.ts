@@ -71,7 +71,7 @@ export const isPermitDaiUnlimited = (tokenAddress: string, allowed?: number|stri
   tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase()
     && Number(allowed) > 0;
 
-export const isPermitDaiRevoke = (tokenAddress: string, allowed?: number|string|boolean, value?: string|BigNumber) =>
+export const isPermitDaiRevoke = (tokenAddress: string, allowed?: number|string|boolean, value?: number|string|BigNumber) =>
   tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase()
     && (
       allowed === 0
