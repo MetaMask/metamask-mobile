@@ -46,6 +46,26 @@ const slice = createSlice({
       state.destChainId = action.payload;
     },
     resetBridgeState: () => initialState,
+    switchTokens: (state) => {
+      // Don't switch if destination chain or token is undefined
+      if (!state.destChainId || !state.destToken) {
+        return;
+      }
+
+      // Switch tokens
+      const tempToken = state.sourceToken;
+      state.sourceToken = state.destToken;
+      state.destToken = tempToken;
+
+      // Switch chain IDs
+      const tempChainId = state.sourceChainId;
+      state.sourceChainId = state.destChainId;
+      state.destChainId = tempChainId;
+
+      // Reset amounts
+      state.sourceAmount = undefined;
+      state.destAmount = undefined;
+    },
   },
 });
 
@@ -112,4 +132,5 @@ export const {
   setSourceChainId,
   setDestChainId,
   resetBridgeState,
+  switchTokens,
 } = actions;

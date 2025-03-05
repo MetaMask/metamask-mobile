@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import { Numpad } from './Numpad';
@@ -26,6 +26,7 @@ import {
   selectDestToken,
   setSourceAmount,
   resetBridgeState,
+  switchTokens,
 } from '../../../core/redux/slices/bridge';
 
 const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
@@ -146,6 +147,12 @@ const BridgeView = () => {
     // TODO: Implement terms and conditions navigation
   };
 
+  const handleArrowPress = () => {
+    if (destChainId && destToken) {
+      dispatch(switchTokens());
+    }
+  };
+
   return (
     <ScreenView>
       <Box
@@ -165,13 +172,16 @@ const BridgeView = () => {
             isReadonly
           />
           <Box style={styles.arrowContainer}>
-            <Box
-              style={styles.arrowCircle}
-              alignItems={AlignItems.center}
-              justifyContent={JustifyContent.center}
+            <TouchableOpacity 
+              onPress={handleArrowPress}
+              disabled={!destChainId || !destToken}
+              style={[
+                styles.arrowCircle,
+                { alignItems: 'center', justifyContent: 'center' }
+              ]}
             >
               <Text style={styles.arrow}>↓</Text>
-            </Box>
+            </TouchableOpacity>
           </Box>
           <TokenInputArea
             value={destAmount}
