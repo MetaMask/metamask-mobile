@@ -1,10 +1,13 @@
 import React from 'react';
 import { StyleSheet, ImageSourcePropType } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../component-library/hooks';
 import { Box } from '../Box/Box';
 import Text, { TextColor } from '../../../component-library/components/Texts/Text';
 import Input from '../../../component-library/components/Form/TextField/foundation/Input';
 import { Token } from './Token';
+import { selectCurrentCurrency, selectConversionRate } from '../../../selectors/currencyRateController';
+import { weiToFiat, toWei } from '../../../util/number';
 
 interface TokenInputAreaProps {
   value?: string;
@@ -56,18 +59,18 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   isReadonly = false,
 }) => {
   const { styles } = useStyles(createStyles, {});
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRate = useSelector(selectConversionRate);
 
   const formattedBalance = tokenSymbol && tokenBalance ? `${tokenBalance} ${tokenSymbol}` : undefined;
   const formattedAddress = tokenAddress ? formatAddress(tokenAddress) : undefined;
 
   const subtitle = formattedBalance ?? formattedAddress;
 
-  // Hardcoded conversion rate for demonstration
-  const fiatValue = value ? parseFloat(value) * 2000 : 0;
-  const formattedFiatValue = fiatValue.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  });
+  // Convert token amount to fiat value using actual conversion rate
+  const fiatValue = conversionRate
+    ? weiToFiat(toWei(value ?? '0'), conversionRate, currentCurrency)
+    : undefined;
 
   return (
     <Box style={styles.container}>
@@ -90,9 +93,11 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
           />
         </Box>
         <Box style={styles.row}>
-          <Text color={TextColor.Alternative}>
-            {formattedFiatValue}
-          </Text>
+          {fiatValue && (
+            <Text color={TextColor.Alternative}>
+              {fiatValue}
+            </Text>
+          )}
           {subtitle && (
             <Text color={TextColor.Alternative}>
               {subtitle}
