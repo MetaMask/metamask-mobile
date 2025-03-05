@@ -2,15 +2,17 @@ import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
-import { Numpad } from './Numpad';
+import Keypad from '../../Base/Keypad';
 import { TokenInputArea } from './TokenInputArea';
 import { ReceiveAddress } from './ReceiveAddress';
-import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import Button, { ButtonVariants, ButtonSize } from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
 import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
 import Text, { TextColor } from '../../../component-library/components/Texts/Text';
+import { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
+import Icon from '../../../component-library/components/Icons/Icon';
 import images from '../../../images/image-icons';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
@@ -137,21 +139,8 @@ const BridgeView = () => {
       dispatch(resetBridgeState());
     }, [dispatch]);
 
-  const handleNumpadPress = (value: string) => {
-    if (value === 'backspace') {
-      if (sourceAmount) {
-        const newAmount = sourceAmount.slice(0, -1);
-        dispatch(setSourceAmount(newAmount || undefined));
-      }
-    } else if (value === '.') {
-      if (!sourceAmount) {
-        dispatch(setSourceAmount('0.'));
-      } else if (!sourceAmount.includes('.')) {
-        dispatch(setSourceAmount(sourceAmount + '.'));
-      }
-    } else {
-      dispatch(setSourceAmount(sourceAmount ? sourceAmount + value : value));
-    }
+  const handleKeypadChange = ({ value }: { value: string; valueAsNumber: number; pressedKey: string }) => {
+    dispatch(setSourceAmount(value || undefined));
   };
 
   const handleContinue = () => {
@@ -243,11 +232,12 @@ const BridgeView = () => {
         {/* TODO Just a placeholder for now */}
         {/* <ReceiveAddress address={undefined} /> */}
         <Box style={styles.bottomSection}>
-
-          <Numpad
-            onNumberPress={handleNumpadPress}
-            onBackspacePress={() => handleNumpadPress('backspace')}
-            onDecimalPress={() => handleNumpadPress('.')}
+          <Keypad
+            value={sourceAmount}
+            onChange={handleKeypadChange}
+            currency={sourceToken?.symbol || 'ETH'}
+            decimals={sourceToken?.decimals || 18}
+            deleteIcon={<Icon name={IconName.Delete} size={IconSize.Lg} />}
           />
           <Box
             style={styles.buttonContainer}
