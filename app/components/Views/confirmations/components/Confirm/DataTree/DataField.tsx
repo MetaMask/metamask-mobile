@@ -19,6 +19,7 @@ import DataTree from './DataTree';
 
 enum Field {
   Amount = 'amount',
+  Allowed = 'allowed',
   BuyAmount = 'buyAmount',
   Deadline = 'deadline',
   EndAmount = 'endAmount',
@@ -32,6 +33,10 @@ enum Field {
   ValidTo = 'validTo',
   Value = 'value',
 }
+
+const FIELD_BOOLEAN_PRIMARY_TYPES: Record<string, string[]> = {
+  [Field.Allowed]: [...PRIMARY_TYPES_PERMIT],
+};
 
 const FIELD_DATE_PRIMARY_TYPES: Record<string, string[]> = {
   [Field.Deadline]: [...PRIMARY_TYPES_PERMIT],
@@ -51,6 +56,10 @@ const FIELD_TOKEN_UTILS_PRIMARY_TYPES: Record<string, string[]> = {
   [Field.StartAmount]: [...PRIMARY_TYPES_ORDER],
   [Field.Value]: [...PRIMARY_TYPES_PERMIT],
 };
+
+function isBooleanField(label: string, primaryType?: PrimaryType) {
+  return (FIELD_BOOLEAN_PRIMARY_TYPES[label] || [])?.includes(primaryType || '');
+}
 
 function isDateField(label: string, primaryType?: PrimaryType) {
   return (FIELD_DATE_PRIMARY_TYPES[label] || [])?.includes(primaryType || '');
@@ -125,6 +134,8 @@ const DataField = memo(
           tokenDecimals={tokenDecimals}
         />
       );
+    } else if (isBooleanField(label, primaryType)) {
+      fieldDisplay = <Text>{value ? 'true' : 'false'}</Text>;
     } else {
       fieldDisplay = <Text>{value}</Text>;
     }
