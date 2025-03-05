@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import Share from 'react-native-share';
+import QRCode from 'react-native-qrcode-svg';
 import { connect } from 'react-redux';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -243,6 +244,13 @@ class ReceiveRequest extends PureComponent {
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.body}>
           <View style={styles.qrCode}>
+            <QRCode
+              logo={PNG_MM_LOGO_PATH}
+              logoSize={35}
+              logoMargin={5}
+              value={`ethereum:${this.props.selectedAddress}@${this.props.chainId}`}
+              size={windowWidth / 2}
+            />
           </View>
 
           <QRAccountDisplay accountAddress={this.props.selectedAddress} />

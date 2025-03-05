@@ -12,6 +12,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import QRCode from 'react-native-qrcode-svg';
 import { RouteProp, ParamListBase } from '@react-navigation/native';
 import ScrollableTabView, {
   DefaultTabBar,
@@ -295,11 +296,10 @@ const RevealPrivateCredential = ({
 
     const msg = `${strings(
       `reveal_credential.${privCredentialName}_copied_${Platform.OS}`,
-    )}${
-      Device.isIos()
+    )}${Device.isIos()
         ? strings(`reveal_credential.${privCredentialName}_copied_time`)
         : ''
-    }`;
+      }`;
 
     dispatch(
       showAlert({
@@ -429,6 +429,10 @@ const RevealPrivateCredential = ({
           style={styles.qrCodeWrapper}
           testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID}
         >
+          <QRCode
+            value={clipboardPrivateCredential}
+            size={Dimensions.get('window').width - 176}
+          />
         </View>
       </CustomTabView>
     </ScrollableTabView>

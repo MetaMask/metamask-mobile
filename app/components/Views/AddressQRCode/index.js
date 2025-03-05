@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
+import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/device';
@@ -152,6 +153,10 @@ class AddressQRCode extends PureComponent {
           </TouchableOpacity>
           <View style={styles.qrCodeContainer}>
             <View style={styles.qrCode}>
+              <QRCode
+                value={`ethereum:${this.props.selectedAddress}`}
+                size={Dimensions.get('window').width - 160}
+              />
             </View>
           </View>
           <View style={styles.addressWrapper}>

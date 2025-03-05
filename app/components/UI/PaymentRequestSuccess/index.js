@@ -22,6 +22,7 @@ import { showAlert } from '../../../actions/alert';
 import Logger from '../../../util/Logger';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Modal from 'react-native-modal';
+import QRCode from 'react-native-qrcode-svg';
 import { renderNumber } from '../../../util/number';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
@@ -397,6 +398,10 @@ class PaymentRequestSuccess extends PureComponent {
                 </TouchableOpacity>
               </View>
               <View style={styles.qrCodeWrapper}>
+                <QRCode
+                  value={this.state.qrLink}
+                  size={Dimensions.get('window').width - 160}
+                />
               </View>
             </View>
           </View>

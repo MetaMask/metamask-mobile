@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import QRCode from 'react-native-qrcode-svg';
 import { StyleSheet, View } from 'react-native';
 import { UR, UREncoder } from '@ngraveio/bc-ur';
 import { useTheme } from '../../../util/theme';
@@ -52,6 +53,7 @@ const AnimatedQRCode = ({ cbor, type, shouldPause }: IAnimatedQRCodeProps) => {
 
   return (
     <View style={styles.wrapper}>
+      <QRCode value={currentQRCode.toUpperCase()} size={QR_CODE_SIZE} />
     </View>
   );
 };
