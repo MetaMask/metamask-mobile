@@ -108,6 +108,20 @@ describe('AlertsContext', () => {
       const { result } = renderHookWithProvider(() => useAlerts());
       expect(result.current.fieldAlerts).toEqual([dangerAlertMock]);
     });
+
+    it('initializes with the correct alert key', () => {
+      const { result } = renderHookWithProvider(() => useAlerts());
+      expect(result.current.alertKey).toBe(dangerAlertMock.key);
+    });
+
+    it('sets a new alert key', () => {
+      const { result } = renderHookWithProvider(() => useAlerts());
+
+      act(() => {
+        result.current.setAlertKey(warningAlertMock.key);
+      });
+      expect(result.current.alertKey).toBe(warningAlertMock.key);
+    });
   });
 
   describe('AlertsContextProvider', () => {
