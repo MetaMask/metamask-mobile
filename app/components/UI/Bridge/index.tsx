@@ -103,6 +103,10 @@ const BridgeView = () => {
   const [sourceChainId] = useState<SupportedCaipChainId | Hex>(currentChainId);
   const [destChainId] = useState<SupportedCaipChainId | Hex>();
 
+  const sourceTokenSymbol = 'ETH';
+  const destTokenSymbol = 'BTC';
+  const sourceTokenBalance = '0.5';
+
   const handleNumberPress = (num: string) => {
     setSourceAmount((prev) => {
       if (!prev || prev === '0') return num;
@@ -144,8 +148,8 @@ const BridgeView = () => {
         <Box style={styles.inputsContainer} gap={8}>
           <TokenInputArea
             value={sourceAmount}
-            tokenSymbol="ETH"
-            tokenBalance="0.5"
+            tokenSymbol={sourceTokenSymbol}
+            tokenBalance={sourceTokenBalance}
             tokenIconUrl={ETHLogo}
             tokenAddress={sourceTokenAddress}
             networkImageSource={getNetworkImage(sourceChainId)}
@@ -162,7 +166,7 @@ const BridgeView = () => {
           </Box>
           <TokenInputArea
             value={destAmount}
-            tokenSymbol="BTC"
+            tokenSymbol={destTokenSymbol}
             tokenAddress={destTokenAddress}
             tokenIconUrl={BTCLogo}
             networkImageSource={destChainId ? getNetworkImage(destChainId) : undefined}
