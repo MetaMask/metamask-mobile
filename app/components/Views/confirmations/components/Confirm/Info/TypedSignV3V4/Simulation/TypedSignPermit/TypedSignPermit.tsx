@@ -22,10 +22,16 @@ const styleSheet = () =>
     },
   });
 
+interface TokenDetails {
+  allowed: string;
+  token: string;
+  amount: string;
+}
+
 function extractTokenDetailsByPrimaryType(
   message: Record<string, unknown>,
   primaryType: PrimaryType,
-): object[] | unknown {
+): TokenDetails[] | unknown {
   let tokenDetails;
 
   switch (primaryType) {
@@ -101,7 +107,7 @@ const PermitSimulation = () => {
           <>
             {tokenDetails.map(
               (
-                { allowed: tokenDetailAllowed, token, amount }: { allowed: string, token: string; amount: string },
+                { allowed: tokenDetailAllowed, token, amount },
                 i: number,
               ) => {
                 const tokenContract = safeToChecksumAddress(token);
