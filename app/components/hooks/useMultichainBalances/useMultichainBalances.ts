@@ -25,6 +25,7 @@ import {
   selectMultichainDefaultToken,
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
+  selectMultichainBalancesForAllAccounts,
 } from '../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
@@ -73,6 +74,13 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   const { symbol } = useSelector(selectMultichainDefaultToken);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
   const multichainConversionRate = useSelector(selectMultichainConversionRate);
+  const allMultichainBalances = useSelector(
+    selectMultichainBalancesForAllAccounts,
+  );
+  console.log(
+    'allMultichainBalances',
+    JSON.stringify(allMultichainBalances, null, 2),
+  );
   ///: END:ONLY_INCLUDE_IF
 
   // Production balance calculation (EVM)
