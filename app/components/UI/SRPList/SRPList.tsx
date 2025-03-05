@@ -7,14 +7,13 @@ import { SRPListProps } from './SRPList.types';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPList.styles';
 import SRPListItem from '../SRPListItem';
-import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.selectors';
 
 const SRPList = ({ onKeyringSelect }: SRPListProps) => {
   const { styles } = useStyles(styleSheet, {});
   const hdKeyrings = useSelector(selectHdKeyrings);
 
   return (
-    <View style={styles.base} testID={SRPListSelectorsIDs.SRP_LIST}>
+    <View style={styles.base}>
       <FlatList
         data={hdKeyrings}
         contentContainerStyle={styles.srpListContentContainer}

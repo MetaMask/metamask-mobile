@@ -39,7 +39,6 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     const [newAccountAddress] = await newKeyring.getAccounts();
     return Engine.setSelectedAddress(newAccountAddress);
   } catch (e: unknown) {
-    Logger.log(e);
     Logger.error(e as Error, 'error while trying to add a new account');
   }
 }
@@ -59,14 +58,14 @@ export async function createNewSecretRecoveryPhrase() {
 }
 
 export async function addNewHdAccount(
-  keyringId?: string,
   name?: string,
+  _keyringId?: string,
 ): Promise<void> {
   const { KeyringController } = Engine.context;
   try {
-    const keyringSelector: KeyringSelector = keyringId
+    const keyringSelector: KeyringSelector = _keyringId
       ? {
-          id: keyringId,
+          id: _keyringId,
         }
       : {
           type: ExtendedKeyringTypes.hd,

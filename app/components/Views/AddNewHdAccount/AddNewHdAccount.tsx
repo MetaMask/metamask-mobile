@@ -43,10 +43,10 @@ const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
   const onSubmit = async () => {
     setIsLoading(true);
     try {
-      await addNewHdAccount(keyringId, accountName);
+      await addNewHdAccount(accountName, keyringId);
       onBack();
-    } catch (e) {
-      Logger.error(e, 'ADD_NEW_HD_ACCOUNT_ERROR');
+    } catch (e: unknown) {
+      Logger.error(e as Error, 'ADD_NEW_HD_ACCOUNT_ERROR');
     } finally {
       setIsLoading(false);
     }
@@ -113,9 +113,6 @@ const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
                 />
               </View>
               <View style={styles.srpSelectorContainer}>
-                <Text variant={TextVariant.BodyMDMedium}>
-                  {strings('accounts.select_secret_recovery_phrase')}
-                </Text>
                 <TouchableOpacity
                   style={styles.srpSelector}
                   onPress={() => setShowSRPList(true)}
