@@ -232,6 +232,7 @@ import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
+import { EarnController } from '@metamask/earn-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1333,6 +1334,21 @@ export class Engine {
       fetchFn: fetch,
     });
 
+    const earnController = new EarnController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'EarnController',
+        allowedEvents: [
+          'AccountsController:selectedAccountChange',
+          'NetworkController:stateChange',
+        ],
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getState',
+        ],
+      }),
+    });
+
     this.context = {
       KeyringController: this.keyringController,
       AccountTrackerController: accountTrackerController,
@@ -1576,6 +1592,7 @@ export class Engine {
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
+      EarnController: earnController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2203,6 +2220,7 @@ export default {
       MultichainNetworkController,
       BridgeController,
       BridgeStatusController,
+      EarnController,
     } = instance.datamodel.state;
 
     return {
@@ -2248,6 +2266,7 @@ export default {
       MultichainNetworkController,
       BridgeController,
       BridgeStatusController,
+      EarnController,
     };
   },
 
