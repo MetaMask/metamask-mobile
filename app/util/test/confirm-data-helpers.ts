@@ -682,6 +682,7 @@ export enum SignTypedDataMockType {
 const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
   [SignTypedDataMockType.BATCH]: JSON.stringify({
     types: {
+      EIP712Domain: mockTypeDefEIP712Domain,
       PermitBatch: [
         { name: 'details', type: 'PermitDetails[]' },
         { name: 'spender', type: 'address' },
@@ -693,15 +694,11 @@ const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
         { name: 'expiration', type: 'uint48' },
         { name: 'nonce', type: 'uint48' }
       ],
-      EIP712Domain: [
-        { name: 'name', type: 'string' },
-        { name: 'chainId', type: 'uint256' },
-        { name: 'verifyingContract', type: 'address' }
-      ]
     },
     domain: {
       name: 'Permit2',
       chainId: '1',
+      version: '1',
       verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3'
     },
     primaryType: 'PermitBatch',
