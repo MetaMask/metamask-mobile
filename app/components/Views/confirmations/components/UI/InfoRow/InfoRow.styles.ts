@@ -36,9 +36,6 @@ const styleSheet = (params: { theme: Theme }) => {
       ...fontStyles.normal,
       fontSize: 14,
     },
-    valueComponent: {
-      marginLeft: 'auto',
-    },
   });
 };
 
