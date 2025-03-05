@@ -132,7 +132,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 
   const isNFT = tokenId !== undefined && tokenId !== '0';
   const isDaiUnlimited = isPermitDaiUnlimited(tokenContract, allowed);
-  const isDaiRevoke = isPermitDaiRevoke(tokenContract, allowed);
+  const isDaiRevoke = isPermitDaiRevoke(tokenContract, allowed, value);
 
   const tokenAmount =
     isNumberValue(value) && !tokenId
@@ -141,6 +141,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 
   const isValidTokenAmount =
     !isNFT &&
+    !isDaiRevoke &&
     tokenAmount !== null &&
     tokenAmount !== undefined &&
     tokenAmount instanceof BigNumber;
@@ -150,13 +151,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
       ? tokenAmount.multipliedBy(exchangeRate)
       : undefined;
 
-  let tokenValue = isValidTokenAmount
+  const tokenValue = isValidTokenAmount
     ? formatAmount('en-US', tokenAmount)
     : null;
-
-  if (isDaiRevoke) {
-    tokenValue = '0';
-  }
 
   const tokenValueMaxPrecision = isValidTokenAmount
     ? formatAmountMaxPrecision('en-US', tokenAmount)

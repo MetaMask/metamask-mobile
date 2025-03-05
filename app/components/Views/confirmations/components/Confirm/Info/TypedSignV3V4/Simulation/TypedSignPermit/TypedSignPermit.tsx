@@ -65,7 +65,7 @@ const PermitSimulation = () => {
   const {
     domain: { verifyingContract },
     message,
-    message: { allowed, tokenId },
+    message: { allowed, tokenId, value },
     primaryType,
   } = parseTypedDataMessage(msgData as string);
 
@@ -77,7 +77,7 @@ const PermitSimulation = () => {
     ? strings('confirm.simulation.label_change_type_permit_nft')
       : strings('confirm.simulation.label_change_type_permit');
 
-  const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed);
+  const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
 
   if (isDaiRevoke) {
     labelChangeType = strings('confirm.simulation.label_change_type_revoke');

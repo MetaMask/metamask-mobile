@@ -13,6 +13,7 @@ import {
 } from '../constants/signatures';
 import { sanitizeMessage } from '../../../../util/string';
 import { TOKEN_ADDRESS } from '../constants/tokens';
+import BigNumber from 'bignumber.js';
 
 /**
  * The contents of this file have been taken verbatim from
@@ -70,9 +71,15 @@ export const isPermitDaiUnlimited = (tokenAddress: string, allowed?: number|stri
   tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase()
     && Number(allowed) > 0;
 
-export const isPermitDaiRevoke = (tokenAddress: string, allowed?: number|string|boolean) =>
+export const isPermitDaiRevoke = (tokenAddress: string, allowed?: number|string|boolean, value?: string|BigNumber) =>
   tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase()
-    && (allowed === 0 || allowed === false || allowed === 'false');
+    && (
+      allowed === 0
+      || allowed === false
+      || allowed === 'false'
+      || value === '0'
+      || (value instanceof BigNumber && value.eq(0))
+    );
 
 /**
  * Returns true if the request is Typed Sign V3 or V4 request
