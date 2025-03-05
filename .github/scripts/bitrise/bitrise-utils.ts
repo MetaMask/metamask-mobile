@@ -16,9 +16,6 @@ interface Commit {
   sha: string;
   commit: {
     message: string;
-    author: {
-      date: string;
-    };
   };
 }
 
@@ -219,9 +216,6 @@ export async function getRecentCommits(): Promise<string[]> {
 
   // Filter out merge commits from main
   const filteredCommits = allCommits.filter(commit => !commit.commit.message.startsWith(mergeFromMainCommitMessagePrefix));
-
-  // Sort commits by date from newest to oldest
-  filteredCommits.sort((a, b) => new Date(b.commit.author.date).getTime() - new Date(a.commit.author.date).getTime());
 
   // Map the data to extract commit SHAs
   return filteredCommits.map(commit => commit.sha);
