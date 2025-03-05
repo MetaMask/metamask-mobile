@@ -46,7 +46,7 @@ const getTitleAndSubTitle = (approvalRequest?: ApprovalRequest<{ data: string }>
         }
 
         const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
-        if (isDaiRevoke) {
+        if (isDaiRevoke || value === '0') {
           return {
             title: strings('confirm.title.permit_revoke'),
           };
