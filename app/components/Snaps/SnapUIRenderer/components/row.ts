@@ -29,6 +29,6 @@ export const row: UIComponentFactory<RowElement> = ({
       paddingBottom: 0,
       marginLeft: -8,
       marginRight: -8,
-    }
+    },
   },
 });
