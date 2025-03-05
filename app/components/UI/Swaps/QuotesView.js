@@ -1085,99 +1085,104 @@ function SwapsQuotesView({
     ],
   );
 
-  const handleCompleteSwap = useCallback(async () => {
-    setIsHandlingSwap(true);
+  const handleCompleteSwap = useCallback(
+    async ({ hasSTXFailed = false }) => {
+      setIsHandlingSwap(true);
 
-    if (!selectedQuote) {
-      setIsHandlingSwap(false);
-      return;
-    }
-
-    const isHardwareAddress = isHardwareAccount(selectedAddress);
-
-    startSwapAnalytics(selectedQuote, selectedAddress);
-
-    let approvalTransactionMetaId;
-
-    if (shouldUseSmartTransaction) {
-      try {
-        const { approvalTxUuid, tradeTxUuid } =
-          await submitSwapsSmartTransaction();
-
-        // Update info to show in Activity list
-        // We use the stx uuids instead of the txMeta.id since we don't have the txMeta
-        // Approval tx info
-        if (approvalTxUuid) {
-          addSwapsTransaction(approvalTxUuid, {
-            action: 'approval',
-            sourceToken: {
-              address: sourceToken.address,
-              decimals: sourceToken.decimals,
-            },
-            destinationToken: { swaps: 'swaps' },
-            upTo: new BigNumber(
-              decodeApproveData(approvalTransaction.data).encodedAmount,
-              16,
-            ).toString(10),
-          });
-        }
-
-        // Trade tx info
-        updateSwapsTransactions(tradeTxUuid, approvalTxUuid);
-
-        // Route to TransactionsView and show Swaps STX modal
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
-        Engine.context.ApprovalController.addAndShowApprovalRequest({
-          id: tradeTxUuid, // Doesn't really matter what this is, as long as it's unique, we will just read it from latest STX in SmartTransactionStatus
-          origin: ORIGIN_METAMASK,
-          type: ApprovalTypes.SMART_TRANSACTION_STATUS,
-          // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
-          // can also be read from approvalController.state.pendingApprovals[approvalId].requestState
-          requestState: {
-            smartTransaction: {
-              status: SmartTransactionStatuses.PENDING,
-              creationTime: Date.now(),
-              uuid: tradeTxUuid,
-            },
-            isInSwapFlow: true,
-          },
-        });
-      } catch (e) {
-        Logger.log(LOG_PREFIX, 'Failed to submit smart transaction', e);
+      if (!selectedQuote) {
         setIsHandlingSwap(false);
+        return;
       }
-    } else {
-      if (approvalTransaction) {
-        approvalTransactionMetaId = await handleApprovalTransaction(
-          isHardwareAddress,
-        );
 
-        if (isHardwareAddress) {
+      const isHardwareAddress = isHardwareAccount(selectedAddress);
+
+      startSwapAnalytics(selectedQuote, selectedAddress);
+
+      let approvalTransactionMetaId;
+
+      if (shouldUseSmartTransaction && !hasSTXFailed) {
+        try {
+          const { approvalTxUuid, tradeTxUuid } =
+            await submitSwapsSmartTransaction();
+
+          // Update info to show in Activity list
+          // We use the stx uuids instead of the txMeta.id since we don't have the txMeta
+          // Approval tx info
+          if (approvalTxUuid) {
+            addSwapsTransaction(approvalTxUuid, {
+              action: 'approval',
+              sourceToken: {
+                address: sourceToken.address,
+                decimals: sourceToken.decimals,
+              },
+              destinationToken: { swaps: 'swaps' },
+              upTo: new BigNumber(
+                decodeApproveData(approvalTransaction.data).encodedAmount,
+                16,
+              ).toString(10),
+            });
+          }
+
+          // Trade tx info
+          updateSwapsTransactions(tradeTxUuid, approvalTxUuid);
+
+          // Route to TransactionsView and show Swaps STX modal
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          Engine.context.ApprovalController.addAndShowApprovalRequest({
+            id: tradeTxUuid, // Doesn't really matter what this is, as long as it's unique, we will just read it from latest STX in SmartTransactionStatus
+            origin: ORIGIN_METAMASK,
+            type: ApprovalTypes.SMART_TRANSACTION_STATUS,
+            // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
+            // can also be read from approvalController.state.pendingApprovals[approvalId].requestState
+            requestState: {
+              smartTransaction: {
+                status: SmartTransactionStatuses.PENDING,
+                creationTime: Date.now(),
+                uuid: tradeTxUuid,
+              },
+              isInSwapFlow: true,
+            },
+          });
+        } catch (e) {
+          Logger.log(LOG_PREFIX, 'Failed to submit smart transaction', e);
           setIsHandlingSwap(false);
-          navigation.dangerouslyGetParent()?.pop();
-          return;
+
+          await handleCompleteSwap({ hasSTXFailed: true });
         }
+      } else {
+        if (approvalTransaction) {
+          approvalTransactionMetaId = await handleApprovalTransaction(
+            isHardwareAddress,
+          );
+
+          if (isHardwareAddress) {
+            setIsHandlingSwap(false);
+            navigation.dangerouslyGetParent()?.pop();
+            return;
+          }
+        }
+
+        await handleSwapTransaction(approvalTransactionMetaId);
+
+        setIsHandlingSwap(false);
+        navigation.dangerouslyGetParent()?.pop();
       }
-
-      await handleSwapTransaction(approvalTransactionMetaId);
-
-      setIsHandlingSwap(false);
-      navigation.dangerouslyGetParent()?.pop();
-    }
-  }, [
-    selectedQuote,
-    selectedAddress,
-    approvalTransaction,
-    startSwapAnalytics,
-    handleApprovalTransaction,
-    handleSwapTransaction,
-    navigation,
-    shouldUseSmartTransaction,
-    submitSwapsSmartTransaction,
-    sourceToken.address,
-    sourceToken.decimals,
-    updateSwapsTransactions,
-  ]);
+    },
+    [
+      selectedQuote,
+      selectedAddress,
+      approvalTransaction,
+      startSwapAnalytics,
+      handleApprovalTransaction,
+      handleSwapTransaction,
+      navigation,
+      shouldUseSmartTransaction,
+      submitSwapsSmartTransaction,
+      sourceToken.address,
+      sourceToken.decimals,
+      updateSwapsTransactions,
+    ],
+  );
 
   const onEditQuoteTransactionsGas = useCallback(() => {
     showEditingGas();
