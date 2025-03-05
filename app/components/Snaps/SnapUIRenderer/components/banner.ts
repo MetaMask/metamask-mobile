@@ -3,7 +3,9 @@ import { getJsxChildren } from '@metamask/snaps-utils';
 import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 
-function transformSeverity(severity: BannerElement['props']['severity']): string {
+function transformSeverity(
+  severity: BannerElement['props']['severity'],
+): string {
   if (severity === 'danger') {
     return 'Error';
   }
