@@ -226,6 +226,18 @@ import {
   MultichainNetworkControllerEvents,
 } from '@metamask/multichain-network-controller';
 import {
+  BridgeController,
+  BridgeControllerActions,
+  type BridgeControllerEvents,
+  type BridgeControllerState,
+} from '@metamask/bridge-controller';
+import type {
+  BridgeStatusController,
+  BridgeStatusControllerActions,
+  BridgeStatusControllerEvents,
+  BridgeStatusControllerState,
+} from '@metamask/bridge-status-controller';
+import {
   EarnController,
   EarnControllerActions,
   EarnControllerEvents,
@@ -311,6 +323,8 @@ type GlobalActions =
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
   | MultichainNetworkControllerActions
+  | BridgeControllerActions
+  | BridgeStatusControllerActions
   | EarnControllerActions;
 
 type GlobalEvents =
@@ -357,6 +371,8 @@ type GlobalEvents =
   | TokenSearchDiscoveryControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
+  | BridgeControllerEvents
+  | BridgeStatusControllerEvents
   | EarnControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
@@ -431,6 +447,8 @@ export type Controllers = {
   MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkController;
+  BridgeController: BridgeController;
+  BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
 };
 
@@ -489,6 +507,8 @@ export type EngineState = {
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
+  BridgeController: BridgeControllerState;
+  BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
 };
 
