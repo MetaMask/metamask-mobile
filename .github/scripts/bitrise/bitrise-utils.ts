@@ -81,6 +81,7 @@ export async function getLatestAssociatedBitriseComment(commitHashes: string[]):
   console.log(`Checking if recent commits have Bitrise comments: ${commitHashes}`);
 
   // Iterate through each commit hash to find the first matching Bitrise comment
+  // Return the first matching comment as our commits are sorted by newest to oldest
   for (let i = 0; i < commitHashes.length; i++) {
     const foundComment = comments.find(comment => comment.commitSha === commitHashes[i]);
     if (foundComment) {
@@ -194,12 +195,14 @@ export async function getRecentCommits(): Promise<string[]> {
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
   const { owner, repo, number: pullRequestNumber } = context.issue;
 
-  // Fetch commits associated with the pull request
+  // Fetch commits associated with the pull request, explicitly sorting by newest first
   const { data: commits } = await getOctokitInstance().rest.pulls.listCommits({
     owner,
     repo,
     pull_number: pullRequestNumber,
-    per_page: 10  // Limit the number of commits to 10
+    per_page: 10,
+    sort: 'updated', // Sorting by the date they were last updated
+    direction: 'desc' // Ensures the order is descending (newest first)
   });
 
   // Exclude any commits that are merge commits from main
