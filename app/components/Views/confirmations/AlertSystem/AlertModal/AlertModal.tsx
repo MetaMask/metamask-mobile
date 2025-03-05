@@ -7,42 +7,23 @@ import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../.
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import Icon, { IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 import Text, { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { ThemeColors } from '@metamask/design-tokens';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './AlertModal.styles';
 import { strings } from '../../../../../../locales/i18n';
 import { Alert, Severity } from '../../types/alerts';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
-
-const getSeverityStyle = (severity: Severity, colors: ThemeColors) => {
-  switch (severity) {
-    case Severity.Warning:
-      return {
-        background: colors.warning.muted,
-        icon: colors.warning.default,
-      };
-    case Severity.Danger:
-      return {
-        background: colors.error.muted,
-        icon: colors.error.default,
-      };
-    default:
-      return {
-        background: colors.background.default,
-        icon: colors.info.default,
-      };
-  }
-};
+import { getSeverityStyle } from '../utils';
 
 interface HeaderProps {
   iconColor: string;
   selectedAlert: Alert;
   styles: Record<string, ViewStyle>;
+  headerAccessory?: React.ReactNode;
 }
 
-const Header: React.FC<HeaderProps> = ({ selectedAlert, iconColor, styles }) => (
+const Header: React.FC<HeaderProps> = ({ selectedAlert, iconColor, styles, headerAccessory }) => (
   <>
-    <View style={styles.iconWrapper}>
+    {headerAccessory ?? <View style={styles.iconWrapper}>
       <Icon
         name={selectedAlert.severity === Severity.Info ? IconName.Info : IconName.Danger}
         size={IconSize.Xl}
@@ -50,6 +31,7 @@ const Header: React.FC<HeaderProps> = ({ selectedAlert, iconColor, styles }) => 
         testID="alert-modal-icon"
       />
     </View>
+    }
     <View style={styles.headerContainer}>
       <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
         {selectedAlert.title ?? strings('alert_system.alert_modal.title')}
@@ -65,18 +47,22 @@ interface ContentProps {
 }
 
 const Content: React.FC<ContentProps> = ({ backgroundColor, selectedAlert, styles }) => (
-  <View style={[styles.content, {backgroundColor}]}>
+  <View style={[styles.content, { backgroundColor }]}>
     {selectedAlert.content ?? (
       <>
         <Text style={styles.message}>{selectedAlert.message}</Text>
-        <Text style={styles.message} variant={TextVariant.BodyMDBold}>
-          {strings('alert_system.alert_modal.alert_details')}
-        </Text>
-        {selectedAlert.alertDetails?.map((detail, index) => (
-          <Text key={`details-${index}`} style={styles.detailsText} variant={TextVariant.BodyMD}>
-            {'• ' + detail}
-          </Text>
-        ))}
+        {selectedAlert.alertDetails && (
+          <>
+            <Text style={styles.message} variant={TextVariant.BodyMDBold}>
+              {strings('alert_system.alert_modal.alert_details')}
+            </Text>
+            {selectedAlert.alertDetails.map((detail, index) => (
+              <Text key={`details-${index}`} style={styles.detailsText} variant={TextVariant.BodyMD}>
+                {'• ' + detail}
+              </Text>
+            ))}
+          </>
+        )}
       </>
     )}
   </View>
@@ -139,17 +125,26 @@ const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHan
   </View>
 );
 
-const AlertModal = () => {
+interface AlertModalProps {
+  headerAccessory?: React.ReactNode;
+  onAcknowledgeClick?: () => void;
+}
+
+const AlertModal: React.FC<AlertModalProps> = ({headerAccessory, onAcknowledgeClick}) => {
   const { colors } = useTheme();
   const styles = (useStyles(styleSheet, {})).styles as Record<string, ViewStyle>;
-  const { hideAlertModal, alertModalVisible, fieldAlerts } = useAlerts();
-  const { isAlertConfirmed, setAlertConfirmed, alertKey } = useAlertsConfirmed(fieldAlerts);
+  const { hideAlertModal, alertModalVisible, fieldAlerts, alertKey } = useAlerts();
+  const { isAlertConfirmed, setAlertConfirmed } = useAlertsConfirmed(fieldAlerts);
 
   const handleClose = useCallback(
     () => {
+      if (onAcknowledgeClick) {
+        onAcknowledgeClick();
+        return;
+      }
       hideAlertModal();
     },
-    [hideAlertModal],
+    [hideAlertModal, onAcknowledgeClick],
   );
 
   const handleCheckboxClick = useCallback(
@@ -177,12 +172,13 @@ const AlertModal = () => {
   const severityStyle = getSeverityStyle(selectedAlert.severity, colors);
 
   return (
-    <BottomModal onClose={handleClose}>
+    <BottomModal onClose={hideAlertModal}>
       <View style={styles.modalContainer}>
         <Header
           selectedAlert={selectedAlert}
           iconColor={severityStyle.icon}
           styles={styles}
+          headerAccessory={headerAccessory}
         />
         <View>
           <Content

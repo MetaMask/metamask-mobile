@@ -29,6 +29,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AuthenticationController": {
         "isSignedIn": false,
       },
+      "CronjobController": {
+        "events": {},
+        "jobs": {},
+      },
       "CurrencyRateController": {
         "currencyRates": {
           "ETH": {
@@ -101,6 +105,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "MultichainAssetsController": {
         "accountsAssets": {},
         "assetsMetadata": {},
+      },
+      "MultichainAssetsRatesController": {
+        "conversionRates": {},
       },
       "MultichainBalancesController": {
         "balances": {},
