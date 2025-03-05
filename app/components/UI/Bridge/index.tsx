@@ -123,22 +123,20 @@ const BridgeView = () => {
       dispatch(resetBridgeState());
     }, [dispatch]);
 
-  const handleNumberPress = (num: string) => {
-    dispatch(setSourceAmount(sourceAmount ? sourceAmount + num : num));
-  };
-
-  const handleBackspacePress = () => {
-    if (sourceAmount) {
-      const newAmount = sourceAmount.slice(0, -1);
-      dispatch(setSourceAmount(newAmount || undefined));
-    }
-  };
-
-  const handleDecimalPress = () => {
-    if (!sourceAmount) {
-      dispatch(setSourceAmount('0.'));
-    } else if (!sourceAmount.includes('.')) {
-      dispatch(setSourceAmount(sourceAmount + '.'));
+  const handleNumpadPress = (value: string) => {
+    if (value === 'backspace') {
+      if (sourceAmount) {
+        const newAmount = sourceAmount.slice(0, -1);
+        dispatch(setSourceAmount(newAmount || undefined));
+      }
+    } else if (value === '.') {
+      if (!sourceAmount) {
+        dispatch(setSourceAmount('0.'));
+      } else if (!sourceAmount.includes('.')) {
+        dispatch(setSourceAmount(sourceAmount + '.'));
+      }
+    } else {
+      dispatch(setSourceAmount(sourceAmount ? sourceAmount + value : value));
     }
   };
 
@@ -190,9 +188,9 @@ const BridgeView = () => {
           {false && <ReceiveAddress address={undefined} />}
 
           <Numpad
-            onNumberPress={handleNumberPress}
-            onBackspacePress={handleBackspacePress}
-            onDecimalPress={handleDecimalPress}
+            onNumberPress={handleNumpadPress}
+            onBackspacePress={() => handleNumpadPress('backspace')}
+            onDecimalPress={() => handleNumpadPress('.')}
           />
           <Box
             style={styles.buttonContainer}
