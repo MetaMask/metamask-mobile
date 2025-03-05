@@ -32,7 +32,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
 import { useMultichainBalances } from '../../../../hooks/useMultichainBalances';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
@@ -40,7 +39,6 @@ export const PortfolioBalance = React.memo(() => {
   const styles = createStyles(colors);
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const privacyMode = useSelector(selectPrivacyMode);
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const isMultichainBalancesCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
