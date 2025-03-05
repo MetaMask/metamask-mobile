@@ -3408,14 +3408,17 @@
   "account_actions": {
     "edit_name": "Edit account name",
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
-    "add_account": "Add account",
-    "add_new_account": "Add new account",
-    "import_srp":"Import secret recovery phrase",
-    "add_hardware_wallet": "Add hardware wallet",
-    "import_account": "Import account",
-    "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)",
-    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)",
-    "add_solana_account": "Add a new Solana Account (Beta)"
+    "connect_hardware_wallet": "Connect an account",
+    "import_wallet_or_account": "Import a wallet or account",
+    "add_account": "Create a new account",
+    "create_an_account": "Create a new account",
+    "add_new_account": "Ethereum account",
+    "import_srp":"Secret Recovery Phrase",
+    "add_hardware_wallet": "Hardware wallet",
+    "import_account": "Private key",
+    "add_bitcoin_account_testnet": "Bitcoin testnet account",
+    "add_bitcoin_account_mainnet": "Bitcoin account",
+    "add_solana_account": "Solana account"
   },
   "show_nft": {
     "show_nft_title": "Show NFT",
