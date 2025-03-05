@@ -1,6 +1,7 @@
 import React from 'react';
 import { waitFor } from '@testing-library/react-native';
 
+import { backgroundState } from '../../../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../../../util/test/renderWithProvider';
 import {
   SignTypedDataMockType,
@@ -42,6 +43,19 @@ describe('PermitSimulation', () => {
     expect(getByText('0xCcCCc...ccccC')).toBeTruthy();
 
     await waitFor(() => expect(getByText('3,000')).toBeTruthy());
+  });
+
+  it('renders null when no message data is found', async () => {
+    const { queryByText } = renderWithProvider(<PermitSimulation />, {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+          },
+        },
+      },
+    });
+    expect(queryByText('Estimated changes')).toBeNull();
   });
 
   it('renders for Permit NFTs', async () => {
