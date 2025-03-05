@@ -15345,10 +15345,10 @@ detox-copilot@^0.0.27:
   resolved "https://registry.yarnpkg.com/detox-copilot/-/detox-copilot-0.0.27.tgz#350ee91ae6ba77acac78513ccbda7aafcb3c6faf"
   integrity sha512-H2febTNp0arVx2A8rvM1C2BwDiBEP/2Ya8Hd1mVyV66rR5u8om1gdIypaRGm+plpTLCHhlefe4+7qLtHgVzpng==
 
-detox@20.33.0:
-  version "20.33.0"
-  resolved "https://registry.yarnpkg.com/detox/-/detox-20.33.0.tgz#5a032b0ef2987294e741d10e91600a532e253a3a"
-  integrity sha512-9KZC3NgCav/IvuWm/EaKNIL5lV2bJf23PPK67OHS2dMhJsDsNBRWP9k3RN7hzLzzUwAXMMoOmk+S1OpOsazNFA==
+detox@20.34.4:
+  version "20.34.4"
+  resolved "https://registry.yarnpkg.com/detox/-/detox-20.34.4.tgz#68708928458ba76e8a5f1df3e09eae1551408973"
+  integrity sha512-URN1KZ1cwX5V1mHLKYgAzTEvDWJHfDOYvo0oOzLSrTP0hanjBJlCZRbTA7SVIMFNvghz7xVipiL/a4FLaofKvQ==
   dependencies:
     ajv "^8.6.3"
     bunyan "^1.8.12"
