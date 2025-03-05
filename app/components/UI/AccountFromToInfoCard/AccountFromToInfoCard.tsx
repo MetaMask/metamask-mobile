@@ -169,7 +169,12 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   return (
     <View style={styles.container}>
       {fromAddress && (
-        <AddressFrom asset={selectedAsset} from={fromAddress} origin={origin} />
+        <AddressFrom
+          chainId={transactionState?.chainId}
+          asset={selectedAsset}
+          from={fromAddress}
+          origin={origin}
+        />
       )}
       {existingToAddress === undefined && confusableCollection.length ? (
         <TouchableOpacity onPress={() => setShowWarningModal(true)}>
