@@ -115,13 +115,13 @@ const useStakingInputHandlers = () => {
     : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
   const getDepositTxGasPercentage = useCallback(
-    () => estimatedGasFeeWei.mul(new BN(100)).div(amountWei).toString(),
+    () => estimatedGasFeeWei.mul(new BN4(100)).div(amountWei).toString(),
     [amountWei, estimatedGasFeeWei],
   );
 
   // Gas fee make up 30% or more of the deposit amount.
   const isHighGasCostImpact = useCallback(
-    () => new BN(getDepositTxGasPercentage()).gt(new BN(30)),
+    () => new BN4(getDepositTxGasPercentage()).gt(new BN4(30)),
     [getDepositTxGasPercentage],
   );
 
