@@ -64,7 +64,7 @@ const createStyles = (params: StylesParams) => {
 export const Token: React.FC<TokenProps> = ({
   symbol,
   iconUrl,
-  networkImageSource = images.ETHEREUM,
+  networkImageSource,
   networkName,
 }) => {
   const { styles } = useStyles(createStyles, {});

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
+import { selectChainId } from '../../../selectors/networkController';
 import ScreenView from '../../Base/ScreenView';
 import { Numpad } from './Numpad';
 import { TokenInputArea } from './TokenInputArea';
@@ -13,7 +15,36 @@ import Text, { TextColor } from '../../../component-library/components/Texts/Tex
 import ETHLogo from '../../../images/eth-logo-new.png';
 import BTCLogo from '../../../images/bitcoin-logo.png';
 import images from '../../../images/image-icons';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { Hex } from '@metamask/utils';
+import { isTestNet, getTestNetImageByChainId, isMainnetByChainId, isLineaMainnetByChainId } from '../../../util/networks';
+import { PopularList, UnpopularNetworkList, CustomNetworkImgMapping } from '../../../util/networks/customNetworks';
 import { ZERO_ADDRESS } from '@metamask/assets-controllers/dist/token-prices-service/codefi-v2.cjs';
+
+const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
+  if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+  if (isMainnetByChainId(chainId)) return images.ETHEREUM;
+  if (isLineaMainnetByChainId(chainId)) return images['LINEA-MAINNET'];
+
+  if (CustomNetworkImgMapping[chainId as Hex]) {
+    return CustomNetworkImgMapping[chainId as Hex];
+  }
+
+  const unpopularNetwork = UnpopularNetworkList.find(
+    (networkConfig) => networkConfig.chainId === chainId,
+  );
+
+  const popularNetwork = PopularList.find(
+    (networkConfig) => networkConfig.chainId === chainId,
+  );
+
+  const network = unpopularNetwork || popularNetwork;
+  if (network) {
+    return network.rpcPrefs.imageSource;
+  }
+
+  return undefined;
+};
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -63,18 +94,14 @@ const createStyles = (params: { theme: Theme }) => {
 const BridgeView = () => {
   const { styles } = useStyles(createStyles, {});
 
-  const [sourceAmount, setSourceAmount] = useState<string>();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [destAmount] = useState<string>();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [sourceTokenAddress, setSourceTokenAddress] = useState<string>(ZERO_ADDRESS);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [destTokenAddress, setDestTokenAddress] = useState<string>(ZERO_ADDRESS);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [sourceChainId, setSourceChainId] = useState<string>();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [destChainId, setDestChainId] = useState<string>();
+  const currentChainId = useSelector(selectChainId);
 
+  const [sourceAmount, setSourceAmount] = useState<string>();
+  const [destAmount] = useState<string>();
+  const [sourceTokenAddress] = useState<string>(ZERO_ADDRESS);
+  const [destTokenAddress] = useState<string>();
+  const [sourceChainId] = useState<SupportedCaipChainId | Hex>(currentChainId);
+  const [destChainId] = useState<SupportedCaipChainId | Hex>();
 
   const handleNumberPress = (num: string) => {
     setSourceAmount((prev) => {
@@ -121,7 +148,7 @@ const BridgeView = () => {
             tokenBalance="0.5"
             tokenIconUrl={ETHLogo}
             tokenAddress={sourceTokenAddress}
-            networkImageSource={images.ETHEREUM}
+            networkImageSource={getNetworkImage(sourceChainId)}
             autoFocus
           />
           <Box style={styles.arrowContainer}>
@@ -138,7 +165,7 @@ const BridgeView = () => {
             tokenSymbol="BTC"
             tokenAddress={destTokenAddress}
             tokenIconUrl={BTCLogo}
-            networkImageSource={images['LINEA-MAINNET']}
+            networkImageSource={destChainId ? getNetworkImage(destChainId) : undefined}
             isReadonly
           />
         </Box>
