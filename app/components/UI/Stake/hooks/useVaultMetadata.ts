@@ -3,16 +3,16 @@ import { useState } from 'react';
 import { pooledStakingSelectors } from '../../../../selectors/earnController';
 import Engine from '../../../../core/Engine';
 
-const useVaultData = () => {
+const useVaultMetadata = () => {
   const { selectVaultMetadata, selectVaultApy } = pooledStakingSelectors;
 
-  const vaultData = useSelector(selectVaultMetadata);
+  const vaultMetadata = useSelector(selectVaultMetadata);
   const { apyDecimal, apyPercentString } = useSelector(selectVaultApy);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchVaultData = async () => {
+  const fetchVaultMetadata = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -26,13 +26,13 @@ const useVaultData = () => {
   };
 
   return {
-    vaultData,
-    isLoadingVaultData: isLoading,
+    vaultMetadata,
+    isLoadingVaultMetadata: isLoading,
     error,
     annualRewardRate: apyPercentString,
     annualRewardRateDecimal: apyDecimal,
-    refreshPoolStakingVaultMetadata: fetchVaultData,
+    refreshVaultMetadata: fetchVaultMetadata,
   };
 };
 
-export default useVaultData;
+export default useVaultMetadata;

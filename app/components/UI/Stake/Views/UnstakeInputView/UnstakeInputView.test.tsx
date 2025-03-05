@@ -69,7 +69,7 @@ jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
-const mockVaultData = MOCK_GET_VAULT_RESPONSE;
+const mockVaultMetadata = MOCK_GET_VAULT_RESPONSE;
 const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
 
 jest.mock('../../hooks/useStakingEligibility', () => ({
@@ -82,10 +82,10 @@ jest.mock('../../hooks/useStakingEligibility', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useVaultData', () => ({
+jest.mock('../../hooks/useVaultMetadata', () => ({
   __esModule: true,
   default: () => ({
-    vaultData: mockVaultData,
+    vaultMetadata: mockVaultMetadata,
     loading: false,
     error: null,
     annualRewardRate: '2.5%',

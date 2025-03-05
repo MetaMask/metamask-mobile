@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react-native';
-import useVaultData from './useVaultData';
+import useVaultMetadata from './useVaultMetadata';
 import {
   MOCK_GET_VAULT_RESPONSE,
   MOCK_SELECT_POOLED_STAKING_VAULT_APY,
@@ -49,12 +49,12 @@ const renderHook = (vaultMetadata?: PooledStakingState['vaultMetadata']) => {
     },
   };
 
-  return renderHookWithProvider(() => useVaultData(), {
+  return renderHookWithProvider(() => useVaultMetadata(), {
     state: mockState,
   });
 };
 
-describe('useVaultData', () => {
+describe('useVaultMetadata', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -65,7 +65,7 @@ describe('useVaultData', () => {
     });
   });
 
-  describe('when fetching vault data', () => {
+  describe('when fetching vault metadata', () => {
     it('handles error if the API request fails', async () => {
       // Simulate API error
       (
@@ -76,10 +76,10 @@ describe('useVaultData', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current.refreshPoolStakingVaultMetadata();
+        await result.current.refreshVaultMetadata();
       });
 
-      expect(result.current.isLoadingVaultData).toBe(false);
+      expect(result.current.isLoadingVaultMetadata).toBe(false);
       expect(result.current.error).toBe('Failed to fetch vault metadata');
     });
   });

@@ -51,7 +51,6 @@ describe('useStakingEarnings', () => {
   });
 
   it('returns loading state when either vault or pooled stakes data is loading', async () => {
-    // Mock return values for useVaultData and usePooledStakes
     (useVaultApyAverages as jest.Mock).mockReturnValue({
       vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
       isLoadingVaultApyAverages: true, // Simulate loading
@@ -72,7 +71,6 @@ describe('useStakingEarnings', () => {
   });
 
   it('handles absence of pooled stakes data correctly', async () => {
-    // Mock return values for useVaultData, useBalance, and usePooledStakes
     (useVaultApyAverages as jest.Mock).mockReturnValue({
       vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
       isLoadingVaultApyAverages: false,
