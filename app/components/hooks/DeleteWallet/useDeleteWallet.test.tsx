@@ -21,6 +21,12 @@ jest.mock('../../../store/storage-wrapper', () => ({
   removeItem: jest.fn(),
 }));
 
+jest.mock('../../../core/redux/ReduxService', () => ({
+  store: {
+    dispatch: jest.fn(),
+  },
+}));
+
 describe('useDeleteWallet', () => {
   test('it should provide two outputs of type function', () => {
     const { result } = renderHook(() => useDeleteWallet());

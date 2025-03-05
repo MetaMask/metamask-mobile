@@ -76,6 +76,7 @@
 				<data android:host="metamask-alternate.app.link" />
 				<data android:host="metamask.test-app.link" />
 				<data android:host="metamask-alternate.test-app.link" />
+        <data android:scheme="expo-metamask" />
 			</intent-filter>
 			<!-- Branch URI Scheme -->
 			<intent-filter>
@@ -114,6 +115,12 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
+      <intent-filter>
+				<data android:scheme="expo-metamask" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
 		</activity>
 		<!-- Explicitly opt-in to safe browsing -->
 		<meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />
@@ -126,7 +133,12 @@
 		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_channel_description"
 		android:value="io.metamask"/>
 		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_color"
-		android:resource="@color/lightgray"/>
+		android:resource="@color/notificationColor"/>
+		<meta-data  android:name="com.google.firebase.messaging.default_notification_color"
+		android:resource="@color/notificationColor"
+		tools:replace="android:resource"/>
+		<meta-data  android:name="com.google.firebase.messaging.default_notification_icon"
+		android:resource="@mipmap/ic_notification_small"/>
 
 		<provider
 			android:name="androidx.core.content.FileProvider"

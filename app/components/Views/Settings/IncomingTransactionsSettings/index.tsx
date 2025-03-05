@@ -16,9 +16,8 @@ import {
   selectShowTestNetworks,
   selectShowIncomingTransactionNetworks,
 } from '../../../../selectors/preferencesController';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import styleSheet from './index.styles';
 import {
@@ -29,6 +28,13 @@ import {
 import { NetworksI } from './index.types';
 import NetworkCell from '../../../UI/NetworkCell/NetworkCell';
 import { MAINNET, LINEA_MAINNET } from '../../../../../app/constants/network';
+import { INCOMING_TRANSACTIONS_SUPPORTED_CHAIN_IDS } from '@metamask/transaction-controller';
+import { CaipChainId, Hex } from '@metamask/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { SolScope } from '@metamask/keyring-api';
+import images from 'images/image-icons';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
+///: END:ONLY_INCLUDE_IF
 
 const IncomingTransactionsSettings = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -38,16 +44,21 @@ const IncomingTransactionsSettings = () => {
     selectShowIncomingTransactionNetworks,
   );
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-
-  const supportedNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const nonEvmNetworkConfigurations = useSelector(
+    selectNonEvmNetworkConfigurationsByChainId,
+  );
+  ///: END:ONLY_INCLUDE_IF
 
   const toggleEnableIncomingTransactions = (
-    hexChainId: EtherscanSupportedHexChainId,
+    hexChainId: Hex | CaipChainId,
     value: boolean,
   ) => {
     PreferencesController.setEnableNetworkIncomingTransactions(
-      hexChainId,
+      hexChainId as EtherscanSupportedHexChainId,
       value,
     );
   };
@@ -73,7 +84,10 @@ const IncomingTransactionsSettings = () => {
       chainId,
       defaultRpcEndpointIndex,
     }: NetworkConfiguration) => {
-      if (!chainId || !Object.keys(supportedNetworks).includes(chainId))
+      if (
+        !chainId ||
+        !INCOMING_TRANSACTIONS_SUPPORTED_CHAIN_IDS.includes(chainId)
+      )
         return null;
 
       const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
@@ -88,8 +102,6 @@ const IncomingTransactionsSettings = () => {
 
       //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       const image = getNetworkImageSource({ chainId: chainId?.toString() });
-      const secondaryText =
-        supportedNetworks[chainId as keyof typeof supportedNetworks].domain;
 
       return (
         <NetworkCell
@@ -97,7 +109,6 @@ const IncomingTransactionsSettings = () => {
           name={name}
           chainId={chainId as EtherscanSupportedHexChainId}
           imageSource={image}
-          secondaryText={secondaryText}
           showIncomingTransactionsNetworks={showIncomingTransactionsNetworks}
           toggleEnableIncomingTransactions={toggleEnableIncomingTransactions}
           testID={testId}
@@ -107,22 +118,40 @@ const IncomingTransactionsSettings = () => {
 
     return [...mainnetNetworks, ...otherNetworks].map(renderNetwork);
   };
-
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const renderNonEvmNetworks = () =>
+    Object.values(nonEvmNetworkConfigurations)
+      // TODO: - [SOLANA] - Remove this filter once we want to show non evm like BTC
+      .filter((network) => network.chainId === SolScope.Mainnet)
+      .map((network) => (
+        <NetworkCell
+          key={network.chainId}
+          name={network.name}
+          chainId={network.chainId}
+          imageSource={images.SOLANA}
+          //TODO: [SOLANA] Disabled for now. When activity view supports non evm, we should enable this
+          showIncomingTransactionsNetworks={{
+            [network.chainId]: false,
+          }}
+          toggleEnableIncomingTransactions={() => null}
+          testID={'solana-incoming-transactions-toggle'}
+        />
+      ));
+  ///: END:ONLY_INCLUDE_IF
   const renderOtherNetworks = () => {
     const NetworksTyped = Networks as NetworksI;
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((networkType) => {
       const { name, imageSource, chainId } = NetworksTyped[networkType];
+
       if (!chainId) return null;
-      const secondaryText =
-        supportedNetworks[chainId as keyof typeof supportedNetworks].domain;
+
       return (
         <NetworkCell
           key={`${name}-${chainId}`}
           name={name}
-          chainId={chainId as keyof typeof supportedNetworks}
+          chainId={chainId as Hex}
           imageSource={imageSource as ImageSourcePropType}
-          secondaryText={secondaryText}
           showIncomingTransactionsNetworks={showIncomingTransactionsNetworks}
           toggleEnableIncomingTransactions={toggleEnableIncomingTransactions}
         />
@@ -144,6 +173,11 @@ const IncomingTransactionsSettings = () => {
       </Text>
       <View style={styles.transactionsContainer}>
         {renderRpcNetworks()}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          renderNonEvmNetworks()
+          ///: END:ONLY_INCLUDE_IF
+        }
         {showTestNetworks && renderOtherNetworks()}
       </View>
     </View>

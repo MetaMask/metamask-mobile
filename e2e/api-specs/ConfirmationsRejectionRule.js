@@ -5,13 +5,14 @@ import TestHelpers from '../helpers';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 import ConnectBottomSheet from '../pages/Browser/ConnectBottomSheet';
-import AssetWatchModal from '../pages/modals/AssetWatchModal';
+import AssetWatchBottomSheet from '../pages/Transactions/AssetWatchBottomSheet';
 import SpamFilterModal from '../pages/Browser/SpamFilterModal';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import fs from 'fs';
 
 import Assertions from '../utils/Assertions';
+import PermissionSummaryBottomSheet from '../pages/Browser/PermissionSummaryBottomSheet';
 
 const getBase64FromPath = async (path) => {
   const data = await fs.promises.readFile(path);
@@ -59,9 +60,13 @@ export default class ConfirmationsRejectRule {
              */
 
             // Connect accounts modal
-            await Assertions.checkIfVisible(ConnectBottomSheet.container);
+            await Assertions.checkIfVisible(
+              PermissionSummaryBottomSheet.container,
+            );
             await ConnectBottomSheet.tapConnectButton();
-            await Assertions.checkIfNotVisible(ConnectBottomSheet.container);
+            await Assertions.checkIfNotVisible(
+              PermissionSummaryBottomSheet.container,
+            );
             await TestHelpers.delay(3000);
 
             try {
@@ -147,7 +152,7 @@ export default class ConfirmationsRejectRule {
           let cancelButton;
           await TestHelpers.delay(3000);
           if (this.allCapsCancel.includes(call.methodName)) {
-            await AssetWatchModal.tapCancelButton();
+            await AssetWatchBottomSheet.tapCancelButton();
           } else {
             cancelButton = await Matchers.getElementByText('Cancel');
             await Gestures.waitAndTap(cancelButton);

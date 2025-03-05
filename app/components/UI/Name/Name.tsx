@@ -1,21 +1,23 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TextProps, View } from 'react-native';
-
-import { useStyles } from '../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import { TextProps, View, ViewStyle } from 'react-native';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../component-library/hooks';
+import images from '../../../images/image-icons';
 import { renderShortAddress } from '../../../util/address';
 import useDisplayName, {
   DisplayNameVariant,
 } from '../../hooks/DisplayName/useDisplayName';
 import Identicon from '../Identicon';
-import { NameProperties, NameType } from './Name.types';
 import styleSheet from './Name.styles';
+import { NameProperties, NameType } from './Name.types';
 
 const NameLabel: React.FC<{
   displayNameVariant: DisplayNameVariant;
@@ -34,11 +36,12 @@ const NameLabel: React.FC<{
   );
 };
 
-const UnknownEthereumAddress: React.FC<{ address: string }> = ({ address }) => {
+const UnknownEthereumAddress: React.FC<{ address: string, style?: ViewStyle }> = ({ address, style }) => {
   const displayNameVariant = DisplayNameVariant.Unknown;
   const { styles } = useStyles(styleSheet, { displayNameVariant });
+
   return (
-    <View style={styles.base}>
+    <View style={[styles.base, style]}>
       <Icon name={IconName.Question} />
       <NameLabel displayNameVariant={displayNameVariant} ellipsizeMode="middle">
         {renderShortAddress(address, 5)}
@@ -48,33 +51,58 @@ const UnknownEthereumAddress: React.FC<{ address: string }> = ({ address }) => {
 };
 
 const Name: React.FC<NameProperties> = ({
-  chainId,
   preferContractSymbol,
   type,
   value,
+  variation,
+  style,
 }) => {
   if (type !== NameType.EthereumAddress) {
     throw new Error('Unsupported NameType: ' + type);
   }
-  const displayName = useDisplayName(
+
+  const { image, name, variant, isFirstPartyContractName } = useDisplayName({
+    preferContractSymbol,
     type,
     value,
-    chainId,
-    preferContractSymbol,
-  );
-  const { styles } = useStyles(styleSheet, {
-    displayNameVariant: displayName.variant,
+    variation,
   });
 
-  if (displayName.variant === DisplayNameVariant.Unknown) {
-    return <UnknownEthereumAddress address={value} />;
+  const { styles } = useStyles(styleSheet, {
+    displayNameVariant: variant,
+  });
+
+  if (variant === DisplayNameVariant.Unknown) {
+    return <UnknownEthereumAddress address={value} style={style} />;
   }
 
+  const MAX_CHAR_LENGTH = 21;
+  const MIDDLE_SECTION_ELLIPSIS = '...';
+  const truncatedName =
+    name && name.length > MAX_CHAR_LENGTH
+      ? `${name.slice(0, (MAX_CHAR_LENGTH - MIDDLE_SECTION_ELLIPSIS.length) / 2)}${MIDDLE_SECTION_ELLIPSIS}${name.slice(-(MAX_CHAR_LENGTH - MIDDLE_SECTION_ELLIPSIS.length) / 2)}`
+      : name;
+
+
   return (
-    <View style={styles.base}>
-      <Identicon address={value} diameter={16} />
-      <NameLabel displayNameVariant={displayName.variant} ellipsizeMode="tail">
-        {displayName.name}
+    <View style={[styles.base, style]}>
+      {isFirstPartyContractName ? (
+        <Badge
+          size={AvatarSize.Xs}
+          imageSource={images.FOX_LOGO}
+          variant={BadgeVariant.Network}
+          isScaled={false}
+        />
+      ) : (
+        <Identicon
+        address={value}
+        diameter={16}
+        imageUri={image}
+        customStyle={styles.image}
+        />
+      )}
+      <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
+        {truncatedName}
       </NameLabel>
     </View>
   );

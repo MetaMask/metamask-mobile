@@ -1,35 +1,76 @@
 import React from 'react';
-import { View } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 
+import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
-import BottomModal from '../components/UI/BottomModal';
-import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
-import Footer from '../components/Confirm/Footer';
+import { Footer } from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
+import { LedgerContextProvider } from '../context/LedgerContext';
+import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
+import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
-import useConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
+import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
+import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
+import useApprovalRequest from '../hooks/useApprovalRequest';
+import { useConfirmActions } from '../hooks/useConfirmActions';
 import styleSheet from './Confirm.styles';
 
-const Confirm = () => {
+const ConfirmWrapped = ({
+  styles,
+}: {
+  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+}) => (
+  <QRHardwareContextProvider>
+    <LedgerContextProvider>
+      <Title />
+      <ScrollView style={styles.scrollView}>
+        <TouchableWithoutFeedback>
+          <>
+            <SignatureBlockaidBanner />
+            <Info />
+          </>
+        </TouchableWithoutFeedback>
+      </ScrollView>
+      <Footer />
+    </LedgerContextProvider>
+  </QRHardwareContextProvider>
+);
+
+export const Confirm = () => {
+  const { approvalRequest } = useApprovalRequest();
+  const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
+  const { onReject } = useConfirmActions();
+
   const { styles } = useStyles(styleSheet, {});
 
   if (!isRedesignedEnabled) {
     return null;
   }
 
-  return (
-    <BottomModal>
-      <View style={styles.container}>
-        <View>
-          <Title />
-          <AccountNetworkInfo />
-          <Info />
-        </View>
-        <Footer />
+  if (isFlatConfirmation) {
+    return (
+      <View style={styles.flatContainer} testID="flat-confirmation-container">
+        <ConfirmWrapped styles={styles} />
       </View>
-    </BottomModal>
+    );
+  }
+
+  return (
+    <BottomSheet
+      isInteractable={false}
+      onClose={onReject}
+      style={styles.bottomSheetDialogSheet}
+      testID="modal-confirmation-container"
+    >
+      <View testID={approvalRequest?.type}>
+        <ConfirmWrapped styles={styles} />
+      </View>
+    </BottomSheet>
   );
 };
-
-export default Confirm;

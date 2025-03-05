@@ -1,21 +1,27 @@
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import {
+  INotification,
+  TRIGGER_TYPES,
+} from '@metamask/notification-services-controller/notification-services';
+export type { INotification } from '@metamask/notification-services-controller/notification-services';
 import type { FC } from 'react';
-import { TRIGGER_TYPES } from '../../constants';
 
-/**
- * The shape of a "generic" notification.
- * Other than the fields listed below, tt will also contain:
- * - `type` field (declared in the Raw shapes)
- * - `data` field (declared in the Raw shapes)
- */
-export type Notification = NotificationServicesController.Types.INotification;
+export type HandleNotificationCallback = (
+  data: INotification['data'] | undefined,
+) => void;
+
+export enum PressActionId {
+  OPEN_HOME = 'open-home-press-action-id',
+  OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
+}
+
+export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
 
 /**
  * NotificationFC is the shared component interface for all notification components
  */
-type NotificationFC<N = Notification> = FC<{ notification: N }>;
+type NotificationFC<N = INotification> = FC<{ notification: N }>;
 
-interface BodyHalNotification<N = Notification> {
+interface BodyHalNotification<N = INotification> {
   type: 'body_hal_notification';
   Image?: NotificationFC<N>;
   Summary?: NotificationFC<N>;
@@ -24,18 +30,18 @@ interface BodyHalNotification<N = Notification> {
   NetworkFee?: NotificationFC<N>;
 }
 
-interface BodyFeatureAnnouncement<N = Notification> {
+interface BodyFeatureAnnouncement<N = INotification> {
   type: 'body_feature_announcement';
   Image: NotificationFC<N>;
   Description: NotificationFC<N>;
 }
 
-interface FooterHalNotification<N = Notification> {
+interface FooterHalNotification<N = INotification> {
   type: 'footer_hal_notification';
   ScanLink: NotificationFC<N>;
 }
 
-interface FooterFeatureAnnouncement<N = Notification> {
+interface FooterFeatureAnnouncement<N = INotification> {
   type: 'footer_feature_announcement';
   Link: NotificationFC<N>;
   Action: NotificationFC<N>;
@@ -45,8 +51,10 @@ interface FooterFeatureAnnouncement<N = Notification> {
  * This is the object shape that contains all the components of the particular notification.
  * the `guardFn` can be used to narrow a wide notification into the specific notification required.
  */
-export interface NotificationComponent<N extends Notification = Notification> {
-  guardFn: (n: Notification) => n is N;
+export interface NotificationComponent<
+  N extends INotification = INotification,
+> {
+  guardFn: (n: INotification) => n is N;
   item: {
     Icon: NotificationFC<N>;
     Title: NotificationFC<N>;
@@ -84,6 +92,22 @@ export const NotificationTransactionTypes = {
   cancelled: 'cancelled',
   received: 'received',
   received_payment: 'received_payment',
+  eth_received: 'eth_received',
+  features_announcement: 'features_announcement',
+  metamask_swap_completed: 'metamask_swap_completed',
+  erc20_sent: 'erc20_sent',
+  erc20_received: 'erc20_received',
+  eth_sent: 'eth_sent',
+  rocketpool_stake_completed: 'rocketpool_stake_completed',
+  rocketpool_unstake_completed: 'rocketpool_unstake_completed',
+  lido_stake_completed: 'lido_stake_completed',
+  lido_withdrawal_requested: 'lido_withdrawal_requested',
+  lido_withdrawal_completed: 'lido_withdrawal_completed',
+  lido_stake_ready_to_be_withdrawn: 'lido_stake_ready_to_be_withdrawn',
+  erc721_sent: 'erc721_sent',
+  erc721_received: 'erc721_received',
+  erc1155_sent: 'erc1155_sent',
+  erc1155_received: 'erc1155_received',
 } as const;
 
 export type NotificationTransactionTypesType =
@@ -96,10 +120,10 @@ export interface MarketingNotificationData {
 }
 
 export const STAKING_PROVIDER_MAP: Record<
-  | 'lido_stake_completed'
-  | 'rocketpool_stake_completed'
-  | 'rocketpool_unstake_completed'
-  | 'lido_withdrawal_completed',
+  | TRIGGER_TYPES.LIDO_STAKE_COMPLETED
+  | TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
+  | TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
+  | TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED,
   string
 > = {
   [TRIGGER_TYPES.LIDO_STAKE_COMPLETED]: 'Lido-staked ETH',

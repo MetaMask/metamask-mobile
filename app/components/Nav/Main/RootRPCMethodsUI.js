@@ -40,7 +40,7 @@ import {
 } from '../../../util/address';
 
 import {
-  selectChainId,
+  selectEvmChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
@@ -59,10 +59,10 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import Confirm from '../../../components/Views/confirmations/Confirm';
+import { ConfirmRoot } from '../../../components/Views/confirmations/Confirm';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
@@ -73,6 +73,11 @@ import { updateSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
+import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapsDialogApproval';
+///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
 ///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
@@ -128,7 +133,7 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
 };
 
 const RootRPCMethodsUI = (props) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
@@ -157,7 +162,7 @@ const RootRPCMethodsUI = (props) => {
             ({ id }) => id === approvalTransactionMetaId,
           );
 
-        const ethQuery = Engine.getGlobalEthQuery();
+        const ethQuery = getGlobalEthQuery();
 
         const ethBalance = await query(ethQuery, 'getBalance', [
           props.selectedAddress,
@@ -230,26 +235,53 @@ const RootRPCMethodsUI = (props) => {
           );
 
         const parameters = {
-          ...analyticsParams,
           time_to_mine: timeToMine,
           estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
           quote_vs_executionRatio: quoteVsExecutionRatio,
           token_to_amount_received: tokenToAmountReceived.toString(),
           is_smart_transaction: props.shouldUseSmartTransaction,
           ...smartTransactionMetricsProperties,
+          available_quotes: analyticsParams.available_quotes,
+          best_quote_source: analyticsParams.best_quote_source,
+          chain_id: analyticsParams.chain_id,
+          custom_slippage: analyticsParams.custom_slippage,
+          network_fees_USD: analyticsParams.network_fees_USD,
+          other_quote_selected: analyticsParams.other_quote_selected,
+          request_type: analyticsParams.request_type,
+          token_from: analyticsParams.token_from,
+          token_to: analyticsParams.token_to,
+        };
+        const sensitiveParameters = {
+          token_from_amount: analyticsParams.token_from_amount,
+          token_to_amount: analyticsParams.token_to_amount,
+          network_fees_ETH: analyticsParams.network_fees_ETH,
         };
 
         Logger.log('Swaps', 'Sending metrics event', event);
 
-        trackEvent(event, { sensitiveProperties: { ...parameters } });
+        trackEvent(
+          createEventBuilder(event)
+            .addProperties({ ...parameters })
+            .addSensitiveProperties({ ...sensitiveParameters })
+            .build(),
+        );
       } catch (e) {
         Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
-        trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
-          error: e,
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.SWAP_TRACKING_FAILED)
+            .addProperties({
+              error: e,
+            })
+            .build(),
+        );
       }
     },
-    [props.selectedAddress, props.shouldUseSmartTransaction, trackEvent],
+    [
+      props.selectedAddress,
+      props.shouldUseSmartTransaction,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const { addTransactionMetaIdForListening } = useSwapConfirmedEvent({
@@ -304,7 +336,7 @@ const RootRPCMethodsUI = (props) => {
               transactionId: transactionMeta.id,
               deviceId,
               // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => {},
+              onConfirmationComplete: () => { },
               type: 'signTransaction',
             }),
           );
@@ -323,7 +355,11 @@ const RootRPCMethodsUI = (props) => {
           );
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
-          trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            ).build(),
+          );
         }
       }
     },
@@ -333,6 +369,7 @@ const RootRPCMethodsUI = (props) => {
       trackEvent,
       swapsTransactions,
       addTransactionMetaIdForListening,
+      createEventBuilder,
     ],
   );
 
@@ -356,6 +393,8 @@ const RootRPCMethodsUI = (props) => {
         autoSign(transactionMeta);
       } else {
         const {
+          chainId,
+          networkClientId,
           txParams: { value, gas, gasPrice, data },
         } = transactionMeta;
         const { AssetsContractController } = Engine.context;
@@ -367,7 +406,7 @@ const RootRPCMethodsUI = (props) => {
           data &&
           data !== '0x' &&
           to &&
-          (await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
+          (await getMethodData(data, networkClientId)).name === TOKEN_METHOD_TRANSFER
         ) {
           let asset = props.tokens.find(({ address }) =>
             toLowerCaseEquals(address, to),
@@ -410,6 +449,8 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
+            networkClientId,
+            chainId,
             ...transactionMeta.txParams,
           });
         } else {
@@ -422,6 +463,8 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
+            chainId,
+            networkClientId,
             ...transactionMeta.txParams,
           });
         }
@@ -473,7 +516,7 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
-      <Confirm />
+      <ConfirmRoot />
       <SignatureApproval />
       <WalletConnectApproval />
       <TransactionApproval
@@ -492,6 +535,14 @@ const RootRPCMethodsUI = (props) => {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       }
       <InstallSnapApproval />
+      <SnapDialogApproval />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      }
+      <SnapAccountCustomNameApproval />
       {
         ///: END:ONLY_INCLUDE_IF
       }
@@ -531,8 +582,8 @@ RootRPCMethodsUI.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
-  chainId: selectChainId(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+  chainId: selectEvmChainId(state),
   tokens: selectTokens(state),
   providerType: selectProviderType(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),

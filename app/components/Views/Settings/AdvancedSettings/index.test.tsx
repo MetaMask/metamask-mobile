@@ -73,7 +73,7 @@ describe('AdvancedSettings', () => {
     Device.isIos = jest.fn().mockReturnValue(true);
     Device.isAndroid = jest.fn().mockReturnValue(false);
 
-    it('should render smart transactions opt in switch off by default', async () => {
+    it('should render smart transactions opt in switch on by default', async () => {
       const { findByLabelText } = renderWithProvider(
         <AdvancedSettings
           navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
@@ -86,7 +86,7 @@ describe('AdvancedSettings', () => {
       const switchElement = await findByLabelText(
         strings('app_settings.smart_transactions_opt_in_heading'),
       );
-      expect(switchElement.props.value).toBe(false);
+      expect(switchElement.props.value).toBe(true);
     });
     it('should update smartTransactionsOptInStatus when smart transactions opt in is pressed', async () => {
       const { findByLabelText } = renderWithProvider(
@@ -102,9 +102,9 @@ describe('AdvancedSettings', () => {
         strings('app_settings.smart_transactions_opt_in_heading'),
       );
 
-      fireEvent(switchElement, 'onValueChange', true);
+      fireEvent(switchElement, 'onValueChange', false);
 
-      expect(mockSetSmartTransactionsOptInStatus).toBeCalledWith(true);
+      expect(mockSetSmartTransactionsOptInStatus).toBeCalledWith(false);
     });
   });
 });

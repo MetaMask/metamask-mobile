@@ -8,8 +8,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
-import { selectProviderType } from '../../../../../selectors/networkController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { fontStyles } from '../../../../../styles/common';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
@@ -117,7 +116,7 @@ const createStyles = (colors) =>
     arrowIcon: {
       color: colors.icon.muted,
     },
-    blockaidBanner: {
+    blockaidBannerContainer: {
       marginHorizontal: 20,
       marginBottom: 20,
     },
@@ -149,7 +148,7 @@ class SignatureRequest extends PureComponent {
      */
     type: PropTypes.string,
     /**
-     * String representing the selected network
+     * String representing the associated network
      */
     networkType: PropTypes.string,
     /**
@@ -180,8 +179,10 @@ class SignatureRequest extends PureComponent {
   onReject = () => {
     this.props.onReject();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -191,8 +192,10 @@ class SignatureRequest extends PureComponent {
   onConfirm = () => {
     this.props.onConfirm();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_SIGNATURE,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_SIGNATURE)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -218,14 +221,18 @@ class SignatureRequest extends PureComponent {
     const { currentPageInformation, type, fromAddress } = this.props;
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.SIGNATURE_REQUESTED,
-      getAnalyticsParams(
-        {
-          currentPageInformation,
-          from: fromAddress,
-        },
-        type,
-      ),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.SIGNATURE_REQUESTED)
+        .addProperties(
+          getAnalyticsParams(
+            {
+              currentPageInformation,
+              from: fromAddress,
+            },
+            type,
+          ),
+        )
+        .build(),
     );
   };
 
@@ -306,8 +313,10 @@ class SignatureRequest extends PureComponent {
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.SIGNATURE_REQUESTED,
-      analyticsParams,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.SIGNATURE_REQUESTED)
+        .addProperties(analyticsParams)
+        .build(),
     );
   };
 
@@ -352,11 +361,12 @@ class SignatureRequest extends PureComponent {
                 {strings('signature_request.signing')}
               </Text>
             </View>
-            <BlockaidBanner
-              securityAlertResponse={securityAlertResponse}
-              style={styles.blockaidBanner}
-              onContactUsClicked={this.onContactUsClicked}
-            />
+            <View style={styles.blockaidBannerContainer}>
+              <BlockaidBanner
+                securityAlertResponse={securityAlertResponse}
+                onContactUsClicked={this.onContactUsClicked}
+              />
+            </View>
             {this.renderActionViewChildren()}
           </View>
         </ActionView>
@@ -390,8 +400,7 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
-  networkType: selectProviderType(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });
 

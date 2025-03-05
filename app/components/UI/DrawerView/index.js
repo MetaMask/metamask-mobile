@@ -71,9 +71,10 @@ import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
+  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
@@ -86,6 +87,7 @@ import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import safePromiseHandler from './utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -318,8 +320,8 @@ const createStyles = (colors) =>
     protectWalletButtonWrapper: { marginVertical: 8 },
   });
 
-const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
-const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
+const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
+const metamask_fox = require('../../../images/branding/fox.png'); // eslint-disable-line
 const ICON_IMAGES = {
   wallet: require('../../../images/wallet-icon.png'), // eslint-disable-line
   'selected-wallet': require('../../../images/selected-wallet-icon.png'), // eslint-disable-line
@@ -440,6 +442,10 @@ class DrawerView extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Selected multichain chainId
+     */
+    chainId: PropTypes.string,
   };
 
   state = {
@@ -490,7 +496,7 @@ class DrawerView extends PureComponent {
     return label ? (
       <View style={[styles.importedWrapper]}>
         <Text numberOfLines={1} style={styles.importedText}>
-          {strings(label)}
+          {label}
         </Text>
       </View>
     ) : null;
@@ -539,11 +545,15 @@ class DrawerView extends PureComponent {
         this.setState({ showProtectWalletModal: true });
 
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
-          {
-            wallet_protection_required: false,
-            source: 'Backup Alert',
-          },
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
+            )
+            .addProperties({
+              wallet_protection_required: false,
+              source: 'Backup Alert',
+            })
+            .build(),
         );
       } else {
         // eslint-disable-next-line react/no-did-update-set-state
@@ -569,23 +579,23 @@ class DrawerView extends PureComponent {
   }
 
   updateAccountInfo = async () => {
-    const { providerConfig, selectedInternalAccount } = this.props;
+    const { providerConfig, selectedInternalAccount, chainId } = this.props;
     const { currentChainId, address, name } = this.state.account;
     const accountName = selectedInternalAccount.metadata.name;
     if (
-      currentChainId !== providerConfig.chainId ||
+      currentChainId !== chainId ||
       address !== this.selectedChecksummedAddress ||
       name !== accountName
     ) {
       const ens = await doENSReverseLookup(
         this.selectedChecksummedAddress,
-        providerConfig.chainId,
+        chainId,
       );
       this.setState((state) => ({
         account: {
           ens,
           name: accountName,
-          currentChainId: providerConfig.chainId,
+          currentChainId: chainId,
           address: this.selectedChecksummedAddress,
         },
       }));
@@ -602,20 +612,25 @@ class DrawerView extends PureComponent {
         onSelectAccount: this.hideDrawer,
       }),
     );
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_ACCOUNT_NAME);
-  };
-
-  trackEvent = (event) => {
-    this.props.metrics.trackEvent(event);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_ACCOUNT_NAME)
+        .build(),
+    );
   };
 
   // NOTE: do we need this event?
   trackOpenBrowserEvent = () => {
-    const { providerConfig } = this.props;
-    this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-      source: 'In-app Navigation',
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
+    const { chainId } = this.props;
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_OPENED)
+        .addProperties({
+          source: 'In-app Navigation',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   onReceive = () => {
@@ -623,14 +638,22 @@ class DrawerView extends PureComponent {
       initialScreen: QRTabSwitcherScreens.Receive,
       disableTabber: true,
     });
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE)
+        .build(),
+    );
   };
 
   onSend = async () => {
     this.props.newAssetTransaction(getEther(this.props.ticker));
     this.props.navigation.navigate('SendFlowView');
     this.hideDrawer();
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_SEND)
+        .build(),
+    );
   };
 
   goToBrowser = () => {
@@ -638,13 +661,21 @@ class DrawerView extends PureComponent {
     this.hideDrawer();
     // Q: duplicated analytic event?
     this.trackOpenBrowserEvent();
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_BROWSER);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_BROWSER)
+        .build(),
+    );
   };
 
   showWallet = () => {
     this.props.navigation.navigate('WalletTabHome');
     this.hideDrawer();
-    this.trackEvent(MetaMetricsEvents.WALLET_OPENED);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
+        .build(),
+    );
   };
 
   onPressLock = async () => {
@@ -677,7 +708,11 @@ class DrawerView extends PureComponent {
       ],
       { cancelable: false },
     );
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT)
+        .build(),
+    );
   };
 
   viewInEtherscan = () => {
@@ -701,11 +736,19 @@ class DrawerView extends PureComponent {
       );
       this.goToBrowserUrl(url, etherscan_url);
     }
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN)
+        .build(),
+    );
   };
 
   submitFeedback = () => {
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK)
+        .build(),
+    );
     this.goToBrowserUrl(
       'https://community.metamask.io/c/feature-requests-ideas/',
       strings('drawer.request_feature'),
@@ -720,7 +763,11 @@ class DrawerView extends PureComponent {
         timestamp: Date.now(),
       },
     });
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP)
+        .build(),
+    );
     this.hideDrawer();
   };
 
@@ -900,7 +947,13 @@ class DrawerView extends PureComponent {
       .catch((err) => {
         Logger.log('Error while trying to share address', err);
       });
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(
+          MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS,
+        )
+        .build(),
+    );
   };
 
   onSecureWalletModalAction = () => {
@@ -911,25 +964,30 @@ class DrawerView extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
-        {
-          wallet_protection_required: true,
-          source: 'Modal',
-        },
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED)
+          .addProperties({
+            wallet_protection_required: true,
+            source: 'Modal',
+          })
+          .build(),
       );
     });
   };
 
   onInfoNetworksModalClose = () => {
     const {
-      providerConfig,
+      chainId,
       onboardNetworkAction,
       networkSwitched,
       toggleInfoNetworkModal,
     } = this.props;
-    onboardNetworkAction(providerConfig.chainId);
+
+    onboardNetworkAction(chainId);
     networkSwitched({ networkUrl: '', networkStatus: false });
-    toggleInfoNetworkModal();
+
+    // Wrap the toggle call in a setTimeout to avoid awaiting a non-promise function.
+    safePromiseHandler(toggleInfoNetworkModal(), 100);
   };
 
   renderProtectModal = () => {
@@ -1191,11 +1249,7 @@ class DrawerView extends PureComponent {
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
         >
-          <NetworkInfo
-            onClose={this.onInfoNetworksModalClose}
-            type={providerConfig.type}
-            ticker={providerConfig.ticker}
-          />
+          <NetworkInfo onClose={this.onInfoNetworksModalClose} />
         </Modal>
 
         {this.renderProtectModal()}
@@ -1206,6 +1260,7 @@ class DrawerView extends PureComponent {
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
+  chainId: selectChainId(state),
   accounts: selectAccounts(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
   networkConfigurations: selectNetworkConfigurations(state),
@@ -1215,7 +1270,7 @@ const mapStateToProps = (state) => ({
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   tokens: selectTokens(state),
   tokenBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),

@@ -25,6 +25,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
@@ -38,6 +39,7 @@ import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/Le
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {
+  findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
@@ -61,7 +63,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import {
   TransactionError,
   CancelTransactionError,
@@ -75,6 +77,8 @@ import {
 } from '../../../util/transaction-controller';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
+import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -101,6 +105,12 @@ const createStyles = (colors, typography) =>
     text: {
       fontSize: 20,
       color: colors.text.muted,
+      ...fontStyles.normal,
+    },
+    textTransactions: {
+      fontSize: 20,
+      color: colors.text.muted,
+      textAlign: 'center',
       ...fontStyles.normal,
     },
     viewMoreWrapper: {
@@ -206,6 +216,10 @@ class Transactions extends PureComponent {
      */
     onScrollThroughContent: PropTypes.func,
     gasFeeEstimates: PropTypes.object,
+    /**
+     * Chain ID of the token
+     */
+    tokenChainId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -257,12 +271,16 @@ class Transactions extends PureComponent {
     const {
       providerConfig: { type, rpcUrl },
       networkConfigurations,
+      chainId,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
+    } else if (isNonEvmChainId(chainId)) {
+      // TODO: [SOLANA] - block explorer needs to be implemented
+      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
@@ -341,9 +359,11 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { chainId } = this.props;
+
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions();
+    await updateIncomingTransactions([chainId]);
 
     this.setState({ refreshing: false });
   };
@@ -362,6 +382,15 @@ class Transactions extends PureComponent {
   renderEmpty = () => {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
+    if (this.props.tokenChainId !== this.props.chainId) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.textTransactions}>
+            {strings('wallet.switch_network_to_view_transactions')}
+          </Text>
+        </View>
+      );
+    }
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
@@ -778,6 +807,7 @@ class Transactions extends PureComponent {
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlatList
+              testID={ActivitiesViewSelectorsIDs.CONTAINER}
               ref={this.flatList}
               getItemLayout={this.getItemLayout}
               data={transactions}
@@ -837,13 +867,6 @@ class Transactions extends PureComponent {
             descriptionText={strings('transaction.speedup_tx_message')}
           />
         )}
-
-        <RetryModal
-          onCancelPress={() => this.toggleRetry(undefined)}
-          onConfirmPress={this.retry}
-          retryIsOpen={this.state.retryIsOpen}
-          errorMsg={this.state.errorMsg}
-        />
       </View>
     );
   };
@@ -861,6 +884,12 @@ class Transactions extends PureComponent {
           {(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
             this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
         </View>
+        <RetryModal
+          onCancelPress={() => this.toggleRetry(undefined)}
+          onConfirmPress={this.retry}
+          retryIsOpen={this.state.retryIsOpen}
+          errorMsg={this.state.errorMsg}
+        />
       </PriceChartProvider>
     );
   };
@@ -900,11 +929,12 @@ class Transactions extends PureComponent {
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates: selectGasFeeEstimates(state),

@@ -36,7 +36,7 @@ import { isNetworkRampSupported } from '../../utils';
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -59,9 +59,11 @@ function NetworkSwitcher() {
   } = useRampNetworksDetail();
   const supportedNetworks = useSelector(getRampNetworks);
   const [isCurrentNetworkRampSupported] = useRampNetwork();
-  const { selectedChainId, isBuy, intent } = useRampSDK();
+  const { selectedChainId, isBuy, intent, setIntent } = useRampSDK();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const [networkToBeAdded, setNetworkToBeAdded] = useState<Network>();
 
   const isLoading = isLoadingNetworks || isLoadingNetworksDetail;
@@ -144,32 +146,28 @@ function NetworkSwitcher() {
 
   const switchToMainnet = useCallback(
     (type: 'mainnet' | 'linea-mainnet') => {
-      const { NetworkController } = Engine.context;
-      NetworkController.setProviderType(type);
+      const { MultichainNetworkController } = Engine.context;
+      MultichainNetworkController.setActiveNetwork(type);
       navigateToGetStarted();
     },
     [navigateToGetStarted],
   );
 
   const switchNetwork = useCallback(
-    (networkConfiguration) => {
-      const { CurrencyRateController, NetworkController } = Engine.context;
+    async (networkConfiguration) => {
+      const { MultichainNetworkController } = Engine.context;
       const config = Object.values(networkConfigurations).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
       );
 
       if (config) {
-        const {
-          nativeCurrency: ticker,
-          rpcEndpoints,
-          defaultRpcEndpointIndex,
-        } = config;
+        const { rpcEndpoints, defaultRpcEndpointIndex } = config;
 
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
-        CurrencyRateController.updateExchangeRate(ticker);
-        NetworkController.setActiveNetwork(networkClientId);
+        await MultichainNetworkController.setActiveNetwork(networkClientId);
+
         navigateToGetStarted();
       }
     },
@@ -177,18 +175,28 @@ function NetworkSwitcher() {
   );
 
   const handleNetworkPress = useCallback(
-    (networkConfiguration) => {
+    async (networkConfiguration) => {
+      setIntent((prevIntent) => ({
+        ...prevIntent,
+        chainId: networkConfiguration.chainId,
+      }));
+
+      const networkConfigurationWithHexChainId = {
+        ...networkConfiguration,
+        chainId: toHex(networkConfiguration.chainId),
+      };
+
       if (networkConfiguration.isAdded) {
-        switchNetwork(networkConfiguration);
+        await switchNetwork(networkConfigurationWithHexChainId);
       } else {
-        setNetworkToBeAdded(networkConfiguration);
+        setNetworkToBeAdded(networkConfigurationWithHexChainId);
       }
     },
-    [switchNetwork],
+    [setIntent, switchNetwork],
   );
 
   const handleIntentChainId = useCallback(
-    (chainId: string) => {
+    async (chainId: string) => {
       if (!isNetworkRampSupported(chainId, supportedNetworks)) {
         return;
       }
@@ -204,7 +212,8 @@ function NetworkSwitcher() {
         (networkConfiguration) => {
           const isAdded = Object.values(networkConfigurations).some(
             (savedNetwork) =>
-              savedNetwork.chainId === networkConfiguration.chainId,
+              toHex(savedNetwork.chainId) ===
+              toHex(networkConfiguration.chainId),
           );
           return {
             ...networkConfiguration,
@@ -219,7 +228,7 @@ function NetworkSwitcher() {
       );
 
       if (networkConfiguration) {
-        handleNetworkPress(networkConfiguration);
+        await handleNetworkPress(networkConfiguration);
       }
     },
     [

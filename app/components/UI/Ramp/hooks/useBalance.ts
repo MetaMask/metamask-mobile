@@ -5,10 +5,10 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../selectors/networkController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
   balanceToFiat,
@@ -32,9 +32,9 @@ interface Asset {
 
 export default function useBalance(asset?: Asset) {
   const accountsByChainId = useSelector(selectAccountsByChainId);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -53,6 +53,11 @@ export default function useBalance(asset?: Asset) {
 
   let balance, balanceFiat, balanceBN;
   if (assetAddress === NATIVE_ADDRESS) {
+    // Chain id should exist in accountsByChainId in AccountTrackerController at this point in time
+    if (!accountsByChainId[toHexadecimal(chainId)]) {
+      return defaultReturn;
+    }
+
     balance = renderFromWei(
       //@ts-expect-error - TODO: Ramps team
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
@@ -62,6 +67,7 @@ export default function useBalance(asset?: Asset) {
       //@ts-expect-error - TODO: Ramps team
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
+
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
   } else {
     const exchangeRate = tokenExchangeRates?.[assetAddress]?.price;

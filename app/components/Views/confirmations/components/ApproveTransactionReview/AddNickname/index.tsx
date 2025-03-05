@@ -32,17 +32,12 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../../../../constants/error';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-  selectProviderType,
-  selectRpcUrl,
-} from '../../../../../../selectors/networkController';
-import { ContractNickNameViewSelectorsIDs } from '../../../../../../../e2e/selectors/ContractNickNameView.selectors';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/networkController';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
+import { selectIsEvmNetworkSelected } from '../../../../../../selectors/multichainNetworkController';
 
 const getAnalyticsParams = () => ({});
 
@@ -67,8 +62,9 @@ const AddNickname = (props: AddNicknameProps) => {
   const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { colors, themeAppearance } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const chooseToContinue = () => {
@@ -113,7 +109,11 @@ const AddNickname = (props: AddNicknameProps) => {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
 
-    trackEvent(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
   };
 
   const saveTokenNickname = () => {
@@ -128,8 +128,9 @@ const AddNickname = (props: AddNicknameProps) => {
     );
     closeModal();
     trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
-      getAnalyticsParams(),
+      createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME)
+        .addProperties(getAnalyticsParams())
+        .build(),
     );
   };
 
@@ -158,11 +159,13 @@ const AddNickname = (props: AddNicknameProps) => {
     return errorMessage;
   };
 
-  const hasBlockExplorer = shouldShowBlockExplorer(
-    providerType,
-    providerRpcTarget,
-    networkConfigurations,
-  );
+  const hasBlockExplorer = !isEvmSelected
+    ? false
+    : shouldShowBlockExplorer(
+        providerType,
+        providerRpcTarget,
+        networkConfigurations,
+      );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -186,10 +189,7 @@ const AddNickname = (props: AddNicknameProps) => {
             headerTextStyle={styles.headerText}
             iconStyle={styles.icon}
           />
-          <View
-            style={styles.bodyWrapper}
-            testID={ContractNickNameViewSelectorsIDs.CONTAINER}
-          >
+          <View style={styles.bodyWrapper}>
             {showFullAddress && (
               <InfoModal
                 isVisible
@@ -236,7 +236,6 @@ const AddNickname = (props: AddNicknameProps) => {
               style={styles.input}
               value={newNickname}
               editable={!addressHasError}
-              testID={ContractNickNameViewSelectorsIDs.NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {addressHasError && (
@@ -254,7 +253,6 @@ const AddNickname = (props: AddNicknameProps) => {
               type={'confirm'}
               disabled={shouldDisableButton}
               onPress={saveTokenNickname}
-              testID={ContractNickNameViewSelectorsIDs.CONFIRM_BUTTON}
             >
               {strings('nickname.save_nickname')}
             </StyledButton>
@@ -269,10 +267,10 @@ const AddNickname = (props: AddNicknameProps) => {
 const mapStateToProps = (state: RootState) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
-  providerChainId: selectChainId(state),
+  providerChainId: selectEvmChainId(state),
   addressBook: selectAddressBook(state),
   internalAccounts: selectInternalAccounts(state),
-  networkConfigurations: selectNetworkConfigurations(state),
+  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
 });
 
 // TODO: Replace "any" with type

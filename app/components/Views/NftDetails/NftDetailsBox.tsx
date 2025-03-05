@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text';
-import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import { ThemeColors } from '@metamask/design-tokens';
 import { NftDetailsBoxProps } from './NftDetails.types';
 
 const createStyles = (colors: ThemeColors) =>

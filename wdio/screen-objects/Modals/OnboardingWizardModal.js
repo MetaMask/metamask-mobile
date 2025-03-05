@@ -1,4 +1,4 @@
-import { OnboardingWizardModalSelectorsIDs } from '../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import { OnboardingWizardModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/OnboardingWizardModal.selectors';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 

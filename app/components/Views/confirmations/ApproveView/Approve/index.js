@@ -13,7 +13,6 @@ import ApproveTransactionReview from '../../components/ApproveTransactionReview'
 import AddNickname from '../../components/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../../locales/i18n';
-import { getNetworkNonce } from '../../../../../util/networks';
 
 import {
   setTransactionObject,
@@ -45,14 +44,13 @@ import {
   stopGasPolling,
 } from '../../../../../core/GasPolling/GasPolling';
 import {
-  selectChainId,
-  selectProviderType,
-  selectTicker,
-  selectRpcUrl,
-  selectNetworkConfigurations,
+  selectNativeCurrencyByChainId,
+  selectEvmNetworkConfigurationsByChainId,
+  selectProviderTypeByChainId,
+  selectRpcUrlByChainId,
 } from '../../../../../selectors/networkController';
 import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
@@ -65,9 +63,15 @@ import createStyles from './styles';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
-import { updateTransaction } from '../../../../../util/transaction-controller';
+import {
+  getNetworkNonce,
+  updateTransaction,
+} from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import {
+  selectGasFeeEstimates,
+  selectCurrentTransactionMetadata,
+} from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
@@ -78,6 +82,8 @@ import {
 } from '../../../../../selectors/settings';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
+import Routes from '../../../../../constants/navigation/Routes';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -111,14 +117,6 @@ class Approve extends PureComponent {
      */
     transactions: PropTypes.array,
     /**
-     * Number of tokens
-     */
-    tokensLength: PropTypes.number,
-    /**
-     * Number of accounts
-     */
-    accountsLength: PropTypes.number,
-    /**
      * A string representing the network name
      */
     providerType: PropTypes.string,
@@ -151,6 +149,10 @@ class Approve extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
+    /**
      * An object of all saved addresses
      */
     addressBook: PropTypes.object,
@@ -180,6 +182,10 @@ class Approve extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
+    /**
+     * Object containing simulation data
+     */
+    simulationData: PropTypes.object,
   };
 
   state = {
@@ -203,6 +209,7 @@ class Approve extends PureComponent {
     address: '',
     tokenAllowanceState: undefined,
     isGasEstimateStatusIn: false,
+    isChangeInSimulationModalOpen: false,
   };
 
   computeGasEstimates = (overrideGasLimit, gasEstimateTypeChanged) => {
@@ -274,8 +281,9 @@ class Approve extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction);
+    const { networkClientId, setNonce, setProposedNonce, transaction } =
+      this.props;
+    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -300,8 +308,13 @@ class Approve extends PureComponent {
   };
 
   handleGetGasLimit = async () => {
+    const { networkClientId } = this.props;
     const { setTransactionObject, transaction } = this.props;
-    const estimation = await getGasLimit({ ...transaction, gas: undefined });
+    const estimation = await getGasLimit(
+      { ...transaction, gas: undefined },
+      false,
+      networkClientId,
+    );
     setTransactionObject({ gas: estimation.gas });
   };
 
@@ -370,18 +383,6 @@ class Approve extends PureComponent {
 
       this.props.hideModal();
     }
-  };
-
-  trackApproveEvent = (event) => {
-    const { transaction, tokensLength, accountsLength, providerType, metrics } =
-      this.props;
-
-    metrics.trackEvent(event, {
-      view: transaction.origin,
-      numberOfTokens: tokensLength,
-      numberOfAccounts: accountsLength,
-      network: providerType,
-    });
   };
 
   cancelGasEdition = () => {
@@ -479,7 +480,12 @@ class Approve extends PureComponent {
 
         TransactionController.cancelTransaction(transactionId);
 
-        metrics.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
+        metrics.trackEvent(
+          metrics
+            .createEventBuilder(MetaMetricsEvents.APPROVAL_CANCELLED)
+            .addProperties(gaParams)
+            .build(),
+        );
 
         NotificationManager.showSimpleNotification({
           status: `simple_notification_rejected`,
@@ -489,7 +495,12 @@ class Approve extends PureComponent {
         });
       }
     } finally {
-      metrics.trackEvent(MetaMetricsEvents.APPROVAL_COMPLETED, gaParams);
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.APPROVAL_COMPLETED)
+          .addProperties(gaParams)
+          .build(),
+      );
     }
   };
 
@@ -501,12 +512,33 @@ class Approve extends PureComponent {
       metrics,
       chainId,
       shouldUseSmartTransaction,
+      simulationData: { isUpdatedAfterSecurityCheck } = {},
+      navigation,
     } = this.props;
     const {
       legacyGasTransaction,
       transactionConfirmed,
       eip1559GasTransaction,
     } = this.state;
+
+    if (isUpdatedAfterSecurityCheck) {
+      this.setState({ isChangeInSimulationModalOpen: true });
+
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.CHANGE_IN_SIMULATION_MODAL,
+        params: {
+          onProceed: () => {
+            this.setState({ isChangeInSimulationModalOpen: false });
+            this.setState({ transactionConfirmed: false });
+          },
+          onReject: () => {
+            this.setState({ isChangeInSimulationModalOpen: false });
+            this.onCancel();
+          },
+        },
+      });
+      return;
+    }
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
       if (this.validateGas(eip1559GasTransaction.totalMaxHex)) return;
@@ -535,7 +567,10 @@ class Approve extends PureComponent {
                 assetType: 'ETH',
               });
             } else {
-              throw transactionMeta.error;
+              Logger.error(
+                transactionMeta.error,
+                'error while trying to finish a transaction (Approve)',
+              );
             }
           },
           (transactionMeta) => transactionMeta.id === transaction.id,
@@ -583,10 +618,11 @@ class Approve extends PureComponent {
       if (shouldUseSmartTransaction) {
         this.props.hideModal();
       }
-
       metrics.trackEvent(
-        MetaMetricsEvents.APPROVAL_COMPLETED,
-        this.getAnalyticsParams(),
+        metrics
+          .createEventBuilder(MetaMetricsEvents.APPROVAL_COMPLETED)
+          .addProperties(this.getAnalyticsParams())
+          .build(),
       );
     } catch (error) {
       if (
@@ -599,8 +635,16 @@ class Approve extends PureComponent {
           [{ text: 'OK' }],
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
       } else {
-        metrics.trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+        metrics.trackEvent(
+          metrics
+            .createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            )
+            .build(),
+        );
       }
       this.setState({ transactionHandled: false });
     }
@@ -618,8 +662,10 @@ class Approve extends PureComponent {
       },
     );
     metrics.trackEvent(
-      MetaMetricsEvents.APPROVAL_CANCELLED,
-      this.getAnalyticsParams(),
+      metrics
+        .createEventBuilder(MetaMetricsEvents.APPROVAL_CANCELLED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
     hideModal();
 
@@ -639,7 +685,13 @@ class Approve extends PureComponent {
     const { metrics } = this.props;
     this.setState({ mode });
     if (mode === EDIT) {
-      metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(
+            MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+          )
+          .build(),
+      );
     }
   };
 
@@ -721,6 +773,7 @@ class Approve extends PureComponent {
       tokenAllowanceState,
       isGasEstimateStatusIn,
       legacyGasTransaction,
+      isChangeInSimulationModalOpen,
     } = this.state;
 
     const {
@@ -773,10 +826,9 @@ class Approve extends PureComponent {
     }
 
     if (!transaction.id) return null;
-
     return (
       <Modal
-        isVisible={this.props.modalVisible}
+        isVisible={this.props.modalVisible && !isChangeInSimulationModalOpen}
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={
@@ -801,7 +853,7 @@ class Approve extends PureComponent {
             savedContactListToArray={savedContactListToArray}
             addressNickname={addressNickname}
           />
-        ) : this.state.isBlockExplorerVisible ? (
+        ) : this.state.isBlockExplorerVisible && !isNonEvmChainId(chainId) ? (
           <ShowBlockExplorer
             setIsBlockExplorerVisible={this.setIsBlockExplorerVisible}
             type={providerType}
@@ -894,6 +946,7 @@ class Approve extends PureComponent {
                   error={legacyGasTransaction.error}
                   onUpdatingValuesStart={this.onUpdatingValuesStart}
                   onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+                  chainId={chainId}
                 />
               ))}
           </KeyboardAwareScrollView>
@@ -904,26 +957,34 @@ class Approve extends PureComponent {
   };
 }
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  ticker: selectTicker(state),
-  transaction: getNormalizedTxState(state),
-  transactions: selectTransactions(state),
-  tokensLength: selectTokensLength(state),
-  accountsLength: selectAccountsLength(state),
-  primaryCurrency: selectPrimaryCurrency(state),
-  chainId: selectChainId(state),
-  gasFeeEstimates: selectGasFeeEstimates(state),
-  gasEstimateType: selectGasFeeControllerEstimateType(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  showCustomNonce: selectShowCustomNonce(state),
-  addressBook: selectAddressBook(state),
-  providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcUrl(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+  const networkClientId = transaction?.networkId;
+
+  return {
+    accounts: selectAccounts(state),
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    transaction,
+    transactions: selectTransactions(state),
+    tokensLength: selectTokensLength(state),
+    accountsLength: selectAccountsLength(state),
+    primaryCurrency: selectPrimaryCurrency(state),
+    chainId,
+    networkClientId,
+    gasFeeEstimates: selectGasFeeEstimates(state),
+    gasEstimateType: selectGasFeeControllerEstimateType(state),
+    conversionRate: selectConversionRateByChainId(state, chainId),
+    currentCurrency: selectCurrentCurrency(state),
+    showCustomNonce: selectShowCustomNonce(state),
+    addressBook: selectAddressBook(state),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    providerRpcTarget: selectRpcUrlByChainId(state, chainId),
+    networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

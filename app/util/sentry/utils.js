@@ -7,7 +7,10 @@ import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 import { isE2E } from '../test/utils';
 import { store } from '../../store';
-
+import { Performance } from '../../core/Performance';
+import Device from '../device';
+import { TraceName } from '../trace';
+import { getTraceTags } from './tags';
 /**
  * This symbol matches all object properties when used in a mask
  */
@@ -29,7 +32,31 @@ export const sentryStateMask = {
       },
       AccountsController: {
         internalAccounts: {
-          [AllProperties]: false,
+          accounts: {
+            [AllProperties]: {
+              id: true,
+              address: false,
+              type: true,
+              options: true,
+              methods: true,
+              scopes: true,
+              metadata: {
+                name: true,
+                importTime: true,
+                keyring: {
+                  type: true,
+                },
+                nameLastUpdatedAt: true,
+                snap: {
+                  id: true,
+                  name: true,
+                  enabled: true,
+                },
+                lastSelected: true,
+              },
+            },
+          },
+          selectedAccount: true,
         },
       },
       AddressBookController: {
@@ -38,7 +65,6 @@ export const sentryStateMask = {
       ApprovalController: {
         [AllProperties]: false,
       },
-      AssetsContractController: {},
       CurrencyRateController: {
         currencyRates: true,
         currentCurrency: true,
@@ -51,6 +77,16 @@ export const sentryStateMask = {
       },
       KeyringController: {
         isUnlocked: true,
+        vault: false,
+        keyrings: {
+          [AllProperties]: {
+            type: true,
+            // Each keyring contains an array of accounts (addresses), all of which should be masked
+            accounts: {
+              [AllProperties]: false,
+            },
+          },
+        },
       },
       LoggingController: {
         [AllProperties]: false,
@@ -133,9 +169,6 @@ export const sentryStateMask = {
           swapsStxMaxFeeMultiplier: true,
           swapsUserFeeLevel: true,
         },
-      },
-      TokenDetectionController: {
-        [AllProperties]: false,
       },
       TokenListController: {
         preventPollingOnNetworkRestart: true,
@@ -222,13 +255,6 @@ const ERROR_URL_ALLOWLIST = [
   'codefi.network',
   'segment.io',
 ];
-/**\
- * Required instrumentation for Sentry Performance to work with React Navigation
- */
-export const routingInstrumentation =
-  new Sentry.ReactNavigationV5Instrumentation({
-    enableTimeToInitialDisplay: true,
-  });
 
 /**
  * Capture Sentry user feedback and associate ID of captured exception
@@ -344,29 +370,39 @@ function removeSES(report) {
  */
 export function maskObject(objectToMask, mask = {}) {
   if (!objectToMask) return {};
-  let maskAllProperties = false;
-  if (Object.keys(mask).includes(AllProperties)) {
-    if (Object.keys(mask).length > 1) {
-      throw new Error('AllProperties mask key does not support sibling keys');
-    }
-    maskAllProperties = true;
-  }
+
+  // Include both string and symbol keys.
+  const maskKeys = Reflect.ownKeys(mask);
+  const allPropertiesMask = maskKeys.includes(AllProperties)
+    ? mask[AllProperties]
+    : undefined;
 
   return Object.keys(objectToMask).reduce((maskedObject, key) => {
-    const maskKey = maskAllProperties ? mask[AllProperties] : mask[key];
+    // Start with the AllProperties mask if available
+    let maskKey = allPropertiesMask;
+
+    // If a key-specific mask exists, it overrides the AllProperties mask
+    if (mask[key] !== undefined && mask[key] !== AllProperties) {
+      maskKey = mask[key];
+    }
+
     const shouldPrintValue = maskKey === true;
     const shouldIterateSubMask =
-      Boolean(maskKey) && typeof maskKey === 'object';
+      Boolean(maskKey) &&
+      typeof maskKey === 'object' &&
+      maskKey !== AllProperties;
     const shouldPrintType = maskKey === undefined || maskKey === false;
+
     if (shouldPrintValue) {
       maskedObject[key] = objectToMask[key];
     } else if (shouldIterateSubMask) {
       maskedObject[key] = maskObject(objectToMask[key], maskKey);
     } else if (shouldPrintType) {
-      // Since typeof null is object, it is more valuable to us having the null instead of object
+      // For excluded fields, return their type or a placeholder
       maskedObject[key] =
         objectToMask[key] === null ? 'null' : typeof objectToMask[key];
     }
+
     return maskedObject;
   }, {});
 }
@@ -406,6 +442,22 @@ function rewriteReport(report) {
  * @returns {(event|null)}
  */
 export function excludeEvents(event) {
+  // This is needed because store starts to initialise before performance observers completes to measure app start time
+  if (event?.transaction === TraceName.UIStartup) {
+    event.tags = getTraceTags(store.getState());
+
+    if (Device.isAndroid()) {
+      const appLaunchTime = Performance.appLaunchTime;
+      const formattedAppLaunchTime = (event.start_timestamp = Number(
+        `${appLaunchTime.toString().slice(0, 10)}.${appLaunchTime
+          .toString()
+          .slice(10)}`,
+      ));
+      if (event.start_timestamp !== formattedAppLaunchTime) {
+        event.start_timestamp = formattedAppLaunchTime;
+      }
+    }
+  }
   //Modify or drop event here
   if (event?.transaction === 'Route Change') {
     //Route change is dropped because is does not reflect a screen we can action on.
@@ -494,22 +546,16 @@ export function setupSentry() {
 
     Sentry.init({
       dsn,
-      debug: isDev,
+      debug: isDev && process.env.SENTRY_DEBUG_DEV !== 'false',
       environment,
-      integrations:
-        metricsOptIn === AGREED
-          ? [
-              ...integrations,
-              new Sentry.reactNativeTracingIntegration({
-                routingInstrumentation,
-              }),
-            ]
-          : integrations,
+      integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: isDev || isQa ? 1.0 : 0.04,
+      tracesSampleRate: isDev || isQa ? 1.0 : 0.03,
+      profilesSampleRate: 1.0,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
+      enabled: metricsOptIn === AGREED,
     });
   };
   init();

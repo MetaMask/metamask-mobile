@@ -1,10 +1,10 @@
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
-import { handleNetworkSwitch } from '../../../util/networks';
+import { handleNetworkSwitch } from '../../../util/networks/handleNetworkSwitch';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
 
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
 import { toHex } from '@metamask/controller-utils';
 
@@ -23,7 +23,7 @@ function switchNetwork({
     const networkName = handleNetworkSwitch(newChainId);
 
     if (!networkName) {
-      const activeChainId = selectChainId(store.getState());
+      const activeChainId = selectEvmChainId(store.getState());
       if (activeChainId === toHex(newChainId)) {
         return;
       }

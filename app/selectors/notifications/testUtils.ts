@@ -1,17 +1,5 @@
+import { defaultState } from '@metamask/notification-services-controller/push-services';
 import MOCK_NOTIFICATIONS from '../../components/UI/Notification/__mocks__/mock_notifications';
-
-export const MOCK_AUTHENTICATION_CONTROLLER = {
-  isSignedIn: true,
-  sessionData: {
-    userId: '12345',
-    token: 'abcdef',
-  },
-};
-
-export const MOCK_USER_STORAGE_CONTROLLER = {
-  isProfileSyncingEnabled: true,
-  isProfileSyncingUpdateLoading: false,
-};
 
 export const MOCK_NOTIFICATION_SERVICES_CONTROLLER = {
   isNotificationServicesEnabled: true,
@@ -23,4 +11,9 @@ export const MOCK_NOTIFICATION_SERVICES_CONTROLLER = {
   isCheckingAccountsPresence: false,
   metamaskNotificationsReadList: [],
   metamaskNotificationsList: MOCK_NOTIFICATIONS,
+};
+
+export const MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER = {
+  ...defaultState,
+  isPushEnabled: true,
 };

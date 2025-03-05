@@ -10,7 +10,7 @@ import { Account, UseAccounts } from '../../hooks/useAccounts';
  */
 export interface AccountSelectorListProps
   extends Partial<FlatListProps<Account>>,
-    UseAccounts {
+    Omit<UseAccounts, 'evmAccounts'> {
   /**
    * Optional callback to trigger when account is selected.
    */
@@ -56,4 +56,8 @@ export interface AccountSelectorListProps
    * Optional boolean to enable removing accounts.
    */
   isRemoveAccountEnabled?: boolean;
+  /**
+   * Optional boolean to indicate if privacy mode is enabled.
+   */
+  privacyMode?: boolean;
 }

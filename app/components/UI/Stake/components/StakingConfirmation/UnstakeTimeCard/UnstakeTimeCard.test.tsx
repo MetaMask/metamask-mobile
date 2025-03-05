@@ -19,13 +19,12 @@ describe('UnstakingTimeCard', () => {
   it('render matches snapshot', () => {
     const { toJSON, getByText } = renderWithProvider(<UnstakingTimeCard />);
 
-    const upToDaysCopy = `${strings('stake.up_to_n', { count: 11 })}`;
-    const daysCopy = `${strings('stake.day', { count: 11 })}`;
+    const estimatedUnstakingTime = strings('stake.estimated_unstaking_time');
 
     expect(
       getByText(strings('tooltip_modal.unstaking_time.title')),
     ).toBeDefined();
-    expect(getByText(`${upToDaysCopy} ${daysCopy}`)).toBeDefined(); // Up to 11 days
+    expect(getByText(estimatedUnstakingTime)).toBeDefined(); // 1 to 11 days
 
     expect(toJSON()).toMatchSnapshot();
   });

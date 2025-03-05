@@ -11,6 +11,6 @@ describe('Login', () => {
       .mockImplementation(() => undefined);
     const { toJSON } = renderWithProvider(<Login />);
     expect(toJSON()).toMatchSnapshot();
-    expect(spyFetch).toHaveBeenCalledTimes(1);
+    expect(spyFetch).toHaveBeenCalledTimes(2);
   });
 });

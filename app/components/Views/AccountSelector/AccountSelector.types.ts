@@ -35,6 +35,14 @@ export interface AccountSelectorParams {
    * @param balance - The ticker balance of an account in wei and hex string format.
    */
   checkBalanceError?: UseAccountsParams['checkBalanceError'];
+  /**
+   * Optional boolean to indicate if privacy mode is disabled.
+   */
+  disablePrivacyMode?: boolean;
+  /**
+   * Optional navigation screen to indicate if should navigate to add account actions sheet.
+   */
+  navigateToAddAccountActions?: AccountSelectorScreens.AddAccountActions;
 }
 
 /**

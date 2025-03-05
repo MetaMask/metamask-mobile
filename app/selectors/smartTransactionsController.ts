@@ -3,21 +3,20 @@ import { selectSmartTransactionsOptInStatus } from './preferencesController';
 import { RootState } from '../reducers';
 import { swapsSmartTxFlagEnabled } from '../reducers/swaps';
 import { isHardwareAccount } from '../util/address';
-import { selectChainId, selectProviderConfig } from './networkController';
+import { selectEvmChainId, selectProviderConfig } from './networkController';
 import {
   SmartTransaction,
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
-import { selectSelectedInternalAccountChecksummedAddress } from './accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 
 export const selectSmartTransactionsEnabled = (state: RootState) => {
-  const selectedAddress =
-    selectSelectedInternalAccountChecksummedAddress(state);
+  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
   const addrIshardwareAccount = selectedAddress
     ? isHardwareAccount(selectedAddress)
     : false;
-  const chainId = selectChainId(state);
+  const chainId = selectEvmChainId(state);
   const providerConfigRpcUrl = selectProviderConfig(state).rpcUrl;
 
   const isAllowedNetwork =
@@ -53,9 +52,8 @@ export const selectShouldUseSmartTransaction = (state: RootState) => {
 };
 
 export const selectPendingSmartTransactionsBySender = (state: RootState) => {
-  const selectedAddress =
-    selectSelectedInternalAccountChecksummedAddress(state);
-  const chainId = selectChainId(state);
+  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
+  const chainId = selectEvmChainId(state);
 
   const smartTransactions: SmartTransaction[] =
     state.engine.backgroundState.SmartTransactionsController

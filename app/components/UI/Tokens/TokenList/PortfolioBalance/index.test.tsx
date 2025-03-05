@@ -1,18 +1,37 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import BN5 from 'bnjs5';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import AppConstants from '../../../../../../app/core/AppConstants';
 import Routes from '../../../../../../app/constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PortfolioBalance } from '.';
+import Engine from '../../../../../core/Engine';
+import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
+
+const { PreferencesController } = Engine.context;
 
 jest.mock('../../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
+    },
+    PreferencesController: {
+      setPrivacyMode: jest.fn(),
+    },
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      state: {
+        selectedNetworkClientId: 'mainnet',
+      },
     },
   },
 }));
@@ -21,6 +40,31 @@ const initialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            blockExplorerUrls: [],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 1,
+            name: 'Ethereum Mainnet',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'infura',
+                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+              },
+              {
+                name: 'public',
+                networkClientId: 'ea57f659-c004-4902-bfca-0c9688a43872',
+                type: 'custom',
+                url: 'https://mainnet-rpc.publicnode.com',
+              },
+            ],
+          },
+        },
+      },
       TokensController: {
         tokens: [
           {
@@ -69,11 +113,7 @@ const initialState = {
         },
       },
       TokenBalancesController: {
-        contractBalances: {
-          '0x00': new BN5(2),
-          '0x01': new BN5(2),
-          '0x02': new BN5(0),
-        },
+        tokenBalances: {},
       },
     },
   },
@@ -137,5 +177,96 @@ describe('PortfolioBalance', () => {
       },
       screen: Routes.BROWSER.VIEW,
     });
+  });
+
+  it('renders sensitive text when privacy mode is off', () => {
+    const { getByTestId } = renderPortfolioBalance({
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          PreferencesController: {
+            privacyMode: false,
+          },
+        },
+      },
+    });
+    const sensitiveText = getByTestId(
+      WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT,
+    );
+    expect(sensitiveText.props.isHidden).toBeFalsy();
+  });
+
+  it('hides sensitive text when privacy mode is on', () => {
+    const { getByTestId } = renderPortfolioBalance({
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          PreferencesController: {
+            privacyMode: true,
+          },
+        },
+      },
+    });
+    const sensitiveText = getByTestId(
+      WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT,
+    );
+    expect(sensitiveText.props.children).toEqual('••••••••••••');
+  });
+
+  it('toggles privacy mode when eye icon is pressed', () => {
+    const { getByTestId } = renderPortfolioBalance({
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          PreferencesController: {
+            privacyMode: false,
+          },
+        },
+      },
+    });
+
+    const balanceContainer = getByTestId('balance-container');
+    fireEvent.press(balanceContainer);
+
+    expect(PreferencesController.setPrivacyMode).toHaveBeenCalledWith(true);
+  });
+
+  it('renders eye icon when privacy mode is off', () => {
+    const { getByTestId } = renderPortfolioBalance({
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          PreferencesController: {
+            privacyMode: false,
+          },
+        },
+      },
+    });
+
+    const eyeIcon = getByTestId(EYE_ICON_TEST_ID);
+    expect(eyeIcon).toBeDefined();
+    expect(eyeIcon.props.name).toBe('Eye');
+  });
+
+  it('renders eye-slash icon when privacy mode is on', () => {
+    const { getByTestId } = renderPortfolioBalance({
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          PreferencesController: {
+            privacyMode: true,
+          },
+        },
+      },
+    });
+
+    const eyeSlashIcon = getByTestId(EYE_SLASH_ICON_TEST_ID);
+    expect(eyeSlashIcon).toBeDefined();
+    expect(eyeSlashIcon.props.name).toBe('EyeSlash');
   });
 });

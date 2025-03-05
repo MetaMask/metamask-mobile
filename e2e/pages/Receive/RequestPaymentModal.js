@@ -1,4 +1,4 @@
-import { RequestPaymentModalSelectorsIDs } from '../../selectors/Modals/RequestPaymentModal.selectors';
+import { RequestPaymentModalSelectorsIDs } from '../../selectors/Receive/RequestPaymentModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 

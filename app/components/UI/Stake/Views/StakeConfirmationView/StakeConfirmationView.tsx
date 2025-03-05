@@ -11,6 +11,10 @@ import ConfirmationFooter from '../../components/StakingConfirmation/Confirmatio
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
 import { strings } from '../../../../../../locales/i18n';
 import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
+import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
+import { ScrollView } from 'react-native-gesture-handler';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -21,15 +25,29 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
 
   useEffect(() => {
     navigation.setOptions(
-      getStakingNavbar(strings('stake.stake'), navigation, theme.colors, {
-        backgroundColor: theme.colors.background.alternative,
-        hasCancelButton: false,
-      }),
+      getStakingNavbar(
+        strings('stake.stake'),
+        navigation,
+        theme.colors,
+        {
+          backgroundColor: theme.colors.background.alternative,
+          hasCancelButton: false,
+        },
+        {
+          backButtonEvent: {
+            event: MetaMetricsEvents.STAKE_CONFIRMATION_BACK_CLICKED,
+            properties: {
+              selected_provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.STAKE_CONFIRMATION_VIEW,
+            },
+          },
+        },
+      ),
     );
   }, [navigation, theme.colors]);
 
   return (
-    <View style={styles.mainContainer}>
+    <ScrollView contentContainerStyle={styles.mainContainer}>
       <View>
         <TokenValueStack
           amountWei={route.params.amountWei}
@@ -47,13 +65,14 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
             rewardsEth={route.params.annualRewardsETH}
             rewardsFiat={route.params.annualRewardsFiat}
           />
+          <UnstakingTimeCard />
         </View>
       </View>
       <ConfirmationFooter
         valueWei={route.params.amountWei}
         action={FooterButtonGroupActions.STAKE}
       />
-    </View>
+    </ScrollView>
   );
 };
 

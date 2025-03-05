@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import TokenSortBottomSheet from './TokenSortBottomSheet';
+import { TokenSortBottomSheet } from './TokenSortBottomSheet';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';

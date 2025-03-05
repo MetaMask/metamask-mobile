@@ -8,21 +8,21 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../locales/i18n';
 
-import  {
+import {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useDeleteNotificationsStorageKey } from '../../../../util/notifications/hooks/useNotifications';
+import { useResetNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import ModalContent from '../Modal';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 const ResetNotificationsModal = () => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
-  const { deleteNotificationsStorageKey, loading } = useDeleteNotificationsStorageKey();
+  const { resetNotifications, loading } = useResetNotifications();
   const { toastRef } = useContext(ToastContext);
   const closeBottomSheet = () => bottomSheetRef.current?.onCloseBottomSheet();
 
@@ -40,11 +40,13 @@ const ResetNotificationsModal = () => {
   };
 
   const handleCta = async () => {
-    await deleteNotificationsStorageKey().then(() => {
+    await resetNotifications().then(() => {
       showResultToast();
-      trackEvent(MetaMetricsEvents.NOTIFICATION_STORAGE_KEY_DELETED, {
-        settings_type: 'delete_notifications_storage_key',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NOTIFICATION_STORAGE_KEY_DELETED)
+          .addProperties({ settings_type: 'delete_notifications_storage_key' })
+          .build(),
+      );
     });
   };
 
@@ -55,7 +57,6 @@ const ResetNotificationsModal = () => {
     }
     prevLoading.current = loading;
   }, [loading]);
-
 
   return (
     <BottomSheet ref={bottomSheetRef}>
@@ -73,7 +74,7 @@ const ResetNotificationsModal = () => {
         handleCta={handleCta}
         handleCancel={closeBottomSheet}
         loading={loading}
-        />
+      />
     </BottomSheet>
   );
 };

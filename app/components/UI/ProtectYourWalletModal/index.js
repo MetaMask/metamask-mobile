@@ -11,7 +11,7 @@ import scaling from '../../../util/scaling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ProtectWalletModal.selectors';
+import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ProtectWalletModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
@@ -102,11 +102,13 @@ class ProtectYourWalletModal extends PureComponent {
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
-      {
-        wallet_protection_required: false,
-        source: 'Modal',
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED)
+        .addProperties({
+          wallet_protection_required: false,
+          source: 'Modal',
+        })
+        .build(),
     );
   };
 
@@ -124,11 +126,13 @@ class ProtectYourWalletModal extends PureComponent {
   onDismiss = () => {
     this.props.protectWalletModalNotVisible();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
-      {
-        wallet_protection_required: false,
-        source: 'Modal',
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED)
+        .addProperties({
+          wallet_protection_required: false,
+          source: 'Modal',
+        })
+        .build(),
     );
   };
 

@@ -26,6 +26,13 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       marginTop: 50,
     },
+    emptyTokensView: {
+      alignItems: 'center',
+      marginTop: 130,
+    },
+    emptyTokensViewText: {
+      fontFamily: 'EuclidCircularB-Medium',
+    },
     text: {
       fontSize: 20,
       color: colors.text.default,
@@ -153,16 +160,61 @@ const createStyles = (colors: Colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingLeft: 16,
-      paddingRight: 16,
+      paddingLeft: 8,
+      paddingRight: 8,
       paddingBottom: 16,
       paddingTop: 8,
+    },
+    controlButtonOuterWrapper: {
+      flexDirection: 'row',
+      width: '100%',
+      justifyContent: 'space-between',
+    },
+    controlButtonInnerWrapper: {
+      flexDirection: 'row',
     },
     controlButton: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
       borderStyle: 'solid',
       borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      maxWidth: '60%',
+    },
+    controlButtonDisabled: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      maxWidth: '60%',
+      opacity: 0.5,
+    },
+    controlButtonText: {
+      color: colors.text.default,
+    },
+    controlIconButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      borderRadius: 50,
+      width: 50,
+      height: 40,
+    },
+    balanceContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    privacyIcon: {
+      marginLeft: 8,
+    },
+    portfolioButtonContainer: {
+      alignItems: 'center',
     },
   });
 

@@ -4,10 +4,16 @@ import {
   limitToMaximumDecimalPlaces,
   renderFiat,
 } from '../../../../util/number';
-import useVaultData from './useVaultData';
 import useStakingGasFee from './useStakingGasFee';
 import useBalance from './useBalance';
 import useInputHandler from './useInputHandler';
+import useVaultApyAverages from './useVaultApyAverages';
+import {
+  CommonPercentageInputUnits,
+  formatPercent,
+  PercentageOutputFormat,
+} from '../utils/value';
+import BigNumber from 'bignumber.js';
 
 const useStakingInputHandlers = () => {
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
@@ -20,7 +26,7 @@ const useStakingInputHandlers = () => {
     handleKeypadChange,
     handleCurrencySwitch,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     currentCurrency,
     handleEthInput,
     handleFiatInput,
@@ -48,8 +54,19 @@ const useStakingInputHandlers = () => {
     return isNonZeroAmount && additionalFundsRequired.gt(new BN4(0));
   }, [amountWei, isNonZeroAmount, maxStakeableAmountWei]);
 
-  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultData } =
-    useVaultData();
+  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
+
+  // e.g. 2.8%
+  const annualRewardRate = formatPercent(vaultApyAverages.oneWeek, {
+    inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+    outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+    fixed: 1,
+  });
+
+  // e.g. 0.02841806
+  const annualRewardRateDecimal = new BigNumber(vaultApyAverages.oneWeek)
+    .dividedBy(100)
+    .toNumber();
 
   const handleMax = useCallback(async () => {
     if (!balance) return;
@@ -97,6 +114,17 @@ const useStakingInputHandlers = () => {
     ? `${balanceETH} ETH`
     : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
+  const getDepositTxGasPercentage = useCallback(
+    () => estimatedGasFeeWei.mul(new BN(100)).div(amountWei).toString(),
+    [amountWei, estimatedGasFeeWei],
+  );
+
+  // Gas fee make up 30% or more of the deposit amount.
+  const isHighGasCostImpact = useCallback(
+    () => new BN(getDepositTxGasPercentage()).gt(new BN(30)),
+    [getDepositTxGasPercentage],
+  );
+
   return {
     amountEth,
     amountWei,
@@ -110,7 +138,7 @@ const useStakingInputHandlers = () => {
     handleKeypadChange,
     handleCurrencySwitch,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     currentCurrency,
     conversionRate,
     estimatedAnnualRewards,
@@ -118,10 +146,13 @@ const useStakingInputHandlers = () => {
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultData,
+    isLoadingVaultApyAverages,
     handleMax,
     isLoadingStakingGasFee,
     balanceValue,
+    getDepositTxGasPercentage,
+    isHighGasCostImpact,
+    estimatedGasFeeWei,
   };
 };
 

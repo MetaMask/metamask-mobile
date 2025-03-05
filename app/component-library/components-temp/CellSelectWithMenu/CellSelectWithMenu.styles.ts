@@ -55,6 +55,9 @@ const styleSheet = (params: {
     tagLabel: {
       marginTop: 4,
     },
+    selectedTag: {
+      backgroundColor: colors.primary.muted,
+    },
     containerRow: {
       flexDirection: 'row',
       alignItems: 'flex-start',

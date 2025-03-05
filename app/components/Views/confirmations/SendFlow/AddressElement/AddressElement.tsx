@@ -10,13 +10,10 @@ import {
   getLabelTextByAddress,
 } from '../../../../../util/address';
 import Identicon from '../../../../UI/Identicon';
-import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { selectChainId } from '../../../../../selectors/networkController';
 import { doENSReverseLookup } from '../../../../../util/ENSUtils';
-import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconName,
   IconSize,
@@ -33,13 +30,12 @@ const AddressElement: React.FC<AddressElementProps> = ({
   onAccountLongPress,
   onIconPress,
   isAmbiguousAddress,
+  chainId,
   ...props
 }) => {
   const [displayName, setDisplayName] = useState(name);
   const { colors } = useTheme();
   const styles = styleSheet(colors);
-
-  const chainId = useSelector(selectChainId);
 
   const fetchENSName = useCallback(async () => {
     if (!displayName) {
@@ -80,14 +76,6 @@ const AddressElement: React.FC<AddressElementProps> = ({
           >
             {primaryLabel}
           </Text>
-          {accountTypeLabel && (
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.accountNameLabelText}
-            >
-              {strings(accountTypeLabel)}
-            </Text>
-          )}
         </View>
         {!!secondaryLabel && (
           <Text
@@ -96,6 +84,14 @@ const AddressElement: React.FC<AddressElementProps> = ({
             numberOfLines={1}
           >
             {secondaryLabel}
+          </Text>
+        )}
+        {accountTypeLabel && (
+          <Text
+            variant={TextVariant.BodySM}
+            style={styles.accountNameLabelText}
+          >
+            {accountTypeLabel}
           </Text>
         )}
       </View>

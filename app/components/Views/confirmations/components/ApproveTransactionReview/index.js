@@ -56,12 +56,12 @@ import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
   isMultiLayerFeeNetwork,
-  fetchEstimatedMultiLayerL1Fee,
   isMainnetByChainId,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
   getDecimalChainId,
 } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import CustomSpendCap from '../../../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '../../../../../util/Logger';
@@ -74,11 +74,10 @@ import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import Routes from '../../../../../constants/navigation/Routes';
 import createStyles from './styles';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
-  selectProviderType,
-  selectTicker,
-  selectRpcUrl,
+  selectNativeCurrencyByChainId,
+  selectEvmNetworkConfigurationsByChainId,
+  selectProviderTypeByChainId,
+  selectRpcUrlByChainId,
 } from '../../../../../selectors/networkController';
 import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
@@ -104,7 +103,9 @@ import SDKConnect from '../../../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { WC2Manager } from '../../../../../core/WalletConnect/WalletConnectV2';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
+import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -348,8 +349,8 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
-      transaction: { origin, to, data, from },
-      transaction,
+      // We need to extract transaction.transaction here to retrieve up-to-date nonce
+      transaction: { origin, to, data, from, transaction },
       setTransactionObject,
       tokenList,
       tokenAllowanceState,
@@ -486,8 +487,10 @@ class ApproveTransactionReview extends PureComponent {
       },
       () => {
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.APPROVAL_STARTED,
-          this.getAnalyticsParams(),
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.APPROVAL_STARTED)
+            .addProperties(this.getAnalyticsParams())
+            .build(),
         );
       },
     );
@@ -619,12 +622,17 @@ class ApproveTransactionReview extends PureComponent {
     const { transaction, tokensLength, accountsLength, providerType } =
       this.props;
 
-    this.props.metrics.trackEvent(event, {
-      view: transaction.origin,
-      numberOfTokens: tokensLength,
-      numberOfAccounts: accountsLength,
-      network: providerType,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(event)
+        .addProperties({
+          view: transaction.origin,
+          numberOfTokens: tokensLength,
+          numberOfAccounts: accountsLength,
+          network: providerType,
+        })
+        .build(),
+    );
   };
 
   toggleViewData = () => {
@@ -635,7 +643,9 @@ class ApproveTransactionReview extends PureComponent {
   toggleViewDetails = () => {
     const { viewDetails } = this.state;
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS)
+        .build(),
     );
     this.setState({ viewDetails: !viewDetails });
   };
@@ -649,8 +659,10 @@ class ApproveTransactionReview extends PureComponent {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      this.getAnalyticsParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
   };
 
@@ -668,7 +680,9 @@ class ApproveTransactionReview extends PureComponent {
       originalApproveAmount,
     } = this.state;
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .build(),
     );
 
     updateTokenAllowanceState({
@@ -756,8 +770,10 @@ class ApproveTransactionReview extends PureComponent {
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      analyticsParams,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(analyticsParams)
+        .build(),
     );
   };
 
@@ -837,11 +853,14 @@ class ApproveTransactionReview extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
-    const hasBlockExplorer = shouldShowBlockExplorer(
-      providerType,
-      providerRpcTarget,
-      networkConfigurations,
-    );
+    // TODO: [SOLANA] - before ship make sure block explorer supports Solana
+    const hasBlockExplorer = isNonEvmChainId(chainId)
+      ? false
+      : shouldShowBlockExplorer(
+          providerType,
+          providerRpcTarget,
+          networkConfigurations,
+        );
 
     const tokenLabel = `${
       tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
@@ -906,6 +925,9 @@ class ApproveTransactionReview extends PureComponent {
                       transactionId={transactionId}
                       style={styles.blockaidWarning}
                       onContactUsClicked={this.onContactUsClicked}
+                    />
+                    <SmartTransactionsMigrationBanner
+                      style={styles.smartTransactionsMigrationBanner}
                     />
                     <Text variant={TextVariant.HeadingMD} style={styles.title}>
                       {this.getTrustTitle(
@@ -1061,6 +1083,7 @@ class ApproveTransactionReview extends PureComponent {
                           <TouchableOpacity
                             style={styles.actionTouchable}
                             onPress={this.toggleViewDetails}
+                            testID="view-transaction-details"
                           >
                             <View style={styles.iconContainer}>
                               <Text reset style={styles.viewDetailsText}>
@@ -1211,7 +1234,9 @@ class ApproveTransactionReview extends PureComponent {
     }
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+        .build(),
     );
   };
 
@@ -1219,11 +1244,13 @@ class ApproveTransactionReview extends PureComponent {
     const { onCancel, transaction } = this.props;
     onCancel && onCancel();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
-      {
-        ...this.getAnalyticsParams(),
-        ...getBlockaidTransactionMetricsParams(transaction),
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED)
+        .addProperties({
+          ...this.getAnalyticsParams(),
+          ...getBlockaidTransactionMetricsParams(transaction),
+        })
+        .build(),
     );
   };
 
@@ -1236,11 +1263,13 @@ class ApproveTransactionReview extends PureComponent {
 
     if (tokenStandard === ERC20 && !isReadyToApprove) {
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
-        {
-          ...this.getAnalyticsParams(),
-          ...getBlockaidTransactionMetricsParams(this.props.transaction),
-        },
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED)
+          .addProperties({
+            ...this.getAnalyticsParams(),
+            ...getBlockaidTransactionMetricsParams(this.props.transaction),
+          })
+          .build(),
       );
       return this.setState({ isReadyToApprove: true });
     }
@@ -1311,25 +1340,30 @@ class ApproveTransactionReview extends PureComponent {
   };
 }
 
-const mapStateToProps = (state) => ({
-  ticker: selectTicker(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  transaction: getNormalizedTxState(state),
-  tokensLength: selectTokensLength(state),
-  accountsLength: selectAccountsLength(state),
-  providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcUrl(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  activeTabUrl: getActiveTabUrl(state),
-  chainId: selectChainId(state),
-  tokenList: selectTokenList(state),
-  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+
+  return {
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
+    transaction: getNormalizedTxState(state),
+    tokensLength: selectTokensLength(state),
+    accountsLength: selectAccountsLength(state),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    providerRpcTarget: selectRpcUrlByChainId(state, chainId),
+    primaryCurrency: state.settings.primaryCurrency,
+    activeTabUrl: getActiveTabUrl(state),
+    chainId,
+    tokenList: selectTokenList(state),
+    isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
+      chainId,
+      getRampNetworks(state),
+    ),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

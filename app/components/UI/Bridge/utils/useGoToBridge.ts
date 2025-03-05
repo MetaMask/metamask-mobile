@@ -4,7 +4,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../selectors/networkController';
 
 import type { BrowserTab } from '../../Tokens/types';
 import type { BrowserParams } from '../../../../components/Views/Browser/Browser.types';
@@ -18,12 +18,12 @@ import { isBridgeUrl } from '../../../../util/url';
  * @returns A function that can be used to navigate to the existing Bridges page in the browser. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
 export default function useGoToBridge(location: string) {
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const { navigate } = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   return (address?: string) => {
     const existingBridgeTab = browserTabs.find((tab: BrowserTab) =>
       isBridgeUrl(tab.url),
@@ -48,11 +48,15 @@ export default function useGoToBridge(location: string) {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    trackEvent(MetaMetricsEvents.BRIDGE_LINK_CLICKED, {
-      bridgeUrl: AppConstants.BRIDGE.URL,
-      location,
-      chain_id_source: getDecimalChainId(chainId),
-      token_address_source: address,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BRIDGE_LINK_CLICKED)
+        .addProperties({
+          bridgeUrl: AppConstants.BRIDGE.URL,
+          location,
+          chain_id_source: getDecimalChainId(chainId),
+          token_address_source: address,
+        })
+        .build(),
+    );
   };
 }

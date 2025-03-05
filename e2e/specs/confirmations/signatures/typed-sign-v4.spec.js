@@ -1,6 +1,6 @@
 'use strict';
 import Browser from '../../../pages/Browser/BrowserView';
-import TabBarComponent from '../../../pages/TabBarComponent';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
@@ -12,8 +12,13 @@ import {
 import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 
 describe(SmokeConfirmations('Typed Sign V4'), () => {
+  const testSpecificMock = {
+    GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+  };
+
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -29,6 +34,7 @@ describe(SmokeConfirmations('Typed Sign V4'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();

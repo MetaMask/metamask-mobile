@@ -41,6 +41,9 @@ export interface ListItemMultiSelectButtonProps
    */
   showButtonIcon?: boolean;
 
+  /**
+   * Optional button props
+   */
   buttonProps?: {
     /**
      * Optional button onClick function
@@ -50,6 +53,16 @@ export interface ListItemMultiSelectButtonProps
      * Optional property to show text button
      */
     textButton?: string | null;
+
+    /**
+     * Optional property to show button icon
+     */
+    showButtonIcon?: boolean;
+
+    /**
+     * Optional property for button test ID
+     */
+    buttonTestId?: string;
   };
 }
 

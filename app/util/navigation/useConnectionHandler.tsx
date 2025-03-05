@@ -10,7 +10,7 @@ export const useConnectionHandler = (navigation: any) => {
   const connectedRef = useRef(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const connectionChangeHandler = useCallback(
     (state: { isConnected: boolean } | null) => {
@@ -24,17 +24,21 @@ export const useConnectionHandler = (navigation: any) => {
 
       if (connectedRef.current !== isConnected) {
         if (isConnected === false) {
-          trackEvent(MetaMetricsEvents.CONNECTION_DROPPED);
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.CONNECTION_DROPPED).build(),
+          );
           timeoutRef.current = setTimeout(() => {
             navigation.navigate('OfflineModeView');
           }, 3000);
         } else {
-          trackEvent(MetaMetricsEvents.CONNECTION_RESTORED);
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.CONNECTION_RESTORED).build(),
+          );
         }
         connectedRef.current = isConnected;
       }
     },
-    [navigation, trackEvent],
+    [createEventBuilder, navigation, trackEvent],
   );
 
   return { connectionChangeHandler };

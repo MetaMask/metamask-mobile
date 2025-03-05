@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Image,
@@ -23,12 +23,13 @@ import Badge, {
 import { useSelector } from 'react-redux';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   getTestNetImageByChainId,
   isLineaMainnet,
   isMainNet,
+  isSolanaMainnet,
   isTestNet,
 } from '../../../util/networks';
 import images from 'images/image-icons';
@@ -65,24 +66,37 @@ const RemoteImage = (props) => {
   const ipfsGateway = useIpfsGateway();
   const styles = createStyles();
   const chainId = useSelector(selectChainId);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   const networkName = useSelector(selectNetworkName);
-  const resolvedIpfsUrl = useMemo(() => {
-    try {
-      const url = new URL(props.source.uri);
-      if (url.protocol !== 'ipfs:') return false;
-      const ipfsUrl = getFormattedIpfsUrl(ipfsGateway, props.source.uri, false);
-      return ipfsUrl;
-    } catch {
-      return false;
-    }
-  }, [props.source.uri, ipfsGateway]);
+  const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState(false);
 
-  const uri = resolvedIpfsUrl || source.uri;
+  const uri =
+    resolvedIpfsUrl ||
+    (source.uri === undefined || source.uri?.startsWith('ipfs')
+      ? ''
+      : source.uri);
 
   const onError = ({ nativeEvent: { error } }) => setError(error);
 
   const [dimensions, setDimensions] = useState(null);
+
+  useEffect(() => {
+    resolveIpfsUrl();
+    async function resolveIpfsUrl() {
+      try {
+        const url = new URL(props.source.uri);
+        if (url.protocol !== 'ipfs:') setResolvedIpfsUrl(false);
+        const ipfsUrl = await getFormattedIpfsUrl(
+          ipfsGateway,
+          props.source.uri,
+          false,
+        );
+        setResolvedIpfsUrl(ipfsUrl);
+      } catch (err) {
+        setResolvedIpfsUrl(false);
+      }
+    }
+  }, [props.source.uri, ipfsGateway]);
 
   useEffect(() => {
     const calculateImageDimensions = (imageWidth, imageHeight) => {
@@ -124,6 +138,8 @@ const RemoteImage = (props) => {
     if (isMainNet(chainId)) return images.ETHEREUM;
 
     if (isLineaMainnet(chainId)) return images['LINEA-MAINNET'];
+
+    if (isSolanaMainnet(chainId)) return images.SOLANA;
 
     return ticker ? images[ticker] : undefined;
   };

@@ -26,7 +26,7 @@ import { addTransaction } from '../../util/transaction-controller';
 import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
 import { store } from '../../store';
-import { selectChainId } from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 
 const hub = new EventEmitter();
@@ -175,16 +175,23 @@ class WalletConnect {
               const selectedAddress =
                 Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
 
+              const chainId = payload.params[0].chainId;
+
               checkActiveAccountAndChainId({
                 address: payload.params[0].from,
-                chainId: payload.params[0].chainId,
+                chainId,
                 isWalletConnect: true,
                 activeAccounts: [selectedAddress],
                 hostname: payloadHostname,
               });
 
+              const { NetworkController } = Engine.context;
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(chainId);
+
               const trx = await addTransaction(payload.params[0], {
                 deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                networkClientId,
                 origin: this.url.current
                   ? WALLET_CONNECT_ORIGIN + this.url.current
                   : undefined,
@@ -305,7 +312,7 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
-    const chainId = selectChainId(store.getState());
+    const chainId = selectEvmChainId(store.getState());
     const selectedAddress =
       Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
     const approveData = {

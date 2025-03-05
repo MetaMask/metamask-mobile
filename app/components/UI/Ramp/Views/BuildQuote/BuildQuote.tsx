@@ -80,6 +80,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -98,7 +99,7 @@ const BuildQuote = () => {
   const params = useParams<BuildQuoteParams>();
   const {
     styles,
-    theme: { colors },
+    theme: { colors, themeAppearance },
   } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
@@ -168,6 +169,21 @@ const BuildQuote = () => {
     query: queryGetPaymentMethods,
     currentPaymentMethod,
   } = usePaymentMethods();
+
+  const paymentMethodIcons = useMemo(() => {
+    if (!paymentMethods) {
+      return [];
+    }
+
+    return [
+      ...new Set(
+        paymentMethods.reduce((acc, payment) => {
+          const icons = payment.logo[themeAppearance] || [];
+          return [...acc, ...icons];
+        }, [] as string[]),
+      ),
+    ];
+  }, [paymentMethods, themeAppearance]);
 
   const {
     defaultFiatCurrency,
@@ -686,9 +702,36 @@ const BuildQuote = () => {
     );
   }
 
-  const displayAmount = isBuy
-    ? formatAmount(amountNumber)
-    : `${amount} ${selectedAsset?.symbol}`;
+  // If the current view is for Sell the amount (crypto) is displayed as is
+  let displayAmount = `${amount} ${selectedAsset?.symbol}`;
+
+  // If the current ivew is for Buy we will format the amount
+  if (isBuy) {
+    // Split the amount to detect if it has decimals
+    const splitAmount = amount.split(/(\.)|(,)/);
+    // If the splitAmount array has more than 1 element it means that the amount has decimals
+    // For example:
+    //    100.50 -> splitAmount = ['100', '.', undefined, '50']
+    //    100,50 -> splitAmount = ['100', undefined, ',', '50']
+    // Note: this help us capture the input separator (dot or comma)
+    const hasDecimalsSplit = splitAmount.length > 1;
+
+    displayAmount =
+      isBuy && amountFocused
+        ? // If the amount is focused (being edited) the amount integer part will be shown in groups separated by spaces
+          `${formatAmount(Math.trunc(amountNumber), true)}${
+            // If the amount has decimals the decimal part will be shown
+            // using the separator and the decimal part
+            // Note, the decimal part will be displayed even if it is being typed (ends with a separator or 0)
+            hasDecimalsSplit
+              ? `${splitAmount[1] ?? splitAmount[2] ?? ''}${
+                  splitAmount[3] ?? ''
+                }`
+              : ''
+          }`
+        : // If the amount is not focused it will be fully formatted
+          formatAmount(amountNumber);
+  }
 
   let quickAmounts: QuickAmount[] = [];
 
@@ -727,6 +770,7 @@ const BuildQuote = () => {
                 accessibilityRole="button"
                 accessible
                 onPress={handleChangeRegion}
+                testID={BuildQuoteSelectors.REGION_DROPDOWN}
               >
                 <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
               </SelectorButton>
@@ -801,14 +845,22 @@ const BuildQuote = () => {
               )}
             {hasInsufficientBalance && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR}
+                >
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
                 </Text>
               </Row>
             )}
             {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.MIN_LIMIT_ERROR}
+                >
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.minimum')}{' '}
@@ -823,7 +875,11 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && amountIsAboveMaximum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.MAX_LIMIT_ERROR}
+                >
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.maximum')}{' '}
@@ -853,6 +909,7 @@ const BuildQuote = () => {
                 }
                 name={currentPaymentMethod?.name}
                 onPress={showPaymentMethodsModal as () => void}
+                paymentMethodIcons={paymentMethodIcons}
               />
             </Row>
           </ScreenLayout.Content>

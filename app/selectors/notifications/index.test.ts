@@ -1,9 +1,7 @@
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import {
-  selectIsProfileSyncingEnabled,
-  selectIsProfileSyncingUpdateLoading,
-  selectIsSignedIn,
-  selectSessionData,
   selectIsMetamaskNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsEnabled,
   selectIsMetamaskNotificationsFeatureSeen,
   selectIsUpdatingMetamaskNotifications,
   selectIsFetchingMetamaskNotifications,
@@ -15,53 +13,40 @@ import {
   getMetamaskNotificationsUnreadCount,
   getMetamaskNotificationsReadCount,
   getOnChainMetamaskNotificationsUnreadCount,
+  selectIsMetaMaskPushNotificationsLoading,
 } from './index';
 import { RootState } from '../../reducers';
 import {
-  MOCK_AUTHENTICATION_CONTROLLER,
-  MOCK_USER_STORAGE_CONTROLLER,
   MOCK_NOTIFICATION_SERVICES_CONTROLLER,
+  MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER,
 } from './testUtils';
-import { TRIGGER_TYPES } from '../../util/notifications';
 
 describe('Notification Selectors', () => {
   const mockState = {
     engine: {
       backgroundState: {
-        AuthenticationController: MOCK_AUTHENTICATION_CONTROLLER,
-        UserStorageController: MOCK_USER_STORAGE_CONTROLLER,
         NotificationServicesController: MOCK_NOTIFICATION_SERVICES_CONTROLLER,
+        NotificationServicesPushController:
+          MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER,
       },
     },
   } as unknown as RootState;
 
-  it('selectIsProfileSyncingEnabled returns correct value', () => {
-    expect(selectIsProfileSyncingEnabled(mockState)).toEqual(
-      MOCK_USER_STORAGE_CONTROLLER.isProfileSyncingEnabled,
-    );
-  });
-
-  it('selectIsProfileSyncingUpdateLoading returns correct value', () => {
-    expect(selectIsProfileSyncingUpdateLoading(mockState)).toEqual(
-      MOCK_USER_STORAGE_CONTROLLER.isProfileSyncingUpdateLoading,
-    );
-  });
-
-  it('selectIsSignedIn returns correct value', () => {
-    expect(selectIsSignedIn(mockState)).toEqual(
-      MOCK_AUTHENTICATION_CONTROLLER.isSignedIn,
-    );
-  });
-
-  it('selectSessionData returns correct value', () => {
-    expect(selectSessionData(mockState)).toEqual(
-      MOCK_AUTHENTICATION_CONTROLLER.sessionData,
-    );
-  });
-
   it('selectIsMetamaskNotificationsEnabled returns correct value', () => {
     expect(selectIsMetamaskNotificationsEnabled(mockState)).toEqual(
       MOCK_NOTIFICATION_SERVICES_CONTROLLER.isNotificationServicesEnabled,
+    );
+  });
+
+  it('selectIsMetaMaskPushNotificationsEnabled returns correct value', () => {
+    expect(selectIsMetaMaskPushNotificationsEnabled(mockState)).toEqual(
+      MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER.isPushEnabled,
+    );
+  });
+
+  it('selectIsMetaMaskPushNotificationsLoading returns correct value', () => {
+    expect(selectIsMetaMaskPushNotificationsLoading(mockState)).toEqual(
+      MOCK_NOTIFICATION_SERVICES_PUSH_CONTROLLER.isUpdatingFCMToken,
     );
   });
 

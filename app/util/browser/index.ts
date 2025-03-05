@@ -27,11 +27,8 @@ export const prefixUrlWithProtocol = (
  * @param defaultProtocol - Protocol string to append to URLs that have none
  * @returns - String corresponding to sanitized input depending if it's a search or url
  */
-export default function onUrlSubmit(
-  input: string,
-  searchEngine = 'Google',
-  defaultProtocol = 'https://',
-) {
+export function processUrlForBrowser(input: string, searchEngine = 'Google') {
+  const defaultProtocol = 'https://';
   //Check if it's a url or a keyword
   if (!isUrl(input) && !input.match(regex.url)) {
     // Add exception for localhost
@@ -123,7 +120,7 @@ export const trustedProtocolToDeeplink = [
  */
 export const getAlertMessage = (
   protocol: string,
-  i18nService: (id: string) => void,
+  i18nService: (id: string) => string,
 ) => {
   switch (protocol) {
     case 'tel:':
@@ -155,3 +152,23 @@ export const allowLinkOpen = (url: string) =>
     .catch((e) => {
       console.warn(`Error opening URL: ${e}`);
     });
+
+/**
+ * Appends search parameters to a URL and returns the complete URL string
+ *
+ * @param baseUrl - Base URL string or URL object
+ * @param params - Record of key-value pairs to append as search parameters
+ * @returns - String containing complete URL with appended parameters
+ */
+export const appendURLParams = (
+  baseUrl: string | URL,
+  params: Record<string, string | boolean | number>,
+): URL => {
+  const url = baseUrl instanceof URL ? baseUrl : new URL(baseUrl);
+
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.append(key, String(value));
+  });
+
+  return url;
+};

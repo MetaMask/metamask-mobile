@@ -87,7 +87,7 @@ const qrHardwareLogoDark = require(qrHardwareLogoDarkImgPath);
 
 const SelectHardwareWallet = () => {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
 
@@ -107,9 +107,13 @@ const SelectHardwareWallet = () => {
   };
 
   const navigateToConnectLedger = async () => {
-    trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
-      device_type: HardwareDeviceTypes.LEDGER,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONNECT_LEDGER)
+        .addProperties({
+          device_type: HardwareDeviceTypes.LEDGER,
+        })
+        .build(),
+    );
 
     navigation.navigate(Routes.HW.CONNECT_LEDGER);
   };

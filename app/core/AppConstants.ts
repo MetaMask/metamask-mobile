@@ -5,11 +5,14 @@ import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 const DEVELOPMENT = 'development';
 const PORTFOLIO_URL =
   process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
+const SECURITY_ALERTS_API_URL =
+  process.env.SECURITY_ALERTS_API_URL ??
+  'https://security-alerts.api.cx.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   DEFAULT_LOCK_TIMEOUT: 30000,
-  DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
+  DEFAULT_SEARCH_ENGINE: 'Google',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
   IPFS_DEFAULT_GATEWAY_URL: 'https://dweb.link/ipfs/',
@@ -17,6 +20,9 @@ export default {
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
+  SECURITY_ALERTS_API: {
+    URL: SECURITY_ALERTS_API_URL,
+  },
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
   },
@@ -40,9 +46,7 @@ export default {
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
   SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
-  HOMEPAGE_URL:
-    process.env.MM_HOMEPAGE ||
-    'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
+  HOMEPAGE_URL: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
   OLD_HOMEPAGE_URL_HOST: 'home.metamask.io',
   SHORT_HOMEPAGE_URL: 'MetaMask.io',
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
@@ -72,7 +76,9 @@ export default {
       name: 'MetaMask Wallet',
       description: 'MetaMask Wallet Integration',
       url: 'https://metamask.io/',
-      icons: [],
+      icons: [
+        'https://raw.githubusercontent.com/MetaMask/metamask-mobile/main/logo.png',
+      ],
       redirect: {
         native: 'metamask://',
         universal: 'https://metamask.app.link/',
@@ -84,7 +90,7 @@ export default {
     ONLY_MAINNET: true,
     CLIENT_ID: 'mobile',
     LIVENESS_POLLING_FREQUENCY: 5 * 60 * 1000,
-    POLL_COUNT_LIMIT: 3,
+    POLL_COUNT_LIMIT: 4,
     DEFAULT_SLIPPAGE: 2,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
@@ -106,6 +112,7 @@ export default {
         'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
     },
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
+    TERMS_OF_USE: 'https://metamask.io/terms',
     PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
     PROFILE_SYNC:
       'https://support.metamask.io/privacy-and-security/profile-privacy',
@@ -131,6 +138,7 @@ export default {
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
   },
+  DECODING_API_URL: process.env.DECODING_API_URL || 'https://signature-insights.api.cx.metamask.io/v1',
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',
@@ -215,5 +223,6 @@ export default {
   FEATURE_FLAGS_API: {
     BASE_URL: 'https://client-config.api.cx.metamask.io',
     VERSION: 'v1',
+    DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
   },
 } as const;

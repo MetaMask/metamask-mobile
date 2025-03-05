@@ -1,14 +1,6 @@
-import type { InternalAccount } from '@metamask/keyring-api';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import type { Notification } from '../../../util/notifications/types/notification';
 
-import { MarkAsReadNotificationsParam } from '../../../actions/notification/helpers';
-
-export interface UseCreateSessionReturn {
-  createSession: () => Promise<void>;
-  loading: boolean;
-  error?: string;
-}
 export interface EnableMetametricsReturn {
   enableMetametrics: () => Promise<string | undefined>;
   loading: boolean;
@@ -19,54 +11,12 @@ export interface DisableMetametricsReturn {
   loading: boolean;
   error?: string;
 }
-export interface ListNotificationsReturn {
-  listNotifications: () => Promise<string | undefined>;
-  notificationsData: readonly Notification[];
-  isLoading: boolean;
-  error?: string;
-}
-export interface CreateNotificationsReturn {
-  createNotifications: (accounts: string[]) => Promise<string | undefined>;
-  loading: boolean;
-  error?: string;
-}
-export interface EnableNotificationsReturn {
-  enableNotifications: () => Promise<string | undefined>;
-  loading: boolean;
-  error?: string;
-}
+
 export type AccountType = InternalAccount & {
   balance: string;
   keyring: KeyringTypes;
   label: string;
 };
-
-export interface DisableNotificationsReturn {
-  disableNotifications: () => Promise<string | undefined>;
-  loading: boolean;
-  error?: string;
-}
-
-export interface deleteNotificationsStorageKeyReturn {
-  deleteNotificationsStorageKey: () => Promise<string | undefined>;
-  loading: boolean;
-  error?: string;
-}
-
-export interface MarkNotificationAsReadReturn {
-  markNotificationAsRead: (
-    notifications: MarkAsReadNotificationsParam,
-  ) => Promise<string | undefined>;
-  loading: boolean;
-  error?: string;
-}
-
-export interface ProfileSyncingReturn {
-  enableProfileSyncing: () => Promise<string | undefined>;
-  disableProfileSyncing: () => Promise<string | undefined>;
-  loading: boolean;
-  error?: string;
-}
 
 export interface SetIsProfileSyncingEnabledReturn {
   setIsProfileSyncingEnabled: () => Promise<string | undefined>;

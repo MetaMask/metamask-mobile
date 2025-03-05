@@ -213,6 +213,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedAsset: mockSetSelectedAsset,
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
   setSelectedFiatCurrencyId: mockSetSelectedFiatCurrencyId,
+  selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
   selectedChainId: '1',
   selectedNetworkName: 'Ethereum',
   sdkError: undefined,
@@ -494,6 +495,15 @@ describe('BuildQuote View', () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
         isFetching: true,
+      };
+      render(BuildQuote);
+      expect(screen.toJSON()).toMatchSnapshot();
+    });
+
+    it('renders no icons if there are no payment methods', async () => {
+      mockUsePaymentMethodsValues = {
+        ...mockUsePaymentMethodsInitialValues,
+        data: null,
       };
       render(BuildQuote);
       expect(screen.toJSON()).toMatchSnapshot();

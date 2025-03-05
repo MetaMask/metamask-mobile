@@ -6,7 +6,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
@@ -145,7 +145,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
             }
             testID="label"
           >
-            Up to 11 days
+            1 to 11 days
           </Text>
         </View>
       </View>

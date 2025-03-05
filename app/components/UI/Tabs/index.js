@@ -228,7 +228,10 @@ class Tabs extends PureComponent {
 
     return (
       <View style={styles.noTabs}>
-        <Text style={styles.noTabsTitle} testID={BrowserViewSelectorsIDs.NO_TABS_MESSAGE}>
+        <Text
+          style={styles.noTabsTitle}
+          testID={BrowserViewSelectorsIDs.NO_TABS_MESSAGE}
+        >
           {strings('browser.no_tabs_title')}
         </Text>
         <Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
@@ -266,10 +269,15 @@ class Tabs extends PureComponent {
   };
 
   trackNewTabEvent = (tabsNumber) => {
-    this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
-      option_chosen: 'Browser Bottom Bar Menu',
-      number_of_tabs: tabsNumber,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
+        .addProperties({
+          option_chosen: 'Browser Bottom Bar Menu',
+          number_of_tabs: tabsNumber,
+        })
+        .build(),
+    );
   };
 
   renderTabActions() {

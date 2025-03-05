@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { ListRenderItem, ImageSourcePropType } from 'react-native';
+import { ListRenderItem, ImageSourcePropType, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 
 // External dependencies.
@@ -24,7 +24,7 @@ const NetworkSelectorList = ({
   onSelectNetwork,
   networks = [],
   isLoading = false,
-  selectedNetworkIds,
+  selectedChainIds,
   isMultiSelect = true,
   renderRightAccessory,
   isSelectionDisabled,
@@ -33,7 +33,6 @@ const NetworkSelectorList = ({
 }: NetworkConnectMultiSelectorProps) => {
   const networksLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
-
   /**
    * Ref for the FlatList component.
    * The type of the ref is not explicitly defined.
@@ -51,36 +50,37 @@ const NetworkSelectorList = ({
         ? CellVariant.MultiSelect
         : CellVariant.Select;
       let isSelectedNetwork = isSelected;
-      if (selectedNetworkIds) {
-        isSelectedNetwork = selectedNetworkIds.includes(id);
+      if (selectedChainIds) {
+        isSelectedNetwork = selectedChainIds.includes(id);
       }
-
       return (
-        <Cell
-          variant={cellVariant}
-          isSelected={isSelectedNetwork}
-          title={name}
-          onPress={() => onSelectNetwork?.(id, isSelectedNetwork)}
-          avatarProps={{
-            variant: AvatarVariant.Network,
-            name,
-            imageSource: imageSource as ImageSourcePropType,
-            size: AvatarSize.Sm,
-          }}
-          disabled={isDisabled}
-          style={styles.networkItemContainer}
+        <View
+          testID={`${name}-${isSelectedNetwork ? 'selected' : 'not-selected'}`}
         >
-          {renderRightAccessory?.(id, name)}
-        </Cell>
+          <Cell
+            variant={cellVariant}
+            isSelected={isSelectedNetwork}
+            title={name}
+            onPress={() => onSelectNetwork?.(id, isSelectedNetwork)}
+            avatarProps={{
+              variant: AvatarVariant.Network,
+              name,
+              imageSource: imageSource as ImageSourcePropType,
+              size: AvatarSize.Sm,
+            }}
+            disabled={isDisabled}
+          >
+            {renderRightAccessory?.(id, name)}
+          </Cell>
+        </View>
       );
     },
     [
       isLoading,
-      selectedNetworkIds,
+      selectedChainIds,
       renderRightAccessory,
       isSelectionDisabled,
       onSelectNetwork,
-      styles,
       isMultiSelect,
     ],
   );

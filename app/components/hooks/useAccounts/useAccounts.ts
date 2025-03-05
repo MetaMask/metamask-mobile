@@ -2,22 +2,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // External Dependencies.
 import { doENSReverseLookup } from '../../../util/ENSUtils';
-import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectIsMultiAccountBalancesEnabled } from '../../../selectors/preferencesController';
+import {
+  selectIsMultiAccountBalancesEnabled,
+  selectIsTokenNetworkFilterEqualCurrentNetwork,
+} from '../../../selectors/preferencesController';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
@@ -30,8 +31,15 @@ import {
   UseAccounts,
   UseAccountsParams,
 } from './useAccounts.types';
-import { InternalAccount } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { getChainIdsToPoll } from '../../../selectors/tokensController';
+import { useGetFormattedTokensPerChain } from '../useGetFormattedTokensPerChain';
+import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCrossChains';
+import {
+  getFormattedAddressFromInternalAccount,
+  isNonEvmAddress,
+} from '../../../core/Multichain/utils';
+import { getAccountBalances } from './utils';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -44,19 +52,36 @@ const useAccounts = ({
 }: UseAccountsParams = {}): UseAccounts => {
   const isMountedRef = useRef(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [evmAccounts, setEVMAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
   const chainId = useSelector(selectChainId);
   const accountInfoByAddress = useSelector(selectAccounts);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
   );
+  // Agg balance Start
+  const allChainIDs = useSelector(getChainIdsToPoll);
+  const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
+    selectIsTokenNetworkFilterEqualCurrentNetwork,
+  );
+  const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
+    internalAccounts,
+    !isTokenNetworkFilterEqualCurrentNetwork,
+    allChainIDs,
+  );
+  const totalFiatBalancesCrossChain = useGetTotalFiatBalanceCrossChains(
+    internalAccounts,
+    formattedTokensWithBalancesPerChain,
+  );
+
+  // Agg balance End
 
   // Memoize checkBalanceErrorFn so it doesn't cause an infinite loop
   const checkBalanceError = useCallback(
@@ -119,80 +144,84 @@ const useAccounts = ({
     [chainId],
   );
 
-  const getAccounts = useCallback(() => {
-    if (!isMountedRef.current) return;
-    // Keep track of the Y position of account item. Used for scrolling purposes.
-    let yOffset = 0;
-    let selectedIndex = 0;
-    const flattenedAccounts: Account[] = internalAccounts.map(
-      (internalAccount: InternalAccount, index: number) => {
-        const {
-          address,
-          metadata: {
-            name,
-            keyring: { type },
-          },
-        } = internalAccount;
-        // This should be changed at controller-utils core package
-        const checksummedAddress = toChecksumHexAddress(address) as Hex;
-        const isSelected = selectedInternalAccount?.address === address;
-        if (isSelected) {
-          selectedIndex = index;
-        }
-        // TODO - Improve UI to either include loading and/or balance load failures.
-        const balanceWeiHex =
-          accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
-        const balanceETH = renderFromWei(balanceWeiHex); // Gives ETH
-        const balanceFiat =
-          weiToFiat(
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(balanceWeiHex) as any,
-            conversionRate,
-            currentCurrency,
-          ) || '';
-        const balanceTicker = getTicker(ticker);
-        const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
-        const balanceError = checkBalanceError?.(balanceWeiHex);
-        const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
-        const mappedAccount: Account = {
-          name,
-          address: checksummedAddress,
-          type: type as KeyringTypes,
-          yOffset,
-          isSelected,
-          // TODO - Also fetch assets. Reference AccountList component.
-          // assets
-          assets: isBalanceAvailable
-            ? { fiatBalance: balanceLabel }
-            : undefined,
-          balanceError,
-        };
-        // Calculate height of the account item.
-        yOffset += 78;
-        if (balanceError) {
-          yOffset += 22;
-        }
-        if (type !== KeyringTypes.hd) {
-          yOffset += 24;
-        }
-        return mappedAccount;
-      },
-    );
+  const getAccounts = useCallback(
+    () => {
+      if (!isMountedRef.current) return;
+      // Keep track of the Y position of account item. Used for scrolling purposes.
+      let yOffset = 0;
+      let selectedIndex = 0;
+      const flattenedAccounts: Account[] = internalAccounts.map(
+        (internalAccount: InternalAccount, index: number) => {
+          const formattedAddress =
+            getFormattedAddressFromInternalAccount(internalAccount);
+          const isSelected =
+            selectedInternalAccount?.address === internalAccount.address;
+          if (isSelected) {
+            selectedIndex = index;
+          }
 
-    setAccounts(flattenedAccounts);
-    fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
-  }, [
-    selectedInternalAccount,
-    fetchENSNames,
-    accountInfoByAddress,
-    conversionRate,
-    currentCurrency,
-    ticker,
-    isMultiAccountBalancesEnabled,
-    internalAccounts,
-    checkBalanceError,
-  ]);
+          // TODO - Improve UI to either include loading and/or balance load failures.
+          // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to support multiple chains in the future.
+          const { balanceETH, balanceFiat, balanceWeiHex } = getAccountBalances(
+            {
+              internalAccount,
+              accountInfoByAddress,
+              totalFiatBalancesCrossChain,
+              conversionRate,
+              currentCurrency,
+            },
+          );
+
+          const balanceTicker = getTicker(ticker);
+          const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
+          const balanceError = checkBalanceError?.(balanceWeiHex);
+          const isBalanceAvailable =
+            isMultiAccountBalancesEnabled || isSelected;
+          const mappedAccount: Account = {
+            name: internalAccount.metadata.name,
+            address: formattedAddress,
+            type: internalAccount.metadata.keyring.type as KeyringTypes,
+            yOffset,
+            isSelected,
+            // TODO - Also fetch assets. Reference AccountList component.
+            // assets
+            assets: isBalanceAvailable
+              ? { fiatBalance: balanceLabel }
+              : undefined,
+            balanceError,
+          };
+          // Calculate height of the account item.
+          yOffset += 78;
+          if (balanceError) {
+            yOffset += 22;
+          }
+          if (internalAccount.metadata.keyring.type !== KeyringTypes.hd) {
+            yOffset += 24;
+          }
+          return mappedAccount;
+        },
+      );
+
+      setAccounts(flattenedAccounts);
+      setEVMAccounts(
+        flattenedAccounts.filter(
+          (account) => !isNonEvmAddress(account.address),
+        ),
+      );
+      fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
+    }, // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      selectedInternalAccount,
+      fetchENSNames,
+      accountInfoByAddress,
+      conversionRate,
+      currentCurrency,
+      ticker,
+      isMultiAccountBalancesEnabled,
+      internalAccounts,
+      checkBalanceError,
+    ],
+  );
 
   useEffect(() => {
     // eslint-disable-next-line
@@ -208,6 +237,7 @@ const useAccounts = ({
 
   return {
     accounts,
+    evmAccounts,
     ensByAccountAddress,
   };
 };

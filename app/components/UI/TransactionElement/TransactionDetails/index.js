@@ -12,6 +12,7 @@ import {
   isMainNet,
   isMultiLayerFeeNetwork,
   getBlockExplorerTxUrl,
+  findBlockExplorerForNonEvmChainId,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -24,13 +25,12 @@ import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import Engine from '../../../../core/Engine';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -38,7 +38,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { selectPrimaryCurrency } from '../../../../selectors/settings';
@@ -47,6 +47,8 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { swapsControllerTokens } from '../../../../reducers/swaps';
+import { getGlobalEthQuery } from '../../../../util/networks/global-network';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -144,7 +146,7 @@ class TransactionDetails extends PureComponent {
   };
 
   fetchTxReceipt = async (transactionHash) => {
-    const ethQuery = Engine.getGlobalEthQuery();
+    const ethQuery = getGlobalEthQuery();
     return await query(ethQuery, 'getTransactionReceipt', [transactionHash]);
   };
 
@@ -210,12 +212,15 @@ class TransactionDetails extends PureComponent {
     const {
       providerConfig: { rpcUrl, type },
       networkConfigurations,
+      chainId,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
       blockExplorer =
         findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
+    } else if (isNonEvmChainId(chainId)) {
+      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
     this.setState({ rpcBlockExplorer: blockExplorer });
     this.updateTransactionDetails();
@@ -425,9 +430,9 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   chainId: selectChainId(state),
   networkConfigurations: selectNetworkConfigurations(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),

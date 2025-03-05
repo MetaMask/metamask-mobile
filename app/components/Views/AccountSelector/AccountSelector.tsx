@@ -24,7 +24,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import AddAccountActions from '../AddAccountActions';
-import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
+
 // Internal dependencies.
 import {
   AccountSelectorProps,
@@ -35,25 +37,34 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { TraceName, endTrace } from '../../../util/trace';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
-  const { onSelectAccount, checkBalanceError } = route.params || {};
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const {
+    onSelectAccount,
+    checkBalanceError,
+    disablePrivacyMode,
+    navigateToAddAccountActions,
+  } = route.params || {};
 
   const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
+  const privacyMode = useSelector(selectPrivacyMode);
   const sheetRef = useRef<BottomSheetRef>(null);
   const { accounts, ensByAccountAddress } = useAccounts({
     checkBalanceError,
     isLoading: reloadAccounts,
   });
   const [screen, setScreen] = useState<AccountSelectorScreens>(
-    AccountSelectorScreens.AccountSelector,
+    navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
-
+  useEffect(() => {
+    endTrace({ name: TraceName.AccountList });
+  }, []);
   useEffect(() => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));
@@ -67,12 +78,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onSelectAccount?.(address);
 
       // Track Event: "Switched Account"
-      trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
-        source: 'Wallet Tab',
-        number_of_accounts: accounts?.length,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+          .addProperties({
+            source: 'Wallet Tab',
+            number_of_accounts: accounts?.length,
+          })
+          .build(),
+      );
     },
-    [Engine, accounts?.length, onSelectAccount, trackEvent],
+    [Engine, accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
 
   const onRemoveImportedAccount = useCallback(
@@ -92,7 +107,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isRemoveAccountEnabled
-          testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ID}
+          privacyMode={privacyMode && !disablePrivacyMode}
+          testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
         />
         <View style={styles.sheet}>
           <Button
@@ -101,12 +117,21 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
             onPress={() => setScreen(AccountSelectorScreens.AddAccountActions)}
-            testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
+            testID={
+              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
+            }
           />
         </View>
       </Fragment>
     ),
-    [accounts, _onSelectAccount, ensByAccountAddress, onRemoveImportedAccount],
+    [
+      accounts,
+      _onSelectAccount,
+      ensByAccountAddress,
+      onRemoveImportedAccount,
+      privacyMode,
+      disablePrivacyMode,
+    ],
   );
 
   const renderAddAccountActions = useCallback(

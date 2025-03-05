@@ -1,27 +1,22 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import {
-  REQUEST_AMOUNT_INPUT,
-  REQUEST_SEARCH_ASSET_INPUT,
-  REQUEST_SEARCH_RESULTS_BACK_BUTTON,
-  REQUEST_SEARCH_SCREEN,
-} from './testIDs/Screens/RequestToken.testIds';
+import { RequestPaymentViewSelectors } from '../../e2e/selectors/Receive/RequestPaymentView.selectors';
 
 class RequestTokenScreen {
   get requestAmount() {
-    return Selectors.getElementByPlatform(REQUEST_AMOUNT_INPUT);
+    return Selectors.getElementByPlatform(RequestPaymentViewSelectors.REQUEST_AMOUNT_INPUT_BOX_ID);
   }
 
   get requestSearchInput() {
-    return Selectors.getElementByPlatform(REQUEST_SEARCH_ASSET_INPUT);
+    return Selectors.getElementByPlatform(RequestPaymentViewSelectors.TOKEN_SEARCH_INPUT_BOX);
   }
 
   get requestSearchBackButton() {
-    return Selectors.getElementByPlatform(REQUEST_SEARCH_RESULTS_BACK_BUTTON);
+    return Selectors.getElementByPlatform(RequestPaymentViewSelectors.BACK_BUTTON_ID);
   }
 
   get requestSearchScreen() {
-    return Selectors.getElementByPlatform(REQUEST_SEARCH_SCREEN);
+    return Selectors.getElementByPlatform(RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID);
   }
 
   async typeAmountInRequest(amount) {

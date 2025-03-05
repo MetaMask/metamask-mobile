@@ -8,6 +8,7 @@ import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
 import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { SolScope } from '@metamask/keyring-api';
 import type BN5 from 'bnjs5';
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -34,14 +35,24 @@ const mockInitialState = {
         },
       },
       TokenBalancesController: {
-        contractBalances: {
-          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
+        tokenBalances: {
+          [MOCK_ADDRESS_1]: {
+            '0x1': {
+              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
+            },
+          },
         },
       },
       PreferencesController: {
         selectedAddress: MOCK_ADDRESS_1,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      MultichainNetworkController: {
+        isEvmSelected: true,
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+        multichainNetworkConfigurationsByChainId: {},
+      },
     },
   },
 };

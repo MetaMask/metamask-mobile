@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import AvatarIcon from './AvatarIcon';
@@ -10,7 +10,7 @@ import { SAMPLE_AVATARICON_PROPS } from './AvatarIcon.constants';
 
 describe('AvatarIcon', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AvatarIcon {...SAMPLE_AVATARICON_PROPS} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<AvatarIcon {...SAMPLE_AVATARICON_PROPS} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -107,14 +107,18 @@ export function parseWaitTime(min) {
   return parsed.trim();
 }
 
-export async function getGasLimit(transaction, resetGas = false) {
+export async function getGasLimit(
+  transaction,
+  resetGas = false,
+  networkClientId,
+) {
   let estimation;
   try {
     const newTransactionObj = resetGas
       ? { ...transaction, gas: undefined, gasPrice: undefined }
       : transaction;
 
-    estimation = await estimateGas(newTransactionObj);
+    estimation = await estimateGas(newTransactionObj, networkClientId);
   } catch (error) {
     estimation = {
       gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,

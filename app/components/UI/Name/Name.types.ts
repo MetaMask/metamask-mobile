@@ -1,5 +1,4 @@
-import { ViewProps } from 'react-native';
-import { Hex } from '@metamask/utils';
+import { ViewProps, ViewStyle } from 'react-native';
 
 /**
  * The name types supported by the NameController.
@@ -12,8 +11,9 @@ export enum NameType {
 }
 
 export interface NameProperties extends ViewProps {
-  chainId?: Hex;
   preferContractSymbol?: boolean;
   type: NameType;
   value: string;
+  variation: string;
+  style?: ViewStyle;
 }

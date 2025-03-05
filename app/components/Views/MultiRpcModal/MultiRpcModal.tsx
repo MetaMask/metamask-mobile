@@ -9,7 +9,7 @@ import styleSheet from './MultiRpcModal.styles';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
 import { View, Image } from 'react-native';
-import { NftDetectionModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NftDetectionModal.selectors';
+import { NftDetectionModalSelectorsIDs } from '../../../../e2e/selectors/wallet/NftDetectionModal.selectors';
 
 import Button, {
   ButtonSize,
@@ -21,8 +21,8 @@ import Engine from '../../../core/Engine';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import Cell, {
@@ -44,24 +44,30 @@ const MultiRpcModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const chainId = useSelector(selectChainId);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const { trackEvent } = useMetrics();
+  const chainId = useSelector(selectEvmChainId);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
 
   const dismissMultiRpcModalMigration = useCallback(() => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setShowMultiRpcModal(false);
-    trackEvent(MetaMetricsEvents.MULTI_RPC_MIGRATION_MODAL_ACCEPTED, {
-      chainId,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MULTI_RPC_MIGRATION_MODAL_ACCEPTED)
+        .addProperties({
+          chainId,
+        })
+        .build(),
+    );
 
     if (sheetRef?.current) {
       sheetRef.current.onCloseBottomSheet();
     } else {
       navigation.goBack();
     }
-  }, [trackEvent, chainId, navigation]);
+  }, [trackEvent, chainId, navigation, createEventBuilder]);
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -83,7 +89,7 @@ const MultiRpcModal = () => {
           <View>
             {Object.values(networkConfigurations).map(
               (networkConfiguration: NetworkConfiguration, index) =>
-                networkConfiguration.rpcEndpoints.length > 1 ? (
+                networkConfiguration?.rpcEndpoints?.length > 1 ? (
                   <Cell
                     key={index}
                     variant={CellVariant.SelectWithMenu}

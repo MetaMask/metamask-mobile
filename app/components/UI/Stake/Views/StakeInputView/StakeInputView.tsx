@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -18,11 +19,29 @@ import Routes from '../../../../../constants/navigation/Routes';
 import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import InputDisplay from '../../components/InputDisplay';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
+import { formatEther } from 'ethers/lib/utils';
+import { EVENT_PROVIDERS, EVENT_LOCATIONS } from '../../constants/events';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { StakeInputViewProps } from './StakeInputView.types';
+import { getStakeInputViewTitle } from './utils';
+import { isStablecoinLendingFeatureEnabled } from '../../constants';
+import EarnTokenSelector from '../../components/EarnTokenSelector';
 
-const StakeInputView = () => {
-  const title = strings('stake.stake_eth');
+const StakeInputView = ({ route }: StakeInputViewProps) => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const { attemptDepositTransaction } = usePoolStakedDeposit();
+  const confirmationRedesignFlags = useSelector(
+    selectConfirmationRedesignFlags,
+  );
+  const isStakingDepositRedesignedEnabled =
+    confirmationRedesignFlags?.staking_transactions;
+  const activeAccount = useSelector(selectSelectedInternalAccount);
 
   const {
     isEth,
@@ -35,16 +54,20 @@ const StakeInputView = () => {
     handleCurrencySwitch,
     currencyToggleValue,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     handleKeypadChange,
     calculateEstimatedAnnualRewards,
     estimatedAnnualRewards,
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultData,
+    isLoadingVaultApyAverages,
     handleMax,
     balanceValue,
+    isHighGasCostImpact,
+    getDepositTxGasPercentage,
+    estimatedGasFeeWei,
+    isLoadingStakingGasFee,
   } = useStakingInputHandlers();
 
   const navigateToLearnMoreModal = () => {
@@ -53,24 +76,87 @@ const StakeInputView = () => {
     });
   };
 
-  const handleStakePress = useCallback(() => {
+  const handleStakePress = useCallback(async () => {
+    if (isHighGasCostImpact()) {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.STAKE_GAS_COST_IMPACT_WARNING_TRIGGERED,
+        )
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+            tokens_to_stake_native_value: amountEth,
+            tokens_to_stake_usd_value: fiatAmount,
+            estimated_gas_fee: formatEther(estimatedGasFeeWei.toString()),
+            estimated_gas_percentage_of_deposit: `${getDepositTxGasPercentage()}%`,
+          })
+          .build(),
+      );
+
+      navigation.navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.GAS_IMPACT,
+        params: {
+          amountWei: amountWei.toString(),
+          amountFiat: fiatAmount,
+          annualRewardsETH,
+          annualRewardsFiat,
+          annualRewardRate,
+          estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
+          estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
+        },
+      });
+      return;
+    }
+
+    const amountWeiString = amountWei.toString();
+
+    if (isStakingDepositRedesignedEnabled) {
+      await attemptDepositTransaction(
+        amountWeiString,
+        activeAccount?.address as string,
+      );
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+      });
+      return;
+    }
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
-        amountWei: amountWei.toString(),
+        amountWei: amountWeiString,
         amountFiat: fiatAmount,
         annualRewardsETH,
         annualRewardsFiat,
         annualRewardRate,
       },
     });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
+        .addProperties({
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          tokens_to_stake_native_value: amountEth,
+          tokens_to_stake_usd_value: fiatAmount,
+        })
+        .build(),
+    );
   }, [
+    isHighGasCostImpact,
     navigation,
     amountWei,
     fiatAmount,
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
+    trackEvent,
+    createEventBuilder,
+    amountEth,
+    estimatedGasFeeWei,
+    getDepositTxGasPercentage,
+    isStakingDepositRedesignedEnabled,
+    activeAccount,
+    attemptDepositTransaction,
   ]);
 
   const handleMaxButtonPress = () => {
@@ -91,12 +177,34 @@ const StakeInputView = () => {
     : strings('stake.review');
 
   useEffect(() => {
+    const title = isStablecoinLendingFeatureEnabled()
+      ? getStakeInputViewTitle(
+          route?.params?.action,
+          route?.params?.token.symbol,
+          route?.params?.token.isETH,
+        )
+      : strings('stake.stake_eth');
+
     navigation.setOptions(
-      getStakingNavbar(title, navigation, theme.colors, {
-        hasBackButton: false,
-      }),
+      getStakingNavbar(
+        title,
+        navigation,
+        theme.colors,
+        {
+          hasBackButton: false,
+        },
+        {
+          cancelButtonEvent: {
+            event: MetaMetricsEvents.STAKE_CANCEL_CLICKED,
+            properties: {
+              selected_provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+            },
+          },
+        },
+      ),
     );
-  }, [navigation, theme.colors, title]);
+  }, [navigation, route.params, theme.colors]);
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();
@@ -113,20 +221,57 @@ const StakeInputView = () => {
         fiatAmount={fiatAmount}
         isEth={isEth}
         currentCurrency={currentCurrency}
-        handleCurrencySwitch={handleCurrencySwitch}
+        handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
+          event: MetaMetricsEvents.STAKE_INPUT_CURRENCY_SWITCH_CLICKED,
+          properties: {
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Currency Switch Trigger',
+            location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+            currency_type: isEth ? 'fiat' : 'native',
+          },
+        })}
         currencyToggleValue={currencyToggleValue}
       />
       <View style={styles.rewardsRateContainer}>
-        <EstimatedAnnualRewardsCard
-          estimatedAnnualRewards={estimatedAnnualRewards}
-          onIconPress={navigateToLearnMoreModal}
-          isLoading={isLoadingVaultData}
-        />
+        {isStablecoinLendingFeatureEnabled() ? (
+          <EarnTokenSelector token={route?.params?.token} />
+        ) : (
+          <EstimatedAnnualRewardsCard
+            estimatedAnnualRewards={estimatedAnnualRewards}
+            onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+              event: MetaMetricsEvents.TOOLTIP_OPENED,
+              properties: {
+                selected_provider: EVENT_PROVIDERS.CONSENSYS,
+                text: 'Tooltip Opened',
+                location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+                tooltip_name: 'MetaMask Pool Estimated Rewards',
+              },
+            })}
+            isLoading={isLoadingVaultApyAverages}
+          />
+        )}
       </View>
       <QuickAmounts
         amounts={percentageOptions}
-        onAmountPress={handleAmountPress}
-        onMaxPress={handleMaxButtonPress}
+        onAmountPress={({ value }: { value: number }) =>
+          withMetaMetrics(handleQuickAmountPress, {
+            event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
+            properties: {
+              location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+              amount: value,
+              is_max: false,
+              mode: isEth ? 'native' : 'fiat',
+            },
+          })({ value })
+        }
+        onMaxPress={withMetaMetrics(handleMaxButtonPress, {
+          event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
+          properties: {
+            location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+            is_max: true,
+            mode: isEth ? 'native' : 'fiat',
+          },
+        })}
       />
       <Keypad
         value={isEth ? amountEth : fiatAmount}
@@ -141,7 +286,9 @@ const StakeInputView = () => {
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
-          isDisabled={isOverMaximum || !isNonZeroAmount}
+          isDisabled={
+            isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee
+          }
           width={ButtonWidthTypes.Full}
           onPress={handleStakePress}
         />

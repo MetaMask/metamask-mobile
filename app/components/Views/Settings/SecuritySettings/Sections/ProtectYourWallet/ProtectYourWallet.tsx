@@ -10,7 +10,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import SeedPhraseVideo from '../../../../../UI/SeedPhraseVideo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
@@ -36,7 +35,7 @@ const ProtectYourWallet = ({
   toggleHint,
 }: IProtectYourWalletProps) => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
@@ -49,21 +48,20 @@ const ProtectYourWallet = ({
   const goToBackup = (): void => {
     navigation.navigate(Routes.ACCOUNT_BACKUP.STEP_1_B);
 
-    trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
-      source: 'Settings',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_STARTED)
+        .addProperties({
+          source: 'Settings',
+        })
+        .build(),
+    );
   };
-
-  const onBack = (): void => navigation.goBack();
 
   return (
     <View style={[styles.setting, styles.firstSetting]}>
       <Text variant={TextVariant.BodyLGMedium}>
         {strings('app_settings.protect_title')}
       </Text>
-      <View style={styles.video}>
-        <SeedPhraseVideo onClose={onBack} />
-      </View>
 
       <Text
         variant={TextVariant.BodyMD}

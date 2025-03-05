@@ -15,34 +15,33 @@ import {
   getKeyringByAddress,
   getLabelTextByAddress,
   isSnapAccount,
+  toFormattedAddress,
 } from '.';
 import {
   mockHDKeyringAddress,
   mockQrKeyringAddress,
   mockSimpleKeyringAddress,
+  mockSnapAddress1,
+  mockSnapAddress2,
 } from '../test/keyringControllerTestUtils';
 
-const snapAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-
 jest.mock('../../core/Engine', () => {
-  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
     '../test/keyringControllerTestUtils',
   );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES } =
+    jest.requireActual('../test/accountsControllerTestUtils');
   return {
     context: {
       KeyringController: {
         ...MOCK_KEYRING_CONTROLLER_STATE,
         state: {
-          keyrings: [
-            ...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings,
-            {
-              accounts: [snapAddress],
-              index: 0,
-              type: KeyringTypes.snap,
-            },
-          ],
+          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings],
         },
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
       },
     },
   };
@@ -67,32 +66,100 @@ describe('isENS', () => {
 });
 
 describe('renderSlightlyLongAddress', () => {
-  const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-  it('should return 5 characters before ellipsis and 4 final characters of the address after the ellipsis', () => {
-    expect(renderSlightlyLongAddress(mockAddress).split('.')[0].length).toBe(
-      24,
-    );
-    expect(renderSlightlyLongAddress(mockAddress).split('.')[3].length).toBe(4);
+  describe('with EVM addresses', () => {
+    const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+    it('returns 5 characters before ellipsis and 4 final characters of the address after the ellipsis', () => {
+      expect(renderSlightlyLongAddress(mockAddress).split('.')[0].length).toBe(
+        24,
+      );
+      expect(renderSlightlyLongAddress(mockAddress).split('.')[3].length).toBe(
+        4,
+      );
+    });
+    it('returns 0xC4955 before ellipsis and 4D272 after the ellipsis', () => {
+      expect(renderSlightlyLongAddress(mockAddress, 5, 2).split('.')[0]).toBe(
+        '0xC4955',
+      );
+      expect(renderSlightlyLongAddress(mockAddress, 5, 0).split('.')[3]).toBe(
+        '4D272',
+      );
+    });
   });
-  it('should return 0xC4955 before ellipsis and 4D272 after the ellipsis', () => {
-    expect(renderSlightlyLongAddress(mockAddress, 5, 2).split('.')[0]).toBe(
-      '0xC4955',
-    );
-    expect(renderSlightlyLongAddress(mockAddress, 5, 0).split('.')[3]).toBe(
-      '4D272',
-    );
+
+  describe('non-EVM addresses', () => {
+    it('does not checksum address and maintain original format', () => {
+      const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      const result = renderSlightlyLongAddress(address);
+      const [beforeEllipsis, afterEllipsis] = result.split('...');
+      expect(beforeEllipsis.length).toBe(24); // Default initialChars (20) + chars (4)
+      expect(afterEllipsis.length).toBe(4);
+      expect(result).toBe('bc1qxy2kgdygjrsqtzq2n0yr...0wlh');
+    });
+
+    it('respects custom chars and initialChars parameters', () => {
+      const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      const result = renderSlightlyLongAddress(address, 5, 10);
+      const [beforeEllipsis, afterEllipsis] = result.split('...');
+      expect(beforeEllipsis.length).toBe(15); // Custom initialChars (10) + chars (5)
+      expect(afterEllipsis.length).toBe(5);
+      expect(result).toBe('bc1qxy2kgdygjrs...x0wlh');
+    });
   });
 });
 
 describe('formatAddress', () => {
-  const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-  it('should return address formatted for short type', () => {
-    const expectedValue = '0xC495...D272';
-    expect(formatAddress(mockAddress, 'short')).toBe(expectedValue);
+  const mockEvmAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+  const mockBtcAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+
+  describe('with EVM addresses', () => {
+    it('returns checksummed address formatted for short type', () => {
+      const expectedValue = '0xC495...D272';
+      expect(formatAddress(mockEvmAddress, 'short')).toBe(expectedValue);
+    });
+
+    it('returns checksummed address formatted for mid type', () => {
+      const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
+      expect(formatAddress(mockEvmAddress, 'mid')).toBe(expectedValue);
+    });
+
+    it('returns full checksummed address for full type', () => {
+      const expectedValue = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+      expect(formatAddress(mockEvmAddress, 'full')).toBe(expectedValue);
+    });
   });
-  it('should return address formatted for mid type', () => {
-    const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
-    expect(formatAddress(mockAddress, 'mid')).toBe(expectedValue);
+
+  describe('with non-EVM addresses', () => {
+    it('returns address formatted for short type without checksumming', () => {
+      const expectedValue = 'bc1qxy...0wlh';
+      expect(formatAddress(mockBtcAddress, 'short')).toBe(expectedValue);
+    });
+
+    it('returns address formatted for mid type without checksumming', () => {
+      const expectedValue = 'bc1qxy2kgdygjrsqtzq2n0yr...0wlh';
+      expect(formatAddress(mockBtcAddress, 'mid')).toBe(expectedValue);
+    });
+
+    it('returns full address without checksumming for full type', () => {
+      const expectedValue = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      expect(formatAddress(mockBtcAddress, 'full')).toBe(expectedValue);
+    });
+  });
+});
+
+describe('toFormattedAddress', () => {
+  describe('with EVM addresses', () => {
+    it('returns checksummed address for lowercase input', () => {
+      const input = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+      const expected = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+      expect(toFormattedAddress(input)).toBe(expected);
+    });
+  });
+
+  describe('with non-EVM addresses', () => {
+    it('returns original address without modification', () => {
+      const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      expect(toFormattedAddress(address)).toBe(address);
+    });
   });
 });
 
@@ -323,25 +390,21 @@ describe('isHardwareAccount,', () => {
   });
 });
 describe('getLabelTextByAddress,', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
-
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
-    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe(
-      'accounts.qr_hardware',
-    );
+    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe('QR hardware');
   });
 
   it('should return KeyringTypes.simple if address is a imported account', () => {
-    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe(
-      'accounts.imported',
-    );
+    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe('Imported');
   });
 
-  it('returns "Snaps (beta)" if account is a Snap keyring', () => {
-    expect(getLabelTextByAddress(snapAddress)).toBe(
-      'accounts.snap_account_tag',
+  it('returns "Snaps (Beta)" if account is a Snap keyring and there is no snap name', () => {
+    expect(getLabelTextByAddress(mockSnapAddress1)).toBe('Snaps (Beta)');
+  });
+
+  it('returns the snap name if account is a Snap keyring and there is a snap name', () => {
+    expect(getLabelTextByAddress(mockSnapAddress2)).toBe(
+      'MetaMask Simple Snap Keyring',
     );
   });
 
@@ -388,7 +451,7 @@ describe('resemblesAddress', () => {
 });
 describe('isSnapAccount,', () => {
   it('should return true if account is of type Snap Keyring', () => {
-    expect(isSnapAccount(snapAddress)).toBeTruthy();
+    expect(isSnapAccount(mockSnapAddress1)).toBeTruthy();
   });
 
   it('should return false if account is not of type Snap Keyring', () => {

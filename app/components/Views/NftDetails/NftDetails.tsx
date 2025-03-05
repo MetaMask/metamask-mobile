@@ -28,7 +28,7 @@ import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import etherscanLink from '@metamask/etherscan-link';
 import {
@@ -54,8 +54,8 @@ const NftDetails = () => {
   const chainId = useSelector(selectChainId);
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const ticker = useSelector(selectTicker);
-  const { trackEvent } = useMetrics();
+  const ticker = useSelector(selectEvmTicker);
+  const { trackEvent, createEventBuilder } = useMetrics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
   const hasLastSalePrice = Boolean(
     collectible.lastSale?.price?.amount?.usd &&
@@ -95,9 +95,13 @@ const NftDetails = () => {
   }, [updateNavBar]);
 
   useEffect(() => {
-    trackEvent(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED, {
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED)
+        .addProperties({
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
     // The linter wants `trackEvent` to be added as a dependency,
     // But the event fires twice if I do that.
     // eslint-disable-next-line react-hooks/exhaustive-deps

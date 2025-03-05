@@ -1,6 +1,7 @@
-import { Alert } from 'react-native';
+import { MutableRefObject } from 'react';
+import { Alert, ImageSourcePropType } from 'react-native';
 import { getVersion } from 'react-native-device-info';
-import { createAsyncMiddleware } from 'json-rpc-engine';
+import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   EndFlowOptions,
@@ -31,7 +32,10 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { selectProviderConfig } from '../../selectors/networkController';
+import {
+  selectEvmChainId,
+  selectProviderConfig,
+} from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -40,12 +44,22 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
 import Routes from '../../constants/navigation/Routes';
 import { endTrace, trace, TraceName } from '../../util/trace';
+import {
+  MessageParamsTyped,
+  SignatureController,
+} from '@metamask/signature-controller';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+export const SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES = {
+  showNameSnapAccount: 'snap_manageAccounts:showNameSnapAccount',
+};
+///: END:ONLY_INCLUDE_IF
 
 export enum ApprovalTypes {
   CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
@@ -64,6 +78,7 @@ export enum ApprovalTypes {
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
+  SNAP_DIALOG = 'snap_dialog',
   ///: END:ONLY_INCLUDE_IF
 }
 
@@ -76,9 +91,9 @@ export interface RPCMethodsMiddleParameters {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
-  url: { current: string };
-  title: { current: string };
-  icon: { current: string | undefined };
+  url: MutableRefObject<string>;
+  title: MutableRefObject<string>;
+  icon: MutableRefObject<ImageSourcePropType | undefined>;
   // Bookmarks
   isHomepage: () => boolean;
   // Show autocomplete
@@ -92,13 +107,6 @@ export interface RPCMethodsMiddleParameters {
   isWalletConnect: boolean;
   // For MM SDK
   isMMSDK: boolean;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getApprovedHosts: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setApprovedHosts: (approvedHosts: any) => void;
-  approveHost: (fullHostname: string) => void;
   injectHomePageScripts: (bookmarks?: []) => void;
   analytics: { [key: string]: string | boolean };
 }
@@ -168,6 +176,7 @@ export const checkActiveAccountAndChainId = async ({
   );
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
+    const providerConfigChainId = selectEvmChainId(store.getState());
     const networkType = providerConfig.type as NetworkType;
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
@@ -176,7 +185,7 @@ export const checkActiveAccountAndChainId = async ({
     if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
-      activeChainId = providerConfig.chainId;
+      activeChainId = providerConfigChainId;
     }
 
     if (activeChainId && !activeChainId.startsWith('0x')) {
@@ -220,9 +229,9 @@ const generateRawSignature = async ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   req: any;
   hostname: string;
-  url: { current: string };
-  title: { current: string };
-  icon: { current: string | undefined };
+  url: MutableRefObject<string>;
+  title: MutableRefObject<string>;
+  icon: MutableRefObject<ImageSourcePropType | undefined>;
   analytics: { [key: string]: string | boolean };
   chainId: number;
   isMMSDK: boolean;
@@ -234,7 +243,9 @@ const generateRawSignature = async ({
   checkTabActive: any;
 }) => {
   endTrace({ name: TraceName.Middleware, id: req.id });
-  const { SignatureController } = Engine.context;
+
+  const signatureController = Engine.context
+    .SignatureController as SignatureController;
 
   const pageMeta = {
     meta: {
@@ -258,7 +269,7 @@ const generateRawSignature = async ({
     isWalletConnect,
   });
 
-  const rawSig = await SignatureController.newUnsignedTypedMessage(
+  const rawSig = await signatureController.newUnsignedTypedMessage(
     {
       data: req.params[1],
       from: req.params[0],
@@ -267,13 +278,15 @@ const generateRawSignature = async ({
       channelId,
       origin: hostname,
       securityAlertResponse: req.securityAlertResponse,
-    },
+    } as MessageParamsTyped,
     req,
     version,
     {
       parseJsonData: false,
     },
+    { traceContext: req.traceContext },
   );
+
   endTrace({ name: TraceName.Signature, id: req.id });
 
   return rawSig;
@@ -536,7 +549,6 @@ export const getRpcMethodMiddleware = ({
       },
 
       personal_sign: async () => {
-        const { SignatureController } = Engine.context;
         const firstParam = req.params[0];
         const secondParam = req.params[1];
         const params = {
@@ -563,6 +575,9 @@ export const getRpcMethodMiddleware = ({
           },
         };
 
+        const signatureController = Engine.context
+          .SignatureController as SignatureController;
+
         checkTabActive();
         await checkActiveAccountAndChainId({
           hostname,
@@ -578,11 +593,16 @@ export const getRpcMethodMiddleware = ({
           () => PPOMUtil.validateRequest(req),
         );
 
-        const rawSig = await SignatureController.newUnsignedPersonalMessage({
-          ...params,
-          ...pageMeta,
-          origin: hostname,
-        });
+        const rawSig = await signatureController.newUnsignedPersonalMessage(
+          {
+            ...params,
+            ...pageMeta,
+            origin: hostname,
+          },
+          req,
+          { traceContext: req.traceContext },
+        );
+
         endTrace({ name: TraceName.Signature, id: req.id });
 
         res.result = rawSig;
@@ -605,7 +625,7 @@ export const getRpcMethodMiddleware = ({
 
       eth_signTypedData: async () => {
         endTrace({ name: TraceName.Middleware, id: req.id });
-        const { SignatureController } = Engine.context;
+
         const pageMeta = {
           meta: {
             url: url.current,
@@ -618,6 +638,9 @@ export const getRpcMethodMiddleware = ({
             },
           },
         };
+
+        const signatureController = Engine.context
+          .SignatureController as SignatureController;
 
         checkTabActive();
         await checkActiveAccountAndChainId({
@@ -632,7 +655,7 @@ export const getRpcMethodMiddleware = ({
           () => PPOMUtil.validateRequest(req),
         );
 
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
+        const rawSig = await signatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],
             from: req.params[1],
@@ -642,7 +665,10 @@ export const getRpcMethodMiddleware = ({
           },
           req,
           'V1',
+          { parseJsonData: false },
+          { traceContext: req.traceContext },
         );
+
         endTrace({ name: TraceName.Signature, id: req.id });
 
         res.result = rawSig;

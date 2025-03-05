@@ -17,7 +17,7 @@ import { strings } from '../../../../../locales/i18n';
 interface InputHandlerParams {
   balance: BN4;
 }
-
+const MAX_DIGITS = 12;
 const useInputHandler = ({ balance }: InputHandlerParams) => {
   const [amountEth, setAmountEth] = useState('0');
   const [amountWei, setAmountWei] = useState<BN4>(new BN4(0));
@@ -70,8 +70,14 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
   );
 
   const handleKeypadChange = useCallback(
-    ({ value }) => {
-      isEth ? handleEthInput(value) : handleFiatInput(value);
+    ({ value, pressedKey }) => {
+      const digitsOnly = value.replace(/[^0-9.]/g, '');
+      const [whole = '', fraction = ''] = digitsOnly.split('.');
+      const totalDigits = whole.length + fraction.length;
+
+      if (pressedKey === 'BACK' || totalDigits <= MAX_DIGITS) {
+        isEth ? handleEthInput(value) : handleFiatInput(value);
+      }
     },
     [handleEthInput, handleFiatInput, isEth],
   );
@@ -87,7 +93,7 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
     { value: 1, label: strings('stake.max') },
   ];
 
-  const handleAmountPress = useCallback(
+  const handleQuickAmountPress = useCallback(
     ({ value }: { value: number }) => {
       const percentage = value * 100;
       const amountPercentage = balance.mul(new BN4(percentage)).div(new BN4(100));
@@ -150,7 +156,7 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
     handleKeypadChange,
     handleCurrencySwitch,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     currentCurrency,
     conversionRate,
     handleMaxInput,

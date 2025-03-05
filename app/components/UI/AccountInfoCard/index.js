@@ -13,7 +13,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectTicker } from '../../../selectors/networkController';
+import { selectEvmTicker } from '../../../selectors/networkController';
 import { fontStyles } from '../../../styles/common';
 import {
   getLabelTextByAddress,
@@ -233,7 +233,7 @@ class AccountInfoCard extends PureComponent {
         {accountLabelTag && (
           <View style={styles.tag}>
             <Text variant={TextVariant.BodySMBold} style={styles.tagText}>
-              {strings(accountLabelTag)}
+              {accountLabelTag}
             </Text>
           </View>
         )}
@@ -247,7 +247,7 @@ const mapStateToProps = (state) => ({
   internalAccounts: selectInternalAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
 });

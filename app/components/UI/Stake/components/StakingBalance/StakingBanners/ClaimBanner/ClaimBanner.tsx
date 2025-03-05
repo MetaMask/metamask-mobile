@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
@@ -18,7 +18,16 @@ import usePoolStakedClaim from '../../../../hooks/usePoolStakedClaim';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
 import usePooledStakes from '../../../../hooks/usePooledStakes';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS } from '../../../../constants/events';
 import Engine from '../../../../../../../core/Engine';
+import useStakingChain from '../../../../hooks/useStakingChain';
+import { useStakeContext } from '../../../../hooks/useStakeContext';
+import { selectEvmChainId } from '../../../../../../../selectors/networkController';
+import { hexToNumber } from '@metamask/utils';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
@@ -26,19 +35,29 @@ type StakeBannerProps = Pick<BannerProps, 'style'> & {
 
 const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const { styles } = useStyles(styleSheet, {});
-
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isSubmittingClaimTransaction, setIsSubmittingClaimTransaction] =
     useState(false);
-
+  const { MultichainNetworkController } = Engine.context;
   const activeAccount = useSelector(selectSelectedInternalAccount);
-
+  const [shouldAttemptClaim, setShouldAttemptClaim] = useState(false);
   const { attemptPoolStakedClaimTransaction } = usePoolStakedClaim();
-
+  const { stakingContract } = useStakeContext();
   const { pooledStakesData, refreshPooledStakes } = usePooledStakes();
+  const chainId = useSelector(selectEvmChainId);
+  const { isStakingSupportedChain } = useStakingChain();
 
-  const onClaimPress = async () => {
+  const attemptClaim = useCallback(async () => {
     try {
       if (!activeAccount?.address) return;
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_CLAIM_BUTTON_CLICKED)
+          .addProperties({
+            location: EVENT_LOCATIONS.TOKEN_DETAILS,
+          })
+          .build(),
+      );
 
       setIsSubmittingClaimTransaction(true);
 
@@ -76,6 +95,37 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
     } catch (e) {
       setIsSubmittingClaimTransaction(false);
     }
+  }, [
+    activeAccount,
+    pooledStakesData,
+    attemptPoolStakedClaimTransaction,
+    createEventBuilder,
+    trackEvent,
+    refreshPooledStakes,
+  ]);
+
+  useEffect(() => {
+    if (
+      shouldAttemptClaim &&
+      isStakingSupportedChain &&
+      Number(stakingContract?.chainId) === hexToNumber(chainId)
+    ) {
+      setShouldAttemptClaim(false);
+      attemptClaim();
+    }
+  }, [
+    shouldAttemptClaim,
+    isStakingSupportedChain,
+    stakingContract,
+    chainId,
+    attemptClaim,
+  ]);
+
+  const onClaimPress = async () => {
+    setShouldAttemptClaim(true);
+    if (!isStakingSupportedChain) {
+      await MultichainNetworkController.setActiveNetwork('mainnet');
+    }
   };
 
   return (
@@ -103,8 +153,8 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
               </Text>
             }
             onPress={onClaimPress}
-            disabled={isSubmittingClaimTransaction}
-            loading={isSubmittingClaimTransaction}
+            disabled={shouldAttemptClaim || isSubmittingClaimTransaction}
+            loading={shouldAttemptClaim || isSubmittingClaimTransaction}
           />
         </>
       }

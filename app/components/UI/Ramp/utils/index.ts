@@ -7,6 +7,7 @@ import {
 import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
+  QuoteSortMetadata,
   SellOrder,
 } from '@consensys/on-ramp-sdk/dist/API';
 import {
@@ -20,6 +21,7 @@ import { RootState } from '../../../../reducers';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { strings } from '../../../../../locales/i18n';
 import { getDecimalChainId } from '../../../../util/networks';
+import { QuoteSortBy } from '@consensys/on-ramp-sdk/dist/IOnRampSdk';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 
@@ -115,9 +117,17 @@ export const formatId = (id: string) => {
   return id.startsWith('/') ? id : '/' + id;
 };
 
-export function formatAmount(amount: number) {
+export function formatAmount(amount: number, useParts = false) {
   try {
-    if (Intl?.NumberFormat) return new Intl.NumberFormat().format(amount);
+    if (Intl?.NumberFormat) {
+      if (useParts) {
+        return new Intl.NumberFormat()
+          .formatToParts(amount)
+          .map(({ type, value }) => (type === 'integer' ? value : ''))
+          .join(' ');
+      }
+      return new Intl.NumberFormat().format(amount);
+    }
     return String(amount);
   } catch (e) {
     return String(amount);
@@ -206,6 +216,31 @@ export function isSellOrder(order: Order): order is SellOrder {
 
 export function isSellFiatOrder(order: FiatOrder): order is FiatOrder {
   return order.orderType === OrderOrderTypeEnum.Sell;
+}
+export function sortQuotes<
+  T extends QuoteResponse | QuoteError | SellQuoteResponse,
+>(
+  quotes?: T[] | undefined,
+  sortingArray?: QuoteSortMetadata[],
+  quoteSortBy?: QuoteSortBy,
+): T[] | undefined {
+  if (!quotes || !sortingArray) {
+    return quotes;
+  }
+
+  const sortOrder = sortingArray.find((s) => s.sortBy === quoteSortBy)?.ids;
+
+  if (!sortOrder) {
+    return quotes;
+  }
+
+  const sortOrderMap = new Map(sortOrder.map((id, index) => [id, index]));
+
+  return [...quotes].sort(
+    (a, b) =>
+      (sortOrderMap.get(a.provider.id) ?? 0) -
+      (sortOrderMap.get(b.provider.id) ?? 0),
+  );
 }
 
 const NOTIFICATION_DURATION = 5000;

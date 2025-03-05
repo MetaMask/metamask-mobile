@@ -1,6 +1,7 @@
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import {
   TransactionParams,
+  TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
@@ -8,6 +9,8 @@ import { addTransaction } from '../../../../../util/transaction-controller';
 import { formatEther } from 'ethers/lib/utils';
 import { useStakeContext } from '../useStakeContext';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { NetworkClientId } from '@metamask/network-controller';
+import { Stake } from '../../sdk/stakeSdkProvider';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -26,7 +29,10 @@ const generateDepositTxParams = (
 });
 
 const attemptDepositTransaction =
-  (pooledStakingContract: PooledStakingContract) =>
+  (
+    pooledStakingContract: PooledStakingContract,
+    networkClientId: NetworkClientId,
+  ) =>
   async (
     depositValueWei: string,
     receiver: string, // the address that can claim exited ETH
@@ -59,10 +65,11 @@ const attemptDepositTransaction =
         chainId,
       );
 
-      // TODO: Add Stake/Unstake/Claim TransactionType to display contract method in confirmation screen.
       return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
         origin: ORIGIN_METAMASK,
+        type: TransactionType.stakingDeposit,
       });
     } catch (e) {
       const errorMessage = (e as Error).message;
@@ -71,12 +78,14 @@ const attemptDepositTransaction =
   };
 
 const usePoolStakedDeposit = () => {
-  const stakeContext = useStakeContext();
-
-  const stakingContract = stakeContext.stakingContract as PooledStakingContract;
+  const { networkClientId, stakingContract } =
+    useStakeContext() as Required<Stake>;
 
   return {
-    attemptDepositTransaction: attemptDepositTransaction(stakingContract),
+    attemptDepositTransaction: attemptDepositTransaction(
+      stakingContract,
+      networkClientId,
+    ),
   };
 };
 

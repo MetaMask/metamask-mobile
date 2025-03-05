@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Text, TouchableOpacity, View, InteractionManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -14,8 +14,9 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  createProviderConfig,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
@@ -24,10 +25,15 @@ import { selectTokenList } from '../../../selectors/tokenListController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
-import { BrowserTab } from '../../../components/UI/Tokens/types';
+import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
+import { Hex } from '../../../util/smart-transactions/smart-publish-hook';
+import { appendURLParams } from '../../../util/browser';
 interface Option {
   label: string;
   onPress: () => void;
@@ -39,27 +45,64 @@ interface Props {
     params: {
       address: string;
       isNativeCurrency: boolean;
+      chainId: string;
+      asset: TokenI;
     };
   };
 }
 
 const AssetOptions = (props: Props) => {
-  const { address, isNativeCurrency } = props.route.params;
+  const {
+    address,
+    isNativeCurrency,
+    chainId: networkId,
+    asset,
+  } = props.route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
   const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const tokenList = useSelector(selectTokenList);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
-  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
-  const { trackEvent, isEnabled } = useMetrics();
+
+  // Memoize the provider config for the token explorer
+  const { providerConfigTokenExplorer } = useMemo(() => {
+    const tokenNetworkConfig = networkConfigurations[networkId as Hex];
+    const tokenRpcEndpoint =
+      networkConfigurations[networkId as Hex]?.rpcEndpoints?.[
+        networkConfigurations[networkId as Hex]?.defaultRpcEndpointIndex
+      ];
+    let providerConfigToken;
+    if (isPortfolioViewEnabled()) {
+      providerConfigToken = createProviderConfig(
+        tokenNetworkConfig,
+        tokenRpcEndpoint,
+      );
+    } else {
+      providerConfigToken = providerConfig;
+    }
+
+    const providerConfigTokenExplorerToken = providerConfigToken;
+
+    return {
+      providerConfigTokenExplorer: providerConfigTokenExplorerToken,
+    };
+  }, [networkId, networkConfigurations, providerConfig]);
+
+  const explorer = useBlockExplorer(
+    networkConfigurations,
+    providerConfigTokenExplorer,
+  );
+  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
@@ -88,7 +131,11 @@ const AssetOptions = (props: Props) => {
 
   const openTokenDetails = () => {
     modalRef.current?.dismissModal(() => {
-      navigation.navigate('AssetDetails');
+      navigation.navigate('AssetDetails', {
+        address,
+        chainId: networkId,
+        asset,
+      });
     });
   };
 
@@ -103,19 +150,12 @@ const AssetOptions = (props: Props) => {
       existingTabId = existingPortfolioTab.id;
     } else {
       const analyticsEnabled = isEnabled();
-      const portfolioUrl = new URL(AppConstants.PORTFOLIO.URL);
 
-      portfolioUrl.searchParams.append('metamaskEntry', 'mobile');
-
-      // Append user's privacy preferences for metrics + marketing on user navigation to Portfolio.
-      portfolioUrl.searchParams.append(
-        'metricsEnabled',
-        String(analyticsEnabled),
-      );
-      portfolioUrl.searchParams.append(
-        'marketingEnabled',
-        String(!!isDataCollectionForMarketingEnabled),
-      );
+      const portfolioUrl = appendURLParams(AppConstants.PORTFOLIO.URL, {
+        metamaskEntry: 'mobile',
+        metricsEnabled: analyticsEnabled,
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      });
 
       newTabUrl = portfolioUrl.href;
     }
@@ -128,9 +168,13 @@ const AssetOptions = (props: Props) => {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-      portfolioUrl: AppConstants.PORTFOLIO.URL,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
+        .addProperties({
+          portfolioUrl: AppConstants.PORTFOLIO.URL,
+        })
+        .build(),
+    );
   };
 
   const removeToken = () => {
@@ -142,7 +186,18 @@ const AssetOptions = (props: Props) => {
           navigation.navigate('WalletView');
           InteractionManager.runAfterInteractions(async () => {
             try {
-              await TokensController.ignoreTokens([address]);
+              const { NetworkController } = Engine.context;
+
+              const chainIdToUse = isPortfolioViewEnabled()
+                ? networkId
+                : chainId;
+
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(
+                  chainIdToUse as Hex,
+                );
+
+              await TokensController.ignoreTokens([address], networkClientId);
               NotificationManager.showSimpleNotification({
                 status: `simple_notification`,
                 duration: 5000,
@@ -151,15 +206,21 @@ const AssetOptions = (props: Props) => {
                   tokenSymbol: tokenList[address.toLowerCase()]?.symbol || null,
                 }),
               });
-              trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-                location: 'token_details',
-                token_standard: 'ERC20',
-                asset_type: 'token',
-                tokens: [
-                  `${tokenList[address.toLowerCase()]?.symbol} - ${address}`,
-                ],
-                chain_id: getDecimalChainId(chainId),
-              });
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+                  .addProperties({
+                    location: 'token_details',
+                    token_standard: 'ERC20',
+                    asset_type: 'token',
+                    tokens: [
+                      `${
+                        tokenList[address.toLowerCase()]?.symbol
+                      } - ${address}`,
+                    ],
+                    chain_id: getDecimalChainId(chainId),
+                  })
+                  .build(),
+              );
             } catch (err) {
               Logger.log(err, 'AssetDetails: Failed to hide token!');
             }

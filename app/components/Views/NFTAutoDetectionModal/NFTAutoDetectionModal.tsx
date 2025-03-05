@@ -11,7 +11,7 @@ import styleSheet from './NFTAutoDetectionModal.styles';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
 import { View, Image } from 'react-native';
-import { NftDetectionModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NftDetectionModal.selectors';
+import { NftDetectionModalSelectorsIDs } from '../../../../e2e/selectors/wallet/NftDetectionModal.selectors';
 
 import Button, {
   ButtonSize,
@@ -22,7 +22,7 @@ import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 
@@ -32,9 +32,9 @@ const NFTAutoDetectionModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const enableNftDetectionAndDismissModal = (value: boolean) => {
     if (value) {
@@ -43,13 +43,21 @@ const NFTAutoDetectionModal = () => {
         PreferencesController.setDisplayNftMedia(true);
       }
       PreferencesController.setUseNftDetection(true);
-      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE, {
-        chainId,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE)
+          .addProperties({
+            chainId,
+          })
+          .build(),
+      );
     } else {
-      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE, {
-        chainId,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE)
+          .addProperties({
+            chainId,
+          })
+          .build(),
+      );
     }
 
     if (sheetRef?.current) {

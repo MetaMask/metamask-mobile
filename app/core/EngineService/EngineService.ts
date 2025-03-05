@@ -1,12 +1,22 @@
 import UntypedEngine from '../Engine';
-import AppConstants from '../AppConstants';
+import { Engine as TypedEngine } from '../Engine/Engine';
 import { getVaultFromBackup } from '../BackupVault';
-import { store as importedStore } from '../../store';
 import Logger from '../../util/Logger';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
+import { getTraceTags } from '../../util/sentry/tags';
+import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
+import getUIStartupSpan from '../Performance/UIStartup';
+import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
+import ReduxService from '../redux';
+import NavigationService from '../NavigationService';
+import Routes from '../../constants/navigation/Routes';
+import { KeyringControllerState } from '@metamask/keyring-controller';
+import { MetaMetrics } from '../Analytics';
+
+const LOG_TAG = 'EngineService';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -15,30 +25,59 @@ interface InitializeEngineResult {
 
 const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
 const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
-class EngineService {
+export class EngineService {
   private engineInitialized = false;
 
   /**
-   * Initializer for the EngineService
+   * Starts the Engine and subscribes to the controller state changes
    *
-   * @param store - Redux store
+   * EngineService.start() with SES/lockdown:
+   * Requires ethjs nested patches (lib->src)
+   * - ethjs/ethjs-query
+   * - ethjs/ethjs-contract
+   * Otherwise causing the following errors:
+   * - TypeError: Cannot assign to read only property 'constructor' of object '[object Object]'
+   * - Error: Requiring module "node_modules/ethjs/node_modules/ethjs-query/lib/index.js", which threw an exception: TypeError:
+   * -  V8: Cannot assign to read only property 'constructor' of object '[object Object]'
+   * -  JSC: Attempted to assign to readonly property
+   * - node_modules/babel-runtime/node_modules/regenerator-runtime/runtime.js
+   * - V8: TypeError: _$$_REQUIRE(...) is not a constructor
+   * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
+   * - V8: SES_UNHANDLED_REJECTION
    */
+  start = async () => {
+    const reduxState = ReduxService.store.getState();
+    trace({
+      name: TraceName.EngineInitialization,
+      op: TraceOperation.EngineInitialization,
+      parentContext: getUIStartupSpan(),
+      tags: getTraceTags(reduxState),
+    });
+    const state = reduxState?.engine?.backgroundState ?? {};
+    const Engine = UntypedEngine;
+    try {
+      Logger.log(`${LOG_TAG}: Initializing Engine:`, {
+        hasState: Object.keys(state).length > 0,
+      });
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initalizeEngine = (store: any) => {
-    const reduxState = store.getState?.();
-    const state = reduxState?.engine?.backgroundState || {};
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Engine = UntypedEngine as any;
-    Engine.init(state);
-    this.updateControllers(store, Engine);
+      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
+      Engine.init(state, null, metaMetricsId);
+      // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
+      this.updateControllers(Engine as unknown as TypedEngine);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to initialize Engine! Falling back to vault recovery.',
+      );
+      // Navigate to vault recovery
+      NavigationService.navigation?.reset({
+        routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+      });
+    }
+    endTrace({ name: TraceName.EngineInitialization });
   };
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private updateControllers = (store: any, engine: any) => {
+  private updateControllers = (engine: TypedEngine) => {
     if (!engine.context) {
       Logger.error(
         new Error(
@@ -48,154 +87,32 @@ class EngineService {
       return;
     }
 
-    const controllers = [
-      {
-        name: 'AddressBookController',
-        key: `${engine.context.AddressBookController.name}:stateChange`,
-      },
-      { name: 'AssetsContractController' },
-      { name: 'NftController', key: 'NftController:stateChange' },
-      {
-        name: 'TokensController',
-        key: `${engine.context.TokensController.name}:stateChange`,
-      },
-      {
-        name: 'TokenDetectionController',
-        key: `${engine.context.TokenDetectionController.name}:stateChange`,
-      },
-      {
-        name: 'NftDetectionController',
-        key: 'NftDetectionController:stateChange',
-      },
-      {
-        name: 'KeyringController',
-        key: `${engine.context.KeyringController.name}:stateChange`,
-      },
-      {
-        name: 'AccountTrackerController',
-        key: 'AccountTrackerController:stateChange',
-      },
-      {
-        name: 'NetworkController',
-        key: AppConstants.NETWORK_STATE_CHANGE_EVENT,
-      },
-      {
-        name: 'PhishingController',
-        key: `${engine.context.PhishingController.name}:stateChange`,
-      },
-      {
-        name: 'PreferencesController',
-        key: `${engine.context.PreferencesController.name}:stateChange`,
-      },
-      {
-        name: 'SelectedNetworkController',
-        key: `${engine.context.SelectedNetworkController.name}:stateChange`,
-      },
-      {
-        name: 'TokenBalancesController',
-        key: `${engine.context.TokenBalancesController.name}:stateChange`,
-      },
-      { name: 'TokenRatesController', key: 'TokenRatesController:stateChange' },
-      {
-        name: 'TransactionController',
-        key: `${engine.context.TransactionController.name}:stateChange`,
-      },
-      {
-        name: 'SmartTransactionsController',
-        key: `${engine.context.SmartTransactionsController.name}:stateChange`,
-      },
-      { name: 'SwapsController' },
-      {
-        name: 'TokenListController',
-        key: `${engine.context.TokenListController.name}:stateChange`,
-      },
-      {
-        name: 'CurrencyRateController',
-        key: `${engine.context.CurrencyRateController.name}:stateChange`,
-      },
-      {
-        name: 'GasFeeController',
-        key: `${engine.context.GasFeeController.name}:stateChange`,
-      },
-      {
-        name: 'ApprovalController',
-        key: `${engine.context.ApprovalController.name}:stateChange`,
-      },
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      {
-        name: 'SnapController',
-        key: `${engine.context.SnapController.name}:stateChange`,
-      },
-      {
-        name: 'SubjectMetadataController',
-        key: `${engine.context.SubjectMetadataController.name}:stateChange`,
-      },
-      {
-        name: 'AuthenticationController',
-        key: 'AuthenticationController:stateChange',
-      },
-      {
-        name: 'UserStorageController',
-        key: 'UserStorageController:stateChange',
-      },
-      {
-        name: 'NotificationServicesController',
-        key: 'NotificationServicesController:stateChange',
-      },
-      ///: END:ONLY_INCLUDE_IF
-      {
-        name: 'PermissionController',
-        key: `${engine.context.PermissionController.name}:stateChange`,
-      },
-      {
-        name: 'LoggingController',
-        key: `${engine.context.LoggingController.name}:stateChange`,
-      },
-      {
-        name: 'AccountsController',
-        key: `${engine.context.AccountsController.name}:stateChange`,
-      },
-      {
-        name: 'PPOMController',
-        key: `${engine.context.PPOMController.name}:stateChange`,
-      },
-      {
-        name: 'AuthenticationController',
-        key: `AuthenticationController:stateChange`,
-      },
-      {
-        name: 'UserStorageController',
-        key: `UserStorageController:stateChange`,
-      },
-      {
-        name: 'NotificationServicesController',
-        key: `NotificationServicesController:stateChange`,
-      },
-    ];
-
-    engine?.datamodel?.subscribe?.(() => {
-      if (!engine.context.KeyringController.metadata.vault) {
-        Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
-      }
-      if (!this.engineInitialized) {
-        store.dispatch({ type: INIT_BG_STATE_KEY });
-        this.engineInitialized = true;
-      }
-    });
-
-    controllers.forEach((controller) => {
-      const { name, key = undefined } = controller;
-      const update_bg_state_cb = () => {
+    engine.controllerMessenger.subscribeOnceIf(
+      'ComposableController:stateChange',
+      () => {
         if (!engine.context.KeyringController.metadata.vault) {
-          Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
+          Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
         }
-        store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
-      };
-      if (key) {
-        engine.controllerMessenger.subscribe(key, update_bg_state_cb);
-      } else {
-        engine.context[name].subscribe(update_bg_state_cb);
+        ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
+        this.engineInitialized = true;
+      },
+      () => !this.engineInitialized,
+    );
+
+    const update_bg_state_cb = (controllerName: string) => {
+      if (!engine.context.KeyringController.metadata.vault) {
+        Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
       }
+      ReduxService.store.dispatch({
+        type: UPDATE_BG_STATE_KEY,
+        payload: { key: controllerName },
+      });
+    };
+
+    BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
+      engine.controllerMessenger.subscribe(eventName, () =>
+        update_bg_state_cb(eventName.split(':')[0]),
+      );
     });
   };
 
@@ -210,22 +127,28 @@ class EngineService {
    */
   async initializeVaultFromBackup(): Promise<InitializeEngineResult> {
     const keyringState = await getVaultFromBackup();
-    const reduxState = importedStore.getState?.();
-    const state = reduxState?.engine?.backgroundState || {};
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Engine = UntypedEngine as any;
+    const reduxState = ReduxService.store.getState();
+    const state = reduxState?.engine?.backgroundState ?? {};
+    const Engine = UntypedEngine;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();
     this.engineInitialized = false;
     if (keyringState) {
-      const newKeyringState = {
+      const newKeyringState: KeyringControllerState = {
         keyrings: [],
         vault: keyringState.vault,
+        isUnlocked: false,
+        keyringsMetadata: [],
       };
-      const instance = Engine.init(state, newKeyringState);
+
+      Logger.log(`${LOG_TAG}: Initializing Engine from backup:`, {
+        hasState: Object.keys(state).length > 0,
+      });
+
+      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
+      const instance = Engine.init(state, newKeyringState, metaMetricsId);
       if (instance) {
-        this.updateControllers(importedStore, instance);
+        this.updateControllers(instance);
         // this is a hack to give the engine time to reinitialize
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return {

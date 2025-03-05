@@ -1,17 +1,24 @@
 // Third party dependencies.
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, View, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  RouteProp,
+  ParamListBase,
+  useRoute,
+} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
-// External dependencies.
+// External dependencies
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
+  findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
   getBlockExplorerName,
 } from '../../../util/networks';
@@ -22,17 +29,17 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { RPC } from '../../../constants/network';
 import {
+  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { strings } from '../../../../locales/i18n';
 // Internal dependencies
 import styleSheet from './AccountActions.styles';
 import Logger from '../../../util/Logger';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
-import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
@@ -49,14 +56,21 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+
+interface AccountActionsParams {
+  selectedAccount: InternalAccount;
+}
 
 const AccountActions = () => {
+  const route = useRoute<RouteProp<ParamListBase, string>>();
+  const { selectedAccount } = route.params as AccountActionsParams;
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
@@ -66,8 +80,8 @@ const AccountActions = () => {
   }, []);
 
   const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
 
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
 
@@ -80,8 +94,18 @@ const AccountActions = () => {
         networkConfigurations,
       );
     }
+    if (isNonEvmChainId(chainId)) {
+      // TODO: [SOLANA] - block explorer needs to be implemented
+      return findBlockExplorerForNonEvmChainId(chainId);
+    }
+
     return null;
-  }, [networkConfigurations, providerConfig.rpcUrl, providerConfig.type]);
+  }, [
+    networkConfigurations,
+    providerConfig.rpcUrl,
+    providerConfig.type,
+    chainId,
+  ]);
 
   const blockExplorerName = getBlockExplorerName(blockExplorer);
 
@@ -113,7 +137,11 @@ const AccountActions = () => {
         goToBrowserUrl(url, etherscan_url);
       }
 
-      trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN,
+        ).build(),
+      );
     });
   };
 
@@ -129,17 +157,26 @@ const AccountActions = () => {
           Logger.log('Error while trying to share address', err);
         });
 
-      trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS,
+        ).build(),
+      );
     });
   };
 
   const goToExportPrivateKey = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED,
+        ).build(),
+      );
 
       navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         credentialName: 'private_key',
         shouldUpdateNav: true,
+        selectedAccount,
       });
     });
   };
@@ -172,16 +209,21 @@ const AccountActions = () => {
     if (selectedAddress) {
       await controllers.KeyringController.removeAccount(selectedAddress as Hex);
       await removeAccountsFromPermissions([selectedAddress]);
-      trackEvent(MetaMetricsEvents.ACCOUNT_REMOVED, {
-        accountType: keyring?.type,
-        selectedAddress,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
+          .addProperties({
+            accountType: keyring?.type,
+            selectedAddress,
+          })
+          .build(),
+      );
     }
   }, [
     controllers.KeyringController,
     keyring?.type,
     selectedAddress,
     trackEvent,
+    createEventBuilder,
   ]);
 
   /**
@@ -203,16 +245,21 @@ const AccountActions = () => {
     if (selectedAddress) {
       await controllers.KeyringController.removeAccount(selectedAddress as Hex);
       await removeAccountsFromPermissions([selectedAddress]);
-      trackEvent(MetaMetricsEvents.ACCOUNT_REMOVED, {
-        accountType: keyring?.type,
-        selectedAddress,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
+          .addProperties({
+            accountType: keyring?.type,
+            selectedAddress,
+          })
+          .build(),
+      );
     }
   }, [
     controllers.KeyringController,
     keyring?.type,
     selectedAddress,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const showRemoveSnapAccountAlert = useCallback(() => {
@@ -261,21 +308,34 @@ const AccountActions = () => {
       switch (keyringType) {
         case ExtendedKeyringTypes.ledger:
           await forgetLedger();
-          trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
-            device_type: HardwareDeviceTypes.LEDGER,
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
+              .addProperties({
+                device_type: HardwareDeviceTypes.LEDGER,
+              })
+              .build(),
+          );
           break;
         case ExtendedKeyringTypes.qr:
           await controllers.KeyringController.forgetQRDevice();
-          trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
-            device_type: HardwareDeviceTypes.QR,
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
+              .addProperties({
+                device_type: HardwareDeviceTypes.QR,
+              })
+              .build(),
+          );
           break;
         default:
           break;
       }
     }
-  }, [controllers.KeyringController, keyring?.type, trackEvent]);
+  }, [
+    controllers.KeyringController,
+    keyring?.type,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   /**
    * Trigger the remove hardware account action when user click on the remove account button
@@ -305,7 +365,7 @@ const AccountActions = () => {
   ]);
 
   const goToEditAccountName = () => {
-    navigate('EditAccountName');
+    navigate('EditAccountName', { selectedAccount });
   };
 
   const isExplorerVisible = Boolean(
@@ -320,7 +380,7 @@ const AccountActions = () => {
           actionTitle={strings('account_actions.edit_name')}
           iconName={IconName.Edit}
           onPress={goToEditAccountName}
-          testID={AccountActionsModalSelectorsIDs.EDIT_ACCOUNT}
+          testID={AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT}
         />
         {isExplorerVisible && (
           <AccountAction
@@ -331,27 +391,29 @@ const AccountActions = () => {
             }
             iconName={IconName.Export}
             onPress={viewInEtherscan}
-            testID={AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN}
+            testID={AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN}
           />
         )}
         <AccountAction
           actionTitle={strings('drawer.share_address')}
           iconName={IconName.Share}
           onPress={onShare}
-          testID={AccountActionsModalSelectorsIDs.SHARE_ADDRESS}
+          testID={AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS}
         />
         <AccountAction
           actionTitle={strings('account_details.show_private_key')}
           iconName={IconName.Key}
           onPress={goToExportPrivateKey}
-          testID={AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY}
+          testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
         />
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
             iconName={IconName.Close}
             onPress={showRemoveHWAlert}
-            testID={AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT
+            }
           />
         )}
         {
@@ -361,7 +423,7 @@ const AccountActions = () => {
               actionTitle={strings('accounts.remove_snap_account')}
               iconName={IconName.Close}
               onPress={showRemoveSnapAccountAlert}
-              testID={AccountActionsModalSelectorsIDs.REMOVE_SNAP_ACCOUNT}
+              testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_SNAP_ACCOUNT}
             />
           )
           ///: END:ONLY_INCLUDE_IF

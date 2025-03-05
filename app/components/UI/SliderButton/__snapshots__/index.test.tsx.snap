@@ -7,7 +7,7 @@ exports[`SliderButton should render correctly 1`] = `
     [
       {
         "elevation": 0,
-        "shadowColor": "#0376c933",
+        "shadowColor": "#0376C933",
         "shadowOffset": {
           "height": 2,
           "width": 0,
@@ -18,7 +18,6 @@ exports[`SliderButton should render correctly 1`] = `
       undefined,
     ]
   }
-  testID="swipe-to-swap-button"
 >
   <View
     style={
@@ -36,13 +35,7 @@ exports[`SliderButton should render correctly 1`] = `
   >
     <Image
       resizeMode="stretch"
-      source={
-        {
-          "default": {
-            "uri": "MockImage",
-          },
-        }
-      }
+      source={1}
       style={
         [
           {
@@ -54,34 +47,26 @@ exports[`SliderButton should render correctly 1`] = `
         ]
       }
     />
-    <ForwardRef
+    <Image
+      collapsable={false}
       resizeMode="contain"
-      source={
+      source={1}
+      style={
         {
-          "default": {
-            "uri": "MockImage",
-          },
+          "height": "200%",
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "transform": [
+            {
+              "translateX": -142,
+            },
+          ],
         }
       }
-      style={
-        [
-          {
-            "height": "200%",
-            "left": 0,
-            "position": "absolute",
-          },
-          {
-            "opacity": 1,
-            "transform": [
-              {
-                "translateX": -142,
-              },
-            ],
-          },
-        ]
-      }
     />
-    <ForwardRef
+    <View
+      collapsable={false}
       style={
         {
           "opacity": 1,
@@ -100,22 +85,19 @@ exports[`SliderButton should render correctly 1`] = `
       >
         Incomplete Text
       </Text>
-    </ForwardRef>
+    </View>
   </View>
-  <ForwardRef
+  <View
+    collapsable={false}
     style={
-      [
-        {
-          "borderRadius": 60,
-          "height": "100%",
-          "overflow": "hidden",
-          "position": "absolute",
-        },
-        {
-          "backgroundColor": "rgba(2, 96, 164, 1)",
-          "width": 60,
-        },
-      ]
+      {
+        "backgroundColor": "rgba(2, 96, 164, 1)",
+        "borderRadius": 60,
+        "height": "100%",
+        "overflow": "hidden",
+        "position": "absolute",
+        "width": 60,
+      }
     }
   >
     <View
@@ -147,8 +129,9 @@ exports[`SliderButton should render correctly 1`] = `
         Complete Text
       </Text>
     </View>
-  </ForwardRef>
-  <ForwardRef
+  </View>
+  <View
+    collapsable={false}
     onMoveShouldSetResponder={[Function]}
     onMoveShouldSetResponderCapture={[Function]}
     onResponderEnd={[Function]}
@@ -162,25 +145,21 @@ exports[`SliderButton should render correctly 1`] = `
     onStartShouldSetResponder={[Function]}
     onStartShouldSetResponderCapture={[Function]}
     style={
-      [
-        {
-          "backgroundColor": "#ffffff",
-          "borderColor": "#0260a4",
-          "borderRadius": 60,
-          "borderWidth": 9.6,
-          "height": 60,
-          "position": "absolute",
-          "width": 60,
-        },
-        {
-          "opacity": 1,
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-        },
-      ]
+      {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#0260a4",
+        "borderRadius": 60,
+        "borderWidth": 9.6,
+        "height": 60,
+        "opacity": 1,
+        "position": "absolute",
+        "transform": [
+          {
+            "translateX": 0,
+          },
+        ],
+        "width": 60,
+      }
     }
   />
 </View>
