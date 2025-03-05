@@ -3643,11 +3643,13 @@
     "title": {
       "signature": "Signature request",
       "permit": "Spending cap request",
+      "permit_revoke": "Remove permission",
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
+      "permit_revoke": "This site wants to revoke permission to spend your tokens.",
       "permit_NFTs": "This site wants permission to withdraw your NFTs.",
       "signature": "Review request details before you confirm.",
       "signature_siwe": "A site wants you to sign in to prove you own this account."
