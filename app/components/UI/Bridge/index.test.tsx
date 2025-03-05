@@ -42,6 +42,6 @@ describe('BridgeView', () => {
     const { getByText } = renderWithProvider(<BridgeView />, {
       state: mockInitialState,
     });
-    expect(getByText('Bridge')).toBeDefined();
+    expect(getByText('Select amount')).toBeDefined();
   });
 });
