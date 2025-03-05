@@ -4,19 +4,19 @@ import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 
 export const tooltip: UIComponentFactory<TooltipElement> = ({
-  element,
+  element: e,
   ...params
 }) => ({
   element: 'SnapUITooltip',
-  children: getJsxChildren(element).map((children) =>
+  children: getJsxChildren(e).map((children) =>
     mapToTemplate({ element: children as JSXElement, ...params }),
   ),
   propComponents: {
     content: mapToTemplate({
       element:
-        typeof element.props.content === 'string'
-          ? Text({ children: element.props.content })
-          : element.props.content,
+        typeof e.props.content === 'string'
+          ? Text({ children: e.props.content })
+          : e.props.content,
       ...params,
     }),
   },
