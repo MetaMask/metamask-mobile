@@ -11,7 +11,7 @@ import {
   MultichainNativeAssets,
   selectMultichainCoinRates,
   selectMultichainBalances,
-  NETWORK_ASSETS_MAP,
+  MULTICHAIN_NETWORK_TO_ASSET_TYPES,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -481,19 +481,19 @@ describe('MultichainNonEvm Selectors', () => {
     });
 
     it('NETWORK_ASSETS_MAP has correct mappings', () => {
-      expect(NETWORK_ASSETS_MAP[SolScope.Mainnet]).toEqual([
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Mainnet]).toEqual([
         MultichainNativeAssets.Solana,
       ]);
-      expect(NETWORK_ASSETS_MAP[SolScope.Testnet]).toEqual([
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Testnet]).toEqual([
         MultichainNativeAssets.SolanaTestnet,
       ]);
-      expect(NETWORK_ASSETS_MAP[SolScope.Devnet]).toEqual([
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Devnet]).toEqual([
         MultichainNativeAssets.SolanaDevnet,
       ]);
-      expect(NETWORK_ASSETS_MAP[BtcScope.Mainnet]).toEqual([
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Mainnet]).toEqual([
         MultichainNativeAssets.Bitcoin,
       ]);
-      expect(NETWORK_ASSETS_MAP[BtcScope.Testnet]).toEqual([
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Testnet]).toEqual([
         MultichainNativeAssets.BitcoinTestnet,
       ]);
     });
