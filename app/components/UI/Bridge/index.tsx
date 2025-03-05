@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../selectors/networkController';
+import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import { Numpad } from './Numpad';
 import { TokenInputArea } from './TokenInputArea';
@@ -23,6 +22,15 @@ import { ethers } from 'ethers';
 import { selectTokens } from '../../../selectors/tokensController';
 import { getNativeSwapsToken } from '@metamask/swaps-controller/dist/swapsUtil';
 import { useLatestBalance } from './useLatestBalance';
+import {
+  selectSourceAmount,
+  selectDestAmount,
+  selectSourceTokenAddress,
+  selectDestTokenAddress,
+  selectSourceChainId,
+  selectDestChainId,
+  setSourceAmount,
+} from '../../../core/redux/slices/bridge';
 
 const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -96,22 +104,22 @@ const createStyles = (params: { theme: Theme }) => {
 
 const BridgeView = () => {
   const { styles } = useStyles(createStyles, {});
+  const dispatch = useDispatch();
 
-  const currentChainId = useSelector(selectChainId);
   const sourceTokens = useSelector(selectTokens);
 
-  const [sourceAmount, setSourceAmount] = useState<string>();
-  const [destAmount] = useState<string>();
-  const [sourceTokenAddress] = useState<string>(ethers.constants.AddressZero);
-  const [destTokenAddress] = useState<string>();
-  const [sourceChainId] = useState<SupportedCaipChainId | Hex>(currentChainId);
-  const [destChainId] = useState<SupportedCaipChainId | Hex>();
-
+  // Bridge state from Redux
+  const sourceAmount = useSelector(selectSourceAmount);
+  const destAmount = useSelector(selectDestAmount);
+  const sourceTokenAddress = useSelector(selectSourceTokenAddress);
+  const destTokenAddress = useSelector(selectDestTokenAddress);
+  const sourceChainId = useSelector(selectSourceChainId);
+  const destChainId = useSelector(selectDestChainId);
 
   const sourceToken = !isCaipChainId(sourceChainId) &&
-  sourceTokenAddress === ethers.constants.AddressZero
-  ? getNativeSwapsToken(sourceChainId)
-  : sourceTokens.find((token) => token.address === sourceTokenAddress);
+    sourceTokenAddress === ethers.constants.AddressZero
+    ? getNativeSwapsToken(sourceChainId)
+    : sourceTokens.find((token) => token.address === sourceTokenAddress);
 
   const sourceBalance = useLatestBalance({
     address: sourceTokenAddress,
@@ -120,31 +128,27 @@ const BridgeView = () => {
   }, sourceChainId);
 
   const destToken = destChainId && !isCaipChainId(destChainId) &&
-  destTokenAddress === ethers.constants.AddressZero
-  ? getNativeSwapsToken(destChainId)
-  : sourceTokens.find((token) => token.address === destTokenAddress);
+    destTokenAddress === ethers.constants.AddressZero
+    ? getNativeSwapsToken(destChainId)
+    : sourceTokens.find((token) => token.address === destTokenAddress);
 
   const handleNumberPress = (num: string) => {
-    setSourceAmount((prev) => {
-      if (!prev || prev === '0') return num;
-      return prev + num;
-    });
+    dispatch(setSourceAmount(sourceAmount ? sourceAmount + num : num));
   };
 
   const handleBackspacePress = () => {
-    setSourceAmount((prev) => {
-      if (!prev) return undefined;
-      const newAmount = prev.slice(0, -1);
-      return newAmount || undefined;
-    });
+    if (sourceAmount) {
+      const newAmount = sourceAmount.slice(0, -1);
+      dispatch(setSourceAmount(newAmount || undefined));
+    }
   };
 
   const handleDecimalPress = () => {
-    setSourceAmount((prev) => {
-      if (!prev) return '0.';
-      if (prev.includes('.')) return prev;
-      return prev + '.';
-    });
+    if (!sourceAmount) {
+      dispatch(setSourceAmount('0.'));
+    } else if (!sourceAmount.includes('.')) {
+      dispatch(setSourceAmount(sourceAmount + '.'));
+    }
   };
 
   const handleContinue = () => {
