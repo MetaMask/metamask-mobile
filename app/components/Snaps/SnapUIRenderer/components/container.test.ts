@@ -71,8 +71,8 @@ describe('container', () => {
         "element": "Box",
         "props": {
           "style": {
-            "flex": 1,
             "flexDirection": "column",
+            "flexGrow": 1,
           },
         },
       }
