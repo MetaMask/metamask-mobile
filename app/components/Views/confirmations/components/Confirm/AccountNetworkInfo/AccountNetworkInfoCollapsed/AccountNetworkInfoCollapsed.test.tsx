@@ -25,7 +25,7 @@ describe('AccountNetworkInfoCollapsed', () => {
   });
 
   it('displays account label', async () => {
-    const MOCK_ACCOUNT_LABEL = 'Ledger';
+    const MOCK_ACCOUNT_LABEL = 'ledger_label';
     jest
       .spyOn(AddressUtils, 'getLabelTextByAddress')
       .mockReturnValue(MOCK_ACCOUNT_LABEL);

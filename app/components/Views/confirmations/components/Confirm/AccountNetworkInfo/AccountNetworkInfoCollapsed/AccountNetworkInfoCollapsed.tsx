@@ -58,11 +58,6 @@ const AccountNetworkInfoCollapsed = () => {
         <View style={styles.accountInfo}>
           <Text style={styles.accountName}>{accountName}</Text>
           {accountLabel && (
-            <View style={styles.accountLabelWrapper}>
-              <Text style={styles.accountLabel}>{accountLabel}</Text>
-            </View>
-          )}
-          {accountLabel && (
             <TagBase style={styles.accountLabelWrapper}>
               <Text style={styles.accountLabel}>{accountLabel}</Text>
             </TagBase>
