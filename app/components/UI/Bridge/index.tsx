@@ -13,6 +13,7 @@ import Text, { TextColor } from '../../../component-library/components/Texts/Tex
 import ETHLogo from '../../../images/eth-logo-new.png';
 import BTCLogo from '../../../images/bitcoin-logo.png';
 import images from '../../../images/image-icons';
+import { ZERO_ADDRESS } from '@metamask/assets-controllers/dist/token-prices-service/codefi-v2.cjs';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -66,9 +67,9 @@ const BridgeView = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [destAmount] = useState<string>();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [sourceTokenAddress, setSourceTokenAddress] = useState<string>();
+  const [sourceTokenAddress, setSourceTokenAddress] = useState<string>(ZERO_ADDRESS);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [destTokenAddress, setDestTokenAddress] = useState<string>();
+  const [destTokenAddress, setDestTokenAddress] = useState<string>(ZERO_ADDRESS);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sourceChainId, setSourceChainId] = useState<string>();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
