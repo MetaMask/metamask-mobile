@@ -35,14 +35,40 @@ export interface GithubComment {
   id: number;
   node_id: string;
   url: string;
+  commitSha: string;
   body?: string;
   body_text?: string;
   body_html?: string;
   html_url: string;
 }
 
-export async function getBitriseTestStatus(commitHash: string): Promise<BitriseTestStatus> {
-  const bitriseComment = await getBitriseCommentForCommit(commitHash);
+// given 5 commits
+// get all bitrise comments
+
+export async function getLatestAssociatedBitriseComment(commitHashes: string[]): Promise<GithubComment | undefined> {
+
+  // Get all Bitrise comments
+  const comments = await getAllBitriseComments();
+
+  // Log all the comments and their commit sha
+  comments.forEach((comment) => {
+    console.log(`Found Bitrise comment for commit: ${comment.commitSha}`);
+  });
+
+  console.log(`Checking if recent commits have Bitrise comments: ${commitHashes}`);
+
+  // Iterate through each commit hash to find the first matching Bitrise comment
+  for (let i = 0; i < commitHashes.length; i++) {
+    const foundComment = comments.find(comment => comment.commitSha === commitHashes[i]);
+    if (foundComment) {
+      return foundComment;
+    }
+  }
+
+  return undefined
+}
+
+export async function getBitriseTestStatus(bitriseComment: GithubComment): Promise<BitriseTestStatus> {
 
   if (!bitriseComment) {
     return BitriseTestStatus.NotFound;
@@ -112,11 +138,18 @@ export async function getAllBitriseComments(): Promise<GithubComment[]> {
   });
 
   // Filter comments to find those containing Bitrise tags
-  const bitriseComments = comments.filter(({ body }) => {
-    return body?.includes(bitriseTag);
+  const bitriseComments = comments.filter(({ body }: { body?: string }) => body?.includes(bitriseTag));
+
+  // Set the commit sha for each comment
+  const modifiedComments = bitriseComments.map((comment: any) => {
+    const commitSha = comment.body?.match(/<!-- ([a-f0-9]{40}) -->/)?.[1];
+    return {
+      ...comment,
+      commitSha: commitSha || ""
+    };
   });
 
-  return bitriseComments
+  return modifiedComments
 
 }
 
@@ -132,23 +165,23 @@ export async function getBitriseCommentForCommit(commitHash: string): Promise<Gi
   return bitriseComment;
 }
 
-export async function getCommitHash() {
-
+export async function getRecentCommits(): Promise<string[]> {
+  
   const { owner: owner, repo: repo, number: pullRequestNumber } = context.issue;
 
-  const { data: prData } = await getOctokitInstance().rest.pulls.get({
+  // Fetch commits associated with the pull request
+  const { data: commits } = await getOctokitInstance().rest.pulls.listCommits({
     owner,
     repo,
     pull_number: pullRequestNumber,
+    per_page: 5  // Limit the number of commits to 5
   });
 
-  // Get the latest commit hash
-  const prCommitHash = prData?.head?.sha;
-  // Determine the latest commit hash depending if it's a PR or MQ
-  const latestCommitHash = isMergeQueue() ? getMergeQueueCommitHash() : prCommitHash;
+  // Map the data to extract commit SHAs
+  return commits.map((commit: { sha: string }) => commit.sha);
 
-  return latestCommitHash;
 }
+
 
 export function getOctokitInstance(): InstanceType<typeof GitHub> {
     if (!octokitInstance) {

@@ -1,5 +1,5 @@
 
-import {getCommitHash, getOctokitInstance, getBitriseCommentForCommit, determineE2ERunFlags, shouldRunBitriseE2E, getBitriseTestStatus, BitriseTestStatus} from './bitrise-utils';
+import {getLatestAssociatedBitriseComment, getOctokitInstance, getBitriseCommentForCommit, determineE2ERunFlags, shouldRunBitriseE2E, getBitriseTestStatus, BitriseTestStatus, getRecentCommits} from './bitrise-utils';
 import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
@@ -12,9 +12,16 @@ import {
 async function main(): Promise<void> {
 
     // Get the commit hash from the GitHub context
-    const commitHash = await getCommitHash();
+    const recentCommits = await getRecentCommits();
+
+
+    console.log(`Recent commits: ${recentCommits}`);
+
     // Determine the E2E run flags
     const flags = await determineE2ERunFlags();
+
+    //get last 5 commits
+    // get last 5 bitrise comments
 
     console.log(`Docs: ${flags.isDocs}`);
     console.log(`Fork: ${flags.isFork}`);
@@ -29,26 +36,36 @@ async function main(): Promise<void> {
     if (shouldRun) {
 
         // Get the Bitrise comment for the commit
-        const status = await getBitriseTestStatus(commitHash);
+        const bitriseComment = await getLatestAssociatedBitriseComment(recentCommits);
+
+        // If no Bitrise comment is found, set the status to not found
+        if (!bitriseComment) {
+            console.log(`No Bitrise comment found for the recent commits.`);
+            core.setFailed(`No Bitrise comment found for the recent commits.`);
+            return;
+        }
+        
+        const associatedCommit = bitriseComment.commitSha
+        const status = await getBitriseTestStatus(bitriseComment);
 
         switch (status) {
             case BitriseTestStatus.Pending:
-                const pendingMessage = `Bitrise test is still pending for the commit ${commitHash}.`;
+                const pendingMessage = `Bitrise test is still pending for the commit ${associatedCommit}.`;
                 console.log(pendingMessage);
                 core.setFailed(pendingMessage);
                 break;
             case BitriseTestStatus.Success:
-                const successMessage = `Bitrise test succeeded for the commit ${commitHash}.`;
+                const successMessage = `Bitrise test succeeded for the commit ${associatedCommit}.`;
                 console.log(successMessage);
                 core.setOutput("bitriseteststatus", "success");
                 break;
             case BitriseTestStatus.Failure:
-                const failureMessage = `Bitrise test failed for the commit ${commitHash}.`;
+                const failureMessage = `Bitrise test failed for the commit ${associatedCommit}.`;
                 console.log(failureMessage);
                 core.setFailed(failureMessage);
                 break;
             case BitriseTestStatus.NotFound:
-                const notFoundMessage = `No Bitrise comment found for the commit ${commitHash}. Apply the E2E label to the PR for the latest commit to generate a bitrise comment/status.`;
+                const notFoundMessage = `No Bitrise comment found for the commit ${associatedCommit}. Apply the E2E label to the PR for the latest commit to generate a bitrise comment/status.`;
                 console.log(notFoundMessage);
                 core.setFailed(notFoundMessage);
                 break;
