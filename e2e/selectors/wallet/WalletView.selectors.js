@@ -38,6 +38,8 @@ export const WalletViewSelectorsIDs = {
   TOKEN_NETWORK_FILTER: 'token-network-filter',
   TOKEN_NETWORK_FILTER_ALL: 'token-network-filter-all',
   TOKEN_NETWORK_FILTER_CURRENT: 'token-network-filter-current',
+  DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
+  DEFI_POSITIONS_LIST: 'defi-positions-list',
 };
 
 export const WalletViewSelectorsText = {
