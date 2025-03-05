@@ -218,7 +218,8 @@ export async function getRecentCommits(): Promise<string[]> {
   const filteredCommits = allCommits.filter(commit => !commit.commit.message.startsWith(mergeFromMainCommitMessagePrefix));
 
   // Map the data to extract commit SHAs
-  return filteredCommits.map(commit => commit.sha);
+  const shas = filteredCommits.map(commit => commit.sha);
+  return shas.reverse();
 }
 
 
