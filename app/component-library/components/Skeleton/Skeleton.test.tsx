@@ -24,9 +24,6 @@ const customStyles = {
 };
 
 describe('Skeleton', () => {
-  // Disable console.log warnings for tests
-  /* eslint-disable no-console */
-
   it('should render Skeleton without error', () => {
     const { getByTestId } = render(<Skeleton testID="skeleton" />);
     expect(getByTestId('skeleton')).toBeDefined();
