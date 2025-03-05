@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
@@ -15,21 +15,19 @@ import ETHLogo from '../../../images/eth-logo-new.png';
 import BTCLogo from '../../../images/bitcoin-logo.png';
 import images from '../../../images/image-icons';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { Hex, isCaipChainId } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { isTestNet, getTestNetImageByChainId, isMainnetByChainId, isLineaMainnetByChainId } from '../../../util/networks';
 import { PopularList, UnpopularNetworkList, CustomNetworkImgMapping } from '../../../util/networks/customNetworks';
-import { ethers } from 'ethers';
-import { selectTokens } from '../../../selectors/tokensController';
-import { getNativeSwapsToken } from '@metamask/swaps-controller/dist/swapsUtil';
 import { useLatestBalance } from './useLatestBalance';
 import {
   selectSourceAmount,
   selectDestAmount,
-  selectSourceTokenAddress,
-  selectDestTokenAddress,
   selectSourceChainId,
   selectDestChainId,
+  selectSourceToken,
+  selectDestToken,
   setSourceAmount,
+  resetBridgeState,
 } from '../../../core/redux/slices/bridge';
 
 const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
@@ -106,31 +104,24 @@ const BridgeView = () => {
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
 
-  const sourceTokens = useSelector(selectTokens);
-
   // Bridge state from Redux
   const sourceAmount = useSelector(selectSourceAmount);
   const destAmount = useSelector(selectDestAmount);
-  const sourceTokenAddress = useSelector(selectSourceTokenAddress);
-  const destTokenAddress = useSelector(selectDestTokenAddress);
   const sourceChainId = useSelector(selectSourceChainId);
   const destChainId = useSelector(selectDestChainId);
-
-  const sourceToken = !isCaipChainId(sourceChainId) &&
-    sourceTokenAddress === ethers.constants.AddressZero
-    ? getNativeSwapsToken(sourceChainId)
-    : sourceTokens.find((token) => token.address === sourceTokenAddress);
+  const sourceToken = useSelector(selectSourceToken);
+  const destToken = useSelector(selectDestToken);
 
   const sourceBalance = useLatestBalance({
-    address: sourceTokenAddress,
+    address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     symbol: sourceToken?.symbol,
   }, sourceChainId);
 
-  const destToken = destChainId && !isCaipChainId(destChainId) &&
-    destTokenAddress === ethers.constants.AddressZero
-    ? getNativeSwapsToken(destChainId)
-    : sourceTokens.find((token) => token.address === destTokenAddress);
+  // Reset bridge state when component unmounts
+  useEffect(() => () => {
+      dispatch(resetBridgeState());
+    }, [dispatch]);
 
   const handleNumberPress = (num: string) => {
     dispatch(setSourceAmount(sourceAmount ? sourceAmount + num : num));
@@ -172,7 +163,7 @@ const BridgeView = () => {
             tokenSymbol={sourceToken?.symbol}
             tokenBalance={sourceBalance?.displayBalance}
             tokenIconUrl={ETHLogo}
-            tokenAddress={sourceTokenAddress}
+            tokenAddress={sourceToken?.address}
             networkImageSource={getNetworkImage(sourceChainId)}
             autoFocus
           />
@@ -188,7 +179,7 @@ const BridgeView = () => {
           <TokenInputArea
             value={destAmount}
             tokenSymbol={destToken?.symbol}
-            tokenAddress={destTokenAddress}
+            tokenAddress={destToken?.address}
             tokenIconUrl={BTCLogo}
             networkImageSource={destChainId ? getNetworkImage(destChainId) : undefined}
             isReadonly

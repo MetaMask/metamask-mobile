@@ -1,26 +1,30 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { Hex } from '@metamask/utils';
+import { Hex, isCaipChainId } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { createSelector } from 'reselect';
+import { selectTokens } from '../../../../selectors/tokensController';
+import { getNativeSwapsToken } from '@metamask/swaps-controller/dist/swapsUtil';
+import { BridgeToken } from '../../../../components/UI/Bridge/types';
+import { selectChainId } from '../../../../selectors/networkController';
 
 export interface BridgeState {
   sourceAmount: string | undefined;
   destAmount: string | undefined;
-  sourceTokenAddress: string;
-  destTokenAddress: string | undefined;
   sourceChainId: SupportedCaipChainId | Hex;
   destChainId: SupportedCaipChainId | Hex | undefined;
+  sourceToken: BridgeToken | undefined;
+  destToken: BridgeToken | undefined;
 }
 
 const initialState: BridgeState = {
   sourceAmount: undefined,
   destAmount: undefined,
-  sourceTokenAddress: ethers.constants.AddressZero,
-  destTokenAddress: undefined,
   sourceChainId: '0x1',
   destChainId: undefined,
+  sourceToken: undefined,
+  destToken: undefined,
 };
 
 const name = 'bridge';
@@ -34,12 +38,6 @@ const slice = createSlice({
     },
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
-    },
-    setSourceTokenAddress: (state, action: PayloadAction<string>) => {
-      state.sourceTokenAddress = action.payload;
-    },
-    setDestTokenAddress: (state, action: PayloadAction<string | undefined>) => {
-      state.destTokenAddress = action.payload;
     },
     setSourceChainId: (state, action: PayloadAction<SupportedCaipChainId | Hex>) => {
       state.sourceChainId = action.payload;
@@ -55,8 +53,9 @@ const { actions, reducer } = slice;
 
 export default reducer;
 
-// Base selector
+// Base selectors
 const selectBridgeState = (state: RootState) => state[name];
+const selectTokensList = selectTokens;
 
 // Derived selectors using createSelector
 export const selectSourceAmount = createSelector(
@@ -69,19 +68,9 @@ export const selectDestAmount = createSelector(
   (bridgeState) => bridgeState.destAmount,
 );
 
-export const selectSourceTokenAddress = createSelector(
-  selectBridgeState,
-  (bridgeState) => bridgeState.sourceTokenAddress,
-);
-
-export const selectDestTokenAddress = createSelector(
-  selectBridgeState,
-  (bridgeState) => bridgeState.destTokenAddress,
-);
-
 export const selectSourceChainId = createSelector(
-  selectBridgeState,
-  (bridgeState) => bridgeState.sourceChainId,
+  selectChainId,
+  (chainId) => chainId,
 );
 
 export const selectDestChainId = createSelector(
@@ -90,30 +79,36 @@ export const selectDestChainId = createSelector(
 );
 
 // Combined selectors for related state
-export const selectSourceTokenState = createSelector(
+export const selectSourceToken = createSelector(
   selectBridgeState,
-  (bridgeState) => ({
-    amount: bridgeState.sourceAmount,
-    tokenAddress: bridgeState.sourceTokenAddress,
-    chainId: bridgeState.sourceChainId,
-  }),
+  selectTokensList,
+  (bridgeState, tokens) => {
+    const { sourceChainId } = bridgeState;
+    const sourceToken = !isCaipChainId(sourceChainId)
+      ? getNativeSwapsToken(sourceChainId)
+      : tokens.find((token) => token.address === ethers.constants.AddressZero);
+
+    if (!sourceToken) return undefined;
+
+    return {
+      address: sourceToken.address,
+      symbol: sourceToken.symbol,
+      image: 'iconUrl' in sourceToken ? sourceToken.iconUrl : '',
+      decimals: sourceToken.decimals,
+      chainId: sourceChainId as SupportedCaipChainId,
+    } as BridgeToken;
+  },
 );
 
-export const selectDestTokenState = createSelector(
+export const selectDestToken = createSelector(
   selectBridgeState,
-  (bridgeState) => ({
-    amount: bridgeState.destAmount,
-    tokenAddress: bridgeState.destTokenAddress,
-    chainId: bridgeState.destChainId,
-  }),
+  (bridgeState) => bridgeState.destToken,
 );
 
 // Actions
 export const {
   setSourceAmount,
   setDestAmount,
-  setSourceTokenAddress,
-  setDestTokenAddress,
   setSourceChainId,
   setDestChainId,
   resetBridgeState,

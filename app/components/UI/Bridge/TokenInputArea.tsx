@@ -42,7 +42,7 @@ const createStyles = () =>
     },
   });
 
-const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
+const formatAddress = (address?: string) => address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
 
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   value,
