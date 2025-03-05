@@ -61,6 +61,9 @@ const createStyles = (params: { theme: Theme }) => {
     content: {
       flexGrow: 1,
     },
+    screen: {
+      flexGrow: 1,
+    },
     inputsContainer: {
       paddingVertical: 12,
     },
@@ -198,7 +201,7 @@ const BridgeView = () => {
   };
 
   return (
-    <ScreenView>
+    <ScreenView contentContainerStyle={styles.screen}>
       <Box
         style={styles.content}
         flexDirection={FlexDirection.Column}
