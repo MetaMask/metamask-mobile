@@ -22,6 +22,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
+import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import Text, {
   TextVariant,
@@ -339,9 +340,13 @@ const ImportNewSecretRecoveryPhrase = () => {
         style={styles.topOverlay}
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
-        <View style={styles.content}>
+        <View style={styles.content} testID={ImportSRPIDs.CONTAINER}>
           <TouchableOpacity onPress={dismiss} style={styles.navbarLeftButton}>
-            <Icon name={IconName.ArrowLeft} size={IconSize.Sm} />
+            <Icon
+              name={IconName.ArrowLeft}
+              size={IconSize.Sm}
+              testID={ImportSRPIDs.BACK}
+            />
           </TouchableOpacity>
           <Text variant={TextVariant.HeadingLG}>
             {strings('import_new_secret_recovery_phrase.title')}
@@ -358,6 +363,7 @@ const ImportNewSecretRecoveryPhrase = () => {
                 selectedValue={selectedDropdownValue}
                 onValueChange={handleSrpNumberChange}
                 options={srpOptions}
+                testID={ImportSRPIDs.SRP_SELECTION_DROPDOWN}
               />
             </View>
             <Icon
@@ -384,6 +390,7 @@ const ImportNewSecretRecoveryPhrase = () => {
                   }}
                   secureTextEntry={!showPassword}
                   textContentType={showPassword ? 'none' : 'password'}
+                  testID={`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-${index + 1}`}
                 />
               </View>
             ))}
@@ -397,6 +404,7 @@ const ImportNewSecretRecoveryPhrase = () => {
                   : strings('import_new_secret_recovery_phrase.clear')
               }
               onPress={hasEmptySrp ? onSrpPaste : onClear}
+              testID={ImportSRPIDs.PASTE_BUTTON}
             />
           </View>
         </View>
@@ -411,6 +419,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             type={'confirm'}
             onPress={onSubmit}
             disabled={srpError || !isValidSrp}
+            testID={ImportSRPIDs.IMPORT_BUTTON}
           >
             {loading ? (
               <ActivityIndicator size="small" color={colors.primary.inverse} />

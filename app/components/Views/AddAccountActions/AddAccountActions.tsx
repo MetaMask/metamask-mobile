@@ -227,6 +227,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               iconName={IconName.Hardware}
               onPress={openImportSrp}
               disabled={isLoading}
+              testID={AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON}
             />
             ///: END:ONLY_INCLUDE_IF
           }
