@@ -4,7 +4,8 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import Text from '../../../../../component-library/components/Texts/Text';
 import { Alert, Severity } from '../../types/alerts';
 import { useAlerts } from '../context';
-import GeneralAlertBanner, { getBannerAlertSeverity } from './GeneralAlertBanner';
+import GeneralAlertBanner from './GeneralAlertBanner';
+import { getBannerAlertSeverity } from '../utils';
 
 jest.mock('../context', () => ({
   useAlerts: jest.fn(),
