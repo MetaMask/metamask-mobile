@@ -4608,6 +4608,34 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
+"@metamask/bridge-controller@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-3.0.0.tgz#7dc45f8ba3a451d1e1c505dfb26f45aa4143cd09"
+  integrity sha512-7k2s3FxQorz/vi7XWmmXIjI7QNcmtoUBNZtXzAwu4W44YAZdY3ojVdA20qCnHQW1NkSHn44eaacfZynqiZmQ1Q==
+  dependencies:
+    "@ethersproject/address" "^5.7.0"
+    "@ethersproject/bignumber" "^5.7.0"
+    "@ethersproject/constants" "^5.7.0"
+    "@ethersproject/contracts" "^5.7.0"
+    "@ethersproject/providers" "^5.7.0"
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/metamask-eth-abis" "^3.1.1"
+    "@metamask/polling-controller" "^12.0.3"
+    "@metamask/utils" "^11.2.0"
+
+"@metamask/bridge-status-controller@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-3.0.0.tgz#472416e8f8e2c3ea159560f95c3078a351f87c73"
+  integrity sha512-SRXiIk7TNs2vUmckILHkaev3IGtpwUwoX8b+Hcg0VQ3aEH/8+cQFSLh3JHRfFHTkj9vTrsYRUj4qobMGIjElUQ==
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/bridge-controller" "^3.0.0"
+    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/polling-controller" "^12.0.3"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.2.0"
+
 "@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.3.0.tgz#62c200750efcea864bd31d685120331859e1ab1e"
@@ -4663,6 +4691,16 @@
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-5.0.0.tgz#b749fc9d6556a0c2be159c6448b48796e0c14c6f"
   integrity sha512-dpTV8+wuGQNS69JdWamfuMM2EAIpKXDGjXG63tGRe1N27JVvq4l5p5dBtJtWzc061MVspm45EXK6jDrvlJyGDg==
+
+"@metamask/earn-controller@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.5.0.tgz#2a57b0ea429351f1d66b4e5759be71ac43d45d2e"
+  integrity sha512-4ytDd4X3PkQRnsNLBznX3pPxA41CtgtsRS5CyAtr/jTGNS+n2GIqaKLB4qRCxBvF6bifgx3TLZikAloxSZtAeA==
+  dependencies:
+    "@ethersproject/providers" "^5.7.0"
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/stake-sdk" "^1.0.0"
 
 "@metamask/eslint-config-typescript@^9.0.0":
   version "9.0.1"
@@ -5119,10 +5157,10 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-1.0.0.tgz#54fe5f799bd01145875e87ad2ad6a76a072cb159"
-  integrity sha512-r9nfCPTu04QElJ5ErZVEiIFNanyS7zoibA++H2HhOUmVQPqiYRdzVDkW3IBN9aZ12Jhhr4/ZTgcnBGo+1JQ7og==
+"@metamask/notification-services-controller@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-2.0.0.tgz#bcc9f422f88c4d6bb867a92b729b2af99db5b330"
+  integrity sha512-1iiFm7IguoKz/uzTOgslPz95SGB4zp3JhPoTZ1Zxale8AhIFBiZcK4uakGIo/cbeCZKAcW6Sl6e6GuzjIK4AaQ==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
     "@metamask/base-controller" "^8.0.0"
@@ -10099,12 +10137,12 @@
     "@types/node" "*"
     form-data "^4.0.0"
 
-"@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0", "@types/node@^20.12.8":
-  version "20.14.11"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.14.11.tgz#09b300423343460455043ddd4d0ded6ac579b74b"
-  integrity sha512-kprQpL8MMeszbz6ojB5/tU8PLN4kesnN8Gjzw349rDlNgsSzg90lAVj3llK99Dh7JON+t9AuscPPFW6mPbTnSA==
+"@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0":
+  version "22.7.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.7.5.tgz#cfde981727a7ab3611a481510b473ae54442b92b"
+  integrity sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==
   dependencies:
-    undici-types "~5.26.4"
+    undici-types "~6.19.2"
 
 "@types/node@^17.0.31", "@types/node@^17.0.4":
   version "17.0.45"
@@ -10115,6 +10153,13 @@
   version "18.18.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.18.1.tgz#80b22f3df719f15c9736207980e95f35d01ec1aa"
   integrity sha512-3G42sxmm0fF2+Vtb9TJQpnjmP+uKlWvFa8KoEGquh4gqRmoUG/N0ufuhikw6HEsdG2G2oIKhog1GCTfz9v5NdQ==
+
+"@types/node@^20.12.8":
+  version "20.14.11"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.14.11.tgz#09b300423343460455043ddd4d0ded6ac579b74b"
+  integrity sha512-kprQpL8MMeszbz6ojB5/tU8PLN4kesnN8Gjzw349rDlNgsSzg90lAVj3llK99Dh7JON+t9AuscPPFW6mPbTnSA==
+  dependencies:
+    undici-types "~5.26.4"
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"
@@ -28484,6 +28529,11 @@ undici-types@~5.26.4:
   version "5.26.5"
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-5.26.5.tgz#bcd539893d00b56e964fd2657a4866b221a65617"
   integrity sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==
+
+undici-types@~6.19.2:
+  version "6.19.8"
+  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-6.19.8.tgz#35111c9d1437ab83a7cdc0abae2f26d88eda0a02"
+  integrity sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==
 
 undici@5.28.4, undici@5.28.5:
   version "5.28.5"
