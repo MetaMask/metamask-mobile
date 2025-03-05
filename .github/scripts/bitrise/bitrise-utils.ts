@@ -16,6 +16,9 @@ interface Commit {
   sha: string;
   commit: {
     message: string;
+    author: {
+      date: string;
+    };
   };
 }
 
@@ -191,27 +194,37 @@ export async function getBitriseCommentForCommit(commitHash: string): Promise<Gi
   return bitriseComment;
 }
 
-export async function getRecentCommits(): Promise<string[]> {
+export async function getRecentCommits(context: Context): Promise<string[]> {
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
   const { owner, repo, number: pullRequestNumber } = context.issue;
 
-  // Fetch commits associated with the pull request, explicitly sorting by newest first
-  const { data: commits } = await getOctokitInstance().rest.pulls.listCommits({
-    owner,
-    repo,
-    pull_number: pullRequestNumber,
-    per_page: 10,
-    sort: 'updated', // Sorting by the date they were last updated
-    direction: 'desc' // Ensures the order is descending (newest first)
-  });
+  let allCommits: Commit[] = [];
+  let page = 1;
+  let hasMore = true;
 
-  // Exclude any commits that are merge commits from main
-  const filteredCommits = commits.filter((commit: Commit) => {
-    return !commit.commit.message.startsWith(mergeFromMainCommitMessagePrefix);
-  });
+  // Loop through all pages of commits
+  while (hasMore) {
+    const { data: commits } = await getOctokitInstance().rest.pulls.listCommits({
+      owner,
+      repo,
+      pull_number: pullRequestNumber,
+      per_page: 100, // Fetch 100 commits per page
+      page
+    });
+
+    allCommits = allCommits.concat(commits);
+    hasMore = commits.length === 100; // Continue if we got 100 commits, as there might be more
+    page++;
+  }
+
+  // Filter out merge commits from main
+  const filteredCommits = allCommits.filter(commit => !commit.commit.message.startsWith(mergeFromMainCommitMessagePrefix));
+
+  // Sort commits by date from newest to oldest
+  filteredCommits.sort((a, b) => new Date(b.commit.author.date).getTime() - new Date(a.commit.author.date).getTime());
 
   // Map the data to extract commit SHAs
-  return filteredCommits.map((commit: Commit) => commit.sha);
+  return filteredCommits.map(commit => commit.sha);
 }
 
 
