@@ -241,7 +241,7 @@ const BridgeView = () => {
           />
         </Box>
         {/* TODO Just a placeholder for now */}
-        {false && <ReceiveAddress address={undefined} />}
+        {/* <ReceiveAddress address={undefined} /> */}
         <Box style={styles.bottomSection}>
 
           <Numpad
