@@ -17,6 +17,17 @@ const mockInitialState = {
   },
 };
 
+const mockErc20TokenDetails = {
+  details: {
+    symbol: 'TST',
+    decimals: '4',
+    balance: undefined,
+    standard: TokenStandard.ERC20,
+    decimalsNumber: 4,
+  },
+  isPending: false,
+};
+
 const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../../../../../../hooks/useMetrics');
@@ -58,16 +69,7 @@ describe('SimulationValueDisplay', () => {
       useGetTokenStandardAndDetails as jest.MockedFn<
         typeof useGetTokenStandardAndDetails
       >
-    ).mockReturnValue({
-      details: {
-        symbol: 'TST',
-        decimals: '4',
-        balance: undefined,
-        standard: TokenStandard.ERC20,
-        decimalsNumber: 4,
-      },
-      isPending: false,
-    });
+    ).mockReturnValue(mockErc20TokenDetails);
 
     const { findByText } = renderWithProvider(
       <SimulationValueDisplay
@@ -134,16 +136,8 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders "Unlimited" for large values when canDisplayValueAsUnlimited is true', async () => {
-    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
-      details: {
-        symbol: 'TST',
-        decimals: '4',
-        balance: undefined,
-        standard: TokenStandard.ERC20,
-        decimalsNumber: 4,
-      },
-      isPending: false,
-    });
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
 
     const { findByText } = renderWithProvider(
       <SimulationValueDisplay
@@ -193,16 +187,7 @@ describe('SimulationValueDisplay', () => {
       useGetTokenStandardAndDetails as jest.MockedFn<
         typeof useGetTokenStandardAndDetails
       >
-    ).mockReturnValue({
-      details: {
-        symbol: 'TST',
-        decimals: '4',
-        balance: undefined,
-        standard: TokenStandard.ERC20,
-        decimalsNumber: 4,
-      },
-      isPending: false,
-    });
+    ).mockReturnValue(mockErc20TokenDetails);
 
     renderWithProvider(
       <SimulationValueDisplay
