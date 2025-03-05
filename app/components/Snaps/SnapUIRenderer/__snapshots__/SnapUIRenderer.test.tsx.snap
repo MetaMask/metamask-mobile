@@ -17,8 +17,8 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -163,8 +163,8 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -284,8 +284,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -464,8 +464,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -644,8 +644,8 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -727,8 +727,8 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -1223,8 +1223,8 @@ exports[`SnapUIRenderer renders footers 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -1459,8 +1459,8 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -1711,8 +1711,8 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -2748,8 +2748,8 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -2869,8 +2869,8 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
