@@ -1,4 +1,4 @@
-import { fork, take, cancel, put, call, all } from 'redux-saga/effects';
+import { fork, take, cancel, put, call } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
