@@ -1,5 +1,4 @@
-import React from 'react';
-import renderWithProvider, { DeepPartial } from '../../../util/test/renderWithProvider';
+import { renderScreen, DeepPartial } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import BridgeView from '../Bridge';
@@ -128,15 +127,22 @@ describe('BridgeView', () => {
   });
 
   it('renders', async () => {
-    const { getByText } = renderWithProvider(<BridgeView />, {
-      state: mockInitialState,
-    });
+    const { getByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE,
+      },
+      { state: mockInitialState },
+    );
     expect(getByText('Select amount')).toBeDefined();
   });
 
   it('should open BridgeTokenSelector when clicking source token', async () => {
-    const { findByText } = renderWithProvider(
-      <BridgeView />,
+    const { findByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE,
+      },
       { state: initialState },
     );
 
@@ -150,11 +156,17 @@ describe('BridgeView', () => {
       screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
       params: {},
     });
+
+    // Verify token content text is displayed
+    expect(await findByText('Token content will go here')).toBeTruthy();
   });
 
   it('should open BridgeTokenSelector when clicking destination token area', async () => {
-    const { getByTestId } = renderWithProvider(
-      <BridgeView />,
+    const { getByTestId, findByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE,
+      },
       { state: initialState },
     );
 
@@ -169,11 +181,17 @@ describe('BridgeView', () => {
       screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
       params: {},
     });
+
+    // Verify token content text is displayed
+    expect(await findByText('Token content will go here')).toBeTruthy();
   });
 
   it('should update source token amount when typing', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <BridgeView />,
+    const { getByTestId, getByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE,
+      },
       { state: initialState },
     );
 
@@ -196,8 +214,11 @@ describe('BridgeView', () => {
       },
     };
 
-    const { getByText, getByTestId } = renderWithProvider(
-      <BridgeView />,
+    const { getByText, getByTestId } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE,
+      },
       { state: stateWithAmount },
     );
 
@@ -214,8 +235,11 @@ describe('BridgeView', () => {
 
   describe('Bottom Content', () => {
     it('should show "Select amount" when no amount is entered', () => {
-      const { getByText } = renderWithProvider(
-        <BridgeView />,
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE,
+        },
         { state: initialState },
       );
 
@@ -231,8 +255,11 @@ describe('BridgeView', () => {
         },
       };
 
-      const { getByText } = renderWithProvider(
-        <BridgeView />,
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE,
+        },
         { state: stateWithZeroAmount },
       );
 
@@ -248,8 +275,11 @@ describe('BridgeView', () => {
         },
       };
 
-      const { getByText } = renderWithProvider(
-        <BridgeView />,
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE,
+        },
         { state: stateWithHighAmount },
       );
 
@@ -265,8 +295,11 @@ describe('BridgeView', () => {
         },
       };
 
-      const { getByText } = renderWithProvider(
-        <BridgeView />,
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE,
+        },
         { state: stateWithValidAmount },
       );
 
@@ -283,8 +316,11 @@ describe('BridgeView', () => {
         },
       };
 
-      const { getByText } = renderWithProvider(
-        <BridgeView />,
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE,
+        },
         { state: stateWithValidAmount },
       );
 
@@ -301,8 +337,11 @@ describe('BridgeView', () => {
         },
       };
 
-      const { getByText } = renderWithProvider(
-        <BridgeView />,
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE,
+        },
         { state: stateWithValidAmount },
       );
 
