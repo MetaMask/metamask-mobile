@@ -16,6 +16,7 @@ import {
   selectCurrentCurrency,
 } from '../currencyRateController';
 import { createDeepEqualSelector } from '../util';
+import { isPortfolioViewEnabled } from '../../util/networks';
 
 interface NativeTokenBalance {
   balance: string;
@@ -35,6 +36,9 @@ type ChainBalances = Record<string, NativeTokenBalance>;
 export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
   [selectSelectedInternalAccountFormattedAddress, selectAccountsByChainId],
   (selectedAddress, accountsByChainId): ChainBalances => {
+    if (!isPortfolioViewEnabled()) {
+      return {};
+    }
     if (!selectedAddress || !accountsByChainId) {
       return {};
     }
