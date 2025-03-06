@@ -31,77 +31,9 @@ async function upsertStatusCheck(
 
   const octokit = getOctokitInstance();
 
+  //Deprecated Approach
   console.log(`Upserting status check: ${statusCheckName} with status ${status} for commit ${commitHash}`);
 
-  // List existing checks
-  const listResponse = await octokit.rest.checks.listForRef({
-    owner,
-    repo,
-    ref: commitHash,
-  });
-
-  if (listResponse.status !== 200) {
-    core.setFailed(
-      `Failed to list checks for commit ${commitHash}, received status code ${listResponse.status}`,
-    );
-    process.exit(1);
-  }
-
-  const existingCheck = listResponse.data.check_runs.find(check => check.name === statusCheckName);
-
-  if (existingCheck) {
-    console.log(`Check already exists: ${existingCheck.name}, updating...`);
-    // Update the existing check
-    const updateCheckResponse = await octokit.rest.checks.update({
-      owner,
-      repo,
-      check_run_id: existingCheck.id,
-      name: statusCheckName,
-      status: status,
-      conclusion: conclusion,
-      output: {
-        title: `${statusCheckName} Status Check`,
-        summary: summary,
-      },
-    });
-
-    if (updateCheckResponse.status !== 200) {
-      core.setFailed(
-        `Failed to update '${statusCheckName}' check with status ${status} for commit ${commitHash}, got status code ${updateCheckResponse.status}`,
-      );
-      process.exit(1);
-    }
-
-    console.log(`Updated existing check: ${statusCheckName} with id ${existingCheck.id} & status ${status} for commit ${commitHash}`);
-
-    
-
-  } else {
-    console.log(`Check does not exist: ${statusCheckName}, creating...`);
-    // Create a new status check
-    const createCheckResponse = await octokit.rest.checks.create({
-      owner,
-      repo,
-      name: statusCheckName,
-      head_sha: commitHash,
-      status: status,
-      conclusion: conclusion,
-      started_at: new Date().toISOString(),
-      output: {
-        title: `${statusCheckName} Status Check`,
-        summary: summary,
-      },
-    });
-
-    if (createCheckResponse.status !== 201) {
-      core.setFailed(
-        `Failed to create '${statusCheckName}' check with status ${status} for commit ${commitHash}, got status code ${createCheckResponse.status}`,
-      );
-      process.exit(1);
-    }
-
-    console.log(`Created check: ${statusCheckName} with id ${createCheckResponse.data.id} & status ${status} for commit ${commitHash}`);
-  }
 }
 
 

@@ -219,7 +219,7 @@ export async function getRecentCommits(): Promise<string[]> {
 
   // Map the data to extract commit SHAs
   const shas = filteredCommits.map(commit => commit.sha);
-  return shas.reverse();
+  return shas.reverse().slice(0, 10); // Return the last 10 commits
 }
 
 
