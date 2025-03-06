@@ -46,7 +46,6 @@ const wallet_addEthereumChain = async ({
   endApprovalFlow,
 }) => {
   const {
-    CurrencyRateController,
     NetworkController,
     MultichainNetworkController,
     ApprovalController,
@@ -73,7 +72,6 @@ const wallet_addEthereumChain = async ({
       network: [networkClientId, network],
       chainId,
       controllers: {
-        CurrencyRateController,
         MultichainNetworkController,
         PermissionController,
         SelectedNetworkController,
@@ -109,6 +107,7 @@ const wallet_addEthereumChain = async ({
       (endpoint) => endpoint.url === firstValidRPCUrl,
     );
 
+  // If the network already exists and the RPC URL is the same, perform a network switch only
   if (
     existingNetworkConfiguration &&
     existingNetworkConfigurationHasRpcEndpint
