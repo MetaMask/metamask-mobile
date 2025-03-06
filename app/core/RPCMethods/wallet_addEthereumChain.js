@@ -143,7 +143,7 @@ const wallet_addEthereumChain = async ({
     chainName,
     rpcUrl: firstValidRPCUrl,
     ticker,
-    isNetworkUpdate: !!existingNetworkConfiguration,
+    isNetworkRpcUpdate: !!existingNetworkConfiguration,
   };
 
   const alerts = await checkSafeNetwork(

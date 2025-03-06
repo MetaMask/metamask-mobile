@@ -57,14 +57,14 @@ const NetworkVerificationInfo = ({
   customNetworkInformation,
   onReject,
   onConfirm,
-  isNetworkRpcUpdate,
   isCustomNetwork = false,
+  isNetworkRpcUpdate = false,
 }: {
   customNetworkInformation: CustomNetworkInformation;
   onReject: () => void;
   onConfirm: () => void;
-  isNetworkRpcUpdate: boolean;
   isCustomNetwork?: boolean;
+  isNetworkRpcUpdate?: boolean;
 }) => {
   const [networkInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
     number | null
