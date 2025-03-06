@@ -1068,6 +1068,7 @@ export class Engine {
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
       env: {
+       // IMPORTANT! Do not enable account syncing while peer depts are not aligned
         isAccountSyncingEnabled: false,
       },
     });
