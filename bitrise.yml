@@ -1238,22 +1238,15 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
+                # Make sure node_modules/.bin is in PATH for detox
+                export PATH="$BITRISE_SOURCE_DIR/node_modules/.bin:$PATH"
+                
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn detox test -c ios.sim.debug e2e/specs/flask/ 
+                
+                # Run the tests with direct detox command targeting Flask specs
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' "$BITRISE_SOURCE_DIR/node_modules/.bin/detox" test -c ios.sim.debug e2e/specs/flask/
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1962,7 +1955,7 @@ workflows:
                 export METAMASK_BUILD_TYPE='flask'
                 
                 # Run the build with explicit path to detox
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' "$BITRISE_SOURCE_DIR/node_modules/.bin/detox" build -c ios.sim.debug
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
