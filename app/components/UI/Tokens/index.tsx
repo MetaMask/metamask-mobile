@@ -56,7 +56,6 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
-import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -93,9 +92,7 @@ interface TokenListNavigationParamList {
   [key: string]: undefined | object;
 }
 
-const DEBOUNCE_DELAY = 300;
-
-const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
+const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
@@ -124,16 +121,19 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
   const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId);
-  const nativeCurrencies = [
-    ...new Set(
-      Object.values(networkConfigurationsByChainId).map(
-        (n) => n.nativeCurrency,
+  const nativeCurrencies = useMemo(
+    () => [
+      ...new Set(
+        Object.values(networkConfigurationsByChainId).map(
+          (n) => n.nativeCurrency,
+        ),
       ),
-    ),
-  ];
+    ],
+    [networkConfigurationsByChainId],
+  );
 
-  const selectedAccountTokensChains = useSelector((state: RootState) =>
-    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
+  const selectedAccountTokensChains = useSelector(
+    selectAccountTokensAcrossChains,
   );
 
   const actionSheet = useRef<typeof ActionSheet>();
@@ -147,21 +147,11 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     selectSelectedInternalAccountAddress,
   );
   const multiChainMarketData = useSelector(selectTokenMarketData);
-  const debouncedMultiChainMarketData = useDebouncedValue(
-    multiChainMarketData,
-    DEBOUNCE_DELAY,
-  );
 
   const multiChainTokenBalance = useSelector(selectTokensBalances);
-  const debouncedMultiChainTokenBalance = useDebouncedValue(
-    multiChainTokenBalance,
-    DEBOUNCE_DELAY,
-  );
+
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-  const debouncedMultiChainCurrencyRates = useDebouncedValue(
-    multiChainCurrencyRates,
-    DEBOUNCE_DELAY,
-  );
+
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -329,28 +319,13 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     hideZeroBalanceTokens,
     tokenSortConfig,
     // Dependencies for multichain implementation
-    debouncedMultiChainTokenBalance,
-    debouncedMultiChainMarketData,
-    debouncedMultiChainCurrencyRates,
+    multiChainTokenBalance,
+    multiChainMarketData,
+    multiChainCurrencyRates,
     selectedAccountTokensChains,
     selectedInternalAccountAddress,
     isUserOnCurrentNetwork,
   ]);
-
-  // console.log('hideZeroBalanceTokens', hideZeroBalanceTokens);
-  // console.log('tokenSortConfig', tokenSortConfig);
-  // console.log(
-  //   'debouncedMultiChainTokenBalance',
-  //   debouncedMultiChainTokenBalance,
-  // );
-  // console.log('debouncedMultiChainMarketData', debouncedMultiChainMarketData);
-  // console.log(
-  //   'debouncedMultiChainCurrencyRates',
-  //   debouncedMultiChainCurrencyRates,
-  // );
-  // console.log('selectedAccountTokensChains', selectedAccountTokensChains);
-  // console.log('selectedInternalAccountAddress', selectedInternalAccountAddress);
-  // console.log('isUserOnCurrentNetwork', isUserOnCurrentNetwork);
 
   const showRemoveMenu = (token: TokenI) => {
     if (actionSheet.current) {
@@ -550,6 +525,6 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
       />
     </View>
   );
-});
+};
 
-export default React.memo(Tokens);
+export default Tokens;
