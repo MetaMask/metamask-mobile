@@ -24,8 +24,6 @@ async function upsertStatusCheck(
   summary: string
 ): Promise<void> {
 
-  const octokit = getOctokitInstance();
-
   //Deprecated Approach
   console.log(`Upserting status check: ${statusCheckName} with status ${status} for commit ${commitHash}`);
 
