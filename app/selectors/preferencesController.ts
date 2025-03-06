@@ -1,4 +1,3 @@
-import { createSelector } from 'reselect';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { RootState } from '../reducers';
 import { selectEvmChainId } from './networkController';
@@ -8,49 +7,49 @@ import { Hex } from '@metamask/utils';
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine?.backgroundState?.PreferencesController;
 
-export const selectIpfsGateway = createSelector(
+export const selectIpfsGateway = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.ipfsGateway,
 );
 
-export const selectUseNftDetection = createSelector(
+export const selectUseNftDetection = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.useNftDetection,
 );
 
-export const selectShowMultiRpcModal = createSelector(
+export const selectShowMultiRpcModal = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.showMultiRpcModal,
 );
 
-export const selectUseTokenDetection = createSelector(
+export const selectUseTokenDetection = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.useTokenDetection,
 );
 
-export const selectDisplayNftMedia = createSelector(
+export const selectDisplayNftMedia = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.displayNftMedia,
 );
 
-export const selectUseSafeChainsListValidation = createSelector(
+export const selectUseSafeChainsListValidation = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.useSafeChainsListValidation,
 );
 
-export const selectTokenSortConfig = createSelector(
+export const selectTokenSortConfig = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.tokenSortConfig,
 );
 
-export const selectTokenNetworkFilter = createSelector(
+export const selectTokenNetworkFilter = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.tokenNetworkFilter,
@@ -74,7 +73,7 @@ export const selectIsTokenNetworkFilterEqualCurrentNetwork =
   );
 
 // isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
-export const selectIsMultiAccountBalancesEnabled = createSelector(
+export const selectIsMultiAccountBalancesEnabled = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     (
@@ -85,7 +84,7 @@ export const selectIsMultiAccountBalancesEnabled = createSelector(
 );
 
 // showTestNetworks is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
-export const selectShowTestNetworks = createSelector(
+export const selectShowTestNetworks = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     (
@@ -95,7 +94,7 @@ export const selectShowTestNetworks = createSelector(
     ).showTestNetworks,
 );
 
-export const selectShowIncomingTransactionNetworks = createSelector(
+export const selectShowIncomingTransactionNetworks = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     (
@@ -105,7 +104,7 @@ export const selectShowIncomingTransactionNetworks = createSelector(
     ).showIncomingTransactions,
 );
 
-export const selectIsIpfsGatewayEnabled = createSelector(
+export const selectIsIpfsGatewayEnabled = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     (
@@ -115,7 +114,7 @@ export const selectIsIpfsGatewayEnabled = createSelector(
     ).isIpfsGatewayEnabled,
 );
 
-export const selectIsSecurityAlertsEnabled = createSelector(
+export const selectIsSecurityAlertsEnabled = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     (
@@ -125,13 +124,13 @@ export const selectIsSecurityAlertsEnabled = createSelector(
     ).securityAlertsEnabled,
 );
 
-export const selectSmartTransactionsOptInStatus = createSelector(
+export const selectSmartTransactionsOptInStatus = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.smartTransactionsOptInStatus,
 );
 
-export const selectUseTransactionSimulations = createSelector(
+export const selectUseTransactionSimulations = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     (
@@ -141,20 +140,22 @@ export const selectUseTransactionSimulations = createSelector(
     ).useTransactionSimulations,
 );
 
-export const selectPrivacyMode = createSelector(
+export const selectPrivacyMode = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.privacyMode,
 );
 
-export const selectSmartTransactionsMigrationApplied = createSelector(
+export const selectSmartTransactionsMigrationApplied = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.featureFlags?.smartTransactionsMigrationApplied ?? false,
+    preferencesControllerState.featureFlags
+      ?.smartTransactionsMigrationApplied ?? false,
 );
 
-export const selectSmartTransactionsBannerDismissed = createSelector(
+export const selectSmartTransactionsBannerDismissed = createDeepEqualSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.featureFlags?.smartTransactionsBannerDismissed ?? false,
+    preferencesControllerState.featureFlags?.smartTransactionsBannerDismissed ??
+    false,
 );

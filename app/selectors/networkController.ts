@@ -1,5 +1,4 @@
 import { Hex } from '@metamask/utils';
-import { createSelector } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
   BuiltInNetworkClientId,
@@ -96,7 +95,7 @@ export const createProviderConfig = (
 export const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
 
-export const selectSelectedNetworkClientId = createSelector(
+export const selectSelectedNetworkClientId = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState.selectedNetworkClientId,
@@ -129,12 +128,12 @@ export const selectProviderConfig = createDeepEqualSelector(
   },
 );
 
-export const selectEvmTicker = createSelector(
+export const selectEvmTicker = createDeepEqualSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig?.ticker,
 );
 
-export const selectTicker = createSelector(
+export const selectTicker = createDeepEqualSelector(
   selectEvmTicker,
   selectSelectedNonEvmNetworkSymbol,
   selectIsEvmNetworkSelected,
@@ -142,12 +141,12 @@ export const selectTicker = createSelector(
     isEvmSelected ? evmTicker : nonEvmTicker,
 );
 
-export const selectEvmChainId = createSelector(
+export const selectEvmChainId = createDeepEqualSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig.chainId,
 );
 
-export const selectChainId = createSelector(
+export const selectChainId = createDeepEqualSelector(
   selectSelectedNonEvmNetworkChainId,
   selectEvmChainId,
   selectIsEvmNetworkSelected,
@@ -155,20 +154,20 @@ export const selectChainId = createSelector(
     !isEvmSelected ? selectedNonEvmChainId : selectedEvmChainId,
 );
 
-export const selectProviderType = createSelector(
+export const selectProviderType = createDeepEqualSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig.type,
 );
-export const selectNickname = createSelector(
+export const selectNickname = createDeepEqualSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig.nickname,
 );
-export const selectRpcUrl = createSelector(
+export const selectRpcUrl = createDeepEqualSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig.rpcUrl,
 );
 
-export const selectNetworkStatus = createSelector(
+export const selectNetworkStatus = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState?.networksMetadata[
@@ -176,13 +175,13 @@ export const selectNetworkStatus = createSelector(
     ].status,
 );
 
-export const selectEvmNetworkConfigurationsByChainId = createSelector(
+export const selectEvmNetworkConfigurationsByChainId = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState?.networkConfigurationsByChainId,
 );
 
-export const selectNetworkConfigurations = createSelector(
+export const selectNetworkConfigurations = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectNonEvmNetworkConfigurationsByChainId,
   (
@@ -197,13 +196,13 @@ export const selectNetworkConfigurations = createSelector(
   },
 );
 
-export const selectNetworkClientId = createSelector(
+export const selectNetworkClientId = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState.selectedNetworkClientId,
 );
 
-export const selectIsEIP1559Network = createSelector(
+export const selectIsEIP1559Network = createDeepEqualSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState?.networksMetadata?.[
@@ -212,7 +211,7 @@ export const selectIsEIP1559Network = createSelector(
 );
 
 // Selector to get the popular network configurations, this filter also testnet networks
-export const selectAllPopularNetworkConfigurations = createSelector(
+export const selectAllPopularNetworkConfigurations = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   (networkConfigurations) => {
     const popularNetworksChainIds = PopularList.map(
@@ -233,7 +232,7 @@ export const selectAllPopularNetworkConfigurations = createSelector(
   },
 );
 
-export const selectIsPopularNetwork = createSelector(
+export const selectIsPopularNetwork = createDeepEqualSelector(
   selectChainId,
   (chainId) =>
     chainId === CHAIN_IDS.MAINNET ||
@@ -241,7 +240,7 @@ export const selectIsPopularNetwork = createSelector(
     PopularList.some((network) => network.chainId === chainId),
 );
 
-export const selectIsAllNetworks = createSelector(
+export const selectIsAllNetworks = createDeepEqualSelector(
   selectAllPopularNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),
   (popularNetworkConfigurations, tokenNetworkFilter) => {
@@ -255,12 +254,12 @@ export const selectIsAllNetworks = createSelector(
   },
 );
 
-export const selectNetworkConfigurationByChainId = createSelector(
+export const selectNetworkConfigurationByChainId = createDeepEqualSelector(
   [selectNetworkConfigurations, (_state: RootState, chainId) => chainId],
   (networkConfigurations, chainId) => networkConfigurations?.[chainId] || null,
 );
 
-export const selectNativeCurrencyByChainId = createSelector(
+export const selectNativeCurrencyByChainId = createDeepEqualSelector(
   [
     selectEvmNetworkConfigurationsByChainId,
     (_state: RootState, chainId) => chainId,
@@ -269,7 +268,7 @@ export const selectNativeCurrencyByChainId = createSelector(
     networkConfigurations?.[chainId]?.nativeCurrency,
 );
 
-export const selectDefaultEndpointByChainId = createSelector(
+export const selectDefaultEndpointByChainId = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   (_: RootState, chainId: Hex) => chainId,
   (networkConfigurations, chainId) => {
@@ -280,18 +279,18 @@ export const selectDefaultEndpointByChainId = createSelector(
   },
 );
 
-export const selectProviderTypeByChainId = createSelector(
+export const selectProviderTypeByChainId = createDeepEqualSelector(
   selectDefaultEndpointByChainId,
   (defaultEndpoint) =>
     defaultEndpoint ? getProviderType(defaultEndpoint) : undefined,
 );
 
-export const selectRpcUrlByChainId = createSelector(
+export const selectRpcUrlByChainId = createDeepEqualSelector(
   selectDefaultEndpointByChainId,
   (defaultEndpoint) => defaultEndpoint?.url,
 );
 
-export const checkNetworkAndAccountSupports1559 = createSelector(
+export const checkNetworkAndAccountSupports1559 = createDeepEqualSelector(
   selectNetworkControllerState,
   (_state: RootState, networkClientId: string) => networkClientId,
   (networkControllerState: NetworkState, networkClientId: string) => {

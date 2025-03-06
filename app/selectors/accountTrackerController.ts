@@ -1,4 +1,3 @@
-import { createSelector } from 'reselect';
 import {
   AccountTrackerControllerState,
   AccountInformation,
@@ -21,7 +20,7 @@ export const selectAccountsByChainId = createDeepEqualSelector(
   (accountTrackerControllerState: AccountTrackerControllerState) =>
     accountTrackerControllerState.accountsByChainId,
 );
-export const selectAccountsLength = createSelector(
+export const selectAccountsLength = createDeepEqualSelector(
   selectAccounts,
   (accounts: { [address: string]: AccountInformation }) =>
     Object.keys(accounts || {}).length,

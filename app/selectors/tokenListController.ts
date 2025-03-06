@@ -1,4 +1,3 @@
-import { createSelector } from 'reselect';
 import { TokenListState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { tokenListToArray } from '../util/tokens';
@@ -11,7 +10,7 @@ const selectTokenListConstrollerState = (state: RootState) =>
  * Return token list from TokenListController.
  * Can pass directly into useSelector.
  */
-export const selectTokenList = createSelector(
+export const selectTokenList = createDeepEqualSelector(
   selectTokenListConstrollerState,
   (tokenListControllerState: TokenListState) =>
     tokenListControllerState?.tokenList,

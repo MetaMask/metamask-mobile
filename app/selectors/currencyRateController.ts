@@ -1,4 +1,3 @@
-import { createSelector } from 'reselect';
 import { CurrencyRateState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import {
@@ -7,11 +6,12 @@ import {
   selectEvmTicker,
 } from './networkController';
 import { isTestNet } from '../../app/util/networks';
+import { createDeepEqualSelector } from './util';
 
 const selectCurrencyRateControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.CurrencyRateController;
 
-export const selectConversionRate = createSelector(
+export const selectConversionRate = createDeepEqualSelector(
   selectCurrencyRateControllerState,
   selectEvmChainId,
   selectEvmTicker,
@@ -31,19 +31,19 @@ export const selectConversionRate = createSelector(
   },
 );
 
-export const selectCurrencyRates = createSelector(
+export const selectCurrencyRates = createDeepEqualSelector(
   selectCurrencyRateControllerState,
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currencyRates,
 );
 
-export const selectCurrentCurrency = createSelector(
+export const selectCurrentCurrency = createDeepEqualSelector(
   selectCurrencyRateControllerState,
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currentCurrency,
 );
 
-export const selectConversionRateBySymbol = createSelector(
+export const selectConversionRateBySymbol = createDeepEqualSelector(
   selectCurrencyRateControllerState,
   (_: RootState, symbol: string) => symbol,
   (currencyRateControllerState: CurrencyRateState, symbol: string) =>
@@ -53,13 +53,13 @@ export const selectConversionRateBySymbol = createSelector(
       : 0,
 );
 
-export const selectConversionRateFoAllChains = createSelector(
+export const selectConversionRateFoAllChains = createDeepEqualSelector(
   selectCurrencyRateControllerState,
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currencyRates,
 );
 
-export const selectConversionRateByChainId = createSelector(
+export const selectConversionRateByChainId = createDeepEqualSelector(
   selectConversionRateFoAllChains,
   (_state: RootState, chainId: string) => chainId,
   (state: RootState) => state.settings.showFiatOnTestnets,

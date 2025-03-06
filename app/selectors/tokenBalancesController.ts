@@ -1,21 +1,20 @@
 /* eslint-disable import/prefer-default-export */
 import { Hex } from '@metamask/utils';
-import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
 import { selectSelectedInternalAccountAddress } from './accountsController';
 import { selectEvmChainId } from './networkController';
-
+import { createDeepEqualSelector } from './util';
 const selectTokenBalancesControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenBalancesController;
 
-export const selectTokensBalances = createSelector(
+export const selectTokensBalances = createDeepEqualSelector(
   selectTokenBalancesControllerState,
   (tokenBalancesControllerState: TokenBalancesControllerState) =>
     tokenBalancesControllerState.tokenBalances,
 );
 
-export const selectContractBalances = createSelector(
+export const selectContractBalances = createDeepEqualSelector(
   selectTokenBalancesControllerState,
   selectSelectedInternalAccountAddress,
   selectEvmChainId,
@@ -29,7 +28,7 @@ export const selectContractBalances = createSelector(
     ]?.[chainId as Hex] ?? {},
 );
 
-export const selectAllTokenBalances = createSelector(
+export const selectAllTokenBalances = createDeepEqualSelector(
   selectTokenBalancesControllerState,
   (tokenBalancesControllerState: TokenBalancesControllerState) =>
     tokenBalancesControllerState.tokenBalances,
