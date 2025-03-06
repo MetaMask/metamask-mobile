@@ -120,7 +120,6 @@ const BridgeView = () => {
   const sourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
-    symbol: sourceToken?.symbol,
   }, sourceChainId);
 
   const hasInsufficientBalance = useMemo(() => {
