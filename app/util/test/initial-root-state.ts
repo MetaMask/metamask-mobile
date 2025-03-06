@@ -5,6 +5,7 @@ import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
 import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
 import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
+import { initialState as initialBridgeState } from '../../core/redux/slices/bridge';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
@@ -53,6 +54,7 @@ const initialRootState: RootState = {
   originThrottling,
   notifications: {},
   staking: initialStakingState,
+  bridge: initialBridgeState,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: initialMultichainSettingsState,
   ///: END:ONLY_INCLUDE_IF

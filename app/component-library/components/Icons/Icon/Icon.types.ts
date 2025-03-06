@@ -116,6 +116,7 @@ export enum IconName {
   Danger = 'Danger',
   Dark = 'Dark',
   Data = 'Data',
+  Delete = 'Delete',
   Diagram = 'Diagram',
   DocumentCode = 'DocumentCode',
   Download = 'Download',

@@ -717,7 +717,7 @@ const Swaps = () => (
 const Bridge = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name="BridgeView"
+      name="Swap/Bridge"
       component={BridgeView}
       options={BridgeView.navigationOptions}
     />
