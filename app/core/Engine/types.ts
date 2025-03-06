@@ -237,6 +237,12 @@ import type {
   BridgeStatusControllerEvents,
   BridgeStatusControllerState,
 } from '@metamask/bridge-status-controller';
+import {
+  EarnController,
+  EarnControllerActions,
+  EarnControllerEvents,
+  EarnControllerState,
+} from '@metamask/earn-controller';
 
 import {
   AppMetadataController,
@@ -323,7 +329,8 @@ type GlobalActions =
   | TokenSearchDiscoveryControllerActions
   | MultichainNetworkControllerActions
   | BridgeControllerActions
-  | BridgeStatusControllerActions;
+  | BridgeStatusControllerActions
+  | EarnControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -370,7 +377,8 @@ type GlobalEvents =
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
   | BridgeControllerEvents
-  | BridgeStatusControllerEvents;
+  | BridgeStatusControllerEvents
+  | EarnControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -447,6 +455,7 @@ export type Controllers = {
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
+  EarnController: EarnController;
 };
 
 /**
@@ -507,6 +516,7 @@ export type EngineState = {
   MultichainNetworkController: MultichainNetworkControllerState;
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
+  EarnController: EarnControllerState;
 };
 
 /** Controller names */

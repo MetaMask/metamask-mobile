@@ -18,7 +18,6 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
-      marginBottom: 4,
     },
     description: {
       color: theme.colors.text.default,
