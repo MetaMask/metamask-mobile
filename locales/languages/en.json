@@ -1861,6 +1861,7 @@
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
     "add_specific_network": "Add {{network_name}}",
+    "update_network": "Update {{network_name}}",
     "select_network": "Select a network",
     "enabled_networks": "Enabled networks",
     "additional_networks": "Additional networks",
@@ -2995,6 +2996,8 @@
     "title_new_network": "New network added",
     "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
     "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
+    "update_network_and_give_dapp_permission_warning": "You're updating this network in MetaMask and giving {{dapp_origin}} permission to use it.",
+    "request_update_network_url": "{{dapp_origin}} is requesting to update your default network URL. You can edit defaults and network information any time.",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
     "switch": "Switch Network"

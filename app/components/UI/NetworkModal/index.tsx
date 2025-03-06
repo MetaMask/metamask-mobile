@@ -439,6 +439,7 @@ const NetworkModals = (props: NetworkProps) => {
                 customNetworkInformation={customNetworkInformation}
                 onReject={onClose}
                 onConfirm={addNetwork}
+                isNetworkUpdate={false}
                 isCustomNetwork={!showPopularNetworkModal}
               />
             </View>

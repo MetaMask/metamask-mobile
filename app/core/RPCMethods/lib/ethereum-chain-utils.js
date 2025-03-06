@@ -204,7 +204,7 @@ export async function switchToNetwork({
   requestUserApproval,
   analytics,
   origin,
-  isAddNetworkFlow = false,
+  shouldForceRequestConfirmation = false,
 }) {
   const {
     MultichainNetworkController,
@@ -262,16 +262,15 @@ export async function switchToNetwork({
     chainPermissionsFeatureEnabled &&
     (!permissionedChainIds || !permissionedChainIds.includes(chainId));
 
-  const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
-
   const shouldShowRequestModal =
-    (!isAddNetworkFlow && shouldGrantPermissions) ||
+    shouldForceRequestConfirmation ||
+    shouldGrantPermissions ||
     !chainPermissionsFeatureEnabled;
 
   if (shouldShowRequestModal) {
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
-      requestData: { ...requestData, type: requestModalType },
+      requestData,
     });
   }
 

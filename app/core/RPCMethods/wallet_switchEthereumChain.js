@@ -74,7 +74,6 @@ const wallet_switchEthereumChain = async ({
       requestUserApproval,
       analytics,
       origin,
-      isAddNetworkFlow: false,
     });
 
     MetaMetrics.getInstance().trackEvent(

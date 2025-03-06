@@ -57,11 +57,13 @@ const NetworkVerificationInfo = ({
   customNetworkInformation,
   onReject,
   onConfirm,
+  isNetworkUpdate,
   isCustomNetwork = false,
 }: {
   customNetworkInformation: CustomNetworkInformation;
   onReject: () => void;
   onConfirm: () => void;
+  isNetworkUpdate: boolean;
   isCustomNetwork?: boolean;
 }) => {
   const [networkInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
@@ -320,6 +322,11 @@ const NetworkVerificationInfo = ({
           </Text>
         </View>
         <View style={styles.networkUrlMissmatchDetails}>
+          <Text style={styles.textSection}>
+            {strings('switch_custom_network.request_update_network_url', {
+              dapp_origin: dappOrigin,
+            })}
+          </Text>
           <Text variant={TextVariant.BodyMDBold}>
             {strings('networks.current_label')}
           </Text>
@@ -416,9 +423,14 @@ const NetworkVerificationInfo = ({
         <Text variant={TextVariant.HeadingMD}>
           {isCustomNetwork
             ? strings('networks.add_custom_network')
-            : strings('networks.add_specific_network', {
-                network_name: customNetworkInformation.chainName,
-              })}
+            : strings(
+                isNetworkUpdate
+                  ? 'networks.update_network'
+                  : 'networks.add_specific_network',
+                {
+                  network_name: customNetworkInformation.chainName,
+                },
+              )}
         </Text>
       </BottomSheetHeader>
       <ScrollView style={styles.root}>
@@ -436,7 +448,9 @@ const NetworkVerificationInfo = ({
           {dappOrigin !== undefined ? (
             <Text>
               {strings(
-                'switch_custom_network.add_network_and_give_dapp_permission_warning',
+                isNetworkUpdate
+                  ? 'switch_custom_network.update_network_and_give_dapp_permission_warning'
+                  : 'switch_custom_network.add_network_and_give_dapp_permission_warning',
                 {
                   dapp_origin: dappOrigin,
                 },
