@@ -19,6 +19,7 @@ interface TokenInputAreaProps {
   networkName?: string;
   autoFocus?: boolean;
   isReadonly?: boolean;
+  testID?: string;
 }
 
 const createStyles = () =>
@@ -57,6 +58,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   networkName,
   autoFocus,
   isReadonly = false,
+  testID,
 }) => {
   const { styles } = useStyles(createStyles, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -90,6 +92,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
             iconUrl={tokenIconUrl}
             networkImageSource={networkImageSource}
             networkName={networkName}
+            testID={testID}
           />
         </Box>
         <Box style={styles.row}>

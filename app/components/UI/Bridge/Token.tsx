@@ -17,6 +17,7 @@ interface TokenProps {
   iconUrl?: ImageSourcePropType;
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
+  testID?: string;
 }
 
 interface StylesParams {
@@ -52,6 +53,7 @@ export const Token: React.FC<TokenProps> = ({
   iconUrl,
   networkImageSource,
   networkName,
+  testID,
 }) => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
@@ -64,7 +66,7 @@ export const Token: React.FC<TokenProps> = ({
   };
 
   return (
-    <TouchableOpacity onPress={handlePress}>
+    <TouchableOpacity onPress={handlePress} testID={testID}>
       <Box
         style={styles.pillContainer}
         flexDirection={FlexDirection.Row}

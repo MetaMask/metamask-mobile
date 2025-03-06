@@ -207,6 +207,7 @@ const BridgeView = () => {
             networkImageSource={getNetworkImage(sourceChainId)}
             autoFocus
             isReadonly
+            testID="source-token-area"
           />
           <Box style={styles.arrowContainer}>
             <TouchableOpacity
@@ -224,6 +225,7 @@ const BridgeView = () => {
             tokenIconUrl={destToken?.image ? { uri: destToken.image } : undefined}
             networkImageSource={destChainId ? getNetworkImage(destChainId) : undefined}
             isReadonly
+            testID="dest-token-area"
           />
         </Box>
         <Box style={styles.bottomSection}>
