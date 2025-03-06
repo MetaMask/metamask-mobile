@@ -18,7 +18,6 @@ const styleSheet = (params: {
       backgroundColor: theme.colors.error.default,
       borderRadius: 4,
       marginLeft: 4,
-
     },
     inlineContainer: {
       flexDirection: 'row',
