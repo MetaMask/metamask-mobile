@@ -1051,7 +1051,16 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ./scripts/cache/setup-ccache.sh
+                # Make sure ccache is installed and in PATH
+                brew install ccache
+                export PATH="/usr/local/opt/ccache/libexec:$PATH"
+                
+                # Setup ccache
+                ccache -s
+                
+                # Make sure node_modules/.bin is in PATH for detox
+                export PATH="$BITRISE_SOURCE_DIR/node_modules/.bin:$PATH"
+                
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
@@ -1938,11 +1947,22 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                ./scripts/cache/setup-ccache.sh
+                # Make sure ccache is installed and in PATH
+                brew install ccache
+                export PATH="/usr/local/opt/ccache/libexec:$PATH"
+                
+                # Setup ccache
+                ccache -s
+                
+                # Make sure node_modules/.bin is in PATH for detox
+                export PATH="$BITRISE_SOURCE_DIR/node_modules/.bin:$PATH"
+                
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
-                IS_TEST='true' METAMASK_BUILD_TYPE='flask' detox build -c ios.sim.qa
+                
+                # Run the build with explicit path to detox
+                "$BITRISE_SOURCE_DIR/node_modules/.bin/detox" build -c ios.sim.qa
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
