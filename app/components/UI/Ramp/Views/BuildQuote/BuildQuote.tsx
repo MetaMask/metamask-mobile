@@ -83,7 +83,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
-import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 // TODO: Replace "any" with type
