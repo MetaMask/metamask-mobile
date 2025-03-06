@@ -15,7 +15,6 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../currencyRateController';
-import { isPortfolioViewEnabled } from '../../util/networks';
 import { createDeepEqualSelector } from '../util';
 
 interface NativeTokenBalance {
@@ -178,10 +177,6 @@ export const selectAccountTokensAcrossChains = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectNativeTokensAcrossChains,
   (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
-    const portfoiloView = isPortfolioViewEnabled();
-    if (!portfoiloView) {
-      return {};
-    }
     const selectedAddress = selectedAccount?.address;
     const tokensByChain: {
       [chainId: string]: (

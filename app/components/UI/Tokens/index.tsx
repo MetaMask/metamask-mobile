@@ -93,8 +93,6 @@ interface TokenListNavigationParamList {
   [key: string]: undefined | object;
 }
 
-const DEBOUNCE_DELAY = 300;
-
 const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
   const navigation =
     useNavigation<
@@ -124,13 +122,6 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
   const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId);
-  const nativeCurrencies = [
-    ...new Set(
-      Object.values(networkConfigurationsByChainId).map(
-        (n) => n.nativeCurrency,
-      ),
-    ),
-  ];
 
   const selectedAccountTokensChains = useSelector(
     selectAccountTokensAcrossChains,
@@ -147,21 +138,8 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     selectSelectedInternalAccountAddress,
   );
   const multiChainMarketData = useSelector(selectTokenMarketData);
-  const debouncedMultiChainMarketData = useDebouncedValue(
-    multiChainMarketData,
-    DEBOUNCE_DELAY,
-  );
-
   const multiChainTokenBalance = useSelector(selectTokensBalances);
-  const debouncedMultiChainTokenBalance = useDebouncedValue(
-    multiChainTokenBalance,
-    DEBOUNCE_DELAY,
-  );
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-  const debouncedMultiChainCurrencyRates = useDebouncedValue(
-    multiChainCurrencyRates,
-    DEBOUNCE_DELAY,
-  );
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -329,9 +307,9 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     hideZeroBalanceTokens,
     tokenSortConfig,
     // Dependencies for multichain implementation
-    debouncedMultiChainTokenBalance,
-    debouncedMultiChainMarketData,
-    debouncedMultiChainCurrencyRates,
+    multiChainTokenBalance,
+    multiChainMarketData,
+    multiChainCurrencyRates,
     selectedAccountTokensChains,
     selectedInternalAccountAddress,
     isUserOnCurrentNetwork,
