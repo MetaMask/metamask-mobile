@@ -147,7 +147,7 @@ export const selectEvmChainId = createSelector(
   (providerConfig) => providerConfig.chainId,
 );
 
-export const selectChainId = createDeepEqualSelector(
+export const selectChainId = createSelector(
   selectSelectedNonEvmNetworkChainId,
   selectEvmChainId,
   selectIsEvmNetworkSelected,

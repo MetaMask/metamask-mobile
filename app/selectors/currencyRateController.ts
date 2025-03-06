@@ -7,12 +7,11 @@ import {
   selectEvmTicker,
 } from './networkController';
 import { isTestNet } from '../../app/util/networks';
-import { createDeepEqualSelector } from './util';
 
 const selectCurrencyRateControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.CurrencyRateController;
 
-export const selectConversionRate = createDeepEqualSelector(
+export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
   selectEvmChainId,
   selectEvmTicker,
@@ -38,7 +37,7 @@ export const selectCurrencyRates = createSelector(
     currencyRateControllerState?.currencyRates,
 );
 
-export const selectCurrentCurrency = createDeepEqualSelector(
+export const selectCurrentCurrency = createSelector(
   selectCurrencyRateControllerState,
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currentCurrency,

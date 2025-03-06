@@ -60,11 +60,13 @@ export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
 /**
  * Selector to get native tokens for the selected account across all chains.
  */
-export const selectNativeTokensAcrossChains = createDeepEqualSelector(
-  selectEvmNetworkConfigurationsByChainId,
-  selectedAccountNativeTokenCachedBalanceByChainId,
-  selectCurrencyRates,
-  selectCurrentCurrency,
+export const selectNativeTokensAcrossChains = createSelector(
+  [
+    selectEvmNetworkConfigurationsByChainId,
+    selectedAccountNativeTokenCachedBalanceByChainId,
+    selectCurrencyRates,
+    selectCurrentCurrency,
+  ],
   (
     networkConfigurations,
     nativeTokenBalancesByChainId,

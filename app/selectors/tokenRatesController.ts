@@ -1,34 +1,34 @@
 /* eslint-disable import/prefer-default-export */
+import { createSelector } from 'reselect';
 import { TokenRatesControllerState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { selectEvmChainId } from './networkController';
 import { Hex } from '@metamask/utils';
-import { createDeepEqualSelector } from './util';
 
 const selectTokenRatesControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenRatesController;
 
-export const selectContractExchangeRates = createDeepEqualSelector(
+export const selectContractExchangeRates = createSelector(
   selectEvmChainId,
   selectTokenRatesControllerState,
   (chainId: Hex, tokenRatesControllerState: TokenRatesControllerState) =>
     tokenRatesControllerState.marketData[chainId],
 );
 
-export const selectContractExchangeRatesByChainId = createDeepEqualSelector(
+export const selectContractExchangeRatesByChainId = createSelector(
   selectTokenRatesControllerState,
   (_state: RootState, chainId: Hex) => chainId,
   (tokenRatesControllerState: TokenRatesControllerState, chainId: Hex) =>
     tokenRatesControllerState.marketData[chainId],
 );
 
-export const selectTokenMarketData = createDeepEqualSelector(
+export const selectTokenMarketData = createSelector(
   selectTokenRatesControllerState,
   (tokenRatesControllerState: TokenRatesControllerState) =>
     tokenRatesControllerState.marketData,
 );
 
-export const selectTokenMarketDataByChainId = createDeepEqualSelector(
+export const selectTokenMarketDataByChainId = createSelector(
   [selectTokenMarketData, (_state: RootState, chainId: Hex) => chainId],
   (marketData, chainId) => marketData?.[chainId] || {},
 );
