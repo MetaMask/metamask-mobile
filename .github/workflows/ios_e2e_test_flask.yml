@@ -1,0 +1,43 @@
+name: iOS E2E Tests (Flask)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  METAMASK_BUILD_TYPE: 'flask'  # Fixed build type for Flask tests
+
+jobs:
+  test:
+    name: iOS E2E Tests (Flask)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install iOS dependencies
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Build and run E2E tests
+        run: |
+          echo "Running E2E tests with build type: $METAMASK_BUILD_TYPE"
+          yarn e2e:ios:build
+          yarn e2e:ios:test
+        env:
+          METAMASK_BUILD_TYPE: 'flask' 
