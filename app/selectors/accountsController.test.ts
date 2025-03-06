@@ -5,6 +5,10 @@ import {
   BtcAccountType,
   EthAccountType,
   EthScope,
+  BtcMethod,
+  EthMethod,
+  SolMethod,
+  SolAccountType,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
@@ -14,6 +18,7 @@ import {
   selectSelectedInternalAccountFormattedAddress,
   selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
+  selectCanSignTransactions,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -254,5 +259,128 @@ describe('Bitcoin Account Selectors', () => {
       const state = getStateWithAccount(btcMainnetAccount);
       expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
     });
+  });
+});
+
+describe('selectCanSignTransactions', () => {
+  const ethAccountWithSignTransaction = {
+    ...createMockInternalAccount(
+      '0x123',
+      'ETH Account with Sign',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    ),
+    methods: [EthMethod.SignTransaction],
+  };
+
+  const solAccountWithSignTransaction = {
+    ...createMockInternalAccount(
+      '0x456',
+      'SOL Account with Sign',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SignTransaction],
+  };
+
+  const solAccountWithSignMessage = {
+    ...createMockInternalAccount(
+      '0x789',
+      'SOL Account with Sign Message',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SignMessage],
+  };
+
+  const solAccountWithSendAndConfirm = {
+    ...createMockInternalAccount(
+      '0xabc',
+      'SOL Account with Send and Confirm',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SendAndConfirmTransaction],
+  };
+
+  const solAccountWithSignAndSend = {
+    ...createMockInternalAccount(
+      '0xdef',
+      'SOL Account with Sign and Send',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SignAndSendTransaction],
+  };
+
+  const btcAccountWithSendBitcoin = {
+    ...createMockInternalAccount(
+      'bc1q123',
+      'BTC Account with Send',
+      KeyringTypes.snap,
+      BtcAccountType.P2wpkh,
+    ),
+    methods: [BtcMethod.SendBitcoin],
+  };
+
+  const accountWithoutSigningMethods = {
+    ...createMockInternalAccount(
+      '0x999',
+      'Account without Signing',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    ),
+    methods: [],
+  };
+
+  it('returns true for ETH account with SignTransaction method', () => {
+    const state = getStateWithAccount(ethAccountWithSignTransaction);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SignTransaction method', () => {
+    const state = getStateWithAccount(solAccountWithSignTransaction);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SignMessage method', () => {
+    const state = getStateWithAccount(solAccountWithSignMessage);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SendAndConfirmTransaction method', () => {
+    const state = getStateWithAccount(solAccountWithSendAndConfirm);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SignAndSendTransaction method', () => {
+    const state = getStateWithAccount(solAccountWithSignAndSend);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for BTC account with SendBitcoin method', () => {
+    const state = getStateWithAccount(btcAccountWithSendBitcoin);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns false for account without any signing methods', () => {
+    const state = getStateWithAccount(accountWithoutSigningMethods);
+    expect(selectCanSignTransactions(state)).toBe(false);
+  });
+
+  it('returns false when no account is selected', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: 'non-existent-id',
+            },
+          },
+        },
+      },
+    } as RootState;
+    expect(selectCanSignTransactions(state)).toBe(false);
   });
 });

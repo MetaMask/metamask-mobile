@@ -22,7 +22,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import styleSheet from './AddressCopy.styles';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
 const AddressCopy = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -48,7 +48,7 @@ const AddressCopy = () => {
   const copyAccountToClipboard = async () => {
     if (selectedInternalAccount?.address) {
       await ClipboardManager.setString(
-        toChecksumHexAddress(selectedInternalAccount.address),
+        getFormattedAddressFromInternalAccount(selectedInternalAccount),
       );
     }
     handleShowAlert({
