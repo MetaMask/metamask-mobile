@@ -57,13 +57,13 @@ const NetworkVerificationInfo = ({
   customNetworkInformation,
   onReject,
   onConfirm,
-  isNetworkUpdate,
+  isNetworkRpcUpdate,
   isCustomNetwork = false,
 }: {
   customNetworkInformation: CustomNetworkInformation;
   onReject: () => void;
   onConfirm: () => void;
-  isNetworkUpdate: boolean;
+  isNetworkRpcUpdate: boolean;
   isCustomNetwork?: boolean;
 }) => {
   const [networkInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
@@ -424,7 +424,7 @@ const NetworkVerificationInfo = ({
           {isCustomNetwork
             ? strings('networks.add_custom_network')
             : strings(
-                isNetworkUpdate
+                isNetworkRpcUpdate
                   ? 'networks.update_network'
                   : 'networks.add_specific_network',
                 {
@@ -448,7 +448,7 @@ const NetworkVerificationInfo = ({
           {dappOrigin !== undefined ? (
             <Text>
               {strings(
-                isNetworkUpdate
+                isNetworkRpcUpdate
                   ? 'switch_custom_network.update_network_and_give_dapp_permission_warning'
                   : 'switch_custom_network.add_network_and_give_dapp_permission_warning',
                 {
