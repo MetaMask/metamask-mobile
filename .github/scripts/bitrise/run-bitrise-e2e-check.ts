@@ -11,15 +11,10 @@ import axios from 'axios';
 let owner: string;
 let repo: string;
 
-interface Check {
-  name: string;
-}
-
 main().catch((error: Error): void => {
   console.error(error);
   process.exit(1);
 });
-
 
 async function upsertStatusCheck(
   statusCheckName: string,
