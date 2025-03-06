@@ -85,12 +85,13 @@ const PermitSimulation = () => {
       : strings('confirm.simulation.label_change_type_permit');
 
   const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+  const isRevoke = isDaiRevoke || value === '0';
 
-  if (isDaiRevoke || value === '0') {
+  if (isRevoke) {
     labelChangeType = strings('confirm.simulation.label_change_type_revoke');
   }
 
-  const infoText = isDaiRevoke
+  const infoText = isRevoke
     ? strings('confirm.simulation.info_revoke')
     : strings('confirm.simulation.info_permit');
 
