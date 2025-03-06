@@ -1,14 +1,13 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
-import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import FiatOrders, { getAggregatorAnalyticsPayload } from './';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import { FiatOrder } from '../../../reducers/fiatOrders';
+import WebView from '@metamask/react-native-webview';
 
-const Stack = createStackNavigator();
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -18,6 +17,17 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
+  };
+});
+
+// Add this mock before the tests
+jest.mock('@metamask/react-native-webview', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return class WebView extends React.Component {
+    render() {
+      return <View {...this.props} />;
+    }
   };
 });
 
@@ -41,6 +51,48 @@ describe('FiatOrders', () => {
     renderWithProvider(<FiatOrders />, {
       state: defaultState,
     });
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with authentication URLs', () => {
+    const stateWithUrls = {
+      ...defaultState,
+      fiatOrders: {
+        ...defaultState.fiatOrders,
+        authenticationUrls: [
+          'https://test.metamask.io/auth',
+          'https://test.metamask.io/auth2',
+        ],
+      },
+    };
+
+    renderWithProvider(<FiatOrders />, {
+      state: stateWithUrls,
+    });
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('removes authentication URL after successful navigation', () => {
+    const mockUrl = 'https://test.metamask.io/auth';
+    const stateWithUrl = {
+      ...defaultState,
+      fiatOrders: {
+        ...defaultState.fiatOrders,
+        authenticationUrls: [mockUrl],
+      },
+    };
+
+    renderWithProvider(<FiatOrders />, {
+      state: stateWithUrl,
+    });
+
+    // Simulate WebView navigation completion
+    const webView = screen.UNSAFE_getByType(WebView);
+    webView.props.onNavigationStateChange({
+      url: 'https://metamask.io/callback',
+      loading: false,
+    });
+
     expect(screen.toJSON()).toMatchSnapshot();
   });
 });
