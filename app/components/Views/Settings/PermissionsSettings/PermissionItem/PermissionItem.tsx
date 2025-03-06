@@ -26,7 +26,7 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
   onPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const faviconUrl = useFavicon(item.dappHostName);
+  const faviconUrl = useFavicon(item.dappOrigin);
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.iconContainer}>
@@ -34,7 +34,7 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
       </View>
       <View style={styles.contentContainer}>
         <View style={styles.row}>
-          <Text variant={TextVariant.BodyLGMedium}>{item.dappHostName}</Text>
+          <Text variant={TextVariant.BodyLGMedium}>{item.dappOrigin}</Text>
         </View>
         <View style={styles.row}>
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>

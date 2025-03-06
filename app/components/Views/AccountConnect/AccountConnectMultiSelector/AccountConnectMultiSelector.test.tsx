@@ -80,7 +80,7 @@ const defaultProps = {
   onSelectAddress: mockOnSelectAddress,
   isLoading: false,
   onUserAction: mockOnUserAction,
-  urlWithProtocol: 'https://test.com',
+  origin: 'https://test.com',
   hostname: 'test.com',
   onBack: mockOnBack,
   isRenderedAsBottomSheet: true,
