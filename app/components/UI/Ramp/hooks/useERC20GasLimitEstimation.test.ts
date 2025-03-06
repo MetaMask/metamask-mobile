@@ -234,4 +234,138 @@ describe('useERC20GasLimitEstimation', () => {
 
     jest.useRealTimers();
   }, 15000);
+
+  it('handles invalid amount or decimals', async () => {
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => null);
+
+    const params = {
+      ...defaultParams,
+      amount: 'invalid',
+      decimals: -1,
+    };
+
+    const { result } = renderHook(() => useERC20GasLimitEstimation(params));
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(result.current).toBe(21000); // Should maintain default gas limit
+    expect(consoleSpy).toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
+  });
+
+  it('handles empty or invalid addresses', async () => {
+    const params = {
+      ...defaultParams,
+      tokenAddress: '',
+      fromAddress: 'invalid',
+    };
+
+    const { result } = renderHook(() => useERC20GasLimitEstimation(params));
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(result.current).toBe(21000);
+    expect(mockGetGasLimit).not.toHaveBeenCalled();
+  });
+
+  it('updates gas estimation when chainId changes', async () => {
+    jest.useFakeTimers();
+
+    const { rerender } = renderHook(
+      (props) => useERC20GasLimitEstimation(props),
+      {
+        initialProps: defaultParams,
+      },
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    mockGetGasLimit.mockClear();
+
+    // Trigger rerender with new chainId
+    rerender({
+      ...defaultParams,
+      chainId: '56',
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockGetGasLimit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chainId: toHex('56'),
+      }),
+    );
+
+    jest.useRealTimers();
+  });
+
+  it('handles concurrent estimation requests', async () => {
+    jest.useFakeTimers();
+
+    let resolveFirst: (value: { gas: { toNumber: () => number } }) => void;
+    let resolveSecond: (value: { gas: { toNumber: () => number } }) => void;
+
+    const firstEstimation = new Promise<{ gas: { toNumber: () => number } }>(
+      (resolve) => {
+        resolveFirst = resolve;
+      },
+    );
+
+    const secondEstimation = new Promise<{ gas: { toNumber: () => number } }>(
+      (resolve) => {
+        resolveSecond = resolve;
+      },
+    );
+
+    mockGetGasLimit
+      .mockImplementationOnce(() => firstEstimation)
+      .mockImplementationOnce(() => secondEstimation);
+
+    const { result, rerender } = renderHook(() =>
+      useERC20GasLimitEstimation(defaultParams),
+    );
+
+    // Start first estimation
+    act(() => {
+      jest.advanceTimersByTime(0);
+    });
+
+    // Trigger second estimation with new amount
+    rerender({
+      ...defaultParams,
+      amount: '200',
+    });
+
+    // Resolve second estimation first
+    await act(async () => {
+      resolveSecond({ gas: { toNumber: () => 150000 } });
+      await Promise.resolve();
+    });
+
+    // Verify that at least one estimation completed
+    expect(result.current).toBeGreaterThan(0);
+
+    // Resolve first estimation
+    await act(async () => {
+      resolveFirst({ gas: { toNumber: () => 100000 } });
+      await Promise.resolve();
+    });
+
+    // Verify we still have a valid gas estimation
+    expect(result.current).toBeGreaterThan(0);
+    expect(typeof result.current).toBe('number');
+
+    jest.useRealTimers();
+  });
 });

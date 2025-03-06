@@ -95,4 +95,51 @@ describe('useInterval', () => {
 
     expect(callback).not.toHaveBeenCalled();
   });
+
+  it('should handle callback changes without resetting interval', () => {
+    const callback1 = jest.fn();
+    const callback2 = jest.fn();
+
+    const { rerender } = renderHook(
+      ({ cb }) => useInterval(cb, { delay: 1000 }),
+      {
+        initialProps: { cb: callback1 },
+      },
+    );
+
+    jest.advanceTimersByTime(1000);
+    expect(callback1).toHaveBeenCalledTimes(1);
+
+    rerender({ cb: callback2 });
+    jest.advanceTimersByTime(1000);
+    expect(callback2).toHaveBeenCalledTimes(1);
+    expect(callback1).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle undefined delay', () => {
+    const callback = jest.fn();
+    renderHook(() => useInterval(callback, {}));
+
+    jest.advanceTimersByTime(1000);
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('should handle immediate execution with delay change', () => {
+    const callback = jest.fn();
+    const { rerender } = renderHook(
+      ({ delay }) => useInterval(callback, { delay, immediate: true }),
+      {
+        initialProps: { delay: 1000 },
+      },
+    );
+
+    expect(callback).toHaveBeenCalledTimes(1); // Immediate execution
+
+    jest.advanceTimersByTime(1000);
+    expect(callback).toHaveBeenCalledTimes(2);
+
+    rerender({ delay: 500 });
+    jest.advanceTimersByTime(500);
+    expect(callback).toHaveBeenCalledTimes(3);
+  });
 });
