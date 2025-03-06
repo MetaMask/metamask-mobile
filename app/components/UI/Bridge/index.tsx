@@ -105,7 +105,7 @@ const createStyles = (params: { theme: Theme }) => {
   });
 };
 
-// We get here through handleBridgeNavigation in AssetOverview
+// We get here through handleBridgeNavigation in AssetOverview and WalletActions
 const BridgeView = () => {
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
