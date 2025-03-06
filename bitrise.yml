@@ -1942,7 +1942,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:flask
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
