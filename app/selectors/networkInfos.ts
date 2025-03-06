@@ -11,6 +11,7 @@ import {
 } from './multichainNetworkController';
 import { getNonEvmNetworkImageSourceByChainId } from '../util/networks/customNetworks';
 import { CaipChainId } from '@metamask/utils';
+import { createDeepEqualSelector } from './util';
 
 export const selectEvmNetworkName = createSelector(
   selectProviderConfig,
@@ -26,7 +27,7 @@ export const selectEvmNetworkImageSource = createSelector(
       chainId: providerConfig.chainId,
     }),
 );
-export const selectNetworkName = createSelector(
+export const selectNetworkName = createDeepEqualSelector(
   selectProviderConfig,
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkName,

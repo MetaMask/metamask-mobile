@@ -15,6 +15,7 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../currencyRateController';
+import { createDeepEqualSelector } from '../util';
 
 interface NativeTokenBalance {
   balance: string;
@@ -59,13 +60,11 @@ export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
 /**
  * Selector to get native tokens for the selected account across all chains.
  */
-export const selectNativeTokensAcrossChains = createSelector(
-  [
-    selectEvmNetworkConfigurationsByChainId,
-    selectedAccountNativeTokenCachedBalanceByChainId,
-    selectCurrencyRates,
-    selectCurrentCurrency,
-  ],
+export const selectNativeTokensAcrossChains = createDeepEqualSelector(
+  selectEvmNetworkConfigurationsByChainId,
+  selectedAccountNativeTokenCachedBalanceByChainId,
+  selectCurrencyRates,
+  selectCurrentCurrency,
   (
     networkConfigurations,
     nativeTokenBalancesByChainId,
@@ -172,13 +171,11 @@ export const selectNativeTokensAcrossChains = createSelector(
  * @param {RootState} state - The root state.
  * @returns {TokensByChain} The tokens for the selected account across all chains.
  */
-export const selectAccountTokensAcrossChains = createSelector(
-  [
-    selectSelectedInternalAccount,
-    selectAllTokens,
-    selectEvmNetworkConfigurationsByChainId,
-    selectNativeTokensAcrossChains,
-  ],
+export const selectAccountTokensAcrossChains = createDeepEqualSelector(
+  selectSelectedInternalAccount,
+  selectAllTokens,
+  selectEvmNetworkConfigurationsByChainId,
+  selectNativeTokensAcrossChains,
   (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
     const selectedAddress = selectedAccount?.address;
     const tokensByChain: {
