@@ -204,7 +204,6 @@ export async function switchToNetwork({
   requestUserApproval,
   analytics,
   origin,
-  shouldForceRequestConfirmation = false,
 }) {
   const {
     MultichainNetworkController,
@@ -263,9 +262,7 @@ export async function switchToNetwork({
     (!permissionedChainIds || !permissionedChainIds.includes(chainId));
 
   const shouldShowRequestModal =
-    shouldForceRequestConfirmation ||
-    shouldGrantPermissions ||
-    !chainPermissionsFeatureEnabled;
+    shouldGrantPermissions || !chainPermissionsFeatureEnabled;
 
   if (shouldShowRequestModal) {
     await requestUserApproval({
