@@ -89,6 +89,10 @@ const UnstakeInputView = () => {
       confirmationRedesignFlags?.staking_transactions;
 
     if (isStakingDepositRedesignedEnabled) {
+      // Here we add the transaction to the transaction controller. The
+      // redesigned confirmations architecture relies on the transaction
+      // metadata object being defined by the time the confirmation is displayed
+      // to the user.
       await attemptUnstakeTransaction(
         amountWei.toString(),
         activeAccount?.address as string,
