@@ -2,7 +2,6 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import { useLatestBalance } from './useLatestBalance';
 import { getProviderByChainId } from '../../../util/notifications/methods/common';
 import { BigNumber, constants } from 'ethers';
-import { backgroundState } from '../../../util/test/initial-root-state';
 import { waitFor } from '@testing-library/react-native';
 
 // Mock dependencies
@@ -30,20 +29,54 @@ describe('useLatestBalance', () => {
   const initialState = {
     engine: {
       backgroundState: {
-        ...backgroundState,
         NetworkController: {
-          ...backgroundState.NetworkController,
-          provider: {
+          selectedNetworkClientId: '1',
+          networkConfigurations: {
+            '0x1': {
+              chainId: '0x1',
+              ticker: 'ETH',
+              nickname: 'Ethereum Mainnet',
+            },
+          },
+          providerConfig: {
             chainId: '0x1',
           },
         },
+        MultichainNetworkController: {
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: undefined,
+          multichainNetworkConfigurationsByChainId: {},
+        },
         AccountTrackerController: {
-          ...backgroundState.AccountTrackerController,
           accounts: {
             '0x1234567890123456789012345678901234567890': {
               balance: '0x0',
             },
           },
+        },
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: 'account1',
+            accounts: {
+              account1: {
+                id: 'account1',
+                address: '0x1234567890123456789012345678901234567890',
+                name: 'Account 1',
+                balance: '0x0',
+              },
+            },
+          },
+        },
+        CurrencyRateController: {
+          currentCurrency: 'USD',
+          currencyRates: {
+            ETH: {
+              conversionRate: 2000,
+            },
+          },
+        },
+        PreferencesController: {
+          ipfsGateway: 'https://dweb.link/ipfs/',
         },
       },
     },
