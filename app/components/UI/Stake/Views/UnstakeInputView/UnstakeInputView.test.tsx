@@ -102,6 +102,19 @@ jest.mock('../../hooks/useBalance', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePoolStakedUnstake', () => ({
+  __esModule: true,
+  default: () => ({
+    attemptUnstakeTransaction: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
+jest.mock('../../../../../selectors/featureFlagController', () => ({
+  selectConfirmationRedesignFlags: jest.fn(() => ({
+    staking_transactions: false,
+  })),
+}));
+
 describe('UnstakeInputView', () => {
   it('render matches snapshot', () => {
     render(UnstakeInputView);
@@ -159,6 +172,48 @@ describe('UnstakeInputView', () => {
 
       fireEvent.press(screen.getByText('8'));
       expect(screen.queryAllByText('Not enough ETH')).toHaveLength(2);
+    });
+  });
+
+  describe('when staking_transactions feature flag is enabled', () => {
+    let originalMock: jest.Mock;
+    let mockAttemptUnstakeTransaction: jest.Mock;
+
+    beforeEach(() => {
+      originalMock = jest.requireMock('../../../../../selectors/featureFlagController').selectConfirmationRedesignFlags as jest.Mock;
+
+      jest.requireMock('../../../../../selectors/featureFlagController').selectConfirmationRedesignFlags = jest.fn(() => ({
+        staking_transactions: true,
+      }));
+
+      mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue(undefined);
+      jest.requireMock('../../hooks/usePoolStakedUnstake').default = () => ({
+        attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
+      });
+    });
+
+    afterEach(() => {
+      jest.requireMock('../../../../../selectors/featureFlagController').selectConfirmationRedesignFlags = originalMock;
+    });
+
+    it('calls attemptUnstakeTransaction when Review button is pressed', async () => {
+      render(UnstakeInputView);
+
+      fireEvent.press(screen.getByText('1'));
+
+      fireEvent.press(screen.getByText('Review'));
+
+      // Wait for the async operation to complete
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_WITHDRAWAL,
+        params: expect.objectContaining({
+        amountWei: expect.any(String),
+          amountFiat: expect.any(String),
+        }),
+      });
     });
   });
 });
