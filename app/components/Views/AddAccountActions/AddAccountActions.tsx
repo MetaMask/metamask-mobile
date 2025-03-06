@@ -18,6 +18,12 @@ import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wal
 import Routes from '../../../constants/navigation/Routes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
+import {
+  addNewHdAccount,
+  createNewSecretRecoveryPhrase,
+} from '../../../actions/multiSrp';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-snap-client';
@@ -36,7 +42,10 @@ import {
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
-const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
+const AddAccountActions = ({
+  onBack,
+  onAddHdAccount,
+}: AddAccountActionsProps) => {
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
@@ -59,13 +68,29 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     );
   }, [onBack, navigate, trackEvent, createEventBuilder]);
 
+  const openImportSrp = useCallback(() => {
+    navigate(Routes.MULTI_SRP.IMPORT);
+    onBack();
+  }, [onBack, navigate]);
+
   const createNewAccount = useCallback(async () => {
     const { KeyringController } = Engine.context;
+
+    const hasMultipleHdKeyrings =
+      KeyringController.state.keyrings.filter(
+        (kr) => kr.type === ExtendedKeyringTypes.hd,
+      ).length > 1;
+
+    if (hasMultipleHdKeyrings) {
+      onAddHdAccount();
+      return;
+    }
+
     try {
       setIsLoading(true);
 
-      const addedAccountAddress = await KeyringController.addNewAccount();
-      Engine.setSelectedAddress(addedAccountAddress);
+      await addNewHdAccount();
+
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
@@ -80,7 +105,19 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       setIsLoading(false);
     }
-  }, [onBack, setIsLoading, trackEvent, createEventBuilder]);
+  }, [onBack, setIsLoading, trackEvent, createEventBuilder, onAddHdAccount]);
+
+  const createNewSRP = async () => {
+    try {
+      setIsLoading(true);
+      await createNewSecretRecoveryPhrase();
+    } catch (error) {
+      Logger.error(error as Error, 'SRP account creation failed');
+    } finally {
+      onBack();
+      setIsLoading(false);
+    }
+  };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const isBitcoinSupportEnabled = useSelector(selectIsBitcoinSupportEnabled);
@@ -209,6 +246,24 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             actionTitle={strings('account_actions.add_hardware_wallet')}
             iconName={IconName.Hardware}
             onPress={openConnectHardwareWallet}
+            disabled={isLoading}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON
+            }
+          />
+          <AccountAction
+            actionTitle={strings('account_actions.import_srp')}
+            iconName={IconName.Hardware}
+            onPress={openImportSrp}
+            disabled={isLoading}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON
+            }
+          />
+          <AccountAction
+            actionTitle={strings('account_actions.create_new_srp')}
+            iconName={IconName.Hardware}
+            onPress={createNewSRP}
             disabled={isLoading}
             testID={
               AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON

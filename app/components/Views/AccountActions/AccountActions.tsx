@@ -43,6 +43,7 @@ import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
+  isHDAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
   ///: END:ONLY_INCLUDE_IF
@@ -57,6 +58,7 @@ import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { selectKeyrings } from '../../../selectors/keyringController';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -71,6 +73,7 @@ const AccountActions = () => {
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const existingKeyrings = useSelector(selectKeyrings);
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
@@ -78,6 +81,13 @@ const AccountActions = () => {
     const { KeyringController, PreferencesController } = Engine.context;
     return { KeyringController, PreferencesController };
   }, []);
+
+  const keyringId = useMemo(() => {
+    const keyring = existingKeyrings.find((kr) =>
+      kr.accounts.includes(selectedAccount.address.toLowerCase()),
+    );
+    return keyring?.metadata.id;
+  }, [existingKeyrings, selectedAccount.address]);
 
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
@@ -177,6 +187,20 @@ const AccountActions = () => {
         credentialName: 'private_key',
         shouldUpdateNav: true,
         selectedAccount,
+      });
+    });
+  };
+
+  const goToExportSRP = () => {
+    sheetRef.current?.onCloseBottomSheet(() => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REVEAL_SRP_INITIATED).build(),
+      );
+
+      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+        credentialName: 'seed_phrase',
+        shouldUpdateNav: true,
+        keyringId,
       });
     });
   };
@@ -406,6 +430,16 @@ const AccountActions = () => {
           onPress={goToExportPrivateKey}
           testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
         />
+        {selectedAddress && isHDAccount(selectedAccount) && (
+          <AccountAction
+            actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
+            iconName={IconName.Key}
+            onPress={goToExportSRP}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE
+            }
+          />
+        )}
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}

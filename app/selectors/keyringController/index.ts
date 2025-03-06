@@ -1,3 +1,4 @@
+import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 
@@ -14,7 +15,17 @@ const selectKeyringControllerState = (state: RootState) =>
  */
 export const selectKeyrings = createDeepEqualSelector(
   selectKeyringControllerState,
-  (keyringControllerState) => keyringControllerState.keyrings,
+  (keyringControllerState) =>
+    keyringControllerState.keyrings.map((keyring, index) => ({
+      ...keyring,
+      metadata: keyringControllerState.keyringsMetadata?.[index] || {},
+    })),
+);
+
+export const hasMultipleHDKeyrings = createDeepEqualSelector(
+  selectKeyrings,
+  (keyrings) =>
+    keyrings.filter((kr) => kr.type === ExtendedKeyringTypes.hd).length > 1,
 );
 
 /**
