@@ -28,6 +28,17 @@ jest.mock('../../../../core/Engine', () => ({
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
     },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {
+            '1': {
+              address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+            },
+          },
+        },
+      },
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
