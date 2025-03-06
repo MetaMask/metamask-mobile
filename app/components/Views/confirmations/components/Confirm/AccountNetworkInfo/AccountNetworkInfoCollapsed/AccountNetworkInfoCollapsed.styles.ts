@@ -25,15 +25,10 @@ const styleSheet = (params: { theme: Theme }) => {
       ...fontStyles.bold,
       fontSize: 14,
     },
-    accountLabelWrapper: {
-      backgroundColor: theme.colors.background.alternative,
-      borderRadius: 16,
-      paddingHorizontal: 12,
-      paddingVertical: 2,
-      marginLeft: 8,
-    },
     accountLabel: {
-      color: theme.colors.text.alternative,
+      borderRadius: 16,
+      marginStart: 8,
+      paddingHorizontal: 12,
     },
     networkName: {
       color: theme.colors.text.default,
