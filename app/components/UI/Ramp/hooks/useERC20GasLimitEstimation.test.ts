@@ -1,12 +1,23 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import useERC20GasLimitEstimation from './useERC20GasLimitEstimation';
 import { getGasLimit } from '../../../../util/custom-gas';
+import { generateTransferData } from '../../../../util/transactions';
+import { toHex } from '@metamask/controller-utils';
 
 jest.mock('../../../../util/custom-gas', () => ({
   getGasLimit: jest.fn(),
 }));
 
+jest.mock('../../../../util/transactions', () => ({
+  generateTransferData: jest.fn(),
+}));
+
+jest.mock('../../../../util/address', () => ({
+  safeToChecksumAddress: jest.fn((address) => address),
+}));
+
 const mockGetGasLimit = getGasLimit as jest.Mock;
+const mockGenerateTransferData = generateTransferData as jest.Mock;
 
 const defaultParams = {
   tokenAddress: '0x123',
@@ -25,6 +36,7 @@ describe('useERC20GasLimitEstimation', () => {
     mockGetGasLimit.mockImplementation(async () => ({
       gas: { toNumber: () => DEFAULT_GAS_LIMIT },
     }));
+    mockGenerateTransferData.mockReturnValue('0xmockedData');
   });
 
   it('returns default transfer gas limit for native token', () => {
@@ -67,6 +79,13 @@ describe('useERC20GasLimitEstimation', () => {
 
     expect(result.current).toBe(expectedGasLimit);
     expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
+    expect(mockGetGasLimit).toHaveBeenCalledWith({
+      from: defaultParams.fromAddress,
+      to: defaultParams.tokenAddress,
+      value: '0x0',
+      data: '0xmockedData',
+      chainId: toHex(defaultParams.chainId),
+    });
   });
 
   it('handles gas estimation error and maintain default gas limit', async () => {
@@ -118,5 +137,84 @@ describe('useERC20GasLimitEstimation', () => {
     expect(mockGetGasLimit).toHaveBeenCalledTimes(3); // Previous calls + one new interval call
 
     jest.useRealTimers();
+  });
+
+  it('handles different decimal values correctly', async () => {
+    const params = {
+      ...defaultParams,
+      decimals: 6,
+      amount: '1000',
+    };
+
+    renderHook(() => useERC20GasLimitEstimation(params));
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(mockGenerateTransferData).toHaveBeenCalledWith(
+      'transfer',
+      expect.objectContaining({
+        toAddress: expect.any(String),
+        amount: expect.any(String),
+      }),
+    );
+  });
+
+  it('stops polling when component unmounts', async () => {
+    jest.useFakeTimers();
+
+    const { unmount } = renderHook(() =>
+      useERC20GasLimitEstimation(defaultParams),
+    );
+
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+    });
+
+    unmount();
+
+    await act(async () => {
+      jest.advanceTimersByTime(15000);
+      await Promise.resolve();
+    });
+
+    // Should not call getGasLimit after unmount
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(2); // Only immediate + first interval
+
+    jest.useRealTimers();
+  });
+
+  it('updates gas estimation when amount changes', async () => {
+    const { rerender } = renderHook(
+      (props) => useERC20GasLimitEstimation(props),
+      {
+        initialProps: defaultParams,
+      },
+    );
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
+
+    rerender({
+      ...defaultParams,
+      amount: '200',
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
+    expect(mockGenerateTransferData).toHaveBeenCalledWith(
+      'transfer',
+      expect.objectContaining({
+        amount: expect.any(String),
+      }),
+    );
   });
 });
