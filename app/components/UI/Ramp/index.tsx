@@ -277,7 +277,7 @@ function FiatOrders() {
         ),
       );
     },
-    pendingOrders.length ? POLLING_FREQUENCY : null,
+    { delay: pendingOrders.length ? POLLING_FREQUENCY : null, immediate: true },
   );
 
   useInterval(
@@ -293,7 +293,10 @@ function FiatOrders() {
         ),
       );
     },
-    customOrderIds.length ? POLLING_FREQUENCY : null,
+    {
+      delay: customOrderIds.length ? POLLING_FREQUENCY : null,
+      immediate: true,
+    },
   );
 
   const handleNavigationStateChange = useCallback(
