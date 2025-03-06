@@ -36,9 +36,6 @@ type ChainBalances = Record<string, NativeTokenBalance>;
 export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
   [selectSelectedInternalAccountFormattedAddress, selectAccountsByChainId],
   (selectedAddress, accountsByChainId): ChainBalances => {
-    if (!isPortfolioViewEnabled()) {
-      return {};
-    }
     if (!selectedAddress || !accountsByChainId) {
       return {};
     }
@@ -183,6 +180,9 @@ export const selectAccountTokensAcrossChains = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectNativeTokensAcrossChains,
   (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
+    if (!isPortfolioViewEnabled()) {
+      return {};
+    }
     const selectedAddress = selectedAccount?.address;
     const tokensByChain: {
       [chainId: string]: (
