@@ -61,7 +61,7 @@ describe('NetworkVerificationInfo', () => {
         customNetworkInformation={networkWithCustomRpcUrl}
         onReject={() => undefined}
         onConfirm={() => undefined}
-        isNetworkRpcUpdate={true}
+        isNetworkRpcUpdate
       />,
     );
 
