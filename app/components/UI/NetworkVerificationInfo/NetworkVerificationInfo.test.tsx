@@ -44,7 +44,7 @@ describe('NetworkVerificationInfo', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it.only('renders updated details when isNetworkRpcUpdate is true', () => {
+  it('renders updated details when isNetworkRpcUpdate is true', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
 
     const networkWithCustomRpcUrl = {
