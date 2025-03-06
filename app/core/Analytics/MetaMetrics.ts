@@ -551,7 +551,6 @@ class MetaMetrics implements IMetaMetrics {
     if (this.#isConfigured) return true;
     try {
       this.enabled = await this.#isMetaMetricsEnabled();
-      console.log(`[CONFIGURE] MetaMetrics #enabled: ${this.enabled}`);
       // get the user unique id when initializing
       this.metametricsId = await this.#getMetaMetricsId();
       this.deleteRegulationId = await this.#getDeleteRegulationIdFromPrefs();
@@ -581,7 +580,6 @@ class MetaMetrics implements IMetaMetrics {
     } catch (error: any) {
       Logger.error(error, 'Error initializing MetaMetrics');
     }
-    console.log(`MetaMetrics.configure() this.#isConfigured: ${this.#isConfigured}`);
     return this.#isConfigured;
   };
 

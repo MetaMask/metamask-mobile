@@ -21,12 +21,10 @@ const VALID_UUID = 'b7bff9d5-8928-488e-935e-4522c680242e';
 
 jest.mock('axios');
 
-const storage: Record<string, unknown> = {};
+const storage: Record<string, string | null> = {};
 
 jest.mock('../../store/storage-wrapper', () => ({
-  getItem: jest.fn((key) => {
-    return Promise.resolve(storage[key] ?? null)
-  }),
+  getItem: jest.fn<Promise<string | null>, [string]>((key: string) => Promise.resolve(storage[key] ?? null)),
   setItem: jest.fn((key, value) => {
     storage[key] = value;
     return Promise.resolve();
@@ -94,13 +92,9 @@ describe('MetaMetrics', () => {
   });
 
   describe('Disabling', () => {
-    beforeEach(() => {
-      StorageWrapper.clearAll()
-    })
     it('defaults to disabled metrics', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
-      const isConfigured = await metaMetrics.configure();
-      expect(isConfigured).toBeTruthy();
+      expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
       expect(metaMetrics.isEnabled()).toBeFalsy();
@@ -112,7 +106,6 @@ describe('MetaMetrics', () => {
       expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
-      const getAll = StorageWrapper.getAll()
       expect(metaMetrics.isEnabled()).toBeTruthy();
     });
 
@@ -440,21 +433,21 @@ describe('MetaMetrics', () => {
   describe('Ids', () => {
     it('is returned from StorageWrapper when instance not configured', async () => {
       const UUID = VALID_UUID;
-      StorageWrapper.setItem(METAMETRICS_ID, UUID)
+      storage[METAMETRICS_ID] = UUID
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METAMETRICS_ID);
     });
 
     it('is returned from memory when instance configured', async () => {
-      await StorageWrapper.setItem(METAMETRICS_ID, VALID_UUID)
+      storage[METAMETRICS_ID] = VALID_UUID
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
       // reset the call count on StorageWrapper.getItem
       // we just want to know if the next `getMetaMetricsId` call
       // will call StorageWrapper.getItem or not
-      StorageWrapper.getItem.mockClear(); // ?
+      (StorageWrapper.getItem as jest.Mock).mockClear();
 
       expect(await metaMetrics.getMetaMetricsId()).toEqual(VALID_UUID);
       expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(METAMETRICS_ID);
@@ -615,8 +608,8 @@ describe('MetaMetrics', () => {
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         // this resets the call count and changes the return value to nothing
-        storage[ANALYTICS_DATA_DELETION_DATE] = null
-        StorageWrapper.getItem.mockClear();
+        storage[ANALYTICS_DATA_DELETION_DATE] = null;
+        (StorageWrapper.getItem as jest.Mock).mockClear();
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
           expectedDate,
         );
@@ -626,10 +619,8 @@ describe('MetaMetrics', () => {
       });
 
       it('returns empty string if no date in preferences storage', async () => {
-
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        const deleteRegulationCreationDate = metaMetrics.getDeleteRegulationCreationDate()
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBeNull();
         expect(StorageWrapper.getItem).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
@@ -655,7 +646,8 @@ describe('MetaMetrics', () => {
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         // this resets the call count and changes the return value to nothing
-        StorageWrapper.getItem.mockClear();
+        storage[METAMETRICS_DELETION_REGULATION_ID] = null;
+        (StorageWrapper.getItem as jest.Mock).mockClear();
         expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
         expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
@@ -663,7 +655,6 @@ describe('MetaMetrics', () => {
       });
 
       it('returns empty string if no id in preferences storage', async () => {
-
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationId()).toBeNull();
