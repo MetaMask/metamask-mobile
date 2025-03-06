@@ -105,6 +105,7 @@ const createStyles = (params: { theme: Theme }) => {
   });
 };
 
+// We get here through handleBridgeNavigation in AssetOverview
 const BridgeView = () => {
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
