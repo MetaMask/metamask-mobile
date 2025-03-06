@@ -48,3 +48,6 @@
   -keep class kotlin.** { *; }
 
   -keep class kotlin.Metadata { *; }
+
+-dontwarn kotlinx.serialization.SerialName
+-dontwarn kotlinx.serialization.Serializable
