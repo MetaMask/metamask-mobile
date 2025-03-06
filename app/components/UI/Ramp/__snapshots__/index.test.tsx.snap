@@ -8,23 +8,7 @@ exports[`FiatOrders removes authentication URL after successful navigation 1`] =
       "width": 0,
     }
   }
->
-  <View
-    onHttpError={[Function]}
-    onNavigationStateChange={[Function]}
-    source={
-      {
-        "uri": "https://test.metamask.io/auth",
-      }
-    }
-    style={
-      {
-        "height": 0,
-        "width": 0,
-      }
-    }
-  />
-</View>
+/>
 `;
 
 exports[`FiatOrders renders correctly with authentication URLs 1`] = `
@@ -35,38 +19,7 @@ exports[`FiatOrders renders correctly with authentication URLs 1`] = `
       "width": 0,
     }
   }
->
-  <View
-    onHttpError={[Function]}
-    onNavigationStateChange={[Function]}
-    source={
-      {
-        "uri": "https://test.metamask.io/auth",
-      }
-    }
-    style={
-      {
-        "height": 0,
-        "width": 0,
-      }
-    }
-  />
-  <View
-    onHttpError={[Function]}
-    onNavigationStateChange={[Function]}
-    source={
-      {
-        "uri": "https://test.metamask.io/auth2",
-      }
-    }
-    style={
-      {
-        "height": 0,
-        "width": 0,
-      }
-    }
-  />
-</View>
+/>
 `;
 
 exports[`FiatOrders renders correctly with no orders 1`] = `null`;

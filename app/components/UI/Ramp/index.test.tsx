@@ -20,16 +20,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Add this mock before the tests
-jest.mock('@metamask/react-native-webview', () => {
-  const React = require('react');
-  const { View } = require('react-native');
-  return class WebView extends React.Component {
-    render() {
-      return <View {...this.props} />;
-    }
-  };
-});
+// Mock WebView component
+jest.mock('@metamask/react-native-webview', () => () => null);
 
 const defaultState = {
   engine: {
