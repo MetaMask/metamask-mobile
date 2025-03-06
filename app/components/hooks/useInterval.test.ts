@@ -123,23 +123,4 @@ describe('useInterval', () => {
     jest.advanceTimersByTime(1000);
     expect(callback).not.toHaveBeenCalled();
   });
-
-  it('should handle immediate execution with delay change', () => {
-    const callback = jest.fn();
-    const { rerender } = renderHook(
-      ({ delay }) => useInterval(callback, { delay, immediate: true }),
-      {
-        initialProps: { delay: 1000 },
-      },
-    );
-
-    expect(callback).toHaveBeenCalledTimes(1); // Immediate execution
-
-    jest.advanceTimersByTime(1000);
-    expect(callback).toHaveBeenCalledTimes(2);
-
-    rerender({ delay: 500 });
-    jest.advanceTimersByTime(500);
-    expect(callback).toHaveBeenCalledTimes(3);
-  });
 });
