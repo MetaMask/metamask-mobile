@@ -646,6 +646,7 @@ const App = (props) => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
+          await Authentication.appTriggeredAuth();
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           // await trace(
           //   {
@@ -659,7 +660,6 @@ const App = (props) => {
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         } else {
-          console.log('resetting to onboarding root nav');
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
       } catch (error) {
