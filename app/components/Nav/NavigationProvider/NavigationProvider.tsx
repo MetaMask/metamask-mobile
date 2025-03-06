@@ -5,20 +5,18 @@ import {
   Theme,
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useTheme } from '../../util/theme';
-import { onNavigationReady } from '../../actions/navigation';
+import { useTheme } from '../../../util/theme';
+import { onNavigationReady } from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
-import NavigationService from '../../core/NavigationService';
-import { trace, endTrace, TraceOperation, TraceName } from '../../util/trace';
-import getUIStartupSpan from '../../core/Performance/UIStartup';
-
-/**
- * Props for the NavigationProvider component
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type NavigationProviderProps = {
-  children: React.ReactNode;
-};
+import NavigationService from '../../../core/NavigationService';
+import {
+  trace,
+  endTrace,
+  TraceOperation,
+  TraceName,
+} from '../../../util/trace';
+import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import { NavigationProviderProps } from './types';
 
 const Stack = createStackNavigator();
 

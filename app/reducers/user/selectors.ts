@@ -10,3 +10,8 @@ export const selectUserState = (state: RootState) => state.user;
  */
 export const selectAppServicesReady = (state: RootState) =>
   state.user.appServicesReady;
+
+/**
+ * Selects the userLoggedIn state
+ */
+export const selectUserLoggedIn = (state: RootState) => state.user.userLoggedIn;
