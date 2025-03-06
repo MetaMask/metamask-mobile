@@ -22,6 +22,11 @@ async function main(): Promise<void> {
     const [shouldRun, reason] = shouldRunBitriseE2E(flags);
     console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
+    //It's required to have at least one of these two labels
+    if (!flags.hasAntiLabel && !flags.hasSmokeTestLabel) {
+        core.setFailed(`No "Run Smoke E2E" or "No E2E Smoke Needed" labels found. Please apply one of these labels to the PR.`);
+    }
+
     // If the E2E tests should run, check the Bitrise test status
     if (shouldRun) {
 
