@@ -2,8 +2,32 @@ import { accountsControllerInit } from '../controllers/accounts-controller';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { NetworkController } from '@metamask/network-controller';
-import { mockControllerInitFunction } from './test-utils';
-import { AccountsController } from '@metamask/accounts-controller';
+import { createMockControllerInitFunction } from './test-utils';
+import {
+  AccountsController,
+  AccountsControllerMessenger,
+} from '@metamask/accounts-controller';
+import { cronjobControllerInit } from '../controllers/cronjob-controller/cronjob-controller-init';
+import { CronjobController } from '@metamask/snaps-controllers';
+import { BaseRestrictedControllerMessenger } from '../types';
+import { multichainAssetsRatesControllerInit } from '../controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
+import {
+  CurrencyRateController,
+  MultichainAssetsController,
+  MultichainAssetsControllerMessenger,
+  MultichainAssetsRatesController,
+  MultichainAssetsRatesControllerMessenger,
+  MultichainBalancesController,
+  MultichainBalancesControllerMessenger,
+} from '@metamask/assets-controllers';
+import { multichainAssetsControllerInit } from '../controllers/multichain-assets-controller/multichain-assets-controller-init';
+import { currencyRateControllerInit } from '../controllers/currency-rate-controller/currency-rate-controller-init';
+import { multichainBalancesControllerInit } from '../controllers/multichain-balances-controller/multichain-balances-controller-init';
+import { multichainNetworkControllerInit } from '../controllers/multichain-network-controller/multichain-network-controller-init';
+import {
+  MultichainNetworkController,
+  MultichainNetworkControllerMessenger,
+} from '@metamask/multichain-network-controller';
 
 describe('initModularizedControllers', () => {
   it('should initialize controllers', () => {
@@ -11,6 +35,12 @@ describe('initModularizedControllers', () => {
       existingControllersByName: {},
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        MultichainNetworkController: multichainNetworkControllerInit,
+        CurrencyRateController: currencyRateControllerInit,
+        CronjobController: cronjobControllerInit,
+        MultichainAssetsController: multichainAssetsControllerInit,
+        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
+        MultichainBalancesController: multichainBalancesControllerInit,
       },
       persistedState: {},
       baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -24,7 +54,34 @@ describe('initModularizedControllers', () => {
       initModularizedControllers({
         existingControllersByName: {},
         controllerInitFunctions: {
-          AccountsController: mockControllerInitFunction,
+          AccountsController: createMockControllerInitFunction<
+            AccountsController,
+            AccountsControllerMessenger
+          >(),
+          MultichainNetworkController: createMockControllerInitFunction<
+            MultichainNetworkController,
+            MultichainNetworkControllerMessenger
+          >(),
+          CurrencyRateController: createMockControllerInitFunction<
+            CurrencyRateController,
+            BaseRestrictedControllerMessenger
+          >(),
+          CronjobController: createMockControllerInitFunction<
+            CronjobController,
+            BaseRestrictedControllerMessenger
+          >(),
+          MultichainAssetsController: createMockControllerInitFunction<
+            MultichainAssetsController,
+            MultichainAssetsControllerMessenger
+          >(),
+          MultichainAssetsRatesController: createMockControllerInitFunction<
+            MultichainAssetsRatesController,
+            MultichainAssetsRatesControllerMessenger
+          >(),
+          MultichainBalancesController: createMockControllerInitFunction<
+            MultichainBalancesController,
+            MultichainBalancesControllerMessenger
+          >(),
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -41,7 +98,34 @@ describe('initModularizedControllers', () => {
           NetworkController: jest.fn() as unknown as NetworkController,
         },
         controllerInitFunctions: {
-          AccountsController: mockControllerInitFunction,
+          AccountsController: createMockControllerInitFunction<
+            AccountsController,
+            AccountsControllerMessenger
+          >(),
+          MultichainNetworkController: createMockControllerInitFunction<
+            MultichainNetworkController,
+            MultichainNetworkControllerMessenger
+          >(),
+          CurrencyRateController: createMockControllerInitFunction<
+            CurrencyRateController,
+            BaseRestrictedControllerMessenger
+          >(),
+          CronjobController: createMockControllerInitFunction<
+            CronjobController,
+            BaseRestrictedControllerMessenger
+          >(),
+          MultichainAssetsController: createMockControllerInitFunction<
+            MultichainAssetsController,
+            MultichainAssetsControllerMessenger
+          >(),
+          MultichainAssetsRatesController: createMockControllerInitFunction<
+            MultichainAssetsRatesController,
+            MultichainAssetsRatesControllerMessenger
+          >(),
+          MultichainBalancesController: createMockControllerInitFunction<
+            MultichainBalancesController,
+            MultichainBalancesControllerMessenger
+          >(),
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
