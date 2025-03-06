@@ -121,6 +121,13 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
   const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId);
+  const nativeCurrencies = [
+    ...new Set(
+      Object.values(networkConfigurationsByChainId).map(
+        (n) => n.nativeCurrency,
+      ),
+    ),
+  ];
 
   const selectedAccountTokensChains = useSelector(
     selectAccountTokensAcrossChains,
