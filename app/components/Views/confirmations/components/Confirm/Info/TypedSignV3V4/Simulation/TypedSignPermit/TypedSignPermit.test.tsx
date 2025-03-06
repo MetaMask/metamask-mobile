@@ -66,7 +66,7 @@ describe('PermitSimulation', () => {
     expect(getByText('Estimated changes')).toBeTruthy();
     expect(
       getByText(
-        "You're revoking permission for the spender to spend tokens from your account.",
+        "You're removing someone's permission to spend tokens from your account.",
       ),
     ).toBeTruthy();
     expect(getByText('Revoke')).toBeTruthy();
