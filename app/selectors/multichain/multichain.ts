@@ -7,18 +7,32 @@ import {
   selectEvmChainId,
   selectProviderConfig as selectEvmProviderConfig,
 } from '../networkController';
-import { selectSelectedInternalAccount } from '../accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectInternalAccounts,
+} from '../accountsController';
 import { createDeepEqualSelector } from '../util';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
-import { selectConversionRate } from '../currencyRateController';
+import { BtcScope, isEvmAccountType, SolScope } from '@metamask/keyring-api';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
-import { selectAccountBalanceByChainId } from '../accountTrackerController';
+import {
+  selectAccountBalanceByChainId,
+  selectAccountsByChainId,
+  selectAccounts,
+} from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
 import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
+  selectNonEvmNetworkConfigurationsByChainId,
 } from '../multichainNetworkController';
+
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { getFormattedAddressFromInternalAccount } from '../../core/Multichain/utils';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -195,6 +209,106 @@ export const selectMultichainConversionRate = createDeepEqualSelector(
     return nonEvmTicker
       ? multichaincCoinRates?.[nonEvmTicker.toLowerCase()]?.conversionRate
       : undefined;
+  },
+);
+
+export const selectAllAccountsConversionRates = createDeepEqualSelector(
+  selectInternalAccounts,
+  selectConversionRate,
+  selectMultichainCoinRates,
+  selectNonEvmNetworkConfigurationsByChainId,
+  (accounts, evmConversionRate, multichaincCoinRates, nonEvmNetworkConfigs) => {
+    return accounts.reduce<Record<string, number | undefined>>(
+      (acc, account) => {
+        if (isEvmAccountType(account.type)) {
+          acc[account.id] = evmConversionRate ?? undefined;
+        } else {
+          // For non-EVM accounts, find the network configuration
+          const mainnetChainId = (
+            MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET as Record<string, string>
+          )[account.type];
+
+          const networkConfig = nonEvmNetworkConfigs[mainnetChainId];
+          const ticker = networkConfig?.ticker?.toLowerCase();
+
+          acc[account.id] = ticker
+            ? multichaincCoinRates?.[ticker]?.conversionRate
+            : undefined;
+        }
+        return acc;
+      },
+      {},
+    );
+  },
+);
+
+interface BalanceData {
+  amount: string;
+  unit: string;
+}
+
+interface MultichainBalances {
+  [accountId: string]: {
+    [assetId: string]: BalanceData;
+  };
+}
+
+const getEvmAccountBalance = (
+  account: InternalAccount,
+  accountsByChainId: Record<string, Record<string, { balance: string }>>,
+  _accountInfoByAddress: Record<string, { balance: string }>,
+  _conversionRate: number | null | undefined,
+  _currentCurrency: string,
+): BalanceData => {
+  const formattedAddress = getFormattedAddressFromInternalAccount(account);
+  const chainId = Object.keys(accountsByChainId)[0];
+  const accountBalance = accountsByChainId[chainId]?.[formattedAddress];
+
+  return {
+    amount: accountBalance?.balance || '0x0',
+    unit: 'ETH', // We'll need to get this from the network config
+  };
+};
+
+const getNonEvmAccountBalance = (
+  account: InternalAccount,
+  multichainBalances: MultichainBalances,
+): BalanceData => {
+  const balancesForAccount = multichainBalances?.[account.id] || {};
+  const nonZeroBalance = Object.values(balancesForAccount).find(
+    (balance): balance is BalanceData =>
+      balance?.amount !== undefined && balance.amount !== '0',
+  );
+  return nonZeroBalance ?? { amount: '0', unit: '' };
+};
+
+export const selectMultichainBalancesForAllAccounts = createDeepEqualSelector(
+  selectInternalAccounts,
+  selectMultichainBalances,
+  selectAccountsByChainId,
+  selectAccounts,
+  selectConversionRate,
+  selectCurrentCurrency,
+  (
+    accounts: InternalAccount[],
+    multichainBalances: MultichainBalances,
+    accountsByChainId: Record<string, Record<string, { balance: string }>>,
+    accountInfoByAddress: Record<string, { balance: string }>,
+    conversionRate: number | null | undefined,
+    currentCurrency: string,
+  ) => {
+    return accounts.reduce<Record<string, BalanceData>>((acc, account) => {
+      acc[account.id] = isEvmAccountType(account.type)
+        ? getEvmAccountBalance(
+            account,
+            accountsByChainId,
+            accountInfoByAddress,
+            conversionRate,
+            currentCurrency,
+          )
+        : getNonEvmAccountBalance(account, multichainBalances);
+      return acc;
+    }, {});
   },
 );
 ///: END:ONLY_INCLUDE_IF
