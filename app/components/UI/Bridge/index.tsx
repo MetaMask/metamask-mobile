@@ -209,7 +209,7 @@ const BridgeView = () => {
             isReadonly
           />
           <Box style={styles.arrowContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleArrowPress}
               disabled={!destChainId || !destToken}
               style={styles.arrowCircle}
@@ -226,8 +226,6 @@ const BridgeView = () => {
             isReadonly
           />
         </Box>
-        {/* TODO Just a placeholder for now */}
-        {/* <ReceiveAddress address={undefined} /> */}
         <Box style={styles.bottomSection}>
           <Keypad
             value={sourceAmount}
