@@ -4,8 +4,7 @@ import { useLatestBalance } from './useLatestBalance';
 import { Provider } from 'react-redux';
 import { getProviderByChainId } from '../../../util/notifications/methods/common';
 import { BigNumber, constants } from 'ethers';
-import { configureStore } from '@reduxjs/toolkit';
-import engineReducer from '../../../core/redux/slices/engine';
+import configureStore from 'redux-mock-store';
 
 // Mock dependencies
 jest.mock('../../../util/notifications/methods/common', () => ({
@@ -37,27 +36,23 @@ describe('useLatestBalance', () => {
     getNetwork: jest.fn().mockResolvedValue({ chainId: 1 }),
   };
 
-  const createTestStore = (initialState = {}) => configureStore({
-    reducer: {
-      engine: engineReducer as any,
-    },
-    preloadedState: {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            provider: {
-              chainId: '0x1',
-            },
+  const mockStore = configureStore();
+  const createTestStore = (initialState = {}) => mockStore({
+    engine: {
+      backgroundState: {
+        NetworkController: {
+          provider: {
+            chainId: '0x1',
           },
-          AccountTrackerController: {
-            accounts: {
-              '0x1234567890123456789012345678901234567890': {
-                balance: '0x0',
-              },
-            },
-          },
-          ...initialState,
         },
+        AccountTrackerController: {
+          accounts: {
+            '0x1234567890123456789012345678901234567890': {
+              balance: '0x0',
+            },
+          },
+        },
+        ...initialState,
       },
     },
   });
