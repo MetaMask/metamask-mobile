@@ -1244,7 +1244,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn detox test -c ios.sim.debug e2e/specs/flask/
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' detox build -c ios.sim.qa
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1942,7 +1942,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:flask
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' detox build -c ios.sim.qa
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
