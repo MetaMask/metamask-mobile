@@ -25,21 +25,17 @@ const storage: Record<string, unknown> = {};
 
 jest.mock('../../store/storage-wrapper', () => ({
   getItem: jest.fn((key) => {
-    console.log('StorageWrapper.getItem mock called with:', key);
     return Promise.resolve(storage[key] ?? null)
   }),
   setItem: jest.fn((key, value) => {
-    console.log('StorageWrapper.setItem mock called with:', key, value);
     storage[key] = value;
     return Promise.resolve();
   }),
   removeItem: jest.fn((key) => {
-    console.log('StorageWrapper.removeItem mock called with:', key);
     delete storage[key];
     return Promise.resolve();
   }),
   clearAll: jest.fn(() => {
-    // console.log('StorageWrapper.clearAll mock called')
     Object.keys(storage).forEach((key) => delete storage[key]);
     return Promise.resolve();
   }),
@@ -102,10 +98,8 @@ describe('MetaMetrics', () => {
       StorageWrapper.clearAll()
     })
     it('defaults to disabled metrics', async () => {
-      console.log('================= storageWrapper.getAll()', await StorageWrapper.getAll());
       const metaMetrics = TestMetaMetrics.getInstance();
       const isConfigured = await metaMetrics.configure();
-      console.log('================= isConfigured', isConfigured);
       expect(isConfigured).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
@@ -113,14 +107,12 @@ describe('MetaMetrics', () => {
     });
 
     it('uses preference enabled value when set', async () => {
-      console.log('============== uses preference enabled value when set... starting...')
       StorageWrapper.setItem(METRICS_OPT_IN, AGREED)
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METRICS_OPT_IN);
       const getAll = StorageWrapper.getAll()
-      console.log('getAll', getAll);
       expect(metaMetrics.isEnabled()).toBeTruthy();
     });
 
@@ -158,7 +150,6 @@ describe('MetaMetrics', () => {
     });
 
     it('does not track event when disabled', async () => {
-      console.log('something', await StorageWrapper.getItem(METRICS_OPT_IN));
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
       const event = MetricsEventBuilder.createEventBuilder({
@@ -456,7 +447,6 @@ describe('MetaMetrics', () => {
     });
 
     it('is returned from memory when instance configured', async () => {
-      console.log('"is returned from memory when instance configured" starting')
       await StorageWrapper.setItem(METAMETRICS_ID, VALID_UUID)
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
@@ -609,7 +599,6 @@ describe('MetaMetrics', () => {
       it('gets date from preferences storage', async () => {
         const expectedDate = '04/05/2023';
         storage[ANALYTICS_DATA_DELETION_DATE] = expectedDate
-        console.log('[DATE] storageWrapper.getItem', await StorageWrapper.getItem(ANALYTICS_DATA_DELETION_DATE))
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
@@ -641,7 +630,6 @@ describe('MetaMetrics', () => {
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         const deleteRegulationCreationDate = metaMetrics.getDeleteRegulationCreationDate()
-        console.log('[DATE] deleteRegulationCreationDate', deleteRegulationCreationDate)
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBeNull();
         expect(StorageWrapper.getItem).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
@@ -651,12 +639,10 @@ describe('MetaMetrics', () => {
 
     describe('Regulation Id', () => {
       it('gets id from preferences storage', async () => {
-        console.log('"gets id from preferences storage" starting')
         const expectedRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
         storage[METAMETRICS_DELETION_REGULATION_ID] = expectedRegulationId
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        console.log('metaMetrics.getDeleteRegulationId()', metaMetrics.getDeleteRegulationId())
         expect(metaMetrics.getDeleteRegulationId()).toBe(expectedRegulationId);
         expect(StorageWrapper.getItem).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,

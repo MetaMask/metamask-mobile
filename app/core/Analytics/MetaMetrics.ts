@@ -194,7 +194,6 @@ class MetaMetrics implements IMetaMetrics {
    */
   #isMetaMetricsEnabled = async (): Promise<boolean> => {
     const enabledPref = await StorageWrapper.getItem(METRICS_OPT_IN);
-    console.log(`[MetaMetrics #isMetaMetricsEnabled] enabledPref: ${enabledPref}`);
     this.enabled = AGREED === enabledPref;
     if (__DEV__)
       Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
@@ -220,9 +219,7 @@ class MetaMetrics implements IMetaMetrics {
    * @private
    */
   #getDeleteRegulationIdFromPrefs = async (): Promise<string> => {
-    console.log('getting delete regulation id from prefs');
     const deleteRegulationId = await StorageWrapper.getItem(METAMETRICS_DELETION_REGULATION_ID);
-    console.log('deleteRegulationId', deleteRegulationId);
     return deleteRegulationId;
   };
 
@@ -248,13 +245,11 @@ class MetaMetrics implements IMetaMetrics {
   #setDeleteRegulationId = async (
     deleteRegulationId: string,
   ): Promise<void> => {
-    console.log('setting deleting regulation id', deleteRegulationId);
     this.deleteRegulationId = deleteRegulationId;
     await StorageWrapper.setItem(
       METAMETRICS_DELETION_REGULATION_ID,
       deleteRegulationId,
     );
-    console.log('set delete regulation id is now', await StorageWrapper.getItem(METAMETRICS_DELETION_REGULATION_ID), this.deleteRegulationId);
   };
 
   /**
@@ -288,7 +283,6 @@ class MetaMetrics implements IMetaMetrics {
     // If user later enables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
     // look for a legacy ID from MixPanel integration and use it
-    console.log('"#getMetaMetricsId" starting');
     const legacyId = await StorageWrapper.getItem(MIXPANEL_METAMETRICS_ID);
     if (legacyId) {
       this.metametricsId = legacyId;
@@ -525,7 +519,6 @@ class MetaMetrics implements IMetaMetrics {
         flushAt: process.env.SEGMENT_FLUSH_EVENT_LIMIT as unknown as number,
       };
 
-      // console.log('getInstance config', config);
       if (__DEV__)
         Logger.log(
           `MetaMetrics client configured with: ${JSON.stringify(
@@ -538,7 +531,6 @@ class MetaMetrics implements IMetaMetrics {
       const segmentClient = isE2E ? undefined : createClient(config);
 
       this.instance = new MetaMetrics(segmentClient as ISegmentClient);
-      // console.log('getInstance instance', this.instance);
     }
     return this.instance;
   }
@@ -558,13 +550,11 @@ class MetaMetrics implements IMetaMetrics {
   configure = async (): Promise<boolean> => {
     if (this.#isConfigured) return true;
     try {
-      console.log('[CONFIGURE] MetaMetrics.configure() try');
       this.enabled = await this.#isMetaMetricsEnabled();
       console.log(`[CONFIGURE] MetaMetrics #enabled: ${this.enabled}`);
       // get the user unique id when initializing
       this.metametricsId = await this.#getMetaMetricsId();
       this.deleteRegulationId = await this.#getDeleteRegulationIdFromPrefs();
-      console.log('[CONFIGURE] this.deleteRegulationId', this.deleteRegulationId);
       this.deleteRegulationDate =
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
@@ -572,11 +562,8 @@ class MetaMetrics implements IMetaMetrics {
       this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
 
       // decide whether to track expected "errors"
-      console.log(`[CONFIGURE] MetaMetrics #metametricsId: ${this.metametricsId}`);
       const deterministicRandomNumber = generateDeterministicRandomNumber(this.metametricsId ?? '');
-      console.log(`[CONFIGURE] Deterministic random number: ${deterministicRandomNumber}`);
       this.shouldTrackExpectedErrors = deterministicRandomNumber < EXPECTED_ERRORS_PORTION_TO_TRACK;
-      console.log(`[CONFIGURE] Should track expected errors: ${this.shouldTrackExpectedErrors}`);
       this.#isConfigured = true;
 
       // identify user with the latest traits
@@ -592,7 +579,6 @@ class MetaMetrics implements IMetaMetrics {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.log('MetaMetrics.configure() error', error);
       Logger.error(error, 'Error initializing MetaMetrics');
     }
     console.log(`MetaMetrics.configure() this.#isConfigured: ${this.#isConfigured}`);

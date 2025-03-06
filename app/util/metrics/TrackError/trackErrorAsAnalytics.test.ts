@@ -1,5 +1,4 @@
 import trackErrorAsAnalytics from './trackErrorAsAnalytics';
-import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
