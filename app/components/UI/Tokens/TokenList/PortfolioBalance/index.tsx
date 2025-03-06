@@ -145,8 +145,7 @@ export const PortfolioBalance = React.memo(() => {
               testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
               variant={TextVariant.DisplayMD}
             >
-              {multichainBalances.displayBalance}{' '}
-              {multichainBalances.displayCurrency}
+              {multichainBalances.displayBalance}
             </SensitiveText>
             <TouchableOpacity
               onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
