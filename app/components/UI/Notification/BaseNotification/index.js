@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import { strings } from '../../../../../locales/i18n';
+import {
+  IconName,
+  IconColor,
+} from '../../../../component-library/components/Icons/Icon';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles, baseStyles } from '../../../../styles/common';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AnimatedSpinner from '../../AnimatedSpinner';
-import { strings } from '../../../../../locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
@@ -161,7 +169,8 @@ export const getDescription = (status, { amount = null, type = null }) => {
 };
 
 /**
- * BaseNotification component used to render in-app notifications
+ * @deprecated The `<BaseNotification />` component has been deprecated in favor of the new `<Toast>` component from the component-library.
+ * Please update your code to use the new `<Toast>` component instead, which can be found at app/component-library/components/Toast/Toast.tsx.
  */
 const BaseNotification = ({
   status,
@@ -171,46 +180,46 @@ const BaseNotification = ({
   onHide,
   autoDismiss,
 }) => {
+  const { toastRef } = useContext(ToastContext);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  return (
-    <View style={baseStyles.flexGrow}>
-      <View style={styles.floatingBackground}>
-        <TouchableOpacity
-          style={styles.defaultFlashFloating}
-          onPress={onPress}
-          activeOpacity={0.8}
-        >
-          <View style={styles.flashIcon}>
-            {getIcon(status, colors, styles)}
-          </View>
-          <View style={styles.flashLabel}>
-            <Text
-              style={styles.flashTitle}
-              testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
-            >
-              {!title ? getTitle(status, data) : title}
-            </Text>
-            <Text style={styles.flashText}>
-              {!description ? getDescription(status, data) : description}
-            </Text>
-          </View>
-          <View>
-            {autoDismiss && (
-              <TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
-                <IonicIcon
-                  name="ios-close"
-                  size={36}
-                  style={styles.closeIcon}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  React.useEffect(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: title || getTitle(status, data),
+          isBold: true,
+        },
+        {
+          label: description || getDescription(status, data),
+          isBold: false,
+        },
+      ],
+      iconName: status === 'pending' ? IconName.Loading : IconName.Confirmation,
+      iconColor: IconColor.Success,
+      onPress,
+      closeButtonOptions: autoDismiss
+        ? {
+            label: strings('navigation.cancel'),
+            onPress: onHide,
+          }
+        : undefined,
+      hasNoTimeout: !autoDismiss,
+    });
+  }, [
+    status,
+    data,
+    title,
+    description,
+    onPress,
+    onHide,
+    autoDismiss,
+    toastRef,
+  ]);
+
+  return null;
 };
 
 BaseNotification.propTypes = {
