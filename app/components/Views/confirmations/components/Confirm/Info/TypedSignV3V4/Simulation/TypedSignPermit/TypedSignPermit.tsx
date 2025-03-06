@@ -23,9 +23,10 @@ const styleSheet = () =>
   });
 
 interface TokenDetails {
-  allowed: string;
-  token: string;
+  allowed?: string;
   amount: string;
+  token: string;
+  // ... other properties may exist
 }
 
 function extractTokenDetailsByPrimaryType(
