@@ -16,6 +16,7 @@ storiesOf('Component Library / CustomSpendCap', module).add('Default', () => (
   <CustomSpendCap
     ticker={TICKER}
     accountBalance={ACCOUNT_BALANCE}
+    unroundedAccountBalance={ACCOUNT_BALANCE}
     dappProposedValue={DAPP_PROPOSED_VALUE}
     onInputChanged={INPUT_VALUE_CHANGED}
     isEditDisabled={false}

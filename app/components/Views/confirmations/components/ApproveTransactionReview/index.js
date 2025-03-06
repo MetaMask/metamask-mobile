@@ -312,6 +312,7 @@ class ApproveTransactionReview extends PureComponent {
     showBlockExplorerModal: false,
     address: '',
     isCustomSpendInputValid: true,
+    unroundedAccountBalance: null,
   };
 
   customSpendLimitInput = React.createRef();
@@ -383,7 +384,8 @@ class ApproveTransactionReview extends PureComponent {
       tokenName,
       tokenStandard,
       tokenBalance,
-      createdSpendCap;
+      createdSpendCap,
+      unroundedAccountBalance = '';
 
     const { spenderAddress, encodedAmount: encodedHexAmount } =
       decodeApproveData(data);
@@ -429,6 +431,7 @@ class ApproveTransactionReview extends PureComponent {
             erc20TokenBalance,
             decimals,
           );
+          unroundedAccountBalance = fromTokenMinimalUnit(erc20TokenBalance || 0, decimals);
         }
       } catch (e) {
         tokenSymbol = contract?.symbol || 'ERC20 Token';
@@ -484,6 +487,7 @@ class ApproveTransactionReview extends PureComponent {
           ? tokenAllowanceState?.tokenSpendValue
           : '',
         spendLimitCustomValue: minTokenAllowance,
+        unroundedAccountBalance,
       },
       () => {
         this.props.metrics.trackEvent(
@@ -809,6 +813,7 @@ class ApproveTransactionReview extends PureComponent {
       isReadyToApprove,
       isCustomSpendInputValid,
       method,
+      unroundedAccountBalance,
     } = this.state;
 
     const {
@@ -1011,6 +1016,7 @@ class ApproveTransactionReview extends PureComponent {
                               dappProposedValue={originalApproveAmount}
                               tokenSpendValue={tokenSpendValue}
                               accountBalance={tokenBalance}
+                              unroundedAccountBalance={unroundedAccountBalance}
                               tokenDecimal={tokenDecimals}
                               toggleLearnMoreWebPage={
                                 this.toggleLearnMoreWebPage
