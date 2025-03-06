@@ -32,7 +32,7 @@ describe('bridge slice', () => {
       expect(initialState).toEqual({
         sourceAmount: undefined,
         destAmount: undefined,
-        sourceChainId: 'eip155:1',
+        sourceChainId: '0x1',
         destChainId: undefined,
         sourceToken: undefined,
         destToken: undefined,
