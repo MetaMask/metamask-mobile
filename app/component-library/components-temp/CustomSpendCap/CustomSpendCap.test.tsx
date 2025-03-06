@@ -23,6 +23,7 @@ function RenderCustomSpendCap(
     <CustomSpendCap
       ticker={TICKER}
       accountBalance={ACCOUNT_BALANCE}
+      unroundedAccountBalance={ACCOUNT_BALANCE}
       dappProposedValue={dappProposedValue}
       onInputChanged={INPUT_VALUE_CHANGED}
       isEditDisabled={false}
