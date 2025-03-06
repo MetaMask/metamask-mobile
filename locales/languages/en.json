@@ -1,4 +1,21 @@
 {
+  "alert_system": {
+    "alert_modal": {
+      "title": "Alert",
+      "checkbox_label": "I have acknowledged the risk and still want to proceed",
+      "got_it_btn": "Got it",
+      "alert_details": "Alert Details"
+    },
+    "confirm_modal": {
+      "title": "High risk request",
+      "checkbox_label": "I have acknowledged the alert and still want to proceed",
+      "review_alerts": "Review all alerts",
+      "message": "We suggest you reject this request. If you continue, you might put your assets at risk."
+    },
+    "inline_alert_label": "Alert",
+    "review_alerts": "Review alerts",
+    "review_alert": "Review alert"
+  },
   "blockaid_banner": {
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
     "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
@@ -774,6 +791,7 @@
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
     "disabling_notifications": "Disabling notifications...",
+    "updating_account_settings": "Updating account settings...",
     "reset_notifications_title": "Reset notifications",
     "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
     "reset_notifications": "Reset notifications",
@@ -864,6 +882,7 @@
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
+    "enable_push_notifications": "Enable push notifications",
     "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.",
     "notifications_opts": {
       "customize_session_title": "Customize your notifications",
@@ -1729,7 +1748,8 @@
     "sign_description_1": "After you have signed with your hardware wallet,",
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature",
-    "network_fee": "Network Fee"
+    "network_fee": "Network Fee",
+    "network_fee_tooltip": "Amount paid to process the transaction on network."
   },
   "smart_transactions": {
     "status_submitting_header": "Submitting your transaction",
@@ -1876,7 +1896,8 @@
     "this_site_cant": "This site can't be used with your current network. Add network permissions or choose an already permitted network.",
     "non_permitted_network_description": "This site can't be used with your current network. Add network permissions or choose an already permitted network.",
     "edit_permissions": "Edit permissions",
-    "permitted_networks_info_sheet_description": "This is a list of networks that you've previously granted permissions to use on this site. Select one from the list or edit network permissions for this site."
+    "permitted_networks_info_sheet_description": "This is a list of networks that you've previously granted permissions to use on this site. Select one from the list or edit network permissions for this site.",
+    "connect_an_account": "Connect an account"
   },
   "select": {
     "cancel": "Cancel",
@@ -2228,7 +2249,7 @@
     "lido_stake_completed_title": "Stake complete",
     "lido_withdrawal_requested_title": "Withdrawal requested",
     "lido_withdrawal_completed_title": "Withdrawal completed",
-    "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal ",
+    "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal",
     "erc721_sent_title": "NFT sent",
     "erc721_received_title": "NFT received",
     "erc1155_sent_title": "NFT sent",
@@ -2262,36 +2283,30 @@
     "lido_withdrawal_completed_message": "Unstaking complete",
     "lido_stake_ready_to_be_withdrawn_message": "Withdrawal requested",
     "push_notification_content": {
+      "funds_sent_title": "Funds sent",
+      "funds_sent_description": "You successfully sent {{amount}} {{symbol}}",
+      "funds_sent_default_description": "You successfully sent some tokens",
+      "funds_received_title": "Funds received",
+      "funds_received_description": "You received {{amount}} {{symbol}}",
+      "funds_received_default_description": "You received some tokens",
       "metamask_swap_completed_title": "Swap completed",
       "metamask_swap_completed_description": "Your MetaMask Swap was successful",
-      "erc20_sent_title": "Funds sent",
-      "erc20_sent_description": "You successfully sent {{amount}} {{token}}",
-      "erc20_received_title": "Funds received",
-      "erc20_received_description": "You received {{amount}} {{token}}",
-      "eth_sent_title": "Funds sent",
-      "eth_sent_description": "You successfully sent {{amount}} ETH",
-      "eth_received_title": "Funds received",
-      "eth_received_description": "You received {{amount}} {{token}}",
+      "nft_sent_title": "NFT sent",
+      "nft_sent_description": "You have successfully sent an NFT",
+      "nft_received_title": "NFT received",
+      "nft_received_description": "You received new NFTs",
       "rocketpool_stake_completed_title": "Stake complete",
       "rocketpool_stake_completed_description": "Your RocketPool stake was successful",
       "rocketpool_unstake_completed_title": "Unstake complete",
       "rocketpool_unstake_completed_description": "Your RocketPool unstake was successful",
       "lido_stake_completed_title": "Stake complete",
       "lido_stake_completed_description": "Your Lido stake was successful",
+      "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal",
+      "lido_stake_ready_to_be_withdrawn_description": "Your Lido stake is now ready to be withdrawn",
       "lido_withdrawal_requested_title": "Withdrawal requested",
       "lido_withdrawal_requested_description": "Your Lido withdrawal request was submitted",
       "lido_withdrawal_completed_title": "Withdrawal completed",
-      "lido_withdrawal_completed_description": "Your Lido withdrawal was successful",
-      "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal ",
-      "lido_stake_ready_to_be_withdrawn_description": "Your Lido stake is now ready to be withdrawn",
-      "erc721_sent_title": "NFT sent",
-      "erc721_sent_description": "You've successfully sent an NFT",
-      "erc721_received_title": "NFT received",
-      "erc721_received_description": "You received a new NFT",
-      "erc1155_sent_title": "NFT sent",
-      "erc1155_sent_description": "You've successfully sent an NFT",
-      "erc1155_received_title": "NFT received",
-      "erc1155_received_description": "You received a new NFT"
+      "lido_withdrawal_completed_description": "Your Lido withdrawal was successful"
     },
     "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "Something went wrong",
@@ -2590,6 +2605,7 @@
     "more_options": "{{count}} more options",
     "previously_used": "Previously used",
     "best_rate": "Best rate",
+    "most_reliable": "Most reliable",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
     "terms_of_service": "Terms of Service",
@@ -2604,6 +2620,7 @@
     "done": "Done",
     "fetching_quotes": "Fetching quotes",
     "select_a_quote": "Select a Quote",
+    "recommended_quote": "Recommended quote",
     "select_a_cryptocurrency": "Select a cryptocurrency",
     "select_a_cryptocurrency_description": "Select from the list of tokens available on {{network}}.",
     "search_by_cryptocurrency": "Search by cryptocurrency",
@@ -2766,7 +2783,7 @@
     "token_to_verify": "to verify this is the token you're looking for.",
     "continue": "Continue",
     "select_a_token": "Select a token",
-    "search_token": "Search for a token",
+    "search_token": "Enter token name or paste address",
     "no_tokens_result": "No tokens match “{{searchString}}”",
     "find_token_address": "Find token address",
     "cant_find_token": "Can’t find a token?",
@@ -2818,12 +2835,9 @@
     "n_quotes": "{{numberOfQuotes}} quotes",
     "view_details": "View details",
     "estimated_gas_fee": "Estimated gas fee",
-    "gas_fee": "Gas fee",
-    "included": "included",
     "max_gas_fee": "Max gas fee",
     "edit": "Edit",
     "quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
-    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Tap to Swap",
     "swipe_to_swap": "Swipe to swap",
     "swipe_to": "Swipe to",
@@ -2893,8 +2907,6 @@
     "high_recommendation": "Swaps are typically time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "recommended": "Recommended",
     "recommended_gas": "Recommended gas fee",
-    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
-    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Estimated gas fees",
     "gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
     "gas_education_2_ethereum": "Ethereum network.",
@@ -3145,7 +3157,9 @@
     "enable_token_detection": "Enable auto token detection",
     "token_detection_mainnet_title": "Token detection is enabled so tokens will automatically show up in your wallet.",
     "token_detection_mainnet_link": "You can also add tokens manually.",
-    "or": "or"
+    "or": "or",
+    "non_evm_first_description": "The native asset on this network is {{ticker}}. It is used for transaction fees.",
+    "non_evm_second_description": "You will loose your assets if you try to send them from or to another network."
   },
   "download_files": {
     "error": "Failed to download attachment.",
@@ -3440,17 +3454,17 @@
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
-    "balance":"Balance",
-    "stake_eth_and_earn":"Stake ETH and earn",
-    "stake_any_amount_of_eth":"Stake any amount of ETH.",
-    "no_minimum_required":"No minimum required.",
-    "earn_eth_rewards":"Earn ETH rewards.",
-    "earn_eth_rewards_description":"Start earning as soon as you stake. Rewards compound automatically.",
-    "flexible_unstaking":"Flexible unstaking.",
-    "flexible_unstaking_description":"Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
-    "disclaimer":"Staking does not guarantee rewards, and involves risks including a loss of funds.",
-    "learn_more":"Learn more",
-    "got_it":"Got it",
+    "balance": "Balance",
+    "stake_eth_and_earn": "Stake ETH and earn",
+    "stake_any_amount_of_eth": "Stake any amount of ETH.",
+    "no_minimum_required": "No minimum required.",
+    "earn_eth_rewards": "Earn ETH rewards.",
+    "earn_eth_rewards_description": "Start earning as soon as you stake. Rewards compound automatically.",
+    "flexible_unstaking": "Flexible unstaking.",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
+    "disclaimer": "Staking does not guarantee rewards, and involves risks including a loss of funds.",
+    "learn_more": "Learn more",
+    "got_it": "Got it",
     "your_balance": "Your balance",
     "stake_your_eth_cta": {
       "base": "Stake your ETH with MetaMask Pool and earn",
@@ -3483,7 +3497,7 @@
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
     },
-    "unstake_input_banner_description":"On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.",
+    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.",
     "max": "Max",
     "staking_from": "Staking from",
     "advanced_details": "Advanced details",
@@ -3517,12 +3531,12 @@
     "earnings_history_list_title": "Payout history",
     "apr": "APR",
     "interactive_chart": {
-        "timespan_buttons": {
-            "7D": "7D",
-            "1M": "1M",
-            "3M": "3M",
-            "6M": "6M"
-        }
+      "timespan_buttons": {
+        "7D": "7D",
+        "1M": "1M",
+        "3M": "3M",
+        "6M": "6M"
+      }
     },
     "today": "Today",
     "one_week_average": "1 week average",
@@ -3557,13 +3571,13 @@
         "reset": "Reset"
       }
     },
-      "drawer_general_title": "General",
-      "drawer_general_title_desc": "Sync settings across devices, select network preferences, and track token data",
-      "drawer_assets_title": "Assets",
-      "drawer_assets_desc": "Autodetect tokens in your wallet, display NFTs, and get batched account balance updates",
-      "drawer_security_title": "Security",
-      "drawer_security_desc": "Reduce your chances of joining unsafe networks and protect your accounts",
-      "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
+    "drawer_general_title": "General",
+    "drawer_general_title_desc": "Sync settings across devices, select network preferences, and track token data",
+    "drawer_assets_title": "Assets",
+    "drawer_assets_desc": "Autodetect tokens in your wallet, display NFTs, and get batched account balance updates",
+    "drawer_security_title": "Security",
+    "drawer_security_desc": "Reduce your chances of joining unsafe networks and protect your accounts",
+    "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
   },
   "simulation_details": {
     "failed": "There was an error loading your estimation.",
@@ -3650,20 +3664,21 @@
     "details": "Details",
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
+    "sign_with_ledger": "Sign with Ledger",
     "siwe_message": {
       "url": "URL",
-      "network" : "Network",
-      "account" : "Account",
-      "version" : "Version",
-      "chain_id" : "Chain ID",
-      "nonce" : "Nonce",
-      "issued" : "Issued",
+      "network": "Network",
+      "account": "Account",
+      "version": "Version",
+      "chain_id": "Chain ID",
+      "nonce": "Nonce",
+      "issued": "Issued",
       "requestId": "Request ID",
       "resources": "Resources"
     },
     "simulation": {
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
-      "decoded_tooltip_list_nft":  "Expect changes only if someone buys your NFTs.",
+      "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
       "label_change_type_bidding": "You bid",
       "label_change_type_listing": "You list",

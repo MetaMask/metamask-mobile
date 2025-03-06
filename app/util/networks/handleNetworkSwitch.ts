@@ -1,8 +1,8 @@
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../selectors/networkController';
 import { store } from '../../store';
 import { MultichainNetworkController } from '@metamask/multichain-network-controller';
@@ -23,8 +23,10 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
 
   const multichainNetworkController = Engine.context
     .MultichainNetworkController as MultichainNetworkController;
-  const chainId = selectChainId(store.getState());
-  const networkConfigurations = selectNetworkConfigurations(store.getState());
+  const chainId = selectEvmChainId(store.getState());
+  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
 
   // If current network is the same as the one we want to switch to, do nothing
   if (chainId === toHex(switchToChainId)) {

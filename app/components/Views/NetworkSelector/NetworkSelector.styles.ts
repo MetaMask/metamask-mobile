@@ -89,6 +89,10 @@ const createStyles = (colors: Colors) =>
     networkCell: {
       alignItems: 'center',
     },
+    networkCellDisabled: {
+      alignItems: 'center',
+      opacity: 0.5,
+    },
     titleContainer: {
       margin: 16,
     },
@@ -155,6 +159,9 @@ const createStyles = (colors: Colors) =>
       marginTop: 4,
     },
     screen: { justifyContent: 'flex-end' },
+    keyboardView: {
+      minHeight: Device.getDeviceHeight() * 0.5,
+    },
     scrollableDescription: {
       maxHeight: Device.getDeviceHeight() * 0.7,
     },

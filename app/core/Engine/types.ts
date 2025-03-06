@@ -46,6 +46,10 @@ import {
   MultichainAssetsControllerState,
   MultichainAssetsControllerEvents,
   MultichainAssetsControllerActions,
+  MultichainAssetsRatesController,
+  MultichainAssetsRatesControllerState,
+  MultichainAssetsRatesControllerEvents,
+  MultichainAssetsRatesControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
@@ -136,8 +140,16 @@ import {
   SnapControllerActions,
   JsonSnapsRegistry as SnapsRegistry,
   SnapsRegistryState,
+  SnapInterfaceControllerState,
+  SnapInterfaceControllerEvents,
+  SnapInterfaceControllerActions,
+  SnapInterfaceController,
   SnapsRegistryActions,
   SnapsRegistryEvents,
+  CronjobControllerState,
+  CronjobControllerEvents,
+  CronjobControllerActions,
+  CronjobController,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -162,10 +174,19 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import {
-  NotificationServicesPushController,
-  NotificationServicesController,
-} from '@metamask/notification-services-controller';
+import type {
+  Controller as NotificationServicesController,
+  Actions as NotificationServicesControllerMessengerActions,
+  Events as NotificationServicesControllerMessengerEvents,
+  NotificationServicesControllerState,
+} from '@metamask/notification-services-controller/notification-services';
+import type {
+  Controller as NotificationServicesPushController,
+  Actions as NotificationServicesPushControllerActions,
+  Events as NotificationServicesPushControllerEvents,
+  NotificationServicesPushControllerState,
+} from '@metamask/notification-services-controller/push-services';
+
 ///: END:ONLY_INCLUDE_IF
 import {
   AccountsController,
@@ -204,6 +225,24 @@ import {
   MultichainNetworkControllerState,
   MultichainNetworkControllerEvents,
 } from '@metamask/multichain-network-controller';
+import {
+  BridgeController,
+  BridgeControllerActions,
+  type BridgeControllerEvents,
+  type BridgeControllerState,
+} from '@metamask/bridge-controller';
+import type {
+  BridgeStatusController,
+  BridgeStatusControllerActions,
+  BridgeStatusControllerEvents,
+  BridgeStatusControllerState,
+} from '@metamask/bridge-status-controller';
+import {
+  EarnController,
+  EarnControllerActions,
+  EarnControllerEvents,
+  EarnControllerState,
+} from '@metamask/earn-controller';
 
 /**
  * Controllers that area always instantiated
@@ -257,15 +296,18 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
+  | SnapInterfaceControllerActions
   | AuthenticationController.Actions
   | UserStorageController.Actions
-  | NotificationServicesController.Actions
-  | NotificationServicesPushController.Actions
+  | NotificationServicesControllerMessengerActions
+  | NotificationServicesPushControllerActions
+  | CronjobControllerActions
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | RatesControllerActions
   | MultichainAssetsControllerActions
+  | MultichainAssetsRatesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -280,7 +322,10 @@ type GlobalActions =
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
-  | MultichainNetworkControllerActions;
+  | MultichainNetworkControllerActions
+  | BridgeControllerActions
+  | BridgeStatusControllerActions
+  | EarnControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -296,15 +341,18 @@ type GlobalEvents =
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
+  | SnapInterfaceControllerEvents
   | AuthenticationController.Events
   | UserStorageController.Events
-  | NotificationServicesController.Events
-  | NotificationServicesPushController.Events
+  | NotificationServicesControllerMessengerEvents
+  | NotificationServicesPushControllerEvents
+  | CronjobControllerEvents
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | RatesControllerEvents
   | MultichainAssetsControllerEvents
+  | MultichainAssetsRatesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -322,7 +370,10 @@ type GlobalEvents =
   | RemoteFeatureFlagControllerEvents
   | TokenSearchDiscoveryControllerEvents
   | SnapKeyringEvents
-  | MultichainNetworkControllerEvents;
+  | MultichainNetworkControllerEvents
+  | BridgeControllerEvents
+  | BridgeStatusControllerEvents
+  | EarnControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -383,16 +434,22 @@ export type Controllers = {
   SubjectMetadataController: SubjectMetadataController;
   AuthenticationController: AuthenticationController.Controller;
   UserStorageController: UserStorageController.Controller;
-  NotificationServicesController: NotificationServicesController.Controller;
-  NotificationServicesPushController: NotificationServicesPushController.Controller;
+  NotificationServicesController: NotificationServicesController;
+  NotificationServicesPushController: NotificationServicesPushController;
+  SnapInterfaceController: SnapInterfaceController;
+  CronjobController: CronjobController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
+  MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkController;
+  BridgeController: BridgeController;
+  BridgeStatusController: BridgeStatusController;
+  EarnController: EarnController;
 };
 
 /**
@@ -431,8 +488,10 @@ export type EngineState = {
   SubjectMetadataController: SubjectMetadataControllerState;
   AuthenticationController: AuthenticationController.AuthenticationControllerState;
   UserStorageController: UserStorageController.UserStorageControllerState;
-  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
-  NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
+  NotificationServicesController: NotificationServicesControllerState;
+  NotificationServicesPushController: NotificationServicesPushControllerState;
+  SnapInterfaceController: SnapInterfaceControllerState;
+  CronjobController: CronjobControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
@@ -445,8 +504,12 @@ export type EngineState = {
   MultichainBalancesController: MultichainBalancesControllerState;
   RatesController: RatesControllerState;
   MultichainAssetsController: MultichainAssetsControllerState;
+  MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
+  BridgeController: BridgeControllerState;
+  BridgeStatusController: BridgeStatusControllerState;
+  EarnController: EarnControllerState;
 };
 
 /** Controller names */
@@ -476,7 +539,18 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 /**
  * Specify controllers to initialize.
  */
-export type ControllersToInitialize = 'AccountsController';
+export type ControllersToInitialize =
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  | 'CronjobController'
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  | 'MultichainAssetsController'
+  | 'MultichainAssetsRatesController'
+  | 'MultichainBalancesController'
+  ///: END:ONLY_INCLUDE_IF
+  | 'CurrencyRateController'
+  | 'AccountsController'
+  | 'MultichainNetworkController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

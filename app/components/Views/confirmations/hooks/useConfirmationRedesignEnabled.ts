@@ -6,7 +6,10 @@ import {
 } from '@metamask/transaction-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 
-import { isHardwareAccount } from '../../../../util/address';
+import {
+  isExternalHardwareAccount,
+  isHardwareAccount,
+} from '../../../../util/address';
 import {
   type ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
@@ -32,10 +35,9 @@ function isRedesignedSignature({
 }) {
   return (
     confirmationRedesignFlags?.signatures &&
-    // following condition will ensure that user is redirected to old designs for hardware wallets
-    !isHardwareAccount(fromAddress) &&
     approvalRequestType &&
-    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType)
+    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType) &&
+    !isExternalHardwareAccount(fromAddress)
   );
 }
 
@@ -72,13 +74,13 @@ function isRedesignedTransaction({
 
 export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
+  const fromAddress = approvalRequest?.requestData?.from;
   const transactionMetadata = useTransactionMetadataRequest();
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
 
   const approvalRequestType = approvalRequest?.type as ApprovalType;
-  const fromAddress = approvalRequest?.requestData?.from;
 
   const isRedesignedEnabled = useMemo(
     () =>

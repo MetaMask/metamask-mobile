@@ -165,8 +165,8 @@ stages:
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_stake_ios: {}
-      - run_tag_smoke_stake_android: {}
+      # run_tag_smoke_stake_ios: {}
+      # run_tag_smoke_stake_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
@@ -1798,7 +1798,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 24.0.8215888
+      NDK_VERSION: 26.1.10909125
     - opts:
         is_expand: false
       QA_APK_NAME: app-qa-release
@@ -1825,16 +1825,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.40.0
+      VERSION_NAME: 7.41.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1553
+      VERSION_NUMBER: 1586
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.40.0
+      FLASK_VERSION_NAME: 7.41.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1553
+      FLASK_VERSION_NUMBER: 1586
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1861,7 +1861,7 @@ app:
       COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
-    stack: osx-xcode-15.0.x
+    stack: osx-xcode-16.2.x
     machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*

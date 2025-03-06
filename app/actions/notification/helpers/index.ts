@@ -1,195 +1,140 @@
-import { getErrorMessage } from '@metamask/utils';
-
-import { notificationsErrors } from '../constants';
+import type { MarkAsReadNotificationsParam } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
-import { mmStorage, getAllUUIDs } from '../../../util/notifications';
-import type {
-  UserStorage,
-  INotification,
-} from '@metamask/notification-services-controller/notification-services';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
-export type MarkAsReadNotificationsParam = Pick<
-  INotification,
-  'id' | 'type' | 'isRead'
->[];
-
-export const enableNotificationServices = async () => {
-  try {
-    await Engine.context.NotificationServicesController.enableMetamaskNotifications();
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const disableNotificationServices = async () => {
-  try {
-    await Engine.context.NotificationServicesController.disableNotificationServices();
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const checkAccountsPresence = async (accounts: string[]) => {
-  try {
-    const { presence } =
-      await Engine.context.NotificationServicesController.checkAccountsPresence(
-        accounts,
-      );
-    if (!presence) {
-      return getErrorMessage(notificationsErrors.CHECK_ACCOUNTS_PRESENCE);
-    }
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const deleteOnChainTriggersByAccount = async (accounts: string[]) => {
-  try {
-    const userStorage =
-      await Engine.context.NotificationServicesController.deleteOnChainTriggersByAccount(
-        accounts,
-      );
-    if (!userStorage) {
-      return getErrorMessage(
-        notificationsErrors.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
-      );
-    }
-    mmStorage.saveLocal('pnUserStorage', userStorage);
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const updateOnChainTriggersByAccount = async (accounts: string[]) => {
-  try {
-    const userStorage =
-      await Engine.context.NotificationServicesController.updateOnChainTriggersByAccount(
-        accounts,
-      );
-    if (!userStorage) {
-      return getErrorMessage(
-        notificationsErrors.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
-      );
-    }
-    mmStorage.saveLocal('pnUserStorage', userStorage);
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const createOnChainTriggersByAccount = async (
-  resetNotifications: boolean,
-) => {
-  try {
-    const userStorage =
-      await Engine.context.NotificationServicesController.createOnChainTriggers(
-        {
-          resetNotifications,
-        },
-      );
-
-    if (!userStorage) {
-      return getErrorMessage(
-        notificationsErrors.CREATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
-      );
-    }
-    mmStorage.saveLocal('pnUserStorage', userStorage);
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const setFeatureAnnouncementsEnabled = async (
-  featureAnnouncementsEnabled: boolean,
-) => {
-  try {
-    await Engine.context.NotificationServicesController.setFeatureAnnouncementsEnabled(
-      featureAnnouncementsEnabled,
+export const assertIsFeatureEnabled = () => {
+  if (!isNotificationsFeatureEnabled()) {
+    throw new Error(
+      'Notifications Feature is not yet enabled, you should not have been able to access this yet!',
     );
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const fetchAndUpdateMetamaskNotifications = async () => {
-  try {
-    const metamaskNotifications =
-      await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications();
-    if (!metamaskNotifications) {
-      return getErrorMessage(
-        notificationsErrors.FETCH_AND_UPDATE_METAMASK_NOTIFICATIONS,
-      );
-    }
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const markMetamaskNotificationsAsRead = async (
-  notifications: MarkAsReadNotificationsParam,
-) => {
-  try {
-    await Engine.context.NotificationServicesController.markMetamaskNotificationsAsRead(
-      notifications,
-    );
-  } catch (error) {
-    return getErrorMessage(error);
   }
 };
 
 /**
- * Perform the deletion of the notifications storage key and the creation of on chain triggers to reset the notifications.
- *
- * @returns {Promise<string | undefined>} A promise that resolves to a string error message or undefined if successful.
+ * Enable Notifications Switch
+ * - This is used during onboarding and for the notifications settings toggle
+ * - Enables wallet notifications, feature announcements, and push notifications
  */
-export const performDeleteStorage = async (): Promise<string | undefined> => {
-  try {
-    await Engine.context.UserStorageController.performDeleteStorage(
-      'notifications.notification_settings',
-    );
-    await Engine.context.NotificationServicesController.createOnChainTriggers({
-      resetNotifications: true,
-    });
-  } catch (error) {
-    return getErrorMessage(error);
-  }
+export const enableNotifications = async () => {
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.enableMetamaskNotifications();
 };
 
-export const enablePushNotifications = async (
-  userStorage: UserStorage,
-  fcmToken?: string,
+/**
+ * Disable Notifications Switch
+ * - Disables wallet notifications, feature announcements, and push notifications
+ */
+export const disableNotifications = async () => {
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.disableNotificationServices();
+};
+
+/**
+ * Push Notifications Switch
+ * - Allows us to enable push notifications
+ * @throws if fails to enable push notifications
+ */
+export const enablePushNotifications = async () => {
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.enablePushNotifications();
+};
+
+/**
+ * Push Notifications Switch
+ * - Allows us to disable push notifications
+ */
+export const disablePushNotifications = async () => {
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.disablePushNotifications();
+};
+
+/**
+ * Feature Announcement Switch
+ * - Enables/Disables Feature Announcements
+ * @param featureAnnouncementsEnabled boolean to toggle on/off
+ */
+export const toggleFeatureAnnouncements = async (
+  featureAnnouncementsEnabled: boolean,
 ) => {
-  try {
-    const uuids = getAllUUIDs(userStorage);
-    await Engine.context.NotificationServicesPushController.enablePushNotifications(
-      uuids,
-      fcmToken,
-    );
-  } catch (error) {
-    return getErrorMessage(error);
-  }
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.setFeatureAnnouncementsEnabled(
+    featureAnnouncementsEnabled,
+  );
 };
 
-export const disablePushNotifications = async (userStorage: UserStorage) => {
-  try {
-    const uuids = getAllUUIDs(userStorage);
-    await Engine.context.NotificationServicesPushController.disablePushNotifications(
-      uuids,
+/**
+ * Account Notification Settings.
+ * - Informs us which accounts have notifications enabled.
+ * @param accounts - accounts to check
+ * @returns Record of Address <> Boolean (for which accounts are enabled/disabled)
+ */
+export const fetchAccountNotificationSettings = async (accounts: string[]) => {
+  assertIsFeatureEnabled();
+  const accountsStatus =
+    await Engine.context.NotificationServicesController.checkAccountsPresence(
+      accounts,
     );
-  } catch (error) {
-    return getErrorMessage(error);
-  }
+
+  return accountsStatus;
 };
 
-export const updateTriggerPushNotifications = async (
-  userStorage: UserStorage,
+/**
+ * Account Notification Settings.
+ * - Allows us to delete notifications for accounts
+ * @param accounts - accounts to disable notifications for
+ */
+export const deleteNotificationsForAccount = async (accounts: string[]) => {
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.deleteOnChainTriggersByAccount(
+    accounts,
+  );
+};
+
+/**
+ * Account Notification Settings
+ * - Allows us to enable notifications for accounts
+ * @param accounts - accounts to enable notifications for
+ */
+export const createNotificationsForAccount = async (accounts: string[]) => {
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.updateOnChainTriggersByAccount(
+    accounts,
+  );
+};
+
+/**
+ * Fetch Notifications
+ * - Use to invoke the series of fetch calls to get notifications
+ * - Use Selectors to grab pending state and data
+ * @throws Error if fails to fetch notifications
+ */
+export const fetchNotifications = async () => {
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications();
+};
+
+/**
+ * Mark Notification as Read
+ * - Fire this in the background to notify our services that a notification was read.
+ * @param notifications - notifications to mark as read
+ */
+export const markNotificationsAsRead = async (
+  notifications: MarkAsReadNotificationsParam,
 ) => {
-  try {
-    const uuids = getAllUUIDs(userStorage);
-    await Engine.context.NotificationServicesPushController.updateTriggerPushNotifications(
-      uuids,
-    );
-  } catch (error) {
-    return getErrorMessage(error);
-  }
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.markMetamaskNotificationsAsRead(
+    notifications,
+  );
+};
+
+/**
+ * Developer options/User toggle to reset notifications
+ * (in case their UserStorage or notifications become corrupt)
+ * @throws if there is an error resetting notifications
+ */
+export const resetNotifications = async () => {
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.createOnChainTriggers({
+    resetNotifications: true,
+  });
 };

@@ -9,11 +9,6 @@ app/component-library/               @MetaMask/design-system-engineers
 # Platform Team
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
-app/core/Engine/Engine.ts                                   @MetaMask/mobile-platform
-app/core/Engine/Engine.test.ts                              @MetaMask/mobile-platform
-app/core/Engine/index.ts                                    @MetaMask/mobile-platform
-app/core/Engine/types.ts                                    @MetaMask/mobile-platform
-app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
 app/core/Analytics/                                         @MetaMask/mobile-platform
 app/util/metrics/                                           @MetaMask/mobile-platform
 app/components/hooks/useMetrics/                            @MetaMask/mobile-platform
@@ -25,6 +20,14 @@ yarn.lock                                                   @MetaMask/mobile-pla
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/core/Engine/messengers/                                 @MetaMask/mobile-platform
+app/core/Engine/utils/                                      @MetaMask/mobile-platform
+app/core/Engine/constants/                                  @MetaMask/mobile-platform
+app/core/Engine/Engine.test.ts                              @MetaMask/mobile-platform
+app/core/Engine/Engine.ts                                   @MetaMask/mobile-platform
+app/core/Engine/index.ts                                    @MetaMask/mobile-platform
+app/core/Engine/README.md                                   @MetaMask/mobile-platform
+app/core/Engine/types.ts                                    @MetaMask/mobile-platform
+app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
 
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
@@ -69,6 +72,8 @@ app/actions/identity @MetaMask/identity
 app/util/identity @MetaMask/identity
 app/components/UI/ProfileSyncing @MetaMask/identity
 e2e/specs/identity @MetaMask/identity
+**/Identity/** @MetaMask/identity
+**/identity/** @MetaMask/identity
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
