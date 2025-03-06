@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { SnapUITooltip } from './SnapUIToolTip';
+import { SnapUITooltip } from './SnapUITooltip';
 import Tooltip from '../../Views/confirmations/components/UI/Tooltip';
 import { Text } from 'react-native';
 
