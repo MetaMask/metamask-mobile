@@ -1,3 +1,4 @@
+import { GasFeeState } from '@metamask/gas-fee-controller';
 import {
   MessageParamsPersonal,
   MessageParamsTyped,
@@ -5,14 +6,15 @@ import {
   SignatureRequestStatus,
   SignatureRequestType,
 } from '@metamask/signature-controller';
-import { GasFeeState } from '@metamask/gas-fee-controller';
-import { Hex } from '@metamask/utils';
 import {
   TransactionControllerState,
   TransactionEnvelopeType,
+  TransactionType,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 
 import { backgroundState } from './initial-root-state';
+import { merge } from 'lodash';
 export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
     confirmation_redesign: {
@@ -503,7 +505,7 @@ export const securityAlertResponse = {
   chainId: '0x1',
 };
 
-export const stakingDepositConfirmationState = {
+const stakingConfirmationBaseState = {
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -571,7 +573,7 @@ export const stakingDepositConfirmationState = {
               value: '0x5af3107a4000',
               type: TransactionEnvelopeType.feeMarket,
             },
-            type: 'stakingDeposit',
+            type: TransactionType.stakingUnstake,
             userEditedGasLimit: false,
             userFeeLevel: 'medium',
             verifiedOnBlockchain: false,
@@ -665,3 +667,33 @@ export const stakingDepositConfirmationState = {
     showFiatOnTestnets: true,
   },
 };
+
+export const stakingDepositConfirmationState = merge(
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      TransactionController: {
+        transactions: [
+          {
+            type: TransactionType.stakingDeposit,
+          },
+        ],
+      } as unknown as TransactionControllerState,
+    },
+  },
+);
+
+export const stakingWithdrawalConfirmationState = merge(
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      TransactionController: {
+        transactions: [
+          {
+            type: TransactionType.stakingUnstake,
+          },
+        ],
+      } as unknown as TransactionControllerState,
+    },
+  },
+);
