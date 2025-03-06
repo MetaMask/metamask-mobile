@@ -1,15 +1,52 @@
-import { NavigationProp } from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
+import Logger from '../util/Logger';
 
+/**
+ * Navigation service that manages the navigation object
+ */
 class NavigationService {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation?: NavigationProp<any>;
+  static #navigation: NavigationContainerRef;
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setNavigationRef(navRef: NavigationProp<any>) {
-    this.navigation = navRef;
+  /**
+   * Checks that the navigation object exists
+   */
+  static #assertNavigationExists() {
+    if (!this.#navigation) {
+      const error = new Error('Navigation reference does not exist!');
+      Logger.error(error);
+      throw error;
+    }
+    return this.#navigation;
+  }
+
+  /**
+   * Checks that the navigation object is valid
+   */
+  static #assertNavigationRefType(navRef: NavigationContainerRef) {
+    if (typeof navRef?.navigate !== 'function') {
+      const error = new Error('Navigation reference is not valid!');
+      Logger.error(error);
+      throw error;
+    }
+    return this.#navigation;
+  }
+
+  /**
+   * Set the navigation object
+   * @param navRef
+   */
+  static set navigation(navRef: NavigationContainerRef) {
+    this.#assertNavigationRefType(navRef);
+    this.#navigation = navRef;
+  }
+
+  /**
+   * Get the navigation object
+   */
+  static get navigation() {
+    this.#assertNavigationExists();
+    return this.#navigation;
   }
 }
 
-export default new NavigationService();
+export default NavigationService;
