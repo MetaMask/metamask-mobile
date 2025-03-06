@@ -30,11 +30,18 @@ const onPress = (href: string) => {
 export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => {
   const label = (
     <>
-      {children}{' '}
+      {children}
       <Icon
         name={IconName.Export}
         color={IconColor.Primary}
         size={IconSize.Sm}
+        /* eslint-disable-next-line react-native/no-inline-styles */
+        style={{
+          marginLeft: 2,
+          justifyContent: 'center',
+          alignItems: 'center',
+          alignSelf: 'center',
+        }}
       />
     </>
   );
