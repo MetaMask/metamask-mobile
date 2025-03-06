@@ -179,7 +179,7 @@ export async function getAllBitriseComments(): Promise<GithubComment[]> {
     };
   });
 
-  return modifiedComments
+  return modifiedComments.reverse();
 
 }
 
