@@ -2,7 +2,6 @@ name: Run Bitrise E2E Check
 
 on:
   issue_comment:
-    types: [edited, deleted]
   pull_request:
     types: [opened, reopened, labeled, unlabeled, synchronize]
   merge_group: # Trigger on merge queue events to satisfy the branch protection rules
