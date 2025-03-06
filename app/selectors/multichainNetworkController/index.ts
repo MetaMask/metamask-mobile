@@ -1,21 +1,21 @@
 import { MultichainNetworkControllerState } from '@metamask/multichain-network-controller';
 import { RootState } from '../../reducers';
-import { createSelector } from 'reselect';
 import { CaipChainId } from '@metamask/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
 import { ImageSourcePropType } from 'react-native';
+import { createDeepEqualSelector } from '../util';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
 
-export const selectIsEvmNetworkSelected = createSelector(
+export const selectIsEvmNetworkSelected = createDeepEqualSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
     multichainNetworkControllerState.isEvmSelected,
 );
 
-export const selectSelectedNonEvmNetworkChainId = createSelector(
+export const selectSelectedNonEvmNetworkChainId = createDeepEqualSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
     multichainNetworkControllerState.selectedMultichainNetworkChainId,
@@ -28,41 +28,42 @@ export const selectSelectedNonEvmNetworkChainId = createSelector(
  * @param state - The root state object.
  * @returns An object where the keys are chain IDs and the values are network configurations.
  */
-export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
-  selectMultichainNetworkControllerState,
-  (multichainNetworkControllerState: MultichainNetworkControllerState) => {
-    const extendedNonEvmData: Record<
-      CaipChainId,
-      {
-        decimals: number;
-        imageSource: ImageSourcePropType;
-        ticker: string;
-      }
-    > = {
-      [SolScope.Mainnet]: {
-        decimals: 9,
-        imageSource: imageIcons.SOLANA,
-        ticker: 'SOL',
-      },
-      [BtcScope.Mainnet]: {
-        decimals: 8,
-        imageSource: imageIcons.BTC,
-        ticker: 'BTC',
-      },
-    };
-    return Object.fromEntries(
-      Object.entries(
-        multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
-          {},
-      ).map(([key, network]) => [
-        key,
-        { ...network, ...extendedNonEvmData[network.chainId] },
-      ]),
-    );
-  },
-);
+export const selectNonEvmNetworkConfigurationsByChainId =
+  createDeepEqualSelector(
+    selectMultichainNetworkControllerState,
+    (multichainNetworkControllerState: MultichainNetworkControllerState) => {
+      const extendedNonEvmData: Record<
+        CaipChainId,
+        {
+          decimals: number;
+          imageSource: ImageSourcePropType;
+          ticker: string;
+        }
+      > = {
+        [SolScope.Mainnet]: {
+          decimals: 9,
+          imageSource: imageIcons.SOLANA,
+          ticker: 'SOL',
+        },
+        [BtcScope.Mainnet]: {
+          decimals: 8,
+          imageSource: imageIcons.BTC,
+          ticker: 'BTC',
+        },
+      };
+      return Object.fromEntries(
+        Object.entries(
+          multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
+            {},
+        ).map(([key, network]) => [
+          key,
+          { ...network, ...extendedNonEvmData[network.chainId] },
+        ]),
+      );
+    },
+  );
 
-export const selectSelectedNonEvmNetworkDecimals = createSelector(
+export const selectSelectedNonEvmNetworkDecimals = createDeepEqualSelector(
   selectNonEvmNetworkConfigurationsByChainId,
   selectSelectedNonEvmNetworkChainId,
   (nonEvmNetworkConfigurationsByChainId, selectedMultichainNetworkChainId) =>
@@ -70,7 +71,7 @@ export const selectSelectedNonEvmNetworkDecimals = createSelector(
       ?.decimals,
 );
 
-export const selectSelectedNonEvmNetworkName = createSelector(
+export const selectSelectedNonEvmNetworkName = createDeepEqualSelector(
   selectNonEvmNetworkConfigurationsByChainId,
   selectSelectedNonEvmNetworkChainId,
   (nonEvmNetworkConfigurationsByChainId, selectedMultichainNetworkChainId) => {
@@ -80,7 +81,7 @@ export const selectSelectedNonEvmNetworkName = createSelector(
   },
 );
 
-export const selectSelectedNonEvmNativeCurrency = createSelector(
+export const selectSelectedNonEvmNativeCurrency = createDeepEqualSelector(
   selectNonEvmNetworkConfigurationsByChainId,
   selectSelectedNonEvmNetworkChainId,
   (nonEvmNetworkConfigurationsByChainId, selectedMultichainNetworkChainId) => {
@@ -90,7 +91,7 @@ export const selectSelectedNonEvmNativeCurrency = createSelector(
   },
 );
 
-export const selectSelectedNonEvmNetworkSymbol = createSelector(
+export const selectSelectedNonEvmNetworkSymbol = createDeepEqualSelector(
   selectSelectedNonEvmNetworkChainId,
   selectNonEvmNetworkConfigurationsByChainId,
   (selectedMultichainNetworkChainId, nonEvmNetworkConfigurationsByChainId) =>

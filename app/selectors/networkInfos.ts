@@ -1,4 +1,3 @@
-import { createSelector } from 'reselect';
 import {
   getNetworkNameFromProviderConfig,
   getNetworkImageSource,
@@ -11,14 +10,15 @@ import {
 } from './multichainNetworkController';
 import { getNonEvmNetworkImageSourceByChainId } from '../util/networks/customNetworks';
 import { CaipChainId } from '@metamask/utils';
+import { createDeepEqualSelector } from './util';
 
-export const selectEvmNetworkName = createSelector(
+export const selectEvmNetworkName = createDeepEqualSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) =>
     getNetworkNameFromProviderConfig(providerConfig),
 );
 
-export const selectEvmNetworkImageSource = createSelector(
+export const selectEvmNetworkImageSource = createDeepEqualSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) =>
     getNetworkImageSource({
@@ -26,7 +26,7 @@ export const selectEvmNetworkImageSource = createSelector(
       chainId: providerConfig.chainId,
     }),
 );
-export const selectNetworkName = createSelector(
+export const selectNetworkName = createDeepEqualSelector(
   selectProviderConfig,
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkName,
@@ -40,7 +40,7 @@ export const selectNetworkName = createSelector(
       : getNetworkNameFromProviderConfig(providerConfig),
 );
 
-export const selectNetworkImageSource = createSelector(
+export const selectNetworkImageSource = createDeepEqualSelector(
   selectProviderConfig,
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,

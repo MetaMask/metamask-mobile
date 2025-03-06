@@ -1,4 +1,3 @@
-import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
 import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
@@ -15,7 +14,7 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../currencyRateController';
-
+import { createDeepEqualSelector } from '../util';
 interface NativeTokenBalance {
   balance: string;
   stakedBalance: string;
@@ -31,35 +30,36 @@ type ChainBalances = Record<string, NativeTokenBalance>;
  * @param {RootState} state - The root state.
  * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
  */
-export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
-  [selectSelectedInternalAccountFormattedAddress, selectAccountsByChainId],
-  (selectedAddress, accountsByChainId): ChainBalances => {
-    if (!selectedAddress || !accountsByChainId) {
-      return {};
-    }
-
-    const result: ChainBalances = {};
-    for (const chainId in accountsByChainId) {
-      const accounts = accountsByChainId[chainId];
-      const account = accounts[selectedAddress];
-      if (account) {
-        result[chainId] = {
-          balance: account.balance,
-          stakedBalance: account.stakedBalance ?? '0x0',
-          isStaked: account.stakedBalance !== '0x0',
-          name: '',
-        };
+export const selectedAccountNativeTokenCachedBalanceByChainId =
+  createDeepEqualSelector(
+    [selectSelectedInternalAccountFormattedAddress, selectAccountsByChainId],
+    (selectedAddress, accountsByChainId): ChainBalances => {
+      if (!selectedAddress || !accountsByChainId) {
+        return {};
       }
-    }
 
-    return result;
-  },
-);
+      const result: ChainBalances = {};
+      for (const chainId in accountsByChainId) {
+        const accounts = accountsByChainId[chainId];
+        const account = accounts[selectedAddress];
+        if (account) {
+          result[chainId] = {
+            balance: account.balance,
+            stakedBalance: account.stakedBalance ?? '0x0',
+            isStaked: account.stakedBalance !== '0x0',
+            name: '',
+          };
+        }
+      }
+
+      return result;
+    },
+  );
 
 /**
  * Selector to get native tokens for the selected account across all chains.
  */
-export const selectNativeTokensAcrossChains = createSelector(
+export const selectNativeTokensAcrossChains = createDeepEqualSelector(
   [
     selectEvmNetworkConfigurationsByChainId,
     selectedAccountNativeTokenCachedBalanceByChainId,
@@ -172,7 +172,7 @@ export const selectNativeTokensAcrossChains = createSelector(
  * @param {RootState} state - The root state.
  * @returns {TokensByChain} The tokens for the selected account across all chains.
  */
-export const selectAccountTokensAcrossChains = createSelector(
+export const selectAccountTokensAcrossChains = createDeepEqualSelector(
   [
     selectSelectedInternalAccount,
     selectAllTokens,
