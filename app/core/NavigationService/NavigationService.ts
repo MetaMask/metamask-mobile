@@ -1,5 +1,5 @@
 import { NavigationContainerRef } from '@react-navigation/native';
-import Logger from '../util/Logger';
+import Logger from '../../util/Logger';
 
 /**
  * Navigation service that manages the navigation object
