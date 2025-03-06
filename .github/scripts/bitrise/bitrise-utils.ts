@@ -30,7 +30,6 @@ interface Label {
   name: string;
 }
 
-
 export interface E2ERunFlags {
     isFork : boolean;
     isDocs : boolean;
