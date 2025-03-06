@@ -65,7 +65,7 @@ const wallet_addEthereumChain = async ({
     ticker,
   } = params;
 
-  const switchToNetworkAndMetrics = async (network) => {
+  const switchToNetworkAndMetrics = async (network, isAddNetworkFlow) => {
     const { networkClientId } =
       network.rpcEndpoints[network.defaultRpcEndpointIndex];
 
@@ -81,6 +81,7 @@ const wallet_addEthereumChain = async ({
       requestUserApproval,
       analytics,
       origin,
+      isAddNetworkFlow,
     });
 
     MetaMetrics.getInstance().trackEvent(
@@ -122,11 +123,14 @@ const wallet_addEthereumChain = async ({
       (endpoint) => endpoint.url === firstValidRPCUrl,
     );
 
-    switchToNetworkAndMetrics({
-      ...existingNetworkConfiguration,
-      rpcEndpoints: rpcResult.updatedArray,
-      defaultRpcEndpointIndex: rpcResult.index,
-    });
+    switchToNetworkAndMetrics(
+      {
+        ...existingNetworkConfiguration,
+        rpcEndpoints: rpcResult.updatedArray,
+        defaultRpcEndpointIndex: rpcResult.index,
+      },
+      false,
+    );
 
     res.result = null;
     return;
@@ -258,7 +262,7 @@ const wallet_addEthereumChain = async ({
       );
     }
 
-    switchToNetworkAndMetrics(newNetworkConfiguration);
+    switchToNetworkAndMetrics(newNetworkConfiguration, true);
   } finally {
     endApprovalFlow({ id: approvalFlowId });
   }
