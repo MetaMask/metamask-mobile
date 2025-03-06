@@ -8,7 +8,7 @@ import {
   lockApp,
   UserActionType,
 } from '../../actions/user';
-import { NavigationActionType } from '../../actions/navigation';
+// import { NavigationActionType } from '../../actions/navigation';
 import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
@@ -17,8 +17,8 @@ import {
   overrideXMLHttpRequest,
   restoreXMLHttpRequest,
 } from './xmlHttpRequestOverride';
-import EngineService from '../../core/EngineService';
-import { AppStateEventProcessor } from '../../core/AppStateEventListener';
+// import EngineService from '../../core/EngineService';
+// import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -128,21 +128,21 @@ export function* basicFunctionalityToggle() {
 /**
  * Handles initializing app services on start up
  */
-export function* startAppServices() {
-  // Wait for persisted data to be loaded and navigation to be ready
-  yield all([
-    take(UserActionType.ON_PERSISTED_DATA_LOADED),
-    take(NavigationActionType.ON_NAVIGATION_READY),
-  ]);
-  // Start services
-  EngineService.start();
-  AppStateEventProcessor.start();
-  // TODO: Track a property in redux to gate keep the app until services are initialized
-}
+// export function* startAppServices() {
+//   // Wait for persisted data to be loaded and navigation to be ready
+//   yield all([
+//     take(UserActionType.ON_PERSISTED_DATA_LOADED),
+//     take(NavigationActionType.ON_NAVIGATION_READY),
+//   ]);
+//   // Start services
+//   EngineService.start();
+//   AppStateEventProcessor.start();
+//   // TODO: Track a property in redux to gate keep the app until services are initialized
+// }
 
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
-  yield fork(startAppServices);
+  // yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
 }

@@ -17,8 +17,8 @@ import {
   TraceName,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
-import FoxLoader from '../../../components/UI/FoxLoader';
-import Routes from '../../../constants/navigation/Routes';
+import EngineService from '../../../core/EngineService';
+import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 
 const Stack = createStackNavigator();
 
@@ -50,6 +50,8 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     endTrace({ name: TraceName.NavInit });
     // Dispatch navigation ready action, used by sagas
     dispatch(onNavigationReady());
+    EngineService.start();
+    AppStateEventProcessor.start();
   };
 
   /**
