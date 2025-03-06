@@ -1,9 +1,7 @@
 import React from 'react';
 import { ControllersGateProps } from './types';
 import { useSelector } from 'react-redux';
-import { selectServicesReady } from '../../../reducers/user';
-// import { useStyles } from '../../../component-library/hooks';
-// import styleSheet from './styles';
+import { selectAppServicesReady } from '../../../reducers/user/selectors';
 import FoxLoader from '../../UI/FoxLoader';
 /**
  * ControllersGate component
@@ -14,12 +12,11 @@ import FoxLoader from '../../UI/FoxLoader';
 const ControllersGate: React.FC<ControllersGateProps> = ({
   children,
 }: ControllersGateProps) => {
-  //   const { styles } = useStyles(styleSheet, {});
-  const isControllersLoaded = useSelector(selectServicesReady);
+  const appServicesReady = useSelector(selectAppServicesReady);
 
   return (
     <React.Fragment>
-      {isControllersLoaded ? children : <FoxLoader />}
+      {appServicesReady ? children : <FoxLoader />}
     </React.Fragment>
   );
 };

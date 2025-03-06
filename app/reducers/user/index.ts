@@ -22,7 +22,7 @@ export const userInitialState: UserState = {
   initialScreen: '',
   appTheme: AppThemeKey.os,
   ambiguousAddressEntries: {},
-  servicesReady: false,
+  appServicesReady: false,
 };
 
 /**
@@ -110,10 +110,10 @@ const userReducer = (
         ...state,
         appTheme: action.payload.theme,
       };
-    case UserActionType.ON_SERVICES_READY:
+    case UserActionType.SET_APP_SERVICES_READY:
       return {
         ...state,
-        servicesReady: true,
+        appServicesReady: true,
       };
     default:
       return state;

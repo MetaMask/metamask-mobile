@@ -6,7 +6,7 @@ import { RootState } from '..';
 export const selectUserState = (state: RootState) => state.user;
 
 /**
- * Selects the servicesReady state
+ * Selects the appServicesReady state
  */
-export const selectServicesReady = (state: RootState) =>
-  state.user.servicesReady;
+export const selectAppServicesReady = (state: RootState) =>
+  state.user.appServicesReady;

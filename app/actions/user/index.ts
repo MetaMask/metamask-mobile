@@ -20,8 +20,8 @@ import {
   type SetAppThemeAction,
   type CheckedAuthAction,
   type PersistedDataLoadedAction,
+  type SetAppServicesReadyAction,
   UserActionType,
-  OnServicesReadyAction,
 } from './types';
 
 export * from './types';
@@ -161,8 +161,8 @@ export function onPersistedDataLoaded(): PersistedDataLoadedAction {
   };
 }
 
-export function onServicesReady(): OnServicesReadyAction {
+export function setAppServicesReady(): SetAppServicesReadyAction {
   return {
-    type: UserActionType.ON_SERVICES_READY,
+    type: UserActionType.SET_APP_SERVICES_READY,
   };
 }
