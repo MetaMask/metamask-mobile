@@ -22,6 +22,11 @@ async function main(): Promise<void> {
     const [shouldRun, reason] = shouldRunBitriseE2E(flags);
     console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
+    // fast exit for MQ PRs
+    if (flags.isMQ) {
+        console.log(`Skipping E2E result evaluation. Reason: Merge Queue PR.`);
+        return;
+    }
     //It's required to have at least one of these two labels
     if (!flags.hasAntiLabel && !flags.hasSmokeTestLabel) {
         core.setFailed(`No "Run Smoke E2E" or "No E2E Smoke Needed" labels found. Please apply one of these labels to the PR.`);
