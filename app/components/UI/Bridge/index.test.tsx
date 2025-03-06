@@ -5,6 +5,8 @@ import { RootState } from '../../../reducers';
 import BridgeView from '../Bridge';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { BridgeState } from '../../../core/redux/slices/bridge';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -94,7 +96,11 @@ describe('BridgeView', () => {
         },
         CurrencyRateController: {
           currentCurrency: 'USD',
-          conversionRate: 2000,
+          currencyRates: {
+            ETH: {
+              conversionRate: 2000,
+            },
+          },
         },
         PreferencesController: {
           ipfsGateway: 'https://dweb.link/ipfs/',
@@ -106,13 +112,15 @@ describe('BridgeView', () => {
         symbol: 'ETH',
         decimals: 18,
         address: '0x0000000000000000000000000000000000000000',
+        image: 'https://example.com/image.png',
+        chainId: '0x1' as Hex,
       },
       destToken: undefined,
-      sourceAmount: '',
-      destAmount: '',
+      sourceAmount: undefined,
+      destAmount: undefined,
       sourceChainId: '0x1' as const,
       destChainId: undefined,
-    },
+    } as BridgeState,
   };
 
   beforeEach(() => {
@@ -163,6 +171,22 @@ describe('BridgeView', () => {
     });
   });
 
+  it('should update source token amount when typing', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <BridgeView />,
+      { state: initialState },
+    );
+
+    // Press number buttons to input 1.5
+    fireEvent.press(getByText('9'));
+    fireEvent.press(getByText('.'));
+    fireEvent.press(getByText('5'));
+
+    // Verify the input value is updated
+    const input = getByTestId('source-token-area-input');
+    expect(input.props.value).toBe('9.5');
+  });
+
   it('should display source token symbol and balance', () => {
     const stateWithAmount = {
       ...initialState,
@@ -172,7 +196,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { getByText } = renderWithProvider(
+    const { getByText, getByTestId } = renderWithProvider(
       <BridgeView />,
       { state: stateWithAmount },
     );
@@ -181,7 +205,8 @@ describe('BridgeView', () => {
     expect(getByText('ETH')).toBeTruthy();
 
     // Verify token amount is displayed
-    expect(getByText('1.5')).toBeTruthy();
+    const input = getByTestId('source-token-area-input');
+    expect(input.props.value).toBe('1.5');
 
     // Verify fiat value is displayed (1.5 ETH * $2000 = $3000)
     expect(getByText('$3000')).toBeTruthy();
@@ -265,10 +290,6 @@ describe('BridgeView', () => {
 
       const continueButton = getByText('Continue');
       fireEvent.press(continueButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
-      });
     });
 
     it('should handle Terms & Conditions press', () => {

@@ -70,8 +70,9 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   const subtitle = formattedBalance ?? formattedAddress;
 
   // Convert token amount to fiat value using actual conversion rate
+  const weiAmount = toWei(value ?? '0');
   const fiatValue = conversionRate
-    ? weiToFiat(toWei(value ?? '0'), conversionRate, currentCurrency)
+    ? weiToFiat(weiAmount, conversionRate, currentCurrency)
     : undefined;
 
   return (
@@ -85,6 +86,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
               isReadonly={isReadonly}
               autoFocus={autoFocus}
               placeholder="0"
+              testID={`${testID}-input`}
             />
           </Box>
           <Token
