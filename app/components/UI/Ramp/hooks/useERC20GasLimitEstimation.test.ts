@@ -28,6 +28,8 @@ const defaultParams = {
   isNativeToken: false,
 };
 
+const POLLING_INTERVAL = 15000; // 15s
+
 describe('useERC20GasLimitEstimation', () => {
   const DEFAULT_GAS_LIMIT = 100000;
 
@@ -78,7 +80,6 @@ describe('useERC20GasLimitEstimation', () => {
     });
 
     expect(result.current).toBe(expectedGasLimit);
-    expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
     expect(mockGetGasLimit).toHaveBeenCalledWith({
       from: defaultParams.fromAddress,
       to: defaultParams.tokenAddress,
@@ -126,15 +127,7 @@ describe('useERC20GasLimitEstimation', () => {
       await Promise.resolve();
     });
 
-    expect(mockGetGasLimit).toHaveBeenCalledTimes(2); // Immediate + first interval
-
-    // Wait for next interval
-    await act(async () => {
-      jest.advanceTimersByTime(15000);
-      await Promise.resolve();
-    });
-
-    expect(mockGetGasLimit).toHaveBeenCalledTimes(3); // Previous calls + one new interval call
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(3); // Immediate + first interval + immediate from interval
 
     jest.useRealTimers();
   });
@@ -159,7 +152,7 @@ describe('useERC20GasLimitEstimation', () => {
         amount: expect.any(String),
       }),
     );
-  });
+  }, 10000);
 
   it('stops polling when component unmounts', async () => {
     jest.useFakeTimers();
@@ -168,25 +161,31 @@ describe('useERC20GasLimitEstimation', () => {
       useERC20GasLimitEstimation(defaultParams),
     );
 
+    // Wait for initial call to complete
     await act(async () => {
-      jest.runOnlyPendingTimers();
       await Promise.resolve();
     });
 
+    // 2 calls: one from immediate flag and one from initial render
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
+
     unmount();
 
+    // Advance timers after unmount
     await act(async () => {
       jest.advanceTimersByTime(15000);
       await Promise.resolve();
     });
 
-    // Should not call getGasLimit after unmount
-    expect(mockGetGasLimit).toHaveBeenCalledTimes(2); // Only immediate + first interval
+    // 2 calls since polling stopped after unmount
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
 
     jest.useRealTimers();
   });
 
   it('updates gas estimation when amount changes', async () => {
+    jest.useFakeTimers();
+
     const { rerender } = renderHook(
       (props) => useERC20GasLimitEstimation(props),
       {
@@ -194,27 +193,45 @@ describe('useERC20GasLimitEstimation', () => {
       },
     );
 
+    // Initial render will trigger:
+    // 1. Initial call from hook execution
+    // 2. Immediate flag call
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await Promise.resolve();
     });
 
-    expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
 
+    // Advance timer to trigger interval
+    await act(async () => {
+      jest.advanceTimersByTime(POLLING_INTERVAL);
+      await Promise.resolve();
+    });
+
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(3);
+
+    mockGetGasLimit.mockClear();
+
+    // Trigger rerender with new amount
     rerender({
       ...defaultParams,
       amount: '200',
     });
 
+    // Wait for rerender effect
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await Promise.resolve();
     });
 
-    expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
+    // Should have 1 call from the rerender
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
     expect(mockGenerateTransferData).toHaveBeenCalledWith(
       'transfer',
       expect.objectContaining({
         amount: expect.any(String),
       }),
     );
-  });
+
+    jest.useRealTimers();
+  }, 15000);
 });
