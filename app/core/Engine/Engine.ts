@@ -228,6 +228,7 @@ import {
   SnapControllerHandleRequestAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
+import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
@@ -316,6 +317,7 @@ export class Engine {
         ApprovalType.WatchAsset,
       ],
     });
+    const appMetadataController = new AppMetadataController();
 
     const preferencesController = new PreferencesController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1361,6 +1363,7 @@ export class Engine {
         state: initialState.AddressBookController,
       }),
       AssetsContractController: assetsContractController,
+      AppMetadataController: appMetadataController,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
@@ -2179,6 +2182,7 @@ export default {
     assertEngineExists(instance);
     const {
       AccountTrackerController,
+      AppMetadataController,
       AddressBookController,
       SnapInterfaceController,
       NftController,
@@ -2226,6 +2230,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,

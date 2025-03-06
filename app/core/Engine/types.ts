@@ -244,6 +244,11 @@ import {
   EarnControllerState,
 } from '@metamask/earn-controller';
 
+import {
+  AppMetadataController,
+  AppMetadataControllerState,
+} from '@metamask/app-metadata-controller';
+
 /**
  * Controllers that area always instantiated
  */
@@ -400,6 +405,7 @@ export type BaseControllerMessenger = ExtendedControllerMessenger<
 export type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
+  AppMetadataController: AppMetadataController;
   AddressBookController: AddressBookController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
@@ -466,6 +472,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AppMetadataController: AppMetadataControllerState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
