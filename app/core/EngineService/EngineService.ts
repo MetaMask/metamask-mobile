@@ -15,7 +15,6 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { MetaMetrics } from '../Analytics';
-import { onServicesReady } from '../../actions/user';
 
 const LOG_TAG = 'EngineService';
 
@@ -65,8 +64,6 @@ export class EngineService {
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.updateControllers(Engine as unknown as TypedEngine);
-
-      ReduxService.store.dispatch(onServicesReady());
     } catch (error) {
       Logger.error(
         error as Error,

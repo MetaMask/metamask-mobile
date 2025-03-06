@@ -19,6 +19,7 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
+import { onServicesReady } from '../../actions/user';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -138,6 +139,8 @@ export function* startAppServices() {
   EngineService.start();
   AppStateEventProcessor.start();
   // TODO: Track a property in redux to gate keep the app until services are initialized
+
+  yield put(onServicesReady());
 }
 
 // Main generator function that initializes other sagas in parallel.

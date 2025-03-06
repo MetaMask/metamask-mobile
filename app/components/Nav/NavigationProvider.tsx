@@ -11,8 +11,6 @@ import { useDispatch } from 'react-redux';
 import NavigationService from '../../core/NavigationService';
 import { trace, endTrace, TraceOperation, TraceName } from '../../util/trace';
 import getUIStartupSpan from '../../core/Performance/UIStartup';
-import EngineService from '../../core/EngineService';
-import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 
 /**
  * Props for the NavigationProvider component
@@ -52,8 +50,6 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     endTrace({ name: TraceName.NavInit });
     // Dispatch navigation ready action, used by sagas
     dispatch(onNavigationReady());
-    EngineService.start();
-    AppStateEventProcessor.start();
   };
 
   /**
