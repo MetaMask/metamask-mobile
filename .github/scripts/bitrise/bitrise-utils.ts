@@ -102,6 +102,10 @@ export async function getBitriseTestStatus(bitriseComment: GithubComment): Promi
     return BitriseTestStatus.Success;
   }
 
+  if (bitriseComment.body?.includes(bitrisePendingTag)) {
+    return BitriseTestStatus.Pending;
+  }
+
   if (bitriseComment.body?.includes(bitriseFailTag)) {
     return BitriseTestStatus.Failure;
   }

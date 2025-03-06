@@ -1,20 +1,10 @@
 
-import {getLatestAssociatedBitriseComment, getOctokitInstance, getBitriseCommentForCommit, determineE2ERunFlags, shouldRunBitriseE2E, getBitriseTestStatus, BitriseTestStatus, getRecentCommits} from './bitrise-utils';
+import {getLatestAssociatedBitriseComment, determineE2ERunFlags, shouldRunBitriseE2E, getBitriseTestStatus, BitriseTestStatus, getRecentCommits} from './bitrise-utils';
 import * as core from '@actions/core';
-import { context, getOctokit } from '@actions/github';
-import { GitHub } from '@actions/github/lib/utils';
-import {
-    CompletedConclusionType,
-    PullRequestTriggerType,
-    StatusCheckStatusType,
-  } from '../scripts.types';
-
 async function main(): Promise<void> {
 
     // Get the commit hash from the GitHub context
     const recentCommits = await getRecentCommits();
-
-
     console.log(`Recent commits: ${recentCommits}`);
 
     // Determine the E2E run flags
