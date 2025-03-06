@@ -465,7 +465,7 @@
     "octonode": "0.10.2",
     "patch-package": "^6.2.2",
     "portfinder": "^1.0.32",
-    "prettier": "^2.2.1",
+    "prettier": "^3.5.3",
     "prettier-plugin-gherkin": "^1.1.1",
     "react-dom": "18.2.0",
     "react-native-flipper": "^0.273.0",
