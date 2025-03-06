@@ -1,9 +1,9 @@
 import React from 'react';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
+import { stakingWithdrawalConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
-import StakingDeposit from './StakingDeposit';
+import StakingWithdrawal from './StakingWithdrawal';
 import { getNavbar } from '../../Navbar/Navbar';
 
 jest.mock('../../../../../../../core/Engine', () => ({
@@ -38,7 +38,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-describe('StakingDeposit', () => {
+describe('StakingWithdrawal', () => {
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
 
@@ -57,8 +57,15 @@ describe('StakingDeposit', () => {
       onReject: mockOnReject,
     }));
 
-    const { getByText } = renderWithProvider(<StakingDeposit />, {
-      state: stakingDepositConfirmationState,
+    const { getByText } = renderWithProvider(<StakingWithdrawal route={{
+      params: {
+        amountWei: '1000000000000000000',
+        amountFiat: '1000000000000000000'
+      },
+      key: 'mockRouteKey',
+      name: 'params'
+    }} />, {
+      state: stakingWithdrawalConfirmationState,
     });
     expect(getByText('APR')).toBeDefined();
     expect(getByText('Est. annual reward')).toBeDefined();
@@ -69,7 +76,7 @@ describe('StakingDeposit', () => {
 
     expect(mockGetNavbar).toHaveBeenCalled();
     expect(mockGetNavbar).toHaveBeenCalledWith({
-      title: 'Stake',
+      title: 'Unstake',
       onReject: mockOnReject,
     });
   });
