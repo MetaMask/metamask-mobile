@@ -27,9 +27,7 @@ describe('AddChainApproval', () => {
   it('renders', () => {
     mockApprovalRequest({
       type: ApprovalTypes.ADD_ETHEREUM_CHAIN,
-      requestData: {
-        isNetworkRpcUpdate: false,
-      },
+      requestData: {},
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
