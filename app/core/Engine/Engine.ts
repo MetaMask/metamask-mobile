@@ -1548,12 +1548,13 @@ export class Engine {
       nfts.setApiKey(process.env.MM_OPENSEA_KEY);
     }
 
-    this.controllerMessenger.subscribe(
-      'TransactionController:incomingTransactionsReceived',
-      (incomingTransactions: TransactionMeta[]) => {
-        // NotificationManager.gotIncomingTransaction(incomingTransactions);
-      },
-    );
+    // this.controllerMessenger.subscribe(
+    //   'TransactionController:incomingTransactionsReceived',
+    //   (_: TransactionMeta[]) => {
+    //     return null;
+    //     // NotificationManager.gotIncomingTransaction(incomingTransactions);
+    //   },
+    // );
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
