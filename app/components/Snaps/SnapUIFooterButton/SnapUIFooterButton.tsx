@@ -25,6 +25,7 @@ import Button from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.styles';
 import { ButtonProps } from '@metamask/snaps-sdk/jsx';
+import { useTheme } from '../../../util/theme';
 
 const localStyles = StyleSheet.create({
   snapActionContainer: {
@@ -57,6 +58,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   snapVariant,
   ...props
 }) => {
+  const theme = useTheme();
   const { handleEvent, snapId } = useSnapInterfaceContext();
   const snaps = useSelector(selectSnaps);
   const snapMetadata = snaps[snapId as SnapId];
@@ -105,7 +107,16 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       );
     }
     return (
-      <Text variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}>{children}</Text>
+      <Text
+        variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
+        color={
+          variant === ButtonVariants.Primary
+            ? DEFAULT_BUTTONPRIMARY_LABEL_COLOR
+            : theme.colors.primary.default
+        }
+      >
+        {children}
+      </Text>
     );
   };
 
@@ -114,8 +125,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       {...props}
       variant={buttonVariant}
       onPress={handlePress}
-      disabled={disabled}
-      loading={loading}
+      isDisabled={disabled}
       label={buttonLabel()}
       size={ButtonSize.Lg}
       style={styles.button}

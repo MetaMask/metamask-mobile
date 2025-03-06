@@ -11,7 +11,10 @@
       "checkbox_label": "I have acknowledged the alert and still want to proceed",
       "review_alerts": "Review all alerts",
       "message": "We suggest you reject this request. If you continue, you might put your assets at risk."
-    }
+    },
+    "inline_alert_label": "Alert",
+    "review_alerts": "Review alerts",
+    "review_alert": "Review alert"
   },
   "blockaid_banner": {
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
@@ -2814,7 +2817,7 @@
     "token_to_verify": "to verify this is the token you're looking for.",
     "continue": "Continue",
     "select_a_token": "Select a token",
-    "search_token": "Search for a token",
+    "search_token": "Enter token name or paste address",
     "no_tokens_result": "No tokens match “{{searchString}}”",
     "find_token_address": "Find token address",
     "cant_find_token": "Can’t find a token?",
