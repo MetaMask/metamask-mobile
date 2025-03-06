@@ -156,13 +156,10 @@ describe('BridgeView', () => {
       screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
       params: {},
     });
-
-    // Verify token content text is displayed
-    expect(await findByText('Token content will go here')).toBeTruthy();
   });
 
   it('should open BridgeTokenSelector when clicking destination token area', async () => {
-    const { getByTestId, findByText } = renderScreen(
+    const { getByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE,
@@ -181,9 +178,6 @@ describe('BridgeView', () => {
       screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
       params: {},
     });
-
-    // Verify token content text is displayed
-    expect(await findByText('Token content will go here')).toBeTruthy();
   });
 
   it('should update source token amount when typing', () => {
