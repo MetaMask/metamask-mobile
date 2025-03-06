@@ -97,6 +97,7 @@ const initialState = {
 
   settings: {
     showTestNetworks: true,
+    primaryCurrency: 'ETH',
   },
 } as unknown as RootState;
 
@@ -124,14 +125,14 @@ describe('NonEvmTokens', () => {
   it('should display the Solana token with correct balance', async () => {
     const { getByTestId, getByText } = renderComponent();
     expect(getByText('SOL')).toBeDefined();
-    const balanceText = getByTestId('fiat-balance-test-id');
+    const balanceText = getByTestId('balance-test-id');
     expect(balanceText.props.children).toBe('5.5 SOL');
   });
 
   it('should show fiat value', async () => {
     const { getByTestId } = renderComponent();
     // With balance 5.5 and conversion rate 100, fiat value should be $550.00
-    const balanceText = getByTestId('main-balance-test-id');
+    const balanceText = getByTestId('secondary-balance-test-id');
     expect(balanceText).toBeDefined();
   });
 

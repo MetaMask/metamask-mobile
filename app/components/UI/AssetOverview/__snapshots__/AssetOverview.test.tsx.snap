@@ -1102,6 +1102,22 @@ exports[`AssetOverview should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+            testID="balance-test-id"
+          >
+            0 ETH
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
                 "color": "#6a737d",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
@@ -1112,9 +1128,9 @@ exports[`AssetOverview should render correctly 1`] = `
                 "textTransform": "uppercase",
               }
             }
-            testID="main-balance-test-id"
+            testID="secondary-balance-test-id"
           >
-            0 ETH
+            $0
           </Text>
         </View>
       </TouchableOpacity>
@@ -1126,7 +1142,43 @@ exports[`AssetOverview should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-    />
+    >
+      <View
+        style={
+          {
+            "gap": 24,
+            "marginTop": 24,
+          }
+        }
+      >
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 18,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "paddingVertical": 8,
+              }
+            }
+          >
+            Market details
+          </Text>
+          <View
+            style={
+              {
+                "paddingBottom": 8,
+                "paddingTop": 8,
+              }
+            }
+          />
+        </View>
+      </View>
+    </View>
   </View>
 </View>
 `;
@@ -2241,9 +2293,9 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                 "lineHeight": 24,
               }
             }
-            testID="fiat-balance-test-id"
+            testID="balance-test-id"
           >
-            1500
+            0 ETH
           </Text>
           <Text
             accessibilityRole="text"
@@ -2259,9 +2311,9 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                 "textTransform": "uppercase",
               }
             }
-            testID="main-balance-test-id"
+            testID="secondary-balance-test-id"
           >
-            0 ETH
+            $0
           </Text>
         </View>
       </TouchableOpacity>
