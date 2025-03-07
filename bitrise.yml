@@ -1931,7 +1931,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn detox test -c ios.sim.debug e2e/specs/flask/
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
