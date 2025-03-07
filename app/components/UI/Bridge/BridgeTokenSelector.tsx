@@ -22,7 +22,7 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import NetworkAssetLogo from '../NetworkAssetLogo';
 import { isMainnetByChainId } from '../../../util/networks';
 import images from '../../../images/image-icons';
-import { useSourceTokens } from './hooks/useSourceTokens';
+import { useSourceTokens } from './useSourceTokens';
 
 interface BridgeTokenSelectorProps {
   onClose?: () => void;
