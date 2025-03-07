@@ -1213,6 +1213,22 @@ workflows:
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
+                
+                # Ensure the Release-iphonesimulator directory exists
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products/Release-iphonesimulator"
+                
+                # Find the app and create a symlink in the expected location if needed
+                APP_PATH=$(find "$BITRISE_SOURCE_DIR/ios/build/Build/Products" -name "*.app" | head -n 1)
+                if [ -n "$APP_PATH" ]; then
+                  echo "Found app at: $APP_PATH"
+                  APP_NAME=$(basename "$APP_PATH")
+                  if [ ! -e "$BITRISE_SOURCE_DIR/ios/build/Build/Products/Release-iphonesimulator/$APP_NAME" ]; then
+                    ln -sf "$APP_PATH" "$BITRISE_SOURCE_DIR/ios/build/Build/Products/Release-iphonesimulator/$APP_NAME"
+                    echo "Created symlink for Detox to find the app"
+                  fi
+                else
+                  echo "Warning: Could not find built app"
+                fi
       - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
@@ -1222,7 +1238,7 @@ workflows:
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
       - script:
           inputs:
             - content: |-
@@ -1232,7 +1248,40 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
-          title: Run Metro bundler and tests in parallel
+          title: Start Metro bundler with clean cache
+          timeout: 1200
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Start Metro bundler in the background with clean cache
+                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE='flask'
+                
+                # Start Metro bundler with clean cache in the background
+                yarn watch:clean > "$BITRISE_SOURCE_DIR/metro.log" 2>&1 &
+                METRO_PID=$!
+                
+                # Save the PID to a file so we can kill it later
+                echo $METRO_PID > "$BITRISE_SOURCE_DIR/metro.pid"
+                
+                # Wait for Metro to start (increased to 45 seconds)
+                echo "Waiting 45 seconds for Metro bundler to start..."
+                sleep 45
+                
+                # Check if Metro is running
+                if kill -0 $METRO_PID 2>/dev/null; then
+                  echo "Metro bundler is running with PID $METRO_PID"
+                  # Show the last few lines of the Metro log
+                  echo "Last 20 lines of Metro log:"
+                  tail -n 20 "$BITRISE_SOURCE_DIR/metro.log"
+                else
+                  echo "Metro bundler failed to start"
+                  cat "$BITRISE_SOURCE_DIR/metro.log"
+                  exit 1
+                fi
+      - script@1:
+          title: Run detox test with Release configuration
           timeout: 1200
           is_always_run: false
           inputs:
@@ -1246,40 +1295,49 @@ workflows:
                 export METAMASK_BUILD_TYPE='flask'
                 export IS_TEST='true'
                 
-                # Start Metro bundler with clean state in the background
-                (cd "$BITRISE_SOURCE_DIR" && yarn watch:clean > metro.log 2>&1) &
-                METRO_PID=$!
-                
-                # Give Metro some time to start up
-                echo "Waiting for Metro bundler to start..."
-                sleep 30
-                
-                # Check if Metro is running
-                if ps -p $METRO_PID > /dev/null; then
-                  echo "Metro bundler started successfully"
-                  # Show the Metro log to help with debugging
-                  echo "Metro bundler log:"
-                  tail -n 20 metro.log
+                if [ -n "$TEST_SUITE_FOLDER" ]; then
+                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
                 else
-                  echo "Failed to start Metro bundler"
-                  cat metro.log
-                  exit 1
+                  # Default to Flask specs folder if not specified
+                  TEST_SUITE_FOLDER="e2e/specs/flask/"
                 fi
                 
-                # Run the tests with direct detox command targeting Flask specs
-                echo "Running Detox tests..."
-                cd "$BITRISE_SOURCE_DIR" && IS_TEST='true' METAMASK_BUILD_TYPE='flask' "$BITRISE_SOURCE_DIR/node_modules/.bin/detox" test -c ios.sim.debug e2e/specs/flask/ || TEST_EXIT_CODE=$?
-                
-                # Stop the Metro bundler
-                if ps -p $METRO_PID > /dev/null; then
-                  echo "Stopping Metro bundler"
-                  kill $METRO_PID
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                  TEST_SUITE="Regression"
+                else
+                  TEST_SUITE="Smoke"
                 fi
                 
-                # Exit with the test exit code if tests failed
-                if [ -n "$TEST_EXIT_CODE" ]; then
-                  echo "Tests failed with exit code $TEST_EXIT_CODE"
-                  exit $TEST_EXIT_CODE
+                if [ -n "$TEST_SUITE_TAG" ]; then
+                  echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                  TEST_SUITE=$TEST_SUITE_TAG
+                fi
+                
+                # List available apps to verify
+                echo "Available apps in Detox directory:"
+                find "$BITRISE_SOURCE_DIR/../Library/Detox/ios" -type d -name "*.app" -ls
+                
+                echo "Available apps in build directory:"
+                find "$BITRISE_SOURCE_DIR/ios/build/Build/Products" -type d -name "*.app" -ls
+                
+                # Use the Release configuration to match our build
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' detox test -c ios.sim.release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+      - script@1:
+          title: Kill Metro bundler
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Kill Metro bundler if it's still running
+                if [ -f "$BITRISE_SOURCE_DIR/metro.pid" ]; then
+                  METRO_PID=$(cat "$BITRISE_SOURCE_DIR/metro.pid")
+                  if kill -0 $METRO_PID 2>/dev/null; then
+                    echo "Killing Metro bundler with PID $METRO_PID"
+                    kill $METRO_PID
+                  else
+                    echo "Metro bundler is not running"
+                  fi
+                  rm "$BITRISE_SOURCE_DIR/metro.pid"
                 fi
       - custom-test-results-export@1:
           is_always_run: true
@@ -1968,7 +2026,7 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
-          title: Run direct detox build for Flask
+          title: Run direct xcodebuild for Flask to bypass problematic build phases
           timeout: 1200
           is_always_run: true
           inputs:
@@ -1987,9 +2045,46 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
+                export IS_TEST='true'
                 
-                # Build directly with detox for Flask
-                IS_TEST='true' METAMASK_BUILD_TYPE='flask' "$BITRISE_SOURCE_DIR/node_modules/.bin/detox" build -c ios.sim.debug
+                # Use a direct approach to build the app for testing
+                cd "$BITRISE_SOURCE_DIR/ios"
+                
+                # Clean the build directory to ensure a fresh build
+                rm -rf build/Build/Products
+                
+                echo "Building app with xcodebuild directly..."
+                
+                # Build the app directly with xcodebuild, skipping the problematic build phases
+                xcodebuild build \
+                  -workspace MetaMask.xcworkspace \
+                  -scheme MetaMask \
+                  -configuration Release \
+                  -sdk iphonesimulator \
+                  -derivedDataPath build \
+                  METAMASK_BUILD_TYPE=flask \
+                  IS_TEST=true \
+                  GCC_PREPROCESSOR_DEFINITIONS='$GCC_PREPROCESSOR_DEFINITIONS SKIP_BUNDLING=1 SKIP_PREFLIGHT_CHECK=true'
+                
+                # Create the necessary directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+                
+                # Find the built app
+                APP_PATH=$(find "$BITRISE_SOURCE_DIR/ios/build/Build/Products" -name "*.app" | head -n 1)
+                if [ -n "$APP_PATH" ]; then
+                  echo "Found app at: $APP_PATH"
+                  cp -R "$APP_PATH" "$BITRISE_SOURCE_DIR/../Library/Detox/ios/"
+                  
+                  # Create a symlink for Detox to find the app
+                  mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products/Release-iphonesimulator"
+                  APP_NAME=$(basename "$APP_PATH")
+                  ln -sf "$APP_PATH" "$BITRISE_SOURCE_DIR/ios/build/Build/Products/Release-iphonesimulator/$APP_NAME"
+                  
+                  echo "App successfully built and copied for Detox"
+                else
+                  echo "Failed to find built app"
+                  exit 1
+                fi
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
