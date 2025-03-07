@@ -2,7 +2,7 @@ name: Run Bitrise E2E Gate
 
 on:
   pull_request:
-    types: [labeled, unlabeled, synchronize]
+    types: [labeled, synchronize]
   merge_group: # Trigger on merge queue events to satisfy the branch protection rules
     types: [checks_requested]
 
