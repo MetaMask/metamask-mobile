@@ -11,6 +11,17 @@ import { GitHub } from '@actions/github/lib/utils';
 
 let octokitInstance: InstanceType<typeof GitHub> | null = null;
 
+
+interface Label {
+  id: number;
+  node_id: string;
+  url: string;
+  name: string;
+  color: string;
+  default: boolean;
+  description: string | null;
+}
+
 // Define an interface for the commit data returned by GitHub
 interface Commit {
   sha: string;
@@ -65,6 +76,36 @@ export async function getCommitHash() {
   const latestCommitHash = isMergeQueue() ? getMergeQueueCommitHash() : prCommitHash;
 
   return latestCommitHash;
+}
+
+export async function removeLabel(label: string) {
+
+  const { owner: owner, repo: repo, number: pullRequestNumber } = context.issue;
+
+  try {
+    // Get all labels for the issue (PR is considered an issue in terms of the API)
+    const { data: labels } = await getOctokitInstance().rest.labels.listForIssue({
+      owner,
+      repo,
+      issue_number
+    });
+
+    // Check if the label exists
+    if (labels.find((l: Label) => l.name === label))  {
+      // Remove the label
+      await getOctokitInstance().rest.issues.removeLabel({
+        owner,
+        repo,
+        issue_number,
+        name: label
+      });
+      console.log(`Label '${label}' removed successfully.`);
+    } else {
+      console.log(`Label '${label}' does not exist on issue #${issue_number}.`);
+    }
+  } catch (error) {
+    console.error('Error removing label:', error);
+  }
 }
 
 export async function getLatestAssociatedBitriseComment(commitHashes: string[]): Promise<GithubComment | undefined> {

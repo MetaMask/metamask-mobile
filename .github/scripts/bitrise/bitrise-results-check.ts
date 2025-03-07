@@ -1,5 +1,6 @@
 
-import {getLatestAssociatedBitriseComment, determineE2ERunFlags, shouldRunBitriseE2E, getBitriseTestStatus, BitriseTestStatus, getRecentCommits} from './bitrise-utils';
+import { pull } from 'lodash';
+import {removeLabel, getLatestAssociatedBitriseComment, determineE2ERunFlags, shouldRunBitriseE2E, getBitriseTestStatus, BitriseTestStatus, getRecentCommits} from './bitrise-utils';
 import * as core from '@actions/core';
 async function main(): Promise<void> {
 
@@ -9,9 +10,6 @@ async function main(): Promise<void> {
 
     // Determine the E2E run flags
     const flags = await determineE2ERunFlags();
-
-    //get last 5 commits
-    // get last 5 bitrise comments
 
     console.log(`Docs: ${flags.isDocs}`);
     console.log(`Fork: ${flags.isFork}`);
@@ -27,10 +25,15 @@ async function main(): Promise<void> {
         console.log(`Skipping E2E result evaluation. Reason: Merge Queue PR.`);
         return;
     }
+
     //It's required to have at least one of these two labels
     if (!flags.hasAntiLabel && !flags.hasSmokeTestLabel) {
         core.setFailed(`No "Run Smoke E2E" or "No E2E Smoke Needed" labels found. Please apply one of these labels to the PR.`);
     }
+
+    // Consume the label
+    await removeLabel("bitrise-result-ready");
+
 
     // If the E2E tests should run, check the Bitrise test status
     if (shouldRun) {

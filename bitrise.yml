@@ -443,7 +443,7 @@ workflows:
           - content: |-
               #!/usr/bin/env bash
               # Define label data
-              LABELS_JSON='{"labels":["new-label"]}'  # Modify 'new-label' to your desired label
+              LABELS_JSON='{"labels":["bitrise-result-ready"]}'
 
               # API URL to add labels to a PR
               API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
@@ -515,7 +515,7 @@ workflows:
           - content: |-
               #!/usr/bin/env bash
               # Define label data
-              LABELS_JSON='{"labels":["new-label"]}'  # Modify 'new-label' to your desired label
+              LABELS_JSON='{"labels":["bitrise-result-ready"]}'
 
               # API URL to add labels to a PR
               API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
