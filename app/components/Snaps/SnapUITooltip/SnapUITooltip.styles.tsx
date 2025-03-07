@@ -19,11 +19,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: Device.isIphoneX() ? 20 : 0,
       overflow: 'hidden',
     },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 16,
-    },
     content: {
       paddingHorizontal: 16,
     },

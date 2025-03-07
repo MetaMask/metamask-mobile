@@ -9,7 +9,7 @@ jest.mock(
   () => ({
     __esModule: true,
     default: function BottomSheetHeader({ onBack }: { onBack: () => void }) {
-      setTimeout(onBack, 0); // Simulate the back action when needed
+      setTimeout(onBack, 0);
       return null;
     },
   }),
