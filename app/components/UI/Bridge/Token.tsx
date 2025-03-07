@@ -14,7 +14,7 @@ import TokenIcon from '../Swaps/components/TokenIcon';
 
 interface TokenProps {
   symbol?: string;
-  iconUrl?: ImageSourcePropType;
+  iconUrl?: string;
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
   testID?: string;
@@ -86,7 +86,7 @@ export const Token: React.FC<TokenProps> = ({
         >
           <TokenIcon
             symbol={symbol}
-            icon={typeof iconUrl === 'string' ? iconUrl : undefined}
+            icon={iconUrl}
             style={styles.icon}
           />
         </BadgeWrapper>

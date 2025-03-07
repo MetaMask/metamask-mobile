@@ -203,7 +203,7 @@ const BridgeView = () => {
             value={sourceAmount}
             tokenSymbol={sourceToken?.symbol}
             tokenBalance={sourceBalance?.displayBalance}
-            tokenIconUrl={sourceToken?.image ? { uri: sourceToken.image } : undefined}
+            tokenIconUrl={sourceToken?.image}
             tokenAddress={sourceToken?.address}
             networkImageSource={getNetworkImage(sourceChainId)}
             autoFocus
@@ -223,7 +223,7 @@ const BridgeView = () => {
             value={destAmount}
             tokenSymbol={destToken?.symbol}
             tokenAddress={destToken?.address}
-            tokenIconUrl={destToken?.image ? { uri: destToken.image } : undefined}
+            tokenIconUrl={destToken?.image}
             networkImageSource={destChainId ? getNetworkImage(destChainId) : undefined}
             isReadonly
             testID="dest-token-area"
