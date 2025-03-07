@@ -6,6 +6,7 @@ import {
   AuthErrorAction,
   InterruptBiometricsAction,
   lockApp,
+  setAppServicesReady,
   UserActionType,
 } from '../../actions/user';
 import { NavigationActionType } from '../../actions/navigation';
@@ -19,7 +20,6 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import { setAppServicesReady } from '../../actions/user';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
