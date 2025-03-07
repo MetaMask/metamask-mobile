@@ -20,7 +20,7 @@ export function buildControllerInitRequestMock(
       controllerMessenger as unknown as BaseRestrictedControllerMessenger,
     getController: jest.fn(),
     getGlobalChainId: jest.fn(),
-    getUIState: jest.fn(),
+    getState: jest.fn(),
     initMessenger: jest.fn() as unknown as void,
     persistedState: {},
   };

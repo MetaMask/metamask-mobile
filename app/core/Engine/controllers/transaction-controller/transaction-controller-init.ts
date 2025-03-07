@@ -33,7 +33,7 @@ export const TransactionControllerInit: ControllerInitFunction<
 > = (request) => {
   const {
     controllerMessenger,
-    getUIState,
+    getState,
     getGlobalChainId,
     initMessenger,
     persistedState,
@@ -70,14 +70,14 @@ export const TransactionControllerInit: ControllerInitFunction<
         getNetworkState: () => networkController.state,
         hooks: {
           publish: (transactionMeta: TransactionMeta) =>
-            publishHook(
+            publishHook({
               transactionMeta,
-              getUIState,
+              getState,
               transactionController,
               smartTransactionsController,
               approvalController,
               initMessenger,
-            ),
+            }),
         },
         incomingTransactions: {
           isEnabled: () =>
@@ -105,15 +105,22 @@ export const TransactionControllerInit: ControllerInitFunction<
   }
 };
 
-function publishHook(
-  transactionMeta: TransactionMeta,
-  getUIState: () => RootState,
-  transactionController: TransactionController,
-  smartTransactionsController: SmartTransactionsController,
-  approvalController: ApprovalController,
-  initMessenger: TransactionControllerInitMessenger,
-): Promise<{ transactionHash: string }> {
-  const state = getUIState();
+function publishHook({
+  transactionMeta,
+  getState,
+  transactionController,
+  smartTransactionsController,
+  approvalController,
+  initMessenger,
+}: {
+  transactionMeta: TransactionMeta;
+  getState: () => RootState;
+  transactionController: TransactionController;
+  smartTransactionsController: SmartTransactionsController;
+  approvalController: ApprovalController;
+  initMessenger: TransactionControllerInitMessenger;
+}): Promise<{ transactionHash: string }> {
+  const state = getState();
   const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
 
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined

@@ -34,7 +34,7 @@ type InitFunction<Name extends ControllersToInitialize> =
  * @param options.controllerInitFunctions - Map of init functions keyed by controller name.
  * @param options.existingControllersByName - All required controllers that have already been initialized.
  * @param options.getGlobalChainId - Get settled chain id in the engine.
- * @param options.getUIState - Get the root state of the engine.
+ * @param options.getState - Get the root state of the engine.
  * @param options.persistedState - The full persisted state for all controllers.
  * @returns The initialized controllers and associated data.
  */

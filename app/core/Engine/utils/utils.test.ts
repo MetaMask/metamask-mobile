@@ -84,7 +84,7 @@ describe('initModularizedControllers', () => {
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
         getGlobalChainId: jest.fn(),
-        getUIState: jest.fn(),
+        getState: jest.fn(),
       },
       overrides,
     );

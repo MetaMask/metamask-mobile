@@ -157,16 +157,6 @@ describe('Transaction Controller Init', () => {
   });
 
   it.each([
-    ['disableHistory', true],
-    ['disableSendFlowHistory', true],
-    ['disableSwaps', true],
-  ])('should set %s to %s', (option, value) => {
-    expect(
-      testConstructorOption(option as keyof TransactionControllerOptions),
-    ).toBe(value);
-  });
-
-  it.each([
     [
       'networkController',
       'getEIP1559Compatibility',

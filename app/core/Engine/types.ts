@@ -606,7 +606,7 @@ export type ControllerInitRequest<
   ): ControllerByName[Name];
 
   /**
-   * Get the chain id set in the engine.
+   * Retrieve the chain ID of the globally selected network.
    *
    * @deprecated Will be removed in the future pending multi-chain support.
    */
@@ -617,7 +617,7 @@ export type ControllerInitRequest<
    * whereas `persistedState` contains only the subset of state persisted across sessions.
    * For example: `{ settings, user, engine: { backgroundState: EngineState } }`.
    */
-  getUIState: () => RootState;
+  getState: () => RootState;
 
   /**
    * Required initialization messenger instance.
@@ -666,7 +666,7 @@ export type InitModularizedControllersFunction = (request: {
   controllerInitFunctions: ControllerInitFunctionByControllerName;
   existingControllersByName?: Partial<ControllerByName>;
   getGlobalChainId: () => Hex;
-  getUIState: () => RootState;
+  getState: () => RootState;
   persistedState: ControllerPersistedState;
 }) => {
   controllersByName: ControllerByName;
