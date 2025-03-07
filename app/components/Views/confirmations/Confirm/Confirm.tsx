@@ -74,7 +74,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
       style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >
-      <View testID={approvalRequest?.type}>
+      <View testID={approvalRequest?.type} style={styles.confirmContainer}>
         <ConfirmWrapped styles={styles} route={route} />
       </View>
     </BottomSheet>
