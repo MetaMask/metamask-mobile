@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
-import Label from '../../../../component-library/components/Form/Label';
+import { useSnapInterfaceContext } from '../SnapInterfaceContext';
+import Label from '../../../component-library/components/Form/Label';
 import HelpText, {
   HelpTextSeverity,
-} from '../../../../component-library/components/Form/HelpText';
-import { Box } from '../../Box/Box';
-import { FlexDirection } from '../../Box/box.types';
-import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ButtonWidthTypes } from '../../../../component-library/components/Buttons/Button';
-import { useStyles } from '../../../hooks/useStyles';
+} from '../../../component-library/components/Form/HelpText';
+import { Box } from '../../UI/Box/Box';
+import { FlexDirection } from '../../UI/Box/box.types';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
+import { useStyles } from '../../hooks/useStyles';
 import stylesheet from './SnapUISelector.styles';
 import { View, ScrollView, ViewStyle } from 'react-native';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ApprovalModal from '../../../Approvals/ApprovalModal';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+import ApprovalModal from '../../Approvals/ApprovalModal';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
 
 export interface SnapUISelectorProps {
   name: string;

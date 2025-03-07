@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
+import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { TextInput, ViewStyle } from 'react-native';
 import TextField, {
   TextFieldSize,
-} from '../../../../component-library/components/Form/TextField';
+} from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
-} from '../../../../component-library/components/Form/HelpText';
-import Label from '../../../../component-library/components/Form/Label';
-import { Box } from '../../Box/Box';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
+} from '../../../component-library/components/Form/HelpText';
+import Label from '../../../component-library/components/Form/Label';
+import { Box } from '../../UI/Box/Box';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
 
 export interface SnapUIInputProps {
   name: string;

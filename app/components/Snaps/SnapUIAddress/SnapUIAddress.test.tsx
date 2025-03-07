@@ -1,6 +1,6 @@
 import React from 'react';
 import { SnapUIAddress } from './SnapUIAddress';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 const baseMockState = {
   state: {
