@@ -99,12 +99,12 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
         ...token,
         balance: formattedBalance,
         balanceFiat,
-        logo: token.image || '',
+        logo: token.image,
         isETH: token.address === constants.AddressZero,
         isNative: token.address === constants.AddressZero,
         aggregators: token.aggregators || [],
-        image: token.image || '',
-        name: token.name || token.symbol,
+        image: token.image ?? '',
+        name: token.name ?? '',
         hasBalanceError: false,
       };
 
@@ -146,29 +146,6 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
     navigation.goBack();
   }, [dispatch, navigation]);
 
-  const renderTokenAvatar = useCallback((token: TokenI) => {
-    if (token.isNative) {
-      return (
-        <NetworkAssetLogo
-          chainId={currentChainId}
-          style={styles.ethLogo}
-          ticker={token.ticker || ''}
-          big={false}
-          biggest={false}
-          testID={`network-logo-${token.symbol}`}
-        />
-      );
-    }
-
-    return (
-      <AvatarToken
-        name={token.symbol}
-        imageSource={token.image ? { uri: token.image } : undefined}
-        size={AvatarSize.Md}
-      />
-    );
-  }, [currentChainId, styles.ethLogo]);
-
   const getNetworkBadgeDetails = useCallback((chainId: Hex) => {
     const network = networkConfigurations[chainId];
     const isMainnet = isMainnetByChainId(chainId);
@@ -207,7 +184,22 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
                     />
                   }
                 >
-                  {renderTokenAvatar(token)}
+                  {token.isNative ? (
+                    <NetworkAssetLogo
+                      chainId={currentChainId}
+                      style={styles.ethLogo}
+                      ticker={token.ticker || ''}
+                      big={false}
+                      biggest={false}
+                      testID={`network-logo-${token.symbol}`}
+                    />
+                  ) : (
+                    <AvatarToken
+                      name={token.symbol}
+                      imageSource={token.image ? { uri: token.image } : undefined}
+                      size={AvatarSize.Md}
+                    />
+                  )}
                 </BadgeWrapper>
                 <View style={styles.balances}>
                   <View style={styles.assetName}>

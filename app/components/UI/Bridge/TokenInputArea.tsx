@@ -14,7 +14,7 @@ interface TokenInputAreaProps {
   tokenSymbol?: string;
   tokenAddress?: string;
   tokenBalance?: string;
-  tokenIconUrl?: ImageSourcePropType;
+  tokenIconUrl?: string;
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
   autoFocus?: boolean;
