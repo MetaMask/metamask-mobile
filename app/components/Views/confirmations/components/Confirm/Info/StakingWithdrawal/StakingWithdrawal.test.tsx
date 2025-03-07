@@ -1,10 +1,10 @@
+import { merge } from 'lodash';
 import React from 'react';
-
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { stakingWithdrawalConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
-import StakingWithdrawal from './StakingWithdrawal';
 import { getNavbar } from '../../Navbar/Navbar';
+import StakingWithdrawal from './StakingWithdrawal';
 
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -65,14 +65,30 @@ describe('StakingWithdrawal', () => {
       key: 'mockRouteKey',
       name: 'params'
     }} />, {
-      state: stakingWithdrawalConfirmationState,
+      state: merge(stakingWithdrawalConfirmationState, {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '0x0000000000000000000000000000000000000000': {
+                    address: '0x0000000000000000000000000000000000000000',
+                  },
+                },
+                selectedAccount: '0x0000000000000000000000000000000000000000',
+              },
+            },
+          }
+        }
+      }),
     });
-    expect(getByText('APR')).toBeDefined();
-    expect(getByText('Est. annual reward')).toBeDefined();
-    expect(getByText('Reward frequency')).toBeDefined();
     expect(getByText('Withdrawal time')).toBeDefined();
+
+    expect(getByText('Unstaking to')).toBeDefined();
+    expect(getByText('Interacting with')).toBeDefined();
+    expect(getByText('Network')).toBeDefined();
+
     expect(getByText('Network Fee')).toBeDefined();
-    expect(getByText('Advanced details')).toBeDefined();
 
     expect(mockGetNavbar).toHaveBeenCalled();
     expect(mockGetNavbar).toHaveBeenCalledWith({

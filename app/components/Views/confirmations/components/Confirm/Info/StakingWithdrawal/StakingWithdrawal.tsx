@@ -3,10 +3,11 @@ import React, { useEffect } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
 import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
-import AdvancedDetails from '../../AdvancedDetails/AdvancedDetails';
+import InfoSection from '../../../UI/InfoRow/InfoSection';
+import ContractInteractionDetails, { ContractInteractionDetailsVariant } from '../../ContractInteractionDetails/ContractInteractionDetails';
 import { getNavbar } from '../../Navbar/Navbar';
-import StakingDetails from '../../StakingDetails';
 import TokenHero from '../../TokenHero';
+import UnstakingTimeSection from '../../UnstakingTime/UnstakingTime';
 import GasFeesDetails from '../GasFeesDetails';
 
 const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
@@ -25,9 +26,11 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   return (
     <>
       <TokenHero amountWei={route?.params?.amountWei} />
-      <StakingDetails />
+      <UnstakingTimeSection />
+      <InfoSection>
+        <ContractInteractionDetails variant={ContractInteractionDetailsVariant.StakingWithdrawal} />
+      </InfoSection>
       <GasFeesDetails />
-      <AdvancedDetails />
     </>
   );
 };

@@ -1,17 +1,19 @@
+import { act } from '@testing-library/react-native';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { act } from '@testing-library/react-native';
 
-import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
   securityAlertResponse,
   stakingDepositConfirmationState,
+  stakingWithdrawalConfirmationState,
   typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
 
+import { merge } from 'lodash';
 import { Confirm } from './Confirm';
 
 jest.mock('@react-navigation/native', () => ({
@@ -106,6 +108,28 @@ describe('Confirm', () => {
     expect(getByTestId('flat-confirmation-container')).toBeDefined();
   });
 
+  it('renders a flat confirmation for specified type(s): staking withdrawal', () => {
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: merge(stakingWithdrawalConfirmationState, {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '0x0000000000000000000000000000000000000000': {
+                    address: '0x0000000000000000000000000000000000000000',
+                  },
+                },
+                selectedAccount: '0x0000000000000000000000000000000000000000',
+              },
+            },
+          }
+        }
+      }),
+    });
+    expect(getByTestId('flat-confirmation-container')).toBeDefined();
+  });
+
   it('renders correct information for personal sign', () => {
     const { getAllByRole, getByText } = renderWithProvider(
       <SafeAreaProvider>
@@ -155,6 +179,32 @@ describe('Confirm', () => {
     expect(getByText('Withdrawal time')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
+  });
+
+  it('renders correct information for staking withdrawal', async () => {
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: merge(stakingWithdrawalConfirmationState, {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '0x0000000000000000000000000000000000000000': {
+                    address: '0x0000000000000000000000000000000000000000',
+                  },
+                },
+                selectedAccount: '0x0000000000000000000000000000000000000000',
+              },
+            },
+          }
+        }
+      }),
+    });
+    expect(getByText('Withdrawal time')).toBeDefined();
+    expect(getByText('Unstaking to')).toBeDefined();
+    expect(getByText('Interacting with')).toBeDefined();
+    expect(getByText('Network')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
   });
 
   it('renders a blockaid banner if the confirmation has blockaid error response', async () => {
