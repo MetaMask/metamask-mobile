@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -6,6 +7,7 @@ import useHandleBridgeTx from './useHandleBridgeTx';
 import useHandleApprovalTx from './useHandleApprovalTx';
 import { DummyQuotesNoApproval, DummyQuotesWithApproval } from '../../../test/data/bridge/dummy-quotes';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
+import Engine from '../../../core/Engine';
 
 jest.mock('./useHandleBridgeTx');
 jest.mock('./useHandleApprovalTx');
@@ -65,7 +67,6 @@ const mockStore = configureMockStore();
 describe('useSubmitBridgeTx', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    require('../../../core/Engine').context.TokensController.addToken.mockClear();
   });
 
   const mockHandleBridgeTx = jest.fn();
@@ -130,7 +131,7 @@ describe('useSubmitBridgeTx', () => {
       quoteResponse: mockQuoteResponse,
       approvalTxId: '123',
     });
-    expect(require('../../../core/Engine').context.TokensController.addToken).toHaveBeenCalledWith(
+    expect(Engine.context.TokensController.addToken).toHaveBeenCalledWith(
       expect.objectContaining({
         address: mockQuoteResponse.quote.srcAsset.address,
         symbol: mockQuoteResponse.quote.srcAsset.symbol,
