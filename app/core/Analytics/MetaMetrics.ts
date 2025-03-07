@@ -36,9 +36,6 @@ import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsM
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
-import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
-
-const EXPECTED_ERRORS_PORTION_TO_TRACK: number = __DEV__ ? 1 : 0.01;
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -557,10 +554,6 @@ class MetaMetrics implements IMetaMetrics {
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
 
       this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
-
-      // decide whether to track expected "errors"
-      const deterministicRandomNumber = generateDeterministicRandomNumber(this.metametricsId);
-      this.shouldTrackExpectedErrors = deterministicRandomNumber < EXPECTED_ERRORS_PORTION_TO_TRACK;
       this.#isConfigured = true;
 
       // identify user with the latest traits
