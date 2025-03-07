@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, ScrollView, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -10,11 +10,6 @@ import BottomSheetHeader from '../../../component-library/components/BottomSheet
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import { TokenI } from '../Tokens/types';
 import AssetElement from '../AssetElement';
-import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
-import { selectTokenSortConfig } from '../../../selectors/preferencesController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { sortAssets } from '../Tokens/util';
 import { Hex } from '@metamask/utils';
 import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
 import { BridgeToken } from './types';
@@ -25,13 +20,9 @@ import Badge, { BadgeVariant } from '../../../component-library/components/Badge
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import NetworkAssetLogo from '../NetworkAssetLogo';
-import { constants, utils } from 'ethers';
 import { isMainnetByChainId } from '../../../util/networks';
 import images from '../../../images/image-icons';
-import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
-import { selectCurrencyRates, selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { zeroAddress } from 'ethereumjs-util';
-import { addCurrencySymbol } from '../../../util/number';
+import { useSourceTokens } from './hooks/useSourceTokens';
 
 interface BridgeTokenSelectorProps {
   onClose?: () => void;
@@ -68,70 +59,9 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const tokenSortConfig = useSelector(selectTokenSortConfig);
-  const selectedInternalAccountAddress = useSelector(selectSelectedInternalAccountAddress) as Hex;
-  const tokenBalances = useSelector(selectTokensBalances);
-  const tokens = useSelector(selectTokens);
   const currentChainId = useSelector(selectChainId) as Hex;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const multiChainMarketData = useSelector(selectTokenMarketData);
-  const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-
-  const tokensList = useMemo(() => {
-    const tokensWithBalances = tokens.map((token) => {
-      const balance = tokenBalances?.[selectedInternalAccountAddress]?.[currentChainId]?.[token.address as Hex];
-      const formattedBalance = balance ? utils.formatUnits(balance, token.decimals) : '0';
-
-      const exchangeRates = multiChainMarketData?.[currentChainId];
-      const nativeCurrency = networkConfigurations[currentChainId]?.nativeCurrency;
-      const conversionRate = multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
-
-      const tokenAddress = token.address as Hex;
-      const tokenMarketData = token.address === constants.AddressZero ? exchangeRates?.[zeroAddress() as Hex] : exchangeRates?.[tokenAddress];
-      const tokenPrice = tokenMarketData?.price || 0;
-      const fiatValue = parseFloat(formattedBalance) * tokenPrice * conversionRate;
-      const balanceFiat = fiatValue >= 0.01 || fiatValue === 0
-        ? addCurrencySymbol(fiatValue, currentCurrency)
-        : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
-
-      const tokenWithRequiredProps: TokenI = {
-        ...token,
-        balance: formattedBalance,
-        balanceFiat,
-        logo: token.image,
-        isETH: token.address === constants.AddressZero,
-        isNative: token.address === constants.AddressZero,
-        aggregators: token.aggregators || [],
-        image: token.image ?? '',
-        name: token.name ?? '',
-        hasBalanceError: false,
-      };
-
-      const pricePercentChange1d = tokenMarketData?.pricePercentChange1d || 0;
-
-      return {
-        ...tokenWithRequiredProps,
-        chainId: currentChainId,
-        balance: formattedBalance,
-        tokenFiatAmount: fiatValue,
-        balanceFiat,
-        pricePercentChange1d,
-      };
-    });
-
-    return sortAssets(tokensWithBalances, tokenSortConfig);
-  }, [
-    tokens,
-    tokenSortConfig,
-    tokenBalances,
-    selectedInternalAccountAddress,
-    currentChainId,
-    multiChainMarketData,
-    multiChainCurrencyRates,
-    currentCurrency,
-    networkConfigurations,
-  ]);
+  const tokensList = useSourceTokens();
 
   const handleTokenPress = useCallback((token: TokenI) => {
     const bridgeToken: BridgeToken = {
