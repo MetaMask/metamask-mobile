@@ -376,4 +376,27 @@ describe('re-renders', () => {
     expect(mockRenderCall).toHaveBeenCalledTimes(1);
     expect(getByText(newToken.name)).toBeDefined();
   });
+
+  it('should return exactly same data if state does not change', async () => {
+    expect(mockRenderCall).toHaveBeenCalledTimes(1);
+    mockRenderCall.mockReset();
+    const result1 = selectAccountTokensAcrossChains(mockState);
+
+    Engine.state.TokensController.allTokens = mockAllTokens;
+
+    act(() => {
+      store.dispatch({
+        type: 'UPDATE_BG_STATE',
+        payload: {
+          key: 'TokensController',
+        },
+      });
+    });
+
+    const result2 = selectAccountTokensAcrossChains(mockState);
+
+    expect(result1 === result2).toBe(true);
+    // same data should not trigger re-render
+    expect(mockRenderCall).toHaveBeenCalledTimes(0);
+  });
 });
