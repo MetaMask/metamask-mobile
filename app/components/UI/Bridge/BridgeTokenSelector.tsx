@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, FlatList, View } from 'react-native';
+import { StyleSheet, FlatList, View, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '../Box/Box';
@@ -24,6 +24,8 @@ import { isMainnetByChainId } from '../../../util/networks';
 import images from '../../../images/image-icons';
 import { useSourceTokens } from './useSourceTokens';
 import Engine from '../../../core/Engine';
+import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
+import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
 
 interface BridgeTokenSelectorProps {
   onClose?: () => void;
@@ -54,13 +56,26 @@ const createStyles = (params: { theme: Theme }) => {
     listContent: {
       paddingBottom: 24,
     },
+    headerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '100%',
+      position: 'relative',
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: 'center',
+    },
+    closeIcon: {
+      padding: 8,
+      position: 'absolute',
+      right: 0,
+    },
   });
 };
 
-export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
-  onClose,
-}) => {
-  const { styles } = useStyles(createStyles, {});
+export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
+  const { styles, theme } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const currentChainId = useSelector(selectChainId) as Hex;
@@ -158,8 +173,19 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
   return (
     <BottomSheet isFullscreen>
       <Box style={styles.content}>
-        <BottomSheetHeader onClose={onClose}>
-          <Text variant={TextVariant.HeadingMD}>Select Token</Text>
+        <BottomSheetHeader>
+          <View style={styles.headerContainer}>
+            <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
+              Select Token
+            </Text>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeIcon} testID="bridge-token-selector-close-button">
+              <Icon
+                name={IconName.Close}
+                size={IconSize.Sm}
+                color={theme.colors.icon.default}
+              />
+            </TouchableOpacity>
+          </View>
         </BottomSheetHeader>
 
         <FlatList
