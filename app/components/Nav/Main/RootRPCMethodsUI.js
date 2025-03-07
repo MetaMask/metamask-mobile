@@ -74,7 +74,7 @@ import { updateSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
-import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapsDialogApproval';
+import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapDialogApproval';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';

@@ -10,8 +10,8 @@ import {
 } from '@metamask/utils';
 import { Image } from 'react-native';
 import Jazzicon from 'react-native-jazzicon';
-import { toDataUrl } from '../../../../util/blockies';
-import { RootState } from '../../../../reducers';
+import { toDataUrl } from '../../../util/blockies';
+import { RootState } from '../../../reducers';
 
 export const DIAMETERS: Record<string, number> = {
   xs: 16,

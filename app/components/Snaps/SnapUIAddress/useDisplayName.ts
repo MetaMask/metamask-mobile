@@ -4,11 +4,11 @@ import {
   CaipNamespace,
 } from '@metamask/utils';
 import { useSelector } from 'react-redux';
-import { decimalToHex } from '../../../../util/conversions';
-import { RootState } from '../../../../reducers';
-import { selectInternalAccounts } from '../../../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../../../util/general';
-import { selectAddressBookByChain } from '../../../../selectors/addressBookController';
+import { decimalToHex } from '../../../util/conversions';
+import { RootState } from '../../../reducers';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { toLowerCaseEquals } from '../../../util/general';
+import { selectAddressBookByChain } from '../../../selectors/addressBookController';
 
 export interface UseDisplayNameParams {
   chain: {

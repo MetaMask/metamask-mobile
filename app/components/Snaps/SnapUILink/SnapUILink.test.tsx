@@ -2,13 +2,13 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import { SnapUILink } from './SnapUILink';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import { TextColor } from '../../../../component-library/components/Texts/Text';
+} from '../../../component-library/components/Icons/Icon';
+import { TextColor } from '../../../component-library/components/Texts/Text';
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),

@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { SnapUIInput } from './SnapUIInput';
-import { useSnapInterfaceContext } from '../../../Snaps/SnapInterfaceContext';
+import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 
 // Mock the entire module
-jest.mock('../../../Snaps/SnapInterfaceContext');
+jest.mock('../SnapInterfaceContext');
 
 describe('SnapUIInput', () => {
   const mockHandleInputChange = jest.fn();

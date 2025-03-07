@@ -26,7 +26,7 @@ import {
   SNAP_INSTALL_CONNECTION_REQUEST,
 } from './InstallSnapConnectionRequest.constants';
 import { useFavicon } from '../../../../hooks/useFavicon';
-import { SnapAvatar } from '../../../../UI/Snaps/SnapAvatar/SnapAvatar';
+import { SnapAvatar } from '../../../../Snaps/SnapAvatar/SnapAvatar';
 
 const InstallSnapConnectionRequest = ({
   approvalRequest,
