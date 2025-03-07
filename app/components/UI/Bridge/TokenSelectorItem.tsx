@@ -6,6 +6,7 @@ import { TokenI } from '../Tokens/types';
 import AssetElement from '../AssetElement';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import NetworkAssetLogo from '../NetworkAssetLogo';
@@ -85,6 +86,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       balance={fiatValue}
     >
       <BadgeWrapper
+        badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
