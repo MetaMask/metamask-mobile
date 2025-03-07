@@ -4,7 +4,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { SnapUIImage } from '../../UI/Snaps/SnapUIImage/SnapUIImage';
+import { SnapUIImage } from '../SnapUIImage/SnapUIImage';
 import {
   FlexDirection,
   TextAlign,
