@@ -96,7 +96,8 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
 
   const renderItem = useCallback(({ item: token }: { item: TokenI }) => {
     const networkDetails = getNetworkBadgeDetails(currentChainId);
-    const balanceWithSymbol = `${token.balance} ${token.symbol}`;
+    const hasBalance = parseFloat(token.balance) > 0;
+    const balanceWithSymbol = hasBalance ? `${token.balance} ${token.symbol}` : undefined;
 
     return (
       <AssetElement
@@ -104,7 +105,7 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
         asset={token}
         onPress={() => handleTokenPress(token)}
         mainBalance={balanceWithSymbol}
-        balance={token.balanceFiat}
+        balance={hasBalance ? token.balanceFiat : undefined}
       >
         <BadgeWrapper
           badgeElement={
