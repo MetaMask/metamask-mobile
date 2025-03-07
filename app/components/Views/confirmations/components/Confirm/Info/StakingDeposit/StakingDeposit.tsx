@@ -4,7 +4,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import AdvancedDetails from '../../AdvancedDetails/AdvancedDetails';
 import { getNavbar } from '../../Navbar/Navbar';
-import StakingDetails from '../../StakingDetails';
+import StakingDetails from '../../StakingDetails/StakingDetails';
 import TokenHero from '../../TokenHero';
 import GasFeesDetails from '../GasFeesDetails';
 
