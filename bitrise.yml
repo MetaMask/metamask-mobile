@@ -1232,31 +1232,7 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
-          title: Start Metro bundler in background
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                # Start Metro bundler in the background
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='flask'
-                
-                # Start the Metro bundler in the background
-                yarn watch > metro.log 2>&1 &
-                echo $! > metro.pid
-                
-                # Give Metro some time to start up
-                sleep 10
-                
-                # Check if Metro is running
-                if ps -p $(cat metro.pid) > /dev/null; then
-                  echo "Metro bundler started successfully"
-                else
-                  echo "Failed to start Metro bundler"
-                  cat metro.log
-                  exit 1
-                fi
-      - script@1:
-          title: Run detox test
+          title: Run Metro bundler and tests in parallel
           timeout: 1200
           is_always_run: false
           inputs:
@@ -1265,25 +1241,45 @@ workflows:
                 # Make sure node_modules/.bin is in PATH for detox
                 export PATH="$BITRISE_SOURCE_DIR/node_modules/.bin:$PATH"
                 
-                node -v
+                # Set environment variables
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
+                export IS_TEST='true'
+                
+                # Start Metro bundler with clean state in the background
+                (cd "$BITRISE_SOURCE_DIR" && yarn watch:clean > metro.log 2>&1) &
+                METRO_PID=$!
+                
+                # Give Metro some time to start up
+                echo "Waiting for Metro bundler to start..."
+                sleep 30
+                
+                # Check if Metro is running
+                if ps -p $METRO_PID > /dev/null; then
+                  echo "Metro bundler started successfully"
+                  # Show the Metro log to help with debugging
+                  echo "Metro bundler log:"
+                  tail -n 20 metro.log
+                else
+                  echo "Failed to start Metro bundler"
+                  cat metro.log
+                  exit 1
+                fi
                 
                 # Run the tests with direct detox command targeting Flask specs
-                IS_TEST='true' METAMASK_BUILD_TYPE='flask' "$BITRISE_SOURCE_DIR/node_modules/.bin/detox" test -c ios.sim.debug e2e/specs/flask/
-      - script@1:
-          title: Stop Metro bundler
-          is_always_run: true
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                # Stop the Metro bundler if it's running
-                if [ -f metro.pid ]; then
-                  if ps -p $(cat metro.pid) > /dev/null; then
-                    echo "Stopping Metro bundler"
-                    kill $(cat metro.pid)
-                  fi
-                  rm metro.pid
+                echo "Running Detox tests..."
+                cd "$BITRISE_SOURCE_DIR" && IS_TEST='true' METAMASK_BUILD_TYPE='flask' "$BITRISE_SOURCE_DIR/node_modules/.bin/detox" test -c ios.sim.debug e2e/specs/flask/ || TEST_EXIT_CODE=$?
+                
+                # Stop the Metro bundler
+                if ps -p $METRO_PID > /dev/null; then
+                  echo "Stopping Metro bundler"
+                  kill $METRO_PID
+                fi
+                
+                # Exit with the test exit code if tests failed
+                if [ -n "$TEST_EXIT_CODE" ]; then
+                  echo "Tests failed with exit code $TEST_EXIT_CODE"
+                  exit $TEST_EXIT_CODE
                 fi
       - custom-test-results-export@1:
           is_always_run: true
@@ -1972,7 +1968,7 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
-          title: Run detox build
+          title: Run direct detox build for Flask
           timeout: 1200
           is_always_run: true
           inputs:
@@ -1992,7 +1988,7 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
                 
-                # Build using the debug configuration which is more compatible with Metro bundler
+                # Build directly with detox for Flask
                 IS_TEST='true' METAMASK_BUILD_TYPE='flask' "$BITRISE_SOURCE_DIR/node_modules/.bin/detox" build -c ios.sim.debug
       - save-cocoapods-cache@1: {}
       - save-cache@1:
