@@ -22,7 +22,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
-import { isMainNet } from '../../../util/networks';
+import { isMainNet, isTestNet } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
   WalletDevice,
@@ -376,10 +376,11 @@ class TransactionElement extends PureComponent {
             </ListItem.Body>
             {Boolean(value) && (
               <ListItem.Amounts>
-                <ListItem.FiatAmount style={styles.listItemFiatAmount}>
-                  {fiatValue}
-                </ListItem.FiatAmount>
-
+                {!isTestNet(chainId) && (
+                  <ListItem.FiatAmount style={styles.listItemFiatAmount}>
+                    {fiatValue}
+                  </ListItem.FiatAmount>
+                )}
                 <ListItem.Amount style={styles.listItemAmount}>
                   {value}
                 </ListItem.Amount>

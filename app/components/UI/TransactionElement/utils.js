@@ -182,6 +182,7 @@ function getTokenTransfer(args) {
       summarySecondaryTotalAmount: `${renderToken} ${strings(
         'unit.divisor',
       )} ${renderFromWei(totalGas)} ${ticker}`,
+      txChainId,
     };
   }
 
@@ -246,6 +247,7 @@ function getCollectibleTransfer(args) {
         conversionRate,
         currentCurrency,
       ),
+      txChainId,
     };
   } else {
     transactionDetails = {
@@ -256,6 +258,7 @@ function getCollectibleTransfer(args) {
       summarySecondaryTotalAmount: `${renderCollectible} ${strings(
         'unit.divisor',
       )} ${renderFromWei(totalGas)} ${strings('unit.eth')}`,
+      txChainId,
     };
   }
 
@@ -339,6 +342,7 @@ export function decodeIncomingTransfer(args) {
     renderTo: renderFullAddress(to),
     hash,
     transactionType,
+    txChainId,
   };
   if (primaryCurrency === 'ETH') {
     transactionDetails = {
@@ -392,6 +396,7 @@ async function decodeTransferTx(args) {
       txParams: { from, gas, data, to },
       hash,
     },
+    txChainId,
   } = args;
 
   const decodedData = decodeTransferData('transfer', data);
@@ -418,6 +423,7 @@ async function decodeTransferTx(args) {
       hash,
       renderGas,
       renderGasPrice,
+      txChainId,
     },
   };
   return [transactionElement, transactionDetails];
@@ -471,6 +477,7 @@ function decodeTransferFromTx(args) {
     renderGas: parseInt(gas, 16).toString(),
     renderGasPrice: renderGwei(txParams),
     renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+    txChainId,
   };
 
   if (primaryCurrency === 'ETH') {
@@ -558,6 +565,7 @@ function decodeDeploymentTx(args) {
     renderGas: parseInt(gas, 16).toString(),
     renderGasPrice: renderGwei(txParams),
     renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
+    txChainId,
   };
 
   if (primaryCurrency === 'ETH') {
@@ -657,6 +665,7 @@ function decodeConfirmTx(args) {
     renderGasPrice: renderGwei(txParams),
     renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
     transactionType,
+    txChainId,
   };
 
   if (primaryCurrency === 'ETH') {
@@ -845,6 +854,7 @@ function decodeSwapsTx(args) {
     renderGas: parseInt(gas, 16),
     renderGasPrice: renderGwei(txParams),
     renderTotalGas: `${totalEthGas} ${ticker}`,
+    txChainId,
   };
 
   if (primaryCurrency === 'ETH') {
