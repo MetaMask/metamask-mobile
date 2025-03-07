@@ -70,7 +70,13 @@ export class EngineService {
         'Failed to initialize Engine! Falling back to vault recovery.',
       );
 
-      throw error;
+      // Give the navigation stack a chance to load
+      // This can be removed if the vault recovery flow is moved higher up in the stack
+      setTimeout(() => {
+        NavigationService.navigation.reset({
+          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+        });
+      }, 150);
     }
     endTrace({ name: TraceName.EngineInitialization });
   };

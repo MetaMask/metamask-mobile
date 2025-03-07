@@ -136,23 +136,14 @@ export function* startAppServices() {
     take(NavigationActionType.ON_NAVIGATION_READY),
   ]);
 
-  try {
-    // Start Engine
-    yield call(EngineService.start);
-    yield put(setAppServicesReady());
-  } catch (error) {
-    yield put(setAppServicesReady());
-    // Give the navigation stack a chance to load
-    // This can be removed if the vault recovery flow is moved higher up in the stack
-    yield delay(150);
-    // Navigate to vault recovery
-    NavigationService.navigation.reset({
-      routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
-    });
-  }
+  // Start Engine service
+  yield call(EngineService.start);
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
+
+  // Unblock the ControllersGate
+  yield put(setAppServicesReady());
 }
 
 // Main generator function that initializes other sagas in parallel.
