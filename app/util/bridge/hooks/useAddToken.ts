@@ -1,12 +1,10 @@
 import { useSelector } from 'react-redux';
-import { type NetworkConfiguration, type AddNetworkFields, RpcEndpointType } from '@metamask/network-controller';
-import { FEATURED_RPCS } from '../../../constants/network';
+import { type NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
 import Engine from '../../../core/Engine';
 import { selectEvmNetworkConfigurationsByChainId, selectSelectedNetworkClientId } from '../../../selectors/networkController';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import { decimalToHex } from '../../conversions';
 import { addHexPrefix } from 'ethereumjs-util';
-import { toHex } from '@metamask/controller-utils';
 import { PopularList } from '../../networks/customNetworks';
 
 export default function useAddToken() {
@@ -40,7 +38,6 @@ export default function useAddToken() {
       const featuredRpc = PopularList.find(
         (rpc) => rpc.chainId === hexDestChainId,
       );
-      console.log('featuredRpc', featuredRpc);
       if (!featuredRpc) {
         throw new Error('No featured RPC found');
       }

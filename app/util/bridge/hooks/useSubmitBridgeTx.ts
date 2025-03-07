@@ -26,11 +26,9 @@ export default function useSubmitBridgeTx() {
     
     // Add tokens if not the native gas token
     if (quoteResponse.quote.srcAsset.address !== zeroAddress()) {
-      console.log('adding source token');
       addSourceToken(quoteResponse);
     }
     if (quoteResponse.quote.destAsset.address !== zeroAddress()) {
-      console.log('adding dest token');
       await addDestToken(quoteResponse);
     }
     
