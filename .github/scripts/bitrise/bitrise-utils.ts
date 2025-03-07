@@ -84,10 +84,10 @@ export async function removeLabel(label: string) {
 
   try {
     // Get all labels for the issue (PR is considered an issue in terms of the API)
-    const { data: labels } = await getOctokitInstance().rest.labels.listForIssue({
+    const { data: labels } = await getOctokitInstance().rest.labels.listLabelsOnIssue({
       owner,
       repo,
-      issue_number
+      pullRequestNumber
     });
 
     // Check if the label exists
@@ -96,12 +96,12 @@ export async function removeLabel(label: string) {
       await getOctokitInstance().rest.issues.removeLabel({
         owner,
         repo,
-        issue_number,
+        pullRequestNumber,
         name: label
       });
       console.log(`Label '${label}' removed successfully.`);
     } else {
-      console.log(`Label '${label}' does not exist on issue #${issue_number}.`);
+      console.log(`Label '${label}' does not exist on issue #${pullRequestNumber}.`);
     }
   } catch (error) {
     console.error('Error removing label:', error);
