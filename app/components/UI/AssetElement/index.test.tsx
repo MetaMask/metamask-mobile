@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetElement from './';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { FIAT_BALANCE_TEST_ID, MAIN_BALANCE_TEST_ID } from './index.constants';
+import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
 
 describe('AssetElement', () => {
   const onPressMock = jest.fn();
@@ -28,7 +28,7 @@ describe('AssetElement', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('renders the asset balance if provided', () => {
+  it('renders the main balance if provided', () => {
     const { getByText } = render(
       <AssetElement asset={erc20Token} balance={erc20Token.balance} />,
     );
@@ -56,33 +56,33 @@ describe('AssetElement', () => {
     expect(onLongPressMock).toHaveBeenCalledWith(erc20Token);
   });
 
-  it('renders the fiat and token balance', () => {
+  it('renders the main and secondary balance', () => {
     const { getByTestId } = render(
       <AssetElement
         balance={erc20Token.balance}
-        mainBalance={erc20Token.balance}
+        secondaryBalance={erc20Token.balance}
         asset={erc20Token}
       />,
     );
 
-    expect(getByTestId(FIAT_BALANCE_TEST_ID)).toBeDefined();
-    expect(getByTestId(MAIN_BALANCE_TEST_ID)).toBeDefined();
+    expect(getByTestId(BALANCE_TEST_ID)).toBeDefined();
+    expect(getByTestId(SECONDARY_BALANCE_TEST_ID)).toBeDefined();
   });
 
-  it('renders the fiat balance with privacy mode', () => {
+  it('renders the main and secondary balance with privacy mode', () => {
     const { getByTestId } = render(
       <AssetElement
         asset={erc20Token}
         balance={erc20Token.balance}
-        mainBalance={erc20Token.balance}
+        secondaryBalance={erc20Token.balance}
         privacyMode
       />,
     );
 
-    const fiatBalance = getByTestId(FIAT_BALANCE_TEST_ID);
-    const mainBalance = getByTestId(MAIN_BALANCE_TEST_ID);
+    const mainBalance = getByTestId(BALANCE_TEST_ID);
+    const secondaryBalance = getByTestId(SECONDARY_BALANCE_TEST_ID);
 
-    expect(fiatBalance.props.children).toBe('•••••••••');
-    expect(mainBalance.props.children).toBe('••••••');
+    expect(mainBalance.props.children).toBe('•••••••••');
+    expect(secondaryBalance.props.children).toBe('••••••');
   });
 });
