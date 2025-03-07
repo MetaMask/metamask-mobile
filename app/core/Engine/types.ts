@@ -554,7 +554,8 @@ export type ControllersToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'CurrencyRateController'
   | 'AccountsController'
-  | 'MultichainNetworkController';
+  | 'MultichainNetworkController'
+  | 'DeFiPositionsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
