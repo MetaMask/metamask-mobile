@@ -87,6 +87,9 @@ app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
 **/snaps/**                          @MetaMask/snaps-devs
 **/Snaps/**                          @MetaMask/snaps-devs
 
+# Co-owned by Confirmations team and Snaps team
+app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/snaps-devs
+
 # Wallet API Platform Team
  app/core/RPCMethods/                @MetaMask/wallet-api-platform-engineers
 
