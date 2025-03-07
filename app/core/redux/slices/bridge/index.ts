@@ -66,6 +66,9 @@ const slice = createSlice({
       state.sourceAmount = undefined;
       state.destAmount = undefined;
     },
+    setSourceToken: (state, action: PayloadAction<BridgeToken>) => {
+      state.sourceToken = action.payload;
+    },
   },
 });
 
@@ -133,4 +136,5 @@ export const {
   setDestChainId,
   resetBridgeState,
   switchTokens,
+  setSourceToken,
 } = actions;
