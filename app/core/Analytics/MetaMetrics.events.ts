@@ -417,6 +417,11 @@ enum EVENT_NAME {
 
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
+
+  // Confirmation generic events
+  CONFIRMATION_ADVANCED_DETAILS_CLICKED = 'Confirmation Advanced Details Clicked',
+  CONFIRMATION_TOOLTIP_CLICKED = 'Confirmation Tooltip Clicked',
+  CONFIRMATION_PAGE_VIEWED = 'Confirmation Page Viewed',
 }
 
 enum ACTIONS {
@@ -997,6 +1002,16 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
+  // Confirmation generic events
+  CONFIRMATION_ADVANCED_DETAILS_CLICKED: generateOpt(
+    EVENT_NAME.CONFIRMATION_ADVANCED_DETAILS_CLICKED,
+  ),
+  CONFIRMATION_TOOLTIP_CLICKED: generateOpt(
+    EVENT_NAME.CONFIRMATION_TOOLTIP_CLICKED,
+  ),
+  CONFIRMATION_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.CONFIRMATION_PAGE_VIEWED,
+  ),
 };
 
 /**

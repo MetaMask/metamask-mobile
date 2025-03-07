@@ -4,7 +4,10 @@ import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../e2e/se
 import { strings } from '../../../../../../../locales/i18n';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { EVENT_LOCATIONS as STAKING_EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
 import { useStakingDetails } from '../../../hooks/useStakingDetails';
+import { useConfirmationMetricEvents } from '../../../hooks/useConfirmationMetricEvents';
+import { TOOLTIP_TYPES as STAKING_TOOLTIP_TYPES } from '../../../constants/metricEvents';
 import InfoRow from '../../UI/InfoRow';
 import InfoSection from '../../UI/InfoRow/InfoSection';
 import styleSheet from './StakingDetails.styles';
@@ -12,15 +15,21 @@ import styleSheet from './StakingDetails.styles';
 const StakingDetails = () => {
   const { styles } = useStyles(styleSheet, {});
   const { apr, annualRewardsFiat, annualRewardsETH } = useStakingDetails();
+  const { trackTooltipClickedEvent } = useConfirmationMetricEvents();
+
+  const handleRewardFreqTooltipClickedEvent = () => {
+    trackTooltipClickedEvent({
+      location: STAKING_EVENT_LOCATIONS.REDESIGNED_STAKE_CONFIRMATION_VIEW,
+      tooltip: STAKING_TOOLTIP_TYPES.REWARD_FREQUENCY,
+    });
+  };
 
   return (
     <View style={styles.container}>
       <InfoSection
         testID={ConfirmationPageSectionsSelectorIDs.STAKING_DETAILS_SECTION}
       >
-        <InfoRow label={strings('stake.apr')}>
-          {apr}
-        </InfoRow>
+        <InfoRow label={strings('stake.apr')}>{apr}</InfoRow>
         <InfoRow label={strings('stake.estimated_annual_reward')}>
           <View style={styles.valueContainer}>
             <Text style={styles.secondaryValue}>{annualRewardsFiat}</Text>
@@ -29,9 +38,10 @@ const StakingDetails = () => {
         </InfoRow>
         <InfoRow
           label={strings('stake.reward_frequency')}
-          tooltip={
-            strings('stake.reward_frequency_tooltip', { frequency: strings('stake.12_hours') })
-          }
+          tooltip={strings('stake.reward_frequency_tooltip', {
+            frequency: strings('stake.12_hours'),
+          })}
+          onTooltipPress={handleRewardFreqTooltipClickedEvent}
         >
           {strings('stake.12_hours')}
         </InfoRow>
