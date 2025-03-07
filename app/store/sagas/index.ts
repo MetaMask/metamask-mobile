@@ -1,4 +1,4 @@
-import { fork, take, cancel, put, call, all } from 'redux-saga/effects';
+import { fork, take, cancel, put, call, all, delay } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -135,12 +135,24 @@ export function* startAppServices() {
     take(UserActionType.ON_PERSISTED_DATA_LOADED),
     take(NavigationActionType.ON_NAVIGATION_READY),
   ]);
-  // Start services
-  EngineService.start();
-  AppStateEventProcessor.start();
-  // TODO: Track a property in redux to gate keep the app until services are initialized
 
-  yield put(setAppServicesReady());
+  try {
+    // Start Engine
+    yield call(EngineService.start);
+    yield put(setAppServicesReady());
+  } catch (error) {
+    yield put(setAppServicesReady());
+    // Give the navigation stack a chance to load
+    // This can be removed if the vault recovery flow is moved higher up in the stack
+    yield delay(150);
+    // Navigate to vault recovery
+    NavigationService.navigation.reset({
+      routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+    });
+  }
+
+  // Start AppStateEventProcessor
+  AppStateEventProcessor.start();
 }
 
 // Main generator function that initializes other sagas in parallel.
