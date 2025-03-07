@@ -7,13 +7,11 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 
 const MOCK_CHILD_ID = 'MOCK_CHILD_ID';
 
-jest.mock('react-native-safe-area-context', () => {
-  return {
-    SafeAreaProvider: jest
-      .fn()
-      .mockImplementation(() => <MockView testID={MOCK_CHILD_ID} />),
-  };
-});
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaProvider: jest
+    .fn()
+    .mockImplementation(() => <MockView testID={MOCK_CHILD_ID} />),
+}));
 
 jest.mock('../../../core/SecureKeychain', () => ({
   init: jest.fn(),
@@ -57,9 +55,10 @@ describe('Root', () => {
         };
       });
       // Import Root after mocking isTest
-      const Root = require('./index').default;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const RootComponent = require('./index').default;
 
-      const { getByTestId } = render(<Root foxCode="" />);
+      const { getByTestId } = render(<RootComponent foxCode="" />);
       expect(getByTestId(MOCK_CHILD_ID)).toBeDefined();
     });
   });
@@ -82,9 +81,10 @@ describe('Root', () => {
         };
       });
       // Import Root after mocking isTest
-      const Root = require('./index').default;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const RootComponent = require('./index').default;
 
-      const { toJSON } = render(<Root foxCode="" />);
+      const { toJSON } = render(<RootComponent foxCode="" />);
       expect(toJSON()).toBeNull();
     });
   });
