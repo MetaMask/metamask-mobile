@@ -2,10 +2,13 @@ import useHandleBridgeTx from './useHandleBridgeTx';
 import useHandleApprovalTx from './useHandleApprovalTx';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
+import { zeroAddress } from 'ethereumjs-util';
+import useAddToken from './useAddToken';
 
 export default function useSubmitBridgeTx() {
   const { handleBridgeTx } = useHandleBridgeTx();
   const { handleApprovalTx } = useHandleApprovalTx();
+  const { addSourceToken, addDestToken } = useAddToken();
 
   const submitBridgeTx = async ({
     quoteResponse,
@@ -20,6 +23,17 @@ export default function useSubmitBridgeTx() {
       });
     }
     const txResult = await handleBridgeTx({ quoteResponse, approvalTxId: approvalTxMeta?.id });
+    
+    // Add tokens if not the native gas token
+    if (quoteResponse.quote.srcAsset.address !== zeroAddress()) {
+      console.log('adding source token');
+      addSourceToken(quoteResponse);
+    }
+    if (quoteResponse.quote.destAsset.address !== zeroAddress()) {
+      console.log('adding dest token');
+      await addDestToken(quoteResponse);
+    }
+    
     return txResult;
   };
 

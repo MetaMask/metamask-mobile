@@ -61,7 +61,7 @@ export default function useHandleTx() {
     );
 
     const gasLimitHex = BNToHex(new BigNumber(txParams.gasLimit ?? 0));
-    const { transactionMeta, result } = await addTransaction(
+    const { transactionMeta } = await addTransaction(
       {
         ...{
           ...txParams,
@@ -79,8 +79,6 @@ export default function useHandleTx() {
         type: txType,
       },
     );
-
-    await result;
 
     // Note that updateTransaction doesn't actually error if you add fields that don't conform the to the txMeta type
     // they will be there at runtime, but you just don't get any type safety checks on them
