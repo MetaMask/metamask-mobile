@@ -3,37 +3,54 @@ import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import Badge, { BadgeVariant } from '../../../../../../component-library/components/Badges/Badge';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../component-library/components/Badges/Badge';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import images from '../../../../../../images/image-icons';
+import { EVENT_LOCATIONS as STAKING_EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
 import Name from '../../../../../UI/Name';
 import { NameType } from '../../../../../UI/Name/Name.types';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import InfoRow from '../../UI/InfoRow';
 import InfoSectionAccordion from '../../UI/InfoSectionAccordion';
+import { useConfirmationMetricEvents } from '../../../hooks/useConfirmationMetricEvents';
 import InfoRowDivider from '../InfoRowDivider';
 import styleSheet from './AdvancedDetails.styles';
 
-const AdvancedDetails = () => {
+interface AdvancedDetailsProps {
+  /**
+   * The location of the component to be used for analytics.
+   */
+  location: (typeof STAKING_EVENT_LOCATIONS)[keyof typeof STAKING_EVENT_LOCATIONS];
+}
+
+const AdvancedDetails = ({ location }: AdvancedDetailsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMeta = useTransactionMetadataRequest();
+  const { trackAdvancedDetailsToggledEvent } = useConfirmationMetricEvents();
+
+  const handleAdvancedDetailsEvent = () => {
+    trackAdvancedDetailsToggledEvent({
+      location,
+    });
+  };
 
   return (
     <View style={styles.container}>
-      <InfoSectionAccordion header={strings('stake.advanced_details')}>
-        <InfoRow
-          label={strings('confirm.staking_from')}
-        >
+      <InfoSectionAccordion
+        header={strings('stake.advanced_details')}
+        onStateChange={handleAdvancedDetailsEvent}
+      >
+        <InfoRow label={strings('confirm.staking_from')}>
           <Name
             type={NameType.EthereumAddress}
             value={(transactionMeta as TransactionMeta).txParams.from}
             variation={CHAIN_IDS.MAINNET}
           />
         </InfoRow>
-        <InfoRow
-          label={strings('confirm.label.interacting_with')}
-        >
+        <InfoRow label={strings('confirm.label.interacting_with')}>
           <Name
             type={NameType.EthereumAddress}
             value={(transactionMeta as TransactionMeta).txParams.to as string}
@@ -41,9 +58,7 @@ const AdvancedDetails = () => {
           />
         </InfoRow>
         <InfoRowDivider />
-        <InfoRow
-          label={strings('confirm.label.network')}
-        >
+        <InfoRow label={strings('confirm.label.network')}>
           <View style={styles.networkContainer}>
             <Badge
               size={AvatarSize.Xs}
