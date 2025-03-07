@@ -29,6 +29,9 @@ import {
   switchTokens,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { getBridgeNavbar } from '../Navbar';
+import { useTheme } from '../../../util/theme';
 
 const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -109,6 +112,9 @@ const createStyles = (params: { theme: Theme }) => {
 const BridgeView = () => {
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { colors } = useTheme();
 
   // Bridge state from Redux
   const sourceToken = useSelector(selectSourceToken);
@@ -136,6 +142,10 @@ const BridgeView = () => {
   useEffect(() => () => {
       dispatch(resetBridgeState());
     }, [dispatch]);
+
+  useEffect(() => {
+    navigation.setOptions(getBridgeNavbar(navigation, route, colors));
+  }, [navigation, route, colors]);
 
   const handleKeypadChange = ({ value }: { value: string; valueAsNumber: number; pressedKey: string }) => {
     dispatch(setSourceAmount(value || undefined));
