@@ -3,32 +3,24 @@ import { StyleSheet, FlatList, View, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '../Box/Box';
-import Text, { TextVariant, TextColor } from '../../../component-library/components/Texts/Text';
+import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import { TokenI } from '../Tokens/types';
-import AssetElement from '../AssetElement';
 import { Hex } from '@metamask/utils';
 import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
 import { BridgeToken } from './types';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { setSourceToken } from '../../../core/redux/slices/bridge';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import NetworkAssetLogo from '../NetworkAssetLogo';
 import { isMainnetByChainId } from '../../../util/networks';
 import images from '../../../images/image-icons';
 import { useSourceTokens } from './useSourceTokens';
 import Engine from '../../../core/Engine';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
-import { balanceToFiat } from '../../../util/number';
-import { selectCurrentCurrency, selectConversionRate } from '../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { TokenSelectorItem } from './TokenSelectorItem';
 
 interface BridgeTokenSelectorProps {
   onClose?: () => void;
@@ -84,9 +76,6 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
   const currentChainId = useSelector(selectChainId) as Hex;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const tokensList = useSourceTokens();
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const conversionRate = useSelector(selectConversionRate);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
 
   useEffect(() => {
     const { BridgeController } = Engine.context;
@@ -117,74 +106,16 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
 
   const renderItem = useCallback(({ item: token }: { item: TokenI }) => {
     const networkDetails = getNetworkBadgeDetails(currentChainId);
-
-    // Use the pre-formatted balance from useSourceTokens
-    const hasBalance = parseFloat(token.balance) > 0;
-
-    // Calculate fiat value
-    const exchangeRate = token.address ? tokenExchangeRates?.[token.address as Hex]?.price : undefined;
-    const fiatValue = hasBalance ? balanceToFiat(
-      token.balance,
-      conversionRate,
-      exchangeRate,
-      currentCurrency
-    ) : undefined;
-
-    const balanceWithSymbol = hasBalance ? `${token.balance} ${token.symbol}` : undefined;
-
     return (
-      <AssetElement
-        key={token.address}
-        asset={token}
-        onPress={() => handleTokenPress(token)}
-        mainBalance={balanceWithSymbol}
-        balance={fiatValue}
-      >
-        <BadgeWrapper
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              name={networkDetails.name}
-              imageSource={networkDetails.imageSource}
-            />
-          }
-        >
-          {token.isNative ? (
-            <NetworkAssetLogo
-              chainId={currentChainId}
-              style={styles.ethLogo}
-              ticker={token.ticker || ''}
-              big={false}
-              biggest={false}
-              testID={`network-logo-${token.symbol}`}
-            />
-          ) : (
-            <AvatarToken
-              name={token.symbol}
-              imageSource={token.image ? { uri: token.image } : undefined}
-              size={AvatarSize.Md}
-            />
-          )}
-        </BadgeWrapper>
-        <View style={styles.balances}>
-          <View style={styles.assetName}>
-            <Text
-              variant={TextVariant.BodyLGMedium}
-              style={styles.tokenSymbol}
-            >
-              {token.symbol}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-            >
-              {token.name}
-            </Text>
-          </View>
-        </View>
-      </AssetElement>
+      <TokenSelectorItem
+        token={token}
+        onPress={handleTokenPress}
+        networkName={networkDetails.name}
+        networkImageSource={networkDetails.imageSource}
+        styles={styles}
+      />
     );
-  }, [currentChainId, getNetworkBadgeDetails, handleTokenPress, styles, tokenExchangeRates, conversionRate, currentCurrency]);
+  }, [currentChainId, getNetworkBadgeDetails, handleTokenPress, styles]);
 
   const keyExtractor = useCallback((token: TokenI) => token.address, []);
 
