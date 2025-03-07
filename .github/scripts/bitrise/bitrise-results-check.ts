@@ -1,5 +1,4 @@
 
-import { pull } from 'lodash';
 import {removeLabel, getLatestAssociatedBitriseComment, determineE2ERunFlags, shouldRunBitriseE2E, getBitriseTestStatus, BitriseTestStatus, getRecentCommits} from './bitrise-utils';
 import * as core from '@actions/core';
 async function main(): Promise<void> {
