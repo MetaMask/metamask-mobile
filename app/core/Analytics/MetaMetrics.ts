@@ -218,10 +218,8 @@ class MetaMetrics implements IMetaMetrics {
    * Retrieve the analytics deletion regulation ID from the preference
    * @private
    */
-  #getDeleteRegulationIdFromPrefs = async (): Promise<string> => {
-    const deleteRegulationId = await StorageWrapper.getItem(METAMETRICS_DELETION_REGULATION_ID);
-    return deleteRegulationId;
-  };
+  #getDeleteRegulationIdFromPrefs = async (): Promise<string> =>
+    await StorageWrapper.getItem(METAMETRICS_DELETION_REGULATION_ID);
 
   /**
    * Persist the analytics recording status
@@ -561,7 +559,7 @@ class MetaMetrics implements IMetaMetrics {
       this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
 
       // decide whether to track expected "errors"
-      const deterministicRandomNumber = generateDeterministicRandomNumber(this.metametricsId ?? '');
+      const deterministicRandomNumber = generateDeterministicRandomNumber(this.metametricsId);
       this.shouldTrackExpectedErrors = deterministicRandomNumber < EXPECTED_ERRORS_PORTION_TO_TRACK;
       this.#isConfigured = true;
 
