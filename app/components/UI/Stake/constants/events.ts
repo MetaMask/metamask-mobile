@@ -15,4 +15,12 @@ export const EVENT_LOCATIONS = {
   UNSTAKE_CONFIRMATION_VIEW: 'UnstakeConfirmationView',
   WALLET_ACTIONS_BOTTOM_SHEET: 'WalletActionsBottomSheet',
   UNIT_TEST: 'UnitTest',
+
+  // Redesigned Staking
+  REDESIGNED_STAKE_CONFIRMATION_VIEW: 'RedesignedStakeConfirmationView',
+  REDESIGNED_STAKE_WITHDRAWAL_CONFIRMATION_VIEW: 'RedesignedStakeWithdrawalConfirmationView',
+};
+
+export const TOOLTIP_TYPES = {
+  REWARD_FREQUENCY: 'reward_frequency',
 };

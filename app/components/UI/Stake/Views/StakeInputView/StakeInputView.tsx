@@ -110,6 +110,12 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
 
     const amountWeiString = amountWei.toString();
 
+    const stakeButtonClickEventProperties = {
+      selected_provider: EVENT_PROVIDERS.CONSENSYS,
+      tokens_to_stake_native_value: amountEth,
+      tokens_to_stake_usd_value: fiatAmount,
+    };
+
     if (isStakingDepositRedesignedEnabled) {
       // Here we add the transaction to the transaction controller. The
       // redesigned confirmations architecture relies on the transaction
@@ -118,10 +124,23 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       await attemptDepositTransaction(
         amountWeiString,
         activeAccount?.address as string,
+        undefined,
+        true,
       );
       navigation.navigate('StakeScreens', {
         screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
       });
+
+      const withRedesignedPropEventProperties = {
+        ...stakeButtonClickEventProperties,
+        is_redesigned: true,
+      };
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
+          .addProperties(withRedesignedPropEventProperties)
+          .build(),
+      );
       return;
     }
 
@@ -138,11 +157,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
-        .addProperties({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          tokens_to_stake_native_value: amountEth,
-          tokens_to_stake_usd_value: fiatAmount,
-        })
+        .addProperties(stakeButtonClickEventProperties)
         .build(),
     );
   }, [
