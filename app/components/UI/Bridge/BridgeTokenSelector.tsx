@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, ScrollView, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { Box } from '../Box/Box';
 import Text, { TextVariant, TextColor } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
@@ -18,7 +19,6 @@ import { Hex } from '@metamask/utils';
 import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
 import { BridgeToken } from './types';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { formatUnits } from 'ethers/lib/utils';
 import { setSourceToken } from '../../../core/redux/slices/bridge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
@@ -30,13 +30,10 @@ import { isMainnetByChainId } from '../../../util/networks';
 import images from '../../../images/image-icons';
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { selectCurrencyRates, selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { deriveBalanceFromAssetMarketDetails } from '../Tokens/util/deriveBalanceFromAssetMarketDetails';
 import { zeroAddress } from 'ethereumjs-util';
 import { addCurrencySymbol } from '../../../util/number';
 
 interface BridgeTokenSelectorProps {
-  onTokenSelect: (token: TokenI) => void;
-  selectedToken?: TokenI;
   onClose?: () => void;
 }
 
@@ -66,11 +63,11 @@ const createStyles = (params: { theme: Theme }) => {
 };
 
 export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
-  onTokenSelect,
   onClose,
 }) => {
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const selectedInternalAccountAddress = useSelector(selectSelectedInternalAccountAddress) as Hex;
   const tokenBalances = useSelector(selectTokensBalances);
@@ -146,9 +143,8 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
     };
 
     dispatch(setSourceToken(bridgeToken));
-    onTokenSelect(token);
-    onClose?.();
-  }, [dispatch, onTokenSelect, onClose]);
+    navigation.goBack();
+  }, [dispatch, navigation]);
 
   const renderTokenAvatar = useCallback((token: TokenI) => {
     if (token.isNative) {
