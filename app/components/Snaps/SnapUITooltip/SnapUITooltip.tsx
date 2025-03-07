@@ -3,11 +3,13 @@ import ApprovalModal from '../../Approvals/ApprovalModal';
 import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import stylesheet from './SnapUITooltip.styles';
-import { IconColor } from '../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../component-library/components/Icons/Icon';
 
 export interface SnapUITooltipProps {
   content: ReactNode;
