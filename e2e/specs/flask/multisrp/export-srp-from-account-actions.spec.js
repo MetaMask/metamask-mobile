@@ -1,8 +1,4 @@
 'use strict';
-/**
- * IMPORTANT: This test requires METAMASK_BUILD_TYPE='flask' to be set in the environment
- * Run with: METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release
- */
 import { SmokeAccounts } from '../../../tags';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
