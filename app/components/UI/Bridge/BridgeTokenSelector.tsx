@@ -94,7 +94,7 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
       const tokenMarketData = token.address === constants.AddressZero ? exchangeRates?.[zeroAddress() as Hex] : exchangeRates?.[tokenAddress];
       const tokenPrice = tokenMarketData?.price || 0;
       const fiatValue = parseFloat(formattedBalance) * tokenPrice * conversionRate;
-      const balanceFiat = fiatValue >= 0.01 || fiatValue === 0 
+      const balanceFiat = fiatValue >= 0.01 || fiatValue === 0
         ? addCurrencySymbol(fiatValue, currentCurrency)
         : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
 
@@ -140,7 +140,7 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
     const bridgeToken: BridgeToken = {
       address: token.address,
       symbol: token.symbol,
-      image: typeof token.image === 'string' ? token.image : '',
+      image: token.image,
       decimals: token.decimals,
       chainId: token.chainId as SupportedCaipChainId,
     };
@@ -193,7 +193,7 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
           {tokensList.map((token) => {
             const networkDetails = getNetworkBadgeDetails(currentChainId);
             const balanceWithSymbol = `${token.balance} ${token.symbol}`;
-            
+
             return (
               <AssetElement
                 key={token.address}
@@ -215,13 +215,13 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
                 </BadgeWrapper>
                 <View style={styles.balances}>
                   <View style={styles.assetName}>
-                    <Text 
-                      variant={TextVariant.BodyLGMedium} 
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
                       style={styles.tokenSymbol}
                     >
                       {token.symbol}
                     </Text>
-                    <Text 
+                    <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
                     >
