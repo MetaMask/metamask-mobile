@@ -233,6 +233,7 @@ import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
+import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -381,6 +382,7 @@ export class Engine {
         AccountsController: accountsControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
+        DeFiPositionsController: defiPositionsControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         CronjobController: cronjobControllerInit,
         ///: END:ONLY_INCLUDE_IF
@@ -1076,7 +1078,7 @@ export class Engine {
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
       env: {
-       // IMPORTANT! Do not enable account syncing while peer depts are not aligned
+        // IMPORTANT! Do not enable account syncing while peer depts are not aligned
         isAccountSyncingEnabled: false,
       },
     });
@@ -1536,6 +1538,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
+      DeFiPositionsController: controllersByName.DeFiPositionsController,
     };
 
     const childControllers = Object.assign({}, this.context);

@@ -106,6 +106,8 @@ import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import DeFiPositions from '../../UI/DeFiPositions';
+import { selectDeFiPositionsByAddress } from '../../../selectors/defiPositionsController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import NonEvmTokens from '../../UI/NonEvmTokens';
 ///: END:ONLY_INCLUDE_IF
@@ -250,6 +252,8 @@ const Wallet = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  const defiPositions = useSelector(selectDeFiPositionsByAddress);
 
   useEffect(() => {
     if (
@@ -629,6 +633,11 @@ const Wallet = ({
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error - TODO: Consolidate into the correct type.
           tokens={assets}
+        />
+        <DeFiPositions
+          tabLabel={strings('wallet.defi')}
+          key={'defi-tab'}
+          defiPositions={defiPositions}
         />
         <CollectibleContracts
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
