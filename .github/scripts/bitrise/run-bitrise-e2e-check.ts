@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import { context } from '@actions/github';
-import {determineE2ERunFlags, getOctokitInstance, shouldRunBitriseE2E, getCommitHash, isMergeQueue, getMergeQueueCommitHash, getBitriseCommentForCommit} from './bitrise-utils';
+import {printTime, determineE2ERunFlags, getOctokitInstance, shouldRunBitriseE2E, getCommitHash, isMergeQueue, getMergeQueueCommitHash, getBitriseCommentForCommit} from './bitrise-utils';
 import {
   CompletedConclusionType,
   PullRequestTriggerType,
@@ -30,6 +30,7 @@ async function upsertStatusCheck(
 }
 
 async function main(): Promise<void> {
+
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
   const antiLabel = process.env.NO_E2E_LABEL;
@@ -67,6 +68,8 @@ async function main(): Promise<void> {
     core.setFailed('NO_E2E_LABEL not found');
     process.exit(1);
   }
+
+  printTime()
 
   // Logging for Pipeline debugging
   console.log(`Trigger action: ${triggerAction}`);

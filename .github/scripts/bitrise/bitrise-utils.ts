@@ -60,6 +60,11 @@ export interface GithubComment {
   html_url: string;
 }
 
+export function printTime () {
+  const date = new Date();
+  console.log(date.toTimeString());
+}
+
 export async function getCommitHash() {
 
   const { owner: owner, repo: repo, number: pullRequestNumber } = context.issue;

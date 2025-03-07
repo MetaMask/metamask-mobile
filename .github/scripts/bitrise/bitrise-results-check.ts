@@ -1,7 +1,9 @@
 
-import {removeLabel, getLatestAssociatedBitriseComment, determineE2ERunFlags, shouldRunBitriseE2E, getBitriseTestStatus, BitriseTestStatus, getRecentCommits} from './bitrise-utils';
+import {printTime, removeLabel, getLatestAssociatedBitriseComment, determineE2ERunFlags, shouldRunBitriseE2E, getBitriseTestStatus, BitriseTestStatus, getRecentCommits} from './bitrise-utils';
 import * as core from '@actions/core';
 async function main(): Promise<void> {
+
+    printTime();
 
     // Get the commit hash from the GitHub context
     const recentCommits = await getRecentCommits();
