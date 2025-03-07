@@ -81,9 +81,9 @@ describe('shouldTrackExpectedErrors', () => {
 
   it('should use empty string when metaMetricsId is null', async () => {
     mockMetaMetricsInstance.getMetaMetricsId.mockResolvedValue(null);
-
-    const result = await shouldTrackExpectedErrors(mockMetaMetricsInstance);
-
+    // reset mock for generateDeterministicRandomNumber
+    (generateDeterministicRandomNumber as jest.Mock).mockReset();
+    await shouldTrackExpectedErrors(mockMetaMetricsInstance);
     expect(generateDeterministicRandomNumber).toHaveBeenCalledWith('');
   });
 });

@@ -1,7 +1,14 @@
 import trackErrorAsAnalytics from './trackErrorAsAnalytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
+const VALID_UUID = 'b7bff9d5-8928-488e-935e-4522c680242e';
+
 jest.mock('../../../core/Analytics/MetaMetrics');
+
+const constantMock = jest.requireMock('../shouldTrackExpectedErrors/constants');
+jest.mock('../shouldTrackExpectedErrors/constants', () => ({
+  EXPECTED_ERRORS_PORTION_TO_TRACK: 1,
+}));
 
 const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
@@ -10,7 +17,7 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 
 const mockMetrics = {
   trackEvent: jest.fn(),
-  getShouldTrackExpectedErrors: jest.fn(() => true),
+  getMetaMetricsId: jest.fn(() => VALID_UUID),
 };
 
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
@@ -78,13 +85,5 @@ describe('trackErrorAsAnalytics', () => {
       })
       .build();
     expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
-  });
-
-  it('does not call trackEvent if shouldTrackExpectedErrors is false', async () => {
-    mockMetrics.getShouldTrackExpectedErrors.mockReturnValue(false);
-
-    trackErrorAsAnalytics('testEvent', 'This is an error message');
-
-    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
   });
 });

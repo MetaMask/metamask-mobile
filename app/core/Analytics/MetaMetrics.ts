@@ -177,12 +177,6 @@ class MetaMetrics implements IMetaMetrics {
   private deleteRegulationDate: DataDeleteDate;
 
   /**
-   * Whether to track expected "errors"
-   * @private
-   */
-  private shouldTrackExpectedErrors: boolean = false;
-
-  /**
    * Retrieve state of metrics from the preference
    *
    * Defaults to disabled if not explicitely enabled
@@ -790,20 +784,6 @@ class MetaMetrics implements IMetaMetrics {
    */
   getMetaMetricsId = async (): Promise<string | undefined> =>
     this.metametricsId ?? (await this.#getMetaMetricsId());
-
-  /**
-   * Get whether to track expected "errors"
-   * @returns boolean
-   */
-  getShouldTrackExpectedErrors = () => this.shouldTrackExpectedErrors;
-
-  /**
-   * Set whether to track expected "errors"
-   * @param shouldTrack - boolean
-   */
-  setShouldTrackExpectedErrors = (shouldTrack: boolean) => {
-    this.shouldTrackExpectedErrors = shouldTrack;
-  };
 }
 
 export default MetaMetrics;
