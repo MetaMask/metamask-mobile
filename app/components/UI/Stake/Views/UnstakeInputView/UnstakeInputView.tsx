@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
-import UnstakeInputViewBanner from './UnstakeBanner';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -8,24 +9,32 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../constants/navigation/Routes';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import Keypad from '../../../../Base/Keypad';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
-import QuickAmounts from '../../components/QuickAmounts';
-import { View } from 'react-native';
-import styleSheet from './UnstakeInputView.styles';
 import InputDisplay from '../../components/InputDisplay';
-import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import QuickAmounts from '../../components/QuickAmounts';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import usePoolStakedUnstake from '../../hooks/usePoolStakedUnstake';
 import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import UnstakeInputViewBanner from './UnstakeBanner';
+import styleSheet from './UnstakeInputView.styles';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const { attemptUnstakeTransaction } = usePoolStakedUnstake();
+  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const confirmationRedesignFlags = useSelector(
+      selectConfirmationRedesignFlags,
+    );
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -75,14 +84,36 @@ const UnstakeInputView = () => {
     );
   }, [navigation, theme.colors, title]);
 
-  const handleUnstakePress = useCallback(() => {
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
-      params: {
-        amountWei: amountWei.toString(),
-        amountFiat: fiatAmount,
-      },
-    });
+  const handleUnstakePress = useCallback(async () => {
+    const isStakingDepositRedesignedEnabled =
+      confirmationRedesignFlags?.staking_transactions;
+
+    if (isStakingDepositRedesignedEnabled) {
+      // Here we add the transaction to the transaction controller. The
+      // redesigned confirmations architecture relies on the transaction
+      // metadata object being defined by the time the confirmation is displayed
+      // to the user.
+      await attemptUnstakeTransaction(
+        amountWei.toString(),
+        activeAccount?.address as string,
+      );
+
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_WITHDRAWAL,
+        params: {
+          amountWei: amountWei.toString(),
+          amountFiat: fiatAmount,
+        },
+      });
+    } else {
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
+        params: {
+          amountWei: amountWei.toString(),
+          amountFiat: fiatAmount,
+        },
+      });
+    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
         .addProperties({
@@ -99,6 +130,9 @@ const UnstakeInputView = () => {
     fiatAmount,
     navigation,
     trackEvent,
+    attemptUnstakeTransaction,
+    activeAccount?.address,
+    confirmationRedesignFlags?.staking_transactions,
   ]);
 
   return (
