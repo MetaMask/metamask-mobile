@@ -69,7 +69,6 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   return (
     <BottomSheet
-      isInteractable={false}
       onClose={onReject}
       style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
