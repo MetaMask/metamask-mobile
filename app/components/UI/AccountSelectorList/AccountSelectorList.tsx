@@ -152,7 +152,6 @@ const AccountSelectorList = ({
   const accountsWithNetworkInfo = useMemo(
     () =>
       accounts.map((account) => {
-        // Add null check to prevent errors if account address doesn't exist in multichainBalances
         const accountBalances =
           multichainBalances[account.address.toLowerCase()] || {};
         const chainIds = Object.keys(accountBalances);
