@@ -34,8 +34,8 @@ async function getGasFeeEstimatesForTransaction(
   return {
     gasPrice: addHexPrefix(
       String(decGWEIToHexWEI(
-        'gasPrice' in gasEstimates 
-          ? gasEstimates.gasPrice 
+        'gasPrice' in gasEstimates
+          ? gasEstimates.gasPrice
           : (gasEstimates as GasFeeEstimates | LegacyGasPriceEstimate)[DEFAULT_GAS_FEE_OPTION_LEGACY],
       )),
     ),

@@ -23,7 +23,7 @@ export default function useSubmitBridgeTx() {
       });
     }
     const txResult = await handleBridgeTx({ quoteResponse, approvalTxId: approvalTxMeta?.id });
-    
+
     // Add tokens if not the native gas token
     if (quoteResponse.quote.srcAsset.address !== zeroAddress()) {
       addSourceToken(quoteResponse);
@@ -31,7 +31,7 @@ export default function useSubmitBridgeTx() {
     if (quoteResponse.quote.destAsset.address !== zeroAddress()) {
       await addDestToken(quoteResponse);
     }
-    
+
     return txResult;
   };
 

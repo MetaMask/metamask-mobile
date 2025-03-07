@@ -27,7 +27,7 @@ describe('useSubmitBridgeTx', () => {
 
   it('should handle bridge transaction without approval', async () => {
     const { result } = renderHook(() => useSubmitBridgeTx());
-    
+
     const mockQuoteResponse = DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0];
 
     mockHandleBridgeTx.mockResolvedValueOnce({ success: true });
@@ -46,7 +46,7 @@ describe('useSubmitBridgeTx', () => {
 
   it('should handle bridge transaction with approval', async () => {
     const { result } = renderHook(() => useSubmitBridgeTx());
-    
+
     const mockQuoteResponse = DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0];
 
     mockHandleApprovalTx.mockResolvedValueOnce({ id: '123' });
@@ -69,7 +69,7 @@ describe('useSubmitBridgeTx', () => {
 
   it('should propagate errors from approval transaction', async () => {
     const { result } = renderHook(() => useSubmitBridgeTx());
-    
+
     const mockQuoteResponse = DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0];
 
     const error = new Error('Approval failed');
@@ -86,7 +86,7 @@ describe('useSubmitBridgeTx', () => {
 
   it('should propagate errors from bridge transaction', async () => {
     const { result } = renderHook(() => useSubmitBridgeTx());
-    
+
     const mockQuoteResponse = DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0];
 
     const error = new Error('Bridge transaction failed');
@@ -98,4 +98,4 @@ describe('useSubmitBridgeTx', () => {
       })
     ).rejects.toThrow('Bridge transaction failed');
   });
-}); 
+});
