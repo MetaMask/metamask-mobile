@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { StyleSheet, ScrollView, View } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { StyleSheet, FlatList, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '../Box/Box';
@@ -23,6 +23,7 @@ import NetworkAssetLogo from '../NetworkAssetLogo';
 import { isMainnetByChainId } from '../../../util/networks';
 import images from '../../../images/image-icons';
 import { useSourceTokens } from './useSourceTokens';
+import Engine from '../../../core/Engine';
 
 interface BridgeTokenSelectorProps {
   onClose?: () => void;
@@ -50,6 +51,9 @@ const createStyles = (params: { theme: Theme }) => {
     tokenSymbol: {
       marginBottom: 4,
     },
+    listContent: {
+      paddingBottom: 24,
+    },
   });
 };
 
@@ -62,6 +66,11 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
   const currentChainId = useSelector(selectChainId) as Hex;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const tokensList = useSourceTokens();
+
+  useEffect(() => {
+    const { BridgeController } = Engine.context;
+    BridgeController.setBridgeFeatureFlags();
+  }, []);
 
   const handleTokenPress = useCallback((token: TokenI) => {
     const bridgeToken: BridgeToken = {
@@ -85,6 +94,66 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
     };
   }, [networkConfigurations]);
 
+  const renderItem = useCallback(({ item: token }: { item: TokenI }) => {
+    const networkDetails = getNetworkBadgeDetails(currentChainId);
+    const balanceWithSymbol = `${token.balance} ${token.symbol}`;
+
+    return (
+      <AssetElement
+        key={token.address}
+        asset={token}
+        onPress={() => handleTokenPress(token)}
+        mainBalance={balanceWithSymbol}
+        balance={token.balanceFiat}
+      >
+        <BadgeWrapper
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              name={networkDetails.name}
+              imageSource={networkDetails.imageSource}
+            />
+          }
+        >
+          {token.isNative ? (
+            <NetworkAssetLogo
+              chainId={currentChainId}
+              style={styles.ethLogo}
+              ticker={token.ticker || ''}
+              big={false}
+              biggest={false}
+              testID={`network-logo-${token.symbol}`}
+            />
+          ) : (
+            <AvatarToken
+              name={token.symbol}
+              imageSource={token.image ? { uri: token.image } : undefined}
+              size={AvatarSize.Md}
+            />
+          )}
+        </BadgeWrapper>
+        <View style={styles.balances}>
+          <View style={styles.assetName}>
+            <Text
+              variant={TextVariant.BodyLGMedium}
+              style={styles.tokenSymbol}
+            >
+              {token.symbol}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+            >
+              {token.name}
+            </Text>
+          </View>
+        </View>
+      </AssetElement>
+    );
+  }, [currentChainId, getNetworkBadgeDetails, handleTokenPress, styles]);
+
+  const keyExtractor = useCallback((token: TokenI) => token.address, []);
+
   return (
     <BottomSheet isFullscreen>
       <Box style={styles.content}>
@@ -92,65 +161,16 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = ({
           <Text variant={TextVariant.HeadingMD}>Select Token</Text>
         </BottomSheetHeader>
 
-        <ScrollView>
-          {tokensList.map((token) => {
-            const networkDetails = getNetworkBadgeDetails(currentChainId);
-            const balanceWithSymbol = `${token.balance} ${token.symbol}`;
-
-            return (
-              <AssetElement
-                key={token.address}
-                asset={token}
-                onPress={() => handleTokenPress(token)}
-                mainBalance={balanceWithSymbol}
-                balance={token.balanceFiat}
-              >
-                <BadgeWrapper
-                  badgeElement={
-                    <Badge
-                      variant={BadgeVariant.Network}
-                      name={networkDetails.name}
-                      imageSource={networkDetails.imageSource}
-                    />
-                  }
-                >
-                  {token.isNative ? (
-                    <NetworkAssetLogo
-                      chainId={currentChainId}
-                      style={styles.ethLogo}
-                      ticker={token.ticker || ''}
-                      big={false}
-                      biggest={false}
-                      testID={`network-logo-${token.symbol}`}
-                    />
-                  ) : (
-                    <AvatarToken
-                      name={token.symbol}
-                      imageSource={token.image ? { uri: token.image } : undefined}
-                      size={AvatarSize.Md}
-                    />
-                  )}
-                </BadgeWrapper>
-                <View style={styles.balances}>
-                  <View style={styles.assetName}>
-                    <Text
-                      variant={TextVariant.BodyLGMedium}
-                      style={styles.tokenSymbol}
-                    >
-                      {token.symbol}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
-                    >
-                      {token.name}
-                    </Text>
-                  </View>
-                </View>
-              </AssetElement>
-            );
-          })}
-        </ScrollView>
+        <FlatList
+          data={tokensList}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          contentContainerStyle={styles.listContent}
+          removeClippedSubviews
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          initialNumToRender={20}
+        />
       </Box>
     </BottomSheet>
   );

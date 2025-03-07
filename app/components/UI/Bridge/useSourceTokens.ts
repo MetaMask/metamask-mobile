@@ -14,6 +14,8 @@ import { selectAccountBalanceByChainId } from '../../../selectors/accountTracker
 import { addCurrencySymbol, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
 import { sortAssets } from '../Tokens/util';
+import { selectERC20TokensByChain } from '../../../selectors/tokenListController';
+import { TokenListToken } from '@metamask/assets-controllers';
 
 export const useSourceTokens = () => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
@@ -26,6 +28,7 @@ export const useSourceTokens = () => {
   const selectedInternalAccountAddress = useSelector(selectSelectedInternalAccountAddress) as Hex;
   const ticker = useSelector(selectEvmTicker);
   const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
+  const erc20TokensByChain = useSelector(selectERC20TokensByChain);
 
   const tokensList = useMemo(() => {
     // First create native token (similar to index.tsx implementation)
@@ -56,7 +59,7 @@ export const useSourceTokens = () => {
       chainId: currentChainId,
     };
 
-    // Process regular tokens
+    // Process regular tokens with balances
     const tokensWithBalances = tokens.map((token) => {
       const balance = tokenBalances?.[selectedInternalAccountAddress]?.[currentChainId]?.[token.address as Hex] || '0';
       const formattedBalance = utils.formatUnits(balance, token.decimals);
@@ -91,8 +94,37 @@ export const useSourceTokens = () => {
       };
     });
 
-    // Add native token first in the list (similar to index.tsx)
-    return sortAssets([nativeTokenWithProps, ...tokensWithBalances], tokenSortConfig);
+    // Get additional tokens from the token list for the current chain
+    const chainTokens = erc20TokensByChain?.[currentChainId]?.data || {};
+    const additionalTokens = Object.values(chainTokens)
+      .filter((token): token is TokenListToken => {
+        if (!token || typeof token !== 'object') return false;
+        // Skip if token is already in tokensWithBalances
+        return !tokensWithBalances.some(t => t.address.toLowerCase() === token.address?.toLowerCase());
+      })
+      .map((token) => ({
+        ...token,
+        balance: '0',
+        balanceFiat: addCurrencySymbol(0, currentCurrency),
+        logo: token.iconUrl || '',
+        isETH: false,
+        isNative: false,
+        aggregators: [],
+        image: token.iconUrl || '',
+        name: token.name,
+        hasBalanceError: false,
+        chainId: currentChainId,
+      } as TokenI));
+
+    // Add native token first, then tokens with balances, then additional tokens
+    const allTokens = [
+      nativeTokenWithProps,
+      ...tokensWithBalances,
+      ...additionalTokens,
+    ];
+
+    // Sort tokens by balance
+    return sortAssets(allTokens, tokenSortConfig);
   }, [
     tokens,
     tokenBalances,
@@ -104,6 +136,7 @@ export const useSourceTokens = () => {
     tokenSortConfig,
     ticker,
     accountBalanceByChainId,
+    erc20TokensByChain,
   ]);
 
   return tokensList;
