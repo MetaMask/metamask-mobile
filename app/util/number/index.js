@@ -46,7 +46,7 @@ export function BNToHex(inputBn) {
 }
 
 // Setter Maps
-const toBigNumber = {
+export const toBigNumber = {
   hex: (n) => new BigNumber(stripHexPrefix(n), 16),
   dec: (n) => new BigNumber(String(n), 10),
   BN: (n) => new BigNumber(n.toString(16), 16),

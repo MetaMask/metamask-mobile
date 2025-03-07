@@ -1,13 +1,13 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { getStakingDepositNavbar } from './Navbar';
+import { getNavbar } from './Navbar';
 
 describe('getStakingDepositNavbar', () => {
   it('renders the header title correctly', () => {
     const title = 'Test Title';
     const { getByText } = render(
       <>
-        {getStakingDepositNavbar({ title, onReject: jest.fn() }).headerTitle()}
+        {getNavbar({ title, onReject: jest.fn() }).headerTitle()}
       </>,
     );
 
@@ -18,14 +18,14 @@ describe('getStakingDepositNavbar', () => {
     const onRejectMock = jest.fn();
     const { getByTestId } = render(
       <>
-        {getStakingDepositNavbar({
+        {getNavbar({
           title: 'Test Title',
           onReject: onRejectMock,
         }).headerLeft()}
       </>,
     );
 
-    const backButton = getByTestId('staking-deposit-navbar-back-button');
+    const backButton = getByTestId('Test Title-navbar-back-button');
     backButton.props.onPress();
 
     expect(onRejectMock).toHaveBeenCalled();
