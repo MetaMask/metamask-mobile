@@ -161,6 +161,9 @@ export function onPersistedDataLoaded(): PersistedDataLoadedAction {
   };
 }
 
+/**
+ * Action to signal that app services are ready
+ */
 export function setAppServicesReady(): SetAppServicesReadyAction {
   return {
     type: UserActionType.SET_APP_SERVICES_READY,
