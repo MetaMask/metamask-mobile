@@ -118,14 +118,15 @@ import {
 } from '../Snaps';
 import { getRpcMethodMiddleware } from '../RPCMethods/RPCMethodMiddleware';
 import { calculateScryptKey } from './controllers/identity/calculate-scrypt-key';
-import {
-  AuthenticationController,
-  UserStorageController,
-} from '@metamask/profile-sync-controller';
 import { getNotificationServicesControllerMessenger } from './messengers/notifications/notification-services-controller-messenger';
 import { createNotificationServicesController } from './controllers/notifications/create-notification-services-controller';
 import { getNotificationServicesPushControllerMessenger } from './messengers/notifications/notification-services-push-controller-messenger';
 import { createNotificationServicesPushController } from './controllers/notifications/create-notification-services-push-controller';
+
+import { getAuthenticationControllerMessenger } from './messengers/identity/authentication-controller-messenger';
+import { createAuthenticationController } from './controllers/identity/create-authentication-controller';
+import { getUserStorageControllerMessenger } from './messengers/identity/user-storage-controller-messenger';
+import { createUserStorageController } from './controllers/identity/create-user-storage-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -225,7 +226,6 @@ import {
   SnapControllerClearSnapStateAction,
   SnapControllerGetSnapAction,
   SnapControllerGetSnapStateAction,
-  SnapControllerHandleRequestAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
@@ -609,7 +609,7 @@ export class Engine {
         'AccountsController:setSelectedAccount',
         'AccountsController:getAccountByAddress',
         'AccountsController:setAccountName',
-        SnapControllerHandleRequestAction,
+        'SnapController:handleRequest',
         SnapControllerGetSnapAction,
       ],
       allowedEvents: [],
@@ -1056,19 +1056,11 @@ export class Engine {
       state: initialState.SnapInterfaceController,
     });
 
-    const authenticationController = new AuthenticationController.Controller({
-      state: initialState.AuthenticationController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'AuthenticationController',
-        allowedActions: [
-          'KeyringController:getState',
-          'KeyringController:getAccounts',
-          SnapControllerHandleRequestAction,
-          'UserStorageController:enableProfileSyncing',
-        ],
-        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
-      }),
+    const authenticationControllerMessenger =
+      getAuthenticationControllerMessenger(this.controllerMessenger);
+    const authenticationController = createAuthenticationController({
+      messenger: authenticationControllerMessenger,
+      initialState: initialState.AuthenticationController,
       metametrics: {
         agent: 'mobile',
         getMetaMetricsId: async () =>
@@ -1076,66 +1068,17 @@ export class Engine {
       },
     });
 
-    const userStorageController = new UserStorageController.Controller({
-      getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
-      env: {
-        isAccountSyncingEnabled: Boolean(process.env.IS_TEST),
-      },
-      config: {
-        accountSyncing: {
-          onAccountAdded: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                })
-                .build(),
-            );
-          },
-          onAccountNameUpdated: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                })
-                .build(),
-            );
-          },
-        },
-      },
-      state: initialState.UserStorageController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'UserStorageController',
-        allowedActions: [
-          SnapControllerHandleRequestAction,
-          'KeyringController:getState',
-          'KeyringController:addNewAccount',
-          'AuthenticationController:getBearerToken',
-          'AuthenticationController:getSessionProfile',
-          'AuthenticationController:isSignedIn',
-          'AuthenticationController:performSignOut',
-          'AuthenticationController:performSignIn',
-          'AccountsController:listAccounts',
-          'AccountsController:updateAccountMetadata',
-          'NetworkController:getState',
-          'NetworkController:addNetwork',
-          'NetworkController:removeNetwork',
-          'NetworkController:updateNetwork',
-        ],
-        allowedEvents: [
-          'KeyringController:unlock',
-          'KeyringController:lock',
-          'AccountsController:accountAdded',
-          'AccountsController:accountRenamed',
-          'NetworkController:networkRemoved',
-        ],
-      }),
+    const userStorageControllerMessenger = getUserStorageControllerMessenger(
+      this.controllerMessenger,
+    );
+    const userStorageController = createUserStorageController({
+      messenger: userStorageControllerMessenger,
+      initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
+      env: {
+       // IMPORTANT! Do not enable account syncing while peer depts are not aligned
+        isAccountSyncingEnabled: false,
+      },
     });
 
     const notificationServicesControllerMessenger =
