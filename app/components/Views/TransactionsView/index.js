@@ -48,28 +48,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// Custom hook to log dependency changes
-function useWhyDidYouUpdate(name, props) {
-  const previousProps = useRef(props);
-
-  useEffect(() => {
-    const allKeys = Object.keys({ ...previousProps.current, ...props });
-    const changes = {};
-    allKeys.forEach((key) => {
-      if (previousProps.current[key] !== props[key]) {
-        changes[key] = {
-          from: previousProps.current[key],
-          to: props[key],
-        };
-      }
-    });
-    if (Object.keys(changes).length > 0) {
-      console.log(`[${name}] changed:`, changes);
-    }
-    previousProps.current = props;
-  }, [name, props]);
-}
-
 const TransactionsView = ({
   navigation,
   conversionRate,
@@ -100,9 +78,6 @@ const TransactionsView = ({
     chainId,
     tokenNetworkFilter,
   };
-
-  // Log changes in dependencies to filterTransactions
-  useWhyDidYouUpdate('filterTransactions dependencies', filterDeps);
 
   const filterTransactions = useCallback(
     (networkId) => {
