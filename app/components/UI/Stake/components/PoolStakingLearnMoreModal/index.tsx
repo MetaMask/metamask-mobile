@@ -83,7 +83,6 @@ const PoolStakingLearnMoreModal = () => {
 
   const { vaultApys, isLoadingVaultApys } = useVaultApys();
 
-  // TODO: Update default days pulled to 365 instead of 30 in earn-controller (refreshPooledStakingVaultDailyApys)
   const reversedVaultApys = useMemo(
     () => [...vaultApys].reverse(),
     [vaultApys],
