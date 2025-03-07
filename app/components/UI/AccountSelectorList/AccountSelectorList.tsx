@@ -1,6 +1,12 @@
 // Third party dependencies.
-import React, { useCallback, useRef } from 'react';
-import { Alert, ListRenderItem, View, ViewStyle } from 'react-native';
+import React, { useCallback, useRef, useMemo } from 'react';
+import {
+  Alert,
+  ListRenderItem,
+  View,
+  ViewStyle,
+  ImageSourcePropType,
+} from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -13,11 +19,11 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useStyles } from '../../../component-library/hooks';
-import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
+import { AvatarNetworkProps } from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.types';
 import {
   formatAddress,
   getLabelTextByAddress,
@@ -31,12 +37,23 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { selectIsAllNetworks } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { getNetworkImageSource } from '../../../util/networks';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { TextColor } from '../../../component-library/components/Texts/Text/Text.types';
+import { useMultiAccountChainBalances } from '../../hooks/useMultiAccountChainBalances';
+interface AvatarNetworksInfoProps extends AvatarNetworkProps {
+  name: string;
+  imageSource: ImageSourcePropType;
+  chainId: string;
+  totalFiatBalance: number | undefined;
+}
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -71,10 +88,17 @@ const AccountSelectorList = ({
   );
 
   const internalAccounts = useSelector(selectInternalAccounts);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+
+  const multichainBalances = useMultiAccountChainBalances();
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => {
+    (
+      { fiatBalance }: Assets,
+      address: string,
+      networksInfo: AvatarNetworksInfoProps[],
+    ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
       const tokenTicker = fiatBalanceStrSplit[1] || '';
@@ -90,26 +114,72 @@ const AccountSelectorList = ({
           >
             {fiatBalanceAmount}
           </SensitiveText>
-          <SensitiveText
-            length={SensitiveTextLength.Short}
-            style={styles.balanceLabel}
-            isHidden={privacyMode}
-            color={privacyMode ? TextColor.Alternative : TextColor.Default}
-          >
-            {tokenTicker}
-          </SensitiveText>
-          {tokens && (
-            <AvatarGroup
-              avatarPropsList={tokens.map((tokenObj) => ({
-                ...tokenObj,
-                variant: AvatarVariant.Token,
-              }))}
-            />
+          {!isAllNetworks && (
+            <SensitiveText
+              length={SensitiveTextLength.Short}
+              style={styles.balanceLabel}
+              isHidden={privacyMode}
+              color={privacyMode ? TextColor.Alternative : TextColor.Default}
+            >
+              {tokenTicker}
+            </SensitiveText>
+          )}
+          {networksInfo && isAllNetworks && (
+            <View style={styles.networkTokensContainer}>
+              <AvatarGroup
+                avatarPropsList={networksInfo.map(
+                  (networkInfo: AvatarNetworksInfoProps) => ({
+                    ...networkInfo,
+                    variant: AvatarVariant.Network,
+                    imageSource: networkInfo.imageSource,
+                  }),
+                )}
+              />
+            </View>
           )}
         </View>
       );
     },
-    [styles.balancesContainer, styles.balanceLabel, privacyMode],
+    [
+      styles.balancesContainer,
+      styles.balanceLabel,
+      styles.networkTokensContainer,
+      privacyMode,
+      isAllNetworks,
+    ],
+  );
+
+  const accountsWithNetworkInfo = useMemo(
+    () =>
+      accounts.map((account) => {
+        // Add null check to prevent errors if account address doesn't exist in multichainBalances
+        const accountBalances =
+          multichainBalances[account.address.toLowerCase()] || {};
+        const chainIds = Object.keys(accountBalances);
+
+        const networksInfo = chainIds
+          .map((chainId) => {
+            const networkBalanceInfo = accountBalances[chainId];
+            if (!networkBalanceInfo) return null;
+            const networkInfo = PopularList.find((n) => n.chainId === chainId);
+
+            return {
+              name: networkInfo?.nickname || `Chain ${chainId}`,
+              //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+              imageSource: getNetworkImageSource({
+                chainId: chainId.toString(),
+              }),
+              chainId,
+              totalFiatBalance: networkBalanceInfo?.totalFiatBalance ?? 0,
+            };
+          })
+          .filter((item): item is NonNullable<typeof item> => item !== null)
+          .filter((network) => network.totalFiatBalance > 0)
+          .sort((a, b) => a.totalFiatBalance - b.totalFiatBalance);
+
+        return { ...account, networksInfo };
+      }),
+    [accounts, multichainBalances],
   );
 
   const onLongPress = useCallback(
@@ -193,9 +263,19 @@ const AccountSelectorList = ({
     [navigate, internalAccounts],
   );
 
-  const renderAccountItem: ListRenderItem<Account> = useCallback(
+  const renderAccountItem: ListRenderItem<
+    Account & { networksInfo: AvatarNetworksInfoProps[] }
+  > = useCallback(
     ({
-      item: { name, address, assets, type, isSelected, balanceError },
+      item: {
+        name,
+        address,
+        assets,
+        type,
+        isSelected,
+        balanceError,
+        networksInfo,
+      },
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
@@ -256,7 +336,7 @@ const AccountSelectorList = ({
           }}
         >
           {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, address))}
+            (assets && renderAccountBalances(assets, address, networksInfo))}
         </Cell>
       );
     },
@@ -298,7 +378,7 @@ const AccountSelectorList = ({
     <FlatList
       ref={accountListRef}
       onContentSizeChange={onContentSizeChanged}
-      data={accounts}
+      data={accountsWithNetworkInfo}
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}
       // Increasing number of items at initial render fixes scroll issue.

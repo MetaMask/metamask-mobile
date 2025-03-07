@@ -55,6 +55,7 @@ const AvatarGroup = ({
               size={size}
               includesBorder={includesBorder}
               testID={AVATARGROUP_AVATAR_TESTID}
+              style={styles.avatarGroup}
             />
           </View>
         );
@@ -65,6 +66,7 @@ const AvatarGroup = ({
       includesBorder,
       maxStackedAvatars,
       size,
+      styles.avatarGroup,
     ],
   );
 

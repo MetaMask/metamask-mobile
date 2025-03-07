@@ -34,6 +34,12 @@ const styleSheet = (params: {
     textStyle: {
       marginLeft: OVERFLOWTEXTMARGIN_BY_AVATARSIZE[size],
     },
+    avatarGroup: {
+      borderRadius: 4,
+      borderWidth: 2,
+      height: 16,
+      width: 16,
+    },
   });
 };
 

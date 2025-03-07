@@ -30,7 +30,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 ///: END:ONLY_INCLUDE_IF
 
 /**
- * Hook to manage portfolio balance data across chains.
+ * Hook to manage portfolio balance data across chains for a single account.
  *
  * @returns Portfolio balance data
  */
