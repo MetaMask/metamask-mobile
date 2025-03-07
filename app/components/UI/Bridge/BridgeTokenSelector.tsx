@@ -26,6 +26,9 @@ import { useSourceTokens } from './useSourceTokens';
 import Engine from '../../../core/Engine';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
+import { balanceToFiat } from '../../../util/number';
+import { selectCurrentCurrency, selectConversionRate } from '../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 
 interface BridgeTokenSelectorProps {
   onClose?: () => void;
@@ -81,6 +84,9 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
   const currentChainId = useSelector(selectChainId) as Hex;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const tokensList = useSourceTokens();
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRate = useSelector(selectConversionRate);
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
 
   useEffect(() => {
     const { BridgeController } = Engine.context;
@@ -111,7 +117,19 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
 
   const renderItem = useCallback(({ item: token }: { item: TokenI }) => {
     const networkDetails = getNetworkBadgeDetails(currentChainId);
+
+    // Use the pre-formatted balance from useSourceTokens
     const hasBalance = parseFloat(token.balance) > 0;
+
+    // Calculate fiat value
+    const exchangeRate = token.address ? tokenExchangeRates?.[token.address as Hex]?.price : undefined;
+    const fiatValue = hasBalance ? balanceToFiat(
+      token.balance,
+      conversionRate,
+      exchangeRate,
+      currentCurrency
+    ) : undefined;
+
     const balanceWithSymbol = hasBalance ? `${token.balance} ${token.symbol}` : undefined;
 
     return (
@@ -120,7 +138,7 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
         asset={token}
         onPress={() => handleTokenPress(token)}
         mainBalance={balanceWithSymbol}
-        balance={hasBalance ? token.balanceFiat : undefined}
+        balance={fiatValue}
       >
         <BadgeWrapper
           badgeElement={
@@ -166,7 +184,7 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
         </View>
       </AssetElement>
     );
-  }, [currentChainId, getNetworkBadgeDetails, handleTokenPress, styles]);
+  }, [currentChainId, getNetworkBadgeDetails, handleTokenPress, styles, tokenExchangeRates, conversionRate, currentCurrency]);
 
   const keyExtractor = useCallback((token: TokenI) => token.address, []);
 
