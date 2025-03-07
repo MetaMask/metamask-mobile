@@ -144,8 +144,8 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
       </Text>
       <AssetElement
         asset={asset}
-        mainBalance={mainBalance}
-        balance={secondaryBalance}
+        balance={mainBalance}
+        secondaryBalance={secondaryBalance}
         onPress={() =>
           !asset.isETH &&
           !asset.isNative &&
