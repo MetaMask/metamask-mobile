@@ -2,13 +2,13 @@
 import { LinkChildren } from '@metamask/snaps-sdk/jsx';
 import React from 'react';
 import { Linking } from 'react-native';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { TextColor } from '../../../../component-library/components/Texts/Text';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import { TextColor } from '../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+} from '../../../component-library/components/Icons/Icon';
 
 export interface SnapUILinkProps {
   children: LinkChildren;
