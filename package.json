@@ -154,7 +154,7 @@
     "@metamask/accounts-controller": "^24.1.0",
     "@metamask/address-book-controller": "^6.0.3",
     "@metamask/approval-controller": "^7.1.0",
-    "@metamask/assets-controllers": "^51.0.2",
+    "@metamask/assets-controllers": "file:../metamask-core/packages/assets-controllers",
     "@metamask/base-controller": "^8.0.0",
     "@metamask/bitcoin-wallet-snap": "^0.9.0",
     "@metamask/bridge-controller": "^3.0.0",
