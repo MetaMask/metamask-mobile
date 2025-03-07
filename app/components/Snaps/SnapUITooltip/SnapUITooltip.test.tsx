@@ -4,28 +4,16 @@ import { SnapUITooltip } from './SnapUITooltip';
 import { Text, TouchableOpacity } from 'react-native';
 import ApprovalModal from '../../Approvals/ApprovalModal';
 
-jest.mock('../../../component-library/hooks/useStyles', () => ({
-  useStyles: () => ({ styles: {} }),
-}));
-
-// Mock the ButtonIcon component
-jest.mock('../../../component-library/components/Buttons/ButtonIcon', () => ({
-  __esModule: true,
-  default: () => null,
-  ButtonIconSizes: {
-    Md: 'Md',
-  },
-}));
-
-// Mock the Icon component
-jest.mock('../../../component-library/components/Icons/Icon', () => ({
-  IconName: {
-    ArrowLeft: 'ArrowLeft',
-  },
-  IconColor: {
-    Default: 'Default',
-  },
-}));
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => ({
+    __esModule: true,
+    default: function BottomSheetHeader({ onBack }: { onBack: () => void }) {
+      setTimeout(onBack, 0); // Simulate the back action when needed
+      return null;
+    },
+  }),
+);
 
 describe('SnapUITooltip', () => {
   it('should render tooltip with content and children', () => {
@@ -49,14 +37,14 @@ describe('SnapUITooltip', () => {
       </SnapUITooltip>,
     );
 
-    const touchable = getByText(children).parent?.parent as TouchableOpacity;
+    const touchable = getByText(children).parent as TouchableOpacity;
     fireEvent.press(touchable);
 
     const modal = UNSAFE_getByType(ApprovalModal);
     expect(modal.props.isVisible).toBe(true);
   });
 
-  it('should close modal when cancel is pressed', () => {
+  it('should close modal when back action is triggered', async () => {
     const content = 'Test content';
     const children = 'Click me';
     const { getByText, UNSAFE_getByType } = render(
@@ -65,12 +53,12 @@ describe('SnapUITooltip', () => {
       </SnapUITooltip>,
     );
 
-    const touchable = getByText(children).parent?.parent as TouchableOpacity;
+    const touchable = getByText(children).parent as TouchableOpacity;
     fireEvent.press(touchable);
 
-    const modal = UNSAFE_getByType(ApprovalModal);
-    fireEvent(modal, 'onCancel');
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
+    const modal = UNSAFE_getByType(ApprovalModal);
     expect(modal.props.isVisible).toBe(false);
   });
 
@@ -83,7 +71,7 @@ describe('SnapUITooltip', () => {
       </SnapUITooltip>,
     );
 
-    const touchable = getByText(children).parent?.parent as TouchableOpacity;
+    const touchable = getByText(children).parent as TouchableOpacity;
     fireEvent.press(touchable);
 
     const modal = UNSAFE_getByType(ApprovalModal);
