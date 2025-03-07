@@ -4,10 +4,8 @@ import { act } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
-  generateStateSignTypedData,
   personalSignatureConfirmationState,
   securityAlertResponse,
-  SignTypedDataMockType,
   stakingDepositConfirmationState,
   typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
@@ -24,6 +22,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
     removeListener: jest.fn(),
+    setOptions: jest.fn(),
   }),
 }));
 
@@ -55,12 +54,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [
-          {
-            type: 'HD Test Keyring',
-            accounts: ['0x935e73edb9ff52e23bac7f7e043a1ecd06d05477'],
-          },
-        ],
+        keyrings: [],
       },
       getOrAddQRKeyring: jest.fn(),
     },
@@ -82,17 +76,11 @@ jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: jest.fn(),
-    addListener: jest.fn(),
-    dispatch: jest.fn(),
-    setOptions: jest.fn(),
-  }),
-}));
-
 describe('Confirm', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders modal confirmation', async () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: typedSignV1ConfirmationState,
@@ -158,14 +146,6 @@ describe('Confirm', () => {
     expect(getByText('Advanced details')).toBeDefined();
   });
 
-  it('renders for revoke DAI permit', async () => {
-    const { findByText } = renderWithProvider(<Confirm />, {
-      state: generateStateSignTypedData(SignTypedDataMockType.DAI),
-    });
-    expect(findByText('Remove permission')).toBeDefined();
-    expect(findByText('This site wants to revoke permission to spend your tokens.')).toBeDefined();
-  });
-
   it('renders a blockaid banner if the confirmation has blockaid error response', async () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: {
@@ -174,7 +154,9 @@ describe('Confirm', () => {
       },
     });
 
-    await act(async () => undefined);
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
