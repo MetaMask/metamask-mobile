@@ -1,9 +1,13 @@
 
 import {printTime, removeLabel, getLatestAssociatedBitriseComment, determineE2ERunFlags, shouldRunBitriseE2E, getBitriseTestStatus, BitriseTestStatus, getRecentCommits} from './bitrise-utils';
 import * as core from '@actions/core';
+import {context} from '@actions/github';
 async function main(): Promise<void> {
 
     printTime();
+
+    console.log(`Workflow triggered actor : ${process.env.GITHUB_ACTOR}`);
+    console.log(`Workflow triggered by:  ${context.eventName}`);
 
     // Get the commit hash from the GitHub context
     const recentCommits = await getRecentCommits();
