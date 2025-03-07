@@ -1,27 +1,31 @@
 'use strict';
-import { SmokeAccounts } from '../../tags';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+/**
+ * IMPORTANT: This test requires METAMASK_BUILD_TYPE='flask' to be set in the environment
+ * Run with: METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release
+ */
+import { SmokeAccounts } from '../../../tags';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   defaultGanacheOptions,
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../fixtures/utils';
-import WalletView from '../../pages/wallet/WalletView';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
-import TestHelpers from '../../helpers';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
-import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
-import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
-import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
-import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import SettingsView from '../../pages/Settings/SettingsView';
-import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+} from '../../../fixtures/fixture-helper';
+import FixtureServer from '../../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../../fixtures/utils';
+import WalletView from '../../../pages/wallet/WalletView';
+import { loginToApp } from '../../../viewHelper';
+import Assertions from '../../../utils/Assertions';
+import TestHelpers from '../../../helpers';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
+import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
+import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
+import SrpQuizModal from '../../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
+import RevealSecretRecoveryPhrase from '../../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
+import { RevealSeedViewSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import SettingsView from '../../../pages/Settings/SettingsView';
+import SecurityAndPrivacyView from '../../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 const fixtureServer = new FixtureServer();
 
