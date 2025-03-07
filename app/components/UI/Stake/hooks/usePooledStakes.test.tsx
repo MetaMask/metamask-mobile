@@ -7,7 +7,6 @@ import {
   DeepPartial,
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
-import { stakingApiService } from '../sdk/stakeSdkProvider';
 import usePooledStakes from './usePooledStakes';
 import { act, waitFor } from '@testing-library/react-native';
 import {
@@ -148,18 +147,6 @@ describe('usePooledStakes', () => {
     });
 
     it('returns NEVER_STAKED when assets and rewards are 0', async () => {
-      jest.spyOn(stakingApiService, 'getPooledStakes').mockResolvedValue({
-        accounts: [
-          {
-            ...mockPooledStakeData,
-            assets: '0',
-            lifetimeRewards: '0',
-            exitRequests: [],
-          },
-        ],
-        exchangeRate: '1.2',
-      });
-
       const { result } = renderHook();
 
       await waitFor(() => {

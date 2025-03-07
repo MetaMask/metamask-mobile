@@ -88,7 +88,7 @@ jest.mock('../../hooks/useVaultMetadata', () => ({
   __esModule: true,
   default: () => ({
     vaultMetadata: mockVaultMetadata,
-    loading: false,
+    isLoadingVaultMetadata: false,
     error: null,
     annualRewardRate: '2.5%',
     annualRewardRateDecimal: 0.025,
