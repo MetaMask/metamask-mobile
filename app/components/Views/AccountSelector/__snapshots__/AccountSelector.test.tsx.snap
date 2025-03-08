@@ -461,6 +461,7 @@ exports[`AccountSelector should render correctly 1`] = `
                           </View>
                           <RCTScrollView
                             collapsable={false}
+                            data={[]}
                             getItem={[Function]}
                             getItemCount={[Function]}
                             initialNumToRender={999}

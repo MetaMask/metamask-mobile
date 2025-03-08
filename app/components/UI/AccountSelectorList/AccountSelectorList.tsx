@@ -114,6 +114,7 @@ const AccountSelectorList = ({
           >
             {fiatBalanceAmount}
           </SensitiveText>
+
           {!isAllNetworks && (
             <SensitiveText
               length={SensitiveTextLength.Short}
@@ -124,6 +125,7 @@ const AccountSelectorList = ({
               {tokenTicker}
             </SensitiveText>
           )}
+
           {networksInfo && isAllNetworks && (
             <View style={styles.networkTokensContainer}>
               <AvatarGroup
@@ -149,37 +151,39 @@ const AccountSelectorList = ({
     ],
   );
 
-  const accountsWithNetworkInfo = useMemo(
-    () =>
-      accounts.map((account) => {
-        const accountBalances =
-          multichainBalances[account.address.toLowerCase()] || {};
-        const chainIds = Object.keys(accountBalances);
+  const accountsWithNetworkInfo = useMemo(() => {
+    if (!accounts || !Array.isArray(accounts)) {
+      return [];
+    }
 
-        const networksInfo = chainIds
-          .map((chainId) => {
-            const networkBalanceInfo = accountBalances[chainId];
-            if (!networkBalanceInfo) return null;
-            const networkInfo = PopularList.find((n) => n.chainId === chainId);
+    return accounts.map((account) => {
+      const accountBalances =
+        multichainBalances?.[account?.address?.toLowerCase()] || {};
+      const chainIds = Object.keys(accountBalances);
 
-            return {
-              name: networkInfo?.nickname || `Chain ${chainId}`,
-              //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-              imageSource: getNetworkImageSource({
-                chainId: chainId.toString(),
-              }),
-              chainId,
-              totalFiatBalance: networkBalanceInfo?.totalFiatBalance ?? 0,
-            };
-          })
-          .filter((item): item is NonNullable<typeof item> => item !== null)
-          .filter((network) => network.totalFiatBalance > 0)
-          .sort((a, b) => a.totalFiatBalance - b.totalFiatBalance);
+      const networksInfo = chainIds
+        .map((chainId) => {
+          const networkBalanceInfo = accountBalances[chainId];
+          if (!networkBalanceInfo) return null;
+          const networkInfo = PopularList.find((n) => n.chainId === chainId);
 
-        return { ...account, networksInfo };
-      }),
-    [accounts, multichainBalances],
-  );
+          return {
+            name: networkInfo?.nickname || `Chain ${chainId}`,
+            //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+            imageSource: getNetworkImageSource({
+              chainId: chainId.toString(),
+            }),
+            chainId,
+            totalFiatBalance: networkBalanceInfo?.totalFiatBalance ?? 0,
+          };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null)
+        .filter((network) => network.totalFiatBalance > 0)
+        .sort((a, b) => a.totalFiatBalance - b.totalFiatBalance);
+
+      return { ...account, networksInfo };
+    });
+  }, [accounts, multichainBalances]);
 
   const onLongPress = useCallback(
     ({
