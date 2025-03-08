@@ -66,6 +66,9 @@ const slice = createSlice({
       state.sourceAmount = undefined;
       state.destAmount = undefined;
     },
+    setSourceToken: (state, action: PayloadAction<BridgeToken>) => {
+      state.sourceToken = action.payload;
+    },
   },
 });
 
@@ -103,6 +106,12 @@ export const selectSourceToken = createSelector(
   selectBridgeState,
   selectTokensList,
   (bridgeState, tokens) => {
+    // If we have a selected source token in the bridge state, use that
+    if (bridgeState.sourceToken) {
+      return bridgeState.sourceToken;
+    }
+
+    // Otherwise, fall back to the native token
     const { sourceChainId } = bridgeState;
     const sourceToken = !isCaipChainId(sourceChainId)
       ? getNativeSwapsToken(sourceChainId)
@@ -133,4 +142,5 @@ export const {
   setDestChainId,
   resetBridgeState,
   switchTokens,
+  setSourceToken,
 } = actions;
