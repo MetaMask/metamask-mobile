@@ -17,28 +17,12 @@ import {
 } from './MetaMetrics.types';
 import { MetricsEventBuilder } from './MetricsEventBuilder';
 
-const VALID_UUID = 'b7bff9d5-8928-488e-935e-4522c680242e';
+jest.mock('../../store/storage-wrapper');
+const mockGet = jest.fn();
+const mockSet = jest.fn();
+const mockClear = jest.fn();
 
 jest.mock('axios');
-
-const storage: Record<string, string | null> = {};
-
-jest.mock('../../store/storage-wrapper', () => ({
-  getItem: jest.fn<Promise<string | null>, [string]>((key: string) => Promise.resolve(storage[key] ?? null)),
-  setItem: jest.fn((key, value) => {
-    storage[key] = value;
-    return Promise.resolve();
-  }),
-  removeItem: jest.fn((key) => {
-    delete storage[key];
-    return Promise.resolve();
-  }),
-  clearAll: jest.fn(() => {
-    Object.keys(storage).forEach((key) => delete storage[key]);
-    return Promise.resolve();
-  }),
-  getAll: jest.fn(() => storage)
-}));
 
 /**
  * Extend MetaMetrics to allow reset of the singleton instance
@@ -55,13 +39,16 @@ interface GlobalWithSegmentClient {
 
 describe('MetaMetrics', () => {
   beforeEach(async () => {
-    StorageWrapper.clearAll();
-
+    StorageWrapper.getItem = mockGet;
+    StorageWrapper.setItem = mockSet;
+    StorageWrapper.clearAll = mockClear;
     TestMetaMetrics.resetInstance();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    mockGet.mockReset();
+    mockSet.mockReset();
   });
 
   describe('Singleton', () => {
@@ -81,18 +68,16 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
     });
-
     it('fails silently', async () => {
-      StorageWrapper.getItem = jest.fn().mockRejectedValue(new Error('Fake error!'));
+      StorageWrapper.getItem = jest.fn().mockRejectedValue(new Error('error'));
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeFalsy();
-      // set back to proper mock implementation
-      StorageWrapper.getItem = jest.fn((key) => Promise.resolve(storage[key] ?? null));
     });
   });
 
   describe('Disabling', () => {
     it('defaults to disabled metrics', async () => {
+      mockGet.mockResolvedValue(undefined);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -101,7 +86,7 @@ describe('MetaMetrics', () => {
     });
 
     it('uses preference enabled value when set', async () => {
-      StorageWrapper.setItem(METRICS_OPT_IN, AGREED);
+      mockGet.mockImplementation(async () => AGREED);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -432,30 +417,31 @@ describe('MetaMetrics', () => {
 
   describe('Ids', () => {
     it('is returned from StorageWrapper when instance not configured', async () => {
-      const UUID = VALID_UUID;
-      storage[METAMETRICS_ID] = UUID;
+      const UUID = '00000000-0000-0000-0000-000000000000';
+      mockGet.mockImplementation(async (key: string) =>
+        key === METAMETRICS_ID ? UUID : '',
+      );
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METAMETRICS_ID);
     });
 
     it('is returned from memory when instance configured', async () => {
-      storage[METAMETRICS_ID] = VALID_UUID;
+      const testID = '00000000-0000-0000-0000-000000000000';
+      mockGet.mockImplementation(async () => testID);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
-      // reset the call count on StorageWrapper.getItem
-      // we just want to know if the next `getMetaMetricsId` call
-      // will call StorageWrapper.getItem or not
-      (StorageWrapper.getItem as jest.Mock).mockClear();
+      // reset the call count to checj no new calls are made
+      mockGet.mockClear();
 
-      expect(await metaMetrics.getMetaMetricsId()).toEqual(VALID_UUID);
-      expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(METAMETRICS_ID);
+      expect(await metaMetrics.getMetaMetricsId()).toEqual(testID);
+      expect(StorageWrapper.getItem).not.toHaveBeenCalled();
     });
 
     it('uses Mixpanel ID if it is set', async () => {
-      const mixPanelUUID = VALID_UUID;
-      await StorageWrapper.setItem(MIXPANEL_METAMETRICS_ID, mixPanelUUID);
+      const mixPanelUUID = '00000000-0000-0000-0000-000000000000';
+      mockGet.mockImplementation(async () => mixPanelUUID);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -472,7 +458,10 @@ describe('MetaMetrics', () => {
     });
 
     it('uses Metametrics ID if it is set', async () => {
-      storage[METAMETRICS_ID] = VALID_UUID;
+      const UUID = '00000000-0000-0000-0000-000000000000';
+      mockGet.mockImplementation(async (key: string) =>
+        key === METAMETRICS_ID ? UUID : '',
+      );
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -482,7 +471,7 @@ describe('MetaMetrics', () => {
       );
       expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
       expect(StorageWrapper.setItem).not.toHaveBeenCalled();
-      expect(await metaMetrics.getMetaMetricsId()).toEqual(VALID_UUID);
+      expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
     });
 
     it('maintains same user id', async () => {
@@ -591,7 +580,7 @@ describe('MetaMetrics', () => {
     describe('Date', () => {
       it('gets date from preferences storage', async () => {
         const expectedDate = '04/05/2023';
-        storage[ANALYTICS_DATA_DELETION_DATE] = expectedDate;
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(expectedDate);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
@@ -604,12 +593,11 @@ describe('MetaMetrics', () => {
 
       it('keeps date in instance', async () => {
         const expectedDate = '04/05/2023';
-        storage[ANALYTICS_DATA_DELETION_DATE] = expectedDate;
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(expectedDate);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         // this resets the call count and changes the return value to nothing
-        storage[ANALYTICS_DATA_DELETION_DATE] = null;
-        (StorageWrapper.getItem as jest.Mock).mockClear();
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(null);
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
           expectedDate,
         );
@@ -619,9 +607,10 @@ describe('MetaMetrics', () => {
       });
 
       it('returns empty string if no date in preferences storage', async () => {
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        expect(metaMetrics.getDeleteRegulationCreationDate()).toBeNull();
+        expect(metaMetrics.getDeleteRegulationCreationDate()).toBeUndefined();
         expect(StorageWrapper.getItem).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
         );
@@ -630,11 +619,13 @@ describe('MetaMetrics', () => {
 
     describe('Regulation Id', () => {
       it('gets id from preferences storage', async () => {
-        const expectedRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
-        storage[METAMETRICS_DELETION_REGULATION_ID] = expectedRegulationId;
+        const expecterRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
+        StorageWrapper.getItem = jest
+          .fn()
+          .mockResolvedValue(expecterRegulationId);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        expect(metaMetrics.getDeleteRegulationId()).toBe(expectedRegulationId);
+        expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
         expect(StorageWrapper.getItem).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
         );
@@ -642,12 +633,13 @@ describe('MetaMetrics', () => {
 
       it('keeps id in instance', async () => {
         const expecterRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
-        storage[METAMETRICS_DELETION_REGULATION_ID] = expecterRegulationId;
+        StorageWrapper.getItem = jest
+          .fn()
+          .mockResolvedValue(expecterRegulationId);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         // this resets the call count and changes the return value to nothing
-        storage[METAMETRICS_DELETION_REGULATION_ID] = null;
-        (StorageWrapper.getItem as jest.Mock).mockClear();
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(null);
         expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
         expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
@@ -655,9 +647,10 @@ describe('MetaMetrics', () => {
       });
 
       it('returns empty string if no id in preferences storage', async () => {
+        StorageWrapper.getItem = jest.fn().mockResolvedValue(undefined);
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
-        expect(metaMetrics.getDeleteRegulationId()).toBeNull();
+        expect(metaMetrics.getDeleteRegulationId()).toBeUndefined();
         expect(StorageWrapper.getItem).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
         );
