@@ -92,7 +92,7 @@ describe('trackErrorAsAnalytics', () => {
   });
 
   it('does not call trackEvent if shouldTrackExpectedErrors is false', async () => {
-    shouldTrackMock.shouldTrackExpectedErrors.mockReturnValueOnce(Promise.resolve(false));
+    shouldTrackMock.shouldTrackExpectedErrors.mockResolvedValue(false);
 
     await trackErrorAsAnalytics('testEvent', 'This is an error message');
     await new Promise(process.nextTick);

@@ -548,6 +548,7 @@ class MetaMetrics implements IMetaMetrics {
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
 
       this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
+
       this.#isConfigured = true;
 
       // identify user with the latest traits
