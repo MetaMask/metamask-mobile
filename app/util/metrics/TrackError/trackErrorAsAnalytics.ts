@@ -18,7 +18,6 @@ const trackErrorAsAnalytics = async (
   otherInfo?: string,
 ) => {
   const instance = MetaMetrics.getInstance();
-  console.log('instance', instance);
   const shouldTrack = await shouldTrackExpectedErrors(instance);
   if (!shouldTrack) return;
 

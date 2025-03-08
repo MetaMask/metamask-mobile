@@ -11,11 +11,11 @@ jest.mock('@metamask/remote-feature-flag-controller', () => ({
 const TEST_IDS = {
   UNDER_ONE_PERCENT: '01c53eb9-aeb9-4cd1-9414-7194419fe88b',
   OVER_NINETY_SEVEN_PERCENT: 'f9d8dd0a-5851-45b5-aed7-8c45e5910375',
-}
+};
 
 const constantMock = jest.requireMock('./constants');
 jest.mock('./constants', () => ({
-  EXPECTED_ERRORS_PORTION_TO_TRACK: .5,
+  EXPECTED_ERRORS_PORTION_TO_TRACK: 0.5,
 }));
 
 describe('shouldTrackExpectedErrors', () => {

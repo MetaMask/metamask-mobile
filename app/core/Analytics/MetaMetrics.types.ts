@@ -63,10 +63,6 @@ export interface IMetaMetrics {
   configure(): Promise<boolean>;
 
   getMetaMetricsId(): Promise<string | undefined>;
-
-  getShouldTrackExpectedErrors(): boolean;
-
-  setShouldTrackExpectedErrors(shouldTrack: boolean): void;
 }
 
 /**

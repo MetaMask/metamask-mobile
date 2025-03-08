@@ -55,7 +55,7 @@ interface GlobalWithSegmentClient {
 
 describe('MetaMetrics', () => {
   beforeEach(async () => {
-    StorageWrapper.clearAll()
+    StorageWrapper.clearAll();
 
     TestMetaMetrics.resetInstance();
   });
@@ -87,7 +87,7 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeFalsy();
       // set back to proper mock implementation
-      StorageWrapper.getItem = jest.fn((key) => Promise.resolve(storage[key] ?? null))
+      StorageWrapper.getItem = jest.fn((key) => Promise.resolve(storage[key] ?? null));
     });
   });
 
@@ -101,7 +101,7 @@ describe('MetaMetrics', () => {
     });
 
     it('uses preference enabled value when set', async () => {
-      StorageWrapper.setItem(METRICS_OPT_IN, AGREED)
+      StorageWrapper.setItem(METRICS_OPT_IN, AGREED);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -433,14 +433,14 @@ describe('MetaMetrics', () => {
   describe('Ids', () => {
     it('is returned from StorageWrapper when instance not configured', async () => {
       const UUID = VALID_UUID;
-      storage[METAMETRICS_ID] = UUID
+      storage[METAMETRICS_ID] = UUID;
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(METAMETRICS_ID);
     });
 
     it('is returned from memory when instance configured', async () => {
-      storage[METAMETRICS_ID] = VALID_UUID
+      storage[METAMETRICS_ID] = VALID_UUID;
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -455,7 +455,7 @@ describe('MetaMetrics', () => {
 
     it('uses Mixpanel ID if it is set', async () => {
       const mixPanelUUID = VALID_UUID;
-      await StorageWrapper.setItem(MIXPANEL_METAMETRICS_ID, mixPanelUUID)
+      await StorageWrapper.setItem(MIXPANEL_METAMETRICS_ID, mixPanelUUID);
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -472,7 +472,7 @@ describe('MetaMetrics', () => {
     });
 
     it('uses Metametrics ID if it is set', async () => {
-      storage[METAMETRICS_ID] = VALID_UUID
+      storage[METAMETRICS_ID] = VALID_UUID;
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
 
@@ -591,7 +591,7 @@ describe('MetaMetrics', () => {
     describe('Date', () => {
       it('gets date from preferences storage', async () => {
         const expectedDate = '04/05/2023';
-        storage[ANALYTICS_DATA_DELETION_DATE] = expectedDate
+        storage[ANALYTICS_DATA_DELETION_DATE] = expectedDate;
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
@@ -604,7 +604,7 @@ describe('MetaMetrics', () => {
 
       it('keeps date in instance', async () => {
         const expectedDate = '04/05/2023';
-        storage[ANALYTICS_DATA_DELETION_DATE] = expectedDate
+        storage[ANALYTICS_DATA_DELETION_DATE] = expectedDate;
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         // this resets the call count and changes the return value to nothing
@@ -631,7 +631,7 @@ describe('MetaMetrics', () => {
     describe('Regulation Id', () => {
       it('gets id from preferences storage', async () => {
         const expectedRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
-        storage[METAMETRICS_DELETION_REGULATION_ID] = expectedRegulationId
+        storage[METAMETRICS_DELETION_REGULATION_ID] = expectedRegulationId;
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationId()).toBe(expectedRegulationId);
@@ -642,7 +642,7 @@ describe('MetaMetrics', () => {
 
       it('keeps id in instance', async () => {
         const expecterRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
-        storage[METAMETRICS_DELETION_REGULATION_ID] = expecterRegulationId
+        storage[METAMETRICS_DELETION_REGULATION_ID] = expecterRegulationId;
         const metaMetrics = TestMetaMetrics.getInstance();
         expect(await metaMetrics.configure()).toBeTruthy();
         // this resets the call count and changes the return value to nothing
