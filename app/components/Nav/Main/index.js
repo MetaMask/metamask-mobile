@@ -87,7 +87,6 @@ import {
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
@@ -415,37 +414,35 @@ const Main = (props) => {
 
   return (
     <React.Fragment>
-      <AssetPollingProvider>
-        <View style={styles.flex}>
-          {!forceReload ? (
-            <MainNavigator navigation={props.navigation} />
-          ) : (
-            renderLoader()
-          )}
-          <GlobalAlert />
-          <FadeOutOverlay />
-          <Notification navigation={props.navigation} />
-          <RampOrders />
-          <SwapsLiveness />
-          <BackupAlert
-            onDismiss={toggleRemindLater}
-            navigation={props.navigation}
-          />
-          {renderDeprecatedNetworkAlert(
-            props.chainId,
-            props.backUpSeedphraseVisible,
-          )}
-          <SkipAccountSecurityModal
-            modalVisible={showRemindLaterModal}
-            onCancel={skipAccountModalSecureNow}
-            onConfirm={skipAccountModalSkip}
-            skipCheckbox={skipCheckbox}
-            toggleSkipCheckbox={toggleSkipCheckbox}
-          />
-          <ProtectYourWalletModal navigation={props.navigation} />
-          <RootRPCMethodsUI navigation={props.navigation} />
-        </View>
-      </AssetPollingProvider>
+      <View style={styles.flex}>
+        {!forceReload ? (
+          <MainNavigator navigation={props.navigation} />
+        ) : (
+          renderLoader()
+        )}
+        <GlobalAlert />
+        <FadeOutOverlay />
+        <Notification navigation={props.navigation} />
+        <RampOrders />
+        <SwapsLiveness />
+        <BackupAlert
+          onDismiss={toggleRemindLater}
+          navigation={props.navigation}
+        />
+        {renderDeprecatedNetworkAlert(
+          props.chainId,
+          props.backUpSeedphraseVisible,
+        )}
+        <SkipAccountSecurityModal
+          modalVisible={showRemindLaterModal}
+          onCancel={skipAccountModalSecureNow}
+          onConfirm={skipAccountModalSkip}
+          skipCheckbox={skipCheckbox}
+          toggleSkipCheckbox={toggleSkipCheckbox}
+        />
+        <ProtectYourWalletModal navigation={props.navigation} />
+        <RootRPCMethodsUI navigation={props.navigation} />
+      </View>
     </React.Fragment>
   );
 };

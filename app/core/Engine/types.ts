@@ -225,6 +225,24 @@ import {
   MultichainNetworkControllerState,
   MultichainNetworkControllerEvents,
 } from '@metamask/multichain-network-controller';
+import {
+  BridgeController,
+  BridgeControllerActions,
+  type BridgeControllerEvents,
+  type BridgeControllerState,
+} from '@metamask/bridge-controller';
+import type {
+  BridgeStatusController,
+  BridgeStatusControllerActions,
+  BridgeStatusControllerEvents,
+  BridgeStatusControllerState,
+} from '@metamask/bridge-status-controller';
+import {
+  EarnController,
+  EarnControllerActions,
+  EarnControllerEvents,
+  EarnControllerState,
+} from '@metamask/earn-controller';
 
 /**
  * Controllers that area always instantiated
@@ -304,7 +322,10 @@ type GlobalActions =
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
-  | MultichainNetworkControllerActions;
+  | MultichainNetworkControllerActions
+  | BridgeControllerActions
+  | BridgeStatusControllerActions
+  | EarnControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -349,7 +370,10 @@ type GlobalEvents =
   | RemoteFeatureFlagControllerEvents
   | TokenSearchDiscoveryControllerEvents
   | SnapKeyringEvents
-  | MultichainNetworkControllerEvents;
+  | MultichainNetworkControllerEvents
+  | BridgeControllerEvents
+  | BridgeStatusControllerEvents
+  | EarnControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -423,6 +447,9 @@ export type Controllers = {
   MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkController;
+  BridgeController: BridgeController;
+  BridgeStatusController: BridgeStatusController;
+  EarnController: EarnController;
 };
 
 /**
@@ -480,6 +507,9 @@ export type EngineState = {
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
+  BridgeController: BridgeControllerState;
+  BridgeStatusController: BridgeStatusControllerState;
+  EarnController: EarnControllerState;
 };
 
 /** Controller names */

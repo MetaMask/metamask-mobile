@@ -39,6 +39,7 @@ import {
   TransactionMeta,
   TransactionControllerOptions,
   TransactionControllerMessenger,
+  type TransactionParams,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
@@ -117,14 +118,15 @@ import {
 } from '../Snaps';
 import { getRpcMethodMiddleware } from '../RPCMethods/RPCMethodMiddleware';
 import { calculateScryptKey } from './controllers/identity/calculate-scrypt-key';
-import {
-  AuthenticationController,
-  UserStorageController,
-} from '@metamask/profile-sync-controller';
 import { getNotificationServicesControllerMessenger } from './messengers/notifications/notification-services-controller-messenger';
 import { createNotificationServicesController } from './controllers/notifications/create-notification-services-controller';
 import { getNotificationServicesPushControllerMessenger } from './messengers/notifications/notification-services-push-controller-messenger';
 import { createNotificationServicesPushController } from './controllers/notifications/create-notification-services-push-controller';
+
+import { getAuthenticationControllerMessenger } from './messengers/identity/authentication-controller-messenger';
+import { createAuthenticationController } from './controllers/identity/create-authentication-controller';
+import { getUserStorageControllerMessenger } from './messengers/identity/user-storage-controller-messenger';
+import { createUserStorageController } from './controllers/identity/create-user-storage-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -167,7 +169,11 @@ import {
 } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
-import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
+import {
+  ApprovalType,
+  toChecksumHexAddress,
+  type ChainId,
+} from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
@@ -220,11 +226,13 @@ import {
   SnapControllerClearSnapStateAction,
   SnapControllerGetSnapAction,
   SnapControllerGetSnapStateAction,
-  SnapControllerHandleRequestAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
+import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
+import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
+import { EarnController } from '@metamask/earn-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -601,7 +609,7 @@ export class Engine {
         'AccountsController:setSelectedAccount',
         'AccountsController:getAccountByAddress',
         'AccountsController:setAccountName',
-        SnapControllerHandleRequestAction,
+        'SnapController:handleRequest',
         SnapControllerGetSnapAction,
       ],
       allowedEvents: [],
@@ -1048,19 +1056,11 @@ export class Engine {
       state: initialState.SnapInterfaceController,
     });
 
-    const authenticationController = new AuthenticationController.Controller({
-      state: initialState.AuthenticationController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'AuthenticationController',
-        allowedActions: [
-          'KeyringController:getState',
-          'KeyringController:getAccounts',
-          SnapControllerHandleRequestAction,
-          'UserStorageController:enableProfileSyncing',
-        ],
-        allowedEvents: ['KeyringController:unlock', 'KeyringController:lock'],
-      }),
+    const authenticationControllerMessenger =
+      getAuthenticationControllerMessenger(this.controllerMessenger);
+    const authenticationController = createAuthenticationController({
+      messenger: authenticationControllerMessenger,
+      initialState: initialState.AuthenticationController,
       metametrics: {
         agent: 'mobile',
         getMetaMetricsId: async () =>
@@ -1068,66 +1068,17 @@ export class Engine {
       },
     });
 
-    const userStorageController = new UserStorageController.Controller({
-      getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
-      env: {
-        isAccountSyncingEnabled: Boolean(process.env.IS_TEST),
-      },
-      config: {
-        accountSyncing: {
-          onAccountAdded: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                })
-                .build(),
-            );
-          },
-          onAccountNameUpdated: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                })
-                .build(),
-            );
-          },
-        },
-      },
-      state: initialState.UserStorageController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'UserStorageController',
-        allowedActions: [
-          SnapControllerHandleRequestAction,
-          'KeyringController:getState',
-          'KeyringController:addNewAccount',
-          'AuthenticationController:getBearerToken',
-          'AuthenticationController:getSessionProfile',
-          'AuthenticationController:isSignedIn',
-          'AuthenticationController:performSignOut',
-          'AuthenticationController:performSignIn',
-          'AccountsController:listAccounts',
-          'AccountsController:updateAccountMetadata',
-          'NetworkController:getState',
-          'NetworkController:addNetwork',
-          'NetworkController:removeNetwork',
-          'NetworkController:updateNetwork',
-        ],
-        allowedEvents: [
-          'KeyringController:unlock',
-          'KeyringController:lock',
-          'AccountsController:accountAdded',
-          'AccountsController:accountRenamed',
-          'NetworkController:networkRemoved',
-        ],
-      }),
+    const userStorageControllerMessenger = getUserStorageControllerMessenger(
+      this.controllerMessenger,
+    );
+    const userStorageController = createUserStorageController({
+      messenger: userStorageControllerMessenger,
+      initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
+      env: {
+       // IMPORTANT! Do not enable account syncing while peer depts are not aligned
+        isAccountSyncingEnabled: false,
+      },
     });
 
     const notificationServicesControllerMessenger =
@@ -1278,6 +1229,67 @@ export class Engine {
       ),
       getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
+    });
+
+    /* bridge controller Initialization */
+
+    const bridgeController = new BridgeController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'BridgeController',
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'NetworkController:findNetworkClientIdByChainId',
+          'NetworkController:getState',
+          'NetworkController:getNetworkClientById',
+        ],
+        allowedEvents: [],
+      }),
+      clientId: BridgeClientId.MOBILE,
+      // TODO: change getLayer1GasFee type to match transactionController.getLayer1GasFee
+      getLayer1GasFee: async ({
+        transactionParams,
+        chainId,
+      }: {
+        transactionParams: TransactionParams;
+        chainId: ChainId;
+      }) =>
+        this.transactionController.getLayer1GasFee({
+          transactionParams,
+          chainId,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as any,
+      fetchFn: fetch,
+    });
+
+    const bridgeStatusController = new BridgeStatusController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'BridgeStatusController',
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'NetworkController:getNetworkClientById',
+          'NetworkController:findNetworkClientIdByChainId',
+          'NetworkController:getState',
+          'TransactionController:getState',
+        ],
+        allowedEvents: [],
+      }),
+      clientId: BridgeClientId.MOBILE,
+      fetchFn: fetch,
+    });
+
+    const earnController = new EarnController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'EarnController',
+        allowedEvents: [
+          'AccountsController:selectedAccountChange',
+          'NetworkController:stateChange',
+        ],
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getState',
+        ],
+      }),
     });
 
     this.context = {
@@ -1521,6 +1533,9 @@ export class Engine {
       MultichainAssetsRatesController: multichainAssetsRatesController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController: multichainNetworkController,
+      BridgeController: bridgeController,
+      BridgeStatusController: bridgeStatusController,
+      EarnController: earnController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2146,6 +2161,9 @@ export default {
       MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
+      BridgeController,
+      BridgeStatusController,
+      EarnController,
     } = instance.datamodel.state;
 
     return {
@@ -2189,6 +2207,9 @@ export default {
       MultichainAssetsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
+      BridgeController,
+      BridgeStatusController,
+      EarnController,
     };
   },
 

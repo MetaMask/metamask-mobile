@@ -11,7 +11,10 @@
       "checkbox_label": "I have acknowledged the alert and still want to proceed",
       "review_alerts": "Review all alerts",
       "message": "We suggest you reject this request. If you continue, you might put your assets at risk."
-    }
+    },
+    "inline_alert_label": "Alert",
+    "review_alerts": "Review alerts",
+    "review_alert": "Review alert"
   },
   "blockaid_banner": {
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
@@ -2780,7 +2783,7 @@
     "token_to_verify": "to verify this is the token you're looking for.",
     "continue": "Continue",
     "select_a_token": "Select a token",
-    "search_token": "Search for a token",
+    "search_token": "Enter token name or paste address",
     "no_tokens_result": "No tokens match “{{searchString}}”",
     "find_token_address": "Find token address",
     "cant_find_token": "Can’t find a token?",
@@ -3644,6 +3647,7 @@
     "title": {
       "signature": "Signature request",
       "permit": "Spending cap request",
+      "permit_revoke": "Remove permission",
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request"
     },
@@ -3677,6 +3681,7 @@
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
+      "info_revoke": "You're removing someone's permission to spend tokens from your account.",
       "label_change_type_bidding": "You bid",
       "label_change_type_listing": "You list",
       "label_change_type_nft_listing": "Listing price",
