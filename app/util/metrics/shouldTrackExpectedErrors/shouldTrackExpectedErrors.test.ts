@@ -42,7 +42,7 @@ describe('shouldTrackExpectedErrors', () => {
   it('should return false when random number is greater than threshold', async () => {
     // mock EXPECTED_ERRORS_PORTION_TO_TRACK to be 0.01
     constantMock.EXPECTED_ERRORS_PORTION_TO_TRACK = 0.01;
-    // mock getMetaMetricsId to return the test id UNDER_ONE_PERCENT
+    // mock getMetaMetricsId to return the test id OVER_NINETY_SEVEN_PERCENT
     mockMetaMetricsInstance.getMetaMetricsId.mockResolvedValue(TEST_IDS.OVER_NINETY_SEVEN_PERCENT);
     // Mock the return value for this specific test
     (generateDeterministicRandomNumber as jest.Mock).mockReturnValue(0.975965);
