@@ -1952,7 +1952,7 @@ workflows:
                 export PATH="$PATH:$BITRISE_SOURCE_DIR/node_modules/.bin"
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
-                IS_TEST='true' METAMASK_BUILD_TYPE='flask' detox test:e2e:ios:run:qa-release e2e/specs/flask/ 
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/ 
       - script@1:
           title: Kill Metro bundler
           is_always_run: true
