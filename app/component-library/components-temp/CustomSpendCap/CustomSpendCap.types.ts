@@ -2,6 +2,7 @@ export interface CustomSpendCapProps {
   ticker: string;
   dappProposedValue: string;
   accountBalance: string;
+  unroundedAccountBalance: string;
   /**
    * @param value - The value of the input field
    */
