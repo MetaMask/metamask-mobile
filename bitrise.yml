@@ -782,6 +782,24 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeRamps.*'
     after_run:
       - android_e2e_test
+  run_flask_tests_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/flask/*'
+      - METAMASK_BUILD_TYPE: 'flask'
+      # No TEST_SUITE_TAG is set intentionally
+    after_run:
+      - ios_e2e_test
+  run_flask_tests_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/flask/*'
+      - METAMASK_BUILD_TYPE: 'flask'
+      # No TEST_SUITE_TAG is set intentionally
+    after_run:
+      - android_e2e_test
   android_e2e_build:
     before_run:
       - code_setup
