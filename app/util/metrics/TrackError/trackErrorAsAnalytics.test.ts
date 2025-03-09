@@ -1,19 +1,29 @@
 import trackErrorAsAnalytics from './trackErrorAsAnalytics';
-import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+
+const VALID_UUID = 'b7bff9d5-8928-488e-935e-4522c680242e';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
+// create mock for shouldTrackExpectedErrors
+const shouldTrackMock = jest.requireMock('../shouldTrackExpectedErrors/shouldTrackExpectedErrors');
+jest.mock('../shouldTrackExpectedErrors/shouldTrackExpectedErrors', () => ({
+  shouldTrackExpectedErrors: jest.fn(() => Promise.resolve(true)),
+}));
+
 const { InteractionManager } = jest.requireActual('react-native');
-InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
-  callback(),
-);
+InteractionManager.runAfterInteractions = jest.fn(async (callback) => {
+  await callback();
+});
 
 const mockMetrics = {
   trackEvent: jest.fn(),
+  getMetaMetricsId: jest.fn(() => VALID_UUID),
 };
 
-(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
+jest.mock('../../../core/Analytics/MetaMetrics', () => ({
+  getInstance: () => mockMetrics,
+}));
 
 describe('trackErrorAsAnalytics', () => {
   afterEach(() => {
@@ -25,7 +35,8 @@ describe('trackErrorAsAnalytics', () => {
     const errorMessage = 'This is an error message';
     const otherInfo = 'Other info about the error';
 
-    trackErrorAsAnalytics(testEvent, errorMessage, otherInfo);
+    await trackErrorAsAnalytics(testEvent, errorMessage, otherInfo);
+    await new Promise(process.nextTick);
 
     const expectedEvent = MetricsEventBuilder.createEventBuilder({
       category: 'Error occurred',
@@ -45,7 +56,8 @@ describe('trackErrorAsAnalytics', () => {
     const errorMessage = 'This is an error message';
     const otherInfo = 'Other info about the error';
 
-    trackErrorAsAnalytics(testEventName, errorMessage, otherInfo);
+    await trackErrorAsAnalytics(testEventName, errorMessage, otherInfo);
+    await new Promise(process.nextTick);
 
     const expectedEvent = MetricsEventBuilder.createEventBuilder({
       category: 'Error occurred',
@@ -64,7 +76,8 @@ describe('trackErrorAsAnalytics', () => {
     const testEvent = 'testEvent';
     const errorMessage = 'This is an error message';
 
-    trackErrorAsAnalytics(testEvent, errorMessage);
+    await trackErrorAsAnalytics(testEvent, errorMessage);
+    await new Promise(process.nextTick);
 
     const expectedEvent = MetricsEventBuilder.createEventBuilder({
       category: 'Error occurred',
@@ -76,5 +89,14 @@ describe('trackErrorAsAnalytics', () => {
       })
       .build();
     expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+  });
+
+  it('does not call trackEvent if shouldTrackExpectedErrors is false', async () => {
+    shouldTrackMock.shouldTrackExpectedErrors.mockResolvedValue(false);
+
+    await trackErrorAsAnalytics('testEvent', 'This is an error message');
+    await new Promise(process.nextTick);
+
+    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
   });
 });
