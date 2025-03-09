@@ -1,5 +1,4 @@
 import { useSelector } from 'react-redux';
-import { hexToBN } from '@metamask/controller-utils';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
@@ -13,6 +12,7 @@ import { selectEvmChainId } from '../../../../selectors/networkController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
   balanceToFiat,
+  hexToBN,
   renderFromTokenMinimalUnit,
   renderFromWei,
   toHexadecimal,
