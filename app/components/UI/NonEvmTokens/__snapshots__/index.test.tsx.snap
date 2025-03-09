@@ -541,25 +541,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                     "lineHeight": 24,
                                   }
                                 }
-                                testID="fiat-balance-test-id"
-                              >
-                                5.5 SOL
-                              </Text>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#6a737d",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                    "paddingHorizontal": 0,
-                                    "textTransform": "uppercase",
-                                  }
-                                }
-                                testID="main-balance-test-id"
+                                testID="balance-test-id"
                               >
                                 <View
                                   style={
@@ -590,6 +572,24 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                     ]
                                   }
                                 />
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#6a737d",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                    "paddingHorizontal": 0,
+                                    "textTransform": "uppercase",
+                                  }
+                                }
+                                testID="secondary-balance-test-id"
+                              >
+                                5.5 SOL
                               </Text>
                             </View>
                           </TouchableOpacity>
