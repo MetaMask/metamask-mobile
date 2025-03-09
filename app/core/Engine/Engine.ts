@@ -800,22 +800,20 @@ export class Engine {
       const bridge = new SnapBridge({
         snapId,
         connectionStream,
-        getRPCMethodMiddleware: ({ hostname, getProviderState }) =>
+        getRPCMethodMiddleware: ({ getProviderState, getSubjectInfo }) =>
           getRpcMethodMiddleware({
-            hostname,
             getProviderState,
+            getSubjectInfo,
+            subjectDisplayInfo: {
+              title: 'Snap',
+              icon: undefined,
+            },
             navigation: null,
-            title: { current: 'Snap' },
-            icon: { current: undefined },
             isHomepage: () => false,
             fromHomepage: { current: false },
             toggleUrlModal: () => null,
             wizardScrollAdjusted: { current: false },
             tabId: false,
-            isWalletConnect: true,
-            isMMSDK: false,
-            url: { current: '' },
-            analytics: {},
             injectHomePageScripts: () => null,
           }),
       });

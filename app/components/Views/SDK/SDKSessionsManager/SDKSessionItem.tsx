@@ -25,6 +25,7 @@ import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import getSharedStyles from './getSharedStyles';
+import { PROTOCOLS } from '../../../../constants/deeplinks';
 
 interface SDKSessionViewProps {
   connection: {
@@ -68,6 +69,7 @@ export const SDKSessionItem = ({
   const [permittedAccountsAddresses, setPermittedAccountsAddresses] = useState<
     string[]
   >([]);
+  const subject = `${PROTOCOLS.METAMASK}://${connection.id}`;
 
   useEffect(() => {
     let _sessionName = connection.id;
@@ -94,17 +96,17 @@ export const SDKSessionItem = ({
       setIcon(_icon);
     }
 
-    getPermittedAccounts(connection.id).then((_accounts) => {
+    getPermittedAccounts(subject).then((_accounts) => {
       setPermittedAccountsAddresses(_accounts);
     });
 
     setSessionName(_sessionName);
-  }, [connection, trigger]);
+  }, [connection, trigger, subject]);
 
   const onManage = useCallback(() => {
     DevLogger.log(`Manage connection: ${connection.id}`, icon);
     const params = {
-      channelId: connection.id,
+      subject,
       icon,
       urlOrTitle: sessionName,
       version: connection.originatorInfo?.apiVersion,
@@ -115,7 +117,7 @@ export const SDKSessionItem = ({
       screen: Routes.SHEET.SDK_MANAGE_CONNECTIONS,
       params,
     });
-  }, [connection, navigate, sessionName, icon]);
+  }, [connection, navigate, sessionName, icon, subject]);
 
   return (
     <View style={styles.container}>

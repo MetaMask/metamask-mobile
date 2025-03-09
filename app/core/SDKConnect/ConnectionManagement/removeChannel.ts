@@ -8,6 +8,7 @@ import AppConstants from '../../../core/AppConstants';
 import Engine from '../../Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 
 async function removeChannel({
   channelId,
@@ -36,12 +37,16 @@ async function removeChannel({
 
   if (instance.state.connected[channelId]) {
     try {
-      const terminated = await instance.state.connected[channelId].removeConnection({
+      const terminated = await instance.state.connected[
+        channelId
+      ].removeConnection({
         terminate: true,
         context: 'SDKConnect::removeChannel',
       });
-      if(!terminated) {
-        DevLogger.log(`SDKConnect::removeChannel channelId=${channelId} terminated=${terminated} try again later`);
+      if (!terminated) {
+        DevLogger.log(
+          `SDKConnect::removeChannel channelId=${channelId} terminated=${terminated} try again later`,
+        );
         // don't delete channel, try again later
         return terminated;
       }
@@ -72,8 +77,9 @@ async function removeChannel({
         PermissionController: PermissionController<any, any>;
       }
     ).PermissionController;
-    if (permissionsController.getPermissions(channelId)) {
-      permissionsController.revokeAllPermissions(channelId);
+    const subject = `${PROTOCOLS.METAMASK}://${channelId}`;
+    if (permissionsController.getPermissions(subject)) {
+      permissionsController.revokeAllPermissions(subject);
     }
   }
 

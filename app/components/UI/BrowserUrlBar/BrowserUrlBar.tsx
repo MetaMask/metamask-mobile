@@ -29,7 +29,6 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import URLParse from 'url-parse';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -154,13 +153,14 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
           .build(),
       );
 
+      const origin = new URL(activeUrl).origin;
+
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
         params: {
           hostInfo: {
             metadata: {
-              // TODO: This is not an origin, it's a hostname
-              origin: activeUrl && new URLParse(activeUrl).hostname,
+              origin,
             },
           },
         },
