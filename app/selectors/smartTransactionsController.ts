@@ -86,3 +86,9 @@ export const selectPendingSmartTransactionsBySender = (state: RootState) => {
 
   return pendingSmartTransactions;
 };
+
+export const selectSmartTransactionsForCurrentChain = (state: RootState) => {
+  const chainId = selectEvmChainId(state);
+  return state.engine.backgroundState.SmartTransactionsController
+    ?.smartTransactionsState?.smartTransactions?.[chainId] || [];
+};

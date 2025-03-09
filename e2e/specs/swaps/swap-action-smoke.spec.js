@@ -7,6 +7,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
+import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import Tenderly from '../../tenderly.js';
 import {
@@ -27,6 +28,7 @@ import Assertions from '../../utils/Assertions.js';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
@@ -62,6 +64,13 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   beforeEach(async () => {
     jest.setTimeout(120000);
+  });
+
+  it('should turn off stx', async () => {
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapAdvancedTitle();
+    await AdvancedSettingsView.tapSmartTransactionSwitch();
+    await TabBarComponent.tapWallet();
   });
 
   it('should be able to import account', async () => {

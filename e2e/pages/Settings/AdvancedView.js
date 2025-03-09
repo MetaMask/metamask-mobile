@@ -15,8 +15,18 @@ class AdvancedSettingsView {
     );
   }
 
+  get smartTransactionsToggle() {
+    return Matchers.getElementByID(
+      AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH,
+    );
+  }
+
   async tapShowFiatOnTestnetsSwitch() {
     await Gestures.waitAndTap(this.showFiatOnTestnetsToggle);
+  }
+
+  async tapSmartTransactionSwitch() {
+    await Gestures.waitAndTap(this.smartTransactionsToggle);
   }
 
   async scrollToShowFiatOnTestnetsToggle() {
