@@ -1,45 +1,49 @@
-import React, { ReactNode } from 'react';
-import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Alert, { AlertType } from '../../../../Base/Alert';
-import { useTheme } from '../../../../../util/theme';
+import React, { useContext } from 'react';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import {
+  IconName,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../../locales/i18n';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 
 interface Props {
   /**
    * Warning message to display (Plain text or JSX)
    */
-  warningMessage: ReactNode;
-  style?: StyleProp<ViewStyle>;
+  warningMessage: string;
   onDismiss?: () => void;
 }
 
-const styles = StyleSheet.create({
-  icon: {
-    paddingTop: 4,
-    paddingRight: 8,
-  },
-});
+const WarningMessage = ({ warningMessage, onDismiss }: Props) => {
+  const { toastRef } = useContext(ToastContext);
 
-const WarningMessage = ({ warningMessage, style, onDismiss }: Props) => {
-  const { colors } = useTheme();
+  React.useEffect(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        {
+          label: warningMessage,
+          isBold: false,
+        },
+      ],
+      iconName: IconName.Danger,
+      iconColor: IconColor.Warning,
+      closeButtonOptions: onDismiss
+        ? {
+            variant: ButtonVariants.Primary,
+            label: strings('navigation.cancel'),
+            onPress: onDismiss,
+          }
+        : undefined,
+      hasNoTimeout: !onDismiss,
+    });
+  }, [warningMessage, onDismiss, toastRef]);
 
-  return (
-    <Alert
-      type={AlertType.Warning}
-      style={style}
-      onDismiss={onDismiss}
-      renderIcon={() => (
-        <FontAwesome
-          style={styles.icon}
-          name={'exclamation-circle'}
-          color={colors.warning.default}
-          size={18}
-        />
-      )}
-    >
-      {warningMessage}
-    </Alert>
-  );
+  return null;
 };
 
 export default WarningMessage;
