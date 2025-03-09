@@ -677,31 +677,33 @@ const stakingConfirmationBaseState = {
 };
 
 export const stakingDepositConfirmationState = merge(
+  {},
   stakingConfirmationBaseState,
   {
     engine: {
-      TransactionController: {
-        transactions: [
-          {
-            type: TransactionType.stakingDeposit,
-          },
-        ],
-      } as unknown as TransactionControllerState,
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingDeposit },
+          ],
+        } as unknown as TransactionControllerState,
+      },
     },
   },
 );
 
 export const stakingWithdrawalConfirmationState = merge(
+  {},
   stakingConfirmationBaseState,
   {
     engine: {
-      TransactionController: {
-        transactions: [
-          {
-            type: TransactionType.stakingUnstake,
-          },
-        ],
-      } as unknown as TransactionControllerState,
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingUnstake },
+          ],
+        } as unknown as TransactionControllerState,
+      },
     },
   },
 );
