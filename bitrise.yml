@@ -38,9 +38,8 @@ pipelines:
   #Run E2E test suite for iOS Flask only
   run_e2e_flask_pipeline:
     stages:
-      - build_e2e_flask_stage: {}
-      - run_e2e_flask_stage: {}
-      - notify: {}
+      - build_smoke_e2e_ios_android_stage: {}
+      - run_flask_tests_stage: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
@@ -59,6 +58,13 @@ pipelines:
     stages:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
+      - notify: {}
+  
+  #PR_e2e_verfication for Flask tests
+  pr_flask_e2e_pipeline:
+    stages:
+      - build_smoke_e2e_ios_android_stage: {}
+      - run_flask_tests_stage: {}
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
@@ -185,372 +191,16 @@ stages:
       - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+      - ios_run_regression_tests: {}
+      - android_run_regression_tests: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
-  run_release_e2e_ios_android_stage:
+  run_flask_tests_stage:
     workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_tag_smoke_accounts_ios: {}
-      - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_ramps_android: {}
-      # run_tag_smoke_ramps_ios: {}
-      # - run_tag_smoke_identity_ios: {}
-      # - run_tag_smoke_identity_android: {}
-      # - run_tag_smoke_assets_ios: {}
-      - run_tag_smoke_assets_android: {}
-      # - run_tag_smoke_swaps_ios: {}
-      # - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
-      - run_tag_upgrade_android: {}
-      - run_android_app_launch_times_appium_test: {}
-  report_results_stage:
-    workflows:
-      - run_testrail_update_automated_test_results: {}
-  run_e2e_ios_android_stage:
-    workflows:
-      - ios_e2e_test: {}
-      - android_e2e_test: {}
-  build_e2e_ios_android_stage:
-    workflows:
-      - build_android_qa: {}
-      - ios_e2e_build: {}
-      - android_e2e_build: {}
-  build_e2e_android_stage:
-    workflows:
-      - android_e2e_build: {}
-  run_e2e_android_stage:
-    workflows:
-      - android_e2e_test: {}
-  notify:
-    workflows:
-      - notify_success: {}
-  app_launch_times_test_stage:
-    workflows:
-      - run_android_app_launch_times_appium_test: {}
-      - run_ios_app_launch_times_appium_test: {}
-  app_upgrade_test_stage:
-    workflows:
-      - run_tag_upgrade_android: {}
-  release_notify:
-    workflows:
-      - release_announcing_stores: {}
-  create_build_flask_release:
-    workflows:
-      - build_android_flask_release: {}
-      - build_ios_flask_release: {}
-  deploy_flask_build_release:
-    workflows:
-      - deploy_android_to_store:
-          envs:
-            - MM_ANDROID_PACKAGE_NAME: 'io.metamask.flask'
-      - deploy_ios_to_store:
-  build_e2e_flask_stage:
-    abort_on_fail: true
-    workflows:
-      - ios_e2e_build_flask: {}
-      - android_e2e_build_flask: {}
-  run_e2e_flask_stage:
-    workflows:
-      - ios_e2e_test_flask: {}
-      - android_e2e_test_flask: {}
-
-workflows:
-  # Code Setups
-  setup:
-    steps:
-      - activate-ssh-key@4:
-          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-      - git-clone@6: {}
-  set_commit_hash:
-    steps:
-      - script@1:
-          title: Set commit hash env variable
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                BRANCH_COMMIT_HASH="$(git rev-parse HEAD)"
-
-                # Log the value of BRANCH_COMMIT_HASH
-                echo "BRANCH_COMMIT_HASH is set to: $BRANCH_COMMIT_HASH"
-
-                envman add --key BRANCH_COMMIT_HASH --value "$BRANCH_COMMIT_HASH"
-      - share-pipeline-variable@1:
-          title: Persist commit hash across all stages
-          inputs:
-            - variables: |-
-                BRANCH_COMMIT_HASH
-  code_setup:
-    before_run:
-      - setup
-      - prep_environment
-    steps:
-      - restore-cocoapods-cache@2: {}
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-          title: Get Yarn cache directory
-      - yarn@0:
-          inputs:
-            - command: setup
-          title: Yarn Setup
-  prep_environment:
-    steps:
-      - restore-cache@2:
-          title: Restore Node
-          inputs:
-            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
-      - script@1:
-          title: node, yarn, corepack installation
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                echo "Gems being installed with bundler gem"
-                bundle install --gemfile=ios/Gemfile
-                echo "Node $NODE_VERSION being installed"
-
-                set -e
-
-                # Add and enable NVM
-                wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
-                echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
-                sha256sum -c install-nvm.sh.SHA256SUM
-                chmod +x install-nvm.sh && ./install-nvm.sh && rm ./install-nvm.sh
-                source "${HOME}/.nvm/nvm.sh"
-                echo 'source "${HOME}/.nvm/nvm.sh"' | tee -a ${HOME}/.{bashrc,profile}
-
-                 # Retry logic for Node installation
-                MAX_ATTEMPTS=3
-                ATTEMPT=1
-                until [ $ATTEMPT -gt $MAX_ATTEMPTS ]
-                do
-                  echo "Attempt $ATTEMPT to install Node.js"
-                  nvm install ${NODE_VERSION}
-                  INSTALL_STATUS=$? # Capture the exit status of the nvm install command
-                  if [ $INSTALL_STATUS -eq 0 ]; then
-                      echo "Node.js installation successful!"
-                      break
-                  else
-                      echo "Node.js installation failed with exit code $INSTALL_STATUS"
-                      ATTEMPT=$((ATTEMPT+1))
-                      echo "Node.js installation failed, retrying in 5 seconds..."
-                      sleep 5
-                  fi
-                done
-
-                if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
-                  echo "Node.js installation failed after $MAX_ATTEMPTS attempts."
-                  exit 1
-                fi
-                envman add --key PATH --value $PATH
-
-                node --version
-
-                echo "Corepack being installed with npm"
-                npm i -g "corepack@$COREPACK_VERSION"
-                echo "Corepack enabling $YARN_VERSION"
-                corepack enable
-      - save-cache@1:
-          title: Save Node
-          inputs:
-            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
-            - paths: |-
-                ../.nvm/
-                ../../../root/.nvm/
-  install_applesimutils:
-    steps:
-      - script@1:
-          title: applesimutils installation
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                echo "Now installing applesimutils..."
-                brew tap wix/brew
-                brew install applesimutils
-
-  # Notifications utility workflows
-  # Provides values for commit or branch message and path depending on commit env setup initialised or not
-  _get_workflow_info:
-    steps:
-      - activate-ssh-key@4:
-          is_always_run: true # always run to also feed failure notifications
-          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-      - git-clone@6:
-          inputs:
-            - update_submodules: 'no'
-          is_always_run: true # always run to also feed failure notifications
-      - script@1:
-          is_always_run: true # always run to also feed failure notifications
-          inputs:
-            - content: |
-                #!/bin/bash
-                # generate reference to commit from env or using git
-                COMMIT_SHORT_HASH="${BITRISE_GIT_COMMIT:0:7}"
-                BRANCH_HEIGHT=''
-                WORKFLOW_TRIGGER='Push'
-
-                if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
-                  COMMIT_SHORT_HASH="$(git rev-parse --short HEAD)"
-                  BRANCH_HEIGHT='HEAD'
-                  WORKFLOW_TRIGGER='Manual'
-                fi
-
-                envman add --key COMMIT_SHORT_HASH --value "$COMMIT_SHORT_HASH"
-                envman add --key BRANCH_HEIGHT --value "$BRANCH_HEIGHT"
-                envman add --key WORKFLOW_TRIGGER --value "$WORKFLOW_TRIGGER"
-          title: Get commit or branch name and path variables
-
-  # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
-  # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
-  # but will only notify success if both success and create_qa_builds succeeds.
-
-  # Send a Slack message on successful release
-  release_announcing_stores:
-    before_run:
-      - code_setup
-    steps:
-      - yarn@0:
-          inputs:
-            - command: build:announce
-          title: Announcing pre-release
-          is_always_run: false
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: standard
-
-  # Send a Slack message when workflow succeeds
-  notify_success:
-    before_run:
-      - _get_workflow_info
-    steps:
-      # Update Bitrise comment in PR with success status
-      - comment-on-github-pull-request@0:
-          is_always_run: true
-          run_if: '{{getenv "TRIGGERED_BY_PR_LABEL" | eq "true"}}'
-          inputs:
-            - personal_access_token: '$GITHUB_ACCESS_TOKEN'
-            - body: |-
-                ## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${BITRISEIO_PIPELINE_BUILD_URL}) **Bitrise**
-
-                ✅✅✅ `${BITRISEIO_PIPELINE_TITLE}` passed on Bitrise! ✅✅✅
-
-                Commit hash: ${GITHUB_PR_HASH}
-                Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
-
-                >[!NOTE]
-                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
-
-                <!-- BITRISE_TAG -->
-                <!-- BITRISE_SUCCESS_TAG -->
-            - repository_url: '$GIT_REPOSITORY_URL'
-            - issue_number: '$GITHUB_PR_NUMBER'
-            - api_base_url: 'https://api.github.com'
-            - update_comment_tag: '$GITHUB_PR_HASH'
-  # Send a Slack message when workflow fails
-  notify_failure:
-    before_run:
-      - _get_workflow_info
-    steps:
-      - script@1:
-          is_always_run: true
-          title: Check if PR comment should be updated
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                if [[ "$TRIGGERED_BY_PR_LABEL" == "true" && $BITRISE_BUILD_STATUS == 1 ]]; then
-                  envman add --key SHOULD_UPDATE_PR_COMMENT --value "true"
-                else
-                  envman add --key SHOULD_UPDATE_PR_COMMENT --value "false"
-                fi
-      # Update Bitrise comment in PR with failure status
-      - comment-on-github-pull-request@0:
-          is_always_run: true
-          run_if: '{{getenv "SHOULD_UPDATE_PR_COMMENT" | eq "true"}}'
-          inputs:
-            - personal_access_token: '$GITHUB_ACCESS_TOKEN'
-            - body: |-
-                ## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${BITRISEIO_PIPELINE_BUILD_URL}) **Bitrise**
-
-                ❌❌❌ `${BITRISEIO_PIPELINE_TITLE}` failed on Bitrise! ❌❌❌
-
-                Commit hash: ${GITHUB_PR_HASH}
-                Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
-
-                >[!NOTE]
-                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
-
-                > [!TIP]
-                >- Check the [documentation](https://www.notion.so/metamask-consensys/Bitrise-Pipeline-Overview-43159500c43748a389556f0593e8834b#26052f2ea6e24f8c9cfdb57a7522dc1f) if you have any doubts on how to understand the failure on bitrise
-
-                <!-- BITRISE_TAG -->
-                <!-- BITRISE_FAIL_TAG -->
-            - repository_url: '$GIT_REPOSITORY_URL'
-            - issue_number: '$GITHUB_PR_NUMBER'
-            - api_base_url: 'https://api.github.com'
-            - update_comment_tag: '$GITHUB_PR_HASH'
-  # CI Steps
-  ci_test:
-    before_run:
-      - code_setup
-    steps:
-      - yarn@0:
-          inputs:
-            - args: ''
-            - command: test:unit --silent
-          title: Unit Test
-          is_always_run: false
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                echo 'weew - everything passed!'
-          title: All Tests Passed
-          is_always_run: false
-  # E2E Steps
-
-  ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
-  ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection
-  ios_build_regression_tests:
-    envs:
-      - TEST_SUITE: 'Regression'
-    after_run:
-      - ios_e2e_build
-  ios_run_regression_tests:
-    envs:
-      - TEST_SUITE: 'Regression'
-    after_run:
-      - ios_e2e_test
-  android_build_regression_tests:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE: 'Regression'
-      - MM_MULTICHAIN_V1_ENABLED: false
-      - MM_CHAIN_PERMISSIONS: false
-    after_run:
-      - android_e2e_build
-  android_run_regression_tests:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE: 'Regression'
-    after_run:
-      - android_e2e_test
+      - run_tag_flask_tests_ios: {}
+      - run_tag_flask_tests_android: {}
   run_tag_upgrade_android:
     meta:
       bitrise.io:
@@ -762,6 +412,24 @@ workflows:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/ramps/*'
       - TEST_SUITE_TAG: '.*SmokeRamps.*'
+    after_run:
+      - android_e2e_test
+  run_tag_flask_tests_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/flask/*'
+      - TEST_SUITE_TAG: '.*Flask.*'
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - ios_e2e_test
+  run_tag_flask_tests_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/flask/*'
+      - TEST_SUITE_TAG: '.*Flask.*'
+      - METAMASK_BUILD_TYPE: 'flask'
     after_run:
       - android_e2e_test
   android_e2e_build:
@@ -2270,3 +1938,5 @@ trigger_map:
     pipeline: release_e2e_pipeline
   - push_branch: detox/address-regression-tests-slowdown
     pipeline: multichain_permissions_e2e_pipeline
+  - tag: 'flask-e2e-*'
+    pipeline: pr_flask_e2e_pipeline

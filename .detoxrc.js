@@ -88,7 +88,7 @@ module.exports = {
     'ios.debug': {
       type: 'ios.app',
       binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app',
-      build: 'yarn start:ios:e2e',
+      build: `METAMASK_BUILD_TYPE='${process.env.METAMASK_BUILD_TYPE || 'main'}' yarn start:ios:e2e`,
     },
     'ios.qa': {
       type: 'ios.app',
@@ -99,7 +99,7 @@ module.exports = {
     'android.debug': {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
-      build: 'yarn start:android:e2e',
+      build: `METAMASK_BUILD_TYPE='${process.env.METAMASK_BUILD_TYPE || 'main'}' yarn start:android:e2e`,
     },
     'android.qa': {
       type: 'android.apk',
