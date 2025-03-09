@@ -42,6 +42,8 @@ import {
   RatesController,
   RatesControllerEvents,
   RatesControllerActions,
+  TokenSearchDiscoveryDataController,
+  TokenSearchDiscoveryDataControllerState,
   MultichainAssetsController,
   MultichainAssetsControllerState,
   MultichainAssetsControllerEvents,
@@ -326,6 +328,7 @@ type GlobalActions =
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
+  | TokenSearchDiscoveryControllerActions
   | MultichainNetworkControllerActions
   | BridgeControllerActions
   | BridgeStatusControllerActions
@@ -372,6 +375,7 @@ type GlobalEvents =
   | SmartTransactionsControllerEvents
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
+  | TokenSearchDiscoveryControllerEvents
   | TokenSearchDiscoveryControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
@@ -450,6 +454,7 @@ export type Controllers = {
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
@@ -510,6 +515,7 @@ export type EngineState = {
   MultichainAssetsController: MultichainAssetsControllerState;
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   ///: END:ONLY_INCLUDE_IF
+  TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
   MultichainNetworkController: MultichainNetworkControllerState;
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
