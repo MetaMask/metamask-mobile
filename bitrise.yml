@@ -1938,5 +1938,3 @@ trigger_map:
     pipeline: release_e2e_pipeline
   - push_branch: detox/address-regression-tests-slowdown
     pipeline: multichain_permissions_e2e_pipeline
-  - tag: 'flask-e2e-*'
-    pipeline: pr_flask_e2e_pipeline
