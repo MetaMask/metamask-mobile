@@ -1,6 +1,11 @@
 import { useRef, useEffect } from 'react';
 
-function useInterval(callback: () => void, delay: number | null) {
+interface IntervalOptions {
+  delay?: number | null;
+  immediate?: boolean;
+}
+
+function useInterval(callback: () => void, options: IntervalOptions) {
   const savedCallback = useRef<() => void>();
 
   // Remember the latest function.
@@ -13,12 +18,16 @@ function useInterval(callback: () => void, delay: number | null) {
     function tick() {
       savedCallback.current?.();
     }
-    if (delay !== null) {
+    const { delay = null, immediate = false } = options;
+    if (delay !== null && delay > 0) {
+      if (immediate) {
+        tick();
+      }
       const id = setInterval(tick, delay);
 
       return () => clearInterval(id);
     }
-  }, [delay]);
+  }, [options]);
 }
 
 export default useInterval;
