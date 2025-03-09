@@ -550,21 +550,32 @@ stages:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                TEST_SUITE="Regression"
+                # If METAMASK_BUILD_TYPE is flask, use flask test folder
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  TEST_SUITE_FOLDER="e2e/specs/flask/"
+                  echo "Running Flask tests from $TEST_SUITE_FOLDER"
+                  # For Flask tests, run without test pattern
+                  export METAMASK_ENVIRONMENT='local'
+                  export METAMASK_BUILD_TYPE='flask'
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER"
                 else
-                TEST_SUITE="Smoke"
+                  # For non-Flask tests, use the original command with test pattern
+                  if [ -n "$TEST_SUITE_FOLDER" ]; then
+                    echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
+                  fi
+                  if [ "$TEST_SUITE" = "Regression" ]; then
+                    TEST_SUITE="Regression"
+                  else
+                    TEST_SUITE="Smoke"
+                  fi
+                  if [ -n "$TEST_SUITE_TAG" ]; then
+                    echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                    TEST_SUITE=$TEST_SUITE_TAG
+                  fi
+                  export METAMASK_ENVIRONMENT='local'
+                  export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
                 fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -727,7 +738,7 @@ stages:
                 ./scripts/cache/setup-ccache.sh
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'flask'}
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
       - save-cocoapods-cache@1: {}
       - save-cache@1:
@@ -802,22 +813,32 @@ stages:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
+                # If METAMASK_BUILD_TYPE is flask, use flask test folder
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  TEST_SUITE_FOLDER="e2e/specs/flask/"
+                  echo "Running Flask tests from $TEST_SUITE_FOLDER"
+                  # For Flask tests, run without test pattern
+                  export METAMASK_ENVIRONMENT='local'
+                  export METAMASK_BUILD_TYPE='flask'
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER"
                 else
-                  TEST_SUITE="Smoke"
+                  # For non-Flask tests, use the original command with test pattern
+                  if [ -n "$TEST_SUITE_FOLDER" ]; then
+                    echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
+                  fi
+                  if [ "$TEST_SUITE" = "Regression" ]; then
+                    TEST_SUITE="Regression"
+                  else
+                    TEST_SUITE="Smoke"
+                  fi
+                  if [ -n "$TEST_SUITE_TAG" ]; then
+                    echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                    TEST_SUITE=$TEST_SUITE_TAG
+                  fi
+                  export METAMASK_ENVIRONMENT='local'
+                  export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
                 fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
-                node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1602,25 +1623,32 @@ stages:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                else
-                  # Default to Flask specs folder if not specified
+                # If METAMASK_BUILD_TYPE is flask, use flask test folder
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   TEST_SUITE_FOLDER="e2e/specs/flask/"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
+                  echo "Running Flask tests from $TEST_SUITE_FOLDER"
+                  # For Flask tests, run without test pattern
+                  export METAMASK_ENVIRONMENT='local'
+                  export METAMASK_BUILD_TYPE='flask'
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER"
                 else
-                  TEST_SUITE="Smoke"
+                  # For non-Flask tests, use the original command with test pattern
+                  if [ -n "$TEST_SUITE_FOLDER" ]; then
+                    echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
+                  fi
+                  if [ "$TEST_SUITE" = "Regression" ]; then
+                    TEST_SUITE="Regression"
+                  else
+                    TEST_SUITE="Smoke"
+                  fi
+                  if [ -n "$TEST_SUITE_TAG" ]; then
+                    echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                    TEST_SUITE=$TEST_SUITE_TAG
+                  fi
+                  export METAMASK_ENVIRONMENT='local'
+                  export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
                 fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                  echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                  TEST_SUITE=$TEST_SUITE_TAG
-                fi
-                export PATH="$PATH:$BITRISE_SOURCE_DIR/node_modules/.bin"
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='flask'
-                IS_TEST='true' METAMASK_BUILD_TYPE='flask' detox test -c ios.sim.debug "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - script@1:
           title: Kill Metro bundler
           is_always_run: true
@@ -1777,24 +1805,32 @@ stages:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                else
-                  # Default to Flask specs folder if not specified
+                # If METAMASK_BUILD_TYPE is flask, use flask test folder
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   TEST_SUITE_FOLDER="e2e/specs/flask/"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                TEST_SUITE="Regression"
+                  echo "Running Flask tests from $TEST_SUITE_FOLDER"
+                  # For Flask tests, run without test pattern
+                  export METAMASK_ENVIRONMENT='local'
+                  export METAMASK_BUILD_TYPE='flask'
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER"
                 else
-                TEST_SUITE="Smoke"
+                  # For non-Flask tests, use the original command with test pattern
+                  if [ -n "$TEST_SUITE_FOLDER" ]; then
+                    echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
+                  fi
+                  if [ "$TEST_SUITE" = "Regression" ]; then
+                    TEST_SUITE="Regression"
+                  else
+                    TEST_SUITE="Smoke"
+                  fi
+                  if [ -n "$TEST_SUITE_TAG" ]; then
+                    echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                    TEST_SUITE=$TEST_SUITE_TAG
+                  fi
+                  export METAMASK_ENVIRONMENT='local'
+                  export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
                 fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='flask'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release e2e/specs/flask/
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
