@@ -1,38 +1,91 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import React from 'react';
+import { View as MockView } from 'react-native';
 import Root from './';
+import { render, waitFor } from '@testing-library/react-native';
+import SecureKeychain from '../../../core/SecureKeychain';
+import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 
-jest.mock('redux-persist', () => {
-  const real = jest.requireActual('redux-persist');
-  const mockPersistReducer = jest
+const MOCK_CHILD_ID = 'MOCK_CHILD_ID';
+
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaProvider: jest
     .fn()
-    .mockImplementation((_, reducers) => reducers);
-  const mockCombineReducers = jest
-    .fn()
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockReturnValue((reducers: any) => reducers);
+    .mockImplementation(() => <MockView testID={MOCK_CHILD_ID} />),
+}));
 
-  return {
-    ...real,
-    persistReducer: mockPersistReducer,
-    combineReducers: mockCombineReducers,
-  };
-});
+jest.mock('../../../core/SecureKeychain', () => ({
+  init: jest.fn(),
+}));
 
-jest.mock('../../../util/test/configureStore', () => {
-  const configureMockStore = jest.requireActual('redux-mock-store').default;
-  return () => configureMockStore([])();
-});
+jest.mock('../../../core/EntryScriptWeb3', () => ({
+  init: jest.fn(),
+}));
 
 describe('Root', () => {
   it('should render correctly', () => {
-    const initialState = {};
+    const { toJSON } = render(<Root foxCode="" />);
 
-    const { toJSON } = renderScreen(
-      Root,
-      { name: 'Root' },
-      { state: initialState },
-    );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should initialize SecureKeychain', async () => {
+    render(<Root foxCode="" />);
+
+    await waitFor(() => {
+      expect(SecureKeychain.init).toHaveBeenCalled();
+      expect(EntryScriptWeb3.init).toHaveBeenCalled();
+    });
+  });
+
+  it('should render children if isTest OR isLoading is false', async () => {
+    jest.isolateModules(() => {
+      jest.mock('../../../util/test/utils', () => ({
+        isTest: false,
+      }));
+      jest.mock('react', () => {
+        const mockIsLoading = false;
+        const mockSetIsLoading = jest.fn();
+        return {
+          ...jest.requireActual('react'),
+          // Mock isLoading state to be false
+          useState: jest
+            .fn()
+            .mockImplementation(() => [mockIsLoading, mockSetIsLoading]),
+          useEffect: jest.fn(),
+        };
+      });
+      // Import Root after mocking isTest
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const RootComponent = require('./index').default;
+
+      const { getByTestId } = render(<RootComponent foxCode="" />);
+      expect(getByTestId(MOCK_CHILD_ID)).toBeDefined();
+    });
+  });
+
+  it('should render children if isTest AND isLoading is true', async () => {
+    jest.isolateModules(() => {
+      jest.mock('../../../util/test/utils', () => ({
+        isTest: true,
+      }));
+      jest.mock('react', () => {
+        const mockIsLoading = true;
+        const mockSetIsLoading = jest.fn();
+        return {
+          ...jest.requireActual('react'),
+          // Mock isLoading state to be true
+          useState: jest
+            .fn()
+            .mockImplementation(() => [mockIsLoading, mockSetIsLoading]),
+          useEffect: jest.fn(),
+        };
+      });
+      // Import Root after mocking isTest
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const RootComponent = require('./index').default;
+
+      const { toJSON } = render(<RootComponent foxCode="" />);
+      expect(toJSON()).toBeNull();
+    });
   });
 });
