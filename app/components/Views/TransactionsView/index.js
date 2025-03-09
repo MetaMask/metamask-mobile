@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { StyleSheet, View, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -27,19 +27,48 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAllTokensFlat, selectTokens } from '../../../selectors/tokensController';
+import {
+  selectAllTokensFlat,
+  selectTokens,
+} from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
-import { selectNonReplacedTransactions } from '../../../selectors/transactionController';
+import {
+  selectNonReplacedTransactions,
+  selectSortedTransactions,
+} from '../../../selectors/transactionController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
   },
 });
+
+// Custom hook to log dependency changes
+function useWhyDidYouUpdate(name, props) {
+  const previousProps = useRef(props);
+
+  useEffect(() => {
+    const allKeys = Object.keys({ ...previousProps.current, ...props });
+    const changes = {};
+    allKeys.forEach((key) => {
+      if (previousProps.current[key] !== props[key]) {
+        changes[key] = {
+          from: previousProps.current[key],
+          to: props[key],
+        };
+      }
+    });
+    if (Object.keys(changes).length > 0) {
+      console.log(`[${name}] changed:`, changes);
+    }
+    previousProps.current = props;
+  }, [name, props]);
+}
 
 const TransactionsView = ({
   navigation,
@@ -50,18 +79,34 @@ const TransactionsView = ({
   transactions,
   chainId,
   tokens,
+  tokenNetworkFilter,
 }) => {
   const [allTransactions, setAllTransactions] = useState([]);
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
+  const prevTxParamsRef = useRef({});
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
   );
 
+  // Create an object of dependencies for filterTransactions
+  const filterDeps = {
+    transactions,
+    selectedInternalAccount,
+    selectedAddress,
+    tokens,
+    chainId,
+    tokenNetworkFilter,
+  };
+
+  // Log changes in dependencies to filterTransactions
+  useWhyDidYouUpdate('filterTransactions dependencies', filterDeps);
+
   const filterTransactions = useCallback(
     (networkId) => {
+      console.log('filterTransactions invoked at:', Date.now());
       if (networkId === NETWORK_ID_LOADING) return;
 
       let accountAddedTimeInsertPointFound = false;
@@ -83,6 +128,7 @@ const TransactionsView = ({
           selectedAddress,
           networkId,
           chainId,
+          tokenNetworkFilter,
         );
 
         if (!filter) return false;
@@ -129,7 +175,7 @@ const TransactionsView = ({
         return !alreadySubmitted;
       });
 
-      //if the account added insertpoint is not found add it to the last transaction
+      // If the account added insert point is not found, add it to the last transaction
       if (
         !accountAddedTimeInsertPointFound &&
         allTransactions &&
@@ -143,18 +189,26 @@ const TransactionsView = ({
       setConfirmedTxs(confirmedTxs);
       setLoading(false);
     },
-    [transactions, selectedInternalAccount, selectedAddress, tokens, chainId],
+    [
+      transactions,
+      selectedInternalAccount,
+      selectedAddress,
+      tokens,
+      chainId,
+      tokenNetworkFilter,
+    ],
   );
 
   useEffect(() => {
     setLoading(true);
     /*
-    Since this screen is always mounted and computations happen on this screen everytime the user changes network
-    using the InteractionManager will help by giving enough time for any animations/screen transactions before it starts
-    computing the transactions which will make the app feel more responsive. Also this takes usually less than 1 seconds
-    so the effect will not be noticeable if the user is in this screen.
+      Since this screen is always mounted and computations happen on this screen everytime the user changes network,
+      using the InteractionManager will help by giving enough time for any animations/screen transactions before it starts
+      computing the transactions which will make the app feel more responsive. Also this takes usually less than 1 second
+      so the effect will not be noticeable if the user is in this screen.
     */
     InteractionManager.runAfterInteractions(() => {
+      console.log('useEffect triggered due to filterTransactions change');
       const { networkId } = store.getState().inpageProvider;
       filterTransactions(networkId);
     });
@@ -187,12 +241,12 @@ TransactionsView.propTypes = {
    */
   currentCurrency: PropTypes.string,
   /**
-  /* InternalAccount object required to get account name, address and import time
-  */
+   * InternalAccount object required to get account name, address and import time
+   */
   selectedInternalAccount: PropTypes.object,
   /**
-  /* navigation object required to push new views
-  */
+   * navigation object required to push new views
+   */
   navigation: PropTypes.object,
   /**
    * An array that represents the user transactions
@@ -210,6 +264,10 @@ TransactionsView.propTypes = {
    * Current chainId
    */
   chainId: PropTypes.string,
+  /**
+   * Array of network tokens filter
+   */
+  tokenNetworkFilter: PropTypes.array,
 };
 
 const mapStateToProps = (state) => {
@@ -227,12 +285,10 @@ const mapStateToProps = (state) => {
     currentCurrency: selectCurrentCurrency(state),
     tokens: selectTokens(state),
     selectedInternalAccount: selectSelectedInternalAccount(state),
-    transactions: [
-      ...nonReplacedTransactions,
-      ...pendingSmartTransactions,
-    ].sort((a, b) => b.time - a.time),
+    transactions: selectSortedTransactions(state),
     networkType: selectProviderType(state),
     chainId,
+    tokenNetworkFilter: selectTokenNetworkFilter(state),
   };
 };
 

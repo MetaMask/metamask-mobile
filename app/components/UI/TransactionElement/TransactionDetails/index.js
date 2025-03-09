@@ -13,6 +13,7 @@ import {
   isMultiLayerFeeNetwork,
   getBlockExplorerTxUrl,
   findBlockExplorerForNonEvmChainId,
+  getBlockExplorerNameByChainId,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -317,6 +318,12 @@ class TransactionDetails extends PureComponent {
     } = this.props;
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
+    const blockExplorerUrl =
+      this.props.networkConfigurations?.[updatedTransactionDetails?.txChainId]
+        ?.blockExplorerUrls[
+        this.props.networkConfigurations?.[updatedTransactionDetails?.txChainId]
+          ?.defaultBlockExplorerUrlIndex
+      ];
 
     const renderTxActions =
       (status === 'submitted' || status === 'approved') &&
@@ -331,12 +338,13 @@ class TransactionDetails extends PureComponent {
               {strings('transactions.status')}
             </DetailsModal.SectionTitle>
             <StatusText status={status} />
-            {!!renderTxActions && (
-              <View style={styles.transactionActionsContainer}>
-                {this.renderSpeedUpButton()}
-                {this.renderCancelButton()}
-              </View>
-            )}
+            {!!renderTxActions &&
+              updatedTransactionDetails?.txChainId === chainId && (
+                <View style={styles.transactionActionsContainer}>
+                  {this.renderSpeedUpButton()}
+                  {this.renderCancelButton()}
+                </View>
+              )}
           </DetailsModal.Column>
           <DetailsModal.Column end>
             <DetailsModal.SectionTitle>
@@ -412,13 +420,15 @@ class TransactionDetails extends PureComponent {
               onPress={this.viewOnEtherscan}
               style={styles.touchableViewOnEtherscan}
             >
-              <Text reset style={styles.viewOnEtherscan}>
-                {(rpcBlockExplorer &&
-                  `${strings('transactions.view_on')} ${getBlockExplorerName(
-                    rpcBlockExplorer,
-                  )}`) ||
-                  strings('transactions.view_on_etherscan')}
-              </Text>
+              {blockExplorerUrl ? (
+                <Text reset style={styles.viewOnEtherscan}>
+                  {(rpcBlockExplorer &&
+                    `${strings('transactions.view_on')} ${getBlockExplorerName(
+                      blockExplorerUrl,
+                    )}`) ||
+                    strings('transactions.view_on_etherscan')}
+                </Text>
+              ) : null}
             </TouchableOpacity>
           )}
       </DetailsModal.Body>
