@@ -29,6 +29,13 @@
       }
     },
     {
+      "symbol": "ethinr",
+      "quote": {
+        "code": "inr",
+        "name": "Indian Rupee"
+      }
+    },
+    {
       "symbol": "ethnzd",
       "quote": {
         "code": "nzd",
@@ -40,41 +47,6 @@
       "quote": {
         "code": "php",
         "name": "Philippine Peso"
-      }
-    },
-    {
-      "symbol": "ethadt",
-      "quote": {
-        "code": "adt",
-        "name": "adToken"
-      }
-    },
-    {
-      "symbol": "ethadx",
-      "quote": {
-        "code": "adx",
-        "name": "AdEx"
-      }
-    },
-    {
-      "symbol": "ethant",
-      "quote": {
-        "code": "ant",
-        "name": "Aragon"
-      }
-    },
-    {
-      "symbol": "ethbat",
-      "quote": {
-        "code": "bat",
-        "name": "Basic Attention Token"
-      }
-    },
-    {
-      "symbol": "ethbnt",
-      "quote": {
-        "code": "bnt",
-        "name": "Bancor"
       }
     },
     {
@@ -92,59 +64,10 @@
       }
     },
     {
-      "symbol": "ethcfi",
-      "quote": {
-        "code": "cfi",
-        "name": "Cofound.it"
-      }
-    },
-    {
-      "symbol": "ethcrb",
-      "quote": {
-        "code": "crb",
-        "name": "CreditBit"
-      }
-    },
-    {
-      "symbol": "ethcvc",
-      "quote": {
-        "code": "cvc",
-        "name": "Civic"
-      }
-    },
-    {
-      "symbol": "ethdash",
-      "quote": {
-        "code": "dash",
-        "name": "Dash"
-      }
-    },
-    {
-      "symbol": "ethdgd",
-      "quote": {
-        "code": "dgd",
-        "name": "DigixDAO"
-      }
-    },
-    {
-      "symbol": "ethetc",
-      "quote": {
-        "code": "etc",
-        "name": "Ethereum Classic"
-      }
-    },
-    {
       "symbol": "etheur",
       "quote": {
         "code": "eur",
         "name": "Euro"
-      }
-    },
-    {
-      "symbol": "ethfun",
-      "quote": {
-        "code": "fun",
-        "name": "FunFair"
       }
     },
     {
@@ -155,52 +78,10 @@
       }
     },
     {
-      "symbol": "ethgno",
-      "quote": {
-        "code": "gno",
-        "name": "Gnosis"
-      }
-    },
-    {
-      "symbol": "ethgnt",
-      "quote": {
-        "code": "gnt",
-        "name": "Golem"
-      }
-    },
-    {
-      "symbol": "ethgup",
-      "quote": {
-        "code": "gup",
-        "name": "Matchpool"
-      }
-    },
-    {
-      "symbol": "ethhmq",
-      "quote": {
-        "code": "hmq",
-        "name": "Humaniq"
-      }
-    },
-    {
       "symbol": "ethjpy",
       "quote": {
         "code": "jpy",
         "name": "Japanese Yen"
-      }
-    },
-    {
-      "symbol": "ethlgd",
-      "quote": {
-        "code": "lgd",
-        "name": "Legends Room"
-      }
-    },
-    {
-      "symbol": "ethlsk",
-      "quote": {
-        "code": "lsk",
-        "name": "Lisk"
       }
     },
     {
@@ -211,234 +92,10 @@
       }
     },
     {
-      "symbol": "ethlun",
-      "quote": {
-        "code": "lun",
-        "name": "Lunyr"
-      }
-    },
-    {
-      "symbol": "ethmco",
-      "quote": {
-        "code": "mco",
-        "name": "Monaco"
-      }
-    },
-    {
-      "symbol": "ethmtl",
-      "quote": {
-        "code": "mtl",
-        "name": "Metal"
-      }
-    },
-    {
-      "symbol": "ethmyst",
-      "quote": {
-        "code": "myst",
-        "name": "Mysterium"
-      }
-    },
-    {
-      "symbol": "ethnmr",
-      "quote": {
-        "code": "nmr",
-        "name": "Numeraire"
-      }
-    },
-    {
-      "symbol": "ethomg",
-      "quote": {
-        "code": "omg",
-        "name": "OmiseGO"
-      }
-    },
-    {
-      "symbol": "ethpay",
-      "quote": {
-        "code": "pay",
-        "name": "TenX"
-      }
-    },
-    {
-      "symbol": "ethptoy",
-      "quote": {
-        "code": "ptoy",
-        "name": "Patientory"
-      }
-    },
-    {
-      "symbol": "ethqrl",
-      "quote": {
-        "code": "qrl",
-        "name": "Quantum-Resistant Ledger"
-      }
-    },
-    {
-      "symbol": "ethqtum",
-      "quote": {
-        "code": "qtum",
-        "name": "Qtum"
-      }
-    },
-    {
-      "symbol": "ethrep",
-      "quote": {
-        "code": "rep",
-        "name": "Augur"
-      }
-    },
-    {
-      "symbol": "ethrlc",
-      "quote": {
-        "code": "rlc",
-        "name": "iEx.ec"
-      }
-    },
-    {
       "symbol": "ethrub",
       "quote": {
         "code": "rub",
         "name": "Russian Ruble"
-      }
-    },
-    {
-      "symbol": "ethsc",
-      "quote": {
-        "code": "sc",
-        "name": "Siacoin"
-      }
-    },
-    {
-      "symbol": "ethsngls",
-      "quote": {
-        "code": "sngls",
-        "name": "SingularDTV"
-      }
-    },
-    {
-      "symbol": "ethsnt",
-      "quote": {
-        "code": "snt",
-        "name": "Status"
-      }
-    },
-    {
-      "symbol": "ethsteem",
-      "quote": {
-        "code": "steem",
-        "name": "Steem"
-      }
-    },
-    {
-      "symbol": "ethstorj",
-      "quote": {
-        "code": "storj",
-        "name": "Storj"
-      }
-    },
-    {
-      "symbol": "ethtime",
-      "quote": {
-        "code": "time",
-        "name": "ChronoBank"
-      }
-    },
-    {
-      "symbol": "ethtkn",
-      "quote": {
-        "code": "tkn",
-        "name": "TokenCard"
-      }
-    },
-    {
-      "symbol": "ethtrst",
-      "quote": {
-        "code": "trst",
-        "name": "WeTrust"
-      }
-    },
-    {
-      "symbol": "ethusd",
-      "quote": {
-        "code": "usd",
-        "name": "United States Dollar"
-      }
-    },
-    {
-      "symbol": "ethwings",
-      "quote": {
-        "code": "wings",
-        "name": "Wings"
-      }
-    },
-    {
-      "symbol": "ethxem",
-      "quote": {
-        "code": "xem",
-        "name": "NEM"
-      }
-    },
-    {
-      "symbol": "ethxlm",
-      "quote": {
-        "code": "xlm",
-        "name": "Stellar Lumen"
-      }
-    },
-    {
-      "symbol": "ethxmr",
-      "quote": {
-        "code": "xmr",
-        "name": "Monero"
-      }
-    },
-    {
-      "symbol": "ethxrp",
-      "quote": {
-        "code": "xrp",
-        "name": "Ripple"
-      }
-    },
-    {
-      "symbol": "ethzec",
-      "quote": {
-        "code": "zec",
-        "name": "Zcash"
-      }
-    },
-    {
-      "symbol": "ethdai",
-      "quote": {
-        "code": "dai",
-        "name": "DAI"
-      }
-    },
-    {
-      "symbol": "ethusdc",
-      "quote": {
-        "code": "usdc",
-        "name": "USD Coin"
-      }
-    },
-    {
-      "symbol": "ethusdt",
-      "quote": {
-        "code": "usdt",
-        "name": "Tether"
-      }
-    },
-    {
-      "symbol": "ethinr",
-      "quote": {
-        "code": "inr",
-        "name": "Indian Rupee"
-      }
-    },
-    {
-      "symbol": "eth1st",
-      "quote": {
-        "code": "1st",
-        "name": "FirstBlood"
       }
     },
     {
@@ -449,10 +106,206 @@
       }
     },
     {
-      "symbol": "ethsai",
+      "symbol": "ethusd",
       "quote": {
-        "code": "sai",
-        "name": "SAI"
+        "code": "usd",
+        "name": "United States Dollar"
+      }
+    },
+    {
+      "symbol": "ethxlm",
+      "quote": {
+        "code": "xlm",
+        "name": "Stellar Lumen"
+      }
+    },
+    {
+      "symbol": "ethxrp",
+      "quote": {
+        "code": "xrp",
+        "name": "Ripple"
+      }
+    },
+    {
+      "symbol": "ethsek",
+      "quote": {
+        "code": "sek",
+        "name": "Swedish Krona"
+      }
+    },
+    {
+      "symbol": "ethaed",
+      "quote": {
+        "code": "aed",
+        "name": "United Arab Emirates Dirham"
+      }
+    },
+    {
+      "symbol": "ethars",
+      "quote": {
+        "code": "ars",
+        "name": "Argentine Peso"
+      }
+    },
+    {
+      "symbol": "ethbch",
+      "quote": {
+        "code": "bch",
+        "name": "Bitcoin Cash"
+      }
+    },
+    {
+      "symbol": "ethbnb",
+      "quote": {
+        "code": "bnb",
+        "name": "Binance Coin"
+      }
+    },
+    {
+      "symbol": "ethbrl",
+      "quote": {
+        "code": "brl",
+        "name": "Brazilian Real"
+      }
+    },
+    {
+      "symbol": "ethclp",
+      "quote": {
+        "code": "clp",
+        "name": "Chilean Peso"
+      }
+    },
+    {
+      "symbol": "ethcny",
+      "quote": {
+        "code": "cny",
+        "name": "Chinese Yuan"
+      }
+    },
+    {
+      "symbol": "ethczk",
+      "quote": {
+        "code": "czk",
+        "name": "Czech Koruna"
+      }
+    },
+    {
+      "symbol": "ethdkk",
+      "quote": {
+        "code": "dkk",
+        "name": "Danish Krone"
+      }
+    },
+    {
+      "symbol": "ethchf",
+      "quote": {
+        "code": "chf",
+        "name": "Swiss Franc"
+      }
+    },
+    {
+      "symbol": "ethdot",
+      "quote": {
+        "code": "dot",
+        "name": "Polkadot"
+      }
+    },
+    {
+      "symbol": "etheos",
+      "quote": {
+        "code": "eos",
+        "name": "EOS"
+      }
+    },
+    {
+      "symbol": "etheth",
+      "quote": {
+        "code": "eth",
+        "name": "Ethereum"
+      }
+    },
+    {
+      "symbol": "ethgel",
+      "quote": {
+        "code": "gel",
+        "name": "Georgian Lari"
+      }
+    },
+    {
+      "symbol": "ethhuf",
+      "quote": {
+        "code": "huf",
+        "name": "Hungarian Forint"
+      }
+    },
+    {
+      "symbol": "ethils",
+      "quote": {
+        "code": "ils",
+        "name": "Israeli Shekel"
+      }
+    },
+    {
+      "symbol": "ethkrw",
+      "quote": {
+        "code": "krw",
+        "name": "South Korean Won"
+      }
+    },
+    {
+      "symbol": "ethmxn",
+      "quote": {
+        "code": "mxn",
+        "name": "Mexican Peso"
+      }
+    },
+    {
+      "symbol": "ethmyr",
+      "quote": {
+        "code": "myr",
+        "name": "Malaysian Ringgit"
+      }
+    },
+    {
+      "symbol": "ethngn",
+      "quote": {
+        "code": "ngn",
+        "name": "Nigerian Naira"
+      }
+    },
+    {
+      "symbol": "ethnok",
+      "quote": {
+        "code": "nok",
+        "name": "Norwegian Krone"
+      }
+    },
+    {
+      "symbol": "ethpln",
+      "quote": {
+        "code": "pln",
+        "name": "Polish Zloty"
+      }
+    },
+    {
+      "symbol": "eththb",
+      "quote": {
+        "code": "thb",
+        "name": "Thai Baht"
+      }
+    },
+    {
+      "symbol": "ethtry",
+      "quote": {
+        "code": "try",
+        "name": "Turkish Lira"
+      }
+    },
+    {
+      "symbol": "ethzar",
+      "quote": {
+        "code": "zar",
+        "name": "South African Rand"
       }
     }
   ]
