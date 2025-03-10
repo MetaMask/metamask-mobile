@@ -212,6 +212,11 @@ stages:
       - run_tag_smoke_core_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
+      # Flask-specific workflows with conditional run_if
+      - run_flask_tests_ios:
+          run_if: '{{enveq "METAMASK_BUILD_TYPE" "flask"}}'
+      - run_flask_tests_android:
+          run_if: '{{enveq "METAMASK_BUILD_TYPE" "flask"}}'
   report_results_stage:
     workflows:
       - run_testrail_update_automated_test_results: {}
