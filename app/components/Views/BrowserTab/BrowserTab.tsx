@@ -48,6 +48,7 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import { selectEthPhishingDetectEnabled } from '../../../selectors/featureFlagController';
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
@@ -206,6 +207,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const isFocused = useIsFocused();
 
+  const ethPhishingDetectEnabled = useSelector(selectEthPhishingDetectEnabled);
+
   /**
    * Checks if a given url or the current url is the homepage
    */
@@ -294,27 +297,35 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const isAllowedOrigin = useCallback(
     (urlOrigin: string) => {
-      const { PhishingController } = Engine.context;
+      const whitelisted = whitelist?.includes(urlOrigin);
+    if (whitelisted) {
+      return true;
+    }
 
-      // Update phishing configuration if it is out-of-date
-      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-      // down network requests. The configuration is updated for the next request.
+    const { PhishingController } = Engine.context;
+
+      // When phishing detection is enabled, run the configuration update
+    // and the synchronous test.
+    if (ethPhishingDetectEnabled) {
+          Logger.log('isAllowedOrigin inside enabled', urlOrigin, whitelisted);
+
+      // Fire-and-forget update.
       PhishingController.maybeUpdateState();
 
-      const phishingControllerTestResult = PhishingController.test(urlOrigin);
+      const testResult = PhishingController.test(urlOrigin);
+      if (testResult.result && testResult.name) {
+        blockListType.current = testResult.name;
+        return whitelisted || false;
+      }
+    }
 
-      // Only assign the if the hostname is on the block list
-      if (
-        phishingControllerTestResult.result &&
-        phishingControllerTestResult.name
-      )
-        blockListType.current = phishingControllerTestResult.name;
+    Logger.log('isAllowedOrigin after is enabled', urlOrigin, whitelisted);
 
-      return (
-        whitelist?.includes(urlOrigin) || !phishingControllerTestResult.result
-      );
+    return whitelisted || true;
+
+
     },
-    [whitelist],
+    [whitelist, ethPhishingDetectEnabled],
   );
 
   /**
