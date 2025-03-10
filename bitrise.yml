@@ -829,6 +829,7 @@ workflows:
             - destination: android/keystores/internalRelease.keystore
       - script@1:
           title: Install CCache & symlink
+          is_skippable: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -2075,6 +2076,7 @@ workflows:
             - destination: android/keystores/internalRelease.keystore
       - script@1:
           title: Install CCache & symlink
+          is_skippable: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
