@@ -1236,15 +1236,15 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/$APP_NAMERelease/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/$APP_NAMERelease/mapping.txt
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/$OUTPUT_PATH/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/$OUTPUT_PATH/mapping.txt
           title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$APP_NAMERelease/app-$APP_NAME-release.aab:BITRISE_PLAY_STORE_ABB_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$APP_NAMERelease/app-$APP_NAME-release.aab
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/app-$APP_NAME-release.aab:BITRISE_PLAY_STORE_ABB_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/app-$APP_NAME-release.aab
           title: Bitrise Deploy AAB
     meta:
       bitrise.io:
@@ -1258,6 +1258,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
   build_android_beta:
@@ -1267,6 +1268,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
   build_android_release_and_upload_sourcemaps:
@@ -1277,6 +1279,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
   build_android_flask_release:
@@ -1286,6 +1289,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
       - APP_NAME: 'flask'
+      - OUTPUT_PATH: 'flaskRelease'
     after_run:
       - _android_build_template
   # build_android_release:
