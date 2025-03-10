@@ -46,7 +46,7 @@ import {
   // eslint-disable-next-line no-restricted-syntax
   selectChainId,
   selectNativeCurrencyByChainId,
-  selectProviderTypeByChainId
+  selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
@@ -172,6 +172,9 @@ class SendFlow extends PureComponent {
         route,
         colors,
         resetTransaction,
+        null,
+        false,
+        true,
       ),
     );
   };
@@ -389,8 +392,8 @@ class SendFlow extends PureComponent {
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
       : matchingAccount
-        ? matchingAccount.metadata.name
-        : null;
+      ? matchingAccount.metadata.name
+      : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {

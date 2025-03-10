@@ -534,6 +534,9 @@ class Amount extends PureComponent {
         route,
         colors,
         resetTransaction,
+        null,
+        true,
+        true,
       ),
     );
   };
@@ -1053,18 +1056,15 @@ class Amount extends PureComponent {
     this.setState({ assetsModalVisible: !assetsModalVisible });
   };
 
-  handleSelectedAssetBalance = (
-    selectedAsset,
-    renderableBalance,
-  ) => {
+  handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
     const { accounts, selectedAddress, contractBalances } = this.props;
     let currentBalance;
     if (renderableBalance) {
       currentBalance = `${renderableBalance} ${selectedAsset.symbol}`;
     } else if (isNativeToken(selectedAsset)) {
-      currentBalance = `${renderFromWei(
-        accounts[selectedAddress].balance,
-      )} ${selectedAsset.symbol}`;
+      currentBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${
+        selectedAsset.symbol
+      }`;
     } else {
       currentBalance = `${renderFromTokenMinimalUnit(
         contractBalances[selectedAsset.address],
@@ -1593,7 +1593,10 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     accounts: selectAccounts(state),
-    contractExchangeRates: selectContractExchangeRatesByChainId(state, globalChainId),
+    contractExchangeRates: selectContractExchangeRatesByChainId(
+      state,
+      globalChainId,
+    ),
     contractBalances: selectContractBalances(state),
     collectibles: collectiblesSelector(state),
     collectibleContracts: collectibleContractsSelector(state),

@@ -557,6 +557,8 @@ export function getSendFlowTitle(
   themeColors,
   resetTransaction,
   transaction,
+  disableNetwork = true,
+  showSelectedNetwork = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -594,7 +596,13 @@ export function getSendFlowTitle(
   const titleToRender = title;
 
   return {
-    headerTitle: () => <NavbarTitle title={titleToRender} disableNetwork />,
+    headerTitle: () => (
+      <NavbarTitle
+        title={titleToRender}
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={showSelectedNetwork}
+      />
+    ),
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
