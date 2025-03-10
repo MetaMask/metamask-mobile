@@ -120,6 +120,7 @@ interface NetworkSelectorRouteParams {
       origin?: string;
     };
   };
+  source?: string;
 }
 
 const NetworkSelector = () => {
@@ -222,7 +223,13 @@ const NetworkSelector = () => {
 
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
+  const source = route.params?.source;
+
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
+    console.log(
+      '>>> NetworkSelector onSetRpcTarget with chainId:',
+      networkConfiguration.chainId,
+    );
     const { MultichainNetworkController, SelectedNetworkController } =
       Engine.context;
     trace({
@@ -402,6 +409,24 @@ const NetworkSelector = () => {
         })
         .build(),
     );
+
+    // Track the network switch with source information
+    if (source === 'SendFlow') {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+          .addProperties({
+            chain_id: getDecimalChainId(type),
+            source: 'SendFlow',
+          })
+          .build(),
+      );
+
+      // console log on network changed to
+      console.log(
+        '>>> NetworkSelector onNetworkChange with chainId:',
+        BUILT_IN_NETWORKS[type].chainId,
+      );
+    }
   };
 
   const filterNetworksByName = (

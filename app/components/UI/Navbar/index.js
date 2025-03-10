@@ -601,6 +601,7 @@ export function getSendFlowTitle(
         title={titleToRender}
         disableNetwork={disableNetwork}
         showSelectedNetwork={showSelectedNetwork}
+        source="SendFlow"
       />
     ),
     headerRight: () => (
