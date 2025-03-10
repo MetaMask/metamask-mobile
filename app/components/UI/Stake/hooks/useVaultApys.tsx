@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { hexToNumber } from '@metamask/utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../selectors/networkController';
 import {
   selectVaultApys,
   setVaultApys,
@@ -16,7 +16,7 @@ const useVaultApys = () => {
 
   const { vaultApys } = useSelector(selectVaultApys);
 
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
 
   const fetchVaultApys = useCallback(async () => {
     setIsLoading(true);

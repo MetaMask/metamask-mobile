@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import AppConstants from '../../../../../core/AppConstants';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { selectChainId } from '../../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { Pressable } from 'react-native';
 import Text, {
   TextColor,
@@ -39,7 +39,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
 

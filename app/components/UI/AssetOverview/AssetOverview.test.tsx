@@ -141,6 +141,7 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         swapsIsLive
+        networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
     );
@@ -156,6 +157,7 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         swapsIsLive
+        networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
     );
@@ -169,6 +171,7 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         swapsIsLive
+        networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
     );
@@ -191,6 +194,7 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         swapsIsLive
+        networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
     );

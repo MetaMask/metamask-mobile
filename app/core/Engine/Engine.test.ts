@@ -3,7 +3,11 @@ import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState, TransactionEventPayload } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
-import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
+import {
+  createMockAccountsControllerState,
+  createMockInternalAccount,
+  MOCK_ADDRESS_1,
+} from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { store } from '../../store';
@@ -23,7 +27,28 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
 jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
+
+jest.mock('@metamask/assets-controllers', () => {
+  const actualControllers = jest.requireActual('@metamask/assets-controllers');
+  // Mock the RatesController start method since it takes a while to run and causes timeouts in tests
+  class MockRatesController extends actualControllers.RatesController {
+    start = jest.fn().mockImplementation(() => Promise.resolve());
+  }
+  return {
+    ...actualControllers,
+    RatesController: MockRatesController,
+  };
+});
+
 describe('Engine', () => {
+  // Create a shared mock account for tests
+  const validAddress = MOCK_ADDRESS_1;
+  const mockAccount = createMockInternalAccount(validAddress, 'Test Account');
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('should expose an API', () => {
     const engine = Engine.init({});
     expect(engine.context).toHaveProperty('AccountTrackerController');
@@ -50,9 +75,13 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('UserStorageController');
     expect(engine.context).toHaveProperty('NotificationServicesController');
     expect(engine.context).toHaveProperty('SelectedNetworkController');
+    expect(engine.context).toHaveProperty('SnapInterfaceController');
     expect(engine.context).toHaveProperty('MultichainBalancesController');
     expect(engine.context).toHaveProperty('RatesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
+    expect(engine.context).toHaveProperty('BridgeController');
+    expect(engine.context).toHaveProperty('BridgeStatusController');
+    expect(engine.context).toHaveProperty('EarnController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -82,6 +111,98 @@ describe('Engine', () => {
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
       `No account found for address: ${invalidAddress}`,
     );
+  });
+
+  it('setSelectedAccount successfully updates selected account when address exists', () => {
+    const engine = Engine.init(backgroundState);
+
+    const getAccountByAddressSpy = jest
+      .spyOn(engine.context.AccountsController, 'getAccountByAddress')
+      .mockReturnValue(mockAccount);
+
+    const setSelectedAccountSpy = jest
+      .spyOn(engine.context.AccountsController, 'setSelectedAccount')
+      .mockImplementation();
+
+    const setSelectedAddressSpy = jest
+      .spyOn(engine.context.PreferencesController, 'setSelectedAddress')
+      .mockImplementation();
+
+    engine.setSelectedAccount(validAddress);
+
+    expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
+    expect(setSelectedAccountSpy).toHaveBeenCalledWith(mockAccount.id);
+    expect(setSelectedAddressSpy).toHaveBeenCalledWith(validAddress);
+  });
+
+  it('setAccountLabel successfully updates account label when address exists', () => {
+    const engine = Engine.init(backgroundState);
+    const label = 'New Account Name';
+
+    const getAccountByAddressSpy = jest
+      .spyOn(engine.context.AccountsController, 'getAccountByAddress')
+      .mockReturnValue(mockAccount);
+
+    const setAccountNameSpy = jest
+      .spyOn(engine.context.AccountsController, 'setAccountName')
+      .mockImplementation();
+
+    const setAccountLabelSpy = jest
+      .spyOn(engine.context.PreferencesController, 'setAccountLabel')
+      .mockImplementation();
+
+    engine.setAccountLabel(validAddress, label);
+
+    expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
+    expect(setAccountNameSpy).toHaveBeenCalledWith(mockAccount.id, label);
+    expect(setAccountLabelSpy).toHaveBeenCalledWith(validAddress, label);
+  });
+
+  it('setAccountLabel throws an error if no account exists for the given address', () => {
+    const engine = Engine.init(backgroundState);
+    const invalidAddress = '0xInvalidAddress';
+    const label = 'Test Account';
+
+    expect(() => engine.setAccountLabel(invalidAddress, label)).toThrow(
+      `No account found for address: ${invalidAddress}`,
+    );
+  });
+
+  it('getSnapKeyring gets or creates a snap keyring', async () => {
+    const engine = new EngineClass(backgroundState);
+    const mockSnapKeyring = { type: 'Snap Keyring' };
+    jest
+      .spyOn(engine.keyringController, 'getKeyringsByType')
+      .mockImplementation(() => [mockSnapKeyring]);
+
+    const getSnapKeyringSpy = jest
+      .spyOn(engine, 'getSnapKeyring')
+      .mockImplementation(async () => mockSnapKeyring);
+
+    const result = await engine.getSnapKeyring();
+    expect(getSnapKeyringSpy).toHaveBeenCalled();
+    expect(result).toEqual(mockSnapKeyring);
+  });
+
+  it('getSnapKeyring creates a new snap keyring if none exists', async () => {
+    const engine = new EngineClass(backgroundState);
+    const mockSnapKeyring = { type: 'Snap Keyring' };
+
+    jest
+      .spyOn(engine.keyringController, 'getKeyringsByType')
+      .mockImplementation(() => []);
+
+    jest
+      .spyOn(engine.keyringController, 'addNewKeyring')
+      .mockImplementation(async () => mockSnapKeyring);
+
+    const getSnapKeyringSpy = jest
+      .spyOn(engine, 'getSnapKeyring')
+      .mockImplementation(async () => mockSnapKeyring);
+
+    const result = await engine.getSnapKeyring();
+    expect(getSnapKeyringSpy).toHaveBeenCalled();
+    expect(result).toEqual(mockSnapKeyring);
   });
 
   it('normalizes CurrencyController state property conversionRate from null to 0', () => {
