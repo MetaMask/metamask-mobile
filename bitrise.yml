@@ -1183,13 +1183,13 @@ workflows:
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
-            - new_version_name: $VERSION_NAME
-            - new_version_code: $VERSION_NUMBER
+            - new_version_name: $NAME
+            - new_version_code: $NUMBER
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
-            - destination: android/keystores/release.keystore
+            - destination: $KEYSTORE_PATH
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -1206,7 +1206,7 @@ workflows:
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
                     METAMASK_BUILD_TYPE='beta' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:beta
                 elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                    METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:beta
+                    METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask
                 else
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
@@ -1218,99 +1218,72 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk:BITRISE_PLAY_STORE_APK_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/app-$APP_NAME-release.apk:BITRISE_PLAY_STORE_APK_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/app-$APP_NAME-release.apk
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/sha512sums.txt:BITRISE_PLAY_STORE_SHA512SUMS_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/sha512sums.txt
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/sha512sums.txt:BITRISE_PLAY_STORE_SHA512SUMS_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/sha512sums.txt
           title: Bitrise Deploy Checksum
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/mapping.txt
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/$APP_NAMERelease/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/$APP_NAMERelease/mapping.txt
           title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab:BITRISE_PLAY_STORE_ABB_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$APP_NAMERelease/app-$APP_NAME-release.aab:BITRISE_PLAY_STORE_ABB_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$APP_NAMERelease/app-$APP_NAME-release.aab
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
-            - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-
-  # # Template workflow for common iOS build steps
-  # _ios_build_template:
-  #   steps:
-  #     - set-xcode-build-number@1:
-  #         inputs:
-  #           - build_version: $VERSION_NAME
-  #           - build_short_version_string: $VERSION_NUMBER
-  #           - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-  #     - certificate-and-profile-installer@1: {}
-  #     - restore-cocoapods-cache@1: {}
-  #     - script@1:
-  #         inputs:
-  #           - content: |-
-  #               #!/usr/bin/env bash
-  #               node -v
-  #               METAMASK_BUILD_TYPE='$METAMASK_BUILD_TYPE' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
-  #         title: Build iOS $METAMASK_BUILD_TYPE Pre-Release
-  #     - save-cocoapods-cache@1: {}
-  #     - deploy-to-bitrise-io@2:
-  #         inputs:
-  #           - deploy_path: $IPA_PATH
-  #     - deploy-to-bitrise-io@2:
-  #         inputs:
-  #           - deploy_path: $DSYM_PATH
-
   # Actual workflows that inherit from templates
   build_android_release:
     envs:
-      - METAMASK_BUILD_TYPE: "main"
+      - METAMASK_BUILD_TYPE: 'main'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
     after_run:
       - _android_build_template
-
   build_android_beta:
     envs:
       - METAMASK_BUILD_TYPE: "beta"
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
     after_run:
       - _android_build_template
-
-  # build_ios_release:
-  #   envs:
-  #     - METAMASK_BUILD_TYPE: "main"
-  #   before_run:
-  #     - code_setup
-  #     - _ios_build_template
-  #   after_run:
-  #     - notify_failure
-
-  # build_ios_beta:
-  #   envs:
-  #     - METAMASK_BUILD_TYPE: "beta"
-  #   before_run:
-  #     - code_setup
-  #     - _ios_build_template
-  #   after_run:
-  #     - notify_failure
-
-  
+  build_android_release_and_upload_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
+      - METAMASK_BUILD_TYPE: 'main'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+    after_run:
+      - _android_build_template
+  build_android_flask_release:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - APP_NAME: 'flask'
+    after_run:
+      - _android_build_template
   # build_android_release:
   #   before_run:
   #     - code_setup
@@ -1379,11 +1352,6 @@ workflows:
   #     bitrise.io:
   #       stack: linux-docker-android-22.04
   #       machine_type_id: elite-xl
-  build_android_release_and_upload_sourcemaps:
-    envs:
-      - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
-    after_run:
-      - build_android_release
   build_android_devbuild:
     before_run:
       - code_setup
@@ -1633,7 +1601,7 @@ workflows:
       - deploy-to-itunesconnect-application-loader@1:
           inputs:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
-  build_ios_release:
+  _ios_build_template:
     envs:
       - NO_FLIPPER: '1'
     before_run:
@@ -1644,28 +1612,38 @@ workflows:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
-            - build_short_version_string: $VERSION_NAME
-            - build_version: $VERSION_NUMBER
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+            - build_short_version_string: $NAME
+            - build_version: $NUMBER
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/$INFO_PLIST_NAME
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+                echo 'This is the current build type: $METAMASK_BUILD_TYPE'
+                if [ "$METAMASK_BUILD_TYPE" = "main" ]; then
+                    METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+                elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
+                    METAMASK_BUILD_TYPE='beta' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-beta
+                elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                    METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
+                else
+                    echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
+                    exit 1
+                fi
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: ios/build/output/MetaMask.ipa
+            - pipeline_intermediate_files: ios/build/output/$APP_NAME.ipa:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: ios/build/output/$APP_NAME.ipa
           title: Deploy iOS IPA
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: ios/build/MetaMask.xcarchive
+            - deploy_path: ios/build/$APP_NAME.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -1674,11 +1652,43 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+  build_ios_release:
+    envs:
+      - METAMASK_BUILD_TYPE: "main"
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
+      - METAMASK_BUILD_TYPE: "main"
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
     after_run:
-      - build_ios_release
+      - _ios_build_template
+  build_ios_beta:
+    envs:
+      - METAMASK_BUILD_TYPE: "beta"
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_flask_release:
+    envs:
+      - METAMASK_BUILD_TYPE: "flask"
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - APP_NAME: "MetaMask-Flask"
+      - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+    after_run:
+      - _ios_build_template
   build_ios_devbuild:
     before_run:
       - code_setup
@@ -1793,116 +1803,6 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
-  build_ios_flask_release:
-    before_run:
-      - code_setup
-    after_run:
-      - notify_failure
-    steps:
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $FLASK_VERSION_NAME
-            - build_version: $FLASK_VERSION_NUMBER
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-Flask-Info.plist
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
-          title: iOS Sourcemaps & Build
-          is_always_run: false
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: ios/build/output/MetaMask-Flask.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: ios/build/output/MetaMask-Flask.ipa
-          title: Deploy iOS IPA
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: ios/build/MetaMask-Flask.xcarchive:BITRISE_APP_STORE_XCARCHIVE_PATH
-          title: Deploy Symbols File
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
-            - deploy_path: sourcemaps/ios/index.js.map
-          title: Deploy Source Map
-  build_android_flask_release:
-    before_run:
-      - code_setup
-    after_run:
-      - notify_failure
-    steps:
-      - change-android-versioncode-and-versionname@1:
-          inputs:
-            - new_version_name: $FLASK_VERSION_NAME
-            - new_version_code: $FLASK_VERSION_NUMBER
-            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
-      - file-downloader@1:
-          inputs:
-            - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
-            - destination: android/keystores/flaskRelease.keystore
-      - restore-gradle-cache@2: {}
-      - install-missing-android-tools@3:
-          inputs:
-            - ndk_revision: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
-
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask
-          title: Build Android Pre-Release Bundle
-          is_always_run: false
-      - save-gradle-cache@1: {}
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk:BITRISE_PLAY_STORE_APK_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
-          title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/sha512sums.txt:BITRISE_PLAY_STORE_SHA512SUMS_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/sha512sums.txt
-          title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/flaskRelease/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/flaskRelease/mapping.txt
-          title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab:BITRISE_PLAY_STORE_ABB_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab
-          title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: /bitrise/src/sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
-            - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-
 app:
   envs:
     - opts:
