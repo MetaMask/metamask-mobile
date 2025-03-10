@@ -58,6 +58,7 @@ import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
   selectChainId,
+  selectIsAllNetworks,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -67,7 +68,10 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
-import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
+import {
+  selectShowIncomingTransactionNetworks,
+  selectTokenNetworkFilter,
+} from '../../../selectors/preferencesController';
 
 import useNotificationHandler from '../../../util/notifications/hooks';
 import {
@@ -83,8 +87,9 @@ import {
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 const Stack = createStackNavigator();
 
@@ -115,7 +120,7 @@ const Main = (props) => {
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-  useNotificationHandler(props.navigation);
+  useNotificationHandler();
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
@@ -225,18 +230,40 @@ const Main = (props) => {
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkName = useSelector(selectNetworkName);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const previousProviderConfig = useRef(undefined);
   const previousNetworkConfigurations = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
   const networkImage = useSelector(selectNetworkImageSource);
 
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const hasNetworkChanged = useCallback(
+    (chainId, previousConfig, isEvmSelected) => {
+      if (!previousConfig) return false;
+
+      return isEvmSelected
+        ? chainId !== previousConfig.chainId ||
+            providerConfig.type !== previousConfig.type
+        : chainId !== previousConfig.chainId;
+    },
+    [providerConfig.type],
+  );
+
   // Show network switch confirmation.
   useEffect(() => {
     if (
-      previousProviderConfig.current &&
-      (providerConfig.chainId !== previousProviderConfig.current.chainId ||
-        providerConfig.type !== previousProviderConfig.current.type)
+      hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
     ) {
+      //set here token network filter if portfolio view is enabled
+      if (isPortfolioViewEnabled()) {
+        const { PreferencesController } = Engine.context;
+        PreferencesController.setTokenNetworkFilter({
+          ...(isAllNetworks ? tokenNetworkFilter : {}),
+          [chainId]: true,
+        });
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions: [
@@ -249,8 +276,20 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
-    previousProviderConfig.current = providerConfig;
-  }, [providerConfig, networkName, networkImage, toastRef]);
+    previousProviderConfig.current = !isEvmSelected
+      ? { chainId }
+      : providerConfig;
+  }, [
+    providerConfig,
+    networkName,
+    networkImage,
+    toastRef,
+    chainId,
+    isEvmSelected,
+    hasNetworkChanged,
+    isAllNetworks,
+    tokenNetworkFilter,
+  ]);
 
   // Show add network confirmation.
   useEffect(() => {
@@ -270,15 +309,25 @@ const Main = (props) => {
       const newNetwork = currentNetworkValues.find(
         (network) => !previousNetworkValues.includes(network),
       );
+      const deletedNetwork = previousNetworkValues.find(
+        (network) => !currentNetworkValues.includes(network),
+      );
 
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
         labelOptions: [
           {
-            label: `${newNetwork?.name ?? strings('asset_details.network')} `,
+            label: `${
+              (newNetwork?.name || deletedNetwork?.name) ??
+              strings('asset_details.network')
+            } `,
             isBold: true,
           },
-          { label: strings('toast.network_added') },
+          {
+            label: deletedNetwork
+              ? strings('toast.network_removed')
+              : strings('toast.network_added'),
+          },
         ],
         networkImageSource: networkImage,
       });
@@ -365,37 +414,35 @@ const Main = (props) => {
 
   return (
     <React.Fragment>
-      <AssetPollingProvider>
-        <View style={styles.flex}>
-          {!forceReload ? (
-            <MainNavigator navigation={props.navigation} />
-          ) : (
-            renderLoader()
-          )}
-          <GlobalAlert />
-          <FadeOutOverlay />
-          <Notification navigation={props.navigation} />
-          <RampOrders />
-          <SwapsLiveness />
-          <BackupAlert
-            onDismiss={toggleRemindLater}
-            navigation={props.navigation}
-          />
-          {renderDeprecatedNetworkAlert(
-            props.chainId,
-            props.backUpSeedphraseVisible,
-          )}
-          <SkipAccountSecurityModal
-            modalVisible={showRemindLaterModal}
-            onCancel={skipAccountModalSecureNow}
-            onConfirm={skipAccountModalSkip}
-            skipCheckbox={skipCheckbox}
-            toggleSkipCheckbox={toggleSkipCheckbox}
-          />
-          <ProtectYourWalletModal navigation={props.navigation} />
-          <RootRPCMethodsUI navigation={props.navigation} />
-        </View>
-      </AssetPollingProvider>
+      <View style={styles.flex}>
+        {!forceReload ? (
+          <MainNavigator navigation={props.navigation} />
+        ) : (
+          renderLoader()
+        )}
+        <GlobalAlert />
+        <FadeOutOverlay />
+        <Notification navigation={props.navigation} />
+        <RampOrders />
+        <SwapsLiveness />
+        <BackupAlert
+          onDismiss={toggleRemindLater}
+          navigation={props.navigation}
+        />
+        {renderDeprecatedNetworkAlert(
+          props.chainId,
+          props.backUpSeedphraseVisible,
+        )}
+        <SkipAccountSecurityModal
+          modalVisible={showRemindLaterModal}
+          onCancel={skipAccountModalSecureNow}
+          onConfirm={skipAccountModalSkip}
+          skipCheckbox={skipCheckbox}
+          toggleSkipCheckbox={toggleSkipCheckbox}
+        />
+        <ProtectYourWalletModal navigation={props.navigation} />
+        <RootRPCMethodsUI navigation={props.navigation} />
+      </View>
     </React.Fragment>
   );
 };

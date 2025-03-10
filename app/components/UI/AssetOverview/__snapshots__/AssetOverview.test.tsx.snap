@@ -104,6 +104,7 @@ exports[`AssetOverview should render correctly 1`] = `
               "paddingTop": 2,
             }
           }
+          testID="loading-price-diff"
         >
           <View
             onLayout={[Function]}
@@ -1037,7 +1038,7 @@ exports[`AssetOverview should render correctly 1`] = `
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001a",
+                    "shadowColor": "#0000001A",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -1056,11 +1057,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "uri": "MockImage",
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 32,
@@ -1238,6 +1235,7 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
               "paddingTop": 2,
             }
           }
+          testID="loading-price-diff"
         >
           <View
             onLayout={[Function]}
@@ -2171,7 +2169,7 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001a",
+                    "shadowColor": "#0000001A",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -2190,13 +2188,7 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "default": {
-                        "uri": "MockImage",
-                      },
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 32,
@@ -2237,6 +2229,22 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
             }
           }
         >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+            testID="fiat-balance-test-id"
+          >
+            1500
+          </Text>
           <Text
             accessibilityRole="text"
             style={

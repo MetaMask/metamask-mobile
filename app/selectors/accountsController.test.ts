@@ -1,14 +1,24 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
-import { BtcAccountType, InternalAccount } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  EthAccountType,
+  EthScope,
+  BtcMethod,
+  EthMethod,
+  SolMethod,
+  SolAccountType,
+} from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
   selectSelectedInternalAccountFormattedAddress,
-  hasCreatedBtcMainnetAccount,
+  selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
+  selectCanSignTransactions,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -84,6 +94,7 @@ describe('Accounts Controller Selectors', () => {
         address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
         id: expectedUuid2,
         options: {},
+        scopes: [EthScope.Eoa],
         metadata: {
           name: 'Account 2',
           importTime: 1684232000456,
@@ -98,7 +109,7 @@ describe('Accounts Controller Selectors', () => {
           'eth_signTypedData_v3',
           'eth_signTypedData_v4',
         ],
-        type: 'eip155:eoa',
+        type: EthAccountType.Eoa,
       });
     });
     it('throws an error if the selected account ID does not exist', () => {
@@ -190,51 +201,51 @@ describe('Accounts Controller Selectors', () => {
   });
 });
 
-describe('Bitcoin Account Selectors', () => {
-  function getStateWithAccount(account: InternalAccount) {
-    return {
-      engine: {
-        backgroundState: {
-          AccountsController: {
-            internalAccounts: {
-              accounts: {
-                [account.id]: account,
-              },
-              selectedAccount: account.id,
+const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
+const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
+
+function getStateWithAccount(account: InternalAccount) {
+  return {
+    engine: {
+      backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [account.id]: account,
             },
+            selectedAccount: account.id,
           },
-          KeyringController: MOCK_KEYRING_CONTROLLER,
         },
+        KeyringController: MOCK_KEYRING_CONTROLLER,
       },
-    } as RootState;
-  }
+    },
+  } as RootState;
+}
 
-  const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
-  const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
+const btcMainnetAccount = createMockInternalAccount(
+  MOCK_BTC_MAINNET_ADDRESS,
+  'Bitcoin Account',
+  KeyringTypes.snap,
+  BtcAccountType.P2wpkh,
+);
 
-  const btcMainnetAccount = createMockInternalAccount(
-    MOCK_BTC_MAINNET_ADDRESS,
-    'Bitcoin Account',
-    KeyringTypes.snap,
-    BtcAccountType.P2wpkh,
-  );
+const btcTestnetAccount = createMockInternalAccount(
+  MOCK_BTC_TESTNET_ADDRESS,
+  'Bitcoin Testnet Account',
+  KeyringTypes.snap,
+  BtcAccountType.P2wpkh,
+);
 
-  const btcTestnetAccount = createMockInternalAccount(
-    MOCK_BTC_TESTNET_ADDRESS,
-    'Bitcoin Testnet Account',
-    KeyringTypes.snap,
-    BtcAccountType.P2wpkh,
-  );
-
+describe('Bitcoin Account Selectors', () => {
   describe('hasCreatedBtcMainnetAccount', () => {
     it('returns true when a BTC mainnet account exists', () => {
       const state = getStateWithAccount(btcMainnetAccount);
-      expect(hasCreatedBtcMainnetAccount(state)).toBe(true);
+      expect(selectHasCreatedBtcMainnetAccount(state)).toBe(true);
     });
 
     it('returns false when no BTC mainnet account exists', () => {
       const state = getStateWithAccount(btcTestnetAccount);
-      expect(hasCreatedBtcMainnetAccount(state)).toBe(false);
+      expect(selectHasCreatedBtcMainnetAccount(state)).toBe(false);
     });
   });
 
@@ -248,5 +259,128 @@ describe('Bitcoin Account Selectors', () => {
       const state = getStateWithAccount(btcMainnetAccount);
       expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
     });
+  });
+});
+
+describe('selectCanSignTransactions', () => {
+  const ethAccountWithSignTransaction = {
+    ...createMockInternalAccount(
+      '0x123',
+      'ETH Account with Sign',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    ),
+    methods: [EthMethod.SignTransaction],
+  };
+
+  const solAccountWithSignTransaction = {
+    ...createMockInternalAccount(
+      '0x456',
+      'SOL Account with Sign',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SignTransaction],
+  };
+
+  const solAccountWithSignMessage = {
+    ...createMockInternalAccount(
+      '0x789',
+      'SOL Account with Sign Message',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SignMessage],
+  };
+
+  const solAccountWithSendAndConfirm = {
+    ...createMockInternalAccount(
+      '0xabc',
+      'SOL Account with Send and Confirm',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SendAndConfirmTransaction],
+  };
+
+  const solAccountWithSignAndSend = {
+    ...createMockInternalAccount(
+      '0xdef',
+      'SOL Account with Sign and Send',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SignAndSendTransaction],
+  };
+
+  const btcAccountWithSendBitcoin = {
+    ...createMockInternalAccount(
+      'bc1q123',
+      'BTC Account with Send',
+      KeyringTypes.snap,
+      BtcAccountType.P2wpkh,
+    ),
+    methods: [BtcMethod.SendBitcoin],
+  };
+
+  const accountWithoutSigningMethods = {
+    ...createMockInternalAccount(
+      '0x999',
+      'Account without Signing',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    ),
+    methods: [],
+  };
+
+  it('returns true for ETH account with SignTransaction method', () => {
+    const state = getStateWithAccount(ethAccountWithSignTransaction);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SignTransaction method', () => {
+    const state = getStateWithAccount(solAccountWithSignTransaction);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SignMessage method', () => {
+    const state = getStateWithAccount(solAccountWithSignMessage);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SendAndConfirmTransaction method', () => {
+    const state = getStateWithAccount(solAccountWithSendAndConfirm);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SignAndSendTransaction method', () => {
+    const state = getStateWithAccount(solAccountWithSignAndSend);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for BTC account with SendBitcoin method', () => {
+    const state = getStateWithAccount(btcAccountWithSendBitcoin);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns false for account without any signing methods', () => {
+    const state = getStateWithAccount(accountWithoutSigningMethods);
+    expect(selectCanSignTransactions(state)).toBe(false);
+  });
+
+  it('returns false when no account is selected', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: 'non-existent-id',
+            },
+          },
+        },
+      },
+    } as RootState;
+    expect(selectCanSignTransactions(state)).toBe(false);
   });
 });

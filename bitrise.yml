@@ -114,7 +114,7 @@ stages:
     workflows:
       - deploy_android_to_store: {}
   create_build_qa_and_expo:
-      workflows:
+    workflows:
       - build_android_devbuild: {}
       - build_android_qa: {}
       - build_ios_devbuild: {}
@@ -161,8 +161,12 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_ramps_android: {}
-      # - run_tag_smoke_swaps_ios: {}
-      # - run_tag_smoke_swaps_android: {}
+      # run_tag_smoke_ramps_ios: {}
+      - run_tag_smoke_confirmations_redesigned_ios: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
+      # run_tag_smoke_stake_ios: {}
+      # run_tag_smoke_stake_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
@@ -181,9 +185,11 @@ stages:
       - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
+      # run_tag_smoke_ramps_ios: {}
       # - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
@@ -497,8 +503,6 @@ workflows:
   ios_build_regression_tests:
     envs:
       - TEST_SUITE: 'Regression'
-      - MM_MULTICHAIN_V1_ENABLED: false
-      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - ios_e2e_build
   ios_run_regression_tests:
@@ -532,9 +536,9 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://46f0542276828b691f56adec25ac81065b5abf73' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.30.0
-      - PRODUCTION_BUILD_NUMBER: 1410
+      - PRODUCTION_APP_URL: 'bs://6b59d556df4a5a0448ff161cbfcab16d92607b72' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.38.0
+      - PRODUCTION_BUILD_NUMBER: 1528
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -650,6 +654,12 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_confirmations_redesigned_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations-redesigned/*'
+      - TEST_SUITE_TAG: '.*SmokeConfirmationsRedesigned.*'
+    after_run:
+      - ios_e2e_test
   run_tag_smoke_swaps_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
@@ -664,6 +674,22 @@ workflows:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
       - TEST_SUITE_TAG: '.*SmokeSwaps.*'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_stake_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/stake/*'
+      - TEST_SUITE_TAG: '.*SmokeStake.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_stake_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/stake/*'
+      - TEST_SUITE_TAG: '.*SmokeStake.*'
     after_run:
       - android_e2e_test
   run_ios_api_specs:
@@ -701,6 +727,12 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_ramps_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/ramps/*'
+      - TEST_SUITE_TAG: '.*SmokeRamps.*'
+    after_run:
+      - ios_e2e_test
   run_tag_smoke_ramps_android:
     meta:
       bitrise.io:
@@ -1247,20 +1279,20 @@ workflows:
             - content: |-
                 # Define the source path of the generated APK
                 SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-prod-debug.apk"
-                
+
                 # Define the destination path with the new name
                 DEST_APK_PATH="$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
-                
+
                 # Copy and rename the APK
                 cp "$SOURCE_APK_PATH" "$DEST_APK_PATH"
-                
+
                 # Optionally, print the new path for verification
                 echo "APK has been copied and renamed to: $DEST_APK_PATH"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: "$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
+            - deploy_path: '$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk'
           title: Bitrise Deploy APK
     meta:
       bitrise.io:
@@ -1493,7 +1525,7 @@ workflows:
             - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: ios/build/output/MetaMask.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@1.6.1:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -1537,13 +1569,13 @@ workflows:
             - content: |-
                 # Define the source path of the generated IPA
                 SOURCE_IPA_PATH="ios/build/output/MetaMask.ipa"
-                
+
                 # Define the destination path with the new name
                 DEST_IPA_PATH="$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
-                
+
                 # Copy and rename the IPA
                 cp "$SOURCE_IPA_PATH" "$DEST_IPA_PATH"
-                
+
                 # Optionally, print the new path for verification
                 echo "IPA has been copied and renamed to: $DEST_IPA_PATH"
       - deploy-to-bitrise-io@2.2.3:
@@ -1551,7 +1583,7 @@ workflows:
           is_skippable: true
           inputs:
             - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: "$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
+            - deploy_path: '$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa'
           title: Deploy iOS IPA
   build_ios_qa:
     envs:
@@ -1652,7 +1684,7 @@ workflows:
             - pipeline_intermediate_files: ios/build/output/MetaMask-Flask.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: ios/build/output/MetaMask-Flask.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@1.6.1:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -1739,7 +1771,7 @@ app:
   envs:
     - opts:
         is_expand: false
-      MM_NOTIFICATIONS_UI_ENABLED: false
+      MM_NOTIFICATIONS_UI_ENABLED: true
     - opts:
         is_expand: false
       MM_NETWORK_UI_REDESIGN_ENABLED: false
@@ -1757,16 +1789,16 @@ app:
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_POOLED_STAKING_UI_ENABLED: true
+      MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
-      MM_SECURITY_ALERTS_API_ENABLED: true
+      MM_STABLECOIN_LENDING_UI_ENABLED: false
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 24.0.8215888
+      NDK_VERSION: 26.1.10909125
     - opts:
         is_expand: false
       QA_APK_NAME: app-qa-release
@@ -1793,16 +1825,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.37.1
+      VERSION_NAME: 7.41.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1520
+      VERSION_NUMBER: 1586
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.37.1
+      FLASK_VERSION_NAME: 7.41.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1520
+      FLASK_VERSION_NUMBER: 1586
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1829,7 +1861,7 @@ app:
       COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
-    stack: osx-xcode-15.0.x
+    stack: osx-xcode-16.2.x
     machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*

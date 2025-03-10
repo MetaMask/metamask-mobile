@@ -114,9 +114,9 @@ exports[`OriginSpamModal renders SiteBlockedContent if user opt in to block dapp
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -192,7 +192,7 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
           "alignItems": "center",
           "alignSelf": "center",
           "backgroundColor": "#ffffff",
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
           "borderRadius": 99,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -304,9 +304,9 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -341,9 +341,9 @@ exports[`OriginSpamModal renders spam modal content by default 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }

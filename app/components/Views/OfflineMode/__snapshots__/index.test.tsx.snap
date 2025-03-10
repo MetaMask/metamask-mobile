@@ -10,13 +10,7 @@ exports[`OfflineMode should render correctly 1`] = `
   }
 >
   <Image
-    source={
-      {
-        "default": {
-          "uri": "MockImage",
-        },
-      }
-    }
+    source={1}
     style={
       {
         "alignSelf": "center",

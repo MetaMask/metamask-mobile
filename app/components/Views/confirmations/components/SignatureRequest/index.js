@@ -9,7 +9,6 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { selectProviderType } from '../../../../../selectors/networkController';
 import { fontStyles } from '../../../../../styles/common';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
@@ -117,7 +116,7 @@ const createStyles = (colors) =>
     arrowIcon: {
       color: colors.icon.muted,
     },
-    blockaidBanner: {
+    blockaidBannerContainer: {
       marginHorizontal: 20,
       marginBottom: 20,
     },
@@ -149,7 +148,7 @@ class SignatureRequest extends PureComponent {
      */
     type: PropTypes.string,
     /**
-     * String representing the selected network
+     * String representing the associated network
      */
     networkType: PropTypes.string,
     /**
@@ -362,11 +361,12 @@ class SignatureRequest extends PureComponent {
                 {strings('signature_request.signing')}
               </Text>
             </View>
-            <BlockaidBanner
-              securityAlertResponse={securityAlertResponse}
-              style={styles.blockaidBanner}
-              onContactUsClicked={this.onContactUsClicked}
-            />
+            <View style={styles.blockaidBannerContainer}>
+              <BlockaidBanner
+                securityAlertResponse={securityAlertResponse}
+                onContactUsClicked={this.onContactUsClicked}
+              />
+            </View>
             {this.renderActionViewChildren()}
           </View>
         </ActionView>
@@ -401,7 +401,6 @@ class SignatureRequest extends PureComponent {
 
 const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  networkType: selectProviderType(state),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });
 

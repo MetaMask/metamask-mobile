@@ -4,7 +4,7 @@ import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import { SessionTypes } from '@walletconnect/types';
-import { Platform, Linking } from 'react-native';
+import { Platform, Linking, ImageSourcePropType } from 'react-native';
 
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
@@ -18,8 +18,8 @@ import METHODS_TO_REDIRECT from './wc-config';
 import { Minimizer } from '../NativeModules';
 import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../selectors/networkController';
 import { store } from '../../store';
 import { addTransaction } from '../../util/transaction-controller';
@@ -113,13 +113,10 @@ class WalletConnect2Session {
           hostname: url,
           getProviderState,
           channelId,
-          setApprovedHosts: () => false,
-          getApprovedHosts: () => false,
           analytics: {},
           isMMSDK: false,
           isHomepage: () => false,
           fromHomepage: { current: false },
-          approveHost: () => false,
           injectHomePageScripts: () => false,
           navigation: this.navigation,
           // Website info
@@ -130,7 +127,7 @@ class WalletConnect2Session {
             current: name,
           },
           icon: {
-            current: icons?.[0],
+            current: icons?.[0] as ImageSourcePropType, // Need to cast here because this cames from @walletconnect/types as string
           },
           toggleUrlModal: () => null,
           wizardScrollAdjusted: { current: false },
@@ -349,7 +346,7 @@ class WalletConnect2Session {
           `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
         // overwrite chainId with actual value.
-        chainId = parseInt(selectChainId(store.getState()));
+        chainId = parseInt(selectEvmChainId(store.getState()));
         DevLogger.log(
           `WC2::updateSession overwrite invalid chain Id with selectedChainId=${chainId}`,
         );
@@ -416,7 +413,7 @@ class WalletConnect2Session {
     );
 
     // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-    const selectedChainId = parseInt(selectChainId(store.getState()));
+    const selectedChainId = parseInt(selectEvmChainId(store.getState()));
 
     if (selectedChainId !== chainId) {
       DevLogger.log(
@@ -441,7 +438,7 @@ class WalletConnect2Session {
         `formatting chainId=>${chainId} ==> 0x${chainId.toString(16)}`,
       );
 
-      const networkConfigurations = selectNetworkConfigurations(
+      const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
         store.getState(),
       );
       const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);

@@ -1,7 +1,8 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": []
+    "keyrings": [],
+    "keyringsMetadata": []
   },
   "LoggingController": {
     "logs": {}
@@ -71,20 +72,6 @@
           }
         ]
       },
-      "0x5": {
-        "blockExplorerUrls": [],
-        "chainId": "0x5",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Goerli",
-        "nativeCurrency": "GoerliETH",
-        "rpcEndpoints": [
-          {
-            "networkClientId": "goerli",
-            "type": "infura",
-            "url": "https://goerli.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
       "0xaa36a7": {
         "blockExplorerUrls": [],
         "chainId": "0xaa36a7",
@@ -96,20 +83,6 @@
             "networkClientId": "sepolia",
             "type": "infura",
             "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
-      "0xe704": {
-        "blockExplorerUrls": [],
-        "chainId": "0xe704",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Linea Goerli",
-        "nativeCurrency": "LineaETH",
-        "rpcEndpoints": [
-          {
-            "networkClientId": "linea-goerli",
-            "type": "infura",
-            "url": "https://linea-goerli.infura.io/v3/{infuraProjectId}"
           }
         ]
       },
@@ -203,6 +176,10 @@
   "TokenRatesController": {
     "marketData": {}
   },
+  "TokenSearchDiscoveryController": {
+    "lastSearchTimestamp": null,
+    "recentSearches": []
+  },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
     "methodData": {},
@@ -242,6 +219,9 @@
     "snaps": {},
     "unencryptedSnapStates": {}
   },
+  "SnapInterfaceController": {
+    "interfaces": {}
+  },
   "SnapsRegistry": {
     "database": null,
     "databaseUnavailable": false,
@@ -270,7 +250,8 @@
         "decimals": 0,
         "address": "",
         "symbol": ""
-      }
+      },
+      "networkClientId": "mainnet"
     },
     "topAggSavings": null,
     "aggregatorMetadata": null,
@@ -347,12 +328,133 @@
     "subscriptionAccountsSeen": []
   },
   "NotificationServicesPushController": {
-    "fcmToken": ""
+    "fcmToken": "",
+    "isPushEnabled": true,
+    "isUpdatingFCMToken": false
   },
   "UserStorageController": {
     "hasAccountSyncingSyncedAtLeastOnce": false,
     "isAccountSyncingReadyToBeDispatched": false,
+    "isAccountSyncingInProgress": false,
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
+  },
+  "MultichainBalancesController": {
+    "balances": {}
+  },
+  "RatesController": {
+    "cryptocurrencies": ["btc", "sol"],
+    "fiatCurrency": "usd",
+    "rates": {
+      "btc": {
+        "conversionDate": 0,
+        "conversionRate": 0
+      },
+      "sol": {
+        "conversionDate": 0,
+        "conversionRate": 0
+      }
+    }
+  },
+  "MultichainNetworkController": {
+    "isEvmSelected": true,
+    "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+    "multichainNetworkConfigurationsByChainId": {
+      "bip122:000000000019d6689c085ae165831e93": {
+        "chainId": "bip122:000000000019d6689c085ae165831e93",
+        "name": "Bitcoin Mainnet",
+        "nativeCurrency": "bip122:000000000019d6689c085ae165831e93/slip44:0",
+        "isEvm": false
+      },
+      "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
+        "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "name": "Solana Mainnet",
+        "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "isEvm": false
+      }
+    }
+  },
+  "MultichainAssetsController": {
+    "accountsAssets": {},
+    "assetsMetadata": {}
+  },
+  "BridgeController": {
+    "bridgeFeatureFlags": {
+      "extensionConfig": {
+        "chains": {},
+        "maxRefreshCount": 5,
+        "refreshRate": 30000,
+        "support": false
+      },
+      "mobileConfig": {
+        "chains": {},
+        "maxRefreshCount": 5,
+        "refreshRate": 30000,
+        "support": false
+      }
+    },
+    "quoteFetchError": null,
+    "quoteRequest": {
+      "slippage": 0.5,
+      "srcTokenAddress": "0x0000000000000000000000000000000000000000"
+    },
+    "quotes": [],
+    "quotesInitialLoadTime": null,
+    "quotesLastFetched": null,
+    "quotesLoadingStatus": null,
+    "quotesRefreshCount": 0
+  },
+  "BridgeStatusController": {
+    "txHistory": {}
+  },
+  "MultichainAssetsRatesController": {
+    "conversionRates": {}
+  },
+  "CronjobController": {
+    "events": {},
+    "jobs": {}
+  },
+  "EarnController": {
+    "lastUpdated": 0,
+    "pooled_staking": {
+      "exchangeRate": "1",
+      "isEligible": false,
+      "pooledStakes": {
+        "account": "",
+        "assets": "0",
+        "exitRequests": [],
+        "lifetimeRewards": "0"
+      },
+      "vaultMetadata": {
+        "apy": "0",
+        "capacity": "0",
+        "feePercent": 0,
+        "totalAssets": "0",
+        "vaultAddress": "0x0000000000000000000000000000000000000000"
+      },
+      "vaultDailyApys": [],
+      "vaultApyAverages": {
+        "oneDay": "0",
+        "oneWeek": "0",
+        "oneMonth": "0",
+        "threeMonths": "0",
+        "sixMonths": "0",
+        "oneYear": "0"
+      }
+    },
+    "stablecoin_lending": {
+      "vaults": [
+        {
+          "symbol": "",
+          "name": "",
+          "chainId": 0,
+          "tokenAddress": "",
+          "vaultAddress": "",
+          "currentAPY": "0",
+          "supply": "0",
+          "liquidity": "0"
+        }
+      ]
+    }
   }
 }

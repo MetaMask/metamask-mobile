@@ -31,7 +31,7 @@ jobs:
             echo "No changes detected"
           fi
   dedupe:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -49,7 +49,7 @@ jobs:
             exit 1
           fi
   git-safe-dependencies:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -60,7 +60,7 @@ jobs:
       - name: Run @lavamoat/git-safe-dependencies
         run: yarn git-safe-dependencies
   scripts:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         scripts:
@@ -87,7 +87,7 @@ jobs:
             echo "No changes detected"
           fi
   unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -107,7 +107,7 @@ jobs:
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-${{ matrix.shard }}.json
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.shard }}
           path: ./tests/coverage/coverage-${{ matrix.shard }}.json
@@ -122,7 +122,7 @@ jobs:
             echo "No changes detected"
           fi
   merge-unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: unit-tests
     steps:
       - uses: actions/checkout@v3
@@ -131,7 +131,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - run: yarn setup
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: tests/coverage/
       - name: Gather partial coverage reports into one directory
@@ -140,7 +140,7 @@ jobs:
           mv ./tests/coverage/coverage-*/* ./tests/coverage
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: ./tests/merged-coverage/lcov.info
@@ -156,7 +156,7 @@ jobs:
           fi
 
   js-bundle-size-check:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -198,7 +198,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
 
   sonar-cloud:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: merge-unit-tests
     steps:
       - uses: actions/checkout@v3
@@ -207,7 +207,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: coverage
           path: coverage/
@@ -305,7 +305,7 @@ jobs:
         shell: bash
   all-jobs-pass:
     name: All jobs pass
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs:
       [
         check-diff,
@@ -324,7 +324,7 @@ jobs:
         run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
   check-all-jobs-pass:
     name: Check all jobs pass
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: all-jobs-pass
     if: always()
     steps:
@@ -335,3 +335,16 @@ jobs:
             echo "All jobs passed step skipped. Block PR."
             exit 1
           fi
+
+  log-merge-group-failure:
+    name: Log merge group failure
+    # Only run this job if the merge group event fails, skip on forks
+    if: ${{ github.event_name == 'merge_group' && failure() && !github.event.repository.fork }}
+    needs:
+      - check-all-jobs-pass
+    uses: metamask/github-tools/.github/workflows/log-merge-group-failure.yml@6bbad335a01fce1a9ec1eabd9515542c225d46c0
+    secrets:
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+      GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+      SPREADSHEET_ID: ${{ secrets.GOOGLE_MERGE_QUEUE_SPREADSHEET_ID }}
+      SHEET_NAME: ${{ secrets.GOOGLE_MERGE_QUEUE_SHEET_NAME }}

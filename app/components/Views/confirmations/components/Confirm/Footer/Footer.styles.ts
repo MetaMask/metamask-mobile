@@ -1,28 +1,25 @@
+import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 
-import { Theme } from '../../../../../../util/theme/models';
-
 const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+  const { theme: { colors }} = params;
 
   return StyleSheet.create({
-    confirmButton: {
-      flex: 1,
+    base: {
+      backgroundColor: colors.background.alternative,
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+      paddingTop: 16,
     },
-    rejectButton: {
-      flex: 1,
-      backgroundColor: theme.colors.background.alternative,
+    linkText: {
+      textDecorationLine: 'underline',
     },
-    divider: {
-      height: 1,
-      backgroundColor: theme.colors.border.muted,
-    },
-    buttonsContainer: {
+    textContainer: {
       flexDirection: 'row',
-      padding: 16,
-    },
-    buttonDivider: {
-      width: 8,
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+      marginBottom: 24,
+      paddingBottom: 16,
     },
   });
 };

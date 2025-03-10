@@ -36,9 +36,13 @@ export interface AccountSelectorParams {
    */
   checkBalanceError?: UseAccountsParams['checkBalanceError'];
   /**
-   * Optional boolean to indicate if privacy mode is enabled.
+   * Optional boolean to indicate if privacy mode is disabled.
    */
-  privacyMode?: boolean;
+  disablePrivacyMode?: boolean;
+  /**
+   * Optional navigation screen to indicate if should navigate to add account actions sheet.
+   */
+  navigateToAddAccountActions?: AccountSelectorScreens.AddAccountActions;
 }
 
 /**

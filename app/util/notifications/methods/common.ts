@@ -7,10 +7,10 @@ import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import {
-  UserStorage,
-  USER_STORAGE_VERSION_KEY,
   OnChainRawNotification,
   OnChainRawNotificationsWithNetworkFields,
+  TRIGGER_TYPES,
+  INotification,
 } from '@metamask/notification-services-controller/notification-services';
 import {
   NOTIFICATION_CHAINS_ID,
@@ -18,12 +18,9 @@ import {
   NOTIFICATION_NETWORK_CURRENCY_SYMBOL,
   SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS,
 } from '@metamask/notification-services-controller/notification-services/ui';
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
-import { TRIGGER_TYPES } from '../constants';
-import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -313,25 +310,30 @@ export const TRUNCATED_ADDRESS_END_CHARS = 5;
  */
 export function shortenString(
   stringToShorten = '',
-  { truncatedCharLimit, truncatedStartChars, truncatedEndChars } = {
-    truncatedCharLimit: TRUNCATED_NAME_CHAR_LIMIT,
-    truncatedStartChars: TRUNCATED_ADDRESS_START_CHARS,
-    truncatedEndChars: TRUNCATED_ADDRESS_END_CHARS,
-  },
+  {
+    truncatedCharLimit = TRUNCATED_NAME_CHAR_LIMIT,
+    truncatedStartChars = TRUNCATED_ADDRESS_START_CHARS,
+    truncatedEndChars = TRUNCATED_ADDRESS_END_CHARS,
+    skipCharacterInEnd = false,
+  }: {
+    truncatedCharLimit?: number;
+    truncatedStartChars?: number;
+    truncatedEndChars?: number;
+    skipCharacterInEnd?: boolean;
+  } = {},
 ) {
   if (stringToShorten.length < truncatedCharLimit) {
     return stringToShorten;
   }
 
-  return `${stringToShorten.slice(
-    0,
-    truncatedStartChars,
-  )}...${stringToShorten.slice(-truncatedEndChars)}`;
+  return `${stringToShorten.slice(0, truncatedStartChars)}...${
+    skipCharacterInEnd ? '' : stringToShorten.slice(-truncatedEndChars)
+  }`;
 }
 
 export const sortNotifications = (
-  notifications: Notification[],
-): Notification[] => {
+  notifications: INotification[],
+): INotification[] => {
   if (!notifications) {
     return [];
   }
@@ -480,81 +482,4 @@ export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     setTimeout(() => reject(new Error(strings('notifications.timeout'))), ms),
   );
   return Promise.race([promise, timeout]);
-}
-
-export interface NotificationTrigger {
-  id: string;
-  chainId: string;
-  kind: string;
-  address: string;
-}
-
-type MapTriggerFn<Result> = (trigger: NotificationTrigger) => Result;
-
-interface TraverseTriggerOpts<Result> {
-  address?: string;
-  mapTrigger?: MapTriggerFn<Result>;
-}
-
-const triggerToId = (trigger: NotificationTrigger) => trigger.id;
-const triggerIdentity = (trigger: NotificationTrigger) => trigger;
-
-function traverseUserStorageTriggers<ResultTriggers = NotificationTrigger>(
-  userStorage: UserStorage,
-  options?: TraverseTriggerOpts<ResultTriggers>,
-) {
-  const triggers: ResultTriggers[] = [];
-  const mapTrigger =
-    options?.mapTrigger ?? (triggerIdentity as MapTriggerFn<ResultTriggers>);
-
-  for (const address in userStorage) {
-    if (address === (USER_STORAGE_VERSION_KEY as unknown as string)) continue;
-    if (options?.address && address !== options.address) continue;
-    for (const chain_id in userStorage[address]) {
-      for (const uuid in userStorage[address]?.[chain_id]) {
-        if (uuid) {
-          triggers.push(
-            mapTrigger({
-              id: uuid,
-              kind: userStorage[address]?.[chain_id]?.[uuid]?.k,
-              chainId: chain_id,
-              address,
-            }),
-          );
-        }
-      }
-    }
-  }
-
-  return triggers;
-}
-
-export function getUUIDs(userStorage: UserStorage, address: string): string[] {
-  return traverseUserStorageTriggers(userStorage, {
-    address,
-    mapTrigger: triggerToId,
-  });
-}
-
-export function getAllUUIDs(userStorage: UserStorage): string[] {
-  const uuids = traverseUserStorageTriggers(userStorage, {
-    mapTrigger: triggerToId,
-  });
-  return uuids;
-}
-
-export function parseNotification(
-  remoteMessage: FirebaseMessagingTypes.RemoteMessage,
-) {
-  const notification = remoteMessage.data?.data;
-  const parsedNotification =
-    typeof notification === 'string' ? JSON.parse(notification) : notification;
-
-  const notificationData = {
-    type: parsedNotification?.type || parsedNotification?.data?.kind,
-    transaction: parsedNotification?.data,
-    duration: 5000,
-  };
-
-  return notificationData;
 }

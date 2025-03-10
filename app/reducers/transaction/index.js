@@ -29,6 +29,7 @@ const initialState = {
   proposedNonce: undefined,
   nonce: undefined,
   securityAlertResponses: {},
+  useMax: false,
 };
 
 const getAssetType = (selectedAsset) => {
@@ -109,6 +110,8 @@ const transactionReducer = (state = initialState, action) => {
           ...getTxData(action.transaction),
         },
         ...txMeta,
+        // Retain the securityAlertResponses from the old state
+        securityAlertResponses: state.securityAlertResponses,
       };
     }
     case 'SET_TOKENS_TRANSACTION': {
@@ -144,6 +147,18 @@ const transactionReducer = (state = initialState, action) => {
       return {
         ...state,
         id: transactionId,
+      };
+    }
+    case 'SET_MAX_VALUE_MODE': {
+      return {
+        ...state,
+        maxValueMode: action.maxValueMode,
+      };
+    }
+    case 'SET_TRANSACTION_VALUE': {
+      return {
+        ...state,
+        transaction: { ...state.transaction, value: action.value },
       };
     }
     default:

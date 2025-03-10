@@ -5,6 +5,12 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
+    tags: {
+      display: 'flex',
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 8,
+    },
     fee: {
       marginLeft: 8,
     },

@@ -43,11 +43,7 @@ exports[`OptIn should render correctly 1`] = `
       }
     >
       <Image
-        source={
-          {
-            "uri": "MockImage",
-          }
-        }
+        source={1}
         style={
           {
             "height": 240,
@@ -152,7 +148,7 @@ exports[`OptIn should render correctly 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
-        onPress={[Function]}
+        onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
@@ -177,9 +173,9 @@ exports[`OptIn should render correctly 1`] = `
           style={
             {
               "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -192,7 +188,7 @@ exports[`OptIn should render correctly 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
-        onPress={[Function]}
+        onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
@@ -215,9 +211,9 @@ exports[`OptIn should render correctly 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }

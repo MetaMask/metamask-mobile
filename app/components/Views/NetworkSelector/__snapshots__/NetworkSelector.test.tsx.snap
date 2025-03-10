@@ -389,7 +389,7 @@ exports[`Network Selector renders correctly 1`] = `
                             style={
                               {
                                 "alignSelf": "center",
-                                "backgroundColor": "#bbc0c5",
+                                "backgroundColor": "#848c96",
                                 "borderRadius": 4,
                                 "height": 5,
                                 "marginTop": 8,
@@ -428,7 +428,7 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#848c96",
                                   "borderRadius": 5,
                                   "borderWidth": 1,
                                   "color": "#141618",
@@ -479,6 +479,11 @@ exports[`Network Selector renders correctly 1`] = `
                           </View>
                           <View
                             onLayout={[Function]}
+                            style={
+                              {
+                                "minHeight": 667,
+                              }
+                            }
                           >
                             <RCTScrollView
                               collapsable={false}
@@ -550,11 +555,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           <Image
                                             onError={[Function]}
                                             resizeMode="contain"
-                                            source={
-                                              {
-                                                "uri": "MockImage",
-                                              }
-                                            }
+                                            source={1}
                                             style={
                                               {
                                                 "height": 32,
@@ -598,7 +599,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#0376c91a",
+                                        "backgroundColor": "#0376C91A",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -676,11 +677,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           <Image
                                             onError={[Function]}
                                             resizeMode="contain"
-                                            source={
-                                              {
-                                                "uri": "MockImage",
-                                              }
-                                            }
+                                            source={1}
                                             style={
                                               {
                                                 "height": 32,
@@ -777,13 +774,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           <Image
                                             onError={[Function]}
                                             resizeMode="contain"
-                                            source={
-                                              {
-                                                "default": {
-                                                  "uri": "MockImage",
-                                                },
-                                              }
-                                            }
+                                            source={1}
                                             style={
                                               {
                                                 "height": 32,
@@ -880,13 +871,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           <Image
                                             onError={[Function]}
                                             resizeMode="contain"
-                                            source={
-                                              {
-                                                "default": {
-                                                  "uri": "MockImage",
-                                                },
-                                              }
-                                            }
+                                            source={1}
                                             style={
                                               {
                                                 "height": 32,
@@ -983,13 +968,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           <Image
                                             onError={[Function]}
                                             resizeMode="contain"
-                                            source={
-                                              {
-                                                "default": {
-                                                  "uri": "MockImage",
-                                                },
-                                              }
-                                            }
+                                            source={1}
                                             style={
                                               {
                                                 "height": 32,
@@ -1130,6 +1109,103 @@ exports[`Network Selector renders correctly 1`] = `
                                     </View>
                                   </View>
                                 </TouchableOpacity>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="cellselect"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 16,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Solana Mainnet
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
                                 <View
                                   style={
                                     {
@@ -1170,14 +1246,14 @@ exports[`Network Selector renders correctly 1`] = `
                                           "width": 51,
                                         },
                                         {
-                                          "backgroundColor": "#bbc0c566",
+                                          "backgroundColor": "#BBC0C566",
                                           "borderRadius": 16,
                                         },
                                       ]
                                     }
                                     testID="test-network-switch-id"
                                     thumbTintColor="#ffffff"
-                                    tintColor="#bbc0c566"
+                                    tintColor="#BBC0C566"
                                     value={false}
                                   />
                                 </View>
@@ -1213,9 +1289,9 @@ exports[`Network Selector renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#0376c9",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "EuclidCircularB-Medium",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
+                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
                                   }
@@ -1629,7 +1705,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                             style={
                               {
                                 "alignSelf": "center",
-                                "backgroundColor": "#bbc0c5",
+                                "backgroundColor": "#848c96",
                                 "borderRadius": 4,
                                 "height": 5,
                                 "marginTop": 8,
@@ -1668,7 +1744,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               style={
                                 {
                                   "alignItems": "center",
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#848c96",
                                   "borderRadius": 5,
                                   "borderWidth": 1,
                                   "color": "#141618",
@@ -1706,7 +1782,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                 placeholderTextColor="#141618"
                                 style={
                                   {
-                                    "borderColor": "#bbc0c5",
+                                    "borderColor": "#848c96",
                                     "color": "#141618",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
@@ -1722,6 +1798,11 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                           </View>
                           <View
                             onLayout={[Function]}
+                            style={
+                              {
+                                "minHeight": 667,
+                              }
+                            }
                           >
                             <RCTScrollView
                               collapsable={false}
@@ -1767,7 +1848,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376c91a",
+                                      "backgroundColor": "#0376C91A",
                                       "flexDirection": "row",
                                     }
                                   }
@@ -1839,11 +1920,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             <Image
                                               onError={[Function]}
                                               resizeMode="contain"
-                                              source={
-                                                {
-                                                  "uri": "MockImage",
-                                                }
-                                              }
+                                              source={1}
                                               style={
                                                 {
                                                   "height": 24,
@@ -1947,7 +2024,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       accessible={true}
                                       style={
                                         {
-                                          "backgroundColor": "#0376c91a",
+                                          "backgroundColor": "#0376C91A",
                                           "bottom": 0,
                                           "flexDirection": "row",
                                           "left": 0,
@@ -2089,11 +2166,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             <Image
                                               onError={[Function]}
                                               resizeMode="contain"
-                                              source={
-                                                {
-                                                  "uri": "MockImage",
-                                                }
-                                              }
+                                              source={1}
                                               style={
                                                 {
                                                   "height": 24,
@@ -2311,13 +2384,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             <Image
                                               onError={[Function]}
                                               resizeMode="contain"
-                                              source={
-                                                {
-                                                  "default": {
-                                                    "uri": "MockImage",
-                                                  },
-                                                }
-                                              }
+                                              source={1}
                                               style={
                                                 {
                                                   "height": 24,
@@ -2535,13 +2602,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             <Image
                                               onError={[Function]}
                                               resizeMode="contain"
-                                              source={
-                                                {
-                                                  "default": {
-                                                    "uri": "MockImage",
-                                                  },
-                                                }
-                                              }
+                                              source={1}
                                               style={
                                                 {
                                                   "height": 24,
@@ -2759,13 +2820,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             <Image
                                               onError={[Function]}
                                               resizeMode="contain"
-                                              source={
-                                                {
-                                                  "default": {
-                                                    "uri": "MockImage",
-                                                  },
-                                                }
-                                              }
+                                              source={1}
                                               style={
                                                 {
                                                   "height": 24,
@@ -3129,6 +3184,103 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     </TouchableOpacity>
                                   </View>
                                 </View>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="cellselect"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 12,
+                                              "height": 24,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 24,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 24,
+                                                "width": 24,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Solana Mainnet
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
                                 <View
                                   style={
                                     {
@@ -3248,13 +3400,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           <Image
                                             onError={[Function]}
                                             resizeMode="contain"
-                                            source={
-                                              {
-                                                "default": {
-                                                  "uri": "MockImage",
-                                                },
-                                              }
-                                            }
+                                            source={1}
                                             style={
                                               {
                                                 "height": 24,
@@ -3401,13 +3547,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           <Image
                                             onError={[Function]}
                                             resizeMode="contain"
-                                            source={
-                                              {
-                                                "default": {
-                                                  "uri": "MockImage",
-                                                },
-                                              }
-                                            }
+                                            source={1}
                                             style={
                                               {
                                                 "height": 24,
@@ -3554,13 +3694,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           <Image
                                             onError={[Function]}
                                             resizeMode="contain"
-                                            source={
-                                              {
-                                                "default": {
-                                                  "uri": "MockImage",
-                                                },
-                                              }
-                                            }
+                                            source={1}
                                             style={
                                               {
                                                 "height": 24,
@@ -3707,13 +3841,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           <Image
                                             onError={[Function]}
                                             resizeMode="contain"
-                                            source={
-                                              {
-                                                "default": {
-                                                  "uri": "MockImage",
-                                                },
-                                              }
-                                            }
+                                            source={1}
                                             style={
                                               {
                                                 "height": 24,
@@ -3860,13 +3988,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           <Image
                                             onError={[Function]}
                                             resizeMode="contain"
-                                            source={
-                                              {
-                                                "default": {
-                                                  "uri": "MockImage",
-                                                },
-                                              }
-                                            }
+                                            source={1}
                                             style={
                                               {
                                                 "height": 24,
@@ -4009,14 +4131,14 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           "width": 51,
                                         },
                                         {
-                                          "backgroundColor": "#bbc0c566",
+                                          "backgroundColor": "#BBC0C566",
                                           "borderRadius": 16,
                                         },
                                       ]
                                     }
                                     testID="test-network-switch-id"
                                     thumbTintColor="#ffffff"
-                                    tintColor="#bbc0c566"
+                                    tintColor="#BBC0C566"
                                     value={false}
                                   />
                                 </View>
@@ -4052,9 +4174,9 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                 style={
                                   {
                                     "color": "#0376c9",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "EuclidCircularB-Medium",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
+                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
                                   }

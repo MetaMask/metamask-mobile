@@ -9,7 +9,7 @@ import {
 } from '../transactions';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
-import type { ControllerMessenger } from '../../core/Engine';
+import type { BaseControllerMessenger } from '../../core/Engine';
 
 const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
 
@@ -83,7 +83,7 @@ export const getShouldUpdateApprovalRequest = (
   !mobileReturnTxHashAsap && (isDapp || isSend || isSwapTransaction);
 
 const waitForSmartTransactionConfirmationDone = (
-  controllerMessenger: ControllerMessenger,
+  controllerMessenger: BaseControllerMessenger,
 ): Promise<SmartTransaction | undefined> =>
   new Promise((resolve) => {
     controllerMessenger.subscribe(
@@ -101,7 +101,7 @@ export const getSmartTransactionMetricsProperties = async (
   smartTransactionsController: SmartTransactionsController,
   transactionMeta: TransactionMeta | undefined,
   waitForSmartTransaction: boolean,
-  controllerMessenger?: ControllerMessenger,
+  controllerMessenger?: BaseControllerMessenger,
 ) => {
   if (!transactionMeta) return {};
   let smartTransaction =

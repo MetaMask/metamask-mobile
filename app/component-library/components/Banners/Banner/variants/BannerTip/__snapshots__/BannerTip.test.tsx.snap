@@ -5,7 +5,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 4,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -31,11 +31,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
     >
       <Image
         resizeMode="contain"
-        source={
-          {
-            "uri": "MockImage",
-          }
-        }
+        source={1}
         style={
           {
             "height": 55,
@@ -106,9 +102,9 @@ exports[`BannerTip should render default settings correctly 1`] = `
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }

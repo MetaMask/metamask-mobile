@@ -29,7 +29,6 @@ import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
-import BrowserUrlBar from '../BrowserUrlBar';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
@@ -54,6 +53,7 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import HeaderBase from '../../../component-library/components/HeaderBase';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
@@ -61,8 +61,10 @@ import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/R
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { isBtcAccount } from '../../../core/Multichain/utils';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+
 ///: END:ONLY_INCLUDE_IF
+import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -70,8 +72,8 @@ const trackEvent = (event, params = {}) => {
 
 const styles = StyleSheet.create({
   metamaskName: {
-    width: 122,
-    height: 15,
+    width: 70,
+    height: 35,
   },
   metamaskFox: {
     width: 40,
@@ -139,13 +141,19 @@ const styles = StyleSheet.create({
     top: 2,
     right: 10,
   },
+  headerLeftButton: {
+    marginHorizontal: 16,
+  },
+  headerRightButton: {
+    marginHorizontal: 16,
+  },
   addressCopyWrapper: {
     marginHorizontal: 4,
   },
 });
 
-const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
-const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
+const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
+const metamask_fox = require('../../../images/branding/fox.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
@@ -600,7 +608,10 @@ export function getSendFlowTitle(
       canGoBack ? (
         // eslint-disable-next-line react/jsx-no-bind
         <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-          <Text style={innerStyles.headerButtonText}>
+          <Text
+            style={innerStyles.headerButtonText}
+            testID={SendViewSelectorsIDs.SEND_BACK_BUTTON}
+          >
             {strings('transaction.back')}
           </Text>
         </TouchableOpacity>
@@ -608,62 +619,6 @@ export function getSendFlowTitle(
         <View />
       ),
     headerStyle: innerStyles.headerStyle,
-  };
-}
-
-/**
- * Function that returns the navigation options
- * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
- *
- * @param {Object} navigation - Navigation object required to push new views
- * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
- */
-export function getBrowserViewNavbarOptions(
-  route,
-  themeColors,
-  rightButtonAnalyticsEvent,
-  headerShown = true,
-) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-      borderBottomWidth: 0.5,
-      borderColor: themeColors.border.muted,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-  });
-
-  const url = route.params?.url ?? '';
-
-  const handleUrlPress = () => route.params?.showUrlModal?.();
-
-  const handleAccountRightButtonPress = (permittedAccounts, currentUrl) => {
-    rightButtonAnalyticsEvent(permittedAccounts, currentUrl);
-    route.params?.setAccountsPermissionsVisible();
-  };
-
-  const connectedAccounts = route.params?.connectedAccounts;
-
-  return {
-    gestureEnabled: false,
-    headerTitleAlign: 'left',
-    headerTitle: () => (
-      <BrowserUrlBar url={url} route={route} onPress={handleUrlPress} />
-    ),
-    headerRight: () => (
-      <AccountRightButton
-        selectedAddress={connectedAccounts?.[0]}
-        isNetworkVisible
-        onPress={handleAccountRightButtonPress}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
-    headerShown,
   };
 }
 
@@ -700,8 +655,8 @@ export function getOnboardingNavbarOptions(
       elevation: 0,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
@@ -737,8 +692,8 @@ export function getTransparentOnboardingNavbarOptions(themeColors) {
       elevation: 0,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
@@ -771,8 +726,8 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
       elevation: 0,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
@@ -805,36 +760,26 @@ export function getOptinMetricsNavbarOptions(themeColors) {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
-      height: 100,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
-
   return {
-    headerStyle: innerStyles.headerStyle,
-    title: null,
-    headerLeft: () => (
-      <View style={styles.optinHeaderLeft}>
-        <View style={styles.metamaskNameWrapper}>
-          <Image
-            source={metamask_fox}
-            style={styles.metamaskFox}
-            resizeMethod={'auto'}
-          />
-        </View>
-        <View style={styles.metamaskNameWrapper}>
-          <Image
-            source={metamask_name}
-            style={innerStyles.metamaskName}
-            resizeMethod={'auto'}
-          />
-        </View>
+    headerTitle: () => (
+      <View style={styles.metamaskNameTransparentWrapper}>
+        <Image
+          source={metamask_name}
+          style={innerStyles.metamaskName}
+          resizeMethod={'auto'}
+        />
       </View>
     ),
+    headerBackTitle: strings('navigation.back'),
+    headerRight: () => <View />,
+    headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };
 }
@@ -934,6 +879,7 @@ export function getOfflineModalNavbar() {
  * @param {boolean | null} isProfileSyncingEnabled - Whether profile syncing is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
+ * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -970,10 +916,9 @@ export function getWalletNavbarOptions(
   let formattedAddress = toChecksumHexAddress(selectedInternalAccount.address);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (isBtcAccount(selectedInternalAccount)) {
-    // BTC addresses are not checksummed
-    formattedAddress = selectedInternalAccount.address;
-  }
+  formattedAddress = getFormattedAddressFromInternalAccount(
+    selectedInternalAccount,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const onScanSuccess = (data, content) => {
@@ -1060,7 +1005,7 @@ export function getWalletNavbarOptions(
   }
 
   const renderNetworkPicker = () => {
-    let networkPicker = (
+    const networkPicker = (
       <PickerNetwork
         label={networkName}
         imageSource={networkImageSource}
@@ -1069,20 +1014,6 @@ export function getWalletNavbarOptions(
         hideNetworkName
       />
     );
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (isBtcAccount(selectedInternalAccount)) {
-      networkPicker = (
-        <PickerNetwork
-          label={'Bitcoin'}
-          imageSource={require('../../../images/bitcoin-logo.png')}
-          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-          hideNetworkName
-          isDisabled
-        />
-      );
-    }
-    ///: END:ONLY_INCLUDE_IF
 
     return <View style={styles.leftElementContainer}>{networkPicker}</View>;
   };
@@ -1363,62 +1294,40 @@ export function getNetworkNavbarOptions(
   contentOffset = 0,
   networkName = '',
 ) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerShadow: {
-      elevation: 2,
-      shadowColor: themeColors.background.primary,
-      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
-      shadowOffset: { height: 4, width: 0 },
-      shadowRadius: 8,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-  });
   return {
-    headerTitle: () => (
-      <NavbarTitle
-        disableNetwork={disableNetwork}
-        title={title}
-        translate={translate}
-        networkName={networkName}
-      />
-    ),
-    headerLeft: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        onPress={() => navigation.pop()}
-        style={styles.backButton}
-        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-      >
-        <IonicIcon
-          name={'ios-close'}
-          size={38}
-          style={innerStyles.headerIcon}
-        />
-      </TouchableOpacity>
-    ),
-    headerRight: onRightPress
-      ? () => (
-          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-            <MaterialCommunityIcon
-              name={'dots-horizontal'}
-              size={28}
-              style={innerStyles.headerIcon}
+    header: () => (
+      <HeaderBase
+        includesTopInset
+        startAccessory={
+          <ButtonIcon
+            style={styles.headerLeftButton}
+            onPress={() => navigation.pop()}
+            testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+            size={ButtonIconSizes.Lg}
+            iconName={IconName.ArrowLeft}
+            iconColor={IconColor.Default}
+          />
+        }
+        endAccessory={
+          onRightPress && (
+            <ButtonIcon
+              style={styles.headerRightButton}
+              onPress={onRightPress}
+              size={ButtonIconSizes.Lg}
+              iconName={IconName.MoreVertical}
+              iconColor={IconColor.Default}
             />
-          </TouchableOpacity>
-          // eslint-disable-next-line no-mixed-spaces-and-tabs
-        )
-      : () => <View />,
-    headerStyle: [
-      innerStyles.headerStyle,
-      contentOffset && innerStyles.headerShadow,
-    ],
+          )
+        }
+      >
+        <NavbarTitle
+          disableNetwork={disableNetwork}
+          title={title}
+          translate={translate}
+          networkName={networkName}
+        />
+      </HeaderBase>
+    ),
   };
 }
 
@@ -1949,16 +1858,23 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
  * @param {String} title - Navbar Title.
  * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
  * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
- * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [options] - Optional options for navbar.
+ * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [navBarOptions] - Optional navbar options.
+ * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>} }} [metricsOptions] - Optional metrics options.
  * @returns Staking Navbar Component.
  */
-export function getStakingNavbar(title, navigation, themeColors, options) {
-  const { hasBackButton = true, hasCancelButton = true } = options ?? {};
+export function getStakingNavbar(
+  title,
+  navigation,
+  themeColors,
+  navBarOptions,
+  metricsOptions,
+) {
+  const { hasBackButton = true, hasCancelButton = true } = navBarOptions ?? {};
 
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor:
-        options?.backgroundColor ?? themeColors.background.default,
+        navBarOptions?.backgroundColor ?? themeColors.background.default,
       shadowOffset: null,
     },
     headerLeft: {
@@ -1978,6 +1894,28 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
     navigation.goBack();
   }
 
+  function handleBackPress() {
+    if (metricsOptions?.backButtonEvent) {
+      withMetaMetrics(navigationPop, {
+        event: metricsOptions.backButtonEvent.event,
+        properties: metricsOptions.backButtonEvent.properties,
+      })();
+    } else {
+      navigationPop();
+    }
+  }
+
+  function handleCancelPress() {
+    if (metricsOptions?.cancelButtonEvent) {
+      withMetaMetrics(navigationPop, {
+        event: metricsOptions.cancelButtonEvent.event,
+        properties: metricsOptions.cancelButtonEvent.properties,
+      })();
+    } else {
+      navigationPop();
+    }
+  }
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -1990,7 +1928,7 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
         <ButtonIcon
           size={ButtonIconSizes.Lg}
           iconName={IconName.ArrowLeft}
-          onPress={navigationPop}
+          onPress={handleBackPress}
           style={innerStyles.headerLeft}
         />
       ) : (
@@ -1999,7 +1937,7 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
     headerRight: () =>
       hasCancelButton ? (
         <TouchableOpacity
-          onPress={() => navigation.dangerouslyGetParent()?.pop()}
+          onPress={handleCancelPress}
           style={styles.closeButton}
         >
           <Text style={innerStyles.headerButtonText}>

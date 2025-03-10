@@ -153,6 +153,10 @@ const Settings: React.FC = () => {
     (state: RootState) => state.user.seedphraseBackedUp,
   );
 
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state: RootState) => state.security.dataCollectionForMarketing,
+  );
+
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
@@ -413,7 +417,7 @@ const Settings: React.FC = () => {
   );
 
   const clearBrowserHistory = () => {
-    dispatch(clearHistory());
+    dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
     toggleClearBrowserHistoryModal();
   };
 

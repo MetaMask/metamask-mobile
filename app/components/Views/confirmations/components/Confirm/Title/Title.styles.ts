@@ -8,13 +8,20 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     titleContainer: {
-      marginBottom: 24,
+      marginVertical: 24,
+      paddingHorizontal: 16,
     },
     title: {
       color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 18,
-      fontWeight: '700',
+      textAlign: 'center',
+    },
+    subTitle: {
+      color: theme.colors.text.default,
+      ...fontStyles.normal,
+      fontSize: 14,
+      marginTop: 8,
       textAlign: 'center',
     },
   });

@@ -7,7 +7,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
-  MOCK_STAKED_ETH_ASSET,
+  MOCK_STAKED_ETH_MAINNET_ASSET,
 } from '../../__mocks__/mockData';
 
 jest.mock('../../../../../selectors/multichain', () => ({
@@ -97,9 +97,22 @@ jest.mock('../../hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
     stakedBalanceWei: mockPooledStakeData.assets,
-    stakedBalanceFiat: MOCK_STAKED_ETH_ASSET.balanceFiat,
+    stakedBalanceFiat: MOCK_STAKED_ETH_MAINNET_ASSET.balanceFiat,
     formattedStakedBalanceETH: '5.79133 ETH',
   }),
+}));
+
+jest.mock('../../hooks/usePoolStakedUnstake', () => ({
+  __esModule: true,
+  default: () => ({
+    attemptUnstakeTransaction: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
+jest.mock('../../../../../selectors/featureFlagController', () => ({
+  selectConfirmationRedesignFlags: jest.fn(() => ({
+    staking_transactions: false,
+  })),
 }));
 
 describe('UnstakeInputView', () => {
@@ -159,6 +172,48 @@ describe('UnstakeInputView', () => {
 
       fireEvent.press(screen.getByText('8'));
       expect(screen.queryAllByText('Not enough ETH')).toHaveLength(2);
+    });
+  });
+
+  describe('when staking_transactions feature flag is enabled', () => {
+    let originalMock: jest.Mock;
+    let mockAttemptUnstakeTransaction: jest.Mock;
+
+    beforeEach(() => {
+      originalMock = jest.requireMock('../../../../../selectors/featureFlagController').selectConfirmationRedesignFlags as jest.Mock;
+
+      jest.requireMock('../../../../../selectors/featureFlagController').selectConfirmationRedesignFlags = jest.fn(() => ({
+        staking_transactions: true,
+      }));
+
+      mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue(undefined);
+      jest.requireMock('../../hooks/usePoolStakedUnstake').default = () => ({
+        attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
+      });
+    });
+
+    afterEach(() => {
+      jest.requireMock('../../../../../selectors/featureFlagController').selectConfirmationRedesignFlags = originalMock;
+    });
+
+    it('calls attemptUnstakeTransaction when Review button is pressed', async () => {
+      render(UnstakeInputView);
+
+      fireEvent.press(screen.getByText('1'));
+
+      fireEvent.press(screen.getByText('Review'));
+
+      // Wait for the async operation to complete
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_WITHDRAWAL,
+        params: expect.objectContaining({
+        amountWei: expect.any(String),
+          amountFiat: expect.any(String),
+        }),
+      });
     });
   });
 });

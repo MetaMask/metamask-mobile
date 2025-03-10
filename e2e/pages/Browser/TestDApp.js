@@ -96,6 +96,12 @@ class TestDApp {
       TestDappSelectorsWebIDs.ETHEREUM_SIGN,
     );
   }
+  get permitSignButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.PERMIT_SIGN,
+    );
+  }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get nftTransferFromTokensButton() {
     return Matchers.getElementByWebID(
@@ -136,6 +142,25 @@ class TestDApp {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.BATCH_TRANSFER_ERC1155_BUTTON_ID,
+    );
+  }
+
+  get switchChainFromTestDappButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SWITCH_ETHEREUM_CHAIN,
+    );
+  }
+  get testDappFoxLogo() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.TEST_DAPP_FOX_LOGO,
+    );
+  }
+  get testDappPageTitle() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE,
     );
   }
 
@@ -180,6 +205,10 @@ class TestDApp {
     await this.tapButton(this.ethereumSignButton);
   }
 
+  async tapPermitSignButton() {
+    await this.tapButton(this.permitSignButton);
+  }
+
   async tapERC20TransferButton() {
     await this.tapButton(this.erc20TransferTokensButton);
   }
@@ -222,6 +251,10 @@ class TestDApp {
       `${TEST_DAPP_LOCAL_URL}?scrollTo=''&contract=${contractAddress}`,
     );
     await TestHelpers.delay(3000); // should have a better assertion that waits until the webpage loads
+  }
+
+  async switchChainFromTestDapp() {
+    await this.tapButton(this.switchChainFromTestDappButton);
   }
 }
 

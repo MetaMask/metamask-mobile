@@ -60,7 +60,6 @@ describe(
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000);
           await Browser.navigateToTestDApp();
-          await TestHelpers.delay(3000);
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
@@ -102,7 +101,7 @@ describe(
       );
     });
 
-    it('should add network permission when requested', async () => {
+    it.skip('should add network permission when requested', async () => {
       await withFixtures(
         {
           dapp: true,

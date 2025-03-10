@@ -4,6 +4,9 @@ import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText
 } from '../../selectors/wallet/TokenOverview.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors.js';
+import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors.js';
 
 class TokenOverview {
   get container() {
@@ -18,8 +21,28 @@ class TokenOverview {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON);
   }
 
+  get unstakeButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON);
+  }
+
+  get stakeMoreButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
+  }
+
+  get stakedBalance() {
+    return Matchers.getElementByID(TokenOverviewSelectorsText.STAKED_BALANCE);
+  }
+
+  get actionSheetSendButton() {
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
+  }
+
   get swapButton() {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SWAP_BUTTON);
+  }
+
+  get claimButton() {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.CLAIM_BUTTON);
   }
 
   get receiveButton() {
@@ -28,6 +51,14 @@ class TokenOverview {
 
   get noChartData() {
     return Matchers.getElementByText(TokenOverviewSelectorsText.NO_CHART_DATA);
+  }
+
+  get closeButton() {
+    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  }
+
+  get unstakingBanner() {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.UNSTAKING_BANNER);
   }
 
   get chartPeriod1d() {
@@ -58,8 +89,28 @@ class TokenOverview {
     await Gestures.waitAndTap(this.sendButton);
   }
 
+  async tapActionSheetSendButton() {
+    await Gestures.waitAndTap(this.actionSheetSendButton);
+  }
+
   async tapSwapButton() {
     await Gestures.waitAndTap(this.swapButton);
+  }
+
+  async tapStakeMoreButton() {
+    await Gestures.waitAndTap(this.stakeMoreButton);
+  }
+
+  async tapUnstakeButton() {
+    await Gestures.waitAndTap(this.unstakeButton);
+  }
+
+  async tapBackButton() {
+      await Gestures.waitAndTap(this.closeButton);
+  }
+
+  async tapClaimButton() {
+    await Gestures.waitAndTap(this.claimButton);
   }
 
   async scrollOnScreen() {

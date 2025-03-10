@@ -5,6 +5,9 @@ import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { processAttribution } from './processAttribution';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import ReduxService from './redux';
+import generateDeviceAnalyticsMetaData from '../util/metrics';
+import generateUserSettingsAnalyticsMetaData
+  from '../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 
 export class AppStateEventListener {
   private appStateSubscription:
@@ -48,18 +51,28 @@ export class AppStateEventListener {
         currentDeeplink: this.currentDeeplink,
         store: ReduxService.store,
       });
+      const metrics = MetaMetrics.getInstance();
+      // identify user with the latest traits
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      metrics.addTraitsToUser(consolidatedTraits).catch((error) => {
+        Logger.error(
+          error as Error,
+          'AppStateManager: Error adding traits to user',
+        );
+      });
+      const appOpenedEventBuilder = MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED);
       if (attribution) {
         const { attributionId, utm, ...utmParams } = attribution;
         DevLogger.log(
           `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId} utm=${attribution.utm}`,
           utmParams,
         );
-        MetaMetrics.getInstance().trackEvent(
-          MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED)
-            .addSensitiveProperties({ attributionId, ...utmParams })
-            .build(),
-        );
+        appOpenedEventBuilder.addProperties({ attributionId, ...utmParams });
       }
+      metrics.trackEvent(appOpenedEventBuilder.build());
     } catch (error) {
       Logger.error(
         error as Error,

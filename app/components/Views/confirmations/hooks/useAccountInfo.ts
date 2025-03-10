@@ -2,9 +2,14 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
+import Engine from '../../../../core/Engine';
 import useAddressBalance from '../../../../components/hooks/useAddressBalance/useAddressBalance';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { renderAccountName } from '../../../../util/address';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { formatWithThreshold } from '../../../../util/assets';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import I18n from 'i18n-js';
 
 const useAccountInfo = (address: string) => {
   const internalAccounts = useSelector(selectInternalAccounts);
@@ -13,6 +18,17 @@ const useAccountInfo = (address: string) => {
     undefined,
     address,
   );
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const balance = Engine.getTotalFiatAccountBalance();
+  const accountFiatBalance = `${formatWithThreshold(
+    balance.tokenFiat,
+    0,
+    I18n.locale,
+    {
+      style: 'currency',
+      currency: currentCurrency.toUpperCase(),
+    },
+  )}`;
 
   const accountName = useMemo(
     () =>
@@ -20,7 +36,12 @@ const useAccountInfo = (address: string) => {
     [internalAccounts, activeAddress],
   );
 
-  return { accountName, accountAddress: activeAddress, accountBalance };
+  return {
+    accountName,
+    accountAddress: activeAddress,
+    accountBalance,
+    accountFiatBalance,
+  };
 };
 
 export default useAccountInfo;

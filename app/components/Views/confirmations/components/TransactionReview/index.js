@@ -14,17 +14,12 @@ import {
   selectCurrentTransactionSecurityAlertResponse,
 } from '../../../../../selectors/confirmTransaction';
 import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { selectTokenList } from '../../../../../selectors/tokenListController';
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 import { selectTokens } from '../../../../../selectors/tokensController';
 import { fontStyles } from '../../../../../styles/common';
 import Logger from '../../../../../util/Logger';
@@ -62,7 +57,9 @@ import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-
+import { selectNativeCurrencyByChainId } from '../../../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
+import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 let intervalIdForEstimatedL1Fee;
@@ -116,9 +113,12 @@ const createStyles = (colors) =>
       marginRight: 24,
       marginBottom: 24,
     },
-    blockAidBannerContainer: {
+    blockaidBannerContainer: {
       marginHorizontal: 16,
-      marginBottom: -8,
+      marginBottom: 8,
+    },
+    smartTransactionsMigrationBanner: {
+      marginHorizontal: 16,
     },
   });
 
@@ -273,6 +273,10 @@ class TransactionReview extends PureComponent {
      * Object containing the current transaction metadata
      */
     transactionMetadata: PropTypes.object,
+    /**
+     * Network client id
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
@@ -287,7 +291,7 @@ class TransactionReview extends PureComponent {
   };
 
   fetchEstimatedL1Fee = async () => {
-    const { transaction, chainId } = this.props;
+    const { transaction, chainId, networkClientId } = this.props;
     if (!transaction?.transaction) {
       return;
     }
@@ -298,6 +302,7 @@ class TransactionReview extends PureComponent {
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
+        networkClientId,
       });
       this.setState({
         multiLayerL1FeeTotal: result,
@@ -521,6 +526,7 @@ class TransactionReview extends PureComponent {
       error,
       transactionMetadata,
       useTransactionSimulations,
+      shouldUseSmartTransaction,
     } = this.props;
 
     const transactionSimulationData = transactionMetadata?.simulationData;
@@ -590,13 +596,17 @@ class TransactionReview extends PureComponent {
                       sdkDappMetadata={sdkDappMetadata}
                       url={url}
                     />
-                    <View style={styles.blockAidBannerContainer}>
+                    <View style={styles.blockaidBannerContainer}>
                       <TransactionBlockaidBanner
                         transactionId={transactionId}
-                        style={styles.blockaidWarning}
                         onContactUsClicked={this.onContactUsClicked}
                       />
                     </View>
+                    {shouldUseSmartTransaction && (
+                      <View style={styles.smartTransactionsMigrationBanner}>
+                        <SmartTransactionsMigrationBanner />
+                      </View>
+                    )}
                     {to && (
                       <View style={styles.accountWrapper}>
                         <AccountFromToInfoCard
@@ -614,14 +624,16 @@ class TransactionReview extends PureComponent {
                       primaryCurrency={primaryCurrency}
                       chainId={chainId}
                     />
-                    {useTransactionSimulations && transactionSimulationData && (
-                      <View style={styles.transactionSimulations}>
-                        <SimulationDetails
-                          transaction={transactionMetadata}
-                          enableMetrics
-                        />
-                      </View>
-                    )}
+                    {useTransactionSimulations &&
+                      transactionSimulationData &&
+                      transactionMetadata && (
+                        <View style={styles.transactionSimulations}>
+                          <SimulationDetails
+                            transaction={transactionMetadata}
+                            enableMetrics
+                          />
+                        </View>
+                      )}
                     <View style={styles.accountInfoCardWrapper}>
                       <TransactionReviewInformation
                         navigation={navigation}
@@ -704,23 +716,31 @@ class TransactionReview extends PureComponent {
   }
 }
 
-const mapStateToProps = (state) => ({
-  tokens: selectTokens(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  ticker: selectTicker(state),
-  chainId: selectChainId(state),
-  showHexData: state.settings.showHexData,
-  transaction: getNormalizedTxState(state),
-  browser: state.browser,
-  primaryCurrency: state.settings.primaryCurrency,
-  tokenList: selectTokenList(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  useTransactionSimulations: selectUseTransactionSimulations(state),
-  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-  transactionMetadata: selectCurrentTransactionMetadata(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+  const transactionMetadata = selectCurrentTransactionMetadata(state);
+  const networkClientId = transactionMetadata?.networkClientId;
+
+  return {
+    tokens: selectTokens(state),
+    conversionRate: selectConversionRateByChainId(state, chainId),
+    currentCurrency: selectCurrentCurrency(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    chainId,
+    showHexData: state.settings.showHexData,
+    transaction,
+    browser: state.browser,
+    primaryCurrency: state.settings.primaryCurrency,
+    tokenList: selectTokenList(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    useTransactionSimulations: selectUseTransactionSimulations(state),
+    securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+    transactionMetadata,
+    networkClientId,
+  };
+};
 
 TransactionReview.contextType = ThemeContext;
 

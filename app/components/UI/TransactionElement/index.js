@@ -31,7 +31,7 @@ import {
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
@@ -316,6 +316,7 @@ class TransactionElement extends PureComponent {
       chainId,
       isQRHardwareAccount,
       isLedgerAccount,
+      i,
       tx: { time, status, isSmartTransaction },
     } = this.props;
     const { colors, typography } = this.context || mockTheme;
@@ -344,7 +345,11 @@ class TransactionElement extends PureComponent {
               <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
                 {actionKey}
               </ListItem.Title>
-              <StatusText status={status} style={styles.listItemStatus} />
+              <StatusText
+                testID={`transaction-status-${i}`}
+                status={status}
+                style={styles.listItemStatus}
+              />
             </ListItem.Body>
             {Boolean(value) && (
               <ListItem.Amounts>
@@ -602,7 +607,7 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   chainId: selectChainId(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
   primaryCurrency: selectPrimaryCurrency(state),

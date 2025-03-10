@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+import { MutableRefObject } from 'react';
+import { Alert, ImageSourcePropType } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
@@ -31,7 +32,10 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { selectProviderConfig } from '../../selectors/networkController';
+import {
+  selectEvmChainId,
+  selectProviderConfig,
+} from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -74,6 +78,7 @@ export enum ApprovalTypes {
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
+  SNAP_DIALOG = 'snap_dialog',
   ///: END:ONLY_INCLUDE_IF
 }
 
@@ -86,9 +91,9 @@ export interface RPCMethodsMiddleParameters {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
-  url: { current: string };
-  title: { current: string };
-  icon: { current: string | undefined };
+  url: MutableRefObject<string>;
+  title: MutableRefObject<string>;
+  icon: MutableRefObject<ImageSourcePropType | undefined>;
   // Bookmarks
   isHomepage: () => boolean;
   // Show autocomplete
@@ -102,13 +107,6 @@ export interface RPCMethodsMiddleParameters {
   isWalletConnect: boolean;
   // For MM SDK
   isMMSDK: boolean;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getApprovedHosts: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setApprovedHosts: (approvedHosts: any) => void;
-  approveHost: (fullHostname: string) => void;
   injectHomePageScripts: (bookmarks?: []) => void;
   analytics: { [key: string]: string | boolean };
 }
@@ -178,6 +176,7 @@ export const checkActiveAccountAndChainId = async ({
   );
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
+    const providerConfigChainId = selectEvmChainId(store.getState());
     const networkType = providerConfig.type as NetworkType;
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
@@ -186,7 +185,7 @@ export const checkActiveAccountAndChainId = async ({
     if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
-      activeChainId = providerConfig.chainId;
+      activeChainId = providerConfigChainId;
     }
 
     if (activeChainId && !activeChainId.startsWith('0x')) {
@@ -230,9 +229,9 @@ const generateRawSignature = async ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   req: any;
   hostname: string;
-  url: { current: string };
-  title: { current: string };
-  icon: { current: string | undefined };
+  url: MutableRefObject<string>;
+  title: MutableRefObject<string>;
+  icon: MutableRefObject<ImageSourcePropType | undefined>;
   analytics: { [key: string]: string | boolean };
   chainId: number;
   isMMSDK: boolean;

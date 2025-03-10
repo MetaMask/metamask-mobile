@@ -8,8 +8,9 @@ import * as networks from '../../../util/networks';
 
 import {
   createProviderConfig,
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
+import { TokenI } from '../../UI/Tokens/types';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -57,9 +58,9 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../selectors/networkController', () => ({
-  selectChainId: jest.fn(() => '1'),
+  selectEvmChainId: jest.fn(() => '1'),
   selectProviderConfig: jest.fn(() => ({})),
-  selectNetworkConfigurations: jest.fn(() => ({
+  selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({
     '0x1': {
       chainId: '0x1',
       rpcEndpoints: [{ url: 'https://mainnet.example.com' }],
@@ -144,9 +145,9 @@ jest.mock('../../../constants/navigation/Routes', () => ({
 }));
 
 jest.mock('../../../selectors/networkController', () => ({
-  selectChainId: jest.fn(() => '1'),
+  selectEvmChainId: jest.fn(() => '1'),
   selectProviderConfig: jest.fn(() => ({})),
-  selectNetworkConfigurations: jest.fn(() => ({})),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
   createProviderConfig: jest.fn(() => ({
     chainId: '1',
     rpcUrl: 'https://example.com',
@@ -163,6 +164,17 @@ jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn(() => ({})),
 }));
 
+const mockAsset = {
+  address: '0x750e4C4984a9e0f12978eA6742Bc1c5D248f40ed',
+  balanceFiat: '$11.89',
+  chainId: '0x89',
+  decimals: 6,
+  image:
+    'https://static.cx.metamask.io/api/v1/tokenIcons/137/0x750e4c4984a9e0f12978ea6742bc1c5d248f40ed.png',
+  isETH: false,
+  isNative: false,
+};
+
 describe('AssetOptions Component', () => {
   const mockNavigation = {
     navigate: jest.fn(),
@@ -172,7 +184,7 @@ describe('AssetOptions Component', () => {
   beforeEach(() => {
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector.name === 'selectChainId') return '1';
+      if (selector.name === 'selectEvmChainId') return '1';
       if (selector.name === 'selectProviderConfig') return {};
       if (selector.name === 'selectTokenList')
         return { '0x123': { symbol: 'ABC' } };
@@ -203,6 +215,7 @@ describe('AssetOptions Component', () => {
             address: '0x123',
             chainId: '0x1',
             isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
           },
         }}
       />,
@@ -220,6 +233,7 @@ describe('AssetOptions Component', () => {
             address: '0x123',
             chainId: '0x1',
             isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
           },
         }}
       />,
@@ -236,6 +250,7 @@ describe('AssetOptions Component', () => {
             address: '0x123',
             chainId: '0x1',
             isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
           },
         }}
       />,
@@ -255,6 +270,7 @@ describe('AssetOptions Component', () => {
             address: '0x123',
             chainId: '0x1',
             isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
           },
         }}
       />,
@@ -279,6 +295,7 @@ describe('AssetOptions Component', () => {
             address: '0x123',
             chainId: '0x1',
             isNativeCurrency: false,
+            asset: mockAsset as unknown as TokenI,
           },
         }}
       />,
@@ -298,6 +315,7 @@ describe('AssetOptions Component', () => {
         address: '0x123',
         chainId: '0x1',
         isNativeCurrency: false,
+        asset: mockAsset as unknown as TokenI,
       },
     };
     const { getByText } = render(<AssetOptions route={mockParams} />);
@@ -326,7 +344,7 @@ describe('AssetOptions Component', () => {
 
     beforeEach(() => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectNetworkConfigurations)
+        if (selector === selectEvmNetworkConfigurationsByChainId)
           return mockNetworkConfigurations;
         return {};
       });
@@ -342,6 +360,7 @@ describe('AssetOptions Component', () => {
               address: '0x123',
               chainId: '0x1',
               isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
             },
           }}
         />,

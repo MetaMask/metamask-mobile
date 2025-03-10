@@ -80,6 +80,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -98,7 +99,7 @@ const BuildQuote = () => {
   const params = useParams<BuildQuoteParams>();
   const {
     styles,
-    theme: { colors },
+    theme: { colors, themeAppearance },
   } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
@@ -168,6 +169,21 @@ const BuildQuote = () => {
     query: queryGetPaymentMethods,
     currentPaymentMethod,
   } = usePaymentMethods();
+
+  const paymentMethodIcons = useMemo(() => {
+    if (!paymentMethods) {
+      return [];
+    }
+
+    return [
+      ...new Set(
+        paymentMethods.reduce((acc, payment) => {
+          const icons = payment.logo[themeAppearance] || [];
+          return [...acc, ...icons];
+        }, [] as string[]),
+      ),
+    ];
+  }, [paymentMethods, themeAppearance]);
 
   const {
     defaultFiatCurrency,
@@ -754,6 +770,7 @@ const BuildQuote = () => {
                 accessibilityRole="button"
                 accessible
                 onPress={handleChangeRegion}
+                testID={BuildQuoteSelectors.REGION_DROPDOWN}
               >
                 <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
               </SelectorButton>
@@ -828,14 +845,22 @@ const BuildQuote = () => {
               )}
             {hasInsufficientBalance && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR}
+                >
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
                 </Text>
               </Row>
             )}
             {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.MIN_LIMIT_ERROR}
+                >
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.minimum')}{' '}
@@ -850,7 +875,11 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && amountIsAboveMaximum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.MAX_LIMIT_ERROR}
+                >
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.maximum')}{' '}
@@ -880,6 +909,7 @@ const BuildQuote = () => {
                 }
                 name={currentPaymentMethod?.name}
                 onPress={showPaymentMethodsModal as () => void}
+                paymentMethodIcons={paymentMethodIcons}
               />
             </Row>
           </ScreenLayout.Content>

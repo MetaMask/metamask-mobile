@@ -7,20 +7,18 @@ import {
   stopFixtureServer,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
-import { EditAccountNameSelectorIDs } from '../../selectors/wallet/EditAccountName.selectors';
-import Gestures from '../../utils/Gestures';
 import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/wallet/LoginView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import TestHelpers from '../../helpers';
 
 const fixtureServer = new FixtureServer();
 const NEW_ACCOUNT_NAME = 'Edited Name';
@@ -52,13 +50,11 @@ describe(Regression('Change Account Name'), () => {
     // Open account actions and edit account name
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
-    await AccountListBottomSheet.tapEditAccountActionsAtIndex(MAIN_ACCOUNT_INDEX);
-    await AccountActionsBottomSheet.tapEditAccount();
-    await Gestures.clearField(EditAccountNameView.accountNameInput);
-    await TestHelpers.typeTextAndHideKeyboard(
-      EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
-      NEW_ACCOUNT_NAME,
+    await AccountListBottomSheet.tapEditAccountActionsAtIndex(
+      MAIN_ACCOUNT_INDEX,
     );
+    await AccountActionsBottomSheet.tapEditAccount();
+    await EditAccountNameView.updateAccountName(NEW_ACCOUNT_NAME);
     await EditAccountNameView.tapSave();
 
     // Verify updated name
@@ -92,13 +88,12 @@ describe(Regression('Change Account Name'), () => {
 
     // Edit imported account name
     await WalletView.tapIdenticon();
-    await AccountListBottomSheet.tapEditAccountActionsAtIndex(IMPORTED_ACCOUNT_INDEX);
-    await AccountActionsBottomSheet.tapEditAccount();
-    await Gestures.clearField(EditAccountNameView.accountNameInput);
-    await TestHelpers.typeTextAndHideKeyboard(
-      EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
-      NEW_IMPORTED_ACCOUNT_NAME,
+    await AccountListBottomSheet.tapEditAccountActionsAtIndex(
+      IMPORTED_ACCOUNT_INDEX,
     );
+    await AccountActionsBottomSheet.tapEditAccount();
+
+    await EditAccountNameView.updateAccountName(NEW_IMPORTED_ACCOUNT_NAME);
     await EditAccountNameView.tapSave();
 
     // Verify updated name
