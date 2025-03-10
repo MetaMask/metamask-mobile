@@ -91,6 +91,10 @@ stages:
     workflows:
       - build_android_release: {}
       - build_ios_release: {}
+      - build_android_beta: {}
+      - build_ios_beta: {}
+      - build_android_flask_release: {}
+      - build_ios_flask_release: {}
       - build_android_qa: {}
       - build_ios_qa: {}
   create_build_release:
