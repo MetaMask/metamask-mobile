@@ -191,10 +191,6 @@ stages:
     workflows:
       - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
-  run_release_e2e_ios_android_stage:
-    workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
@@ -212,11 +208,13 @@ stages:
       - run_tag_smoke_core_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
+      # Debug workflow to print environment variables
+      - debug_environment_variables: {}
       # Flask-specific workflows with conditional run_if
       - run_flask_tests_ios:
-          run_if: '{{enveq "METAMASK_BUILD_TYPE" "flask"}}'
+          run_if: '{{ getenv "METAMASK_BUILD_TYPE" | eq "flask" }}'
       - run_flask_tests_android:
-          run_if: '{{enveq "METAMASK_BUILD_TYPE" "flask"}}'
+          run_if: '{{ getenv "METAMASK_BUILD_TYPE" | eq "flask" }}'
   report_results_stage:
     workflows:
       - run_testrail_update_automated_test_results: {}
@@ -275,6 +273,20 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
+  
+  debug_environment_variables:
+    steps:
+      - script@1:
+          title: Debug Environment Variables
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "=== DEBUG: Checking Environment Variables ==="
+                echo "METAMASK_BUILD_TYPE = ${METAMASK_BUILD_TYPE}"
+                echo "All environment variables:"
+                env | sort
+                echo "=== END DEBUG ==="
+  
   set_commit_hash:
     steps:
       - script@1:
@@ -887,6 +899,19 @@ workflows:
     after_run:
       - notify_failure
     steps:
+      - script@1:
+          title: Debug Environment Variables
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "=== DEBUG: Checking Environment Variables ==="
+                echo "METAMASK_BUILD_TYPE = ${METAMASK_BUILD_TYPE}"
+                echo "TEST_SUITE_FOLDER = ${TEST_SUITE_FOLDER}"
+                echo "TEST_SUITE_TAG = ${TEST_SUITE_TAG}"
+                echo "TEST_SUITE = ${TEST_SUITE}"
+                echo "All environment variables:"
+                env | sort
+                echo "=== END DEBUG ==="
       - restore-gradle-cache@2: {}
       - pull-intermediate-files@1:
           inputs:
@@ -1139,6 +1164,19 @@ workflows:
     after_run:
       - notify_failure
     steps:
+      - script@1:
+          title: Debug Environment Variables
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "=== DEBUG: Checking Environment Variables ==="
+                echo "METAMASK_BUILD_TYPE = ${METAMASK_BUILD_TYPE}"
+                echo "TEST_SUITE_FOLDER = ${TEST_SUITE_FOLDER}"
+                echo "TEST_SUITE_TAG = ${TEST_SUITE_TAG}"
+                echo "TEST_SUITE = ${TEST_SUITE}"
+                echo "All environment variables:"
+                env | sort
+                echo "=== END DEBUG ==="
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
