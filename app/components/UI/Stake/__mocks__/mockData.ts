@@ -197,3 +197,8 @@ export const MOCK_SUPPORTED_EARN_TOKENS_WITH_FIAT_BALANCE = [
     tokenBalanceFormatted: '33.39041 USDC',
   },
 ];
+
+export const MOCK_SELECT_POOLED_STAKING_VAULT_APY = {
+  apyDecimal: 0.03257560263513173,
+  apyPercentString: '3.3%',
+};

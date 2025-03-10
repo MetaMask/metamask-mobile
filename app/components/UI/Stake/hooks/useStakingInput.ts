@@ -7,13 +7,7 @@ import {
 import useStakingGasFee from './useStakingGasFee';
 import useBalance from './useBalance';
 import useInputHandler from './useInputHandler';
-import useVaultApyAverages from './useVaultApyAverages';
-import {
-  CommonPercentageInputUnits,
-  formatPercent,
-  PercentageOutputFormat,
-} from '../utils/value';
-import BigNumber from 'bignumber.js';
+import useVaultMetadata from './useVaultMetadata';
 
 const useStakingInputHandlers = () => {
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
@@ -54,19 +48,8 @@ const useStakingInputHandlers = () => {
     return isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
   }, [amountWei, isNonZeroAmount, maxStakeableAmountWei]);
 
-  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
-
-  // e.g. 2.8%
-  const annualRewardRate = formatPercent(vaultApyAverages.oneWeek, {
-    inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-    outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-    fixed: 1,
-  });
-
-  // e.g. 0.02841806
-  const annualRewardRateDecimal = new BigNumber(vaultApyAverages.oneWeek)
-    .dividedBy(100)
-    .toNumber();
+  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
+    useVaultMetadata();
 
   const handleMax = useCallback(async () => {
     if (!balance) return;
@@ -146,9 +129,9 @@ const useStakingInputHandlers = () => {
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultApyAverages,
     handleMax,
     isLoadingStakingGasFee,
+    isLoadingVaultMetadata,
     balanceValue,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
