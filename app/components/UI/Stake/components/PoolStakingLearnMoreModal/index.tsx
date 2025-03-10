@@ -83,6 +83,7 @@ const PoolStakingLearnMoreModal = () => {
 
   const { vaultApys, isLoadingVaultApys } = useVaultApys();
 
+  // Order apys from oldest to newest
   const reversedVaultApys = useMemo(
     () => [...vaultApys].reverse(),
     [vaultApys],
