@@ -25,7 +25,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   selectIsAllNetworks,
   selectNetworkConfigurations,
@@ -101,6 +101,7 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
+import { setTransactionSendFlowContextualChainId } from '../../../actions/transaction';
 
 interface infuraNetwork {
   name: string;
@@ -120,6 +121,7 @@ interface NetworkSelectorRouteParams {
       origin?: string;
     };
   };
+  source?: string;
 }
 
 const NetworkSelector = () => {
@@ -138,6 +140,7 @@ const NetworkSelector = () => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
+  const dispatch = useDispatch();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -222,7 +225,13 @@ const NetworkSelector = () => {
 
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
+  const source = route.params?.source;
+
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
+    console.log(
+      '>>> NetworkSelector onSetRpcTarget with chainId:',
+      networkConfiguration.chainId,
+    );
     const { MultichainNetworkController, SelectedNetworkController } =
       Engine.context;
     trace({
@@ -251,6 +260,9 @@ const NetworkSelector = () => {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
           await MultichainNetworkController.setActiveNetwork(networkClientId);
+          if (source === 'SendFlow') {
+            dispatch(setTransactionSendFlowContextualChainId(chainId));
+          }
         } catch (error) {
           Logger.error(new Error(`Error i setActiveNetwork: ${error}`));
         }
@@ -388,6 +400,16 @@ const NetworkSelector = () => {
       setTimeout(async () => {
         await updateIncomingTransactions([networkConfiguration.chainId]);
       }, 1000);
+
+      if (source === 'SendFlow') {
+        console.log(
+          '>>> NetworkSelector onNetworkChange with chainId:',
+          networkConfiguration.chainId,
+        );
+        dispatch(
+          setTransactionSendFlowContextualChainId(networkConfiguration.chainId),
+        );
+      }
     }
 
     sheetRef.current?.dismissModal();

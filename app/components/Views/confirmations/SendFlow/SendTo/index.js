@@ -46,7 +46,7 @@ import {
   // eslint-disable-next-line no-restricted-syntax
   selectChainId,
   selectNativeCurrencyByChainId,
-  selectProviderTypeByChainId
+  selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
@@ -63,6 +63,7 @@ import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/S
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { toLowerCaseEquals } from '../../../../../util/general';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
+import { selectSendFlowContextualChainId } from '../../../../../selectors/transaction';
 
 const dummy = () => true;
 
@@ -144,6 +145,10 @@ class SendFlow extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Send flow contextual chain id
+     */
+    sendFlowContextualChainId: PropTypes.string,
   };
 
   addressToInputRef = React.createRef();
@@ -172,6 +177,9 @@ class SendFlow extends PureComponent {
         route,
         colors,
         resetTransaction,
+        null,
+        false,
+        true,
       ),
     );
   };
@@ -207,11 +215,26 @@ class SendFlow extends PureComponent {
     // Disabling back press for not be able to exit the send flow without reseting the transaction object
     this.hardwareBackPress = () => true;
     BackHandler.addEventListener('hardwareBackPress', this.hardwareBackPress);
+
+    console.log(
+      '>>> SendTo sendFlowContextualChainId:',
+      this.props.sendFlowContextualChainId,
+    );
   };
 
-  componentDidUpdate = () => {
+  componentDidUpdate(prevProps) {
     this.updateNavBar();
-  };
+
+    if (
+      prevProps.sendFlowContextualChainId !==
+      this.props.sendFlowContextualChainId
+    ) {
+      console.log(
+        '>>> SendTo sendFlowContextualChainId:',
+        this.props.sendFlowContextualChainId,
+      );
+    }
+  }
 
   componentWillUnmount() {
     BackHandler.removeEventListener(
@@ -389,8 +412,8 @@ class SendFlow extends PureComponent {
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
       : matchingAccount
-        ? matchingAccount.metadata.name
-        : null;
+      ? matchingAccount.metadata.name
+      : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
@@ -704,6 +727,7 @@ const mapStateToProps = (state) => {
       getRampNetworks(state),
     ),
     ambiguousAddressEntries: state.user.ambiguousAddressEntries,
+    sendFlowContextualChainId: selectSendFlowContextualChainId(state),
   };
 };
 
