@@ -225,12 +225,9 @@ import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-<<<<<<< HEAD
 import { selectProductSafetyDappScanningEnabled } from '../../selectors/featureFlagController';
-=======
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
->>>>>>> 123044ca7eb8293a447b9594f105dac3402a13d8
 
 const NON_EMPTY = 'NON_EMPTY';
 
