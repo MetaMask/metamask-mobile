@@ -48,7 +48,7 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { selectEthPhishingDetectEnabled } from '../../../selectors/featureFlagController';
+import { selectProductSafetyDappScanningEnabled } from '../../../selectors/featureFlagController';
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
@@ -207,7 +207,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const isFocused = useIsFocused();
 
-  const ethPhishingDetectEnabled = useSelector(selectEthPhishingDetectEnabled);
+  const productSafetyDappScanningEnabled = useSelector(selectProductSafetyDappScanningEnabled);
 
   /**
    * Checks if a given url or the current url is the homepage
@@ -298,34 +298,28 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const isAllowedOrigin = useCallback(
     (urlOrigin: string) => {
       const whitelisted = whitelist?.includes(urlOrigin);
-    if (whitelisted) {
-      return true;
-    }
-
-    const { PhishingController } = Engine.context;
-
-      // When phishing detection is enabled, run the configuration update
-    // and the synchronous test.
-    if (ethPhishingDetectEnabled) {
-          Logger.log('isAllowedOrigin inside enabled', urlOrigin, whitelisted);
-
-      // Fire-and-forget update.
-      PhishingController.maybeUpdateState();
-
-      const testResult = PhishingController.test(urlOrigin);
-      if (testResult.result && testResult.name) {
-        blockListType.current = testResult.name;
-        return whitelisted || false;
+      if (whitelisted) {
+        return true;
       }
-    }
 
-    Logger.log('isAllowedOrigin after is enabled', urlOrigin, whitelisted);
+      const { PhishingController } = Engine.context;
 
-    return whitelisted || true;
+      if (productSafetyDappScanningEnabled) {
+        Logger.log('Real time dapp scanning enabled');
+      } else {
+        // Fire-and-forget update.
+        PhishingController.maybeUpdateState();
 
+        const testResult = PhishingController.test(urlOrigin);
+        if (testResult.result && testResult.name) {
+          blockListType.current = testResult.name;
+          return whitelisted || false;
+        }
+      }
 
+      return whitelisted || true;
     },
-    [whitelist, ethPhishingDetectEnabled],
+    [whitelist, productSafetyDappScanningEnabled],
   );
 
   /**

@@ -82,6 +82,8 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectProductSafetyDappScanningEnabled } from '../../../selectors/featureFlagController';
+import { store } from '../../../store';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -280,15 +282,17 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
+    const productSafetyDappScanningEnabled = selectProductSafetyDappScanningEnabled(store.getState());
+    if (productSafetyDappScanningEnabled) {
+      Logger.log('Real time dapp scanning enabled');
+    } else {
+      // Fire-and-forget update.
+      PhishingController.maybeUpdateState();
+      const phishingControllerTestResult = PhishingController.test(origin);
+      return !phishingControllerTestResult.result;
+    }
 
-    // Update phishing configuration if it is out-of-date
-    // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-    // down network requests. The configuration is updated for the next request.
-    PhishingController.maybeUpdateState();
-
-    const phishingControllerTestResult = PhishingController.test(origin);
-
-    return !phishingControllerTestResult.result;
+    return true;
   }, []);
 
   useEffect(() => {

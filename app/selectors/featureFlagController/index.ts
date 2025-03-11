@@ -59,10 +59,10 @@ export const selectConfirmationRedesignFlags = createSelector(
   },
 );
 
-export const selectEthPhishingDetectEnabled = createSelector(
+export const selectProductSafetyDappScanningEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => getFeatureFlagValue(
-    process.env.FEATURE_FLAG_ETH_PHISHING_DETECT,
-    (remoteFeatureFlags?.ethPhishingDetectEnabled as boolean) ?? true,
-  ),
+      process.env.FEATURE_FLAG_PRODUCT_SAFETY_DAPP_SCANNING,
+      (remoteFeatureFlags?.productSafetyDappScanning as boolean),
+    )
 );
