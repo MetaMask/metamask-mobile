@@ -6,13 +6,13 @@ import BottomSheetFooter from '../../../component-library/components/BottomSheet
 import SmartTransactionStatus from '../../Views/SmartTransactionStatus/SmartTransactionStatus';
 import { View, Text as RNText, ScrollView } from 'react-native';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
-import { SnapUIImage } from '../../UI/Snaps/SnapUIImage/SnapUIImage';
-import { SnapAvatar } from '../Snaps/SnapAvatar/SnapAvatar';
+import { SnapUIImage } from '../../Snaps/SnapUIImage/SnapUIImage';
+import { SnapAvatar } from '../../Snaps/SnapAvatar/SnapAvatar';
 import AddressElement from '../../../components/Views/confirmations/SendFlow/AddressElement';
 import { Box } from '../Box/Box';
 import { SnapUICard } from '../../Snaps/SnapUICard/SnapUICard';
-import { SnapUILink } from '../Snaps/SnapUILink/SnapUILink';
-import { SnapUIInput } from '../Snaps/SnapUIInput/SnapUIInput';
+import { SnapUILink } from '../../Snaps/SnapUILink/SnapUILink';
+import { SnapUIInput } from '../../Snaps/SnapUIInput/SnapUIInput';
 import { SnapIcon } from '../../Snaps/SnapIcon/SnapIcon';
 import { SnapUIFooterButton } from '../../Snaps/SnapUIFooterButton/SnapUIFooterButton';
 import { ConfirmInfoRowValueDouble } from '../../../component-library/components-temp/Snaps/ConfirmInfoRowValueDouble/ConfirmInfoRowValueDouble';
@@ -20,11 +20,12 @@ import { SnapUIIcon } from '../../Snaps/SnapUIIcon/SnapUIIcon';
 import { SnapUIButton } from '../../Snaps/SnapUIButton/SnapUIButton';
 import { SnapUIBanner } from '../../Snaps/SnapUIBanner/SnapUIBanner';
 import { SnapUICheckbox } from '../../Snaps/SnapUICheckbox/SnapUICheckbox';
-import { SnapUIAddress } from '../../UI/Snaps/SnapUIAddress/SnapUIAddress';
-import { SnapUIAvatar } from '../../UI/Snaps/SnapUIAvatar/SnapUIAvatar';
-import { SnapUISelector } from '../../UI/Snaps/SnapUISelector/SnapUISelector';
+import { SnapUIAddress } from '../../Snaps/SnapUIAddress/SnapUIAddress';
+import { SnapUIAvatar } from '../../Snaps/SnapUIAvatar/SnapUIAvatar';
+import { SnapUISelector } from '../../Snaps/SnapUISelector/SnapUISelector';
 import InfoRow from '../../Views/confirmations/components/UI/InfoRow';
 import { SnapUISpinner } from '../../Snaps/SnapUISpinner/SnapUISpinner';
+import { SnapUITooltip } from '../../Snaps/SnapUITooltip/SnapUITooltip';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -56,6 +57,7 @@ export const safeComponentList = {
   InfoRow,
   RNText,
   ScrollView,
+  SnapUITooltip,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;
