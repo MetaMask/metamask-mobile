@@ -224,6 +224,7 @@
     "@react-native-clipboard/clipboard": "^1.16.1",
     "@react-native-community/blur": "^4.4.1",
     "@react-native-community/checkbox": "^0.5.17",
+    "@react-native-community/cli": "^18.0.0",
     "@react-native-community/cli-server-api": "^17.0.0",
     "@react-native-community/datetimepicker": "^7.5.0",
     "@react-native-community/netinfo": "^9.5.0",
