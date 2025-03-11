@@ -183,6 +183,11 @@ stages:
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
       - run_tag_multichain_permissions_android: {}
+      # Flask-specific workflows with conditional run_if
+      - run_flask_tests_ios:
+          run_if: '{{enveq "METAMASK_BUILD_TYPE" "flask"}}'
+      - run_flask_tests_android:
+          run_if: '{{enveq "METAMASK_BUILD_TYPE" "flask"}}'
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
