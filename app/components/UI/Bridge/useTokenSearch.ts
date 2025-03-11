@@ -32,7 +32,12 @@ export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchR
   );
 
   const tokenSearchResults = useMemo(
-    () => (tokenFuse.search(searchString)).slice(0, MAX_TOKENS_RESULTS),
+    () => (tokenFuse.search(searchString)).slice(0, MAX_TOKENS_RESULTS).sort((a, b) => {
+      // Sort results by balance fiat in descending order
+      const balanceA = parseFloat(a.balanceFiat);
+      const balanceB = parseFloat(b.balanceFiat);
+      return balanceB - balanceA;
+    }),
     [searchString, tokenFuse],
   );
 
