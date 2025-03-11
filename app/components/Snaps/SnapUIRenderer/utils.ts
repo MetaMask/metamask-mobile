@@ -192,3 +192,23 @@ export const FIELD_ELEMENT_TYPES = [
  */
 export const getPrimaryChildElementIndex = (children: JSXElement[]) =>
   children.findIndex((c) => FIELD_ELEMENT_TYPES.includes(c.type));
+
+/**
+ * Map Snap custom size for border radius to extension compatible size.
+ *
+ * @param snapBorderRadius - Snap custom border radius.
+ * @returns String, representing border radius size from design system.
+ */
+export const mapSnapBorderRadiusToExtensionBorderRadius = (
+  snapBorderRadius: string | undefined,
+): number => {
+  switch (snapBorderRadius) {
+    case 'none':
+    default:
+      return 0;
+    case 'medium':
+      return 6;
+    case 'full':
+      return 9999;
+  }
+};
