@@ -33,7 +33,7 @@ const defaultReturn = {
 interface Asset {
   address?: string;
   decimals: number;
-  chainId: string;
+  chainId?: string;
   assetId?: string;
 }
 
