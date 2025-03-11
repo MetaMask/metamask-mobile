@@ -33,10 +33,6 @@ const styleSheet = (params: {
     buttonStyle.backgroundColor = theme.colors.icon.default;
   }
 
-  if (destructive) {
-    buttonStyle.backgroundColor = theme.colors.error.default;
-  }
-
   return StyleSheet.create({
     base: Object.assign(
       {
