@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -8,8 +8,6 @@ import { addTransaction, updateTransaction } from '../../transaction-controller'
 import { resetTransaction } from '../../../actions/transaction';
 import { DummyQuotesWithApproval } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 import { getTransaction1559GasFeeEstimates } from '../../../components/UI/Swaps/utils/gas';
-import type { ReactNode } from 'react';
-
 
 const mockNetworkClientId = 'testNetworkClientId';
 const mockChainId = '0x1';
