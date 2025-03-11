@@ -1342,7 +1342,11 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask
+                else
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+                fi
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
@@ -1622,7 +1626,11 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
+                else
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
+                fi
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
