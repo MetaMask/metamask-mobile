@@ -7,15 +7,52 @@ import { selectTokensBalances } from '../../../selectors/tokenBalancesController
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import { selectTokenSortConfig } from '../../../selectors/preferencesController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectChainId, selectEvmTicker } from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectConversionRate, selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import { addCurrencySymbol, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
-import { getTicker } from '../../../util/transactions';
 import { sortAssets } from '../Tokens/util';
 import { selectERC20TokensByChain } from '../../../selectors/tokenListController';
 import { TokenListToken } from '@metamask/assets-controllers';
+import { getNativeSwapsToken } from '@metamask/swaps-controller/dist/swapsUtil';
+
+interface GetNativeAssetParams {
+  accountBalanceByChainId: ReturnType<typeof selectAccountBalanceByChainId>;
+  conversionRate: number;
+  currentCurrency: string;
+  currentChainId: Hex;
+}
+
+function getNativeToken({
+  accountBalanceByChainId,
+  conversionRate,
+  currentCurrency,
+  currentChainId,
+}: GetNativeAssetParams): TokenI {
+  const nativeSwapsToken = getNativeSwapsToken(currentChainId);
+  const nativeBalance = renderFromWei(accountBalanceByChainId?.balance ?? '0');
+
+  return {
+    address: nativeSwapsToken.address,
+    symbol: nativeSwapsToken.symbol,
+    name: nativeSwapsToken.name ?? 'unknown',
+    decimals: nativeSwapsToken.decimals,
+    isETH: false,
+    isNative: true,
+    balance: nativeBalance,
+    balanceFiat: weiToFiat(
+      hexToBN(accountBalanceByChainId?.balance ?? '0'),
+      conversionRate,
+      currentCurrency,
+    ),
+    aggregators: [],
+    hasBalanceError: false,
+    chainId: currentChainId,
+    image: nativeSwapsToken.iconUrl ?? '',
+    logo: nativeSwapsToken.iconUrl ?? '',
+  };
+}
 
 export const useSourceTokens = () => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
@@ -23,41 +60,19 @@ export const useSourceTokens = () => {
   const tokens = useSelector(selectTokens);
   const currentChainId = useSelector(selectChainId) as Hex;
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const conversionRate = useSelector(selectConversionRate) || 0;
+  const conversionRate = useSelector(selectConversionRate) ?? 0;
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedInternalAccountAddress = useSelector(selectSelectedInternalAccountAddress) as Hex;
-  const ticker = useSelector(selectEvmTicker);
   const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
   const erc20TokensByChain = useSelector(selectERC20TokensByChain);
 
   const tokensList = useMemo(() => {
-    // First create native token (similar to index.tsx implementation)
-    const nativeBalance = renderFromWei(accountBalanceByChainId?.balance || '0');
-
-    const nativeAsset = {
-      address: constants.AddressZero,
-      symbol: getTicker(ticker),
-      name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
-      decimals: 18,
-      isETH: true,
-      isNative: true,
-      balance: nativeBalance,
-      balanceFiat: weiToFiat(
-        hexToBN(accountBalanceByChainId?.balance || '0'),
-        conversionRate,
-        currentCurrency,
-      ),
-    };
-
-    // Create complete native token with required props
-    const nativeTokenWithProps: TokenI = {
-      ...nativeAsset,
-      logo: '../images/eth-logo-new.png',
-      image: '',
-      aggregators: [],
-      hasBalanceError: false,
-      chainId: currentChainId,
-    };
+    const nativeToken = getNativeToken({
+      accountBalanceByChainId,
+      conversionRate,
+      currentCurrency,
+      currentChainId,
+    });
 
     // Process regular tokens with balances
     const tokensWithBalances = tokens.map((token) => {
@@ -118,10 +133,12 @@ export const useSourceTokens = () => {
 
     // Add native token first, then tokens with balances, then additional tokens
     const allTokens = [
-      nativeTokenWithProps,
+      nativeToken,
       ...tokensWithBalances,
       ...additionalTokens,
     ];
+
+    console.log('HELLO', { nativeToken });
 
     // Sort tokens by balance
     return sortAssets(allTokens, tokenSortConfig);
@@ -134,7 +151,6 @@ export const useSourceTokens = () => {
     conversionRate,
     currentCurrency,
     tokenSortConfig,
-    ticker,
     accountBalanceByChainId,
     erc20TokensByChain,
   ]);

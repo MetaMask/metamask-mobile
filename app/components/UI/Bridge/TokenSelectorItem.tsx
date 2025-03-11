@@ -77,6 +77,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
   const balanceWithSymbol = hasBalance ? `${formattedBalance} ${token.symbol}` : undefined;
 
+  if (token.isNative) {
+    console.log('HELLO', { token });
+  }
+
   return (
     <AssetElement
       key={token.address}

@@ -14,13 +14,12 @@ import { selectChainId, selectNetworkConfigurations } from '../../../selectors/n
 import { BridgeToken } from './types';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { setSourceToken } from '../../../core/redux/slices/bridge';
-import { isMainnetByChainId } from '../../../util/networks';
-import images from '../../../images/image-icons';
-import { useSourceTokens } from './useSourceTokens';
+import { getNetworkImageSource } from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
 import { TokenSelectorItem } from './TokenSelectorItem';
+import { useSourceTokens } from './useSourceTokens';
 
 interface BridgeTokenSelectorProps {
   onClose?: () => void;
@@ -97,15 +96,16 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
 
   const getNetworkBadgeDetails = useCallback((chainId: Hex) => {
     const network = networkConfigurations[chainId];
-    const isMainnet = isMainnetByChainId(chainId);
     return {
       name: network?.name || '',
-      imageSource: isMainnet ? images.ETHEREUM : undefined,
+      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      imageSource: getNetworkImageSource({ chainId }),
     };
   }, [networkConfigurations]);
 
   const renderItem = useCallback(({ item: token }: { item: TokenI }) => {
     const networkDetails = getNetworkBadgeDetails(currentChainId);
+
     return (
       <TokenSelectorItem
         token={token}
