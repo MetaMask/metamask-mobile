@@ -187,8 +187,8 @@ export const TokenListItem = React.memo(
     // Set main and secondary balances based on the primary currency and asset type.
     if (primaryCurrency === 'ETH') {
       // Default to displaying the formatted balance value and its fiat equivalent.
-      mainBalance = balanceValueFormatted;
-      secondaryBalance = balanceFiat;
+      mainBalance = balanceValueFormatted?.toUpperCase();
+      secondaryBalance = balanceFiat?.toUpperCase();
       // For ETH as a native currency, adjust display based on network safety.
       if (asset.isETH) {
         // Main balance always shows the formatted balance value for ETH.
@@ -197,18 +197,21 @@ export const TokenListItem = React.memo(
         if (isPortfolioViewEnabled()) {
           secondaryBalance = shouldNotShowBalanceOnTestnets
             ? undefined
-            : balanceFiat;
+            : balanceFiat?.toUpperCase();
         } else {
-          secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
+          secondaryBalance = isOriginalNativeTokenSymbol
+            ? balanceFiat?.toUpperCase()
+            : null;
         }
       }
     } else {
-      secondaryBalance = balanceValueFormatted;
+      secondaryBalance = balanceValueFormatted?.toUpperCase();
       if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
         mainBalance = undefined;
       } else {
         mainBalance =
-          balanceFiat ?? strings('wallet.unable_to_find_conversion_rate');
+          balanceFiat?.toUpperCase() ??
+          strings('wallet.unable_to_find_conversion_rate');
       }
     }
 
@@ -218,7 +221,7 @@ export const TokenListItem = React.memo(
     }
 
     if (balanceFiat === TOKEN_RATE_UNDEFINED) {
-      mainBalance = balanceValueFormatted;
+      mainBalance = balanceValueFormatted.toUpperCase();
       secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
     }
 
