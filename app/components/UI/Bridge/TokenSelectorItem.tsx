@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ImageSourcePropType } from 'react-native';
+import { StyleSheet, ImageSourcePropType } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { TokenI } from '../Tokens/types';
@@ -17,28 +17,26 @@ import { selectChainId } from '../../../selectors/networkController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import TokenIcon from '../Swaps/components/TokenIcon';
+import { Box } from '../Box/Box';
+import { FlexDirection } from '../Box/box.types';
+
+const createStyles = () =>
+  StyleSheet.create({
+    tokenIcon: {
+      width: 40,
+      height: 40,
+    },
+    tokenInfo: {
+      flex: 1,
+      marginLeft: 8,
+    },
+  });
 
 interface TokenSelectorItemProps {
   token: TokenI;
   onPress: (token: TokenI) => void;
   networkName: string;
   networkImageSource?: ImageSourcePropType;
-  styles: {
-    ethLogo: {
-      width: number;
-      height: number;
-    };
-    balances: {
-      flex: number;
-      marginLeft: number;
-    };
-    assetName: {
-      flexDirection: 'column';
-    };
-    tokenSymbol: {
-      marginBottom: number;
-    };
-  };
 }
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -46,8 +44,8 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   onPress,
   networkName,
   networkImageSource,
-  styles,
 }) => {
+  const styles = createStyles();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
@@ -82,8 +80,8 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       key={token.address}
       asset={token}
       onPress={() => onPress(token)}
-      mainBalance={balanceWithSymbol}
-      balance={fiatValue}
+      balance={balanceWithSymbol}
+      mainBalance={fiatValue}
     >
       <BadgeWrapper
         badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
@@ -99,7 +97,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           <TokenIcon
             symbol={token.symbol}
             icon={token.image}
-            style={styles.ethLogo}
+            style={styles.tokenIcon}
             big={false}
             biggest={false}
             testID={`network-logo-${token.symbol}`}
@@ -112,22 +110,14 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           />
         )}
       </BadgeWrapper>
-      <View style={styles.balances}>
-        <View style={styles.assetName}>
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            style={styles.tokenSymbol}
-          >
-            {token.symbol}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-          >
-            {token.name}
-          </Text>
-        </View>
-      </View>
+      <Box style={styles.tokenInfo} flexDirection={FlexDirection.Column} gap={4}>
+        <Text variant={TextVariant.BodyLGMedium}>
+          {token.symbol}
+        </Text>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {token.name}
+        </Text>
+      </Box>
     </AssetElement>
   );
 };

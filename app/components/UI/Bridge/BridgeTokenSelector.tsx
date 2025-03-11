@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, FlatList, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '../Box/Box';
 import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
-import { Theme } from '../../../util/theme/models';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import { TokenI } from '../Tokens/types';
@@ -21,53 +20,31 @@ import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.
 import { TokenSelectorItem } from './TokenSelectorItem';
 import { useSourceTokens } from './useSourceTokens';
 import { strings } from '../../../../locales/i18n';
+import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
 
 interface BridgeTokenSelectorProps {
   onClose?: () => void;
 }
 
-const createStyles = (params: { theme: Theme }) => {
-  const { theme } = params;
-  return StyleSheet.create({
+const createStyles = () => StyleSheet.create({
     content: {
-      padding: 24,
-      backgroundColor: theme.colors.background.default,
       flex: 1,
-    },
-    ethLogo: {
-      width: 40,
-      height: 40,
-    },
-    balances: {
-      flex: 1,
-      marginLeft: 8,
-    },
-    assetName: {
-      flexDirection: 'column',
-    },
-    tokenSymbol: {
-      marginBottom: 4,
-    },
-    listContent: {
-      paddingBottom: 24,
-    },
-    headerContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      width: '100%',
-      position: 'relative',
     },
     headerTitle: {
       flex: 1,
       textAlign: 'center',
     },
-    closeIcon: {
-      padding: 8,
+    closeButton: {
       position: 'absolute',
       right: 0,
     },
+    closeIconBox: {
+      padding: 8,
+    },
+    listContent: {
+      padding: 4,
+    },
   });
-};
 
 export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
   const { styles, theme } = useStyles(createStyles, {});
@@ -113,29 +90,37 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
         onPress={handleTokenPress}
         networkName={networkDetails.name}
         networkImageSource={networkDetails.imageSource}
-        styles={styles}
       />
     );
-  }, [currentChainId, getNetworkBadgeDetails, handleTokenPress, styles]);
+  }, [currentChainId, getNetworkBadgeDetails, handleTokenPress]);
 
   const keyExtractor = useCallback((token: TokenI) => token.address, []);
 
   return (
     <BottomSheet isFullscreen>
-      <Box style={styles.content}>
+      <Box style={styles.content} >
         <BottomSheetHeader>
-          <View style={styles.headerContainer}>
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            justifyContent={JustifyContent.center}
+          >
             <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
               {strings('bridge.select_token')}
             </Text>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeIcon} testID="bridge-token-selector-close-button">
-              <Icon
-                name={IconName.Close}
-                size={IconSize.Sm}
-                color={theme.colors.icon.default}
-              />
-            </TouchableOpacity>
-          </View>
+            <Box style={[styles.closeButton, styles.closeIconBox]}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                testID="bridge-token-selector-close-button"
+              >
+                <Icon
+                  name={IconName.Close}
+                  size={IconSize.Sm}
+                  color={theme.colors.icon.default}
+                />
+              </TouchableOpacity>
+            </Box>
+          </Box>
         </BottomSheetHeader>
 
         <FlatList
