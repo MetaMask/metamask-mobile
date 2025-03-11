@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { withNavigation } from '@react-navigation/compat';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
@@ -21,6 +21,7 @@ import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
   selectChainId,
+  selectIsPopularNetwork,
   selectProviderType,
 } from '../../../selectors/networkController';
 import {
@@ -63,21 +64,12 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
-  const prevTxParamsRef = useRef({});
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
   );
 
-  // Create an object of dependencies for filterTransactions
-  const filterDeps = {
-    transactions,
-    selectedInternalAccount,
-    selectedAddress,
-    tokens,
-    chainId,
-    tokenNetworkFilter,
-  };
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   const filterTransactions = useCallback(
     (networkId) => {
@@ -104,6 +96,7 @@ const TransactionsView = ({
           networkId,
           chainId,
           tokenNetworkFilter,
+          isPopularNetwork,
         );
 
         if (!filter) return false;
@@ -175,7 +168,7 @@ const TransactionsView = ({
   );
 
   useEffect(() => {
-    setLoading(true);
+    // setLoading(true);
     /*
       Since this screen is always mounted and computations happen on this screen everytime the user changes network,
       using the InteractionManager will help by giving enough time for any animations/screen transactions before it starts

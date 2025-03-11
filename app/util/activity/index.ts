@@ -1,6 +1,8 @@
 import { safeToChecksumAddress } from '../../util/address';
 import { toLowerCaseEquals } from '../../util/general';
 import { TX_UNAPPROVED } from '../../constants/transaction';
+import { PopularList } from '../networks/customNetworks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 /**
  * Determines if the transaction is from or to the current wallet
@@ -71,6 +73,7 @@ export const filterByAddressAndNetwork = (
   networkId: string,
   chainId: string,
   tokenNetworkFilter: { [key: string]: boolean }[],
+  isPopularNetwork: boolean,
 ): boolean => {
   const {
     txParams: { from, to },
@@ -78,11 +81,16 @@ export const filterByAddressAndNetwork = (
     transferInformation,
   } = tx;
 
+  const condition =
+    Object.keys(tokenNetworkFilter).length === 1
+      ? isFromCurrentChain(tx, networkId, chainId)
+      : tx.chainId === CHAIN_IDS.MAINNET ||
+        tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
+        PopularList.some((network) => network.chainId === tx.chainId);
+
   if (
     isFromOrToSelectedAddress(from, to, selectedAddress) &&
-    (Object.keys(tokenNetworkFilter).length === 1
-      ? isFromCurrentChain(tx, networkId, chainId)
-      : true) &&
+    condition &&
     tx.status !== TX_UNAPPROVED
   ) {
     return isTransfer
@@ -91,5 +99,10 @@ export const filterByAddressAndNetwork = (
         )
       : true;
   }
+  // if (!isPopularNetwork) {
+  //   console.log('tx.chainId ...........', tx.chainId);
+  //   return tx.chainId === chainId;
+  // }
+
   return false;
 };
