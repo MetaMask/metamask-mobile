@@ -22,7 +22,6 @@ interface Label {
   description: string | null;
 }
 
-// Define an interface for the commit data returned by GitHub
 interface Commit {
   sha: string;
   commit: {
