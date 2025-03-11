@@ -14,9 +14,9 @@ import { NameType } from '../../../../../UI/Name/Name.types';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import InfoRow from '../../UI/InfoRow';
 import InfoRowDivider from '../InfoRowDivider';
-import styleSheet from './ContractInteractionDetails.styles';
+import styleSheet from './StakingContractInteractionDetails.styles';
 
-const ContractInteractionDetails = () => {
+const StakingContractInteractionDetails = () => {
     const transactionMeta = useTransactionMetadataRequest();
     const { styles } = useStyles(styleSheet, {});
     const address = useSelector(selectSelectedInternalAccountFormattedAddress);
@@ -73,4 +73,4 @@ const ContractInteractionDetails = () => {
     )
   }
 
-export default ContractInteractionDetails;
+export default StakingContractInteractionDetails;

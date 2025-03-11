@@ -1,11 +1,11 @@
 import React from 'react';
 import { stakingDepositConfirmationState, stakingWithdrawalConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import ContractInteractionDetails from './ContractInteractionDetails';
+import StakingContractInteractionDetails from './StakingContractInteractionDetails';
 
-describe('ContractInteractionDetails', () => {
+describe('StakingContractInteractionDetails', () => {
   it('should render correctly with staking deposit variant', () => { 
-    const { getByText } = renderWithProvider(<ContractInteractionDetails />, {
+    const { getByText } = renderWithProvider(<StakingContractInteractionDetails />, {
       state: stakingDepositConfirmationState,
     });
     expect(getByText('Staking from')).toBeDefined();
@@ -15,7 +15,7 @@ describe('ContractInteractionDetails', () => {
   });
 
   it('should render correctly with staking withdrawal variant', () => {
-    const { getByText } = renderWithProvider(<ContractInteractionDetails />, {
+    const { getByText } = renderWithProvider(<StakingContractInteractionDetails />, {
       state: stakingWithdrawalConfirmationState,
     });
     expect(getByText('Unstaking to')).toBeDefined();
