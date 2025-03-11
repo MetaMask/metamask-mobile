@@ -112,6 +112,13 @@ describe('useBlockaidAlerts', () => {
 
     onContactUsClicked();
 
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith({
+      name: 'Signature Requested',
+      properties: {
+        external_link_clicked: 'security_alert_support_link',
+      },
+      saveDataRecording: true,
+      sensitiveProperties: {},
+    });
   });
 });
