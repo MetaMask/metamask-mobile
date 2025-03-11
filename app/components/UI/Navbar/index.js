@@ -1737,6 +1737,9 @@ export function getBridgeNavbar(navigation, route, themeColors) {
     },
   });
   const title = route.params?.title ?? 'Swap/Bridge';
+
+  const leftAction = () => navigation.pop();
+
   return {
     headerTitle: () => (
       <NavbarTitle
@@ -1746,7 +1749,11 @@ export function getBridgeNavbar(navigation, route, themeColors) {
         translate={false}
       />
     ),
-    headerLeft: () => <View />,
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
