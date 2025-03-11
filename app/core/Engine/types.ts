@@ -52,6 +52,15 @@ import {
   MultichainAssetsRatesControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import {
+  MultichainTransactionsController,
+  MultichainTransactionsControllerState,
+  // TODO: Add these once they are exported in the controller
+  // MultichainTransactionsControllerEvents,
+  // MultichainTransactionsControllerActions,
+} from '@metamask/multichain-transactions-controller';
+///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
   AddressBookControllerActions,
@@ -449,6 +458,7 @@ export type Controllers = {
   MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
+  MultichainTransactionsController: MultichainTransactionsController;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
@@ -509,6 +519,7 @@ export type EngineState = {
   RatesController: RatesControllerState;
   MultichainAssetsController: MultichainAssetsControllerState;
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
+  MultichainTransactionsController: MultichainTransactionsControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
   BridgeController: BridgeControllerState;
@@ -551,6 +562,7 @@ export type ControllersToInitialize =
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
+  | 'MultichainTransactionsController'
   ///: END:ONLY_INCLUDE_IF
   | 'CurrencyRateController'
   | 'AccountsController'
