@@ -1986,7 +1986,7 @@
 
 "@ethereumjs/tx@^5.2.1", "@ethereumjs/tx@^5.4.0":
   version "5.4.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@ethereumjs/tx/-/tx-5.4.0.tgz#6f47894cc3e2d4e63d87c62b41ed7e8180a1de58"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-5.4.0.tgz#6f47894cc3e2d4e63d87c62b41ed7e8180a1de58"
   integrity sha512-SCHnK7m/AouZ7nyoR0MEXw1OO/tQojSbp88t8oxhwes5iZkZCtfFdUrJaiIb72qIpH2FVw6s1k1uP7LXuH7PsA==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
@@ -5092,7 +5092,7 @@
 
 "@metamask/keyring-internal-api@^6.0.0":
   version "6.0.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/keyring-internal-api/-/keyring-internal-api-6.0.0.tgz#7129bbfa54ac0ac3e835a026752b5e24fc697245"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-6.0.0.tgz#7129bbfa54ac0ac3e835a026752b5e24fc697245"
   integrity sha512-hWBgX3+0UhNji/cm+Kt+h2g50Zw/+veoUAhq714iBTdVY4aycYdsD2XTBnRAuJ9A0Llw5Vbo5DSIelUU74j42g==
   dependencies:
     "@metamask/keyring-api" "^17.2.1"
@@ -5133,7 +5133,7 @@
 
 "@metamask/keyring-utils@^3.0.0":
   version "3.0.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/keyring-utils/-/keyring-utils-3.0.0.tgz#37ad4b948e7306ef7d157ed074377073526ea143"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-3.0.0.tgz#37ad4b948e7306ef7d157ed074377073526ea143"
   integrity sha512-bo6Bgmz2uJ+DI5r9qyZjp435VCrc0A4nES/awTPnRWETqpbOBfMDVlLeQxQE88exCrE8efK2hTJ1by5fw8+N2g==
   dependencies:
     "@ethereumjs/tx" "^5.4.0"
@@ -5185,7 +5185,7 @@
 
 "@metamask/multichain-transactions-controller@^0.7.0":
   version "0.7.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-0.7.0.tgz#fab21da6233fcfc10d208ea96fd533591046bc8c"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-0.7.0.tgz#fab21da6233fcfc10d208ea96fd533591046bc8c"
   integrity sha512-KsnxkC5BH7ZRiv7lVgcFoTLNcJamb4s5dPkjqqtqFMBW02OZxqQEo+EstDytWcsdNDvS9CRisAGsBkRGUM4F1A==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
@@ -5318,7 +5318,7 @@
 
 "@metamask/phishing-controller@^12.3.1":
   version "12.4.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/phishing-controller/-/phishing-controller-12.4.0.tgz#268626b42b6bb89b8fd3c3abd024d4552bfdd622"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.4.0.tgz#268626b42b6bb89b8fd3c3abd024d4552bfdd622"
   integrity sha512-faS+HuQiER5hlaAJz0tJHqGN2pSKkzN5gC6r3d/2nFLgkLJp2kwqzL80qWwnVKgG37/RtoeMhmcUYg9GVq5YKw==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
@@ -5603,7 +5603,7 @@
 
 "@metamask/snaps-controllers@^9.19.0":
   version "9.19.1"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/snaps-controllers/-/snaps-controllers-9.19.1.tgz#3864fe80412ac52f167ee79fa4f1a8b00f6c1288"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-9.19.1.tgz#3864fe80412ac52f167ee79fa4f1a8b00f6c1288"
   integrity sha512-UyzVAvSt9GyXRnogGuWrfCW5Xes/3uN/sJ5lnoF1qP4B8WaQmlS5tZKRr5MIqUp2sViDZ/rSYyOqzXMSPbJgkg==
   dependencies:
     "@metamask/approval-controller" "^7.1.2"
@@ -5664,7 +5664,7 @@
 
 "@metamask/snaps-rpc-methods@^11.11.0":
   version "11.13.1"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-11.13.1.tgz#c9b6ad8cc71b3e3d159236e870790dba4d16d311"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-11.13.1.tgz#c9b6ad8cc71b3e3d159236e870790dba4d16d311"
   integrity sha512-vrat0M3odlGNMFqpGKmd0JJ8Nqt2aqFh86ieDs6HEdJU2YFOlq4HZ+ttKI7oMH4FC8qnSgTEZayY5/sdzAr6xg==
   dependencies:
     "@metamask/key-tree" "^10.0.2"
@@ -5717,7 +5717,7 @@
 
 "@metamask/snaps-sdk@^6.19.0":
   version "6.19.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/snaps-sdk/-/snaps-sdk-6.19.0.tgz#f2bc928798eb3f1ae5cac3397fa1fd8103c8d190"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-6.19.0.tgz#f2bc928798eb3f1ae5cac3397fa1fd8103c8d190"
   integrity sha512-ErYv6veR2aOTFBqz/8WBwOVWtAtkSDUrHidEwPoh+J02sr+OBFcGDWRkVY4QMwKgyKHQrg6VUPoPo4rU6lVZ/Q==
   dependencies:
     "@metamask/key-tree" "^10.0.2"
@@ -5786,7 +5786,7 @@
 
 "@metamask/snaps-utils@^9.0.1":
   version "9.0.1"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/snaps-utils/-/snaps-utils-9.0.1.tgz#47ff876ba2338b62169a72f68209c56c79a7534a"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-9.0.1.tgz#47ff876ba2338b62169a72f68209c56c79a7534a"
   integrity sha512-abwGJLRQ0Mwq3xHEq59gkrRuKmoKhCfjj8os9OO63k63+1qTBY4M9Oy7+GAn2+JZbmQlyl32vWvfyMl4NnLGrg==
   dependencies:
     "@babel/core" "^7.23.2"
