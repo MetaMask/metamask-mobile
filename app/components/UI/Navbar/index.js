@@ -1739,7 +1739,12 @@ export function getBridgeNavbar(navigation, route, themeColors) {
   const title = route.params?.title ?? 'Swap/Bridge';
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
     ),
     headerLeft: () => <View />,
     headerRight: () => (
