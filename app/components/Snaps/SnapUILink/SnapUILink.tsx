@@ -32,6 +32,7 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => {
     <>
       {children}
       <View
+        /* eslint-disable-next-line react-native/no-inline-styles */
         style={{
           width: 4,
         }}
