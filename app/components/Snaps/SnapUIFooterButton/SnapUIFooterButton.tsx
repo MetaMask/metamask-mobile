@@ -62,9 +62,12 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   const { handleEvent, snapId } = useSnapInterfaceContext();
   const snaps = useSelector(selectSnaps);
   const snapMetadata = snaps[snapId as SnapId];
+  const hideSnapBranding = snapMetadata.hideSnapBranding;
 
   const { styles } = useStyles(styleSheet, {
     buttonsAlignment: DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
+    hideSnapBranding,
+    destructive: snapVariant === 'destructive',
   });
 
   const handleSnapAction = () => {
@@ -76,8 +79,6 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const handlePress = isSnapAction ? handleSnapAction : onCancel!;
-
-  const hideSnapBranding = snapMetadata.hideSnapBranding;
 
   const brandedButtonVariant = isSnapAction
     ? ButtonVariants.Primary
