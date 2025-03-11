@@ -56,7 +56,6 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
-import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -92,8 +91,6 @@ interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
   [key: string]: undefined | object;
 }
-
-const DEBOUNCE_DELAY = 300;
 
 const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
   const navigation =
@@ -132,8 +129,8 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     ),
   ];
 
-  const selectedAccountTokensChains = useSelector((state: RootState) =>
-    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
+  const selectedAccountTokensChains = useSelector(
+    selectAccountTokensAcrossChains,
   );
 
   const actionSheet = useRef<typeof ActionSheet>();
@@ -147,21 +144,8 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     selectSelectedInternalAccountAddress,
   );
   const multiChainMarketData = useSelector(selectTokenMarketData);
-  const debouncedMultiChainMarketData = useDebouncedValue(
-    multiChainMarketData,
-    DEBOUNCE_DELAY,
-  );
-
   const multiChainTokenBalance = useSelector(selectTokensBalances);
-  const debouncedMultiChainTokenBalance = useDebouncedValue(
-    multiChainTokenBalance,
-    DEBOUNCE_DELAY,
-  );
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-  const debouncedMultiChainCurrencyRates = useDebouncedValue(
-    multiChainCurrencyRates,
-    DEBOUNCE_DELAY,
-  );
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -329,9 +313,9 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     hideZeroBalanceTokens,
     tokenSortConfig,
     // Dependencies for multichain implementation
-    debouncedMultiChainTokenBalance,
-    debouncedMultiChainMarketData,
-    debouncedMultiChainCurrencyRates,
+    multiChainTokenBalance,
+    multiChainMarketData,
+    multiChainCurrencyRates,
     selectedAccountTokensChains,
     selectedInternalAccountAddress,
     isUserOnCurrentNetwork,
