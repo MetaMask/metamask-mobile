@@ -37,7 +37,6 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
-import { selectIsAllNetworks } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
@@ -46,7 +45,6 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wa
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { getNetworkImageSource } from '../../../util/networks';
 import { PopularList } from '../../../util/networks/customNetworks';
-import { TextColor } from '../../../component-library/components/Texts/Text/Text.types';
 import { useMultiAccountChainBalances } from '../../hooks/useMultiAccountChainBalances';
 interface AvatarNetworksInfoProps extends AvatarNetworkProps {
   name: string;
@@ -88,7 +86,6 @@ const AccountSelectorList = ({
   );
 
   const internalAccounts = useSelector(selectInternalAccounts);
-  const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const multichainBalances = useMultiAccountChainBalances();
   const getKeyExtractor = ({ address }: Account) => address;
@@ -101,7 +98,7 @@ const AccountSelectorList = ({
     ) => {
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
-      const tokenTicker = fiatBalanceStrSplit[1] || '';
+
       return (
         <View
           style={styles.balancesContainer}
@@ -115,27 +112,19 @@ const AccountSelectorList = ({
             {fiatBalanceAmount}
           </SensitiveText>
 
-          {!isAllNetworks && (
-            <SensitiveText
-              length={SensitiveTextLength.Short}
-              style={styles.balanceLabel}
-              isHidden={privacyMode}
-              color={privacyMode ? TextColor.Alternative : TextColor.Default}
-            >
-              {tokenTicker}
-            </SensitiveText>
-          )}
-
-          {networksInfo && isAllNetworks && (
+          {networksInfo && (
             <View style={styles.networkTokensContainer}>
               <AvatarGroup
                 avatarPropsList={networksInfo.map(
-                  (networkInfo: AvatarNetworksInfoProps) => ({
+                  (networkInfo: AvatarNetworksInfoProps, index: number) => ({
                     ...networkInfo,
                     variant: AvatarVariant.Network,
                     imageSource: networkInfo.imageSource,
+                    testID: `avatar-group-${index}`,
                   }),
                 )}
+                maxStackedAvatars={4}
+                renderOverflowCounter={false}
               />
             </View>
           )}
@@ -147,7 +136,6 @@ const AccountSelectorList = ({
       styles.balanceLabel,
       styles.networkTokensContainer,
       privacyMode,
-      isAllNetworks,
     ],
   );
 

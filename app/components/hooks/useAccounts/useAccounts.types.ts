@@ -72,6 +72,11 @@ export interface UseAccountsParams {
    * @default false
    */
   isLoading?: boolean;
+  /**
+   * Optional boolean that indicates if the accounts should be aggregated across chains.
+   * @default true
+   */
+  shouldAggregateAcrossChains?: boolean;
 }
 
 /**

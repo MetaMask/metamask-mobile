@@ -27,53 +27,55 @@ const AvatarGroup = ({
   maxStackedAvatars = DEFAULT_AVATARGROUP_MAXSTACKEDAVATARS,
   includesBorder = true,
   spaceBetweenAvatars,
+  renderOverflowCounter = true,
   style,
 }: AvatarGroupProps) => {
   const overflowCounter = avatarPropsList.length - maxStackedAvatars;
   const avatarNegativeSpacing =
     spaceBetweenAvatars || SPACEBETWEENAVATARS_BY_AVATARSIZE[size];
-  const shouldRenderOverflowCounter = overflowCounter > 0;
-
+  const doesOverflowCountExist = overflowCounter > 0;
   const { styles } = useStyles(styleSheet, {
     size,
     style,
   });
 
-  const renderAvatarList = useCallback(
-    () =>
-      avatarPropsList.slice(0, maxStackedAvatars).map((avatarProps, index) => {
-        const marginLeft = index === 0 ? 0 : avatarNegativeSpacing;
+  const renderAvatarList = useCallback(() => {
+    const avatarsToRender = renderOverflowCounter
+      ? avatarPropsList.slice(0, maxStackedAvatars)
+      : avatarPropsList.slice(-maxStackedAvatars);
+    return avatarsToRender.map((avatarProps, index) => {
+      const marginLeft = index === 0 ? 0 : avatarNegativeSpacing;
 
-        return (
-          <View
-            key={`avatar-${index}`}
-            testID={`${AVATARGROUP_AVATAR_CONTAINER_TESTID}-${index}`}
-            style={{ marginLeft }}
-          >
-            <Avatar
-              {...avatarProps}
-              size={size}
-              includesBorder={includesBorder}
-              testID={AVATARGROUP_AVATAR_TESTID}
-              style={styles.avatarGroup}
-            />
-          </View>
-        );
-      }),
-    [
-      avatarPropsList,
-      avatarNegativeSpacing,
-      includesBorder,
-      maxStackedAvatars,
-      size,
-      styles.avatarGroup,
-    ],
-  );
+      return (
+        <View
+          key={`avatar-${index}`}
+          testID={`${AVATARGROUP_AVATAR_CONTAINER_TESTID}-${index}`}
+          style={{ marginLeft }}
+        >
+          <Avatar
+            {...avatarProps}
+            size={size}
+            includesBorder={includesBorder}
+            testID={AVATARGROUP_AVATAR_TESTID}
+            style={styles.avatarGroup}
+          />
+        </View>
+      );
+    });
+  }, [
+    avatarPropsList,
+    avatarNegativeSpacing,
+    includesBorder,
+    maxStackedAvatars,
+    renderOverflowCounter,
+    size,
+    styles.avatarGroup,
+  ]);
 
   return (
     <View style={styles.base}>
       {renderAvatarList()}
-      {shouldRenderOverflowCounter && (
+      {renderOverflowCounter && doesOverflowCountExist && (
         <Text
           variant={TEXTVARIANT_BY_AVATARSIZE[size]}
           color={DEFAULT_AVATARGROUP_COUNTER_TEXTCOLOR}

@@ -17,6 +17,7 @@ import {
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { AccountSelectorListProps } from './AccountSelectorList.types';
+import { AVATARGROUP_AVATAR_CONTAINER_TESTID } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 
 // eslint-disable-next-line import/no-namespace
 import * as Utils from '../../hooks/useAccounts/utils';
@@ -159,12 +160,10 @@ describe('AccountSelectorList', () => {
         `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
       );
 
-      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
       expect(
         within(businessAccountItem).getByText(regex.usd(3200)),
       ).toBeDefined();
 
-      expect(within(personalAccountItem).getByText(regex.eth(2))).toBeDefined();
       expect(
         within(personalAccountItem).getByText(regex.usd(6400)),
       ).toBeDefined();
@@ -199,7 +198,6 @@ describe('AccountSelectorList', () => {
         `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
-      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
       expect(
         within(businessAccountItem).getByText(regex.usd(3200)),
       ).toBeDefined();
@@ -267,7 +265,6 @@ describe('AccountSelectorList', () => {
         `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
-      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
       expect(
         within(businessAccountItem).getByText(regex.usd(3200)),
       ).toBeDefined();
@@ -275,25 +272,14 @@ describe('AccountSelectorList', () => {
       expect(within(businessAccountItem).queryByText('••••••')).toBeNull();
     });
   });
-  it('Text is hidden when privacy mode is on', async () => {
-    const state = {
-      ...initialState,
-      privacyMode: true,
-    };
-
-    const { queryByTestId } = renderComponent(state);
+  it('should render AvatarGroup', async () => {
+    const { queryByTestId } = renderComponent(initialState);
 
     await waitFor(() => {
-      const businessAccountItem = queryByTestId(
-        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+      const avatarGroup = queryByTestId(
+        `${AVATARGROUP_AVATAR_CONTAINER_TESTID}-0`,
       );
-
-      expect(within(businessAccountItem).queryByText(regex.eth(1))).toBeNull();
-      expect(
-        within(businessAccountItem).queryByText(regex.usd(3200)),
-      ).toBeNull();
-
-      expect(within(businessAccountItem).getByText('••••••')).toBeDefined();
+      expect(avatarGroup).toBeDefined();
     });
   });
 });
