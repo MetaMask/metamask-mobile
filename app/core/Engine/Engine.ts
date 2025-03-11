@@ -14,7 +14,6 @@ import {
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { AppState } from 'react-native';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
 import { AccountsController } from '@metamask/accounts-controller';
