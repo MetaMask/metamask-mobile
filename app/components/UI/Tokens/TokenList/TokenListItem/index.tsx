@@ -3,6 +3,9 @@ import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import I18n from 'i18n-js';
+import BigNumber from 'bignumber.js';
 import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { useTheme } from '../../../../../util/theme';
@@ -65,9 +68,10 @@ import {
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { formatWithThreshold } from '../../../../../util/assets';
 
 interface TokenListItemProps {
-  asset: TokenI;
+  asset: TokenI & { tokenFiatAmount: number };
   showScamWarningModal: boolean;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
@@ -188,27 +192,53 @@ export const TokenListItem = React.memo(
     if (primaryCurrency === 'ETH') {
       // Default to displaying the formatted balance value and its fiat equivalent.
       mainBalance = balanceValueFormatted;
-      secondaryBalance = balanceFiat;
+      secondaryBalance = formatWithThreshold(
+        asset.tokenFiatAmount,
+        0.01,
+        I18n.locale,
+        {
+          style: 'currency',
+          currency: currentCurrency.toUpperCase(),
+        },
+      );
       // For ETH as a native currency, adjust display based on network safety.
       if (asset.isETH) {
         // Main balance always shows the formatted balance value for ETH.
-        mainBalance = balanceValueFormatted;
+        mainBalance = formatWithThreshold(
+          new BigNumber(parseFloat(balanceValueFormatted)).toNumber(),
+          0.00001,
+          I18n.locale,
+          {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 5,
+          },
+        );
         // Display fiat value as secondary balance only for original native tokens on safe networks.
-        if (isPortfolioViewEnabled()) {
-          secondaryBalance = shouldNotShowBalanceOnTestnets
-            ? undefined
-            : balanceFiat;
-        } else {
-          secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
-        }
+        secondaryBalance = isOriginalNativeTokenSymbol
+          ? formatWithThreshold(asset.tokenFiatAmount, 0.01, I18n.locale, {
+              style: 'currency',
+              currency: currentCurrency.toUpperCase(),
+            })
+          : null;
       }
     } else {
-      secondaryBalance = balanceValueFormatted;
+      secondaryBalance = formatWithThreshold(
+        new BigNumber(parseFloat(balanceValueFormatted)).toNumber(),
+        0.00001,
+        I18n.locale,
+        {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 5,
+        },
+      );
       if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
         mainBalance = undefined;
       } else {
         mainBalance =
-          balanceFiat ?? strings('wallet.unable_to_find_conversion_rate');
+          formatWithThreshold(asset.tokenFiatAmount, 0.01, I18n.locale, {
+            style: 'currency',
+            currency: currentCurrency.toUpperCase(),
+          }) ?? strings('wallet.unable_to_find_conversion_rate');
       }
     }
 
