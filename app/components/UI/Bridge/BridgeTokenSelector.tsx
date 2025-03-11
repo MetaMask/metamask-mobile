@@ -126,11 +126,10 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const tokenSearchResults = useMemo(
     () =>
-      searchString.length > 0
-        ? (tokenFuse.search(searchString)).slice(0, MAX_TOKENS_RESULTS)
-        : tokensList,
-    [searchString, tokenFuse, tokensList],
+      (tokenFuse.search(searchString)).slice(0, MAX_TOKENS_RESULTS),
+    [searchString, tokenFuse],
   );
+  const tokensToRender = searchString.length > 0 ? tokenSearchResults : tokensList;
 
   const renderItem = useCallback(({ item }: { item: TokenI }) => {
     const networkDetails = getNetworkBadgeDetails(currentChainId);
@@ -230,7 +229,7 @@ export const BridgeTokenSelector: React.FC = () => {
         </Box>
 
         <FlatList
-          data={tokenSearchResults}
+          data={tokensToRender}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
