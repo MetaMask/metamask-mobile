@@ -6,10 +6,12 @@ import { NETWORKS_CHAIN_ID } from './network';
 const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS_DEVELOPMENT: string[] = [
   NETWORKS_CHAIN_ID.MAINNET,
   NETWORKS_CHAIN_ID.SEPOLIA,
+  NETWORKS_CHAIN_ID.BSC,
 ];
 
 const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS_PRODUCTION: string[] = [
   NETWORKS_CHAIN_ID.MAINNET,
+  // NETWORKS_CHAIN_ID.BSC, // TODO: Add BSC to production when ready
 ];
 
 export const getAllowedSmartTransactionsChainIds = (): string[] =>
