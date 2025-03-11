@@ -15,6 +15,7 @@ import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import * as networks from '../../../util/networks';
 // eslint-disable-next-line import/no-namespace
 import * as multichain from '../../../selectors/multichain/';
+// import usePolling from '../../../../components/hooks/usePolling';
 
 jest.mock('../../../selectors/multichain/', () => ({
   ...jest.requireActual('../../../selectors/multichain/'),
@@ -24,6 +25,11 @@ jest.mock('../../../selectors/multichain/', () => ({
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
 }));
+
+// jest.mock('../../../../components/hooks/usePolling', () => ({
+//   __esModule: true,
+//   default: jest.fn(),
+// }));
 
 const selectedAddress = '0x123';
 
@@ -40,18 +46,32 @@ jest.mock('../../../core/Engine', () => ({
     },
     TokenDetectionController: {
       detectTokens: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     AccountTrackerController: {
       refresh: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     TokenRatesController: {
       updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     TokenBalancesController: {
       updateBalances: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
+    TokenListController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     NetworkController: {
       getNetworkClientById: () => ({
@@ -295,12 +315,11 @@ describe('Tokens', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('render matches snapshot', () => {
-    const { toJSON } = renderComponent(initialState);
+    const { toJSON, queryByText } = renderComponent(initialState);
+    const tokensTabText = queryByText('Tokens');
+    const nftsTabText = queryByText('NFTs');
+    expect(tokensTabText).toBeDefined();
+    expect(nftsTabText).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
 
