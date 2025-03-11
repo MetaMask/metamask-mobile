@@ -790,7 +790,7 @@
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
-    "disabling_notifications": "Disabling notifications...",
+    "updating_notifications": "Updating notifications...",
     "updating_account_settings": "Updating account settings...",
     "reset_notifications_title": "Reset notifications",
     "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
