@@ -34,7 +34,7 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 2,
+        gap: 4,
       }}
     >
       {children}
