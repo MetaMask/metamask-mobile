@@ -20,6 +20,7 @@ import Icon, { IconName } from '../../../component-library/components/Icons/Icon
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
 import { TokenSelectorItem } from './TokenSelectorItem';
 import { useSourceTokens } from './useSourceTokens';
+import { strings } from '../../../../locales/i18n';
 
 interface BridgeTokenSelectorProps {
   onClose?: () => void;
@@ -125,7 +126,7 @@ export const BridgeTokenSelector: React.FC<BridgeTokenSelectorProps> = () => {
         <BottomSheetHeader>
           <View style={styles.headerContainer}>
             <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
-              Select Token
+              {strings('bridge.select_token')}
             </Text>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeIcon} testID="bridge-token-selector-close-button">
               <Icon
