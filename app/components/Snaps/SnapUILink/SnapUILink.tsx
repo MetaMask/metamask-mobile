@@ -29,22 +29,25 @@ const onPress = (href: string) => {
 // TODO: This component should show a modal for links when not using preinstalled Snaps
 export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => {
   const label = (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 4,
-      }}
-    >
+    <>
       {children}
+      <View
+        style={{
+          width: 4,
+        }}
+      />
       <Icon
         name={IconName.Export}
         color={IconColor.Primary}
         size={IconSize.Sm}
         /* eslint-disable-next-line react-native/no-inline-styles */
+        style={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          alignSelf: 'center',
+        }}
       />
-    </View>
+    </>
   );
 
   return (
