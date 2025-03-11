@@ -1,28 +1,28 @@
 import React, { useCallback, useState } from 'react';
 import { Linking, View } from 'react-native';
-import { TransactionType } from '@metamask/transaction-controller';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
+import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useAlerts } from '../../../AlertSystem/context';
 import ConfirmAlertModal from '../../../AlertSystem/ConfirmAlertModal';
+import { useLedgerContext } from '../../../context/LedgerContext';
 import { useAlertsConfirmed } from '../../../../../hooks/useAlertsConfirmed';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
-import { useLedgerContext } from '../../../context/LedgerContext';
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
+import { isStakingConfirmation } from '../../../utils/confirm';
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
 
@@ -36,31 +36,29 @@ export const Footer = () => {
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
 
-  const isStakingConfirmation = [
-    TransactionType.stakingDeposit,
-    TransactionType.stakingUnstake,
-    TransactionType.stakingClaim,
-  ].includes(transactionMetadata?.type as TransactionType);
+  const isStakingConfirmationBool = isStakingConfirmation(
+    transactionMetadata?.type as string,
+  );
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] = useState(false);
 
-    const showConfirmAlertModal = useCallback(() => {
-      setConfirmAlertModalVisible(true);
-    }, []);
+  const showConfirmAlertModal = useCallback(() => {
+    setConfirmAlertModalVisible(true);
+  }, []);
 
-    const hideConfirmAlertModal = useCallback(() => {
-      setConfirmAlertModalVisible(false);
-    }, []);
+  const hideConfirmAlertModal = useCallback(() => {
+    setConfirmAlertModalVisible(false);
+  }, []);
 
-    const onHandleReject = useCallback(async () => {
-      hideConfirmAlertModal();
-      await onReject();
-    }, [hideConfirmAlertModal, onReject]);
+  const onHandleReject = useCallback(async () => {
+    hideConfirmAlertModal();
+    await onReject();
+  }, [hideConfirmAlertModal, onReject]);
 
-    const onHandleConfirm = useCallback(async () => {
-      hideConfirmAlertModal();
-      await onConfirm();
-    }, [hideConfirmAlertModal, onConfirm]);
+  const onHandleConfirm = useCallback(async () => {
+    hideConfirmAlertModal();
+    await onConfirm();
+  }, [hideConfirmAlertModal, onConfirm]);
 
   const onSignConfirm = useCallback(async () => {
     if (hasDangerAlerts && !hasUnconfirmedDangerAlerts) {
@@ -72,7 +70,7 @@ export const Footer = () => {
 
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,
-    isStakingConfirmation,
+    isStakingConfirmationBool,
   });
   const confirmButtonLabel = () => {
     if (isQRSigningInProgress) {
@@ -129,7 +127,7 @@ export const Footer = () => {
         buttonPropsArray={buttons}
         style={styles.base}
       />
-      {isStakingConfirmation && (
+      {isStakingConfirmationBool && (
         <View style={styles.textContainer}>
           <Text variant={TextVariant.BodySM}>
             {strings('confirm.staking_footer.part1')}
