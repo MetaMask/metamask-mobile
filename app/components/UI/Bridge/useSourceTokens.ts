@@ -138,8 +138,6 @@ export const useSourceTokens = () => {
       ...additionalTokens,
     ];
 
-    console.log('HELLO', { nativeToken });
-
     // Sort tokens by balance
     return sortAssets(allTokens, tokenSortConfig);
   }, [
