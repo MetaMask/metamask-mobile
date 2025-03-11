@@ -105,17 +105,19 @@ export const selectDestChainId = createSelector(
 export const selectSourceToken = createSelector(
   selectBridgeState,
   selectTokensList,
-  (bridgeState, tokens) => {
+  selectSourceChainId,
+  (bridgeState, tokens, sourceChainId) => {
     // If we have a selected source token in the bridge state, use that
     if (bridgeState.sourceToken) {
       return bridgeState.sourceToken;
     }
 
     // Otherwise, fall back to the native token
-    const { sourceChainId } = bridgeState;
     const sourceToken = !isCaipChainId(sourceChainId)
       ? getNativeSwapsToken(sourceChainId)
       : tokens.find((token) => token.address === ethers.constants.AddressZero);
+
+    console.log('HELLO', sourceToken, sourceChainId);
 
     if (!sourceToken) return undefined;
 
