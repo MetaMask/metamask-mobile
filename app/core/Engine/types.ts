@@ -56,10 +56,11 @@ import {
 import {
   MultichainTransactionsController,
   MultichainTransactionsControllerState,
-  // TODO: Add these once they are exported in the controller
-  // MultichainTransactionsControllerEvents,
-  // MultichainTransactionsControllerActions,
 } from '@metamask/multichain-transactions-controller';
+import {
+  MultichainTransactionsControllerEvents,
+  MultichainTransactionsControllerActions,
+} from './messengers/multichain-transactions-controller-messenger/types';
 ///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
@@ -321,6 +322,7 @@ type GlobalActions =
   | RatesControllerActions
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
+  | MultichainTransactionsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -366,6 +368,7 @@ type GlobalEvents =
   | RatesControllerEvents
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
+  | MultichainTransactionsControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents

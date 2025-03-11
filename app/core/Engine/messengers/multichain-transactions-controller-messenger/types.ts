@@ -13,4 +13,8 @@ export type MultichainTransactionsControllerActions =
 export type MultichainTransactionsControllerEvents =
   | AccountsControllerAccountAddedEvent
   | AccountsControllerAccountRemovedEvent
-  | AccountsControllerAccountTransactionsUpdatedEvent;
+  | AccountsControllerAccountTransactionsUpdatedEvent
+  | {
+      type: 'MultichainTransactionsController:stateChange';
+      payload: [unknown];
+    };
