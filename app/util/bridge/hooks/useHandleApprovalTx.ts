@@ -4,10 +4,10 @@ import { QuoteResponse, TxData } from '../../../components/UI/Bridge/types';
 import { FeeType, isEthUsdt, getEthUsdtResetData } from '@metamask/bridge-controller';
 import { decimalToHex } from '../../conversions';
 import { addHexPrefix } from 'ethereumjs-util';
-import { ETH_USDT_ADDRESS } from '@metamask/bridge-controller/dist/constants/bridge.cjs';
 import BigNumber from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../core/Engine';
+import { ETH_USDT_ADDRESS } from '../../../constants/bridge';
 
 export const ALLOWANCE_RESET_ERROR = 'Eth USDT allowance reset failed';
 export const APPROVAL_TX_ERROR = 'Approve transaction failed';
