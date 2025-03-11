@@ -32,6 +32,7 @@ import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getBridgeNavbar } from '../Navbar';
 import { useTheme } from '../../../util/theme';
+import { strings } from '../../../../locales/i18n';
 
 const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -186,13 +187,13 @@ const BridgeView = () => {
       <>
         <Button
           variant={ButtonVariants.Primary}
-          label="Continue"
+          label={strings('bridge.continue')}
           onPress={handleContinue}
           style={styles.button}
         />
         <Button
           variant={ButtonVariants.Link}
-          label={<Text color={TextColor.Alternative}>Terms & Conditions</Text>}
+          label={<Text color={TextColor.Alternative}>{strings('bridge.terms_and_conditions')}</Text>}
           onPress={handleTermsPress}
         />
       </>

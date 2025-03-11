@@ -3717,5 +3717,9 @@
     "title": "Transactions just got smarter",
     "link": "Higher success rates",
     "description": " and MEV protection. Now on by default."
+  },
+  "bridge": {
+    "continue": "Continue",
+    "terms_and_conditions": "Terms & Conditions"
   }
 }
