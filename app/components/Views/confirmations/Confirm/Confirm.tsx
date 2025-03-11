@@ -69,12 +69,11 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   return (
     <BottomSheet
-      isInteractable={false}
       onClose={onReject}
       style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >
-      <View testID={approvalRequest?.type}>
+      <View testID={approvalRequest?.type} style={styles.confirmContainer}>
         <ConfirmWrapped styles={styles} route={route} />
       </View>
     </BottomSheet>
