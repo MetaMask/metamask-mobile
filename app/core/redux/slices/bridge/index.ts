@@ -117,8 +117,6 @@ export const selectSourceToken = createSelector(
       ? getNativeSwapsToken(sourceChainId)
       : tokens.find((token) => token.address === ethers.constants.AddressZero);
 
-    console.log('HELLO', sourceToken, sourceChainId);
-
     if (!sourceToken) return undefined;
 
     return {
