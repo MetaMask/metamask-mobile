@@ -13,7 +13,6 @@ import {
   selectMultichainBalances,
   MULTICHAIN_NETWORK_TO_ASSET_TYPES,
   selectMultichainTransactions,
-  MultichainNetworks,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';

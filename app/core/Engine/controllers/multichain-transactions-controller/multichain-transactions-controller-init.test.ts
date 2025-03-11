@@ -23,11 +23,6 @@ describe('multichain transactions controller init', () => {
     jest.resetAllMocks();
     const baseControllerMessenger = new ExtendedControllerMessenger();
 
-    baseControllerMessenger.registerActionHandler(
-      'AccountsController:listMultichainAccounts',
-      jest.fn().mockReturnValue([]) as any,
-    );
-
     // Create controller init request mock
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
