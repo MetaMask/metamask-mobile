@@ -3,7 +3,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import useHandleBridgeTx from '../useHandleBridgeTx';
 import useHandleTx from '../useHandleTx';
 import { QuoteResponse } from '../../../../components/UI/Bridge/types';
-import { DummyQuotesWithApproval } from '../../../../test/data/bridge/dummy-quotes';
+import { DummyQuotesWithApproval } from '../../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 
 // Mock the useHandleTx hook
 jest.mock('../useHandleTx', () => ({
@@ -13,7 +13,7 @@ jest.mock('../useHandleTx', () => ({
 
 describe('useHandleBridgeTx', () => {
   const mockHandleTx = jest.fn();
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
     (useHandleTx as jest.Mock).mockReturnValue({ handleTx: mockHandleTx });
@@ -76,4 +76,4 @@ describe('useHandleBridgeTx', () => {
 
     expect(txMeta).toEqual({ hash: 'tx-hash-456' });
   });
-}); 
+});

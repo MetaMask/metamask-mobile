@@ -3,7 +3,7 @@ import useHandleTx from '../useHandleTx';
 import { TransactionType, WalletDevice } from '@metamask/transaction-controller';
 import { addTransaction, updateTransaction } from '../../../transaction-controller';
 import { resetTransaction } from '../../../../actions/transaction';
-import { DummyQuotesWithApproval } from '../../../../test/data/bridge/dummy-quotes';
+import { DummyQuotesWithApproval } from '../../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 import * as networkSelectors from '../../../../selectors/networkController';
 import * as txSelectors from '../../../../selectors/confirmTransaction';
 import { getTransaction1559GasFeeEstimates } from '../../../../components/UI/Swaps/utils/gas';
@@ -56,10 +56,10 @@ describe('useHandleTx', () => {
     jest.spyOn(networkSelectors, 'selectSelectedNetworkClientId').mockReturnValue(mockNetworkClientId);
     jest.spyOn(networkSelectors, 'selectChainId').mockReturnValue(mockChainId);
     jest.spyOn(txSelectors, 'selectGasFeeEstimates').mockReturnValue(mockGasEstimates);
-    
+
     // Add consistent mock implementation
-    (addTransaction as jest.Mock).mockResolvedValue({ 
-      transactionMeta: { hash: '0x789' } 
+    (addTransaction as jest.Mock).mockResolvedValue({
+      transactionMeta: { hash: '0x789' }
     });
   });
 
@@ -102,7 +102,7 @@ describe('useHandleTx', () => {
 
   it('should handle EIP1559 transaction correctly', async () => {
     jest.spyOn(networkSelectors, 'selectIsEIP1559Network').mockReturnValue(true);
-    
+
     const mockTransactionMeta = { hash: '0x789' };
     const mockEIP1559Estimates = {
       maxFeePerGas: '0x1',
@@ -198,4 +198,4 @@ describe('useHandleTx', () => {
 
     expect(response).toBe(mockTransactionMeta);
   });
-}); 
+});

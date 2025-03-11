@@ -5,7 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import useSubmitBridgeTx from './useSubmitBridgeTx';
 import useHandleBridgeTx from './useHandleBridgeTx';
 import useHandleApprovalTx from './useHandleApprovalTx';
-import { DummyQuotesNoApproval, DummyQuotesWithApproval } from '../../../test/data/bridge/dummy-quotes';
+import { DummyQuotesNoApproval, DummyQuotesWithApproval } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import Engine from '../../../core/Engine';
 
