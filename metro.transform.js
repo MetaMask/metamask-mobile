@@ -22,7 +22,7 @@ const availableFeatures = new Set([
 
 const mainFeatureSet = new Set(['preinstalled-snaps']);
 const betaFeatureSet = new Set([
-  'flask',
+  'beta',
   'preinstalled-snaps',
   'external-snaps',
   'keyring-snaps',
