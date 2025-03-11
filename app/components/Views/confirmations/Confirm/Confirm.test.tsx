@@ -1,7 +1,6 @@
 import { act } from '@testing-library/react-native';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
 import {
   personalSignatureConfirmationState,
   securityAlertResponse,
@@ -12,8 +11,6 @@ import {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
-
-import { merge } from 'lodash';
 import { Confirm } from './Confirm';
 
 jest.mock('@react-navigation/native', () => ({
@@ -110,22 +107,7 @@ describe('Confirm', () => {
 
   it('renders a flat confirmation for specified type(s): staking withdrawal', () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
-      state: merge(stakingWithdrawalConfirmationState, {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  '0x0000000000000000000000000000000000000000': {
-                    address: '0x0000000000000000000000000000000000000000',
-                  },
-                },
-                selectedAccount: '0x0000000000000000000000000000000000000000',
-              },
-            },
-          }
-        }
-      }),
+      state: stakingWithdrawalConfirmationState,
     });
     expect(getByTestId('flat-confirmation-container')).toBeDefined();
   });
@@ -183,22 +165,7 @@ describe('Confirm', () => {
 
   it('renders correct information for staking withdrawal', async () => {
     const { getByText } = renderWithProvider(<Confirm />, {
-      state: merge(stakingWithdrawalConfirmationState, {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  '0x0000000000000000000000000000000000000000': {
-                    address: '0x0000000000000000000000000000000000000000',
-                  },
-                },
-                selectedAccount: '0x0000000000000000000000000000000000000000',
-              },
-            },
-          }
-        }
-      }),
+      state: stakingWithdrawalConfirmationState,
     });
     expect(getByText('Withdrawal time')).toBeDefined();
     expect(getByText('Unstaking to')).toBeDefined();

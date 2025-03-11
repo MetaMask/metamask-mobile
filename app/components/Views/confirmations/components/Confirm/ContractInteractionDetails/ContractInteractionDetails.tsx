@@ -1,4 +1,4 @@
-import { CHAIN_IDS, TransactionMeta } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionMeta, TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -16,22 +16,14 @@ import InfoRow from '../../UI/InfoRow';
 import InfoRowDivider from '../InfoRowDivider';
 import styleSheet from './ContractInteractionDetails.styles';
 
-export enum ContractInteractionDetailsVariant {
-  StakingDeposit = 'staking_deposit',
-  StakingWithdrawal = 'staking_withdrawal',
-  StakingClaim = 'staking_claim',
-}
-
-const ContractInteractionDetails = (
-    { variant }: { variant: ContractInteractionDetailsVariant }
-  ) => {
+const ContractInteractionDetails = () => {
     const transactionMeta = useTransactionMetadataRequest();
     const { styles } = useStyles(styleSheet, {});
     const address = useSelector(selectSelectedInternalAccountFormattedAddress);
 
     return (
       <>
-        {variant === ContractInteractionDetailsVariant.StakingDeposit && (
+        {transactionMeta?.type === TransactionType.stakingDeposit && (
           <InfoRow
             label={strings('stake.staking_from')}
           >
@@ -42,7 +34,7 @@ const ContractInteractionDetails = (
             />
           </InfoRow>
         )}
-        {variant === ContractInteractionDetailsVariant.StakingWithdrawal && (
+        {transactionMeta?.type === TransactionType.stakingUnstake && (
           <InfoRow
             label={strings('stake.unstaking_to')}
           >

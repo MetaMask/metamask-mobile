@@ -1,4 +1,3 @@
-import { merge } from 'lodash';
 import React from 'react';
 import { stakingWithdrawalConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
@@ -65,22 +64,7 @@ describe('StakingWithdrawal', () => {
       key: 'mockRouteKey',
       name: 'params'
     }} />, {
-      state: merge(stakingWithdrawalConfirmationState, {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  '0x0000000000000000000000000000000000000000': {
-                    address: '0x0000000000000000000000000000000000000000',
-                  },
-                },
-                selectedAccount: '0x0000000000000000000000000000000000000000',
-              },
-            },
-          }
-        }
-      }),
+      state: stakingWithdrawalConfirmationState,
     });
     expect(getByText('Withdrawal time')).toBeDefined();
 

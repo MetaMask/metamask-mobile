@@ -4,7 +4,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
-import ContractInteractionDetails, { ContractInteractionDetailsVariant } from '../../ContractInteractionDetails/ContractInteractionDetails';
+import ContractInteractionDetails from '../../ContractInteractionDetails/ContractInteractionDetails';
 import { getNavbar } from '../../Navbar/Navbar';
 import TokenHero from '../../TokenHero';
 import UnstakingTimeSection from '../../UnstakingTime/UnstakingTime';
@@ -28,7 +28,7 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
       <TokenHero amountWei={route?.params?.amountWei} />
       <UnstakingTimeSection />
       <InfoSection>
-        <ContractInteractionDetails variant={ContractInteractionDetailsVariant.StakingWithdrawal} />
+        <ContractInteractionDetails />
       </InfoSection>
       <GasFeesDetails />
     </>
