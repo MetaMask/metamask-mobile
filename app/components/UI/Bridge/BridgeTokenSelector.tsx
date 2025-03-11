@@ -82,6 +82,7 @@ export const BridgeTokenSelector: React.FC = () => {
   const { searchString, setSearchString, searchResults } = useTokenSearch({
     tokens: tokensList || [],
   });
+  const tokensToRender = useMemo(() => searchResults.length > 0 ? searchResults : tokensList, [searchResults, tokensList]);
 
   useEffect(() => {
     const { BridgeController } = Engine.context;
@@ -208,7 +209,7 @@ export const BridgeTokenSelector: React.FC = () => {
         </Box>
 
         <FlatList
-          data={searchResults}
+          data={tokensToRender}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}

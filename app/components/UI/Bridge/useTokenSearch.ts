@@ -26,7 +26,7 @@ export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchR
         distance: 100,
         maxPatternLength: 32,
         minMatchCharLength: 1,
-        keys: ['symbol', 'address', 'name'],
+        keys: ['symbol', 'name', 'address'],
       }),
     [tokens],
   );
@@ -41,7 +41,7 @@ export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchR
     [searchString, tokenFuse],
   );
 
-  const searchResults = searchString.length > 0 ? tokenSearchResults : tokens;
+  const searchResults = tokenSearchResults;
 
   return {
     searchString,

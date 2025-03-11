@@ -53,7 +53,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const tokenBalances = useSelector(selectTokensBalances);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress) as Hex;
 
-  // Get raw balance from tokenBalances
+  // Get raw balance from tokenBalances so we can format it to proper decimal places
   const rawBalance = token.isNative
     ? token.balance
     : tokenBalances?.[selectedAddress]?.[currentChainId]?.[token.address as Hex] || '0';
@@ -80,8 +80,8 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       key={token.address}
       asset={token}
       onPress={() => onPress(token)}
-      balance={balanceWithSymbol}
-      mainBalance={fiatValue}
+      mainBalance={balanceWithSymbol}
+      balance={fiatValue}
     >
       <BadgeWrapper
         badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
