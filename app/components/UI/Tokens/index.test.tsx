@@ -15,7 +15,6 @@ import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import * as networks from '../../../util/networks';
 // eslint-disable-next-line import/no-namespace
 import * as multichain from '../../../selectors/multichain/';
-// import usePolling from '../../../../components/hooks/usePolling';
 
 jest.mock('../../../selectors/multichain/', () => ({
   ...jest.requireActual('../../../selectors/multichain/'),
@@ -25,11 +24,6 @@ jest.mock('../../../selectors/multichain/', () => ({
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
 }));
-
-// jest.mock('../../../../components/hooks/usePolling', () => ({
-//   __esModule: true,
-//   default: jest.fn(),
-// }));
 
 const selectedAddress = '0x123';
 
