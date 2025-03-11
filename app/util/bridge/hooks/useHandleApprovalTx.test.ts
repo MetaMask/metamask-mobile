@@ -23,7 +23,7 @@ jest.mock('../../../core/Engine', () => ({
   default: {
     context: {
       BridgeController: {
-        getBridgeERC20Allowance: (...args: any[]) => mockGetBridgeERC20Allowance(...args),
+        getBridgeERC20Allowance: (...args: [string, string, string]) => mockGetBridgeERC20Allowance(...args),
       },
     },
   },
@@ -175,4 +175,4 @@ describe('useHandleApprovalTx', () => {
       ).rejects.toThrow(`${APPROVAL_TX_ERROR}: Error: Eth USDT allowance reset failed: ${mockError}`);
     });
   });
-}); 
+});
