@@ -287,13 +287,6 @@ android {
     buildFeatures {
         buildConfig = true
     }
-
-    // Disable minification for all androidTest builds
-    testOptions {
-        androidTest {
-            minifyEnabled false
-        }
-    }
 }
 
 dependencies {
