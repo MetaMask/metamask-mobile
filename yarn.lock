@@ -4347,14 +4347,15 @@
     npm-normalize-package-bin "3.0.1"
     yargs "17.7.2"
 
-"@lavamoat/git-safe-dependencies@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@lavamoat/git-safe-dependencies/-/git-safe-dependencies-0.1.0.tgz#5896d4e3972964f900f74809b207a03bbcbb90c5"
-  integrity sha512-KhtdqJkOroMyiqfFJbyKOYxLkay+ZoXeNaPcjty5rLSJ2Yy0Bwhuk2twQF3C3IRAR0FF36KVzTsAA4281imMKA==
+"@lavamoat/git-safe-dependencies@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@lavamoat/git-safe-dependencies/-/git-safe-dependencies-0.2.1.tgz#e1b525ddb2c3f1694d18f1f316c22520c4e7a50e"
+  integrity sha512-d34SFeERudRe/NAS3FvIGS4Os8QhEanZPR1tRBU4eXNoW5GwluSV8mhrf8gwDaaUz59zE+PIi/zIV01WhY3y8A==
   dependencies:
     glob "11.0.0"
     hosted-git-info "8.0.2"
-    lockfile-lint-api "^5.9.1"
+    js-yaml "4.1.0"
+    lockfile-lint-api "5.9.1"
 
 "@ledgerhq/cryptoassets-evm-signatures@^13.5.2":
   version "13.5.2"
@@ -20661,6 +20662,13 @@ js-sha3@^0.9.2:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
 
+js-yaml@4.1.0, js-yaml@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
+  integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
+  dependencies:
+    argparse "^2.0.1"
+
 js-yaml@^3.10.0, js-yaml@^3.12.1, js-yaml@^3.13.1, js-yaml@^3.14.1:
   version "3.14.1"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.1.tgz#dae812fdb3825fa306609a8717383c50c36a0537"
@@ -20668,13 +20676,6 @@ js-yaml@^3.10.0, js-yaml@^3.12.1, js-yaml@^3.13.1, js-yaml@^3.14.1:
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
-
-js-yaml@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
-  integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
-  dependencies:
-    argparse "^2.0.1"
 
 jsbi@^3.1.5:
   version "3.2.5"
@@ -21399,7 +21400,7 @@ locate-path@^7.1.0:
   dependencies:
     p-locate "^6.0.0"
 
-lockfile-lint-api@^5.9.1:
+lockfile-lint-api@5.9.1:
   version "5.9.1"
   resolved "https://registry.yarnpkg.com/lockfile-lint-api/-/lockfile-lint-api-5.9.1.tgz#12b10434792fa8b8dd0e332ddfbac55ea70a9e08"
   integrity sha512-us5IT1bGA6KXbq1WrhrSzk9mtPgHKz5nhvv3S4hwcYnhcVOKW2uK0W8+PN9oIgv4pI49WsD5wBdTQFTpNChF/Q==
