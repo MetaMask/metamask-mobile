@@ -50,7 +50,6 @@ import customizeSVG from './assets/customize.svg';
 import dangerSVG from './assets/danger.svg';
 import darkSVG from './assets/dark.svg';
 import dataSVG from './assets/data.svg';
-import deleteSVG from './assets/delete.svg';
 import diagramSVG from './assets/diagram.svg';
 import documentcodeSVG from './assets/document-code.svg';
 import downloadSVG from './assets/download.svg';
@@ -219,7 +218,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Danger]: dangerSVG,
   [IconName.Dark]: darkSVG,
   [IconName.Data]: dataSVG,
-  [IconName.Delete]: deleteSVG,
   [IconName.Diagram]: diagramSVG,
   [IconName.DocumentCode]: documentcodeSVG,
   [IconName.Download]: downloadSVG,

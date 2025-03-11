@@ -245,7 +245,7 @@ const BridgeView = () => {
             onChange={handleKeypadChange}
             currency={sourceToken?.symbol || 'ETH'}
             decimals={sourceToken?.decimals || 18}
-            deleteIcon={<Icon name={IconName.Delete} size={IconSize.Lg} />}
+            deleteIcon={<Icon name={IconName.ArrowLeft} size={IconSize.Lg} />}
           />
           <Box
             style={styles.buttonContainer}
