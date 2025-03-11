@@ -554,9 +554,17 @@ export class Engine {
       return keyring.mnemonic;
     };
 
-    const getAppState = () => {
-      const state = AppState.currentState;
-      return state === 'active';
+    const getUnlockPromise = () => {
+      if (this.keyringController.isUnlocked()) {
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        this.controllerMessenger.subscribeOnceIf(
+          'KeyringController:unlock',
+          resolve,
+          () => true,
+        );
+      });
     };
 
     const snapRestrictedMethods = {
@@ -567,7 +575,7 @@ export class Engine {
         SnapControllerClearSnapStateAction,
       ),
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
-      getUnlockPromise: getAppState.bind(this),
+      getUnlockPromise: getUnlockPromise.bind(this),
       getSnap: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerGetSnapAction,
