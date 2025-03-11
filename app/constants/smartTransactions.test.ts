@@ -30,7 +30,7 @@ describe('smartTransactions', () => {
       const allowedChainIds = getAllowedSmartTransactionsChainIds();
       expect(allowedChainIds).toStrictEqual([
         NETWORKS_CHAIN_ID.MAINNET,
-        NETWORKS_CHAIN_ID.BASE,
+        // NETWORKS_CHAIN_ID.BASE, // TODO: Add base to production when ready
       ]);
     });
   });

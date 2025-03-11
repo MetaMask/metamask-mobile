@@ -11,7 +11,7 @@ const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS_DEVELOPMENT: string[] = [
 
 const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS_PRODUCTION: string[] = [
   NETWORKS_CHAIN_ID.MAINNET,
-  NETWORKS_CHAIN_ID.BASE,
+  // NETWORKS_CHAIN_ID.BASE, // TODO: Add base to production when ready
 ];
 
 export const getAllowedSmartTransactionsChainIds = (): string[] =>
