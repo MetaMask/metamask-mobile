@@ -30,6 +30,7 @@ import { useSelector } from 'react-redux';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../../core/Engine';
+import { getUniqueAccountName } from '../../../core/SnapKeyring/utils/getUniqueAccountName';
 
 const SnapAccountCustomNameApproval = () => {
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
@@ -49,24 +50,10 @@ const SnapAccountCustomNameApproval = () => {
     internalAccounts.some((account) => account.metadata.name === name);
 
   useEffect(() => {
-    function generateUniqueNameWithSuffix(baseName: string): string {
-      let suffix = 1;
-      let candidateName = baseName;
-      while (
-        internalAccounts.some(
-          // eslint-disable-next-line no-loop-func
-          (account) => account.metadata.name === candidateName,
-        )
-      ) {
-        suffix += 1;
-        candidateName = `${baseName} ${suffix}`;
-      }
-      return candidateName;
-    }
-
-    const suggestedName = approvalRequest?.requestData.snapSuggestedAccountName;
+    const suggestedName =
+      approvalRequest?.requestData?.snapSuggestedAccountName;
     const initialName = suggestedName
-      ? generateUniqueNameWithSuffix(suggestedName)
+      ? getUniqueAccountName(internalAccounts, suggestedName)
       : Engine.context.AccountsController.getNextAvailableAccountName(
           KeyringTypes.snap,
         );

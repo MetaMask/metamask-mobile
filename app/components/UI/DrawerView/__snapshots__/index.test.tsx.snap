@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DrawerView should render correctly 1`] = `
+exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
 <View
   style={
     {

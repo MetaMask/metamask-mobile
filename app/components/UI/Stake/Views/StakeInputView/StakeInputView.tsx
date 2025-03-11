@@ -77,17 +77,6 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
   };
 
   const handleStakePress = useCallback(async () => {
-    if (isStakingDepositRedesignedEnabled) {
-      await attemptDepositTransaction(
-        amountWei.toString(),
-        activeAccount?.address as string,
-      );
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-      });
-      return;
-    }
-
     if (isHighGasCostImpact()) {
       trackEvent(
         createEventBuilder(
@@ -119,16 +108,34 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       return;
     }
 
+    const amountWeiString = amountWei.toString();
+
+    if (isStakingDepositRedesignedEnabled) {
+      // Here we add the transaction to the transaction controller. The
+      // redesigned confirmations architecture relies on the transaction
+      // metadata object being defined by the time the confirmation is displayed
+      // to the user.
+      await attemptDepositTransaction(
+        amountWeiString,
+        activeAccount?.address as string,
+      );
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+      });
+      return;
+    }
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
-        amountWei: amountWei.toString(),
+        amountWei: amountWeiString,
         amountFiat: fiatAmount,
         annualRewardsETH,
         annualRewardsFiat,
         annualRewardRate,
       },
     });
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
         .addProperties({

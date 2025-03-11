@@ -49,7 +49,7 @@ import {
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectNetworkName,
@@ -109,6 +109,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import NonEvmTokens from '../../UI/NonEvmTokens';
 ///: END:ONLY_INCLUDE_IF
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -212,7 +213,7 @@ const Wallet = ({
   /**
    * Current provider ticker
    */
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   /**
    * Current onboarding wizard step
    */
@@ -622,14 +623,16 @@ const Wallet = ({
         // eslint-disable-next-line react/jsx-no-bind
         onChangeTab={onChangeTab}
       >
-        <Tokens
-          tabLabel={strings('wallet.tokens')}
-          key={'tokens-tab'}
-          navigation={navigation}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error - TODO: Consolidate into the correct type.
-          tokens={assets}
-        />
+        <AssetPollingProvider>
+          <Tokens
+            tabLabel={strings('wallet.tokens')}
+            key={'tokens-tab'}
+            navigation={navigation}
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error - TODO: Consolidate into the correct type.
+            tokens={assets}
+          />
+        </AssetPollingProvider>
         <CollectibleContracts
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error - TODO: Consolidate into the correct type.

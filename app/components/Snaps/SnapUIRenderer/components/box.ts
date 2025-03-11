@@ -30,6 +30,29 @@ function generateJustifyContent(alignment?: BoxProps['alignment']) {
   }
 }
 
+function generateAlignItems(
+  crossAlignment: BoxProps['crossAlignment'],
+  center?: BoxProps['center'],
+) {
+  if (center) {
+    return AlignItems.center;
+  }
+
+  switch (crossAlignment) {
+    default:
+      return undefined;
+
+    case 'start':
+      return AlignItems.flexStart;
+
+    case 'center':
+      return AlignItems.center;
+
+    case 'end':
+      return AlignItems.flexEnd;
+  }
+}
+
 export const box: UIComponentFactory<BoxElement> = ({
   element: e,
   ...params
@@ -44,7 +67,8 @@ export const box: UIComponentFactory<BoxElement> = ({
         ? FlexDirection.Row
         : FlexDirection.Column,
     justifyContent: generateJustifyContent(e.props.alignment),
-    alignItems: e.props.center && AlignItems.center,
+    alignItems: generateAlignItems(e.props.crossAlignment, e.props.center),
     color: TextColor.Default,
+    gap: 8,
   },
 });
