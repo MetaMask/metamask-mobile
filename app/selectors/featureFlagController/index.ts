@@ -22,12 +22,7 @@ function getFeatureFlagValue(
 
 export const selectRemoteFeatureFlagControllerState = (
   state: StateWithPartialEngine,
-) => state?.engine?.backgroundState?.RemoteFeatureFlagController || { 
-  remoteFeatureFlags: { 
-    confirmation_redesign: { signatures: false, staking_transactions: false },
-    productSafetyDappScanning: false
-  } 
-};
+) => state.engine.backgroundState.RemoteFeatureFlagController;
 
 export const selectRemoteFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
