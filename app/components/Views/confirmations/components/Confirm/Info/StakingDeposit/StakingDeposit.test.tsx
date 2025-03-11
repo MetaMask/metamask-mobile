@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import StakingDeposit from './StakingDeposit';
-import { getStakingDepositNavbar } from './Navbar';
+import { getNavbar } from '../../Navbar/Navbar';
 
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -23,8 +23,8 @@ jest.mock('../../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
-jest.mock('./Navbar', () => ({
-  getStakingDepositNavbar: jest.fn(),
+jest.mock('../../Navbar/Navbar', () => ({
+  getNavbar: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -39,7 +39,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('StakingDeposit', () => {
-  const mockGetStakingDepositNavbar = jest.mocked(getStakingDepositNavbar);
+  const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
 
   beforeEach(() => {
@@ -67,8 +67,8 @@ describe('StakingDeposit', () => {
     expect(getByText('Network Fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
 
-    expect(mockGetStakingDepositNavbar).toHaveBeenCalled();
-    expect(mockGetStakingDepositNavbar).toHaveBeenCalledWith({
+    expect(mockGetNavbar).toHaveBeenCalled();
+    expect(mockGetNavbar).toHaveBeenCalledWith({
       title: 'Stake',
       onReject: mockOnReject,
     });
