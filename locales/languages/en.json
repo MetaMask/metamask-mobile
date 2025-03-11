@@ -11,7 +11,10 @@
       "checkbox_label": "I have acknowledged the alert and still want to proceed",
       "review_alerts": "Review all alerts",
       "message": "We suggest you reject this request. If you continue, you might put your assets at risk."
-    }
+    },
+    "inline_alert_label": "Alert",
+    "review_alerts": "Review alerts",
+    "review_alert": "Review alert"
   },
   "blockaid_banner": {
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
@@ -1880,6 +1883,7 @@
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
     "add_specific_network": "Add {{network_name}}",
+    "update_network": "Update {{network_name}}",
     "select_network": "Select a network",
     "enabled_networks": "Enabled networks",
     "additional_networks": "Additional networks",
@@ -2802,7 +2806,7 @@
     "token_to_verify": "to verify this is the token you're looking for.",
     "continue": "Continue",
     "select_a_token": "Select a token",
-    "search_token": "Search for a token",
+    "search_token": "Enter token name or paste address",
     "no_tokens_result": "No tokens match “{{searchString}}”",
     "find_token_address": "Find token address",
     "cant_find_token": "Can’t find a token?",
@@ -3014,6 +3018,8 @@
     "title_new_network": "New network added",
     "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
     "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
+    "update_network_and_give_dapp_permission_warning": "You're updating this network in MetaMask and giving {{dapp_origin}} permission to use it.",
+    "request_update_network_url": "{{dapp_origin}} is requesting to update your default network URL. You can edit defaults and network information any time.",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
     "switch": "Switch Network"
@@ -3666,6 +3672,7 @@
     "title": {
       "signature": "Signature request",
       "permit": "Spending cap request",
+      "permit_revoke": "Remove permission",
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request"
     },
@@ -3699,6 +3706,7 @@
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
+      "info_revoke": "You're removing someone's permission to spend tokens from your account.",
       "label_change_type_bidding": "You bid",
       "label_change_type_listing": "You list",
       "label_change_type_nft_listing": "Listing price",
@@ -3731,5 +3739,9 @@
     "title": "Transactions just got smarter",
     "link": "Higher success rates",
     "description": " and MEV protection. Now on by default."
+  },
+  "bridge": {
+    "continue": "Continue",
+    "terms_and_conditions": "Terms & Conditions"
   }
 }
