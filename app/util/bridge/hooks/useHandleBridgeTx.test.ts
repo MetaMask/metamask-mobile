@@ -6,7 +6,7 @@ import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import { DummyQuotesWithApproval } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 
 // Mock the useHandleTx hook
-jest.mock('../useHandleTx', () => ({
+jest.mock('./useHandleTx', () => ({
   __esModule: true,
   default: jest.fn(),
 }));

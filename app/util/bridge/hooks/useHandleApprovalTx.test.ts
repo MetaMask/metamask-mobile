@@ -8,7 +8,7 @@ import { QuoteResponse } from '../../../components/UI/Bridge/types';
 
 // Mock the useHandleTx hook
 const mockHandleTx = jest.fn();
-jest.mock('../useHandleTx', () => ({
+jest.mock('./useHandleTx', () => ({
   __esModule: true,
   default: () => ({
     handleTx: mockHandleTx,

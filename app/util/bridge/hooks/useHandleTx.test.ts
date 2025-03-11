@@ -8,13 +8,13 @@ import * as networkSelectors from '../../../selectors/networkController';
 import * as txSelectors from '../../../selectors/confirmTransaction';
 import { getTransaction1559GasFeeEstimates } from '../../../components/UI/Swaps/utils/gas';
 
-jest.mock('../../../transaction-controller');
-jest.mock('../../../../actions/transaction');
+jest.mock('../../transaction-controller');
+jest.mock('../../../actions/transaction');
 jest.mock('react-redux', () => ({
   useSelector: (selector: any) => selector(),
 }));
 
-jest.mock('../../../../components/UI/Swaps/utils/gas', () => ({
+jest.mock('../../../components/UI/Swaps/utils/gas', () => ({
   getTransaction1559GasFeeEstimates: jest.fn(),
 }));
 
