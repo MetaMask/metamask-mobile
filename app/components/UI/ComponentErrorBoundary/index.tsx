@@ -42,7 +42,7 @@ class ComponentErrorBoundary extends React.Component<ComponentErrorBoundaryProps
         `Component Error Boundary: ${componentLabel}`,
         error?.message,
       );
-      return
+      return;
     }
     Logger.error(error, { View: this.props.componentLabel, ...errorInfo });
   }

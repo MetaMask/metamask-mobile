@@ -1,4 +1,4 @@
-import type { UserTraits, GroupTraits, SegmentClient } from '@segment/analytics-react-native';
+import type {UserTraits, GroupTraits, SegmentClient} from '@segment/analytics-react-native';
 import { PublicInterface } from '@metamask/utils';
 
 /**
