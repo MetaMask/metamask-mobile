@@ -188,6 +188,8 @@ stages:
       - ios_build_regression_tests: {}
       - android_build_regression_tests: {}
   run_regression_e2e_ios_android_stage:
+    envs:
+      - METAMASK_BUILD_TYPE: '${METAMASK_BUILD_TYPE:-main}'
     workflows:
       - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
@@ -208,8 +210,6 @@ stages:
       - run_tag_smoke_core_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
-      # Debug workflow to print environment variables
-      - debug_environment_variables: {}
       # Flask-specific workflows with conditional run_if
       - run_flask_tests_ios:
           run_if: '{{ getenv "METAMASK_BUILD_TYPE" | eq "flask" }}'
@@ -252,10 +252,8 @@ stages:
       - build_ios_flask_release: {}
   deploy_flask_build_release:
     workflows:
-      - deploy_android_to_store:
-          envs:
-            - MM_ANDROID_PACKAGE_NAME: 'io.metamask.flask'
-      - deploy_ios_to_store:
+      - deploy_android_flask_to_store: {}
+      - deploy_ios_to_store: {}
   build_e2e_flask_stage:
     abort_on_fail: true
     workflows:
@@ -274,6 +272,17 @@ workflows:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
   
+  # Environment setup for Flask workflows
+  setup_flask_environment:
+    steps:
+      - script@1:
+          title: Set Flask Environment
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key METAMASK_BUILD_TYPE --value "flask"
+                echo "Set METAMASK_BUILD_TYPE=flask for Flask workflows"
+  
   debug_environment_variables:
     steps:
       - script@1:
@@ -286,6 +295,21 @@ workflows:
                 echo "All environment variables:"
                 env | sort
                 echo "=== END DEBUG ==="
+  
+  # Add a new workflow for deploying Flask Android app
+  deploy_android_flask_to_store:
+    envs:
+      - MM_ANDROID_PACKAGE_NAME: 'io.metamask.flask'
+    steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+      - google-play-deploy:
+          inputs:
+            - app_path: $BITRISE_PLAY_STORE_ABB_PATH
+            - track: internal
+            - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
+            - package_name: $MM_ANDROID_PACKAGE_NAME
   
   set_commit_hash:
     steps:
@@ -800,23 +824,25 @@ workflows:
     after_run:
       - android_e2e_test
   run_flask_tests_ios:
+    before_run:
+      - setup_flask_environment
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/flask/*'
-      - METAMASK_BUILD_TYPE: 'flask'
-      # No TEST_SUITE_TAG is set intentionally
     after_run:
       - ios_e2e_test
+  
   run_flask_tests_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+    before_run:
+      - setup_flask_environment
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/flask/*'
-      - METAMASK_BUILD_TYPE: 'flask'
-      # No TEST_SUITE_TAG is set intentionally
     after_run:
       - android_e2e_test
+
   android_e2e_build:
     before_run:
       - code_setup
