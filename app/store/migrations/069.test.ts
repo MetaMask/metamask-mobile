@@ -23,7 +23,7 @@ describe('Migration: update currentCurrency in CurrencyController', () => {
     const state = { some: 'state' };
     mockedEnsureValidState.mockReturnValue(false);
 
-    const migratedState = await migrate(Promise.resolve(state));
+    const migratedState = migrate(state);
 
     expect(migratedState).toBe(state);
     expect(mockedCaptureException).not.toHaveBeenCalled();
@@ -39,7 +39,7 @@ describe('Migration: update currentCurrency in CurrencyController', () => {
     };
     mockedEnsureValidState.mockReturnValue(true);
 
-    const migratedState = await migrate(Promise.resolve(state));
+    const migratedState = migrate(state);
 
     expect(migratedState).toBe(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
@@ -60,7 +60,7 @@ describe('Migration: update currentCurrency in CurrencyController', () => {
     };
     mockedEnsureValidState.mockReturnValue(true);
 
-    const migratedState = await migrate(Promise.resolve(state));
+    const migratedState = migrate(state);
 
     expect(
       state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -83,7 +83,7 @@ describe('Migration: update currentCurrency in CurrencyController', () => {
     };
     mockedEnsureValidState.mockReturnValue(true);
 
-    const migratedState = await migrate(Promise.resolve(state));
+    const migratedState = migrate(state);
 
     expect(
       state.engine.backgroundState.CurrencyRateController.currentCurrency,
