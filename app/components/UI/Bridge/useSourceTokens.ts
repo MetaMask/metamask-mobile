@@ -23,7 +23,7 @@ interface GetNativeAssetParams {
   currentChainId: Hex;
 }
 
-type TokenIWithFiatAmount = TokenI & { tokenFiatAmount: number };
+export type TokenIWithFiatAmount = TokenI & { tokenFiatAmount: number };
 
 function getNativeToken({
   accountBalanceByChainId,
@@ -111,7 +111,7 @@ export const useSourceTokens = () => {
 
     // Get additional tokens from the token list for the current chain
     const chainTokens = erc20TokensByChain?.[currentChainId]?.data || {};
-    const additionalTokens = Object.values(chainTokens)
+    const additionalTokens: TokenIWithFiatAmount[] = Object.values(chainTokens)
       .filter((token): token is TokenListToken => {
         if (!token || typeof token !== 'object') return false;
         // Skip if token is already in tokensWithBalances
@@ -121,6 +121,7 @@ export const useSourceTokens = () => {
         ...token,
         balance: '0',
         balanceFiat: addCurrencySymbol(0, currentCurrency),
+        tokenFiatAmount: 0,
         logo: token.iconUrl || '',
         isETH: false,
         isNative: false,
@@ -129,7 +130,7 @@ export const useSourceTokens = () => {
         name: token.name,
         hasBalanceError: false,
         chainId: currentChainId,
-      } as TokenI));
+      }));
 
     // Add native token first, then tokens with balances, then additional tokens
     const allTokens = [

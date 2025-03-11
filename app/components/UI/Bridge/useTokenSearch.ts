@@ -1,17 +1,16 @@
 import { useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
-import { TokenI } from '../Tokens/types';
-
+import { TokenIWithFiatAmount } from './useSourceTokens';
 const MAX_TOKENS_RESULTS = 20;
 
 interface UseTokenSearchProps {
-  tokens: TokenI[];
+  tokens: TokenIWithFiatAmount[];
 }
 
 interface UseTokenSearchResult {
   searchString: string;
   setSearchString: (text: string) => void;
-  searchResults: TokenI[];
+  searchResults: TokenIWithFiatAmount[];
 }
 
 export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchResult {
@@ -34,8 +33,8 @@ export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchR
   const tokenSearchResults = useMemo(
     () => (tokenFuse.search(searchString)).slice(0, MAX_TOKENS_RESULTS).sort((a, b) => {
       // Sort results by balance fiat in descending order
-      const balanceA = parseFloat(a.balanceFiat);
-      const balanceB = parseFloat(b.balanceFiat);
+      const balanceA = a.tokenFiatAmount;
+      const balanceB = b.tokenFiatAmount;
       return balanceB - balanceA;
     }),
     [searchString, tokenFuse],
