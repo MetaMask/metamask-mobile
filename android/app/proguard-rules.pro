@@ -51,3 +51,39 @@
 
 -dontwarn kotlinx.serialization.SerialName
 -dontwarn kotlinx.serialization.Serializable
+
+# Don't warn about missing sun.misc.Unsafe
+-dontwarn sun.misc.Unsafe
+
+# Keep ListenableFuture
+-keep class com.google.common.util.concurrent.ListenableFuture { *; }
+
+# Don't warn about ASM classes
+-dontwarn org.objectweb.asm.**
+
+# Don't warn about missing Huawei classes if not using them
+-dontwarn com.huawei.hms.ads.installreferrer.api.**
+
+# JNA related classes
+-dontwarn com.sun.jna.**
+-keep class com.sun.jna.** { *; }
+
+# Java instrumentation classes
+-dontwarn java.lang.instrument.**
+-keep class java.lang.instrument.** { *; }
+
+# Java management classes
+-dontwarn java.lang.management.**
+-keep class java.lang.management.** { *; }
+
+# Mockito related classes
+-dontwarn org.mockito.**
+-keep class org.mockito.** { *; }
+
+# OpenTest4J
+-dontwarn org.opentest4j.**
+-keep class org.opentest4j.** { *; }
+
+# ByteBuddy (used by Mockito)
+-dontwarn net.bytebuddy.**
+-keep class net.bytebuddy.** { *; }
