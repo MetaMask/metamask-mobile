@@ -1344,6 +1344,19 @@ workflows:
                 node -v
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask
+                  # Create necessary directories if they don't exist
+                  mkdir -p $PROJECT_LOCATION/app/build/outputs/apk/qa/release/
+                  # Determine Flask APK path (adjust this based on actual output location)
+                  FLASK_APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
+                  # Create symbolic link or copy the Flask APK to the expected QA APK path
+                  if [ -f "$FLASK_APK_PATH" ]; then
+                    cp "$FLASK_APK_PATH" $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+                    echo "Flask APK copied to expected QA path"
+                  else
+                    echo "Warning: Flask APK not found at $FLASK_APK_PATH"
+                    # List available APKs to help debug
+                    find $PROJECT_LOCATION/app/build/outputs -name "*.apk" -type f
+                  fi
                 else
                   GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
                 fi
@@ -1628,6 +1641,19 @@ workflows:
                 node -v
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
+                  # Create necessary directories if they don't exist
+                  mkdir -p ios/build/output/
+                  # Determine Flask IPA path (adjust this based on actual output location)
+                  FLASK_IPA_PATH=ios/build/output/MetaMask-Flask.ipa
+                  # Create symbolic link or copy the Flask IPA to the expected QA IPA path
+                  if [ -f "$FLASK_IPA_PATH" ]; then
+                    cp "$FLASK_IPA_PATH" ios/build/output/MetaMask-QA.ipa
+                    echo "Flask IPA copied to expected QA path"
+                  else
+                    echo "Warning: Flask IPA not found at $FLASK_IPA_PATH"
+                    # List available IPAs to help debug
+                    find ios/build/output -name "*.ipa" -type f
+                  fi
                 else
                   GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
                 fi
