@@ -1,9 +1,8 @@
-/* eslint-disable no-script-url */
 import isLinkSafe from './linkCheck';
-import * as featureFlagController from '../selectors/featureFlagController';
 
-// Mock the feature flag selector to ensure predictable test results
-jest.spyOn(featureFlagController, 'selectProductSafetyDappScanningEnabled').mockReturnValue(false);
+jest.mock('../selectors/featureFlagController', () => ({
+  selectProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
+}));
 
 jest.mock('../core/Engine', () => ({
   context: {
