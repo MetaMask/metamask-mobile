@@ -164,6 +164,52 @@ describe('AssetOverview', () => {
     expect(container).toMatchSnapshot();
   });
 
+  it('should render correctly when balance is undefined', async () => {
+    const container = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+        networkName="Ethereum Mainnet"
+      />,
+      {
+        state: {
+          ...mockInitialState,
+          engine: {
+            ...mockInitialState.engine,
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              NetworkController: {
+                ...mockNetworkState({
+                  chainId: '0x38',
+                  id: 'bsc',
+                  nickname: 'Binance Smart Chain',
+                  ticker: 'BNB',
+                  blockExplorerUrl: 'https://bscscan.com',
+                }),
+              },
+              TokenRatesController: {
+                marketData: {
+                  '0x38': {
+                    [zeroAddress()]: { price: 0.005 },
+                  },
+                },
+              },
+              AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+              AccountTrackerController: {
+                accountsByChainId: {
+                  '0x38': {},
+                },
+              } as const,
+            },
+          },
+        },
+      },
+    );
+    expect(container).toMatchSnapshot();
+  });
+
   it('should handle buy button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
