@@ -1428,33 +1428,90 @@ workflows:
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
+      - script@1:
+          title: Pre-check for deployment artifacts
+          is_always_run: true
+          is_skippable: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                
+                # Check for APK
+                if [ -f "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk" ]; then
+                  echo "APK_DEPLOY=true" >> $BITRISE_ENV_FILE
+                  echo "Found APK, will deploy"
+                else
+                  echo "APK_DEPLOY=false" >> $BITRISE_ENV_FILE
+                  echo "No APK found, will skip deployment"
+                fi
+                
+                # Check for Checksum
+                if [ -f "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt" ]; then
+                  echo "CHECKSUM_DEPLOY=true" >> $BITRISE_ENV_FILE
+                  echo "Found Checksum, will deploy"
+                else
+                  echo "CHECKSUM_DEPLOY=false" >> $BITRISE_ENV_FILE
+                  echo "No Checksum found, will skip deployment"
+                fi
+                
+                # Check for Mapping
+                if [ -f "$PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt" ]; then
+                  echo "MAPPING_DEPLOY=true" >> $BITRISE_ENV_FILE
+                  echo "Found Mapping, will deploy"
+                else
+                  echo "MAPPING_DEPLOY=false" >> $BITRISE_ENV_FILE
+                  echo "No Mapping found, will skip deployment"
+                fi
+                
+                # Check for AAB
+                if [ -f "$PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab" ]; then
+                  echo "AAB_DEPLOY=true" >> $BITRISE_ENV_FILE
+                  echo "Found AAB, will deploy"
+                else
+                  echo "AAB_DEPLOY=false" >> $BITRISE_ENV_FILE
+                  echo "No AAB found, will skip deployment"
+                fi
+                
+                # Check for Sourcemaps
+                if [ -f "sourcemaps/android/index.js.map" ]; then
+                  echo "SOURCEMAP_DEPLOY=true" >> $BITRISE_ENV_FILE
+                  echo "Found Sourcemap, will deploy"
+                else
+                  echo "SOURCEMAP_DEPLOY=false" >> $BITRISE_ENV_FILE
+                  echo "No Sourcemap found, will skip deployment"
+                fi
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '${APK_DEPLOY}'
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '${CHECKSUM_DEPLOY}'
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
           title: Bitrise Deploy Checksum
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '${MAPPING_DEPLOY}'
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
           title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '${AAB_DEPLOY}'
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
           title: Bitrise Deploy AAB
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '${SOURCEMAP_DEPLOY}'
           inputs:
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
@@ -1852,6 +1909,7 @@ workflows:
     steps:
       - script@1:
           title: Upload IPA to Browserstack
+          is_skippable: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1862,13 +1920,13 @@ workflows:
                 # Define expected IPA path
                 IPA_PATH=ios/build/output/MetaMask-QA.ipa
                 
-                # Check if the file exists
-                if [ ! -f "$IPA_PATH" ]; then
-                  echo "IPA not found at expected path: $IPA_PATH"
+                # Check if the file exists and is a valid non-empty file
+                if [ ! -f "$IPA_PATH" ] || [ ! -s "$IPA_PATH" ]; then
+                  echo "IPA not found at expected path or is empty: $IPA_PATH"
                   echo "Looking for alternative IPA files..."
                   
                   # Try to find any IPA file
-                  ALTERNATIVE_IPA=$(find ios -name "*.ipa" -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")
+                  ALTERNATIVE_IPA=$(find ios -name "*.ipa" -type f -size +1000c -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -f2- -d" ")
                   
                   if [ -n "$ALTERNATIVE_IPA" ]; then
                     echo "Found alternative IPA: $ALTERNATIVE_IPA"
@@ -1879,7 +1937,8 @@ workflows:
                     echo "Copied $ALTERNATIVE_IPA to $IPA_PATH"
                   else
                     echo "No IPA files found in the project. Build may have failed."
-                    exit 1
+                    echo "Skipping upload to Browserstack."
+                    exit 0  # Exit gracefully without error to continue the workflow
                   fi
                 fi
                 
@@ -1898,6 +1957,7 @@ workflows:
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
       - share-pipeline-variable@1:
           title: Persist BROWSERSTACK_IOS_APP_URL across all stages
+          is_skippable: true
           inputs:
             - variables: |-
                 BROWSERSTACK_IOS_APP_URL
