@@ -105,10 +105,6 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style, testID }) {
     }
 
     if (Object.keys(imageIcons).includes(symbol)) {
-      console.log('HELLO image icons', {
-        symbol,
-        imageIcon: imageIcons[symbol],
-      });
       return imageIcons[symbol];
     }
 
