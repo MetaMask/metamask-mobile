@@ -9,7 +9,6 @@ import Badge, { BadgeVariant } from '../../../component-library/components/Badge
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import NetworkAssetLogo from '../NetworkAssetLogo';
 import Text, { TextVariant, TextColor } from '../../../component-library/components/Texts/Text';
 import { balanceToFiat, renderFromTokenMinimalUnit } from '../../../util/number';
 import { selectCurrentCurrency, selectConversionRate } from '../../../selectors/currencyRateController';
@@ -17,6 +16,7 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectChainId } from '../../../selectors/networkController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
+import TokenIcon from '../Swaps/components/TokenIcon';
 
 interface TokenSelectorItemProps {
   token: TokenI;
@@ -77,10 +77,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
   const balanceWithSymbol = hasBalance ? `${formattedBalance} ${token.symbol}` : undefined;
 
-  if (token.isNative) {
-    console.log('HELLO', { token });
-  }
-
   return (
     <AssetElement
       key={token.address}
@@ -100,10 +96,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         }
       >
         {token.isNative ? (
-          <NetworkAssetLogo
-            chainId={currentChainId}
+          <TokenIcon
+            symbol={token.symbol}
+            icon={token.image}
             style={styles.ethLogo}
-            ticker={token.ticker || ''}
             big={false}
             biggest={false}
             testID={`network-logo-${token.symbol}`}
