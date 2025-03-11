@@ -54,7 +54,7 @@ const createStyles = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       borderRadius: 8,
       borderWidth: 1,
-      borderColor: theme.colors.border.default,
+      borderColor: theme.colors.border.muted,
     },
     searchIcon: {
       marginRight: 8,
