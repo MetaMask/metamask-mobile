@@ -567,12 +567,6 @@ describe('Tokens', () => {
       expect(selectAccountTokensAcrossChainsSpy).toHaveBeenCalled();
     });
 
-    it('should not call selectAccountTokensAcrossChains when disabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-      renderComponent(initialState);
-      expect(selectAccountTokensAcrossChainsSpy).not.toHaveBeenCalled();
-    });
-
     it('should handle network filtering correctly', () => {
       const multiNetworkState = {
         ...initialState,

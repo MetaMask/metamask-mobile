@@ -6,12 +6,12 @@ import {
 } from '@metamask/utils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { SnapUIAvatar } from '../SnapUIAvatar/SnapUIAvatar';
-import { shortenString } from '../../../../util/notifications/methods';
+import { shortenString } from '../../../util/notifications/methods';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { Box } from '../../Box/Box';
-import { AlignItems, FlexDirection } from '../../Box/box.types';
+} from '../../../component-library/components/Texts/Text';
+import { Box } from '../../UI/Box/Box';
+import { AlignItems, FlexDirection } from '../../UI/Box/box.types';
 import { useDisplayName } from './useDisplayName';
 
 export interface SnapUIAddressProps {
