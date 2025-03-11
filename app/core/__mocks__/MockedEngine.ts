@@ -5,7 +5,15 @@ import Engine from '../../core/Engine';
 import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringControllerTestUtils';
 
 export const mockedEngine = {
-  init: () => Engine.init({}),
+  init: () => Engine.init({
+    RemoteFeatureFlagController: {
+      remoteFeatureFlags: {
+        confirmation_redesign: { signatures: false, staking_transactions: false },
+        productSafetyDappScanning: false
+      },
+      cacheTimestamp: 0
+    }
+  }),
   context: {
     KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
     NetworkController: {

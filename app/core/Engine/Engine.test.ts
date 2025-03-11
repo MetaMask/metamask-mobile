@@ -45,12 +45,33 @@ describe('Engine', () => {
   const validAddress = MOCK_ADDRESS_1;
   const mockAccount = createMockInternalAccount(validAddress, 'Test Account');
 
+  beforeEach(() => {
+    jest.spyOn(store, 'getState').mockReturnValue({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              confirmation_redesign: { signatures: false, staking_transactions: false },
+              productSafetyDappScanning: false
+            },
+            cacheTimestamp: 0
+          }
+        }
+      }
+    } as unknown as RootState);
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
   it('should expose an API', () => {
-    const engine = Engine.init({});
+    const engine = Engine.init({
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 0
+      }
+    });
     expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
     expect(engine.context).toHaveProperty('AssetsContractController');
@@ -85,21 +106,63 @@ describe('Engine', () => {
   });
 
   it('calling Engine.init twice returns the same instance', () => {
-    const engine = Engine.init({});
-    const newEngine = Engine.init({});
-    expect(engine).toStrictEqual(newEngine);
+    const engine = Engine.init({
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 0
+      }
+    });
+    const newEngine = Engine.init({
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 0
+      }
+    });
+    expect(engine).toBe(newEngine);
+  });
+
+  it('calling Engine.init with keyringController twice returns the same instance', () => {
+    const engine = Engine.init({
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 0
+      }
+    });
+    const keyringControllerState = null;
+    const newEngine = Engine.init({
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 0
+      }
+    }, keyringControllerState);
+    expect(engine).toBe(newEngine);
   });
 
   it('calling Engine.destroy deletes the old instance', async () => {
-    const engine = Engine.init({});
+    const engine = Engine.init({
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 0
+      }
+    });
     await engine.destroyEngineInstance();
-    const newEngine = Engine.init({});
+    const newEngine = Engine.init({
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 0
+      }
+    });
     expect(engine).not.toStrictEqual(newEngine);
   });
 
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
-    const engine = Engine.init({});
+    const engine = Engine.init({
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 0
+      }
+    });
     const initialBackgroundState = engine.datamodel.state;
     expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
@@ -484,9 +547,26 @@ describe('Transaction event handlers', () => {
   let engine: EngineClass;
 
   beforeEach(() => {
-    engine = Engine.init({});
+    engine = Engine.init({
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {},
+        cacheTimestamp: 0
+      }
+    });
     jest.spyOn(MetaMetrics.getInstance(), 'trackEvent').mockImplementation();
-    jest.spyOn(store, 'getState').mockReturnValue({} as RootState);
+    jest.spyOn(store, 'getState').mockReturnValue({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              confirmation_redesign: { signatures: false, staking_transactions: false },
+              productSafetyDappScanning: false
+            },
+            cacheTimestamp: 0
+          }
+        }
+      }
+    } as unknown as RootState);
   });
 
   afterEach(() => {
