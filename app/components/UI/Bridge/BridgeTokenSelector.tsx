@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, FlatList, TouchableOpacity, TextInput, View, Platform } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -22,9 +22,7 @@ import { TokenSelectorItem } from './TokenSelectorItem';
 import { useSourceTokens } from './useSourceTokens';
 import { strings } from '../../../../locales/i18n';
 import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
-import Fuse from 'fuse.js';
-
-const MAX_TOKENS_RESULTS = 20;
+import { useTokenSearch } from './useTokenSearch';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -81,7 +79,9 @@ export const BridgeTokenSelector: React.FC = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const tokensList = useSourceTokens();
   const searchInput = useRef<TextInput>(null);
-  const [searchString, setSearchString] = useState('');
+  const { searchString, setSearchString, searchResults } = useTokenSearch({
+    tokens: tokensList || [],
+  });
 
   useEffect(() => {
     const { BridgeController } = Engine.context;
@@ -110,27 +110,6 @@ export const BridgeTokenSelector: React.FC = () => {
     };
   }, [networkConfigurations]);
 
-  const tokenFuse = useMemo(
-    () =>
-      new Fuse(tokensList || [], {
-        shouldSort: true,
-        threshold: 0.45,
-        location: 0,
-        distance: 100,
-        maxPatternLength: 32,
-        minMatchCharLength: 1,
-        keys: ['symbol', 'address', 'name'],
-      }),
-    [tokensList],
-  );
-
-  const tokenSearchResults = useMemo(
-    () =>
-      (tokenFuse.search(searchString)).slice(0, MAX_TOKENS_RESULTS),
-    [searchString, tokenFuse],
-  );
-  const tokensToRender = searchString.length > 0 ? tokenSearchResults : tokensList;
-
   const renderItem = useCallback(({ item }: { item: TokenI }) => {
     const networkDetails = getNetworkBadgeDetails(currentChainId);
 
@@ -152,12 +131,12 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const handleSearchTextChange = useCallback((text: string) => {
     setSearchString(text);
-  }, []);
+  }, [setSearchString]);
 
   const handleClearSearch = useCallback(() => {
     setSearchString('');
     searchInput?.current?.focus();
-  }, []);
+  }, [setSearchString]);
 
   const renderEmptyList = useMemo(
     () => (
@@ -229,7 +208,7 @@ export const BridgeTokenSelector: React.FC = () => {
         </Box>
 
         <FlatList
-          data={tokensToRender}
+          data={searchResults}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
