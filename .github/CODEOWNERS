@@ -35,6 +35,7 @@ app/reducers/fiatOrders/             @MetaMask/ramp
 
 # Confirmation Team
 app/components/Views/confirmations   @MetaMask/confirmations
+app/core/Engine/controllers/transaction-controller             @MetaMask/confirmations
 ppom                                 @MetaMask/confirmations
 
 # All below files are maintained by the SDK team because they contain SDK related code, WalletConnect integrations, or critical SDK flows.
@@ -86,6 +87,9 @@ app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
 # Snaps Team
 **/snaps/**                          @MetaMask/snaps-devs
 **/Snaps/**                          @MetaMask/snaps-devs
+
+# Co-owned by Confirmations team and Snaps team
+app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/snaps-devs
 
 # Wallet API Platform Team
  app/core/RPCMethods/                @MetaMask/wallet-api-platform-engineers
