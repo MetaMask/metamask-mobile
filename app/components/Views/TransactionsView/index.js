@@ -21,7 +21,6 @@ import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
   selectChainId,
-  selectNetworkConfigurations,
   selectProviderType,
 } from '../../../selectors/networkController';
 import {

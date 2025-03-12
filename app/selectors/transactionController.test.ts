@@ -7,6 +7,7 @@ import {
   selectTransactionMetadataById,
   selectSortedTransactions,
 } from './transactionController';
+import { time } from 'console';
 
 jest.mock('./smartTransactionsController', () => ({
   selectPendingSmartTransactionsBySender: (state: {
@@ -179,6 +180,37 @@ describe('TransactionController Selectors', () => {
         pendingSmartTransactions: [],
       } as unknown as RootState;
       expect(selectSortedTransactions(state)).toStrictEqual([]);
+    });
+
+    it('merge non-replaced transactions and pending smart when time is not present', () => {
+      // Transactions with one replaced transaction and two non-replaced ones
+      const transactions = [
+        { id: '1' },
+        { id: '2', time: 50, replacedBy: 'x', replacedById: 'y', hash: 'z' }, // replaced, filtered out
+        { id: '3' },
+      ];
+      // Pending smart transactions provided via our mocked selector
+      const pendingSmartTransactions = [{ id: '4' }, { id: '5', time: 250 }];
+
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions,
+            },
+          },
+        },
+        pendingSmartTransactions,
+      } as unknown as RootState;
+
+      const expectedSorted = [
+        { id: '5', time: 250 },
+        { id: '1' },
+        { id: '3' },
+        { id: '4' },
+      ];
+
+      expect(selectSortedTransactions(state)).toStrictEqual(expectedSorted);
     });
   });
 });
