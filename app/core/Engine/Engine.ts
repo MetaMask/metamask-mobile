@@ -186,6 +186,7 @@ import { createMultichainRatesController } from './controllers/RatesController/u
 import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
 import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
+import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
@@ -1138,6 +1139,7 @@ export class Engine {
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
+        MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
       },
       persistedState: initialState as EngineState,
@@ -1168,6 +1170,8 @@ export class Engine {
       controllersByName.MultichainAssetsRatesController;
     const multichainBalancesController =
       controllersByName.MultichainBalancesController;
+    const multichainTransactionsController =
+      controllersByName.MultichainTransactionsController;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -1478,6 +1482,7 @@ export class Engine {
       RatesController: multichainRatesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
+      MultichainTransactionsController: multichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
@@ -2106,6 +2111,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
       BridgeController,
@@ -2152,6 +2158,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
       BridgeController,
