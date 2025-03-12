@@ -374,6 +374,9 @@
       }
     }
   },
+  "MultichainTransactionsController": {
+    "nonEvmTransactions": {}
+  },
   "MultichainAssetsController": {
     "accountsAssets": {},
     "assetsMetadata": {}

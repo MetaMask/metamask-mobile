@@ -9,6 +9,7 @@ import { getCronjobControllerMessenger } from './cronjob-controller-messenger/cr
 import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets-rates-controller-messenger/multichain-assets-rates-controller-messenger';
 import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger/multichain-assets-controller-messenger';
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
+import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
 import {
   getTransactionControllerInitMessenger,
@@ -53,6 +54,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   MultichainBalancesController: {
     getMessenger: getMultichainBalancesControllerMessenger,
+    getInitMessenger: noop,
+  },
+  MultichainTransactionsController: {
+    getMessenger: getMultichainTransactionsControllerMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF

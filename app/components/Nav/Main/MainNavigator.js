@@ -828,7 +828,7 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
-    <Stack.Screen name="Bridge" component={Bridge} />
+    <Stack.Screen name={Routes.BRIDGE} component={Bridge} />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
     <Stack.Screen
       name="StakeModals"
