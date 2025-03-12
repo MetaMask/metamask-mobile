@@ -289,7 +289,6 @@ class Asset extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
-    console.log('Assets componentDidUpdate ..........', Date.now());
     if (
       prevProps.chainId !== this.props.chainId ||
       prevProps.selectedInternalAccount.address !==

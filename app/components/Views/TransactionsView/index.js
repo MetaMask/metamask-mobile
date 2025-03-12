@@ -73,7 +73,6 @@ const TransactionsView = ({
 
   const filterTransactions = useCallback(
     (networkId) => {
-      console.log('filterTransactions invoked at:', Date.now());
       if (networkId === NETWORK_ID_LOADING) return;
 
       let accountAddedTimeInsertPointFound = false;

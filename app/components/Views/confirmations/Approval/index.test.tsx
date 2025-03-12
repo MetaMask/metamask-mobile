@@ -13,14 +13,15 @@ import initialRootState from '../../../../util/test/initial-root-state';
 const TRANSACTION_ID_MOCK = '123';
 jest.mock('../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
-  selectShouldUseSmartTransaction: () => false
+  selectShouldUseSmartTransaction: () => false,
+  selectPendingSmartTransactions: () => [],
 }));
 
 jest.mock('../../../../selectors/preferencesController', () => ({
   selectSmartTransactionsBannerDismissed: () => false,
   selectSmartTransactionsMigrationApplied: () => false,
   selectSmartTransactionsOptInStatus: () => false,
-  selectUseTransactionSimulations: () => false
+  selectUseTransactionSimulations: () => false,
 }));
 
 jest.mock('../../../../util/dappTransactions', () => ({
@@ -49,11 +50,11 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../../../../selectors/confirmTransaction', () => ({
   selectCurrentTransactionSecurityAlertResponse: () => null,
   selectCurrentTransactionMetadata: () => null,
-  selectGasFeeEstimates: () => ({})
+  selectGasFeeEstimates: () => ({}),
 }));
 
 jest.mock('../../../../selectors/tokenListController', () => ({
-  selectTokenList: () => ({})
+  selectTokenList: () => ({}),
 }));
 
 const Stack = createStackNavigator();
@@ -67,7 +68,8 @@ const routeMock = {
   params: {},
 };
 
-const renderComponent = ({ store }: { store: Store }) => render(
+const renderComponent = ({ store }: { store: Store }) =>
+  render(
     <Provider store={store}>
       <ThemeContext.Provider value={mockTheme}>
         <NavigationContainer>
