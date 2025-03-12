@@ -79,18 +79,26 @@ describe('StorageWrapper', () => {
   });
 
   it('use ReadOnlyStore on E2E', async () => {
-    process.env.IS_TEST = 'true';
-    process.env.METAMASK_ENVIRONMENT = 'test';
+    jest.mock('../util/test/utils', () => ({
+      isTest: true,
+    }));
 
     const getItemSpy = jest.spyOn(StorageWrapper, 'getItem');
     const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+    const deleteItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
 
     await StorageWrapper.setItem('test-key', 'test-value');
 
-    const result = await StorageWrapper.getItem('test-key');
+    const currentItemValue = await StorageWrapper.getItem('test-key');
+
+    await StorageWrapper.removeItem('test-key');
+
+    const itemValueAfterRemoval = await StorageWrapper.getItem('test-key');
 
     expect(setItemSpy).toHaveBeenCalledWith('test-key', 'test-value');
     expect(getItemSpy).toHaveBeenCalledWith('test-key');
-    expect(result).toBe('test-value');
+    expect(deleteItemSpy).toHaveBeenCalledWith('test-key');
+    expect(currentItemValue).toBe('test-value');
+    expect(itemValueAfterRemoval).toBeNull();
   });
 });
