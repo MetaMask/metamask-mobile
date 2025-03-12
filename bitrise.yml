@@ -1409,18 +1409,18 @@ workflows:
                 inputs:
                   - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/browserstack_uploaded_apps.json:BROWSERSTACK_UPLOADED_APPS_LIST
                 title: Save Browserstack uploaded apps JSON
-        wdio_android_e2e_test:
-          before_run:
-            - code_setup
-          after_run:
-            - notify_failure
-          steps:
-            - script@1:
-                title: Run Android E2E tests on Browserstack
-                is_always_run: true
-                inputs:
-                  - content: |-
-                      #!/usr/bin/env bash
+  wdio_android_e2e_test:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - script@1:
+          title: Run Android E2E tests on Browserstack
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
       
                       # Check if TEST_TYPE is set to upgrade
                       if [ "$TEST_TYPE" = "upgrade" ]; then
@@ -1451,48 +1451,6 @@ workflows:
             bitrise.io:
               stack: linux-docker-android-22.04
               machine_type_id: standard
-  wdio_android_e2e_test:
-    before_run:
-      - code_setup
-    after_run:
-      - notify_failure
-    steps:
-      - script@1:
-          title: Run Android E2E tests on Browserstack
-          is_always_run: true
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-
-                # Check if TEST_TYPE is set to upgrade
-                if [ "$TEST_TYPE" = "upgrade" ]; then
-                  TEST_TYPE="--upgrade"
-
-                # Check if TEST_TYPE is set to performance
-                elif [ "$TEST_TYPE" = "performance" ]; then
-                  TEST_TYPE="--performance"
-                fi
-                yarn test:wdio:android:browserstack $TEST_TYPE
-      - script@1:
-          is_always_run: true
-          is_skippable: false
-          title: Package test reports
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                cd $BITRISE_SOURCE_DIR/wdio/reports/
-                zip -r test-report.zip html/
-                mv test-report.zip $BITRISE_DEPLOY_DIR/
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: true
-          is_skippable: false
-          inputs:
-            - deploy_path: $BITRISE_DEPLOY_DIR/test-report.zip
-          title: Deploy test report
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: standard
   wdio_ios_e2e_test:
     before_run:
       - code_setup
