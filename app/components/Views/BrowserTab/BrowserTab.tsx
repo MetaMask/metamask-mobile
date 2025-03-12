@@ -110,6 +110,7 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { RecommendedAction } from '@metamask/phishing-controller/';
 
 /**
  * Tab component for the in-app browser
@@ -323,6 +324,33 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
 
   /**
+   * Checks if an origin is allowed using an async call to an API.
+   */
+  const isAllowedOriginV2 = useCallback(
+    async (urlOrigin: string) => {
+      if (whitelist?.includes(urlOrigin)) {
+        return true;
+      }
+
+      const { PhishingController } = Engine.context;
+      const scanResult = await PhishingController.scanUrl(urlOrigin);
+      if (scanResult.fetchError) {
+        // Log error but don't block the site based on a failed scan
+        Logger.log(
+          '[BrowserTab][isAllowedOriginV2] Fetch error:',
+          scanResult.fetchError,
+        );
+        return true;
+      }
+      return !(
+        scanResult.recommendedAction === RecommendedAction.Block ||
+        scanResult.recommendedAction === RecommendedAction.Warn
+      );
+    },
+    [whitelist],
+  );
+
+  /**
    * Show a phishing modal when a url is not allowed
    */
   const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
@@ -461,10 +489,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       setProgress(0);
       return;
     }
+    isAllowedOriginV2(urlOrigin).then((isAllowed) => {
+      if (isAllowed) {
+        setAllowedInitialUrl(prefixedUrl);
+        setFirstUrlLoaded(true);
+        setProgress(0);
+        return;
+      }
+    });
 
     handleNotAllowedUrl(prefixedUrl);
     return;
-  }, [initialUrl, handleNotAllowedUrl, isAllowedOrigin]);
+  }, [initialUrl, handleNotAllowedUrl, isAllowedOrigin, isAllowedOriginV2]);
 
   /**
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
@@ -741,6 +777,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       handleNotAllowedUrl(urlOrigin);
       return false;
     }
+
+    isAllowedOriginV2(urlOrigin).then((isAllowed) => {
+      if (!isAllowed) {
+        handleNotAllowedUrl(urlOrigin);
+        return false;
+      }
+    });
 
     if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
       setIpfsBannerVisible(true);
