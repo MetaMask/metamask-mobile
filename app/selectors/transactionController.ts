@@ -45,11 +45,3 @@ export const selectTransactionMetadataById = createDeepEqualSelector(
   (_: RootState, id: string) => id,
   (transactions, id) => transactions.find((tx) => tx.id === id),
 );
-
-export const selectSortedTransactions = createDeepEqualSelector(
-  [selectNonReplacedTransactions, selectPendingSmartTransactionsBySender],
-  (nonReplacedTransactions, pendingSmartTransactions) =>
-    [...nonReplacedTransactions, ...pendingSmartTransactions].sort(
-      (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
-    ),
-);
