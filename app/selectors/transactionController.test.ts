@@ -7,7 +7,6 @@ import {
   selectTransactionMetadataById,
   selectSortedTransactions,
 } from './transactionController';
-import { time } from 'console';
 
 jest.mock('./smartTransactionsController', () => ({
   selectPendingSmartTransactionsBySender: (state: {
