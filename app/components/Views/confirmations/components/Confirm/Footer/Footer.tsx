@@ -1,27 +1,28 @@
-import { TransactionType } from '@metamask/transaction-controller';
 import React, { useMemo } from 'react';
 import { Linking, View } from 'react-native';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
-import Button, {
+import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
+import {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import AppConstants from '../../../../../../core/AppConstants';
+import { useLedgerContext } from '../../../context/LedgerContext';
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
-import { useLedgerContext } from '../../../context/LedgerContext';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
+import { isStakingConfirmation } from '../../../utils/confirm';
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
 
-const Footer = () => {
+export const Footer = () => {
   const { onConfirm, onReject } = useConfirmActions();
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
@@ -29,14 +30,12 @@ const Footer = () => {
   const { isLedgerAccount } = useLedgerContext();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
-  const isStakingConfirmation = [
-    TransactionType.stakingDeposit,
-    TransactionType.stakingUnstake,
-    TransactionType.stakingClaim,
-  ].includes(transactionMetadata?.type as TransactionType);
+  const isStakingConfirmationBool = isStakingConfirmation(
+    transactionMetadata?.type as string,
+  );
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,
-    isStakingConfirmation,
+    isStakingConfirmationBool,
   });
 
   const confirmButtonLabel = useMemo(() => {
@@ -49,32 +48,33 @@ const Footer = () => {
     return strings('confirm.confirm');
   }, [isLedgerAccount, isQRSigningInProgress]);
 
+  const buttons = [
+    {
+      variant: ButtonVariants.Secondary,
+      label: strings('confirm.reject'),
+      size: ButtonSize.Lg,
+      onPress: onReject,
+      testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
+    },
+    {
+      variant: ButtonVariants.Primary,
+      isDanger: securityAlertResponse?.result_type === ResultType.Malicious,
+      isDisabled: needsCameraPermission,
+      label: confirmButtonLabel,
+      size: ButtonSize.Lg,
+      onPress: onConfirm,
+      testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    },
+  ];
+
   return (
-    <View>
-      <View style={styles.buttonsContainer}>
-        <Button
-          onPress={onReject}
-          label={strings('confirm.reject')}
-          style={styles.rejectButton}
-          size={ButtonSize.Lg}
-          testID={ConfirmationFooterSelectorIDs.CANCEL_BUTTON}
-          variant={ButtonVariants.Secondary}
-          width={ButtonWidthTypes.Full}
-        />
-        <View style={styles.buttonDivider} />
-        <Button
-          onPress={onConfirm}
-          label={confirmButtonLabel}
-          style={styles.confirmButton}
-          size={ButtonSize.Lg}
-          testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-          isDanger={securityAlertResponse?.result_type === ResultType.Malicious}
-          disabled={confirmDisabled}
-        />
-      </View>
-      {isStakingConfirmation && (
+    <>
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        buttonPropsArray={buttons}
+        style={styles.base}
+      />
+      {isStakingConfirmationBool && (
         <View style={styles.textContainer}>
           <Text variant={TextVariant.BodySM}>
             {strings('confirm.staking_footer.part1')}
@@ -103,8 +103,6 @@ const Footer = () => {
           </Text>
         </View>
       )}
-    </View>
+    </>
   );
 };
-
-export default Footer;

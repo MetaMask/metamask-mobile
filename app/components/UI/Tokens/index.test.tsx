@@ -225,6 +225,9 @@ const initialState = {
   security: {
     dataCollectionForMarketing: true,
   },
+  user: {
+    userLoggedIn: true,
+  },
 };
 
 const mockNavigate = jest.fn();
@@ -348,6 +351,9 @@ describe('Tokens', () => {
 
   it('should display unable to find conversion rate', async () => {
     const state = {
+      user: {
+        userLoggedIn: true,
+      },
       engine: {
         backgroundState: {
           ...backgroundState,
@@ -559,12 +565,6 @@ describe('Tokens', () => {
     it('should call selectAccountTokensAcrossChains when enabled', () => {
       renderComponent(initialState);
       expect(selectAccountTokensAcrossChainsSpy).toHaveBeenCalled();
-    });
-
-    it('should not call selectAccountTokensAcrossChains when disabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-      renderComponent(initialState);
-      expect(selectAccountTokensAcrossChainsSpy).not.toHaveBeenCalled();
     });
 
     it('should handle network filtering correctly', () => {

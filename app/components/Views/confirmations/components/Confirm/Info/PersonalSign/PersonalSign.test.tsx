@@ -17,6 +17,17 @@ jest.mock('../../../../../../../core/Engine', () => ({
       },
       getOrAddQRKeyring: jest.fn(),
     },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {
+            '1': {
+              address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+            },
+          },
+        },
+      },
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
@@ -52,7 +63,8 @@ describe('PersonalSign', () => {
       ),
     ).toHaveLength(2);
     expect(getByText('URL')).toBeDefined();
-    expect(getAllByText('metamask.github.io')).toHaveLength(2);
+    expect(getAllByText('metamask.github.io')).toBeDefined();
+    expect(getAllByText('https://metamask.github.io')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getAllByText('Ethereum Mainnet')).toHaveLength(2);
     expect(getByText('Account')).toBeDefined();

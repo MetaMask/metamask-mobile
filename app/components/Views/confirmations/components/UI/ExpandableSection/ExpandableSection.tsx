@@ -39,7 +39,7 @@ const ExpandableSection = ({
   const [expanded, setExpanded] = useState(false);
 
   const iconStyle =
-    iconVerticalPosition === IconVerticalPosition.Top ? { top: 18 } : {};
+    iconVerticalPosition === IconVerticalPosition.Top ? { top: 20 } : {};
 
   return (
     <>

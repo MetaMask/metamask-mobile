@@ -8,7 +8,7 @@ buildscript {
 		compileSdkVersion = 34
 		targetSdkVersion = 34
 		// We use NDK 23 which has both M1 support and is the side-by-side NDK version from AGP.
-		ndkVersion = "24.0.8215888"
+		ndkVersion = "26.1.10909125"
 		bitriseNdkPath = "/usr/local/share/android-sdk/ndk-bundle"
 		kotlin_version = "1.7.22"
 		kotlinVersion = "$kotlin_version"
