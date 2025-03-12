@@ -60,6 +60,7 @@ function getNativeToken({
   };
 }
 
+// TODO Look into useMultichainBalances hook, or useGetFormattedTokensPerChain hook
 export const useSourceTokens = () => {
   const tokenBalances = useSelector(selectTokensBalances);
   const tokenSortConfig = useSelector(selectTokenSortConfig);
