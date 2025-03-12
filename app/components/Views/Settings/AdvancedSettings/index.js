@@ -347,6 +347,7 @@ class AdvancedSettings extends PureComponent {
                 </Text>
                 <View style={styles.toggle}>
                   <Switch
+                    testID={AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH}
                     value={smartTransactionsOptInStatus}
                     onValueChange={this.toggleSmartTransactionsOptInStatus}
                     trackColor={{

@@ -237,6 +237,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                     ],
                   ]
                 }
+                testID="smart_transactions_opt_in_switch"
                 thumbTintColor="#ffffff"
                 tintColor="#BBC0C566"
                 value={true}
