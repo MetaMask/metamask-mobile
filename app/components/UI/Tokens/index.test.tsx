@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 import Tokens from './';
 import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -325,7 +325,26 @@ describe('Tokens', () => {
     expect(getByText('Ethereum')).toBeDefined();
     await waitFor(() => expect(getByText('Bat')).toBeDefined());
     expect(getByText('Link')).toBeDefined();
+
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should show all balance with capitalized tickers', async () => {
+    const { getAllByTestId } = renderComponent({
+      ...initialState,
+      settings: {
+        primaryCurrency: 'usd',
+        hideZeroBalanceTokens: false,
+      },
+    });
+
+    const fiatBalances = getAllByTestId('fiat-balance-test-id');
+
+    fiatBalances.forEach((balance) => {
+      const originalText = balance.props.children;
+      const capitalizedText = balance.props.children.toUpperCase();
+      expect(originalText).toStrictEqual(capitalizedText);
+    });
   });
 
   it('navigates to Asset screen when token is pressed', () => {
