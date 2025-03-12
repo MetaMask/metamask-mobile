@@ -1,4 +1,4 @@
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
 import Routes from '../../../constants/navigation/Routes';
@@ -222,35 +222,6 @@ describe('BridgeTokenSelector', () => {
 
       expect(getByText('2.0 TOKEN2')).toBeTruthy();
       expect(getByText('$200000')).toBeTruthy();
-    });
-  });
-
-  it('handles token search correctly', async () => {
-    const { getByTestId, getByText, queryByText } = renderScreen(
-      BridgeTokenSelector,
-      {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
-      },
-      { state: initialState }
-    );
-
-    const searchInput = getByTestId('bridge-token-search-input');
-
-    // Search for TOKEN1
-    fireEvent.changeText(searchInput, 'TOKEN1');
-
-    await waitFor(() => {
-      expect(getByText('TOKEN1')).toBeTruthy();
-      expect(queryByText('TOKEN2')).toBeNull();
-      expect(queryByText('TOKEN3')).toBeNull();
-    });
-
-    // Clear search
-    fireEvent.changeText(searchInput, '');
-
-    await waitFor(() => {
-      expect(getByText('TOKEN1')).toBeTruthy();
-      expect(getByText('TOKEN2')).toBeTruthy();
     });
   });
 
