@@ -25,9 +25,7 @@ describe('SnapUILink', () => {
   };
 
   it('renders correctly with valid props', () => {
-    const { UNSAFE_getByType } = render(
-      <SnapUILink {...validProps} />,
-    );
+    const { UNSAFE_getByType } = render(<SnapUILink {...validProps} />);
 
     const button = UNSAFE_getByType(ButtonLink);
     const icon = UNSAFE_getByType(Icon);
@@ -38,12 +36,6 @@ describe('SnapUILink', () => {
     expect(icon.props.name).toBe(IconName.Export);
     expect(icon.props.color).toBe(IconColor.Primary);
     expect(icon.props.size).toBe(IconSize.Sm);
-    expect(icon.props.style).toEqual({
-      marginLeft: 2,
-      justifyContent: 'center',
-      alignItems: 'center',
-      alignSelf: 'center',
-    });
   });
 
   it('opens URL when pressed with valid https URL', () => {

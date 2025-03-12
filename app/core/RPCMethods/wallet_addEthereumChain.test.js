@@ -12,6 +12,7 @@ const mockEngine = Engine;
 const existingNetworkConfiguration = {
   id: 'test-network-configuration-id',
   chainId: '0x2',
+  name: 'Test Chain',
   rpcUrl: 'https://rpc.test-chain.com',
   ticker: 'TST',
   nickname: 'Test Chain',
@@ -31,9 +32,6 @@ jest.mock('../Engine', () => ({
     },
     MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
-    },
-    CurrencyRateController: {
-      updateExchangeRate: jest.fn(),
     },
     ApprovalController: {
       clear: jest.fn(),
@@ -93,6 +91,13 @@ const correctParams = {
   blockExplorerUrls: ['https://blockscout.com/xdai/mainnet'],
   nativeCurrency: { symbol: 'xDai', decimals: 18 },
   rpcUrls: ['https://rpc.gnosischain.com'],
+};
+
+const networkConfigurationResult = {
+  id: '1',
+  chainId: '0x64',
+  rpcEndpoints: [correctParams.rpcUrls[0]],
+  defaultRpcEndpointIndex: 0,
 };
 
 describe('RPC Method - wallet_addEthereumChain', () => {
@@ -331,7 +336,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     jest.mock('./networkChecker.util');
     jest
       .spyOn(Engine.context.NetworkController, 'addNetwork')
-      .mockResolvedValue({ rpcEndpoints: [] });
+      .mockReturnValue(networkConfigurationResult);
 
     await wallet_addEthereumChain({
       req: {
@@ -350,12 +355,8 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     it('should start and end a new approval flow if chain does not already exist', async () => {
       jest
         .spyOn(Engine.context.NetworkController, 'addNetwork')
-        .mockResolvedValue({
-          id: '1',
-          chainId: '0x64',
-          rpcEndpoints: [correctParams.rpcUrls[0]],
-          defaultRpcEndpointIndex: 0,
-        });
+        .mockReturnValue(networkConfigurationResult);
+
       await wallet_addEthereumChain({
         req: {
           params: [correctParams],
@@ -397,6 +398,10 @@ describe('RPC Method - wallet_addEthereumChain', () => {
   });
 
   it('should not modify/add permissions', async () => {
+    jest
+      .spyOn(Engine.context.NetworkController, 'addNetwork')
+      .mockReturnValue(networkConfigurationResult);
+
     const spyOnGrantPermissionsIncremental = jest.spyOn(
       Engine.context.PermissionController,
       'grantPermissionsIncremental',
@@ -414,20 +419,11 @@ describe('RPC Method - wallet_addEthereumChain', () => {
   it('should correctly add and switch to a new chain when chain is not already in wallet state ', async () => {
     const spyOnAddNetwork = jest
       .spyOn(Engine.context.NetworkController, 'addNetwork')
-      .mockResolvedValue({
-        id: '1',
-        chainId: '0x64',
-        rpcEndpoints: [correctParams.rpcUrls[0]],
-        defaultRpcEndpointIndex: 0,
-      });
+      .mockReturnValue(networkConfigurationResult);
 
     const spyOnSetActiveNetwork = jest.spyOn(
       Engine.context.MultichainNetworkController,
       'setActiveNetwork',
-    );
-    const spyOnUpdateExchangeRate = jest.spyOn(
-      Engine.context.CurrencyRateController,
-      'updateExchangeRate',
     );
 
     await wallet_addEthereumChain({
@@ -450,19 +446,14 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
   });
 
-  it('should not add a networkConfiguration that has a chainId that already exists in wallet state, and should switch to the existing network', async () => {
-    const spyOnAddNetwork = jest.spyOn(
-      Engine.context.NetworkController,
-      'addNetwork',
-    );
+  it('should update the networkConfiguration that has a chainId that already exists in wallet state, and should switch to the existing network', async () => {
+    const spyOnUpdateNetwork = jest
+      .spyOn(Engine.context.NetworkController, 'updateNetwork')
+      .mockReturnValue(networkConfigurationResult);
 
     const spyOnSetActiveNetwork = jest.spyOn(
       Engine.context.MultichainNetworkController,
       'setActiveNetwork',
-    );
-    const spyOnUpdateExchangeRate = jest.spyOn(
-      Engine.context.CurrencyRateController,
-      'updateExchangeRate',
     );
 
     const existingParams = {
@@ -484,7 +475,20 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       ...otherOptions,
     });
 
-    expect(spyOnAddNetwork).not.toHaveBeenCalled();
+    expect(spyOnUpdateNetwork).toHaveBeenCalledWith(
+      existingParams.chainId,
+      expect.objectContaining({
+        rpcEndpoints: expect.arrayContaining([
+          {
+            name: 'Test Chain',
+            type: 'custom',
+            url: 'https://different-rpc-url.com',
+          },
+        ]),
+        defaultRpcEndpointIndex: 1,
+      }),
+      undefined,
+    );
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
   });
 

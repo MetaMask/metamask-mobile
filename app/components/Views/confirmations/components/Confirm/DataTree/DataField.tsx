@@ -125,6 +125,8 @@ const DataField = memo(
           tokenDecimals={tokenDecimals}
         />
       );
+    } else if (type === 'bool') {
+      fieldDisplay = <Text>{value ? 'true' : 'false'}</Text>;
     } else {
       fieldDisplay = <Text>{value}</Text>;
     }
