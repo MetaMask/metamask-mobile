@@ -52,8 +52,6 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { PPOMController } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapController } from '@metamask/snaps-controllers';
-import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import {
   buildSnapEndowmentSpecifications,
