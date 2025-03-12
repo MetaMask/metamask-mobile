@@ -648,7 +648,9 @@ const Wallet = ({
   }
 
   const renderContent = useCallback(() => {
-    const assets = [...tokensByChainIdAndAddress];
+    const assets = tokensByChainIdAndAddress
+      ? [...tokensByChainIdAndAddress]
+      : [];
     if (nativeEvmAsset) {
       assets.push(nativeEvmAsset);
     }
