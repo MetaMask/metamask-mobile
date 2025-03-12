@@ -19,6 +19,7 @@ import {
   setTransactionObject,
   resetTransaction,
   setMaxValueMode,
+  setTransactionSendFlowContextualChainId,
 } from '../../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
@@ -110,6 +111,8 @@ import {
 } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { isNativeToken } from '../../utils/generic';
+import { selectSendFlowContextualChainId } from '../../../../../selectors/transaction';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -507,6 +510,10 @@ class Amount extends PureComponent {
      * Network client id
      */
     globalNetworkClientId: PropTypes.string,
+    /**
+     * Send flow contextual chain id
+     */
+    sendFlowContextualChainId: PropTypes.string,
   };
 
   state = {
@@ -527,6 +534,25 @@ class Amount extends PureComponent {
   updateNavBar = () => {
     const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
+    // Check initial value before setting
+    console.log(
+      '>>> Amount initial contextualChainId ',
+      this.props.sendFlowContextualChainId,
+    );
+
+    console.log(
+      '>>> toHexadecimal(this.props.sendFlowContextualChainId) ',
+      toHexadecimal(this.props.sendFlowContextualChainId),
+    );
+    // const networkConfiguration = selectNetworkConfigurationByChainId(
+    //   store.getState(),
+    //   toHexadecimal(this.props.sendFlowContextualChainId),
+    // );
+    console.log(
+      '>>> Amount sendFlowContextualNetworkConfiguration ',
+      this.props.sendFlowContextualNetworkConfiguration,
+    );
+
     navigation.setOptions(
       getSendFlowTitle(
         'send.amount',
@@ -537,6 +563,7 @@ class Amount extends PureComponent {
         null,
         true,
         true,
+        this.props.sendFlowContextualNetworkConfiguration?.name || '',
       ),
     );
   };
@@ -1619,6 +1646,11 @@ const mapStateToProps = (state, ownProps) => {
     swapsIsLive: swapsLivenessSelector(state),
     globalChainId,
     globalNetworkClientId,
+    sendFlowContextualChainId: selectSendFlowContextualChainId(state),
+    sendFlowContextualNetworkConfiguration: selectNetworkConfigurationByChainId(
+      state,
+      toHexadecimal(selectSendFlowContextualChainId(state)),
+    ),
   };
 };
 
@@ -1629,7 +1661,10 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(prepareTransaction(transaction)),
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
-  resetTransaction: () => dispatch(resetTransaction()),
+  resetTransaction: () => {
+    dispatch(setTransactionSendFlowContextualChainId(null));
+    dispatch(resetTransaction());
+  },
   setMaxValueMode: (maxValueMode) => dispatch(setMaxValueMode(maxValueMode)),
 });
 

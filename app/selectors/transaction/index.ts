@@ -1,2 +1,2 @@
 export const selectSendFlowContextualChainId = (state: any) =>
-  state.transaction.sendFlowContextualChainId;
+  state?.networkOnboarded?.sendFlowChainId;

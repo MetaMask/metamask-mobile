@@ -140,6 +140,7 @@ import { selectContractExchangeRatesByChainId } from '../../../../../selectors/t
 import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../utils/generic';
+import { setTransactionSendFlowContextualChainId } from '../../../../../actions/transaction';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -337,7 +338,10 @@ class Confirm extends PureComponent {
   setNetworkNonce = async () => {
     const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
+    const proposedNonce = await getNetworkNonce(
+      transaction,
+      globalNetworkClientId,
+    );
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -894,10 +898,7 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (
-      isNativeToken(selectedAsset) ||
-      selectedAsset.tokenId
-    ) {
+    if (isNativeToken(selectedAsset) || selectedAsset.tokenId) {
       return insufficientBalanceMessage;
     }
 
@@ -1429,7 +1430,9 @@ class Confirm extends PureComponent {
                 style={styles.blockaidBanner}
                 onContactUsClicked={this.onContactUsClicked}
               />
-              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
+              <SmartTransactionsMigrationBanner
+                style={styles.smartTransactionsMigrationBanner}
+              />
             </>
           )}
           {!selectedAsset.tokenId ? (
@@ -1636,7 +1639,10 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => ({
   prepareTransaction: (transaction) =>
     dispatch(prepareTransaction(transaction)),
-  resetTransaction: () => dispatch(resetTransaction()),
+  resetTransaction: () => {
+    dispatch(setTransactionSendFlowContextualChainId(null));
+    dispatch(resetTransaction());
+  },
   setTransactionId: (transactionId) =>
     dispatch(setTransactionId(transactionId)),
   setNonce: (nonce) => dispatch(setNonce(nonce)),

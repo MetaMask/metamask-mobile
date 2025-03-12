@@ -559,6 +559,7 @@ export function getSendFlowTitle(
   transaction,
   disableNetwork = true,
   showSelectedNetwork = false,
+  sendFlowContextualChainId = '',
 ) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -601,6 +602,7 @@ export function getSendFlowTitle(
         title={titleToRender}
         disableNetwork={disableNetwork}
         showSelectedNetwork={showSelectedNetwork}
+        networkName={sendFlowContextualChainId}
         source="SendFlow"
       />
     ),

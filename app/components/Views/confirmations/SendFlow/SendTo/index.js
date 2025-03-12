@@ -64,6 +64,8 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { toLowerCaseEquals } from '../../../../../util/general';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { selectSendFlowContextualChainId } from '../../../../../selectors/transaction';
+import { setTransactionSendFlowContextualChainId } from '../../../../../actions/transaction';
+import { store } from '../../../../../store';
 
 const dummy = () => true;
 
@@ -216,9 +218,32 @@ class SendFlow extends PureComponent {
     this.hardwareBackPress = () => true;
     BackHandler.addEventListener('hardwareBackPress', this.hardwareBackPress);
 
+    // Check initial value before setting
+    const initialContextualChainId = selectSendFlowContextualChainId(
+      store.getState(),
+    );
     console.log(
-      '>>> SendTo sendFlowContextualChainId:',
-      this.props.sendFlowContextualChainId,
+      '>>> SendTo initial contextualChainId before setting:',
+      initialContextualChainId,
+    );
+
+    // Initialize contextual chain ID with global chain ID
+    this.props.dispatch(
+      setTransactionSendFlowContextualChainId(this.props.globalChainId),
+    );
+
+    console.log(
+      '>>> SendTo initializing contextual chainId with global:',
+      this.props.globalChainId,
+    );
+
+    // Verify the state was set by checking selector directly
+    const contextualChainId = selectSendFlowContextualChainId(store.getState());
+    console.log(
+      '>>> SendTo after dispatch - globalChainId:',
+      this.props.globalChainId,
+      'contextualChainId:',
+      contextualChainId,
     );
   };
 
@@ -753,7 +778,11 @@ const mapDispatchToProps = (dispatch) => ({
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
   showAlert: (config) => dispatch(showAlert(config)),
-  resetTransaction: () => dispatch(resetTransaction()),
+  resetTransaction: () => {
+    dispatch(setTransactionSendFlowContextualChainId(null));
+    dispatch(resetTransaction());
+  },
+  dispatch: dispatch,
 });
 
 export default connect(

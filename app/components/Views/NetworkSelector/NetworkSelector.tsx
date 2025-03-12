@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -29,6 +29,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   selectIsAllNetworks,
   selectNetworkConfigurations,
+  selectChainId,
 } from '../../../selectors/networkController';
 import {
   selectShowTestNetworks,
@@ -102,6 +103,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import { setTransactionSendFlowContextualChainId } from '../../../actions/transaction';
+import { selectSendFlowContextualChainId } from '../../../selectors/transaction';
 
 interface infuraNetwork {
   name: string;
@@ -161,6 +163,42 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
+
+  // Get both chain IDs
+  const globalChainId = useSelector(selectChainId);
+  const contextualChainId = useSelector(selectSendFlowContextualChainId);
+  console.log(
+    '>>> NetworkSelector globalChainId:',
+    globalChainId,
+    '>>> NetworkSelector contextualChainId:',
+    contextualChainId,
+  );
+
+  // Use contextual chain ID for SendFlow, otherwise use global
+  const effectiveChainId =
+    route.params?.source === 'SendFlow' && contextualChainId
+      ? contextualChainId
+      : globalChainId;
+
+  useEffect(() => {
+    console.log('>>> NetworkSelector mounted, source:', route.params?.source);
+    const state = store.getState();
+    console.log(
+      '>>> NetworkSelector initial state check:',
+      selectSendFlowContextualChainId(state),
+    );
+  }, []); // Empty deps array for mount only
+
+  useEffect(() => {
+    // Initialize with the effective chain ID
+    if (route.params?.source === 'SendFlow' && contextualChainId) {
+      console.log(
+        '>>> NetworkSelector component used from send flow, should initialize with contextual chainId:',
+        contextualChainId,
+      );
+    }
+    // ... rest of initialization
+  }, [effectiveChainId]);
 
   const KEYBOARD_OFFSET = 120;
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
