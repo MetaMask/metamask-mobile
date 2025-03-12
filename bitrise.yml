@@ -1219,13 +1219,13 @@ workflows:
                 #!/usr/bin/env bash
                 node -v
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:android:devbuild
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
-                    METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
+                    yarn build:android:pre-release:bundle
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
-                    METAMASK_BUILD_TYPE='beta' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:beta
+                    yarn build:android:pre-release:bundle:beta
                 elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                    METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask
+                    yarn build:android:pre-release:bundle:flask
                 else
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
@@ -1295,6 +1295,7 @@ workflows:
   build_android_release:
     envs:
       - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'production' 
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1304,7 +1305,8 @@ workflows:
       - _android_build_template
   build_android_beta:
     envs:
-      - METAMASK_BUILD_TYPE: "beta"
+      - METAMASK_BUILD_TYPE: 'beta'
+      - METAMASK_ENVIRONMENT: 'production' 
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1316,6 +1318,7 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
       - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'production' 
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1326,8 +1329,9 @@ workflows:
   build_android_flask_release:
     envs:
       - METAMASK_BUILD_TYPE: 'flask'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
+      - METAMASK_ENVIRONMENT: 'production'
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
@@ -1337,15 +1341,12 @@ workflows:
     envs:
       - IS_DEV_BUILD: 'true'
       - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'prod'
     after_run:
       - _android_build_template
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
   build_android_qa:
       before_run:
         - code_setup
@@ -1566,13 +1567,13 @@ workflows:
                 #!/usr/bin/env bash
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:ios:devbuild
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
-                    METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+                    yarn build:ios:pre-release
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
-                    METAMASK_BUILD_TYPE='beta' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-beta
+                    yarn build:ios:pre-beta
                 elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                    METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
+                    yarn build:ios:pre-flask
                 else
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
@@ -1629,6 +1630,7 @@ workflows:
   build_ios_release:
     envs:
       - METAMASK_BUILD_TYPE: "main"
+      - METAMASK_ENVIRONMENT: 'production' 
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1639,6 +1641,7 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
       - METAMASK_BUILD_TYPE: "main"
+      - METAMASK_ENVIRONMENT: 'production' 
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1648,6 +1651,7 @@ workflows:
   build_ios_beta:
     envs:
       - METAMASK_BUILD_TYPE: "beta"
+      - METAMASK_ENVIRONMENT: 'production' 
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1657,6 +1661,7 @@ workflows:
   build_ios_flask_release:
     envs:
       - METAMASK_BUILD_TYPE: "flask"
+      - METAMASK_ENVIRONMENT: 'production' 
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
@@ -1667,6 +1672,7 @@ workflows:
     envs:
       - IS_DEV_BUILD: 'true'
       - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'MetaMask'
