@@ -1228,7 +1228,6 @@ workflows:
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - script@1:
-          title: Rename release files
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1252,6 +1251,7 @@ workflows:
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
                 envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
+          title: Rename release files
       - save-gradle-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
