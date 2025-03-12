@@ -50,8 +50,8 @@ function NativeRamp() {
   const [nativeRampService] = useState(
     () =>
       new NativeRampService(
-        'a9d9cc56-a524-4dd7-8008-59f36bd6fa97',
-        '9TRUtEM_RLns4Tp7h34wtvA2h*yc2ty2EhChtWtAdRko!EpVrpvH26xf_YJPM_qqiEG4LsL7TJiB6wg79BjtLGHdaKu6gHsceDHQ',
+        process.env.TRANSAK_API_KEY || '',
+        process.env.TRANSAK_FRONTEND_AUTH || '',
       ),
   );
 
