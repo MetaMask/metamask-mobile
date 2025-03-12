@@ -193,7 +193,10 @@ export const BridgeTokenSelector: React.FC = () => {
                 testID="bridge-token-search-input"
               />
               {searchString.length > 0 && (
-                <TouchableOpacity onPress={handleClearSearch}>
+                <TouchableOpacity 
+                  onPress={handleClearSearch}
+                  testID="bridge-token-search-clear-button"
+                >
                   <Icon
                     name={IconName.Close}
                     size={IconSize.Sm}

@@ -38,7 +38,7 @@ describe('BridgeTokenSelector', () => {
             [mockAddress]: {
               [mockChainId]: {
                 [token1Address]: '0x0de0b6b3a7640000' as Hex, // 1 TOKEN1
-                [token2Address]: '0x1bc16d674ec80000' as Hex, // 2 TOKEN2
+                [token2Address]: '0x1bc16d674ec80000' as Hex, // 2 HELLO
               },
             },
           },
@@ -57,10 +57,10 @@ describe('BridgeTokenSelector', () => {
                 },
                 {
                   address: token2Address,
-                  symbol: 'TOKEN2',
+                  symbol: 'HELLO',
                   decimals: 18,
                   image: 'https://token2.com/logo.png',
-                  name: 'Token Two',
+                  name: 'Hello Token',
                   aggregators: ['uniswap'],
                 },
               ],
@@ -77,10 +77,10 @@ describe('BridgeTokenSelector', () => {
             },
             {
               address: token2Address,
-              symbol: 'TOKEN2',
+              symbol: 'HELLO',
               decimals: 18,
               image: 'https://token2.com/logo.png',
-              name: 'Token Two',
+              name: 'Hello Token',
               aggregators: ['uniswap'],
             },
           ],
@@ -220,7 +220,7 @@ describe('BridgeTokenSelector', () => {
       expect(getByText('1.0 TOKEN1')).toBeTruthy();
       expect(getByText('$20000')).toBeTruthy();
 
-      expect(getByText('2.0 TOKEN2')).toBeTruthy();
+      expect(getByText('2.0 HELLO')).toBeTruthy();
       expect(getByText('$200000')).toBeTruthy();
     });
   });
@@ -262,6 +262,52 @@ describe('BridgeTokenSelector', () => {
     fireEvent.press(closeButton);
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('handles token search functionality correctly', async () => {
+    const { getByTestId, getByText, queryByText } = renderScreen(
+      BridgeTokenSelector,
+      {
+        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+      },
+      { state: initialState }
+    );
+
+    // Initially all tokens should be visible
+    await waitFor(() => {
+      expect(getByText('3 ETH')).toBeTruthy();
+      expect(getByText('1.0 TOKEN1')).toBeTruthy();
+      expect(getByText('2.0 HELLO')).toBeTruthy();
+    });
+
+    // Search for TOKEN1
+    const searchInput = getByTestId('bridge-token-search-input');
+    fireEvent.changeText(searchInput, 'HELLO');
+
+    // Should only show HELLO, not TOKEN1
+    await waitFor(() => {
+      expect(getByText('2.0 HELLO')).toBeTruthy();
+      expect(queryByText('1.0 TOKEN1')).toBeNull();
+    });
+
+    // Search should be case-insensitive
+    fireEvent.changeText(searchInput, 'hello');
+    await waitFor(() => {
+      expect(getByText('2.0 HELLO')).toBeTruthy();
+      expect(queryByText('1.0 TOKEN1')).toBeNull();
+    });
+
+    // Clear search (by pressing the clear button)
+    const clearButton = getByTestId('bridge-token-search-clear-button');
+    fireEvent.press(clearButton);
+
+    // All tokens should be visible again
+    await waitFor(() => {
+      expect(getByText('3 ETH')).toBeTruthy();
+      expect(getByText('1.0 TOKEN1')).toBeTruthy();
+      expect(getByText('2.0 HELLO')).toBeTruthy();
+      expect(searchInput.props.value).toBe('');
+    });
   });
 
   it('displays empty state when no tokens match search', async () => {
