@@ -43,7 +43,8 @@ function NativeRamp() {
   const [orderStatus, setOrderStatus] = useState<'creating' | 'waiting' | null>(
     null,
   );
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderData, setOrderData] = useState<BuyOrder | null>(null);
+  const [sepaData, setSepaData] = useState<any>(null);
 
   const [nativeRampService] = useState(
     () => new NativeRampService('<your-key>', '<your-secret>'),
@@ -216,11 +217,11 @@ function NativeRamp() {
     throw new Error('Order completion timeout reached.');
   };
 
-  const createOrder = async () => {
+  const handleCreateOrder = async () => {
     try {
       if (!accessToken) return;
-
-      setOrderStatus('creating');
+      setIsLoading(true);
+      setLoadingMessage('Creating order...');
 
       // Reserve wallet with actual address
       const reservation = await nativeRampService.walletReserve(
@@ -235,7 +236,7 @@ function NativeRamp() {
         accessToken,
         reservation,
       );
-      setOrderId(order.id);
+      setOrderData(order);
 
       console.log('order', order);
 
@@ -248,21 +249,36 @@ function NativeRamp() {
 
       if (!sepa) throw new Error('SEPA payment option not found');
 
-      // Confirm payment
-      await nativeRampService.confirmPayment(accessToken, order, sepa);
+      setSepaData(sepa);
+      setCurrentStep(7);
+    } catch (error) {
+      console.error('Error creating order:', error);
+      // Handle error appropriately
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
 
-      console.log('confirmed payment');
+  const handleConfirmBankTransfer = async () => {
+    try {
+      if (!accessToken || !orderData || !sepaData) return;
+
+      setOrderStatus('creating');
+
+      // Confirm payment
+      await nativeRampService.confirmPayment(accessToken, orderData, sepaData);
 
       // Wait for order completion
       setOrderStatus('waiting');
-      const completedOrder = await waitForOrderCompletedStatus(order);
+      const completedOrder = await waitForOrderCompletedStatus(orderData);
       console.log('completedOrder', completedOrder);
 
       // Move to success screen
       setCurrentStep(8);
       setOrderStatus(null);
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.error('Error confirming bank transfer:', error);
       setOrderStatus(null);
     }
   };
@@ -285,10 +301,10 @@ function NativeRamp() {
         handleFormSubmit();
         break;
       case 6:
-        setCurrentStep(7);
+        handleCreateOrder();
         break;
       case 7:
-        createOrder();
+        handleConfirmBankTransfer();
         break;
     }
   };
@@ -304,7 +320,7 @@ function NativeRamp() {
           placeholderTextColor={colors.text.muted}
           testID={AmountViewSelectorsIDs.AMOUNT_INPUT}
         />
-        <Text style={styles.currencyText}>USDC</Text>
+        <Text style={styles.currencyText}>EUR</Text>
       </View>
     </View>
   );
@@ -455,37 +471,80 @@ function NativeRamp() {
     <>
       <Row style={styles.confirmationAmountContainer}>
         <Text variant={TextVariant.HeadingLG} style={styles.confirmationAmount}>
-          {amount} USDC
+          {amount} EUR
         </Text>
         <Text variant={TextVariant.BodyMD} style={styles.fiatAmount}>
-          ${amount}.00
+          ≈ {quote?.cryptoAmount || amount} USDC
+        </Text>
+      </Row>
+
+      <Row style={styles.bankTransferNote}>
+        <Text variant={TextVariant.BodyMD} style={styles.centered}>
+          Transfer funds to this account to complete your purchase
         </Text>
       </Row>
 
       <View style={styles.confirmationDetails}>
         <Row style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD}>Account</Text>
-          <Text variant={TextVariant.BodyMD}>Account H (0x37b...B2e9)</Text>
+          <Text variant={TextVariant.BodyMD}>Account Type</Text>
+          <Text variant={TextVariant.BodyMD}>
+            {sepaData?.fields?.find(
+              (f: { name: string; value: string }) => f.name === 'Account Type',
+            )?.value || ''}
+          </Text>
         </Row>
 
         <Row style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD}>Pay with</Text>
-          <View style={styles.detailRowEnd}>
-            <Text variant={TextVariant.BodyMD}>SEPA Bank Transfer</Text>
-            <Text variant={TextVariant.BodySM} style={styles.accountDetail}>
-              Acct ending in 1234
-            </Text>
-          </View>
+          <Text variant={TextVariant.BodyMD}>Beneficiary Name</Text>
+          <Text variant={TextVariant.BodyMD}>
+            {`${
+              sepaData?.fields?.find(
+                (f: { name: string; value: string }) =>
+                  f.name === 'First Name (Beneficiary)',
+              )?.value || ''
+            } ${
+              sepaData?.fields?.find(
+                (f: { name: string; value: string }) =>
+                  f.name === 'Last Name (Beneficiary)',
+              )?.value || ''
+            }`}
+          </Text>
         </Row>
 
         <Row style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD}>Total fees</Text>
-          <Text variant={TextVariant.BodyMD}>$0.00</Text>
+          <Text variant={TextVariant.BodyMD}>IBAN</Text>
+          <Text variant={TextVariant.BodyMD}>
+            {sepaData?.fields?.find(
+              (f: { name: string; value: string }) => f.name === 'IBAN',
+            )?.value || ''}
+          </Text>
+        </Row>
+
+        <Row style={styles.detailRow}>
+          <Text variant={TextVariant.BodyMD}>Bank Name</Text>
+          <Text variant={TextVariant.BodyMD}>
+            {sepaData?.fields?.find(
+              (f: { name: string; value: string }) => f.name === 'Bank Name',
+            )?.value || ''}
+          </Text>
+        </Row>
+
+        <Row style={styles.detailRow}>
+          <Text variant={TextVariant.BodyMD}>Bank Country</Text>
+          <Text variant={TextVariant.BodyMD}>
+            {sepaData?.fields?.find(
+              (f: { name: string; value: string }) => f.name === 'Bank Country',
+            )?.value || ''}
+          </Text>
         </Row>
 
         <Row style={[styles.detailRow, styles.totalRow]}>
-          <Text variant={TextVariant.BodyMD}>Purchase amount total</Text>
-          <Text variant={TextVariant.BodyMD}>${amount}.00</Text>
+          <Text variant={TextVariant.BodyMD}>Bank Address</Text>
+          <Text variant={TextVariant.BodyMD} style={styles.bankAddress}>
+            {sepaData?.fields?.find(
+              (f: { name: string; value: string }) => f.name === 'Bank Address',
+            )?.value || ''}
+          </Text>
         </Row>
       </View>
     </>
@@ -507,10 +566,10 @@ function NativeRamp() {
     <>
       <Row style={styles.successAmountContainer}>
         <Text variant={TextVariant.HeadingLG} style={styles.successAmount}>
-          {amount} USDC
+          {orderData?.cryptoAmount || amount} USDC
         </Text>
         <Text variant={TextVariant.BodyMD} style={styles.fiatAmount}>
-          ${amount}.00
+          {orderData?.fiatAmount || amount} EUR
         </Text>
       </Row>
 
@@ -535,9 +594,6 @@ function NativeRamp() {
           <Text variant={TextVariant.BodyMD}>Paid with</Text>
           <View style={styles.detailRowEnd}>
             <Text variant={TextVariant.BodyMD}>SEPA Bank Transfer</Text>
-            <Text variant={TextVariant.BodySM} style={styles.accountDetail}>
-              Acct ending in 1234
-            </Text>
           </View>
         </Row>
 
@@ -548,7 +604,9 @@ function NativeRamp() {
 
         <Row style={[styles.detailRow, styles.totalRow]}>
           <Text variant={TextVariant.BodyMD}>Purchase amount total</Text>
-          <Text variant={TextVariant.BodyMD}>${amount}.00</Text>
+          <Text variant={TextVariant.BodyMD}>
+            {orderData?.fiatAmount || amount} EUR
+          </Text>
         </Row>
       </View>
 
@@ -586,8 +644,8 @@ function NativeRamp() {
               {currentStep === 5 && renderStepKycForms()}
               {currentStep === 6 && renderKycSuccessScreen()}
               {currentStep === 7 && !orderStatus && renderConfirmationScreen()}
-              {currentStep === 7 && orderStatus && renderLoadingScreen()}
               {currentStep === 8 && renderOrderSuccess()}
+              {currentStep === 7 && orderStatus && renderLoadingScreen()}
             </>
           )}
         </ScreenLayout.Content>
@@ -605,7 +663,7 @@ function NativeRamp() {
               {currentStep === 8
                 ? 'Swap for tokens'
                 : currentStep === 7
-                ? `Deposit $${amount}.00`
+                ? 'Confirm bank transfer'
                 : currentStep === 6
                 ? 'Continue to purchase'
                 : currentStep === 2

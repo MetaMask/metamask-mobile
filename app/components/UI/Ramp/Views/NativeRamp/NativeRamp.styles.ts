@@ -206,6 +206,22 @@ const styleSheet = (_params: { theme: Theme }) =>
       textAlign: 'right',
       flexWrap: 'wrap',
     },
+    bankDetails: {
+      marginTop: 24,
+    },
+    bankDetailsTitle: {
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: _params.theme.colors.border.muted,
+    },
+    bankAddress: {
+      flex: 1,
+      textAlign: 'right',
+      flexWrap: 'wrap',
+    },
+    bankTransferNote: {
+      marginBottom: 24,
+    },
   });
 
 export default styleSheet;
