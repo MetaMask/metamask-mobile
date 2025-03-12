@@ -18,7 +18,7 @@ const TRANSACTION_ID_MOCK = '123';
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
   selectShouldUseSmartTransaction: () => false,
-  selectPendingSmartTransactions: () => [],
+  selectPendingSmartTransactionsBySender: () => [],
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
