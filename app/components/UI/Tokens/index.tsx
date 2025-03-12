@@ -56,11 +56,11 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
-import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -92,8 +92,6 @@ interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
   [key: string]: undefined | object;
 }
-
-const DEBOUNCE_DELAY = 300;
 
 const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
   const navigation =
@@ -132,8 +130,8 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     ),
   ];
 
-  const selectedAccountTokensChains = useSelector((state: RootState) =>
-    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
+  const selectedAccountTokensChains = useSelector(
+    selectAccountTokensAcrossChains,
   );
 
   const actionSheet = useRef<typeof ActionSheet>();
@@ -147,21 +145,8 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     selectSelectedInternalAccountAddress,
   );
   const multiChainMarketData = useSelector(selectTokenMarketData);
-  const debouncedMultiChainMarketData = useDebouncedValue(
-    multiChainMarketData,
-    DEBOUNCE_DELAY,
-  );
-
   const multiChainTokenBalance = useSelector(selectTokensBalances);
-  const debouncedMultiChainTokenBalance = useDebouncedValue(
-    multiChainTokenBalance,
-    DEBOUNCE_DELAY,
-  );
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-  const debouncedMultiChainCurrencyRates = useDebouncedValue(
-    multiChainCurrencyRates,
-    DEBOUNCE_DELAY,
-  );
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -329,9 +314,9 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     hideZeroBalanceTokens,
     tokenSortConfig,
     // Dependencies for multichain implementation
-    debouncedMultiChainTokenBalance,
-    debouncedMultiChainMarketData,
-    debouncedMultiChainCurrencyRates,
+    multiChainTokenBalance,
+    multiChainMarketData,
+    multiChainCurrencyRates,
     selectedAccountTokensChains,
     selectedInternalAccountAddress,
     isUserOnCurrentNetwork,
@@ -453,87 +438,89 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     index === 0 ? removeToken() : null;
 
   return (
-    <View
-      style={styles.wrapper}
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
-    >
-      <View style={styles.actionBarWrapper}>
-        {isPortfolioViewEnabled() ? (
-          <View style={styles.controlButtonOuterWrapper}>
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-              label={
-                <Text style={styles.controlButtonText} numberOfLines={1}>
-                  {isAllNetworks && isPopularNetwork && isEvmSelected
-                    ? `${strings('app_settings.popular')} ${strings(
-                        'app_settings.networks',
-                      )}`
-                    : networkName ?? strings('wallet.current_network')}
-                </Text>
-              }
-              isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
-              onPress={isEvmSelected ? showFilterControls : () => null}
-              endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
-              style={
-                isTestNet(currentChainId) || !isPopularNetwork
-                  ? styles.controlButtonDisabled
-                  : styles.controlButton
-              }
-              disabled={isTestNet(currentChainId) || !isPopularNetwork}
-            />
-            <View style={styles.controlButtonInnerWrapper}>
-              <ButtonIcon
-                testID={WalletViewSelectorsIDs.SORT_BY}
-                onPress={showSortControls}
-                iconName={IconName.SwapVertical}
-                style={styles.controlIconButton}
+    <AssetPollingProvider>
+      <View
+        style={styles.wrapper}
+        testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
+      >
+        <View style={styles.actionBarWrapper}>
+          {isPortfolioViewEnabled() ? (
+            <View style={styles.controlButtonOuterWrapper}>
+              <ButtonBase
+                testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+                label={
+                  <Text style={styles.controlButtonText} numberOfLines={1}>
+                    {isAllNetworks && isPopularNetwork && isEvmSelected
+                      ? `${strings('app_settings.popular')} ${strings(
+                          'app_settings.networks',
+                        )}`
+                      : networkName ?? strings('wallet.current_network')}
+                  </Text>
+                }
+                isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
+                onPress={isEvmSelected ? showFilterControls : () => null}
+                endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
+                style={
+                  isTestNet(currentChainId) || !isPopularNetwork
+                    ? styles.controlButtonDisabled
+                    : styles.controlButton
+                }
+                disabled={isTestNet(currentChainId) || !isPopularNetwork}
               />
-              <ButtonIcon
-                testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-                onPress={goToAddToken}
-                iconName={IconName.Add}
-                style={styles.controlIconButton}
-              />
+              <View style={styles.controlButtonInnerWrapper}>
+                <ButtonIcon
+                  testID={WalletViewSelectorsIDs.SORT_BY}
+                  onPress={showSortControls}
+                  iconName={IconName.SwapVertical}
+                  style={styles.controlIconButton}
+                />
+                <ButtonIcon
+                  testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+                  onPress={goToAddToken}
+                  iconName={IconName.Add}
+                  style={styles.controlIconButton}
+                />
+              </View>
             </View>
-          </View>
-        ) : (
-          <>
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.SORT_BY}
-              label={strings('wallet.sort_by')}
-              onPress={showSortControls}
-              endIconName={IconName.ArrowDown}
-              style={styles.controlButton}
-            />
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-              label={strings('wallet.import')}
-              onPress={goToAddToken}
-              startIconName={IconName.Add}
-              style={styles.controlButton}
-            />
-          </>
+          ) : (
+            <>
+              <ButtonBase
+                testID={WalletViewSelectorsIDs.SORT_BY}
+                label={strings('wallet.sort_by')}
+                onPress={showSortControls}
+                endIconName={IconName.ArrowDown}
+                style={styles.controlButton}
+              />
+              <ButtonBase
+                testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+                label={strings('wallet.import')}
+                onPress={goToAddToken}
+                startIconName={IconName.Add}
+                style={styles.controlButton}
+              />
+            </>
+          )}
+        </View>
+        {tokensList && (
+          <TokenList
+            tokens={tokensList}
+            refreshing={refreshing}
+            isAddTokenEnabled={isAddTokenEnabled}
+            onRefresh={onRefresh}
+            showRemoveMenu={showRemoveMenu}
+            goToAddToken={goToAddToken}
+          />
         )}
-      </View>
-      {tokensList && (
-        <TokenList
-          tokens={tokensList}
-          refreshing={refreshing}
-          isAddTokenEnabled={isAddTokenEnabled}
-          onRefresh={onRefresh}
-          showRemoveMenu={showRemoveMenu}
-          goToAddToken={goToAddToken}
+        <ActionSheet
+          ref={actionSheet as LegacyRef<typeof ActionSheet>}
+          title={strings('wallet.remove_token_title')}
+          options={[strings('wallet.remove'), strings('wallet.cancel')]}
+          cancelButtonIndex={1}
+          destructiveButtonIndex={0}
+          onPress={onActionSheetPress}
         />
-      )}
-      <ActionSheet
-        ref={actionSheet as LegacyRef<typeof ActionSheet>}
-        title={strings('wallet.remove_token_title')}
-        options={[strings('wallet.remove'), strings('wallet.cancel')]}
-        cancelButtonIndex={1}
-        destructiveButtonIndex={0}
-        onPress={onActionSheetPress}
-      />
-    </View>
+      </View>
+    </AssetPollingProvider>
   );
 });
 

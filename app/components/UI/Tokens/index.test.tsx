@@ -40,18 +40,32 @@ jest.mock('../../../core/Engine', () => ({
     },
     TokenDetectionController: {
       detectTokens: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     AccountTrackerController: {
       refresh: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     TokenRatesController: {
       updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     TokenBalancesController: {
       updateBalances: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
+    TokenListController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     NetworkController: {
       getNetworkClientById: () => ({
@@ -295,12 +309,11 @@ describe('Tokens', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('render matches snapshot', () => {
-    const { toJSON } = renderComponent(initialState);
+    const { toJSON, queryByText } = renderComponent(initialState);
+    const tokensTabText = queryByText('Tokens');
+    const nftsTabText = queryByText('NFTs');
+    expect(tokensTabText).toBeDefined();
+    expect(nftsTabText).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -565,12 +578,6 @@ describe('Tokens', () => {
     it('should call selectAccountTokensAcrossChains when enabled', () => {
       renderComponent(initialState);
       expect(selectAccountTokensAcrossChainsSpy).toHaveBeenCalled();
-    });
-
-    it('should not call selectAccountTokensAcrossChains when disabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-      renderComponent(initialState);
-      expect(selectAccountTokensAcrossChainsSpy).not.toHaveBeenCalled();
     });
 
     it('should handle network filtering correctly', () => {

@@ -29,6 +29,39 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AuthenticationController": {
         "isSignedIn": false,
       },
+      "BridgeController": {
+        "bridgeFeatureFlags": {
+          "extensionConfig": {
+            "chains": {},
+            "maxRefreshCount": 5,
+            "refreshRate": 30000,
+            "support": false,
+          },
+          "mobileConfig": {
+            "chains": {},
+            "maxRefreshCount": 5,
+            "refreshRate": 30000,
+            "support": false,
+          },
+        },
+        "quoteFetchError": null,
+        "quoteRequest": {
+          "slippage": 0.5,
+          "srcTokenAddress": "0x0000000000000000000000000000000000000000",
+        },
+        "quotes": [],
+        "quotesInitialLoadTime": null,
+        "quotesLastFetched": null,
+        "quotesLoadingStatus": null,
+        "quotesRefreshCount": 0,
+      },
+      "BridgeStatusController": {
+        "txHistory": {},
+      },
+      "CronjobController": {
+        "events": {},
+        "jobs": {},
+      },
       "CurrencyRateController": {
         "currencyRates": {
           "ETH": {
@@ -38,6 +71,49 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           },
         },
         "currentCurrency": "usd",
+      },
+      "EarnController": {
+        "lastUpdated": 0,
+        "pooled_staking": {
+          "exchangeRate": "1",
+          "isEligible": false,
+          "pooledStakes": {
+            "account": "",
+            "assets": "0",
+            "exitRequests": [],
+            "lifetimeRewards": "0",
+          },
+          "vaultApyAverages": {
+            "oneDay": "0",
+            "oneMonth": "0",
+            "oneWeek": "0",
+            "oneYear": "0",
+            "sixMonths": "0",
+            "threeMonths": "0",
+          },
+          "vaultDailyApys": [],
+          "vaultMetadata": {
+            "apy": "0",
+            "capacity": "0",
+            "feePercent": 0,
+            "totalAssets": "0",
+            "vaultAddress": "0x0000000000000000000000000000000000000000",
+          },
+        },
+        "stablecoin_lending": {
+          "vaults": [
+            {
+              "chainId": 0,
+              "currentAPY": "0",
+              "liquidity": "0",
+              "name": "",
+              "supply": "0",
+              "symbol": "",
+              "tokenAddress": "",
+              "vaultAddress": "",
+            },
+          ],
+        },
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -59,6 +135,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "accountsAssets": {},
         "assetsMetadata": {},
       },
+      "MultichainAssetsRatesController": {
+        "conversionRates": {},
+      },
       "MultichainBalancesController": {
         "balances": {},
       },
@@ -79,6 +158,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           },
         },
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      },
+      "MultichainTransactionsController": {
+        "nonEvmTransactions": {},
       },
       "NetworkController": {
         "networkConfigurationsByChainId": {
@@ -369,6 +451,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "UserStorageController": {
         "hasAccountSyncingSyncedAtLeastOnce": false,
+        "isAccountSyncingInProgress": false,
         "isAccountSyncingReadyToBeDispatched": false,
         "isProfileSyncingEnabled": true,
         "isProfileSyncingUpdateLoading": false,

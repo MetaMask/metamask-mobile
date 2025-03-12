@@ -61,7 +61,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultApyAverages,
+    isLoadingVaultMetadata,
     handleMax,
     balanceValue,
     isHighGasCostImpact,
@@ -111,6 +111,10 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     const amountWeiString = amountWei.toString();
 
     if (isStakingDepositRedesignedEnabled) {
+      // Here we add the transaction to the transaction controller. The
+      // redesigned confirmations architecture relies on the transaction
+      // metadata object being defined by the time the confirmation is displayed
+      // to the user.
       await attemptDepositTransaction(
         amountWeiString,
         activeAccount?.address as string,
@@ -247,7 +251,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
                 tooltip_name: 'MetaMask Pool Estimated Rewards',
               },
             })}
-            isLoading={isLoadingVaultApyAverages}
+            isLoading={isLoadingVaultMetadata}
           />
         )}
       </View>

@@ -79,7 +79,7 @@ export const container: UIComponentFactory<BoxElement> = ({
     ],
     props: {
       style: {
-        flex: 1,
+        flexGrow: 1,
         flexDirection: 'column',
       },
     },

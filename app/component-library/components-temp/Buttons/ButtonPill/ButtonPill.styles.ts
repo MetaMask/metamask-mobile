@@ -26,7 +26,7 @@ const styleSheet = (params: {
 }) => {
   const {
     theme: { colors },
-    vars: { isDisabled, isPressed }
+    vars: { isPressed }
   } = params;
 
   return StyleSheet.create({
@@ -38,7 +38,6 @@ const styleSheet = (params: {
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 99,
-      opacity: isDisabled ? 0.5 : 1,
       ...(isPressed && {
         backgroundColor: colors.background.alternativePressed,
       }),
