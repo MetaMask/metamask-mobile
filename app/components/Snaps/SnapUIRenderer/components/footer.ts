@@ -2,7 +2,7 @@ import { FooterElement, ButtonElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { UIComponent, UIComponentFactory, UIComponentParams } from './types';
 import { button as buttonFn } from './button';
-import { TemplateConfirmation } from '../../SnapDialogApproval/SnapsDialogApproval';
+import { TemplateConfirmation } from '../../SnapDialogApproval/SnapDialogApproval';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 export const DEFAULT_FOOTER = {

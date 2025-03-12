@@ -159,6 +159,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
       },
+      "MultichainTransactionsController": {
+        "nonEvmTransactions": {},
+      },
       "NetworkController": {
         "networkConfigurationsByChainId": {
           "0x1": {
@@ -448,6 +451,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "UserStorageController": {
         "hasAccountSyncingSyncedAtLeastOnce": false,
+        "isAccountSyncingInProgress": false,
         "isAccountSyncingReadyToBeDispatched": false,
         "isProfileSyncingEnabled": true,
         "isProfileSyncingUpdateLoading": false,

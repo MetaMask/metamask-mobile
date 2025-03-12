@@ -335,6 +335,7 @@
   "UserStorageController": {
     "hasAccountSyncingSyncedAtLeastOnce": false,
     "isAccountSyncingReadyToBeDispatched": false,
+    "isAccountSyncingInProgress": false,
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
   },
@@ -372,6 +373,9 @@
         "isEvm": false
       }
     }
+  },
+  "MultichainTransactionsController": {
+    "nonEvmTransactions": {}
   },
   "MultichainAssetsController": {
     "accountsAssets": {},

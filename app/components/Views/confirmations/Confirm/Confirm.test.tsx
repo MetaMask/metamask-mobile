@@ -22,6 +22,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
     removeListener: jest.fn(),
+    setOptions: jest.fn(),
   }),
 }));
 
@@ -64,6 +65,17 @@ jest.mock('../../../../core/Engine', () => ({
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
     },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {
+            '1': {
+              address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+            },
+          },
+        },
+      },
+    },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
@@ -75,17 +87,11 @@ jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: jest.fn(),
-    addListener: jest.fn(),
-    dispatch: jest.fn(),
-    setOptions: jest.fn(),
-  }),
-}));
-
 describe('Confirm', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders modal confirmation', async () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: typedSignV1ConfirmationState,
@@ -159,7 +165,9 @@ describe('Confirm', () => {
       },
     });
 
-    await act(async () => undefined);
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();
