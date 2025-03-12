@@ -96,6 +96,9 @@ app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/snaps-dev
 
 # Staking Team
 app/components/UI/Stake              @MetaMask/metamask-staking
+app/core/Engine/controllers/earn-controller @MetaMask/metamask-staking
+app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-staking
+app/selectors/earnController         @MetaMask/metamask-staking
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
