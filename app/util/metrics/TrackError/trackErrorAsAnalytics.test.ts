@@ -1,8 +1,6 @@
 import trackErrorAsAnalytics from './trackErrorAsAnalytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
-const VALID_UUID = 'b7bff9d5-8928-488e-935e-4522c680242e';
-
 jest.mock('../../../core/Analytics/MetaMetrics');
 
 // create mock for shouldTrackExpectedErrors
