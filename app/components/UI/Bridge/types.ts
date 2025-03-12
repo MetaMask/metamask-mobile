@@ -6,7 +6,7 @@ export interface BridgeToken {
   image: string;
   decimals: number;
   chainId: CaipChainId;
-};
+}
 
 export interface BridgeAsset {
   chainId: ChainId;
