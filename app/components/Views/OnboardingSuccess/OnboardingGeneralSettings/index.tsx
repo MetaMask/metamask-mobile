@@ -10,11 +10,11 @@ import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import { useStyles } from '../../../../component-library/hooks';
 import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
-import { enableProfileSyncing } from '../../../../actions/identity';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import styleSheet from '../DefaultSettings/index.styles';
+import { useEnableProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
 
 const GeneralSettings = () => {
   useOnboardingHeader(strings('default_settings.drawer_general_title'));
@@ -25,6 +25,7 @@ const GeneralSettings = () => {
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const { enableProfileSyncing } = useEnableProfileSyncing();
 
   const handleSwitchToggle = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

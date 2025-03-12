@@ -77,7 +77,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
-import { useProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
+import {
+  useDisableProfileSyncing,
+  useEnableProfileSyncing,
+} from '../../../../util/identity/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
@@ -123,10 +126,14 @@ const Settings: React.FC = () => {
   );
   const {
     enableProfileSyncing,
+    isLoading: isEnableProfileSyncingLoading,
+    error: enableProfileSyncingError,
+  } = useEnableProfileSyncing();
+  const {
     disableProfileSyncing,
-    loading: profileSyncLoading,
-    error: profileSyncError,
-  } = useProfileSyncing();
+    isLoading: isDisableProfileSyncingLoading,
+    error: disableProfileSyncingError,
+  } = useDisableProfileSyncing();
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
@@ -551,12 +558,19 @@ const Settings: React.FC = () => {
     );
   }
 
-  const profileSyncModalMessage = !isProfileSyncingEnabled
-    ? strings('app_settings.enabling_profile_sync')
-    : strings('app_settings.disabling_profile_sync');
+  const profileSyncModalMessage =
+    !isProfileSyncingEnabled && isBasicFunctionalityEnabled
+      ? strings('app_settings.enabling_profile_sync')
+      : strings('app_settings.disabling_profile_sync');
 
-  const modalLoading = profileSyncLoading || disableNotificationsLoading;
-  const modalError = profileSyncError || disableNotificationsError;
+  const modalLoading =
+    isEnableProfileSyncingLoading ||
+    isDisableProfileSyncingLoading ||
+    disableNotificationsLoading;
+  const modalError =
+    enableProfileSyncingError ||
+    disableProfileSyncingError ||
+    disableNotificationsError;
 
   return (
     <ScrollView

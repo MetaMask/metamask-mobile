@@ -16,7 +16,7 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
-import { useProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
+import { useDisableProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import ModalContent from '../../Notification/Modal';
 
@@ -24,7 +24,7 @@ const ProfileSyncingModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
-  const { disableProfileSyncing } = useProfileSyncing();
+  const { disableProfileSyncing } = useDisableProfileSyncing();
 
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const isMetamaskNotificationsEnabled = useSelector(
