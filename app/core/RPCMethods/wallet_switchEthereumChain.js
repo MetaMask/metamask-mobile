@@ -10,6 +10,8 @@ import {
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
 
+// TODO: [ffmcgee] fundamentally the functionality of these handlers seem different from `extension`, we define functionality like `getCaveat` inside the function itself
+// (see `switchNetwork`) instead of passing it as a hook from `BackgroundBridge` (as one would pass it from `MetamaskController` on `extension`). Ask about this.
 const wallet_switchEthereumChain = async ({
   req,
   res,

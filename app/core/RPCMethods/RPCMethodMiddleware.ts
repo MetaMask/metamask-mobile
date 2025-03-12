@@ -397,6 +397,7 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
+    // TODO: [ffmcgee] - Ask Owen what takes precedence, I see `wallet_getPermissions` handler in here, but also see some method middlewares defined in BackgroundBridge (ex.:L#586, L#668)
     const [requestPermissionsHandler, getPermissionsHandler] =
       permissionRpcMethods.handlers;
 
