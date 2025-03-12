@@ -1596,7 +1596,9 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
-                if [ "$METAMASK_BUILD_TYPE" = "main" ]; then
+                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:ios:devbuild
+                elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
                     METAMASK_BUILD_TYPE='beta' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-beta
@@ -1608,18 +1610,45 @@ workflows:
                 fi
           title: iOS Sourcemaps & Build
           is_always_run: false
+      - script@1:
+          title: Rename release files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Set base paths
+                IPA_DIR="ios/build/output"
+                ARCHIVE_DIR="ios/build"
+
+                # Regular build naming
+                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                
+                # Rename IPA
+                OLD_IPA="$IPA_DIR/$APP_NAME.ipa"
+                NEW_IPA="$IPA_DIR/$NEW_BASE_NAME.ipa"
+                mv "$OLD_IPA" "$NEW_IPA"
+                
+                # Rename xcarchive
+                OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
+                NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
+                mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
+                
+                # Export new names as environment variables
+                envman add --key RENAMED_IPA_FILE --value "$NEW_BASE_NAME.ipa"
+                envman add --key RENAMED_ARCHIVE_FILE --value "$NEW_BASE_NAME.xcarchive"
+                envman add --key IPA_DEPLOY_PATH --value "$IPA_DIR/$NEW_BASE_NAME.ipa"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: ios/build/output/$APP_NAME.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: ios/build/output/$APP_NAME.ipa
+            - pipeline_intermediate_files: ios/build/output/$RENAMED_IPA_FILE:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: $IPA_DEPLOY_PATH
           title: Deploy iOS IPA
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
           inputs:
-            - deploy_path: ios/build/$APP_NAME.xcarchive
+            - deploy_path: ios/build/$RENAMED_ARCHIVE_FILE
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -1666,47 +1695,15 @@ workflows:
     after_run:
       - _ios_build_template
   build_ios_devbuild:
-    before_run:
-      - code_setup
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: 'MetaMask'
+      - INFO_PLIST_NAME: 'Info.plist'
     after_run:
-      - notify_failure
-    steps:
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - build_version: $VERSION_NUMBER
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:ios:devbuild
-          title: iOS Sourcemaps & Build
-          is_always_run: false
-      - script:
-          title: Copy and Rename IPA
-          inputs:
-            - content: |-
-                # Define the source path of the generated IPA
-                SOURCE_IPA_PATH="ios/build/output/MetaMask.ipa"
-
-                # Define the destination path with the new name
-                DEST_IPA_PATH="$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
-
-                # Copy and rename the IPA
-                cp "$SOURCE_IPA_PATH" "$DEST_IPA_PATH"
-
-                # Optionally, print the new path for verification
-                echo "IPA has been copied and renamed to: $DEST_IPA_PATH"
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: '$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa'
-          title: Deploy iOS IPA
+      - _ios_build_template
   build_ios_qa:
     envs:
       - NO_FLIPPER: '1'
