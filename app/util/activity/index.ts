@@ -73,7 +73,6 @@ export const filterByAddressAndNetwork = (
   networkId: string,
   chainId: string,
   tokenNetworkFilter: { [key: string]: boolean }[],
-  // isPopularNetwork: boolean,
 ): boolean => {
   const {
     txParams: { from, to },
@@ -84,9 +83,7 @@ export const filterByAddressAndNetwork = (
   const condition =
     Object.keys(tokenNetworkFilter).length === 1
       ? isFromCurrentChain(tx, networkId, chainId)
-      : tx.chainId === CHAIN_IDS.MAINNET ||
-        tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
-        PopularList.some((network) => network.chainId === tx.chainId);
+      : true;
 
   if (
     isFromOrToSelectedAddress(from, to, selectedAddress) &&
@@ -99,10 +96,6 @@ export const filterByAddressAndNetwork = (
         )
       : true;
   }
-  // if (!isPopularNetwork) {
-  //   console.log('tx.chainId ...........', tx.chainId);
-  //   return tx.chainId === chainId;
-  // }
 
   return false;
 };

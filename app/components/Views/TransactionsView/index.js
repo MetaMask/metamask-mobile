@@ -42,6 +42,8 @@ import {
 } from '../../../selectors/transactionController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PopularList } from '../../../util/networks/customNetworks';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -95,7 +97,6 @@ const TransactionsView = ({
           networkId,
           chainId,
           tokenNetworkFilter,
-          isPopularNetwork,
         );
 
         if (!filter) return false;
@@ -122,6 +123,21 @@ const TransactionsView = ({
         return filter;
       });
 
+      let allTransactionsFiltered = allTransactions;
+
+      if (!isPopularNetwork) {
+        allTransactionsFiltered = allTransactions.filter(
+          (tx) => tx.chainId === chainId,
+        );
+      } else {
+        allTransactionsFiltered = allTransactions.filter(
+          (tx) =>
+            tx.chainId === CHAIN_IDS.MAINNET ||
+            tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
+            PopularList.some((network) => network.chainId === tx.chainId),
+        );
+      }
+
       const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
         const { from, nonce } = txParams;
         if (!toLowerCaseEquals(from, selectedAddress)) {
@@ -145,13 +161,15 @@ const TransactionsView = ({
       // If the account added insert point is not found, add it to the last transaction
       if (
         !accountAddedTimeInsertPointFound &&
-        allTransactions &&
-        allTransactions.length
+        allTransactionsFiltered &&
+        allTransactionsFiltered.length
       ) {
-        allTransactions[allTransactions.length - 1].insertImportTime = true;
+        allTransactionsFiltered[
+          allTransactionsFiltered.length - 1
+        ].insertImportTime = true;
       }
 
-      setAllTransactions(allTransactions);
+      setAllTransactions(allTransactionsFiltered);
       setSubmittedTxs(submittedTxsFiltered);
       setConfirmedTxs(confirmedTxs);
       setLoading(false);
