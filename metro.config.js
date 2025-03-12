@@ -8,6 +8,7 @@
 
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
+const path = require('path');
 
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
@@ -24,6 +25,7 @@ module.exports = function (baseConfig) {
         ...defaultConfig.resolver.extraNodeModules,
         crypto: require.resolve('react-native-crypto'),
         stream: require.resolve('stream-browserify'),
+        'images': path.resolve(__dirname, 'app/images'),
       },
     },
     transformer: {
