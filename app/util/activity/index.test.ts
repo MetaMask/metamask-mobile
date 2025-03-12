@@ -156,6 +156,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_ONE,
       chainId,
       chainId,
+      [{ '0x1': true }],
     );
     expect(result).toEqual(true);
   });
@@ -181,6 +182,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_ONE,
       chainId,
       chainId,
+      [{ '0x1': true }],
     );
     expect(result).toEqual(true);
   });
@@ -204,6 +206,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_THREE,
       chainId,
       chainId,
+      [{ '0x1': true }],
     );
     expect(result).toEqual(false);
   });
@@ -227,6 +230,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_ONE,
       chainId,
       chainId,
+      [{ '0x1': true }],
     );
     expect(result).toEqual(false);
   });
@@ -252,6 +256,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_ONE,
       chainId,
       chainId,
+      [{ '0x1': true }],
     );
     expect(result).toEqual(false);
   });
