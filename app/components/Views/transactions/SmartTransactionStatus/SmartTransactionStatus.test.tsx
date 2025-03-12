@@ -9,6 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { merge } from 'lodash';
 
 const initialState = {
   engine: {
@@ -469,7 +470,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.success.origin}
               onConfirm={jest.fn()}
             />,
-            { state: initialState },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.success.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const primaryButton = getByText(
@@ -489,7 +504,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.success.origin}
               onConfirm={jest.fn()}
             />,
-            { state: initialState },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.success.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const secondaryButton = getByText(
@@ -600,7 +629,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.cancelled.origin}
               onConfirm={jest.fn()}
             />,
-            { state: initialState },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.cancelled.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const primaryButton = getByText(
@@ -620,7 +663,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.cancelled.origin}
               onConfirm={jest.fn()}
             />,
-            { state: initialState },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.cancelled.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const secondaryButton = getByText(
@@ -726,7 +783,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.unknown.origin}
               onConfirm={onConfirm}
             />,
-            { state: initialState },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.unknown.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const primaryButton = getByText(
@@ -745,7 +816,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.unknown.origin}
               onConfirm={jest.fn()}
             />,
-            { state: initialState },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.unknown.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const secondaryButton = getByText(
