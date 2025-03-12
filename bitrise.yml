@@ -1206,6 +1206,7 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: $KEYSTORE_PATH
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
