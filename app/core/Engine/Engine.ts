@@ -14,7 +14,6 @@ import {
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { AppState } from 'react-native';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
 import { AccountsController } from '@metamask/accounts-controller';
@@ -187,6 +186,7 @@ import { createMultichainRatesController } from './controllers/RatesController/u
 import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
 import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
+import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
@@ -554,9 +554,17 @@ export class Engine {
       return keyring.mnemonic;
     };
 
-    const getAppState = () => {
-      const state = AppState.currentState;
-      return state === 'active';
+    const getUnlockPromise = () => {
+      if (this.keyringController.isUnlocked()) {
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        this.controllerMessenger.subscribeOnceIf(
+          'KeyringController:unlock',
+          resolve,
+          () => true,
+        );
+      });
     };
 
     const snapRestrictedMethods = {
@@ -567,7 +575,7 @@ export class Engine {
         SnapControllerClearSnapStateAction,
       ),
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
-      getUnlockPromise: getAppState.bind(this),
+      getUnlockPromise: getUnlockPromise.bind(this),
       getSnap: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerGetSnapAction,
@@ -1131,6 +1139,7 @@ export class Engine {
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
+        MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
       },
       persistedState: initialState as EngineState,
@@ -1161,6 +1170,8 @@ export class Engine {
       controllersByName.MultichainAssetsRatesController;
     const multichainBalancesController =
       controllersByName.MultichainBalancesController;
+    const multichainTransactionsController =
+      controllersByName.MultichainTransactionsController;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -1471,6 +1482,7 @@ export class Engine {
       RatesController: multichainRatesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
+      MultichainTransactionsController: multichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
@@ -2099,6 +2111,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
       BridgeController,
@@ -2145,6 +2158,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
       BridgeController,
