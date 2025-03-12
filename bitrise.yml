@@ -1341,94 +1341,45 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                set -ex
                 node -v
-                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                  echo "Building Flask version for production environment..."
-                  # Build the Flask app
-                  METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask || {
-                    echo "Flask Android build failed!"
-                    echo "Build may have failed due to missing keystore or other issues"
-                    exit 0
-                  }
-                  
-                  # Create necessary directories
-                  mkdir -p $PROJECT_LOCATION/app/build/outputs/apk/qa/release/
-                  
-                  # Debug: List all APK files to help locate the correct path
-                  echo "Looking for Flask APK files..."
-                  find $PROJECT_LOCATION -name "*.apk" -type f
-                  
-                  # Possible locations for Flask APK files
-                  FLASK_APK_FOUND=false
-                  FLASK_APK_PATHS=(
-                    "$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
-                    "$PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk"
-                    "$PROJECT_LOCATION/app/build/outputs/apk/flaskProd/release/app-flaskProd-release.apk"
-                    "$PROJECT_LOCATION/app/build/outputs/apk/release/app-release.apk"
-                    "$PROJECT_LOCATION/app/build/outputs/apk/flaskRelease/app-flaskRelease.apk"
-                  )
-                  
-                  # Check each path and use the first one that exists
-                  for APK_PATH in "${FLASK_APK_PATHS[@]}"; do
-                    if [ -f "$APK_PATH" ]; then
-                      echo "Found Flask APK at: $APK_PATH"
-                      cp "$APK_PATH" $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
-                      
-                      # Generate SHA512 sum file for the APK - important for successful build
-                      cd $PROJECT_LOCATION/app/build/outputs/apk/qa/release/
-                      sha512sum app-qa-release.apk > sha512sums.txt
-                      cd $BITRISE_SOURCE_DIR
-                      
-                      FLASK_APK_FOUND=true
-                      break
-                    fi
-                  done
-                  
-                  # If no APK found in standard locations, search for any APK
-                  if [ "$FLASK_APK_FOUND" = false ]; then
-                    echo "Warning: Flask APK not found in expected locations"
-                    NEWEST_APK=$(find $PROJECT_LOCATION -name "*.apk" -type f -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -f2- -d" ")
-                    if [ -n "$NEWEST_APK" ]; then
-                      echo "Using most recent APK: $NEWEST_APK"
-                      cp "$NEWEST_APK" $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
-                      
-                      # Generate SHA512 sum file
-                      cd $PROJECT_LOCATION/app/build/outputs/apk/qa/release/
-                      sha512sum app-qa-release.apk > sha512sums.txt
-                      cd $BITRISE_SOURCE_DIR
-                    fi
-                  fi
-                  
-                  # Verify the APK was successfully copied
-                  if [ -f "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk" ]; then
-                    echo "Successfully copied APK to the required location"
-                    # Verify APK is valid with AndroidManifest.xml
-                    if unzip -l "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk" | grep -q "AndroidManifest.xml"; then
-                      echo "APK file validation passed"
-                    else
-                      echo "WARNING: The APK may be invalid (missing AndroidManifest.xml)"
-                    fi
-                  else
-                    echo "Failed to find or copy APK to the required location"
-                    exit 0
-                  fi
-                  
-                  # Also look for AAB files and copy to standard location
-                  echo "Looking for Flask AAB files..."
-                  mkdir -p $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/
-                  find $PROJECT_LOCATION -name "*.aab" -type f | while read AAB_PATH; do
-                    echo "Found AAB at: $AAB_PATH"
-                    cp "$AAB_PATH" $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-                    break
-                  done
-                else
-                  # Non-Flask build
-                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
-                fi
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+          title: Bitrise Deploy APK
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+          title: Bitrise Deploy Checksum
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+          title: Bitrise ProGuard Map Files
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+          title: Bitrise Deploy AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: sourcemaps/android/index.js.map
+          title: Bitrise Deploy Sourcemaps
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
