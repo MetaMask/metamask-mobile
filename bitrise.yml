@@ -102,6 +102,8 @@ stages:
       - build_ios_flask_release: {}
       - build_android_qa: {}
       - build_ios_qa: {}
+      - build_android_devbuild: {}
+      - build_ios_devbuild: {}
   create_build_release:
     workflows:
       - build_android_release: {}
@@ -1210,12 +1212,15 @@ workflows:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
+          title: Build Android Pre-Release Bundle
+          is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                echo 'This is the current build type: $METAMASK_BUILD_TYPE'
-                if [ "$METAMASK_BUILD_TYPE" = "main" ]; then
+                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:android:devbuild
+                elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
                     METAMASK_BUILD_TYPE='beta' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:beta
@@ -1225,13 +1230,13 @@ workflows:
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
                 fi
-          title: Build Android Pre-Release Bundle
-          is_always_run: false
+      - save-gradle-cache@1: {}
       - script@1:
+          title: Rename release files
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                # Set base paths
+                # Set base paths for release builds
                 APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
                 BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
                 
@@ -1251,18 +1256,17 @@ workflows:
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
                 envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
-          title: Rename release files
-      - save-gradle-cache@1: {}
+                envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/$RENAMED_APK_FILE:BITRISE_PLAY_STORE_APK_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/$RENAMED_APK_FILE
+            - deploy_path: $APK_DEPLOY_PATH
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
           inputs:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/sha512sums.txt:BITRISE_PLAY_STORE_SHA512SUMS_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/sha512sums.txt
@@ -1270,6 +1274,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
           inputs:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/$OUTPUT_PATH/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/$OUTPUT_PATH/mapping.txt
@@ -1277,6 +1282,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
           inputs:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
@@ -1328,120 +1334,83 @@ workflows:
     after_run:
       - _android_build_template
   build_android_devbuild:
-    before_run:
-      - code_setup
+    envs:
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: 'prod'
     after_run:
-      - notify_failure
-    steps:
-      - change-android-versioncode-and-versionname@1:
-          inputs:
-            - new_version_name: $VERSION_NAME
-            - new_version_code: $VERSION_NUMBER
-            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
-      - restore-gradle-cache@2: {}
-      - install-missing-android-tools@3:
-          inputs:
-            - ndk_version: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:android:devbuild
-          title: Build Android Dev Build
-          is_always_run: false
-      - save-gradle-cache@1: {}
-      - script:
-          title: Copy and Rename APK
-          inputs:
-            - content: |-
-                # Define the source path of the generated APK
-                SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-prod-debug.apk"
-
-                # Define the destination path with the new name
-                DEST_APK_PATH="$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
-
-                # Copy and rename the APK
-                cp "$SOURCE_APK_PATH" "$DEST_APK_PATH"
-
-                # Optionally, print the new path for verification
-                echo "APK has been copied and renamed to: $DEST_APK_PATH"
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: '$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk'
-          title: Bitrise Deploy APK
+      - _android_build_template
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   build_android_qa:
-    before_run:
-      - code_setup
-    after_run:
-      - _upload_apk_to_browserstack
-      - notify_failure
-    steps:
-      - change-android-versioncode-and-versionname@1:
-          inputs:
-            - new_version_name: $VERSION_NAME
-            - new_version_code: $VERSION_NUMBER
-            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
-      - file-downloader@1:
-          inputs:
-            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-            - destination: android/keystores/internalRelease.keystore
-      - restore-gradle-cache@2: {}
-      - install-missing-android-tools@3:
-          inputs:
-            - ndk_version: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
+      before_run:
+        - code_setup
+      after_run:
+        - _upload_apk_to_browserstack
+        - notify_failure
+      steps:
+        - change-android-versioncode-and-versionname@1:
+            inputs:
+              - new_version_name: $VERSION_NAME
+              - new_version_code: $VERSION_NUMBER
+              - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
+        - file-downloader@1:
+            inputs:
+              - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+              - destination: android/keystores/internalRelease.keystore
+        - restore-gradle-cache@2: {}
+        - install-missing-android-tools@3:
+            inputs:
+              - ndk_version: $NDK_VERSION
+              - gradlew_path: $PROJECT_LOCATION/gradlew
 
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
-          title: Build Android Pre-Release Bundle
-          is_always_run: false
-      - save-gradle-cache@1: {}
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
-          title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
-          title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
-          title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-          title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
+        - script@1:
+            inputs:
+              - content: |-
+                  #!/usr/bin/env bash
+                  node -v
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+            title: Build Android Pre-Release Bundle
+            is_always_run: false
+        - save-gradle-cache@1: {}
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+            title: Bitrise Deploy APK
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+            title: Bitrise Deploy Checksum
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+            title: Bitrise ProGuard Map Files
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+            title: Bitrise Deploy AAB
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: sourcemaps/android/index.js.map
+            title: Bitrise Deploy Sourcemaps
+      meta:
+        bitrise.io:
+          stack: linux-docker-android-22.04
+          machine_type_id: elite-xl
   _upload_apk_to_browserstack:
     steps:
       - script@1:
@@ -1619,7 +1588,7 @@ workflows:
                 IPA_DIR="ios/build/output"
                 ARCHIVE_DIR="ios/build"
 
-                # Regular build naming
+                # Generate new name based on build type and version
                 NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
                 
                 # Rename IPA
