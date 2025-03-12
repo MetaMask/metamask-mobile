@@ -578,6 +578,10 @@ describe('getRpcMethodMiddleware', () => {
     });
   }
 
+  describe('wallet_revokePermissions', () => {
+    // TODO: implement
+  });
+
   describe('wallet_requestPermissions', () => {
     it('can requestPermissions for eth_accounts', async () => {
       const mockOrigin = 'example.metamask.io';
@@ -1125,9 +1129,10 @@ describe('getRpcMethodMiddleware', () => {
         expectedError.message,
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(((response as JsonRpcFailure).error as JsonRpcError<any>).data.cause.message).toBe(
-        expectedError.message,
-      );
+      expect(
+        ((response as JsonRpcFailure).error as JsonRpcError<any>).data.cause
+          .message,
+      ).toBe(expectedError.message);
     });
 
     it('returns a JSON-RPC error if an error is thrown after approval', async () => {

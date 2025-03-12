@@ -397,12 +397,37 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
-    const [requestPermissionsHandler, getPermissionsHandler] =
-      permissionRpcMethods.handlers;
+    const [
+      requestPermissionsHandler,
+      getPermissionsHandler,
+      revokePermissionsHandler,
+    ] = permissionRpcMethods.handlers;
 
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcMethods: any = {
+      wallet_revokePermissions: async () =>
+        new Promise<void>((resolve) => {
+          const handle = revokePermissionsHandler.implementation(
+            req,
+            res,
+            next,
+            () => {
+              resolve(undefined);
+            },
+            {
+              revokePermissionsForOrigin:
+                Engine.context.PermissionController.revokePermission.bind(
+                  Engine.context.PermissionController,
+                  channelId ?? hostname,
+                  req.params[0],
+                ),
+            },
+          );
+          handle?.catch((error) => {
+            Logger.error(error as Error, 'Failed to revoke permissions');
+          });
+        }),
       wallet_getPermissions: async () =>
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
