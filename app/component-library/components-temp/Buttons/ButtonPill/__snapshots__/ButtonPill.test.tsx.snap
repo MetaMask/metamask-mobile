@@ -15,7 +15,6 @@ exports[`ButtonPill should render correctly 1`] = `
       "borderRadius": 99,
       "color": "#141618",
       "justifyContent": "center",
-      "opacity": 1,
       "paddingHorizontal": 8,
       "paddingVertical": 4,
     }

@@ -10,6 +10,10 @@ const styleSheet = (params: {
     bottomSheetDialogSheet: {
       backgroundColor: theme.colors.background.alternative,
     },
+    confirmContainer: {
+      display: 'flex',
+      maxHeight: '100%',
+    },
     flatContainer: {
       position: 'absolute',
       top: 0,
