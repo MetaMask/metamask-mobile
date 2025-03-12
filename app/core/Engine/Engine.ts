@@ -934,9 +934,7 @@ export class Engine {
 
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE !== 'flask';
-    const allowLocalSnaps =
-      process.env.METAMASK_BUILD_TYPE === 'flask' ||
-      process.env.METAMASK_BUILD_TYPE === 'beta';
+    const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
