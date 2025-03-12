@@ -912,7 +912,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   }
                   testID="label"
                 >
-                  January
+                  janvier
                 </Text>
               </View>
               <View
