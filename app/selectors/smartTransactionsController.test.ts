@@ -1,6 +1,7 @@
 import {
   selectShouldUseSmartTransaction,
   selectSmartTransactionsEnabled,
+  selectSmartTransactionsForCurrentChain,
 } from './smartTransactionsController';
 import { backgroundState } from '../util/test/initial-root-state';
 import { isHardwareAccount } from '../util/address';
@@ -120,6 +121,31 @@ describe('SmartTransactionsController Selectors', () => {
 
       const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
       expect(shouldUseSmartTransaction).toEqual(true);
+    });
+  });
+  describe('getSmartTransactionsForCurrentChain', () => {
+    it('should return the smart transactions for the current chain', () => {
+      const state = getDefaultState();
+      state.engine.backgroundState.SmartTransactionsController.smartTransactionsState.smartTransactions['0x1'] = [
+        {
+          id: '1',
+          status: 'pending',
+          type: 'swap',
+        },
+      ];
+      const smartTransactions = selectSmartTransactionsForCurrentChain(state);
+      expect(smartTransactions).toEqual([
+        {
+          id: '1',
+          status: 'pending',
+          type: 'swap',
+        },
+      ]);
+    });
+    it('should return an empty array if there are no smart transactions for the current chain', () => {
+      const state = getDefaultState();
+      const smartTransactions = selectSmartTransactionsForCurrentChain(state);
+      expect(smartTransactions).toEqual([]);
     });
   });
 });

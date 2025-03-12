@@ -1723,6 +1723,52 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
   };
 }
 
+export function getBridgeNavbar(navigation, route, themeColors) {
+  const innerStyles = StyleSheet.create({
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
+    },
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+  });
+  const title = route.params?.title ?? 'Swap/Bridge';
+
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
+    headerRight: () => (
+      // eslint-disable-next-line react/jsx-no-bind
+      <TouchableOpacity
+        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        style={styles.closeButton}
+      >
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.cancel')}
+        </Text>
+      </TouchableOpacity>
+    ),
+    headerStyle: innerStyles.headerStyle,
+  };
+}
+
 export function getFiatOnRampAggNavbar(
   navigation,
   { title, showBack = true, showCancel = true } = {},

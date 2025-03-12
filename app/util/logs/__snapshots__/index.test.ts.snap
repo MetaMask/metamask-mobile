@@ -72,6 +72,49 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "currentCurrency": "usd",
       },
+      "EarnController": {
+        "lastUpdated": 0,
+        "pooled_staking": {
+          "exchangeRate": "1",
+          "isEligible": false,
+          "pooledStakes": {
+            "account": "",
+            "assets": "0",
+            "exitRequests": [],
+            "lifetimeRewards": "0",
+          },
+          "vaultApyAverages": {
+            "oneDay": "0",
+            "oneMonth": "0",
+            "oneWeek": "0",
+            "oneYear": "0",
+            "sixMonths": "0",
+            "threeMonths": "0",
+          },
+          "vaultDailyApys": [],
+          "vaultMetadata": {
+            "apy": "0",
+            "capacity": "0",
+            "feePercent": 0,
+            "totalAssets": "0",
+            "vaultAddress": "0x0000000000000000000000000000000000000000",
+          },
+        },
+        "stablecoin_lending": {
+          "vaults": [
+            {
+              "chainId": 0,
+              "currentAPY": "0",
+              "liquidity": "0",
+              "name": "",
+              "supply": "0",
+              "symbol": "",
+              "tokenAddress": "",
+              "vaultAddress": "",
+            },
+          ],
+        },
+      },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
         "gasEstimateType": "none",
@@ -115,6 +158,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           },
         },
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      },
+      "MultichainTransactionsController": {
+        "nonEvmTransactions": {},
       },
       "NetworkController": {
         "networkConfigurationsByChainId": {
@@ -405,6 +451,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "UserStorageController": {
         "hasAccountSyncingSyncedAtLeastOnce": false,
+        "isAccountSyncingInProgress": false,
         "isAccountSyncingReadyToBeDispatched": false,
         "isProfileSyncingEnabled": true,
         "isProfileSyncingUpdateLoading": false,
