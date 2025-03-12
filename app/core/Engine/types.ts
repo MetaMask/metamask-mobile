@@ -448,7 +448,6 @@ export type Controllers = {
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
-  SnapInsightsController: SnapInsightsController;
   SnapsRegistry: SnapsRegistry;
   SubjectMetadataController: SubjectMetadataController;
   AuthenticationController: AuthenticationController.Controller;
