@@ -19,6 +19,7 @@ import {
   NativeTransakAccessToken,
   BuyOrder,
 } from '@consensys/on-ramp-sdk/dist/NativeRampService';
+import { storeTransakToken, getTransakToken } from './TransakTokenVault';
 
 function NativeRamp() {
   const navigation = useNavigation();
@@ -47,7 +48,11 @@ function NativeRamp() {
   const [sepaData, setSepaData] = useState<any>(null);
 
   const [nativeRampService] = useState(
-    () => new NativeRampService('<your-key>', '<your-secret>'),
+    () =>
+      new NativeRampService(
+        'a9d9cc56-a524-4dd7-8008-59f36bd6fa97',
+        '9TRUtEM_RLns4Tp7h34wtvA2h*yc2ty2EhChtWtAdRko!EpVrpvH26xf_YJPM_qqiEG4LsL7TJiB6wg79BjtLGHdaKu6gHsceDHQ',
+      ),
   );
 
   useEffect(() => {
@@ -92,56 +97,64 @@ function NativeRamp() {
     }
   };
 
+  const fetchKycForms = async (token: NativeTransakAccessToken) => {
+    setLoadingMessage('Getting quote...');
+    const newQuote = await nativeRampService.getBuyQuote(
+      'EUR',
+      'USDC',
+      'arbitrum',
+      'sepa_bank_transfer',
+      amount,
+    );
+    setQuote(newQuote);
+
+    setLoadingMessage('Fetching KYC forms...');
+    const kycForms = await nativeRampService.getKYCForms(token, newQuote);
+
+    // Handle special forms first
+    const purposeOfUsageForm = kycForms.forms.find(
+      (form) => form.id === 'purposeOfUsage',
+    );
+
+    // Process special forms
+    if (purposeOfUsageForm) {
+      setLoadingMessage('Processing usage information...');
+      await nativeRampService.submitPurposeOfUsageForm(token, [
+        'Buying/selling crypto for investments',
+      ]);
+    }
+
+    // Get remaining forms
+    const filteredForms = kycForms.forms.filter(
+      (form) => form.id !== 'purposeOfUsage' && form.id !== 'idProof',
+    );
+
+    if (filteredForms.length > 0) {
+      setLoadingMessage('Preparing KYC forms...');
+      const formDetails = await nativeRampService.getKycForm(
+        token,
+        newQuote,
+        filteredForms[0],
+      );
+      setCurrentFormFields(formDetails.fields || []);
+    }
+
+    setForms(filteredForms);
+  };
+
   const handleOtpSubmit = async () => {
     try {
       setIsLoading(true);
       setLoadingMessage('Verifying code...');
       const token = await nativeRampService.verifyUserOtp(email, otp);
+
+      const tokenStoreResult = await storeTransakToken(token);
+      if (!tokenStoreResult.success) {
+        throw new Error('Failed to store access token');
+      }
+
       setAccessToken(token);
-
-      setLoadingMessage('Getting quote...');
-      const newQuote = await nativeRampService.getBuyQuote(
-        'EUR',
-        'USDC',
-        'arbitrum',
-        'sepa_bank_transfer',
-        amount,
-      );
-      setQuote(newQuote);
-
-      setLoadingMessage('Fetching KYC forms...');
-      const kycForms = await nativeRampService.getKYCForms(token, newQuote);
-
-      // Handle special forms first
-      const purposeOfUsageForm = kycForms.forms.find(
-        (form) => form.id === 'purposeOfUsage',
-      );
-      const idProofForm = kycForms.forms.find((form) => form.id === 'idProof');
-
-      // Process special forms
-      if (purposeOfUsageForm) {
-        setLoadingMessage('Processing usage information...');
-        await nativeRampService.submitPurposeOfUsageForm(token, [
-          'Buying/selling crypto for investments',
-        ]);
-      }
-
-      // Get remaining forms
-      const filteredForms = kycForms.forms.filter(
-        (form) => form.id !== 'purposeOfUsage' && form.id !== 'idProof',
-      );
-
-      if (filteredForms.length > 0) {
-        setLoadingMessage('Preparing KYC forms...');
-        const formDetails = await nativeRampService.getKycForm(
-          token,
-          newQuote,
-          filteredForms[0],
-        );
-        setCurrentFormFields(formDetails.fields || []);
-      }
-
-      setForms(filteredForms);
+      await fetchKycForms(token); // need to move this here bc now we skip directly to step 5
       setCurrentStep(5);
     } catch (error) {
       console.error('Error verifying OTP:', error);
@@ -200,14 +213,18 @@ function NativeRamp() {
     while (retries < maxRetries) {
       await new Promise((resolve) => setTimeout(resolve, 10000)); // Wait 10 seconds
 
-      const orderData = await nativeRampService.getOrder(accessToken, order.id);
+      const transakOrderData = await nativeRampService.getOrder(
+        accessToken,
+        order.id,
+      );
+
       console.log(
-        `Order Status: ${orderData.status} (Retry ${
+        `Order Status: ${transakOrderData.status} (Retry ${
           retries + 1
         }/${maxRetries})`,
       );
 
-      if (orderData.status === 'COMPLETED') {
+      if (transakOrderData.status === 'COMPLETED') {
         return orderData;
       }
 
@@ -283,11 +300,21 @@ function NativeRamp() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     switch (currentStep) {
-      case 1:
-        setCurrentStep(2);
+      case 1: {
+        const tokenResult = await getTransakToken();
+        if (tokenResult.success && tokenResult.token) {
+          setIsLoading(true);
+          setAccessToken(tokenResult.token);
+          await fetchKycForms(tokenResult.token);
+          setCurrentStep(5);
+          setIsLoading(false);
+        } else {
+          setCurrentStep(2);
+        }
         break;
+      }
       case 2:
         setCurrentStep(3);
         break;
