@@ -28,18 +28,11 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import {
-  selectAllTokensFlat,
-  selectTokens,
-} from '../../../selectors/tokensController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
-import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
-import {
-  selectNonReplacedTransactions,
-  selectSortedTransactions,
-} from '../../../selectors/transactionController';
+import { selectSortedTransactions } from '../../../selectors/transactionController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -263,13 +256,6 @@ TransactionsView.propTypes = {
 
 const mapStateToProps = (state) => {
   const chainId = selectChainId(state);
-
-  // Remove duplicate confirmed STX
-  // for replaced txs, only hide the ones that are confirmed
-  const nonReplacedTransactions = selectNonReplacedTransactions(state);
-
-  const pendingSmartTransactions =
-    selectPendingSmartTransactionsBySender(state);
 
   return {
     conversionRate: selectConversionRate(state),

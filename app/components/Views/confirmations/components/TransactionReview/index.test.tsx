@@ -51,7 +51,7 @@ jest.mock(
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
   selectShouldUseSmartTransaction: () => false,
-  selectPendingSmartTransactions: () => [],
+  selectPendingSmartTransactionsBySender: () => [],
 }));
 
 jest.mock('../../../../../reducers/swaps', () => ({
