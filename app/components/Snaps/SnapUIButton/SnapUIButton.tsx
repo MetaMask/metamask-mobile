@@ -67,7 +67,7 @@ export const SnapUIButton: FunctionComponent<
       label={
         loading ? (
           <AnimatedLottieView
-            source={require('./loading.json')}
+            source={{ uri: './loading.json' }}
             autoPlay
             loop
             // eslint-disable-next-line react-native/no-inline-styles
