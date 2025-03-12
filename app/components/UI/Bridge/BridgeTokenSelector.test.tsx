@@ -1,4 +1,4 @@
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
 import Routes from '../../../constants/navigation/Routes';
