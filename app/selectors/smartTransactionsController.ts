@@ -96,3 +96,11 @@ export const selectPendingSmartTransactionsBySender = createDeepEqualSelector(
       }));
   },
 );
+
+export const selectSmartTransactionsForCurrentChain = (state: RootState) => {
+  const chainId = selectEvmChainId(state);
+  return (
+    state.engine.backgroundState.SmartTransactionsController
+      ?.smartTransactionsState?.smartTransactions?.[chainId] || []
+  );
+};

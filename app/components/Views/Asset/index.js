@@ -544,6 +544,9 @@ class Asset extends PureComponent {
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
                   swapsIsLive={isSwapsFeatureLive}
+                  networkName={
+                    this.props.networkConfigurations[asset.chainId]?.name
+                  }
                 />
                 <ActivityHeader asset={asset} />
               </>

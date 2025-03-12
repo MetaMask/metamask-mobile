@@ -24,5 +24,11 @@ export const row: UIComponentFactory<RowElement> = ({
     label: element.props.label,
     variant: element.props.variant,
     tooltip: element.props.tooltip,
+    style: {
+      paddingTop: 0,
+      paddingBottom: 0,
+      marginLeft: -8,
+      marginRight: -8,
+    },
   },
 });
