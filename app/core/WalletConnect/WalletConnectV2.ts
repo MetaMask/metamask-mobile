@@ -568,9 +568,19 @@ export class WC2Manager {
       // First check if the url continas sessionTopic, meaning it is only here from an existing connection (so we don't need to create pairing)
       if (rawParams.sessionTopic) {
         const { sessionTopic } = rawParams;
-        this.sessions[sessionTopic]?.setDeeplink(true);
-        showWCLoadingState({ navigation: this.navigation });
-        return;
+        const session = this.sessions[sessionTopic];
+        if (session) {
+          session.setDeeplink(true);
+
+          if (!session.isHandlingRequest()) {
+            showWCLoadingState({ navigation: this.navigation });
+          }
+          return;
+        }
+        
+        // If the session is not found, we need to create a new session
+        // but this should never happen?
+        console.warn(`WC2Manager::connect session not found for sessionTopic=${sessionTopic}`);
       }
 
       if (params.version === 1) {
