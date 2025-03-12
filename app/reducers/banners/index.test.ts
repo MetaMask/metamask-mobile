@@ -1,6 +1,5 @@
 import { REHYDRATE } from 'redux-persist';
-import bannersReducer, { BannersState } from './index';
-import { dismissBanner } from '../../actions/banners';
+import bannersReducer, { BannersState, dismissBanner } from './index';
 
 describe('bannersReducer', () => {
   const initialState: BannersState = {

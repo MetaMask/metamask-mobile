@@ -29,7 +29,6 @@ import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
-import stakingReducer from '../core/redux/slices/staking';
 import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
 
@@ -126,10 +125,10 @@ export interface RootState {
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
+  banners: BannersState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: MultichainSettingsState;
   ///: END:ONLY_INCLUDE_IF
-  banners: BannersState;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -169,10 +168,10 @@ const rootReducer = combineReducers<RootState, any>({
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
   bridge: bridgeReducer,
+  banners: bannersReducer,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: multichainReducer,
   ///: END:ONLY_INCLUDE_IF
-  banners: bannersReducer,
 });
 
 export default rootReducer;

@@ -18,7 +18,7 @@ import {
   SlideId,
   NavigationAction,
 } from './carousel.types';
-import { dismissBanner } from '../../../actions/banners/index';
+import { dismissBanner } from '../../../reducers/banners';
 import { RootState } from '../../../reducers';
 import Text, {
   TextVariant,
@@ -114,8 +114,12 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
     (state: RootState) => state.banners.dismissedBanners,
   );
 
+  const [previousIsZeroBalance, setPreviousIsZeroBalance] = useState<
+    boolean | null
+  >(null);
   const isZeroBalance = multichainBalances.totalFiatBalance === 0;
-  const visibleSlides = useMemo(
+
+  const slidesConfig = useMemo(
     () =>
       PREDEFINED_SLIDES.map((slide) => {
         if (slide.id === 'fund' && isZeroBalance) {
@@ -124,15 +128,34 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
             undismissable: true,
           };
         }
-        return slide;
-      }).filter((slide) => {
+        return {
+          ...slide,
+          undismissable: false,
+        };
+      }),
+    [isZeroBalance],
+  );
+
+  const visibleSlides = useMemo(
+    () =>
+      slidesConfig.filter((slide) => {
         if (slide.id === 'fund' && isZeroBalance) {
           return true;
         }
         return !dismissedBanners.includes(slide.id);
       }),
-    [isZeroBalance, dismissedBanners],
+    [slidesConfig, isZeroBalance, dismissedBanners],
   );
+
+  useEffect(() => {
+    if (
+      previousIsZeroBalance !== null &&
+      previousIsZeroBalance !== isZeroBalance
+    ) {
+      setHasRendered(false);
+    }
+    setPreviousIsZeroBalance(isZeroBalance);
+  }, [isZeroBalance, previousIsZeroBalance]);
 
   const isSingleSlide = visibleSlides.length === 1;
 

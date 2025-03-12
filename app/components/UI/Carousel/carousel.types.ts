@@ -6,8 +6,20 @@ export type NavigationAction =
   | { type: 'url'; href: string }
   | {
       type: 'function';
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      navigate: () => any;
+      navigate: () =>
+        | readonly [string]
+        | readonly [
+            string,
+            {
+              screen: string;
+              params: {
+                address?: string;
+                chainId?: string;
+                amount?: string;
+                currency?: string;
+              };
+            },
+          ];
     }
   | {
       type: 'route';
