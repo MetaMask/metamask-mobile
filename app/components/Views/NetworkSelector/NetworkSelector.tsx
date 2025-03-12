@@ -423,23 +423,15 @@ const NetworkSelector = () => {
     } else {
       const networkConfiguration =
         networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
+      if (source !== 'SendFlow') {
+        const clientId =
+          networkConfiguration?.rpcEndpoints[
+            networkConfiguration.defaultRpcEndpointIndex
+          ].networkClientId ?? type;
 
-      const clientId =
-        networkConfiguration?.rpcEndpoints[
-          networkConfiguration.defaultRpcEndpointIndex
-        ].networkClientId ?? type;
-
-      setTokenNetworkFilter(networkConfiguration.chainId);
-      await MultichainNetworkController.setActiveNetwork(clientId);
-
-      closeRpcModal();
-      AccountTrackerController.refresh();
-
-      setTimeout(async () => {
-        await updateIncomingTransactions([networkConfiguration.chainId]);
-      }, 1000);
-
-      if (source === 'SendFlow') {
+        setTokenNetworkFilter(networkConfiguration.chainId);
+        await MultichainNetworkController.setActiveNetwork(clientId);
+      } else {
         console.log(
           '>>> NetworkSelector onNetworkChange with chainId:',
           networkConfiguration.chainId,
@@ -448,6 +440,13 @@ const NetworkSelector = () => {
           setTransactionSendFlowContextualChainId(networkConfiguration.chainId),
         );
       }
+
+      closeRpcModal();
+      AccountTrackerController.refresh();
+
+      setTimeout(async () => {
+        await updateIncomingTransactions([networkConfiguration.chainId]);
+      }, 1000);
     }
 
     sheetRef.current?.dismissModal();
