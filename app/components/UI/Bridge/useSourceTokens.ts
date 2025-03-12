@@ -47,6 +47,7 @@ function getNativeToken({
       conversionRate,
       currentCurrency,
     ),
+    // Need this field to sort on later
     tokenFiatAmount: weiToFiatNumber(
       hexToBN(accountBalanceByChainId?.balance ?? '0'),
       conversionRate,
