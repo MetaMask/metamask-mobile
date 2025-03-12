@@ -147,7 +147,7 @@ describe('useSourceTokens', () => {
         },
         PreferencesController: {
           tokenSortConfig: {
-            key: 'balance',
+            key: 'tokenFiatAmount',
             order: 'dsc' as const,
           },
         },
