@@ -6,17 +6,26 @@ import {
   selectSelectedInternalAccount,
 } from '../accountsController';
 import { selectAllTokens } from '../tokensController';
-import { selectAccountsByChainId } from '../accountTrackerController';
-import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
+import {
+  selectAccountBalanceByChainId,
+  selectAccountsByChainId,
+} from '../accountTrackerController';
+import {
+  selectEvmNetworkConfigurationsByChainId,
+  selectEvmTicker,
+} from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
 import { hexToBN, toHex } from '@metamask/controller-utils';
 import {
+  selectConversionRate,
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../currencyRateController';
 import { createDeepEqualSelector } from '../util';
 import { isPortfolioViewEnabled } from '../../util/networks';
+import { getTicker } from '../../util/transactions';
+import { zeroAddress } from 'ethereumjs-util';
 
 interface NativeTokenBalance {
   balance: string;
@@ -219,5 +228,67 @@ export const selectAccountTokensAcrossChains = createDeepEqualSelector(
     }
 
     return tokensByChain;
+  },
+);
+
+export const selectNativeEvmAsset = createDeepEqualSelector(
+  selectAccountBalanceByChainId,
+  selectEvmTicker,
+  selectConversionRate,
+  selectCurrentCurrency,
+  (accountBalanceByChainId, ticker, conversionRate, currentCurrency) => {
+    if (!accountBalanceByChainId) {
+      return;
+    }
+    return {
+      // TODO: Add name property to Token interface in controllers.
+      decimals: 18,
+      name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
+      symbol: getTicker(ticker),
+      isETH: true,
+      balance: renderFromWei(accountBalanceByChainId.balance),
+      balanceFiat: weiToFiat(
+        hexToBN(accountBalanceByChainId.balance),
+        conversionRate,
+        currentCurrency,
+      ),
+      logo: '../images/eth-logo-new.png',
+      address: zeroAddress(),
+    };
+  },
+);
+
+export const selectStakedEvmAsset = createDeepEqualSelector(
+  selectAccountBalanceByChainId,
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeEvmAsset,
+  (accountBalanceByChainId, conversionRate, currentCurrency, nativeAsset) => {
+    if (!accountBalanceByChainId) {
+      return;
+    }
+    if (!accountBalanceByChainId.stakedBalance) {
+      return;
+    }
+    if (
+      accountBalanceByChainId.stakedBalance &&
+      hexToBN(accountBalanceByChainId.stakedBalance).isZero()
+    ) {
+      return;
+    }
+    if (!nativeAsset) {
+      return;
+    }
+    return {
+      ...nativeAsset,
+      name: 'Staked Ethereum',
+      isStaked: true,
+      balance: renderFromWei(accountBalanceByChainId.stakedBalance),
+      balanceFiat: weiToFiat(
+        hexToBN(accountBalanceByChainId.stakedBalance),
+        conversionRate,
+        currentCurrency,
+      ),
+    };
   },
 );

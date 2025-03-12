@@ -108,6 +108,10 @@ import { Token } from '@metamask/assets-controllers';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import NonEvmTokens from '../../UI/NonEvmTokens';
+import {
+  selectNativeEvmAsset,
+  selectStakedEvmAsset,
+} from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -334,6 +338,8 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+  const nativeEvmAsset = useSelector(selectNativeEvmAsset);
+  const stakedEvmAsset = useSelector(selectStakedEvmAsset);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -642,61 +648,12 @@ const Wallet = ({
   }
 
   const renderContent = useCallback(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let balance: any = 0;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let stakedBalance: any = 0;
-
-    const assets = isPortfolioViewEnabled()
-      ? [...(tokensByChainIdAndAddress || [])]
-      : [...(tokens || [])];
-
-    if (accountBalanceByChainId) {
-      balance = renderFromWei(accountBalanceByChainId.balance);
-      const nativeAsset = {
-        // TODO: Add name property to Token interface in controllers.
-        name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
-        symbol: getTicker(ticker),
-        isETH: true,
-        balance,
-        balanceFiat: weiToFiat(
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          hexToBN(accountBalanceByChainId.balance) as any,
-          conversionRate,
-          currentCurrency,
-        ),
-        logo: '../images/eth-logo-new.png',
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
-      assets.push(nativeAsset);
-
-      // TODO: Need to handle staked asset in multi chain
-      if (
-        accountBalanceByChainId.stakedBalance &&
-        !hexToBN(accountBalanceByChainId.stakedBalance).isZero()
-      ) {
-        stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
-        const stakedAsset = {
-          ...nativeAsset,
-          nativeAsset,
-          name: 'Staked Ethereum',
-          isStaked: true,
-          balance: stakedBalance,
-          balanceFiat: weiToFiat(
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(accountBalanceByChainId.stakedBalance) as any,
-            conversionRate,
-            currentCurrency,
-          ),
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
-        assets.push(stakedAsset);
-      }
+    const assets = [...tokensByChainIdAndAddress];
+    if (nativeEvmAsset) {
+      assets.push(nativeEvmAsset);
+    }
+    if (stakedEvmAsset) {
+      assets.push(stakedEvmAsset);
     }
 
     return (
