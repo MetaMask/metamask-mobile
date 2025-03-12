@@ -164,21 +164,27 @@ const TransactionsView = ({
       tokens,
       chainId,
       tokenNetworkFilter,
+      isPopularNetwork,
     ],
   );
 
   useEffect(() => {
-    // setLoading(true);
+    setLoading(true);
     /*
-      Since this screen is always mounted and computations happen on this screen everytime the user changes network,
-      using the InteractionManager will help by giving enough time for any animations/screen transactions before it starts
-      computing the transactions which will make the app feel more responsive. Also this takes usually less than 1 second
-      so the effect will not be noticeable if the user is in this screen.
+    Since this screen is always mounted and computations happen on this screen everytime the user changes network
+    using the InteractionManager will help by giving enough time for any animations/screen transactions before it starts
+    computing the transactions which will make the app feel more responsive. Also this takes usually less than 1 seconds
+    so the effect will not be noticeable if the user is in this screen.
     */
     InteractionManager.runAfterInteractions(() => {
-      console.log('useEffect triggered due to filterTransactions change');
-      const { networkId } = store.getState().inpageProvider;
-      filterTransactions(networkId);
+      const state = store.getState();
+      const networkId =
+        state?.engine?.backgroundState?.NetworkController
+          ?.selectedNetworkClientId;
+
+      if (networkId) {
+        filterTransactions(networkId);
+      }
     });
   }, [filterTransactions]);
 
