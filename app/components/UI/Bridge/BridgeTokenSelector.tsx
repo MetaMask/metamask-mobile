@@ -81,7 +81,10 @@ export const BridgeTokenSelector: React.FC = () => {
   const { searchString, setSearchString, searchResults } = useTokenSearch({
     tokens: tokensList || [],
   });
-  const tokensToRender = useMemo(() => searchResults.length > 0 ? searchResults : tokensList, [searchResults, tokensList]);
+  const tokensToRender = useMemo(() => 
+    searchString ? searchResults : tokensList, 
+    [searchString, searchResults, tokensList]
+  );
 
   const handleTokenPress = useCallback((token: TokenI) => {
     const bridgeToken: BridgeToken = {
