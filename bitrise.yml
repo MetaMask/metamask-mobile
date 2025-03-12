@@ -1380,7 +1380,7 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-        _upload_apk_to_browserstack:
+  _upload_apk_to_browserstack:
           steps:
             - script@1:
                 title: Upload APK to Browserstack
