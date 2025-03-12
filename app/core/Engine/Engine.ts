@@ -18,9 +18,9 @@ import {
   TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { AppState } from 'react-native';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
+import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
@@ -41,8 +41,6 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import {
   TransactionController,
   TransactionMeta,
-  TransactionControllerOptions,
-  TransactionControllerMessenger,
   type TransactionParams,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
@@ -147,7 +145,6 @@ import {
   Duration,
   inMilliseconds,
   ///: END:ONLY_INCLUDE_IF
-  hasProperty,
   Hex,
   Json,
 } from '@metamask/utils';
@@ -167,11 +164,7 @@ import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smar
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import {
-  SmartTransactionStatuses,
-  ClientId,
-} from '@metamask/smart-transactions-controller/dist/types';
-import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-publish-hook';
+import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ApprovalType,
@@ -197,6 +190,7 @@ import { createMultichainRatesController } from './controllers/RatesController/u
 import { setupCurrencyRateSync } from './controllers/RatesController/subscriptions';
 import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
+import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
@@ -238,6 +232,7 @@ import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
+import { TransactionControllerInit } from './controllers/transaction-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -288,6 +283,7 @@ export class Engine {
 
   ///: END:ONLY_INCLUDE_IF
 
+  accountsController: AccountsController;
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
 
@@ -381,89 +377,6 @@ export class Engine {
       chainId: getGlobalChainId(networkController),
     });
 
-    const { controllersByName } = initModularizedControllers({
-      controllerInitFunctions: {
-        AccountsController: accountsControllerInit,
-        CurrencyRateController: currencyRateControllerInit,
-        MultichainNetworkController: multichainNetworkControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-        CronjobController: cronjobControllerInit,
-        ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        MultichainAssetsController: multichainAssetsControllerInit,
-        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
-        MultichainBalancesController: multichainBalancesControllerInit,
-        ///: END:ONLY_INCLUDE_IF
-      },
-      persistedState: initialState as EngineState,
-      existingControllersByName: {},
-      baseControllerMessenger: this.controllerMessenger,
-    });
-
-    const multichainNetworkController =
-      controllersByName.MultichainNetworkController;
-    const accountsController = controllersByName.AccountsController;
-    const currencyRateController = controllersByName.CurrencyRateController;
-
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    const cronjobController = controllersByName.CronjobController;
-    ///: END:ONLY_INCLUDE_IF
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainAssetsController =
-      controllersByName.MultichainAssetsController;
-    const multichainAssetsRatesController =
-      controllersByName.MultichainAssetsRatesController;
-    const multichainBalancesController =
-      controllersByName.MultichainBalancesController;
-    ///: END:ONLY_INCLUDE_IF
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainRatesControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'RatesController',
-        allowedActions: [],
-        allowedEvents: ['CurrencyRateController:stateChange'],
-      });
-
-    const multichainRatesController = createMultichainRatesController({
-      messenger: multichainRatesControllerMessenger,
-      initialState: initialState.RatesController,
-    });
-
-    // Set up currency rate sync
-    setupCurrencyRateSync(
-      multichainRatesControllerMessenger,
-      multichainRatesController,
-    );
-    ///: END:ONLY_INCLUDE_IF
-
-    const nftController = new NftController({
-      chainId: getGlobalChainId(networkController),
-      useIpfsSubdomains: false,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'NftController',
-        allowedActions: [
-          `${approvalController.name}:addRequest`,
-          `${networkController.name}:getNetworkClientById`,
-          'AccountsController:getAccount',
-          'AccountsController:getSelectedAccount',
-          'AssetsContractController:getERC721AssetName',
-          'AssetsContractController:getERC721AssetSymbol',
-          'AssetsContractController:getERC721TokenURI',
-          'AssetsContractController:getERC721OwnerOf',
-          'AssetsContractController:getERC1155BalanceOf',
-          'AssetsContractController:getERC1155TokenURI',
-        ],
-        allowedEvents: [
-          'PreferencesController:stateChange',
-          'NetworkController:networkDidChange',
-          'AccountsController:selectedEvmAccountChange',
-        ],
-      }),
-      state: initialState.NftController,
-    });
-
     const loggingController = new LoggingController({
       messenger: this.controllerMessenger.getRestricted<
         'LoggingController',
@@ -475,28 +388,6 @@ export class Engine {
         allowedEvents: [],
       }),
       state: initialState.LoggingController,
-    });
-    const tokensController = new TokensController({
-      chainId: getGlobalChainId(networkController),
-      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-      provider: networkController.getProviderAndBlockTracker().provider,
-      state: initialState.TokensController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'TokensController',
-        allowedActions: [
-          `${approvalController.name}:addRequest`,
-          'NetworkController:getNetworkClientById',
-          'AccountsController:getAccount',
-          'AccountsController:getSelectedAccount',
-        ],
-        allowedEvents: [
-          'PreferencesController:stateChange',
-          'NetworkController:networkDidChange',
-          'NetworkController:stateChange',
-          'TokenListController:stateChange',
-          'AccountsController:selectedEvmAccountChange',
-        ],
-      }),
     });
     const tokenListController = new TokenListController({
       chainId: getGlobalChainId(networkController),
@@ -623,7 +514,7 @@ export class Engine {
     // Necessary to persist the keyrings and update the accounts both within the keyring controller and accounts controller
     const persistAndUpdateAccounts = async () => {
       await this.keyringController.persistAllKeyrings();
-      await accountsController.updateAccounts();
+      await this.accountsController.updateAccounts();
     };
 
     additionalKeyrings.push(
@@ -668,9 +559,17 @@ export class Engine {
       return keyring.mnemonic;
     };
 
-    const getAppState = () => {
-      const state = AppState.currentState;
-      return state === 'active';
+    const getUnlockPromise = () => {
+      if (this.keyringController.isUnlocked()) {
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        this.controllerMessenger.subscribeOnceIf(
+          'KeyringController:unlock',
+          resolve,
+          () => true,
+        );
+      });
     };
 
     const snapRestrictedMethods = {
@@ -681,7 +580,7 @@ export class Engine {
         SnapControllerClearSnapStateAction,
       ),
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
-      getUnlockPromise: getAppState.bind(this),
+      getUnlockPromise: getUnlockPromise.bind(this),
       getSnap: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         SnapControllerGetSnapAction,
@@ -819,8 +718,8 @@ export class Engine {
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
-        getInternalAccounts:
-          accountsController.listAccounts.bind(accountsController),
+        getInternalAccounts: (...args) =>
+          this.accountsController.listAccounts(...args),
         findNetworkClientIdByChainId:
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
@@ -830,8 +729,8 @@ export class Engine {
       permissionSpecifications: {
         ...getPermissionSpecifications({
           getAllAccounts: () => this.keyringController.getAccounts(),
-          getInternalAccounts:
-            accountsController.listAccounts.bind(accountsController),
+          getInternalAccounts: (...args) =>
+            this.accountsController.listAccounts(...args),
           captureKeyringTypesWithMissingIdentities: (
             internalAccounts = [],
             accounts = [],
@@ -1081,7 +980,7 @@ export class Engine {
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
       env: {
-       // IMPORTANT! Do not enable account syncing while peer depts are not aligned
+        // IMPORTANT! Do not enable account syncing while peer depts are not aligned
         isAccountSyncingEnabled: false,
       },
     });
@@ -1103,79 +1002,6 @@ export class Engine {
         initialState: initialState.NotificationServicesPushController,
       });
     ///: END:ONLY_INCLUDE_IF
-
-    this.transactionController = new TransactionController({
-      disableHistory: true,
-      disableSendFlowHistory: true,
-      disableSwaps: true,
-      // @ts-expect-error TransactionController is missing networkClientId argument in type
-      getCurrentNetworkEIP1559Compatibility:
-        networkController.getEIP1559Compatibility.bind(networkController),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      getExternalPendingTransactions: (address: string) =>
-        this.smartTransactionsController.getTransactions({
-          addressFrom: address,
-          status: SmartTransactionStatuses.PENDING,
-        }),
-      getGasFeeEstimates:
-        gasFeeController.fetchGasFeeEstimates.bind(gasFeeController),
-      // but only breaking change is Node version and bumped dependencies
-      getNetworkClientRegistry:
-        networkController.getNetworkClientRegistry.bind(networkController),
-      getNetworkState: () => networkController.state,
-      hooks: {
-        publish: (transactionMeta) => {
-          const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-            store.getState(),
-          );
-
-          return submitSmartTransactionHook({
-            transactionMeta,
-            transactionController: this.transactionController,
-            smartTransactionsController: this.smartTransactionsController,
-            shouldUseSmartTransaction,
-            approvalController,
-            // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-            controllerMessenger: this.controllerMessenger,
-            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
-          }) as Promise<{ transactionHash: string }>;
-        },
-      },
-      incomingTransactions: {
-        isEnabled: () => {
-          const currentHexChainId = getGlobalChainId(networkController);
-
-          const showIncomingTransactions =
-            preferencesController?.state?.showIncomingTransactions;
-
-          return Boolean(
-            hasProperty(showIncomingTransactions, currentChainId) &&
-              showIncomingTransactions?.[currentHexChainId],
-          );
-        },
-        updateTransactions: true,
-      },
-      isSimulationEnabled: () =>
-        preferencesController.state.useTransactionSimulations,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'TransactionController',
-        allowedActions: [
-          'AccountsController:getSelectedAccount',
-          `${approvalController.name}:addRequest`,
-          `${networkController.name}:getNetworkClientById`,
-          `${networkController.name}:findNetworkClientIdByChainId`,
-        ],
-        allowedEvents: [`NetworkController:stateChange`],
-      }) as unknown as TransactionControllerMessenger,
-      pendingTransactions: {
-        isResubmitEnabled: () => false,
-      },
-      sign: this.keyringController.signTransaction.bind(
-        this.keyringController,
-      ) as unknown as TransactionControllerOptions['sign'],
-      state: initialState.TransactionController,
-    });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
@@ -1204,17 +1030,15 @@ export class Engine {
           .build(),
       );
     };
+
     this.smartTransactionsController = new SmartTransactionsController({
       // @ts-expect-error TODO: resolve types
       supportedChainIds: getAllowedSmartTransactionsChainIds(),
       clientId: ClientId.Mobile,
-      getNonceLock: this.transactionController.getNonceLock.bind(
-        this.transactionController,
-      ),
-      confirmExternalTransaction:
-        this.transactionController.confirmExternalTransaction.bind(
-          this.transactionController,
-        ),
+      getNonceLock: (...args) =>
+        this.transactionController.getNonceLock(...args),
+      confirmExternalTransaction: (...args) =>
+        this.transactionController.confirmExternalTransaction(...args),
       trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
       state: initialState.SmartTransactionsController,
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1226,12 +1050,10 @@ export class Engine {
         ],
         allowedEvents: ['NetworkController:stateChange'],
       }),
-      getTransactions: this.transactionController.getTransactions.bind(
-        this.transactionController,
-      ),
-      updateTransaction: this.transactionController.updateTransaction.bind(
-        this.transactionController,
-      ),
+      getTransactions: (...args) =>
+        this.transactionController.getTransactions(...args),
+      updateTransaction: (...args) =>
+        this.transactionController.updateTransaction(...args),
       getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
@@ -1251,7 +1073,6 @@ export class Engine {
     });
 
     /* bridge controller Initialization */
-
     const bridgeController = new BridgeController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'BridgeController',
@@ -1307,6 +1128,136 @@ export class Engine {
           'AccountsController:getSelectedAccount',
           'NetworkController:getNetworkClientById',
           'NetworkController:getState',
+        ],
+      }),
+    });
+    const existingControllersByName = {
+      ApprovalController: approvalController,
+      GasFeeController: gasFeeController,
+      KeyringController: this.keyringController,
+      NetworkController: networkController,
+      PreferencesController: preferencesController,
+      SmartTransactionsController: this.smartTransactionsController,
+    };
+
+    const initRequest = {
+      getState: () => store.getState(),
+      getGlobalChainId: () => currentChainId,
+    };
+
+    const { controllersByName } = initModularizedControllers({
+      controllerInitFunctions: {
+        AccountsController: accountsControllerInit,
+        TransactionController: TransactionControllerInit,
+        CurrencyRateController: currencyRateControllerInit,
+        MultichainNetworkController: multichainNetworkControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        CronjobController: cronjobControllerInit,
+        ///: END:ONLY_INCLUDE_IF
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        MultichainAssetsController: multichainAssetsControllerInit,
+        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
+        MultichainBalancesController: multichainBalancesControllerInit,
+        MultichainTransactionsController: multichainTransactionsControllerInit,
+        ///: END:ONLY_INCLUDE_IF
+      },
+      persistedState: initialState as EngineState,
+      existingControllersByName,
+      baseControllerMessenger: this.controllerMessenger,
+      ...initRequest,
+    });
+
+    const accountsController = controllersByName.AccountsController;
+    const transactionController = controllersByName.TransactionController;
+
+    // Backwards compatibility for existing references
+    this.accountsController = accountsController;
+    this.transactionController = transactionController;
+
+    const multichainNetworkController =
+      controllersByName.MultichainNetworkController;
+    const currencyRateController = controllersByName.CurrencyRateController;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    const cronjobController = controllersByName.CronjobController;
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainAssetsController =
+      controllersByName.MultichainAssetsController;
+    const multichainAssetsRatesController =
+      controllersByName.MultichainAssetsRatesController;
+    const multichainBalancesController =
+      controllersByName.MultichainBalancesController;
+    const multichainTransactionsController =
+      controllersByName.MultichainTransactionsController;
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainRatesControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'RatesController',
+        allowedActions: [],
+        allowedEvents: ['CurrencyRateController:stateChange'],
+      });
+
+    const multichainRatesController = createMultichainRatesController({
+      messenger: multichainRatesControllerMessenger,
+      initialState: initialState.RatesController,
+    });
+
+    // Set up currency rate sync
+    setupCurrencyRateSync(
+      multichainRatesControllerMessenger,
+      multichainRatesController,
+    );
+    ///: END:ONLY_INCLUDE_IF
+
+    const nftController = new NftController({
+      chainId: getGlobalChainId(networkController),
+      useIpfsSubdomains: false,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'NftController',
+        allowedActions: [
+          'AccountsController:getAccount',
+          'AccountsController:getSelectedAccount',
+          'ApprovalController:addRequest',
+          'AssetsContractController:getERC721AssetName',
+          'AssetsContractController:getERC721AssetSymbol',
+          'AssetsContractController:getERC721TokenURI',
+          'AssetsContractController:getERC721OwnerOf',
+          'AssetsContractController:getERC1155BalanceOf',
+          'AssetsContractController:getERC1155TokenURI',
+          'NetworkController:getNetworkClientById',
+        ],
+        allowedEvents: [
+          'PreferencesController:stateChange',
+          'NetworkController:networkDidChange',
+          'AccountsController:selectedEvmAccountChange',
+        ],
+      }),
+      state: initialState.NftController,
+    });
+
+    const tokensController = new TokensController({
+      chainId: getGlobalChainId(networkController),
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
+      provider: networkController.getProviderAndBlockTracker().provider,
+      state: initialState.TokensController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TokensController',
+        allowedActions: [
+          'ApprovalController:addRequest',
+          'NetworkController:getNetworkClientById',
+          'AccountsController:getAccount',
+          'AccountsController:getSelectedAccount',
+        ],
+        allowedEvents: [
+          'PreferencesController:stateChange',
+          'NetworkController:networkDidChange',
+          'NetworkController:stateChange',
+          'TokenListController:stateChange',
+          'AccountsController:selectedEvmAccountChange',
         ],
       }),
     });
@@ -1539,6 +1490,7 @@ export class Engine {
       RatesController: multichainRatesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
+      MultichainTransactionsController: multichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
@@ -2168,6 +2120,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController,
       MultichainNetworkController,
@@ -2215,6 +2168,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController,
       MultichainNetworkController,

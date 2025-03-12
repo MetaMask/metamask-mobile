@@ -54,6 +54,16 @@ import {
   MultichainAssetsRatesControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import {
+  MultichainTransactionsController,
+  MultichainTransactionsControllerState,
+} from '@metamask/multichain-transactions-controller';
+import {
+  MultichainTransactionsControllerEvents,
+  MultichainTransactionsControllerActions,
+} from './messengers/multichain-transactions-controller-messenger/types';
+///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
   AddressBookControllerActions,
@@ -245,6 +255,10 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
+import { Hex } from '@metamask/utils';
+
+import { CONTROLLER_MESSENGERS } from './messengers';
+import type { RootState } from '../../reducers';
 
 /**
  * Controllers that area always instantiated
@@ -310,6 +324,7 @@ type GlobalActions =
   | RatesControllerActions
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
+  | MultichainTransactionsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -356,6 +371,7 @@ type GlobalEvents =
   | RatesControllerEvents
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
+  | MultichainTransactionsControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -449,6 +465,7 @@ export type Controllers = {
   MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
+  MultichainTransactionsController: MultichainTransactionsController;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -510,6 +527,7 @@ export type EngineState = {
   RatesController: RatesControllerState;
   MultichainAssetsController: MultichainAssetsControllerState;
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
+  MultichainTransactionsController: MultichainTransactionsControllerState;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
   MultichainNetworkController: MultichainNetworkControllerState;
@@ -553,15 +571,17 @@ export type ControllersToInitialize =
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
+  | 'MultichainTransactionsController'
   ///: END:ONLY_INCLUDE_IF
   | 'CurrencyRateController'
   | 'AccountsController'
-  | 'MultichainNetworkController';
+  | 'MultichainNetworkController'
+  | 'TransactionController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
  */
-type ControllerMessengerCallback = (
+export type ControllerMessengerCallback = (
   baseControllerMessenger: BaseControllerMessenger,
 ) => BaseRestrictedControllerMessenger;
 
@@ -579,11 +599,7 @@ type ControllerPersistedState = Partial<{
 /**
  * Map of controller messengers by controller name.
  */
-export type ControllerMessengerByControllerName = {
-  [key in ControllersToInitialize]: {
-    getMessenger: ControllerMessengerCallback;
-  };
-};
+export type ControllerMessengerByControllerName = typeof CONTROLLER_MESSENGERS;
 
 /**
  * Request to initialize and return a controller instance.
@@ -592,6 +608,7 @@ export type ControllerMessengerByControllerName = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ControllerInitRequest<
   ControllerMessengerType extends BaseRestrictedControllerMessenger,
+  InitMessengerType extends void | BaseRestrictedControllerMessenger = void,
 > = {
   /**
    * Controller messenger for the client.
@@ -610,6 +627,26 @@ export type ControllerInitRequest<
   ): ControllerByName[Name];
 
   /**
+   * Retrieve the chain ID of the globally selected network.
+   *
+   * @deprecated Will be removed in the future pending multi-chain support.
+   */
+  getGlobalChainId: () => Hex;
+
+  /**
+   * Get the UI state of the app, returning the current Redux state including transient UI data,
+   * whereas `persistedState` contains only the subset of state persisted across sessions.
+   * For example: `{ settings, user, engine: { backgroundState: EngineState } }`.
+   */
+  getState: () => RootState;
+
+  /**
+   * Required initialization messenger instance.
+   * Generated using the callback specified in `getInitMessenger`.
+   */
+  initMessenger: InitMessengerType;
+
+  /**
    * The full persisted state for all controllers.
    * Includes controller name properties.
    * e.g. `{ TransactionController: { transactions: [] } }`.
@@ -623,17 +660,22 @@ export type ControllerInitRequest<
 export type ControllerInitFunction<
   ControllerType extends Controller,
   ControllerMessengerType extends BaseRestrictedControllerMessenger,
-> = (request: ControllerInitRequest<ControllerMessengerType>) => {
+  InitMessengerType extends void | BaseRestrictedControllerMessenger = void,
+> = (
+  request: ControllerInitRequest<ControllerMessengerType, InitMessengerType>,
+) => {
   controller: ControllerType;
 };
 
 /**
  * Map of controller init functions by controller name.
  */
-type ControllerInitFunctionByControllerName = {
+export type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
     ControllerByName[Name],
-    ReturnType<ControllerMessengerByControllerName[Name]['getMessenger']>
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
+    ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
   >;
 };
 
@@ -641,10 +683,12 @@ type ControllerInitFunctionByControllerName = {
  * Function to initialize the controllers in the engine.
  */
 export type InitModularizedControllersFunction = (request: {
-  controllerInitFunctions: ControllerInitFunctionByControllerName;
-  persistedState: ControllerPersistedState;
-  existingControllersByName?: Partial<ControllerByName>;
   baseControllerMessenger: BaseControllerMessenger;
+  controllerInitFunctions: ControllerInitFunctionByControllerName;
+  existingControllersByName?: Partial<ControllerByName>;
+  getGlobalChainId: () => Hex;
+  getState: () => RootState;
+  persistedState: ControllerPersistedState;
 }) => {
   controllersByName: ControllerByName;
 };
