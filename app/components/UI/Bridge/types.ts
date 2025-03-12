@@ -1,6 +1,6 @@
 import type { CaipChainId } from '@metamask/utils';
 
-export type BridgeToken = {
+export interface BridgeToken {
   address: string;
   symbol: string;
   image: string;
