@@ -19,6 +19,7 @@ pipelines:
       - create_build_release: {}
       - deploy_build_release: {}
       - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
+  #Releases MetaMask beta apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   beta_builds_to_store_pipeline:
     stages:
       - create_build_beta: {}
