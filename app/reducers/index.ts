@@ -125,7 +125,6 @@ export interface RootState {
   transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
-  staking: StateFromReducer<typeof stakingReducer>;
   bridge: StateFromReducer<typeof bridgeReducer>;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: MultichainSettingsState;
@@ -169,7 +168,6 @@ const rootReducer = combineReducers<RootState, any>({
   transactionMetrics: transactionMetricsReducer,
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
-  staking: stakingReducer,
   bridge: bridgeReducer,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: multichainReducer,
