@@ -10,7 +10,7 @@ import {
   AccountsController,
   AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
-import { cronjobControllerInit } from '../controllers/cronjob-controller/cronjob-controller-init';
+import { cronjobControllerInit } from '../controllers/snaps';
 import { CronjobController } from '@metamask/snaps-controllers';
 import { multichainAssetsRatesControllerInit } from '../controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import {
@@ -28,7 +28,7 @@ import { multichainTransactionsControllerInit } from '../controllers/multichain-
 import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 jest.mock('../controllers/accounts-controller');
-jest.mock('../controllers/cronjob-controller/cronjob-controller-init');
+jest.mock('../controllers/snaps');
 jest.mock(
   '../controllers/currency-rate-controller/currency-rate-controller-init',
 );
