@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/default-param-last */
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { REHYDRATE } from 'redux-persist';
+import { createSlice, PayloadAction, Action } from '@reduxjs/toolkit';
 
 export interface BannersState {
   dismissedBanners: string[];
@@ -10,9 +9,7 @@ const initialState: BannersState = {
   dismissedBanners: [],
 };
 
-interface RehydrateAction {
-  type: typeof REHYDRATE;
-  key: string;
+interface RehydrateAction extends Action<'persist/REHYDRATE'> {
   payload?: {
     banners?: BannersState;
   };
@@ -29,7 +26,7 @@ const bannersSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(REHYDRATE, (state, action: RehydrateAction) => {
+    builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
       if (action.payload?.banners) {
         return action.payload.banners;
       }
