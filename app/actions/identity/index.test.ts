@@ -44,7 +44,7 @@ describe('Identity actions', () => {
       Engine.context.AuthenticationController.performSignOut as jest.Mock
     ).mockResolvedValue(undefined);
 
-    const result = await performSignOut();
+    const result = performSignOut();
 
     expect(
       Engine.context.AuthenticationController.performSignOut,

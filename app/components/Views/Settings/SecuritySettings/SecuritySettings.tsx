@@ -568,8 +568,8 @@ const Settings: React.FC = () => {
     isDisableProfileSyncingLoading ||
     disableNotificationsLoading;
   const modalError =
-    enableProfileSyncingError ||
-    disableProfileSyncingError ||
+    enableProfileSyncingError ??
+    disableProfileSyncingError ??
     disableNotificationsError;
 
   return (

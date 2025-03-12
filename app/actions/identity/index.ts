@@ -9,7 +9,7 @@ export const performSignIn = async () => {
   }
 };
 
-export const performSignOut = async () => {
+export const performSignOut = () => {
   try {
     Engine.context.AuthenticationController.performSignOut();
   } catch (error) {
