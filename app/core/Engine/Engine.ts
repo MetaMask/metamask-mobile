@@ -1098,20 +1098,6 @@ export class Engine {
       fetchFn: fetch,
     });
 
-    const earnController = new EarnController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'EarnController',
-        allowedEvents: [
-          'AccountsController:selectedAccountChange',
-          'NetworkController:stateChange',
-        ],
-        allowedActions: [
-          'AccountsController:getSelectedAccount',
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getState',
-        ],
-      }),
-    });
     const existingControllersByName = {
       ApprovalController: approvalController,
       GasFeeController: gasFeeController,
@@ -1239,6 +1225,21 @@ export class Engine {
           'NetworkController:stateChange',
           'TokenListController:stateChange',
           'AccountsController:selectedEvmAccountChange',
+        ],
+      }),
+    });
+
+    const earnController = new EarnController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'EarnController',
+        allowedEvents: [
+          'AccountsController:selectedAccountChange',
+          'NetworkController:stateChange',
+        ],
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getState',
         ],
       }),
     });
