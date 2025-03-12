@@ -154,6 +154,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
         // From here, we know the account has been saved into the Snap keyring
         // state, so we can safely uses this state to run post-processing.
         // (e.g. renaming the account, select the account, etc...)
+
         // Set the selected account to the new account
         this.#messenger.call(
           'AccountsController:setSelectedAccount',
