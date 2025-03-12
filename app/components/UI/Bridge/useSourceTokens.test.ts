@@ -274,7 +274,7 @@ describe('useSourceTokens', () => {
 
     await waitFor(() => {
       const token1 = result.current.find((t) => t.address === token1Address);
-      expect(token1?.balanceFiat).toBe('< $0.01');
+      expect(token1?.balanceFiat).toBe('$0');
     });
   });
 });
