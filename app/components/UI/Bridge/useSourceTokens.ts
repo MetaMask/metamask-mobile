@@ -10,7 +10,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectConversionRate, selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
-import { addCurrencySymbol, renderFromWei, weiToFiat, hexToBN, weiToFiatNumber } from '../../../util/number';
+import { addCurrencySymbol, renderFromWei, weiToFiat, hexToBN, weiToFiatNumber, balanceToFiatNumber, renderNumber } from '../../../util/number';
 import { sortAssets } from '../Tokens/util';
 import { selectERC20TokensByChain } from '../../../selectors/tokenListController';
 import { TokenListToken } from '@metamask/assets-controllers';
@@ -83,23 +83,22 @@ export const useSourceTokens = () => {
 
     // Process regular tokens with balances
     const tokensWithBalances: TokenIWithFiatAmount[] = tokens.map((token) => {
-      const balance = tokenBalances?.[selectedInternalAccountAddress]?.[currentChainId]?.[token.address as Hex] || '0';
-      const formattedBalance = utils.formatUnits(balance, token.decimals);
+      const atomicBalance = tokenBalances?.[selectedInternalAccountAddress]?.[currentChainId]?.[token.address as Hex] || '0';
+      const balance = utils.formatUnits(atomicBalance, token.decimals);
+      const formattedBalance = renderNumber(balance);
 
       const exchangeRate = token.address === constants.AddressZero
         ? 1  // For native token
         : tokenExchangeRates?.[token.address as Hex]?.price || 0;
 
-      const fiatValue = parseFloat(formattedBalance) * exchangeRate * conversionRate;
-      const balanceFiat = fiatValue >= 0.01 || fiatValue === 0
-        ? addCurrencySymbol(fiatValue, currentCurrency)
-        : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+      const formattedBalanceFiatNumber = balanceToFiatNumber(balance, conversionRate, exchangeRate);
+      const formattedBalanceFiat = addCurrencySymbol(formattedBalanceFiatNumber, currentCurrency);
 
       return {
         ...token,
-        balance: formattedBalance, // e.g. 1.2345
-        balanceFiat, // e.g. $100.00, cannot sort on this field
-        tokenFiatAmount: fiatValue, // Can sort on this field
+        balance: formattedBalance, // e.g. 1.2345, truncated decimals
+        balanceFiat: formattedBalanceFiat, // e.g. $100.00, cannot sort on this field, truncated decimals
+        tokenFiatAmount: formattedBalanceFiatNumber, // Can sort on this field
         logo: token.image,
         isETH: token.address === constants.AddressZero,
         isNative: token.address === constants.AddressZero,

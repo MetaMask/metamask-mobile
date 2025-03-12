@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, FlatList, TouchableOpacity, TextInput, View, Platform } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -15,11 +15,10 @@ import { BridgeToken } from './types';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { setSourceToken } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
-import Engine from '../../../core/Engine';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
 import { TokenSelectorItem } from './TokenSelectorItem';
-import { useSourceTokens } from './useSourceTokens';
+import { useSourceTokens, TokenIWithFiatAmount } from './useSourceTokens';
 import { strings } from '../../../../locales/i18n';
 import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
 import { useTokenSearch } from './useTokenSearch';
@@ -84,11 +83,6 @@ export const BridgeTokenSelector: React.FC = () => {
   });
   const tokensToRender = useMemo(() => searchResults.length > 0 ? searchResults : tokensList, [searchResults, tokensList]);
 
-  useEffect(() => {
-    const { BridgeController } = Engine.context;
-    BridgeController.setBridgeFeatureFlags();
-  }, []);
-
   const handleTokenPress = useCallback((token: TokenI) => {
     const bridgeToken: BridgeToken = {
       address: token.address,
@@ -111,7 +105,7 @@ export const BridgeTokenSelector: React.FC = () => {
     };
   }, [networkConfigurations]);
 
-  const renderItem = useCallback(({ item }: { item: TokenI }) => {
+  const renderItem = useCallback(({ item }: { item: TokenIWithFiatAmount }) => {
     const networkDetails = getNetworkBadgeDetails(currentChainId);
 
     return (
