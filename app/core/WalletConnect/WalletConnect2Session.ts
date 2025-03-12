@@ -55,6 +55,7 @@ class WalletConnect2Session {
   } = {};
   private lastChainId: string;
   private isHandlingChainChange = false;
+  private _isHandlingRequest = false;
 
   public session: SessionTypes.Struct;
 
@@ -228,6 +229,10 @@ class WalletConnect2Session {
       this.redirect(`needsRedirect_${id}`);
     }
   };
+  
+  isHandlingRequest = () => {
+    return this._isHandlingRequest;
+  };
 
   emitEvent = async (eventName: string, data: unknown) => {
     console.log("🔵 emitEvent", eventName, data);
@@ -319,6 +324,7 @@ class WalletConnect2Session {
           result,
         },
       });
+      this._isHandlingRequest = false;
     } catch (err) {
       console.warn(
         `WC2::approveRequest error while approving request id=${id} topic=${topic}`,
@@ -361,6 +367,7 @@ class WalletConnect2Session {
           error: errorResponse,
         },
       });
+      this._isHandlingRequest = false;
     } catch (err) {
       console.warn(
         `WC2::rejectRequest error while rejecting request id=${id} topic=${topic}`,
@@ -454,6 +461,10 @@ class WalletConnect2Session {
       // Always clear the timeout ref on new message, it is only used for wallet_switchEthereumChain auto reject on android
       clearTimeout(this.timeoutRef);
     }
+
+    // Set this to true before handling the request
+    // So we know whether to show the loading state
+    this._isHandlingRequest = true;
 
     hideWCLoadingState({ navigation: this.navigation });
 
