@@ -9,7 +9,6 @@ import { initialState as initialBridgeState } from '../../core/redux/slices/brid
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
-import { initialState as initialStakingState } from '../../core/redux/slices/staking';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { initialState as initialMultichainSettingsState } from '../../reducers/multichain';
 ///: END:ONLY_INCLUDE_IF
@@ -53,7 +52,6 @@ const initialRootState: RootState = {
   transactionMetrics,
   originThrottling,
   notifications: {},
-  staking: initialStakingState,
   bridge: initialBridgeState,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: initialMultichainSettingsState,
