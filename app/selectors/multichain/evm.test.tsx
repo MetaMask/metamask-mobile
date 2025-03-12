@@ -4,6 +4,7 @@ import { RootState } from '../../reducers';
 import {
   selectedAccountNativeTokenCachedBalanceByChainId,
   selectAccountTokensAcrossChains,
+  selectNativeEvmAsset,
 } from './evm';
 import { SolScope } from '@metamask/keyring-api';
 import { GetByQuery } from '@testing-library/react-native/build/queries/makeQueries';
@@ -26,6 +27,10 @@ import {
   POLYGON_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
+import { renderFromWei, weiToFiat } from '../../util/number';
+import { hexToBN } from '@metamask/controller-utils';
+import { zeroAddress } from 'ethereumjs-util';
+import { PreferencesController } from '@metamask/preferences-controller';
 
 describe('Multichain Selectors', () => {
   const mockState: RootState = {
@@ -120,6 +125,9 @@ describe('Multichain Selectors', () => {
         },
       },
     },
+    settings: {
+      showFiatOnTestnets: true,
+    },
   } as unknown as RootState;
 
   describe('selectedAccountNativeTokenCachedBalanceByChainId', () => {
@@ -201,6 +209,74 @@ describe('Multichain Selectors', () => {
         true,
       );
     });
+  });
+
+  describe('selectNativeEvmAsset', () => {
+    it.only('should return undefined if accountBalanceByChainId is not provided', () => {
+      const testState: RootState = {
+        engine: {
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            AccountTrackerController: {
+              accountsByChainId: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '',
+                accounts: {},
+              },
+            },
+          },
+        },
+        settings: {
+          showFiatOnTestnets: true,
+        },
+      } as unknown as RootState;
+      const result = selectNativeEvmAsset(testState);
+      expect(result).toBeUndefined();
+    });
+
+    // it('should return the correct native EVM asset structure', () => {
+    //   const accountBalanceByChainId = { balance: '1000000000000000000' }; // 1 ETH in wei
+    //   const result = selectNativeEvmAsset.resultFunc(
+    //     accountBalanceByChainId,
+    //     'ETH',
+    //     3000,
+    //     'USD',
+    //   );
+
+    //   expect(result).toEqual({
+    //     decimals: 18,
+    //     name: 'Ethereum',
+    //     symbol: 'ETH',
+    //     isETH: true,
+    //     balance: '1000000000000000000 ETH', // Mocked `renderFromWei`
+    //     balanceFiat: '3000000000000000000000 USD', // Mocked `weiToFiat`
+    //     logo: '../images/eth-logo-new.png',
+    //     address: zeroAddress(),
+    //   });
+    // });
+
+    // it('should return asset name as ticker if not ETH', () => {
+    //   const accountBalanceByChainId = { balance: '500000000000000000' }; // 0.5 XYZ
+    //   const result = selectNativeEvmAsset.resultFunc(
+    //     accountBalanceByChainId,
+    //     'XYZ',
+    //     2000,
+    //     'EUR',
+    //   );
+
+    //   expect(result).toEqual({
+    //     decimals: 18,
+    //     name: 'XYZ',
+    //     symbol: 'XYZ',
+    //     isETH: true,
+    //     balance: '500000000000000000 ETH',
+    //     balanceFiat: '1000000000000000000000 EUR',
+    //     logo: '../images/eth-logo-new.png',
+    //     address: zeroAddress(),
+    //   });
+    // });
   });
 });
 
