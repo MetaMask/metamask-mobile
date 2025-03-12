@@ -9,6 +9,10 @@ import {
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
   MultichainNativeAssets,
+  selectMultichainCoinRates,
+  selectMultichainBalances,
+  MULTICHAIN_NETWORK_TO_ASSET_TYPES,
+  selectMultichainTransactions,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -102,6 +106,15 @@ function getEvmState(
           selectedMultichainNetworkChainId: SolScope.Mainnet,
 
           multichainNetworkConfigurationsByChainId: {},
+        },
+        MultichainTransactionsController: {
+          nonEvmTransactions: {
+            [MOCK_ACCOUNT_BIP122_P2WPKH.id]: {
+              transactions: [],
+              next: null,
+              lastUpdated: 0,
+            },
+          },
         },
       },
     },
@@ -448,6 +461,94 @@ describe('MultichainNonEvm Selectors', () => {
       };
 
       expect(selectMultichainConversionRate(state)).toBe(mockSolConversionRate);
+    });
+  });
+
+  describe('selectMultichainBalances and selectMultichainCoinRates', () => {
+    it('selectMultichainBalances returns balances from the MultichainBalancesController state', () => {
+      const state = getEvmState();
+      const mockBalances = {
+        'account-1': {
+          [MultichainNativeAssets.Bitcoin]: { amount: '10', unit: 'BTC' },
+        },
+      };
+      state.engine.backgroundState.MultichainBalancesController.balances =
+        mockBalances;
+      expect(selectMultichainBalances(state)).toEqual(mockBalances);
+    });
+
+    it('selectMultichainCoinRates returns rates from the RatesController state', () => {
+      const state = getEvmState();
+      const mockRates = {
+        eth: {
+          conversionRate: 2000,
+          conversionDate: Date.now(),
+          usdConversionRate: 2000,
+        },
+      };
+      state.engine.backgroundState.RatesController.rates = mockRates;
+      expect(selectMultichainCoinRates(state)).toEqual(mockRates);
+    });
+
+    it('NETWORK_ASSETS_MAP has correct mappings', () => {
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Mainnet]).toEqual([
+        MultichainNativeAssets.Solana,
+      ]);
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Testnet]).toEqual([
+        MultichainNativeAssets.SolanaTestnet,
+      ]);
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[SolScope.Devnet]).toEqual([
+        MultichainNativeAssets.SolanaDevnet,
+      ]);
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Mainnet]).toEqual([
+        MultichainNativeAssets.Bitcoin,
+      ]);
+      expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Testnet]).toEqual([
+        MultichainNativeAssets.BitcoinTestnet,
+      ]);
+    });
+  });
+
+  describe('selectMultichainTransactions', () => {
+    it('returns non-EVM transactions from the MultichainTransactionsController state', () => {
+      const state = getEvmState();
+
+      const mockTransactions = {
+        [MOCK_ACCOUNT_BIP122_P2WPKH.id]: {
+          transactions: [
+            {
+              id: 'some-id',
+              timestamp: 1733736433,
+              chain: MultichainNativeAssets.Bitcoin,
+              status: 'confirmed' as const,
+              type: 'send' as const,
+              account: MOCK_ACCOUNT_BIP122_P2WPKH.id,
+              from: [],
+              to: [],
+              fees: [],
+              events: [],
+            },
+          ],
+          next: null,
+          lastUpdated: expect.any(Number),
+        },
+      };
+
+      state.engine.backgroundState.MultichainTransactionsController = {
+        nonEvmTransactions: mockTransactions,
+      };
+
+      expect(selectMultichainTransactions(state)).toEqual(mockTransactions);
+    });
+
+    it('returns empty object when no transactions exist', () => {
+      const state = getEvmState();
+
+      state.engine.backgroundState.MultichainTransactionsController = {
+        nonEvmTransactions: {},
+      };
+
+      expect(selectMultichainTransactions(state)).toEqual({});
     });
   });
 });

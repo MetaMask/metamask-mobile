@@ -2,6 +2,7 @@ import { box } from './box';
 import { text } from './text';
 import { row } from './row';
 import { button } from './button';
+import { banner } from './banner';
 import { input } from './input';
 import { bold } from './bold';
 import { value } from './value';
@@ -15,12 +16,17 @@ import { form } from './form';
 import { icon } from './icon';
 import { field } from './field';
 import { section } from './section';
+import { spinner } from './spinner';
+import { address } from './address';
+import { avatar } from './avatar';
+import { tooltip } from './tooltip';
 
 export const COMPONENT_MAPPING = {
   Box: box,
   Text: text,
   Row: row,
   Button: button,
+  Banner: banner,
   Input: input,
   Bold: bold,
   Value: value,
@@ -34,4 +40,8 @@ export const COMPONENT_MAPPING = {
   Field: field,
   Icon: icon,
   Section: section,
+  Spinner: spinner,
+  Avatar: avatar,
+  Address: address,
+  Tooltip: tooltip,
 };

@@ -1,7 +1,7 @@
 import {
   selectNetworkControllerState,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
   selectChainId,
   selectProviderType,
   selectNickname,
@@ -82,8 +82,8 @@ describe('networkSelectors', () => {
     });
   });
 
-  it('selectTicker should return the ticker of the provider config', () => {
-    expect(selectTicker(mockState)).toBe('MATIC');
+  it('selectEvmTicker should return the ticker of the provider config', () => {
+    expect(selectEvmTicker(mockState)).toBe('MATIC');
   });
 
   it('selectChainId should return the chainId of the provider config', () => {

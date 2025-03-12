@@ -132,7 +132,6 @@ describe('helpers - enablePushNotifications()', () => {
   it('invoke notification services method', async () => {
     await enablePushNotifications();
     expect(
-      // @ts-expect-error - TEMP - this will be added in the integration PR
       Engine.context.NotificationServicesController.enablePushNotifications,
     ).toHaveBeenCalled();
   });
@@ -142,7 +141,6 @@ describe('helpers - disablePushNotifications()', () => {
   it('invoke notification services method', async () => {
     await disablePushNotifications();
     expect(
-      // @ts-expect-error - TEMP - this will be added in the integration PR
       Engine.context.NotificationServicesController.disablePushNotifications,
     ).toHaveBeenCalled();
   });

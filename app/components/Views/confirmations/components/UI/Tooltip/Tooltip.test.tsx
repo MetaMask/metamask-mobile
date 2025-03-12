@@ -31,7 +31,7 @@ describe('Tooltip', () => {
         tooltipTestId="tooltipTestId"
       />,
     );
-    fireEvent.press(getByTestId('tooltipTestId'));
+    fireEvent.press(getByTestId('tooltipTestId-open-btn'));
     expect(getByText('Tooltip content to be displayed here!')).toBeDefined();
   });
 });
