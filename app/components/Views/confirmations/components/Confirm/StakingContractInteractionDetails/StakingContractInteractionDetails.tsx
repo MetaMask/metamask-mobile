@@ -1,36 +1,50 @@
-import { CHAIN_IDS, TransactionMeta } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionMeta, TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import Badge, { BadgeVariant } from '../../../../../../component-library/components/Badges/Badge';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import images from '../../../../../../images/image-icons';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import Name from '../../../../../UI/Name';
 import { NameType } from '../../../../../UI/Name/Name.types';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import InfoRow from '../../UI/InfoRow';
-import InfoSectionAccordion from '../../UI/InfoSectionAccordion';
 import InfoRowDivider from '../InfoRowDivider';
-import styleSheet from './AdvancedDetails.styles';
+import styleSheet from './StakingContractInteractionDetails.styles';
 
-const AdvancedDetails = () => {
-  const { styles } = useStyles(styleSheet, {});
-  const transactionMeta = useTransactionMetadataRequest();
+const StakingContractInteractionDetails = () => {
+    const transactionMeta = useTransactionMetadataRequest();
+    const { styles } = useStyles(styleSheet, {});
+    const address = useSelector(selectSelectedInternalAccountFormattedAddress);
 
-  return (
-    <View style={styles.container}>
-      <InfoSectionAccordion header={strings('stake.advanced_details')}>
-        <InfoRow
-          label={strings('confirm.staking_from')}
-        >
+    return (
+      <>
+        {transactionMeta?.type === TransactionType.stakingDeposit && (
+          <InfoRow
+            label={strings('stake.staking_from')}
+          >
           <Name
             type={NameType.EthereumAddress}
             value={(transactionMeta as TransactionMeta).txParams.from}
             variation={CHAIN_IDS.MAINNET}
-          />
-        </InfoRow>
+            />
+          </InfoRow>
+        )}
+        {transactionMeta?.type === TransactionType.stakingUnstake && (
+          <InfoRow
+            label={strings('stake.unstaking_to')}
+          >
+          <Name
+            type={NameType.EthereumAddress}
+            value={address as string}
+            variation={CHAIN_IDS.MAINNET}
+            />
+          </InfoRow>
+        )}
         <InfoRow
           label={strings('confirm.label.interacting_with')}
         >
@@ -55,9 +69,8 @@ const AdvancedDetails = () => {
             <Text>{strings('stake.ethereum_mainnet')}</Text>
           </View>
         </InfoRow>
-      </InfoSectionAccordion>
-    </View>
-  );
-};
+      </>
+    )
+  }
 
-export default AdvancedDetails;
+export default StakingContractInteractionDetails;

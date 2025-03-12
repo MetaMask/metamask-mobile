@@ -64,6 +64,7 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 interface TokenListItemProps {
@@ -86,6 +87,7 @@ export const TokenListItem = React.memo(
     showPercentageChange = true,
     showNetworkBadge = true,
   }: TokenListItemProps) => {
+    const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
     const { colors } = useTheme();
     const selectedInternalAccountAddress = useSelector(
@@ -277,6 +279,17 @@ export const TokenListItem = React.memo(
     );
 
     const onItemPress = (token: TokenI) => {
+      // Track the event
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+          .addProperties({
+            source: 'mobile-token-list',
+            chain_id: token.chainId,
+            token_symbol: token.symbol,
+          })
+          .build(),
+      );
+
       if (!isEvmNetworkSelected) {
         return;
       }
