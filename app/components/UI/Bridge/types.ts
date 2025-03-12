@@ -1,4 +1,4 @@
-import type { Hex } from '@metamask/utils';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import type { BigNumber } from 'bignumber.js';
 import { AssetType } from '../SimulationDetails/types';
 
@@ -35,17 +35,12 @@ export enum SortOrder {
 }
 
 export type BridgeToken = {
-  type: AssetType.Native | AssetType.ERC20;
   address: string;
   symbol: string;
   image: string;
   decimals: number;
-  chainId: Hex;
-  balance: string; // raw balance
-  string: string | undefined; // normalized balance as a stringified number
-  tokenFiatAmount?: number | null;
-} | null;
-// Types copied from Metabridge API
+  chainId: CaipChainId;
+};
 
 export enum BridgeFlag {
   EXTENSION_CONFIG = 'extension-config',

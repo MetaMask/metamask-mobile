@@ -12,6 +12,7 @@ import {
   selectMultichainCoinRates,
   selectMultichainBalances,
   MULTICHAIN_NETWORK_TO_ASSET_TYPES,
+  selectMultichainTransactions,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -105,6 +106,15 @@ function getEvmState(
           selectedMultichainNetworkChainId: SolScope.Mainnet,
 
           multichainNetworkConfigurationsByChainId: {},
+        },
+        MultichainTransactionsController: {
+          nonEvmTransactions: {
+            [MOCK_ACCOUNT_BIP122_P2WPKH.id]: {
+              transactions: [],
+              next: null,
+              lastUpdated: 0,
+            },
+          },
         },
       },
     },
@@ -496,6 +506,49 @@ describe('MultichainNonEvm Selectors', () => {
       expect(MULTICHAIN_NETWORK_TO_ASSET_TYPES[BtcScope.Testnet]).toEqual([
         MultichainNativeAssets.BitcoinTestnet,
       ]);
+    });
+  });
+
+  describe('selectMultichainTransactions', () => {
+    it('returns non-EVM transactions from the MultichainTransactionsController state', () => {
+      const state = getEvmState();
+
+      const mockTransactions = {
+        [MOCK_ACCOUNT_BIP122_P2WPKH.id]: {
+          transactions: [
+            {
+              id: 'some-id',
+              timestamp: 1733736433,
+              chain: MultichainNativeAssets.Bitcoin,
+              status: 'confirmed' as const,
+              type: 'send' as const,
+              account: MOCK_ACCOUNT_BIP122_P2WPKH.id,
+              from: [],
+              to: [],
+              fees: [],
+              events: [],
+            },
+          ],
+          next: null,
+          lastUpdated: expect.any(Number),
+        },
+      };
+
+      state.engine.backgroundState.MultichainTransactionsController = {
+        nonEvmTransactions: mockTransactions,
+      };
+
+      expect(selectMultichainTransactions(state)).toEqual(mockTransactions);
+    });
+
+    it('returns empty object when no transactions exist', () => {
+      const state = getEvmState();
+
+      state.engine.backgroundState.MultichainTransactionsController = {
+        nonEvmTransactions: {},
+      };
+
+      expect(selectMultichainTransactions(state)).toEqual({});
     });
   });
 });

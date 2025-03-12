@@ -19,10 +19,12 @@ import {
   MultichainAssetsRatesController,
   MultichainBalancesController,
 } from '@metamask/assets-controllers';
+import { MultichainTransactionsController } from '@metamask/multichain-transactions-controller';
 import { multichainAssetsControllerInit } from '../controllers/multichain-assets-controller/multichain-assets-controller-init';
 import { currencyRateControllerInit } from '../controllers/currency-rate-controller/currency-rate-controller-init';
 import { multichainBalancesControllerInit } from '../controllers/multichain-balances-controller/multichain-balances-controller-init';
 import { multichainNetworkControllerInit } from '../controllers/multichain-network-controller/multichain-network-controller-init';
+import { multichainTransactionsControllerInit } from '../controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 jest.mock('../controllers/accounts-controller');
@@ -43,6 +45,9 @@ jest.mock(
   '../controllers/multichain-network-controller/multichain-network-controller-init',
 );
 jest.mock('../controllers/transaction-controller');
+jest.mock(
+  '../controllers/multichain-transactions-controller/multichain-transactions-controller-init',
+);
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
@@ -63,6 +68,9 @@ describe('initModularizedControllers', () => {
     multichainBalancesControllerInit,
   );
   const mockTransactionControllerInit = jest.mocked(TransactionControllerInit);
+  const mockMultichainTransactionsControllerInit = jest.mocked(
+    multichainTransactionsControllerInit,
+  );
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -76,6 +84,8 @@ describe('initModularizedControllers', () => {
           CurrencyRateController: mockCurrencyRateControllerInit,
           CronjobController: mockCronjobControllerInit,
           MultichainAssetsController: mockMultichainAssetsControllerInit,
+          MultichainTransactionsController:
+            mockMultichainTransactionsControllerInit,
           MultichainAssetsRatesController:
             mockMultichainAssetsRatesControllerInit,
           MultichainBalancesController: mockMultichainBalancesControllerInit,
@@ -117,6 +127,9 @@ describe('initModularizedControllers', () => {
     mockMultichainBalancesControllerInit.mockReturnValue({
       controller: {} as unknown as MultichainBalancesController,
     });
+    mockMultichainTransactionsControllerInit.mockReturnValue({
+      controller: {} as unknown as MultichainTransactionsController,
+    });
   });
 
   it('initializes controllers', () => {
@@ -137,6 +150,9 @@ describe('initModularizedControllers', () => {
     ).toBeDefined();
     expect(
       controllers.controllersByName.MultichainBalancesController,
+    ).toBeDefined();
+    expect(
+      controllers.controllersByName.MultichainTransactionsController,
     ).toBeDefined();
     expect(controllers.controllersByName.TransactionController).toBeDefined();
   });
