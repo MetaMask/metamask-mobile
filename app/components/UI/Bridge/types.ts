@@ -1,6 +1,5 @@
 import type { CaipChainId, Hex } from '@metamask/utils';
 import type { BigNumber } from 'bignumber.js';
-import { AssetType } from '../SimulationDetails/types';
 
 export interface ChainConfiguration {
   isActiveSrc: boolean;
@@ -119,6 +118,7 @@ export interface Quote {
   refuel?: RefuelData;
 }
 
+// TODO: use type from @metamask/bridge-controller once "approval" is made optional
 export interface QuoteResponse {
   quote: Quote;
   approval?: TxData | null;
