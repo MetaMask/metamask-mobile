@@ -23,7 +23,7 @@ pipelines:
   beta_builds_to_store_pipeline:
     stages:
       - create_build_beta: {}
-      - deploy_build_beta: {}
+      - deploy_build_release: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
     stages:
