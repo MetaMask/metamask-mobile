@@ -228,7 +228,6 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
-import { isTest } from '../../util/test/utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
