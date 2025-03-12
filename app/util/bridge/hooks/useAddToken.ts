@@ -54,7 +54,7 @@ export default function useAddToken() {
         defaultRpcEndpointIndex: 0,
         blockExplorerUrls: [featuredRpc.rpcPrefs.blockExplorerUrl],
         defaultBlockExplorerUrlIndex: 0,
-      })) as unknown as NetworkConfiguration;
+      })) as NetworkConfiguration;
     }
 
     const destNetworkConfig = foundDestNetworkConfig || addedDestNetworkConfig;
