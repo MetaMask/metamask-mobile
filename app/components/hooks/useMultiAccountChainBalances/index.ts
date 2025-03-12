@@ -31,9 +31,9 @@ import { isTestNet } from '../../../util/networks';
 import { ChainFiatBalances } from './index.types';
 
 /**
- * Hook to manage portfolio balance data across chains for all accounts.
+ * Hook to view portfolio balance data for each chain for all accounts.
  *
- * @returns Portfolio balance data for all accounts
+ * @returns Portfolio balance data for each chain for all accounts
  */
 export const useMultiAccountChainBalances = (): ChainFiatBalances => {
   const allTokenBalances: TokenBalancesMapping = useSelector(

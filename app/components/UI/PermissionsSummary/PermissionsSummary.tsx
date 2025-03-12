@@ -313,7 +313,6 @@ const PermissionsSummary = ({
                 </TextComponent>
               </View>
               <View style={styles.avatarGroup}>
-                {/* TODO: Check to make sure this isn't affected */}
                 {accountAddresses.length > 0 ? (
                   <AvatarGroup
                     avatarPropsList={accountAddresses.map((address) => ({
