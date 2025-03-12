@@ -1,8 +1,5 @@
 import React from 'react';
 import { StyleSheet, ImageSourcePropType } from 'react-native';
-import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
-import { TokenI } from '../Tokens/types';
 import AssetElement from '../AssetElement';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
@@ -10,15 +7,10 @@ import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../component-library/co
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Text, { TextVariant, TextColor } from '../../../component-library/components/Texts/Text';
-import { balanceToFiat, renderFromTokenMinimalUnit } from '../../../util/number';
-import { selectCurrentCurrency, selectConversionRate } from '../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectChainId } from '../../../selectors/networkController';
-import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import TokenIcon from '../Swaps/components/TokenIcon';
 import { Box } from '../Box/Box';
 import { FlexDirection } from '../Box/box.types';
+import { TokenIWithFiatAmount } from './useSourceTokens';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -33,8 +25,8 @@ const createStyles = () =>
   });
 
 interface TokenSelectorItemProps {
-  token: TokenI;
-  onPress: (token: TokenI) => void;
+  token: TokenIWithFiatAmount;
+  onPress: (token: TokenIWithFiatAmount) => void;
   networkName: string;
   networkImageSource?: ImageSourcePropType;
 }
@@ -46,34 +38,9 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   networkImageSource,
 }) => {
   const styles = createStyles();
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const conversionRate = useSelector(selectConversionRate);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const currentChainId = useSelector(selectChainId) as Hex;
-  const tokenBalances = useSelector(selectTokensBalances);
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress) as Hex;
 
-  // Get raw balance from tokenBalances so we can format it to proper decimal places
-  const rawBalance = token.isNative
-    ? token.balance
-    : tokenBalances?.[selectedAddress]?.[currentChainId]?.[token.address as Hex] || '0';
-
-  // Format balance using renderFromTokenMinimalUnit
-  const formattedBalance = token.isNative
-    ? token.balance
-    : renderFromTokenMinimalUnit(rawBalance, token.decimals);
-  const hasBalance = parseFloat(formattedBalance) > 0;
-
-  // Calculate fiat value
-  const exchangeRate = token.address ? tokenExchangeRates?.[token.address as Hex]?.price : undefined;
-  const fiatValue = hasBalance ? balanceToFiat(
-    formattedBalance,
-    conversionRate,
-    exchangeRate,
-    currentCurrency
-  ) : undefined;
-
-  const balanceWithSymbol = hasBalance ? `${formattedBalance} ${token.symbol}` : undefined;
+  const fiatValue = token.balanceFiat;
+  const balanceWithSymbol = `${token.balance} ${token.symbol}`;
 
   return (
     <AssetElement
