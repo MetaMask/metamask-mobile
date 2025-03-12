@@ -6,6 +6,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
+    wrapper: {
+      paddingVertical: 8,
+    },
     container: {
       overflow: 'hidden',
       backgroundColor: theme.colors.background.default,
