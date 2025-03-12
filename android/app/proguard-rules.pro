@@ -49,6 +49,8 @@
 
   -keep class kotlin.Metadata { *; }
 
+-dontwarn kotlinx.serialization.SerialName
+-dontwarn kotlinx.serialization.Serializable
 -dontwarn com.sun.jna.FunctionMapper
 -dontwarn com.sun.jna.JNIEnv
 -dontwarn com.sun.jna.LastErrorException
