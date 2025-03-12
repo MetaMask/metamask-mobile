@@ -1,10 +1,29 @@
-// Unmocking storage-wrapper as it's mocked in testSetup directly
-// to allow easy testing of other parts of the app
-// but here we want to actually test storage-wrapper
-jest.unmock('./storage-wrapper');
 import StorageWrapper from './storage-wrapper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+jest.unmock('./storage-wrapper');
+
+jest.mock('../util/test/utils', () => ({
+  isTest: false,
+}));
+
+// Keep network-store mock just for the fallback test
+jest.mock('../util/test/network-store', () => ({
+  default: {
+    getString: jest.fn().mockImplementation(() => {
+      throw new Error('Primary storage failed');
+    }),
+    set: jest.fn(),
+    delete: jest.fn(),
+    clearAll: jest.fn(),
+  },
+}));
 
 describe('StorageWrapper', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('return the value from Storage Wrapper', async () => {
     const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
     const getItemSpy = jest.spyOn(StorageWrapper, 'getItem');
@@ -79,26 +98,80 @@ describe('StorageWrapper', () => {
   });
 
   it('use ReadOnlyStore on E2E', async () => {
-    jest.mock('../util/test/utils', () => ({
+    // Reset modules before changing mocks
+    jest.resetModules();
+
+    // Mock isTest as true for this specific test
+    jest.doMock('../util/test/utils', () => ({
       isTest: true,
     }));
 
-    const getItemSpy = jest.spyOn(StorageWrapper, 'getItem');
-    const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
-    const deleteItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
+    // Mock ReadOnlyNetworkStore with implementation for this test
+    jest.doMock('../util/test/network-store', () => ({
+      default: {
+        getString: jest.fn().mockResolvedValue('test-value'),
+        set: jest.fn(),
+        delete: jest.fn(),
+        clearAll: jest.fn(),
+      },
+    }));
 
-    await StorageWrapper.setItem('test-key', 'test-value');
+    // Load StorageWrapper with the new mock
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const StorageWrapperReloaded = require('./storage-wrapper').default;
 
-    const currentItemValue = await StorageWrapper.getItem('test-key');
+    const getItemSpy = jest.spyOn(StorageWrapperReloaded, 'getItem');
+    const setItemSpy = jest.spyOn(StorageWrapperReloaded, 'setItem');
+    const deleteItemSpy = jest.spyOn(StorageWrapperReloaded, 'removeItem');
 
-    await StorageWrapper.removeItem('test-key');
-
-    const itemValueAfterRemoval = await StorageWrapper.getItem('test-key');
+    await StorageWrapperReloaded.setItem('test-key', 'test-value');
+    const currentItemValue = await StorageWrapperReloaded.getItem('test-key');
+    await StorageWrapperReloaded.removeItem('test-key');
+    const itemValueAfterRemoval = await StorageWrapperReloaded.getItem('test-key');
 
     expect(setItemSpy).toHaveBeenCalledWith('test-key', 'test-value');
     expect(getItemSpy).toHaveBeenCalledWith('test-key');
     expect(deleteItemSpy).toHaveBeenCalledWith('test-key');
     expect(currentItemValue).toBe('test-value');
     expect(itemValueAfterRemoval).toBeNull();
+  });
+
+  it('falls back to AsyncStorage in test mode when primary storage fails', async () => {
+    jest.resetModules();
+
+    jest.doMock('../util/test/utils', () => ({
+      isTest: true,
+    }));
+
+    // Mock ReadOnlyNetworkStore to throw for this test
+    jest.doMock('../util/test/network-store', () => ({
+      default: {
+        getString: jest.fn().mockImplementation(() => {
+          throw new Error('Primary storage failed');
+        }),
+        set: jest.fn(),
+        delete: jest.fn(),
+        clearAll: jest.fn(),
+      },
+    }));
+
+    // Load StorageWrapper with the new mock
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const StorageWrapperReloaded = require('./storage-wrapper').default;
+
+    // Spy on AsyncStorage.getItem
+    const asyncStorageSpy = jest.spyOn(AsyncStorage, 'getItem');
+
+    // Configure AsyncStorage mock to return a value
+    asyncStorageSpy.mockResolvedValue('fallback-value');
+
+    // Call getItem which should trigger the fallback
+    const result = await StorageWrapperReloaded.getItem('test-key');
+
+    // Verify AsyncStorage was called as fallback
+    expect(asyncStorageSpy).toHaveBeenCalledWith('test-key');
+
+    // Verify we got the value from AsyncStorage
+    expect(result).toBe('fallback-value');
   });
 });
