@@ -526,9 +526,10 @@ function SwapsQuotesView({
     () => selectedQuote?.isGasIncludedTrade ?? false,
     [selectedQuote],
   );
-  const canUseGasIncludedSwap = useMemo(() => {
-    return isGasIncludedTrade && tradeTxTokenFee;
-  }, [isGasIncludedTrade, tradeTxTokenFee]);
+  const canUseGasIncludedSwap = useMemo(
+    () => isGasIncludedTrade && tradeTxTokenFee,
+    [isGasIncludedTrade, tradeTxTokenFee],
+  );
   const selectedQuoteValue = useMemo(() => {
     if (!quoteValues[selectedQuoteId] || !multiLayerL1ApprovalFeeTotal) {
       return quoteValues[selectedQuoteId];
@@ -913,6 +914,7 @@ function SwapsQuotesView({
       conversionRate,
       selectedQuoteValue,
       shouldUseSmartTransaction,
+      canUseGasIncludedSwap,
     ],
   );
 
@@ -1310,6 +1312,7 @@ function SwapsQuotesView({
     trackEvent,
     createEventBuilder,
     shouldUseSmartTransaction,
+    canUseGasIncludedSwap,
   ]);
 
   const handleQuotesReceivedMetric = useCallback(() => {
