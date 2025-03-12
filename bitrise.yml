@@ -1218,13 +1218,38 @@ workflows:
                 fi
           title: Build Android Pre-Release Bundle
           is_always_run: false
+      - script@1:
+          title: Rename release files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Set base paths
+                APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
+                BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
+                
+                # Generate new names based on build type and version
+                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                
+                # Rename APK
+                OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+                NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
+                mv "$OLD_APK" "$NEW_APK"
+                
+                # Rename AAB
+                OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
+                NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+                mv "$OLD_AAB" "$NEW_AAB"
+                
+                # Export new names as environment variables
+                envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
+                envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
       - save-gradle-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/app-$APP_NAME-release.apk:BITRISE_PLAY_STORE_APK_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/app-$APP_NAME-release.apk
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/$RENAMED_APK_FILE:BITRISE_PLAY_STORE_APK_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/$RENAMED_APK_FILE
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -1244,8 +1269,8 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/app-$APP_NAME-release.aab:BITRISE_PLAY_STORE_ABB_PATH
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/app-$APP_NAME-release.aab
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
     meta:
       bitrise.io:
