@@ -8,7 +8,6 @@ import {
   getExecutionServiceMessenger,
   getSnapControllerInitMessenger,
   getSnapControllerMessenger,
-  getSnapInsightsControllerMessenger,
   getSnapInterfaceControllerMessenger,
   getSnapsRegistryMessenger,
 } from './snaps';
