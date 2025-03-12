@@ -1,4 +1,3 @@
-import { Messenger } from '@metamask/base-controller';
 import { JsonSnapsRegistry } from '@metamask/snaps-controllers';
 import { ControllerInitRequest } from '../../types';
 import {

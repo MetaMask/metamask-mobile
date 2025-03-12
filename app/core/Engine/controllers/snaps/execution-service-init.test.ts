@@ -1,28 +1,23 @@
-import {
-  IframeExecutionService,
-  OffscreenExecutionService,
-} from '@metamask/snaps-controllers';
-import { Messenger } from '@metamask/base-controller';
-import { ControllerInitRequest } from '../types';
-import { buildControllerInitRequestMock } from '../test/utils';
+import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
+import { ControllerInitRequest } from '../../types';
 import {
   ExecutionServiceMessenger,
   getExecutionServiceMessenger,
-} from '../messengers/snaps';
+} from '../../messengers/snaps';
 import { executionServiceInit } from './execution-service-init';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 jest.mock('@metamask/snaps-controllers');
-jest.mock('../../../../shared/modules/mv3.utils', () => ({
-  isManifestV3: true,
-}));
+jest.mock('@metamask/snaps-controllers/react-native');
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<ExecutionServiceMessenger>
 > {
-  const baseMessenger = new Messenger<never, never>();
+  const baseMessenger = new ExtendedControllerMessenger<never, never>();
 
   const requestMock = {
-    ...buildControllerInitRequestMock(),
+    ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getExecutionServiceMessenger(baseMessenger),
     initMessenger: undefined,
   };
@@ -31,44 +26,17 @@ function getInitRequestMock(): jest.Mocked<
 }
 
 describe('ExecutionServiceInit', () => {
-  it('initializes the iframe execution service if `chrome.offscreen` is not available', () => {
+  it('initializes the webview execution service', () => {
     const { controller } = executionServiceInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(IframeExecutionService);
-  });
-
-  it('does not store state', () => {
-    const { memStateKey, persistedStateKey } = executionServiceInit(
-      getInitRequestMock(),
-    );
-
-    expect(memStateKey).toBeNull();
-    expect(persistedStateKey).toBeNull();
-  });
-
-  it('initializes the offscreen execution service if `chrome.offscreen` is available', () => {
-    Object.defineProperty(global, 'chrome', {
-      value: {
-        offscreen: {},
-      },
-    });
-
-    const { controller } = executionServiceInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(OffscreenExecutionService);
+    expect(controller).toBeInstanceOf(WebViewExecutionService);
   });
 
   it('passes the proper arguments to the service', () => {
-    Object.defineProperty(global, 'chrome', {
-      value: {
-        offscreen: {},
-      },
-    });
-
     executionServiceInit(getInitRequestMock());
 
-    const controllerMock = jest.mocked(OffscreenExecutionService);
+    const controllerMock = jest.mocked(WebViewExecutionService);
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
-      offscreenPromise: expect.any(Promise),
       setupSnapProvider: expect.any(Function),
     });
   });
