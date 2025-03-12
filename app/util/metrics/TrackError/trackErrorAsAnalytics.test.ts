@@ -18,7 +18,6 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) => {
 
 const mockMetrics = {
   trackEvent: jest.fn(),
-  getMetaMetricsId: jest.fn(() => VALID_UUID),
 };
 
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
@@ -26,6 +25,10 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
 }));
 
 describe('trackErrorAsAnalytics', () => {
+  beforeEach(() => {
+    shouldTrackMock.shouldTrackExpectedErrors.mockResolvedValue(true);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });

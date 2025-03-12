@@ -16,7 +16,6 @@ export const shouldTrackExpectedErrors = async (
 ): Promise<boolean> => {
   const metaMetricsId = await MetaMetricsInstance.getMetaMetricsId();
   const deterministicRandomNumber = generateDeterministicRandomNumber(metaMetricsId || '');
-  const shouldTrack = deterministicRandomNumber < EXPECTED_ERRORS_PORTION_TO_TRACK;
-  return shouldTrack;
+  return deterministicRandomNumber < EXPECTED_ERRORS_PORTION_TO_TRACK;
 };
 

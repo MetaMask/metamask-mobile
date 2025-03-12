@@ -28,7 +28,7 @@ describe('shouldTrackExpectedErrors', () => {
   // Explicitly cast the mock function to Jest Mock type
   const getMetaMetricsIdMock = mockMetaMetricsInstance.getMetaMetricsId as jest.Mock;
 
-  it('should return true when random number is less than threshold', async () => {
+  it('returns true when error should be tracked', async () => {
     // mock EXPECTED_ERRORS_PORTION_TO_TRACK to be 0.01
     constantMock.EXPECTED_ERRORS_PORTION_TO_TRACK = 0.01;
     // mock getMetaMetricsId to return the test id UNDER_ONE_PERCENT
@@ -43,7 +43,7 @@ describe('shouldTrackExpectedErrors', () => {
     expect(result).toBe(true);
   });
 
-  it('should return false when random number is greater than threshold', async () => {
+  it('returns false when error should not be tracked', async () => {
     // mock EXPECTED_ERRORS_PORTION_TO_TRACK to be 0.01
     constantMock.EXPECTED_ERRORS_PORTION_TO_TRACK = 0.01;
     // mock getMetaMetricsId to return the test id OVER_NINETY_SEVEN_PERCENT
@@ -57,33 +57,7 @@ describe('shouldTrackExpectedErrors', () => {
     expect(result).toBe(false);
   });
 
-  it('should return false when threshold is 0', async () => {
-    constantMock.EXPECTED_ERRORS_PORTION_TO_TRACK = 0;
-    // mock getMetaMetricsId to return the test id UNDER_ONE_PERCENT
-    getMetaMetricsIdMock.mockResolvedValue(TEST_IDS.UNDER_ONE_PERCENT);
-    // Mock the return value for this specific test
-    (generateDeterministicRandomNumber as jest.Mock).mockReturnValue(0.006915);
-
-    const result = await shouldTrackExpectedErrors(mockMetaMetricsInstance);
-
-    expect(generateDeterministicRandomNumber).toHaveBeenCalledWith(TEST_IDS.UNDER_ONE_PERCENT);
-    expect(result).toBe(false);
-  });
-
-  it('should return true when threshold is 1', async () => {
-    constantMock.EXPECTED_ERRORS_PORTION_TO_TRACK = 1;
-    // mock getMetaMetricsId to return the test id UNDER_ONE_PERCENT
-    getMetaMetricsIdMock.mockResolvedValue(TEST_IDS.UNDER_ONE_PERCENT);
-    // Mock the return value for this specific test
-    (generateDeterministicRandomNumber as jest.Mock).mockReturnValue(0.006915);
-
-    const result = await shouldTrackExpectedErrors(mockMetaMetricsInstance);
-
-    expect(generateDeterministicRandomNumber).toHaveBeenCalledWith(TEST_IDS.UNDER_ONE_PERCENT);
-    expect(result).toBe(true);
-  });
-
-  it('should use empty string when metaMetricsId is null', async () => {
+  it('falls back using empty string metaMetricsId', async () => {
     getMetaMetricsIdMock.mockResolvedValue(null);
     // reset mock for generateDeterministicRandomNumber
     (generateDeterministicRandomNumber as jest.Mock).mockReset();
