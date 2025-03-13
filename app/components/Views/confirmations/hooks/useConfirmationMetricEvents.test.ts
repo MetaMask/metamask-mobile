@@ -1,11 +1,14 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { CONFIRMATION_EVENTS } from '../../../../core/Analytics/events/confirmations';
+import {
+  CONFIRMATION_EVENTS,
+  CONFIRMATION_EVENT_LOCATIONS,
+} from '../../../../core/Analytics/events/confirmations';
 import { useMetrics } from '../../../hooks/useMetrics';
-import { useConfirmContext } from '../context/ConfirmationContext/ConfirmationContext';
 import { useConfirmationMetricEvents } from './useConfirmationMetricEvents';
+import { useConfirmationLocation } from './useConfirmationLocation';
 
 jest.mock('../../../hooks/useMetrics');
-jest.mock('../context/ConfirmationContext/ConfirmationContext');
+jest.mock('./useConfirmationLocation');
 
 const MOCK_LOCATION = 'test-location';
 
@@ -15,7 +18,7 @@ describe('useConfirmationMetricEvents', () => {
   const mockAddProperties = jest.fn();
   const mockAddSensitiveProperties = jest.fn();
   const mockBuild = jest.fn();
-  const mockUseConfirmContext = jest.mocked(useConfirmContext);
+  const mockUseConfirmationLocation = jest.mocked(useConfirmationLocation);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -33,9 +36,9 @@ describe('useConfirmationMetricEvents', () => {
       trackEvent: mockTrackEvent,
     });
 
-    mockUseConfirmContext.mockReturnValue({
-      location: MOCK_LOCATION,
-    } as unknown as ReturnType<typeof useConfirmContext>);
+    mockUseConfirmationLocation.mockReturnValue(
+      MOCK_LOCATION as CONFIRMATION_EVENT_LOCATIONS,
+    );
   });
 
   it('tracks advanced details toggled event', () => {

@@ -5,11 +5,11 @@ import {
 } from '../../../../core/Analytics/MetaMetrics.types';
 import { useMetrics } from '../../../hooks/useMetrics';
 import { CONFIRMATION_EVENTS } from '../../../../core/Analytics/events/confirmations';
-import { useConfirmContext } from '../context/ConfirmationContext/ConfirmationContext';
+import { useConfirmationLocation } from './useConfirmationLocation';
 
 export function useConfirmationMetricEvents() {
   const { createEventBuilder, trackEvent } = useMetrics();
-  const { location } = useConfirmContext();
+  const location = useConfirmationLocation();
 
   const events = useMemo(() => {
     const trackAdvancedDetailsToggledEvent = ({ isExpanded }: JsonMap) => {
