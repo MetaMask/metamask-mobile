@@ -1,5 +1,5 @@
 import {
-  mapSnapBorderRadiusToExtensionBorderRadius,
+  mapSnapBorderRadiusToMobileBorderRadius,
   mapToTemplate,
 } from './utils';
 import { strings } from '../../../../locales/i18n';
@@ -50,13 +50,13 @@ describe('SnapUIRenderer utils', () => {
       `);
     });
   });
-  describe('mapSnapBorderRadiusToExtensionBorderRadius', () => {
+  describe('mapSnapBorderRadiusToMobileBorderRadius', () => {
     it('should correctly map all border radius values', () => {
-      expect(mapSnapBorderRadiusToExtensionBorderRadius('none')).toBe(0);
-      expect(mapSnapBorderRadiusToExtensionBorderRadius('medium')).toBe(6);
-      expect(mapSnapBorderRadiusToExtensionBorderRadius('full')).toBe(9999);
-      expect(mapSnapBorderRadiusToExtensionBorderRadius(undefined)).toBe(0);
-      expect(mapSnapBorderRadiusToExtensionBorderRadius('invalid-value')).toBe(
+      expect(mapSnapBorderRadiusToMobileBorderRadius('none')).toBe(0);
+      expect(mapSnapBorderRadiusToMobileBorderRadius('medium')).toBe(6);
+      expect(mapSnapBorderRadiusToMobileBorderRadius('full')).toBe(9999);
+      expect(mapSnapBorderRadiusToMobileBorderRadius(undefined)).toBe(0);
+      expect(mapSnapBorderRadiusToMobileBorderRadius('invalid-value')).toBe(
         0,
       );
     });

@@ -1,5 +1,5 @@
 import { SkeletonElement } from '@metamask/snaps-sdk/jsx';
-import { mapSnapBorderRadiusToExtensionBorderRadius } from '../utils';
+import { mapSnapBorderRadiusToMobileBorderRadius } from '../utils';
 import { UIComponentFactory } from './types';
 
 const DEFAULT_SKELETON_WIDTH = '100%';
@@ -15,7 +15,7 @@ export const skeleton: UIComponentFactory<SkeletonElement> = ({
     height: skeletonElement.props.height ?? DEFAULT_SKELETON_HEIGHT,
     style: {
       borderRadius: skeletonElement.props.borderRadius
-        ? mapSnapBorderRadiusToExtensionBorderRadius(
+        ? mapSnapBorderRadiusToMobileBorderRadius(
             skeletonElement.props.borderRadius,
           )
         : DEFAULT_SKELETON_BORDER_RADIUS,

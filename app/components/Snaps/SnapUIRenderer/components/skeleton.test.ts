@@ -1,10 +1,10 @@
 import { skeleton } from './skeleton';
 import { SkeletonElement } from '@metamask/snaps-sdk/jsx';
-import { mapSnapBorderRadiusToExtensionBorderRadius } from '../utils';
+import { mapSnapBorderRadiusToMobileBorderRadius } from '../utils';
 import { mockTheme } from '../../../../util/theme';
 
 jest.mock('../utils', () => ({
-  mapSnapBorderRadiusToExtensionBorderRadius: jest.fn((value) => value),
+  mapSnapBorderRadiusToMobileBorderRadius: jest.fn((value) => value),
 }));
 
 describe('skeleton component', () => {
@@ -41,7 +41,7 @@ describe('skeleton component', () => {
 
   it('should render skeleton with all custom props', () => {
     const mockBorderRadius = 'full';
-    (mapSnapBorderRadiusToExtensionBorderRadius as jest.Mock).mockReturnValue(
+    (mapSnapBorderRadiusToMobileBorderRadius as jest.Mock).mockReturnValue(
       9999,
     );
 
@@ -67,7 +67,7 @@ describe('skeleton component', () => {
         },
       },
     });
-    expect(mapSnapBorderRadiusToExtensionBorderRadius).toHaveBeenCalledWith(
+    expect(mapSnapBorderRadiusToMobileBorderRadius).toHaveBeenCalledWith(
       mockBorderRadius,
     );
   });

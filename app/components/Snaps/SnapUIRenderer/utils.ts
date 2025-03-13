@@ -199,7 +199,7 @@ export const getPrimaryChildElementIndex = (children: JSXElement[]) =>
  * @param snapBorderRadius - Snap custom border radius.
  * @returns Number, representing border radius size used in mobile design system.
  */
-export const mapSnapBorderRadiusToExtensionBorderRadius = (
+export const mapSnapBorderRadiusToMobileBorderRadius = (
   snapBorderRadius: string | undefined,
 ): number => {
   switch (snapBorderRadius) {
