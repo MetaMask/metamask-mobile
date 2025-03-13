@@ -14,7 +14,11 @@
     },
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
-    "review_alert": "Review alert"
+    "review_alert": "Review alert",
+    "domain_mismatch": {
+      "title": "Suspicious sign-in request",
+      "message": "The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials."
+    }
   },
   "blockaid_banner": {
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
