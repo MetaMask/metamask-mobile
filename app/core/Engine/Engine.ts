@@ -199,7 +199,7 @@ import {
   SnapControllerGetSnapAction,
   SnapControllerGetSnapStateAction,
   SnapControllerUpdateSnapStateAction,
-} from './controllers/SnapController/constants';
+} from './controllers/snaps';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
