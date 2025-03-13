@@ -10,7 +10,13 @@ import {
   AccountsController,
   AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
-import { cronjobControllerInit } from '../controllers/snaps';
+import {
+  cronjobControllerInit,
+  executionServiceInit,
+  snapControllerInit,
+  snapInterfaceControllerInit,
+  snapsRegistryInit,
+} from '../controllers/snaps';
 import { CronjobController } from '@metamask/snaps-controllers';
 import { multichainAssetsRatesControllerInit } from '../controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import {
@@ -58,6 +64,12 @@ describe('initModularizedControllers', () => {
     currencyRateControllerInit,
   );
   const mockCronjobControllerInit = jest.mocked(cronjobControllerInit);
+  const mockExecutionServiceInit = jest.mocked(executionServiceInit);
+  const mockSnapControllerInit = jest.mocked(snapControllerInit);
+  const mockSnapInterfaceControllerInit = jest.mocked(
+    snapInterfaceControllerInit,
+  );
+  const mockSnapsRegistryInit = jest.mocked(snapsRegistryInit);
   const mockMultichainAssetsControllerInit = jest.mocked(
     multichainAssetsControllerInit,
   );
@@ -83,6 +95,10 @@ describe('initModularizedControllers', () => {
           MultichainNetworkController: mockMultichainNetworkControllerInit,
           CurrencyRateController: mockCurrencyRateControllerInit,
           CronjobController: mockCronjobControllerInit,
+          ExecutionService: mockExecutionServiceInit,
+          SnapController: mockSnapControllerInit,
+          SnapInterfaceController: mockSnapInterfaceControllerInit,
+          SnapsRegistry: mockSnapsRegistryInit,
           MultichainAssetsController: mockMultichainAssetsControllerInit,
           MultichainTransactionsController:
             mockMultichainTransactionsControllerInit,

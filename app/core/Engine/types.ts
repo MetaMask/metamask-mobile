@@ -562,6 +562,10 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 export type ControllersToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'CronjobController'
+  | 'ExecutionService'
+  | 'SnapController'
+  | 'SnapInterfaceController'
+  | 'SnapsRegistry'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
