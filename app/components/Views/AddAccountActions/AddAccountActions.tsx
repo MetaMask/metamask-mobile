@@ -11,6 +11,9 @@ import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
@@ -119,6 +122,11 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const createSolanaAccount = async (scope: CaipChainId) => {
     try {
       setIsLoading(true);
+      trace({
+        name: TraceName.CreateSnapAccount,
+        op: TraceOperation.CreateSnapAccount,
+        tags: getTraceTags(store.getState()),
+      });
       // Client to create the account using the Solana Snap
       const client = new KeyringClient(new SolanaWalletSnapSender());
       // This will trigger the Snap account creation flow (+ account renaming)

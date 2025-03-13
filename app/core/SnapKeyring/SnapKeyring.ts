@@ -6,6 +6,7 @@ import { SnapId } from '@metamask/snaps-sdk';
 import { assertIsValidSnapId } from '@metamask/snaps-utils';
 import { getUniqueAccountName } from './utils/getUniqueAccountName';
 import { isSnapPreinstalled } from './utils/snaps';
+import { endTrace, TraceName } from '../../util/trace';
 
 /**
  * Builder type for the Snap keyring.
@@ -113,6 +114,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     skipAccountNameSuggestionDialog: boolean;
   }): Promise<{ accountName?: string }> {
     return await this.withApprovalFlow(async (_) => {
+      endTrace({
+        name: TraceName.CreateSnapAccount,
+      });
       const { success, accountName } = skipAccountNameSuggestionDialog
         ? await this.getAccountNameFromSuggestion(accountNameSuggestion)
         : await this.getAccountNameFromDialog(snapId, accountNameSuggestion);
