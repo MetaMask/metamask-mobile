@@ -6,7 +6,9 @@ import { SnapId } from '@metamask/snaps-sdk';
 import { assertIsValidSnapId } from '@metamask/snaps-utils';
 import { getUniqueAccountName } from './utils/getUniqueAccountName';
 import { isSnapPreinstalled } from './utils/snaps';
-import { endTrace, TraceName } from '../../util/trace';
+import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
+import { getTraceTags } from '../../util/sentry/tags';
+import { store } from '../../store';
 
 /**
  * Builder type for the Snap keyring.
@@ -143,6 +145,11 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   }) {
     await this.withApprovalFlow(async (_) => {
       try {
+        trace({
+          name: TraceName.AddSnapAccount,
+          op: TraceOperation.AddSnapAccount,
+          tags: getTraceTags(store.getState()),
+        });
         // First, wait for the account to be fully saved.
         // NOTE: This might throw, so keep this in the `try` clause.
         const accountId = await onceSaved;
@@ -164,6 +171,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
             accountName,
           );
         }
+        endTrace({
+          name: TraceName.AddSnapAccount,
+        });
       } catch (e) {
         // Error occurred while naming the account
         const error = e as Error;
