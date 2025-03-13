@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   TransactionType,
   TransactionMeta,
@@ -88,7 +88,7 @@ export const useConfirmationLocation = ():
     CONFIRMATION_EVENT_LOCATIONS | undefined
   >(initialLocation);
 
-  useEffect(() => {
+  useMemo(() => {
     const determinedLocation = determineConfirmationLocation({
       approvalRequest,
       transactionMeta,
