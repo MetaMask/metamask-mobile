@@ -22,7 +22,38 @@ const defaultState = {
 
 type RenderWithProviderParams = Parameters<typeof renderWithProvider>;
 
-jest.mock('../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery');
+jest.mock('../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery', () => {
+  const searchTokens = jest.fn();
+  const results: TokenSearchResponseItem[] = [];
+  const reset = jest.fn();
+  return jest.fn(() => ({
+      results,
+      isLoading: false,
+      reset,
+      searchTokens,
+    }));
+});
+
+const mockUseTSDReturnValue = ({
+  results,
+  isLoading,
+  reset,
+  searchTokens,
+}: {
+  results: TokenSearchResponseItem[];
+  isLoading: boolean;
+  reset: () => void;
+  searchTokens: () => void;
+}) => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const useTSD = require('../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery');
+  useTSD.mockReturnValue({
+    results,
+    isLoading,
+    reset,
+    searchTokens,
+  });
+};
 
 const Stack = createStackNavigator();
 const render = (...args: RenderWithProviderParams) => {
@@ -35,6 +66,14 @@ const render = (...args: RenderWithProviderParams) => {
     args[2],
   );
 };
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    TokenSearchDiscoveryDataController: {
+      fetchSwapsTokens: jest.fn(),
+    }
+  },
+}));
 
 describe('UrlAutocomplete', () => {
   beforeAll(() => {
@@ -85,17 +124,12 @@ describe('UrlAutocomplete', () => {
   });
 
   it('should show a loading indicator when searching tokens', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const useTSD = require('../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery');
-    const searchTokens = jest.fn();
-    const results: TokenSearchResponseItem[] = [];
-    const reset = jest.fn();
-    useTSD.default.mockImplementationOnce(() => ({
-      results,
+    mockUseTSDReturnValue({
+      results: [],
       isLoading: true,
-      reset,
-      searchTokens,
-    }));
+      reset: jest.fn(),
+      searchTokens: jest.fn(),
+    });
     const ref = React.createRef<UrlAutocompleteRef>();
     render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
 
@@ -108,10 +142,8 @@ describe('UrlAutocomplete', () => {
   });
 
   it('should display token search results', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const useTSD = require('../../hooks/useTokenSearchDiscovery/useTokenSearchDiscovery');
-    const searchTokens = jest.fn();
-    const results: TokenSearchResponseItem[] = [
+    mockUseTSDReturnValue({
+      results: [
       {
         tokenAddress: '0x123',
         chainId: '0x1',
@@ -122,14 +154,11 @@ describe('UrlAutocomplete', () => {
           oneDay: 1,
         },
       }
-    ];
-    const reset = jest.fn();
-    useTSD.default.mockImplementationOnce(() => ({
-      results,
+    ],
       isLoading: false,
-      reset,
-      searchTokens,
-    }));
+      reset: jest.fn(),
+      searchTokens: jest.fn(),
+    });
     const ref = React.createRef<UrlAutocompleteRef>();
     render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {state: defaultState});
 
