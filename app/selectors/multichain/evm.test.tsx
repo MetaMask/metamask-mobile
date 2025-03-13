@@ -206,7 +206,6 @@ describe('Multichain Selectors', () => {
 
     it('should handle multiple chains correctly', () => {
       const result = selectAccountTokensAcrossChains(mockState);
-      console.log('RESULT: ', result);
       expect(result).toHaveProperty('0x89');
       const polygonTokens = result['0x89'];
       expect(polygonTokens.length).toBeGreaterThan(0);
