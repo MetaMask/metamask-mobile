@@ -155,3 +155,6 @@ app/reducers/navigation @MetaMask/wallet-ux
 app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
+
+# Transactions Team
+app/components/Views/transactions @MetaMask/transactions
