@@ -6,6 +6,10 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import Engine from '../../../../core/Engine';
 import { Quote } from '@metamask/swaps-controller/dist/types';
+import {
+  getGasIncludedTransactionFees,
+  type GasIncludedQuote
+} from '../../../../util/smart-transactions';
 
 // Mock selectors directly
 jest.mock('../../../../selectors/networkController', () => ({
@@ -38,6 +42,12 @@ jest.mock('./gas', () => ({
     maxFeePerGas: '0x1234',
     maxPriorityFeePerGas: '0x5678',
   })),
+}));
+
+// Mock the getGasIncludedTransactionFees function
+jest.mock('../../../../util/smart-transactions', () => ({
+  ...jest.requireActual('../../../../util/smart-transactions'),
+  getGasIncludedTransactionFees: jest.fn(),
 }));
 
 describe('useSwapsSmartTransaction', () => {
@@ -203,6 +213,64 @@ describe('useSwapsSmartTransaction', () => {
     // Verify both UUIDs were returned
     expect(returnValue).toEqual({
       approvalTxUuid: 'approval-uuid-123',
+      tradeTxUuid: 'trade-uuid-456',
+    });
+  });
+
+  it('should use gas-included transaction fees when quote has isGasIncludedTrade flag', async () => {
+    (selectSwapsApprovalTransaction as unknown as jest.Mock).mockReturnValue(null);
+    const mockGasIncludedQuote = {
+      trade: mockTradeTransaction,
+      isGasIncludedTrade: true,
+    } as unknown as Quote & Partial<GasIncludedQuote>;
+    const mockGasIncludedFees = {
+      tradeTxFees: {
+        gasLimit: '120000',
+        fees: [
+          { maxFeePerGas: '55', maxPriorityFeePerGas: '3' },
+          { maxFeePerGas: '65', maxPriorityFeePerGas: '4' },
+        ],
+        cancelFees: [],
+      },
+      approvalTxFees: null,
+    };
+    (getGasIncludedTransactionFees as jest.Mock).mockReturnValue(mockGasIncludedFees);
+    (Engine.context.SmartTransactionsController.submitSignedTransactions as jest.Mock).mockResolvedValueOnce(mockTradeResponse);
+
+    const { result } = renderHookWithProvider(() =>
+      useSwapsSmartTransaction({
+        quote: mockGasIncludedQuote,
+        gasEstimates: mockGasEstimates
+      })
+    );
+    const returnValue = await result.current.submitSwapsSmartTransaction();
+
+    expect(getGasIncludedTransactionFees).toHaveBeenCalledWith(mockGasIncludedQuote);
+    expect(Engine.context.SmartTransactionsController.getFees).not.toHaveBeenCalled();
+    expect(Engine.context.TransactionController.approveTransactionsWithSameNonce).toHaveBeenCalled();
+    expect(Engine.context.SmartTransactionsController.submitSignedTransactions).toHaveBeenCalledTimes(1);
+    expect(Engine.context.SmartTransactionsController.submitSignedTransactions).toHaveBeenCalledWith({
+      signedTransactions: ['0xsignedtx1', '0xsignedtx2'],
+      txParams: expect.objectContaining({
+        chainId: mockChainId,
+        from: '0xfrom',
+        to: '0xto',
+        data: '0xdata',
+        value: '0x0',
+        gas: '1d4c0',
+        maxFeePerGas: '0x1234',
+        maxPriorityFeePerGas: '0x5678',
+      }),
+      signedCanceledTransactions: [],
+    });
+    expect(Engine.context.SmartTransactionsController.updateSmartTransaction).toHaveBeenCalledWith({
+      uuid: 'trade-uuid-456',
+      origin: ORIGIN_METAMASK,
+      type: TransactionType.swap,
+      creationTime: expect.any(Number),
+    });
+    expect(returnValue).toEqual({
+      approvalTxUuid: undefined,
       tradeTxUuid: 'trade-uuid-456',
     });
   });
