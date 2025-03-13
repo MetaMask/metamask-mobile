@@ -1,5 +1,4 @@
-import { TxData } from '@metamask/bridge-controller';
-import { Quote } from '@metamask/bridge-controller';
+import { TxData, Quote } from '@metamask/bridge-controller';
 import type { CaipChainId } from '@metamask/utils';
 
 export interface BridgeToken {
