@@ -50,15 +50,14 @@ describe('SnapUIRenderer utils', () => {
       `);
     });
   });
+
   describe('mapSnapBorderRadiusToMobileBorderRadius', () => {
     it('should correctly map all border radius values', () => {
       expect(mapSnapBorderRadiusToMobileBorderRadius('none')).toBe(0);
       expect(mapSnapBorderRadiusToMobileBorderRadius('medium')).toBe(6);
       expect(mapSnapBorderRadiusToMobileBorderRadius('full')).toBe(9999);
       expect(mapSnapBorderRadiusToMobileBorderRadius(undefined)).toBe(0);
-      expect(mapSnapBorderRadiusToMobileBorderRadius('invalid-value')).toBe(
-        0,
-      );
+      expect(mapSnapBorderRadiusToMobileBorderRadius('invalid-value')).toBe(0);
     });
   });
 });
