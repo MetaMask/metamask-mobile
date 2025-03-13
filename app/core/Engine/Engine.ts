@@ -1681,6 +1681,7 @@ export class Engine {
 
     TransactionController.stopIncomingTransactionPolling();
 
+    // TODO HERE: add other chains
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling([chainId]);
 

@@ -138,6 +138,7 @@ const Main = (props) => {
     stopIncomingTransactionPolling();
 
     if (showIncomingTransactionsNetworks[chainId]) {
+      // TODO HERE: add other chains
       startIncomingTransactionPolling([chainId]);
     }
   }, [chainId, networkClientId, showIncomingTransactionsNetworks]);
