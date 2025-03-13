@@ -45,7 +45,8 @@ export const snapControllerInit: ControllerInitFunction<
     keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
   });
 
-  function getMnemonic() {
+  // Async because `SnapController` expects a promise.
+  async function getMnemonic() {
     const keyrings = initMessenger.call(
       'KeyringController:getKeyringsByType',
       KeyringTypes.hd,
@@ -59,8 +60,7 @@ export const snapControllerInit: ControllerInitFunction<
       throw new Error('Primary keyring mnemonic unavailable.');
     }
 
-    // `SnapController` expects a promise.
-    return Promise.resolve(keyrings[0].mnemonic);
+    return keyrings[0].mnemonic;
   }
 
   /**
