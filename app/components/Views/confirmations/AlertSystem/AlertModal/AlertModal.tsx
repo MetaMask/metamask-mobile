@@ -84,9 +84,8 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({ selectedAlert, isConfirmed, on
       style={styles.checkboxContainer}
       onPress={() => onCheckboxClick(isConfirmed)}
       activeOpacity={1}
-      testID="alert-modal-checkbox"
     >
-      <Checkbox onPress={() => onCheckboxClick(isConfirmed)} isChecked={isConfirmed} />
+      <Checkbox onPress={() => onCheckboxClick(isConfirmed)} isChecked={isConfirmed} testID="alert-modal-checkbox"/>
       <Text style={styles.checkboxText}>{strings('alert_system.confirm_modal.checkbox_label')}</Text>
     </TouchableOpacity>
   );

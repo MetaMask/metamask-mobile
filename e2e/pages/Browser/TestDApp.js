@@ -218,7 +218,7 @@ class TestDApp {
   }
 
   async tapSIWEBadDomainButton() {
-    await this.tapButton(this.permitSignButton);
+    await this.tapButton(this.siweBadDomainButton);
   }
 
   async tapERC20TransferButton() {
