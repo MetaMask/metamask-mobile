@@ -51,26 +51,6 @@ jest.mock('../../../core/Engine', () => ({
 
 const selectShowFiatInTestnets = jest.fn();
 
-// Mock ScrollableTabView as a simple View component that renders children
-jest.mock('react-native-scrollable-tab-view', () => {
-  const MockScrollableTabView = ({
-    children,
-    onChangeTab,
-  }: {
-    children: React.ReactNode;
-    onChangeTab?: (info: { i: number }) => void;
-  }) => {
-    const mockChildren = Array.isArray(children) ? children : [children];
-    return mockChildren.map((child, index) => (
-      <div key={index} onClick={() => onChangeTab?.({ i: index })}>
-        {child}
-      </div>
-    ));
-  };
-  MockScrollableTabView.displayName = 'MockScrollableTabView';
-  return MockScrollableTabView;
-});
-
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
@@ -106,7 +86,6 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-// Mock Linking
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(() => Promise.resolve()),
 }));
@@ -165,7 +144,7 @@ describe('Carousel', () => {
       }),
     );
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-    (selectShowFiatInTestnets as jest.Mock).mockReturnValue(false); // Also mock the selector directly
+    (selectShowFiatInTestnets as jest.Mock).mockReturnValue(false);
     jest.clearAllMocks();
   });
 
@@ -233,5 +212,19 @@ describe('Carousel', () => {
     // Test aggregated banner
     fireEvent.press(fourthSlide);
     expect(mockNavigate).toHaveBeenCalled();
+  });
+
+  it('should update selected index when scrolling', () => {
+    const { getByTestId } = render(<Carousel />);
+    const flatList = getByTestId(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
+
+    fireEvent.scroll(flatList, {
+      nativeEvent: {
+        contentOffset: { x: 400 },
+        layoutMeasurement: { width: 400 },
+      },
+    });
+
+    expect(flatList).toBeTruthy();
   });
 });

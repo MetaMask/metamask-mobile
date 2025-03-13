@@ -1,5 +1,11 @@
-import { StyleSheet, Dimensions } from 'react-native';
-import { Colors } from '../../../util/theme/models';
+// Third party dependencies.
+import { StyleSheet, Dimensions, ViewStyle } from 'react-native';
+
+// External dependencies.
+import { Theme } from '../../../util/theme/models';
+
+// Internal dependencies
+import { CarouselStyleSheetVars } from './types';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
@@ -9,14 +15,23 @@ const PEEK_WIDTH = 5;
 export const IMAGE_WIDTH = 60;
 export const IMAGE_HEIGHT = 59;
 
-export const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    container: {
-      width: BANNER_WIDTH + PEEK_WIDTH * 2,
-      alignSelf: 'center',
-      height: CAROUSEL_HEIGHT + DOTS_HEIGHT,
-      overflow: 'visible',
-    },
+export const styleSheet = (params: {
+  theme: Theme;
+  vars: CarouselStyleSheetVars;
+}) => {
+  const { vars, theme } = params;
+  const { colors } = theme;
+  const { style } = vars;
+  return StyleSheet.create({
+    base: Object.assign(
+      {
+        width: BANNER_WIDTH + PEEK_WIDTH * 2,
+        alignSelf: 'center',
+        height: CAROUSEL_HEIGHT + DOTS_HEIGHT,
+        overflow: 'visible',
+      } as ViewStyle,
+      style as ViewStyle,
+    ),
     bannerContainer: {
       height: CAROUSEL_HEIGHT,
       overflow: 'visible',
@@ -25,11 +40,11 @@ export const createStyles = (colors: Colors) =>
       height: CAROUSEL_HEIGHT,
     },
     slideContainer: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: theme.colors.background.alternative,
       borderRadius: 8,
       height: CAROUSEL_HEIGHT,
       borderWidth: 1,
-      borderColor: colors.border.muted,
+      borderColor: theme.colors.border.muted,
       width: BANNER_WIDTH,
       marginHorizontal: PEEK_WIDTH,
       position: 'relative',
@@ -104,4 +119,9 @@ export const createStyles = (colors: Colors) =>
       alignItems: 'center',
       backgroundColor: colors.background.alternative,
     },
+    bannerImage: {
+      width: IMAGE_WIDTH,
+      height: IMAGE_HEIGHT,
+    },
   });
+};

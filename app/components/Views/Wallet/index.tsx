@@ -723,9 +723,7 @@ const Wallet = ({
         ) : null}
         <>
           <PortfolioBalance />
-          <View style={styles.carouselContainer}>
-            <Carousel />
-          </View>
+          <Carousel style={styles.carouselContainer} />
           {renderTokensContent(assets)}
         </>
       </View>

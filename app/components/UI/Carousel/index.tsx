@@ -5,100 +5,24 @@ import {
   Pressable,
   Linking,
   Image,
-  ImageSourcePropType,
+  FlatList,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { createStyles, IMAGE_WIDTH, IMAGE_HEIGHT } from './index.styles';
-import {
-  CarouselProps,
-  CarouselSlide,
-  SlideId,
-  NavigationAction,
-} from './carousel.types';
+import { styleSheet } from './styles';
+import { CarouselProps, CarouselSlide, NavigationAction } from './types';
 import { dismissBanner } from '../../../reducers/banners';
-import { RootState } from '../../../reducers';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMultichainBalances } from '../../hooks/useMultichainBalances';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
-import {
-  createBuyNavigationDetails,
-  createSellNavigationDetails,
-} from '../../UI/Ramp/routes/utils';
-import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import cardImage from '../../../images/banners/banner_image_card.png';
-import fundImage from '../../../images/banners/banner_image_fund.png';
-import cashoutImage from '../../../images/banners/banner_image_cashout.png';
-import aggregatedImage from '../../../images/banners/banner_image_aggregated.png';
-
-const BannerImages: Record<SlideId, ImageSourcePropType> = {
-  card: cardImage,
-  fund: fundImage,
-  cashout: cashoutImage,
-  aggregated: aggregatedImage,
-};
-
-const PREDEFINED_SLIDES: CarouselSlide[] = [
-  {
-    id: 'card',
-    title: strings('banner.card.title'),
-    description: strings('banner.card.subtitle'),
-    undismissable: false,
-    navigation: { type: 'url', href: 'https://portfolio.metamask.io/card' },
-    testID: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE,
-    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON,
-  },
-  {
-    id: 'fund',
-    title: strings('banner.fund.title'),
-    description: strings('banner.fund.subtitle'),
-    undismissable: false,
-    navigation: {
-      type: 'function',
-      navigate: () => createBuyNavigationDetails(),
-    },
-    testID: WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE,
-    testIDCloseButton:
-      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON,
-  },
-  {
-    id: 'cashout',
-    title: strings('banner.cashout.title'),
-    description: strings('banner.cashout.subtitle'),
-    undismissable: false,
-    navigation: {
-      type: 'function',
-      navigate: () => createSellNavigationDetails(),
-    },
-    testID: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE_TITLE,
-    testIDCloseButton: WalletViewSelectorsIDs.CAROUSEL_THIRD_SLIDE_CLOSE_BUTTON,
-  },
-  {
-    id: 'aggregated',
-    title: strings('banner.aggregated.title'),
-    description: strings('banner.aggregated.subtitle'),
-    undismissable: false,
-    navigation: {
-      type: 'route',
-      route: Routes.ONBOARDING.GENERAL_SETTINGS,
-      navigationStack: Routes.SETTINGS_VIEW,
-    },
-    testID: WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE,
-    testIDTitle: WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE_TITLE,
-    testIDCloseButton:
-      WalletViewSelectorsIDs.CAROUSEL_FOURTH_SLIDE_CLOSE_BUTTON,
-  },
-];
+import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
+import { useStyles } from '../../../component-library/hooks';
+import { selectDismissedBanners } from '../../../selectors/banner';
 
 export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -109,10 +33,8 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
-  const styles = createStyles(colors);
-  const dismissedBanners = useSelector(
-    (state: RootState) => state.banners.dismissedBanners,
-  );
+  const { styles } = useStyles(styleSheet, { style });
+  const dismissedBanners = useSelector(selectDismissedBanners);
 
   const [previousIsZeroBalance, setPreviousIsZeroBalance] = useState<
     boolean | null
@@ -218,6 +140,88 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
     [dispatch],
   );
 
+  const renderBannerSlides = useCallback(
+    ({ item: slide }: { item: CarouselSlide }) => (
+      <Pressable
+        key={slide.id}
+        testID={slide.testID}
+        style={[
+          styles.slideContainer,
+          pressedSlideId === slide.id && styles.slideContainerPressed,
+        ]}
+        onPress={() => handleSlideClick(slide.id, slide.navigation)}
+        onPressIn={() => setPressedSlideId(slide.id)}
+        onPressOut={() => setPressedSlideId(null)}
+      >
+        <View style={styles.slideContent}>
+          <View style={styles.imageContainer}>
+            <Image
+              source={BANNER_IMAGES[slide.id]}
+              style={styles.bannerImage}
+              resizeMode="contain"
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <View style={styles.textWrapper}>
+              <Text
+                variant={TextVariant.BodyMD}
+                style={styles.title}
+                testID={slide.testIDTitle}
+              >
+                {slide.title}
+              </Text>
+              <Text variant={TextVariant.BodySM} style={styles.description}>
+                {slide.description}
+              </Text>
+            </View>
+          </View>
+          {!slide.undismissable && (
+            <TouchableOpacity
+              testID={slide.testIDCloseButton}
+              style={styles.closeButton}
+              onPress={() => handleClose(slide.id)}
+            >
+              <Icon name="close" size={18} color={colors.icon.default} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </Pressable>
+    ),
+    [
+      styles,
+      handleSlideClick,
+      handleClose,
+      colors.icon.default,
+      pressedSlideId,
+    ],
+  );
+
+  const renderProgressDots = useMemo(
+    () => (
+      <View
+        testID={WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS}
+        style={styles.progressContainer}
+      >
+        {visibleSlides.map((slide, index) => (
+          <View
+            key={slide.id}
+            style={[
+              styles.progressDot,
+              selectedIndex === index && styles.progressDotActive,
+            ]}
+          />
+        ))}
+      </View>
+    ),
+    [
+      visibleSlides,
+      selectedIndex,
+      styles.progressContainer,
+      styles.progressDot,
+      styles.progressDotActive,
+    ],
+  );
+
   useEffect(() => {
     if (visibleSlides.length > 0) {
       handleRenderSlides(visibleSlides);
@@ -230,91 +234,26 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
 
   return (
     <View
-      style={[styles.container, style]}
+      style={styles.base}
       testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
     >
       <View style={styles.bannerContainer}>
-        <ScrollableTabView
-          renderTabBar={() => <View />}
-          onChangeTab={({ i }) => setSelectedIndex(i)}
-          locked={isSingleSlide}
-          initialPage={0}
-          contentProps={{
-            style: {
-              overflow: 'visible',
-            },
+        <FlatList
+          data={visibleSlides}
+          renderItem={renderBannerSlides}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(event) => {
+            const newIndex = Math.round(
+              event.nativeEvent.contentOffset.x /
+                event.nativeEvent.layoutMeasurement.width,
+            );
+            setSelectedIndex(newIndex);
           }}
-        >
-          {visibleSlides.map((slide) => (
-            <Pressable
-              key={slide.id}
-              testID={slide.testID}
-              style={[
-                styles.slideContainer,
-                pressedSlideId === slide.id && styles.slideContainerPressed,
-              ]}
-              onPress={() => handleSlideClick(slide.id, slide.navigation)}
-              onPressIn={() => setPressedSlideId(slide.id)}
-              onPressOut={() => setPressedSlideId(null)}
-            >
-              <View style={styles.slideContent}>
-                <View style={styles.imageContainer}>
-                  <Image
-                    source={BannerImages[slide.id]}
-                    style={{
-                      width: IMAGE_WIDTH,
-                      height: IMAGE_HEIGHT,
-                    }}
-                    resizeMode="contain"
-                  />
-                </View>
-                <View style={styles.textContainer}>
-                  <View style={styles.textWrapper}>
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      style={styles.title}
-                      testID={slide.testIDTitle}
-                    >
-                      {slide.title}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySM}
-                      style={styles.description}
-                    >
-                      {slide.description}
-                    </Text>
-                  </View>
-                </View>
-                {!slide.undismissable && (
-                  <TouchableOpacity
-                    testID={slide.testIDCloseButton}
-                    style={styles.closeButton}
-                    onPress={() => handleClose(slide.id)}
-                  >
-                    <Icon name="close" size={18} color={colors.icon.default} />
-                  </TouchableOpacity>
-                )}
-              </View>
-            </Pressable>
-          ))}
-        </ScrollableTabView>
+        />
       </View>
-      {!isSingleSlide && (
-        <View
-          testID={WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS}
-          style={styles.progressContainer}
-        >
-          {visibleSlides.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.progressDot,
-                selectedIndex === index && styles.progressDotActive,
-              ]}
-            />
-          ))}
-        </View>
-      )}
+      {!isSingleSlide && renderProgressDots}
     </View>
   );
 };
