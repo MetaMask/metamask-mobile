@@ -60,8 +60,8 @@ describe('SnapControllerInit', () => {
       excludedPermissions: expect.any(Object),
       featureFlags: {
         allowLocalSnaps: false,
-        disableSnapInstallation: false,
-        requireAllowlist: false,
+        disableSnapInstallation: true,
+        requireAllowlist: true,
       },
       getFeatureFlags: expect.any(Function),
       getMnemonic: expect.any(Function),
