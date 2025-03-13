@@ -14,6 +14,7 @@ import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBann
 import Title from '../components/Confirm/Title';
 import { LedgerContextProvider } from '../context/LedgerContext';
 import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
+import { ConfirmContextProvider } from '../context/ConfirmationContext/ConfirmationContext';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmActions } from '../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
@@ -27,20 +28,22 @@ const ConfirmWrapped = ({
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
   route?: UnstakeConfirmationViewProps['route'];
 }) => (
-  <QRHardwareContextProvider>
-    <LedgerContextProvider>
-      <Title />
-      <ScrollView style={styles.scrollView}>
-        <TouchableWithoutFeedback>
-          <>
-            <SignatureBlockaidBanner />
-            <Info route={route} />
-          </>
-        </TouchableWithoutFeedback>
-      </ScrollView>
-      <Footer />
-    </LedgerContextProvider>
-  </QRHardwareContextProvider>
+  <ConfirmContextProvider>
+    <QRHardwareContextProvider>
+      <LedgerContextProvider>
+        <Title />
+        <ScrollView style={styles.scrollView}>
+          <TouchableWithoutFeedback>
+            <>
+              <SignatureBlockaidBanner />
+              <Info route={route} />
+            </>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+        <Footer />
+      </LedgerContextProvider>
+    </QRHardwareContextProvider>
+  </ConfirmContextProvider>
 );
 
 interface ConfirmProps {

@@ -8,8 +8,7 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
 import { mockEarnControllerRootState } from '../../../../../UI/Stake/testUtils';
-import { EVENT_LOCATIONS as STAKING_EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
-import { TOOLTIP_TYPES as STAKING_TOOLTIP_TYPES } from '../../../constants/metricEvents';
+import { TOOLTIP_TYPES } from '../../../constants/metricEvents';
 import { useConfirmationMetricEvents } from '../../../hooks/useConfirmationMetricEvents';
 import StakingDetails from './StakingDetails';
 
@@ -91,8 +90,7 @@ describe('StakingDetails', () => {
 
     expect(mockTrackTooltipClickedEvent).toHaveBeenCalled();
     expect(mockTrackTooltipClickedEvent).toHaveBeenCalledWith({
-      location: STAKING_EVENT_LOCATIONS.REDESIGNED_STAKE_CONFIRMATION_VIEW,
-      tooltip: STAKING_TOOLTIP_TYPES.REWARD_FREQUENCY,
+      tooltip: TOOLTIP_TYPES.REWARD_FREQUENCY,
     });
   });
 });

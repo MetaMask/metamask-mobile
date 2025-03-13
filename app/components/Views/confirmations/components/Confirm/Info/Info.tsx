@@ -68,11 +68,18 @@ const Info = ({ route }: InfoProps) => {
   if (!InfoComponent) return null;
 
   if (transactionType === TransactionType.stakingUnstake) {
-    const StakingWithdrawalComponent = InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
-    return <StakingWithdrawalComponent route={route as UnstakeConfirmationViewProps['route']} />;
+    const StakingWithdrawalComponent =
+      InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
+    return (
+      <StakingWithdrawalComponent
+        route={route as UnstakeConfirmationViewProps['route']}
+      />
+    );
   }
 
-  const GenericComponent = InfoComponent as React.ComponentType<Record<string, never>>;
+  const GenericComponent = InfoComponent as React.ComponentType<
+    Record<string, never>
+  >;
   return <GenericComponent />;
 };
 

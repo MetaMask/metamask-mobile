@@ -5,7 +5,7 @@
 
 import { IMetaMetricsEvent } from './MetaMetrics.types';
 
-const generateOpt = (
+export const generateOpt = (
   name: EVENT_NAME,
   action?: ACTIONS,
   description?: DESCRIPTION,
@@ -35,7 +35,7 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
 /**
  * Analytics Tracking Events
  */
-enum EVENT_NAME {
+export enum EVENT_NAME {
   // App
   APP_OPENED = 'App Opened',
 
@@ -417,11 +417,6 @@ enum EVENT_NAME {
 
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
-
-  // Confirmation generic events
-  CONFIRMATION_ADVANCED_DETAILS_CLICKED = 'Confirmation Advanced Details Clicked',
-  CONFIRMATION_TOOLTIP_CLICKED = 'Confirmation Tooltip Clicked',
-  CONFIRMATION_PAGE_VIEWED = 'Confirmation Page Viewed',
 }
 
 enum ACTIONS {
@@ -1002,16 +997,6 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
-  // Confirmation generic events
-  CONFIRMATION_ADVANCED_DETAILS_CLICKED: generateOpt(
-    EVENT_NAME.CONFIRMATION_ADVANCED_DETAILS_CLICKED,
-  ),
-  CONFIRMATION_TOOLTIP_CLICKED: generateOpt(
-    EVENT_NAME.CONFIRMATION_TOOLTIP_CLICKED,
-  ),
-  CONFIRMATION_PAGE_VIEWED: generateOpt(
-    EVENT_NAME.CONFIRMATION_PAGE_VIEWED,
-  ),
 };
 
 /**
@@ -1395,4 +1380,4 @@ const legacyMetaMetricsEvents = {
 
 const MetaMetricsEvents = { ...events, ...legacyMetaMetricsEvents };
 
-export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION, EVENT_NAME };
+export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION };

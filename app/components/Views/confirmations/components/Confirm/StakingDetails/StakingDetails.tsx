@@ -2,12 +2,11 @@ import React from 'react';
 import { View } from 'react-native';
 import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
+import { TOOLTIP_TYPES } from '../../../../../../core/Analytics/events/confirmations';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { EVENT_LOCATIONS as STAKING_EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
 import { useStakingDetails } from '../../../hooks/useStakingDetails';
 import { useConfirmationMetricEvents } from '../../../hooks/useConfirmationMetricEvents';
-import { TOOLTIP_TYPES as STAKING_TOOLTIP_TYPES } from '../../../constants/metricEvents';
 import InfoRow from '../../UI/InfoRow';
 import InfoSection from '../../UI/InfoRow/InfoSection';
 import styleSheet from './StakingDetails.styles';
@@ -19,8 +18,7 @@ const StakingDetails = () => {
 
   const handleRewardFreqTooltipClickedEvent = () => {
     trackTooltipClickedEvent({
-      location: STAKING_EVENT_LOCATIONS.REDESIGNED_STAKE_CONFIRMATION_VIEW,
-      tooltip: STAKING_TOOLTIP_TYPES.REWARD_FREQUENCY,
+      tooltip: TOOLTIP_TYPES.REWARD_FREQUENCY,
     });
   };
 

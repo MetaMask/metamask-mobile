@@ -1,20 +1,21 @@
 import { useMemo } from 'react';
-import { JsonMap } from '../../../../core/Analytics/MetaMetrics.types';
-import { useMetrics } from '../../../hooks/useMetrics';
 import {
-  MetaMetricsEvents,
   IMetaMetricsEvent,
-} from '../../../../core/Analytics';
+  JsonMap,
+} from '../../../../core/Analytics/MetaMetrics.types';
+import { useMetrics } from '../../../hooks/useMetrics';
+import { CONFIRMATION_EVENTS } from '../../../../core/Analytics/events/confirmations';
+import { useConfirmContext } from '../context/ConfirmationContext/ConfirmationContext';
 
 export function useConfirmationMetricEvents() {
   const { createEventBuilder, trackEvent } = useMetrics();
+  const { location } = useConfirmContext();
 
   const events = useMemo(() => {
-    const trackAdvancedDetailsToggledEvent = ({ location }: JsonMap) => {
+    const trackAdvancedDetailsToggledEvent = () => {
       const event = generateEvent({
         createEventBuilder,
-        metametricsEvent:
-          MetaMetricsEvents.CONFIRMATION_ADVANCED_DETAILS_CLICKED,
+        metametricsEvent: CONFIRMATION_EVENTS.ADVANCED_DETAILS_CLICKED,
         properties: {
           location,
         },
@@ -23,10 +24,10 @@ export function useConfirmationMetricEvents() {
       trackEvent(event);
     };
 
-    const trackTooltipClickedEvent = ({ location, tooltip }: JsonMap) => {
+    const trackTooltipClickedEvent = ({ tooltip }: JsonMap) => {
       const event = generateEvent({
         createEventBuilder,
-        metametricsEvent: MetaMetricsEvents.CONFIRMATION_TOOLTIP_CLICKED,
+        metametricsEvent: CONFIRMATION_EVENTS.TOOLTIP_CLICKED,
         properties: {
           location,
           tooltip,
@@ -36,10 +37,10 @@ export function useConfirmationMetricEvents() {
       trackEvent(event);
     };
 
-    const trackPageViewedEvent = ({ location }: JsonMap) => {
+    const trackPageViewedEvent = () => {
       const event = generateEvent({
         createEventBuilder,
-        metametricsEvent: MetaMetricsEvents.CONFIRMATION_PAGE_VIEWED,
+        metametricsEvent: CONFIRMATION_EVENTS.SCREEN_VIEWED,
         properties: {
           location,
         },
@@ -53,7 +54,7 @@ export function useConfirmationMetricEvents() {
       trackTooltipClickedEvent,
       trackPageViewedEvent,
     };
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, location, trackEvent]);
 
   return { ...events };
 }
