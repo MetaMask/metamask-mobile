@@ -17,7 +17,7 @@ export default function useDomainMismatchAlerts(): Alert[] {
 
   const { meta } = requestData;
 
-  const originWithProtocol = regex.urlHttpToHttps.test(requestData.origin) ? requestData.origin : new URL(meta?.url).origin;
+  const originWithProtocol = regex.urlHttpToHttps.test(requestData.origin) || !isSIWE ? requestData.origin : new URL(meta?.url).origin;
 
   const isInvalidSIWEDomain =
     isSIWE && !isValidSIWEOrigin({ ...requestData, origin: originWithProtocol } as WrappedSIWERequest);
