@@ -1291,6 +1291,7 @@ export class Engine {
         publish: (transactionMeta) => {
           const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
             store.getState(),
+            transactionMeta.chainId,
           );
 
           return submitSmartTransactionHook({
