@@ -115,16 +115,16 @@ const AccountSelectorList = ({
   const onLongPress = useCallback(
     ({
       address,
-      imported,
+      isAccountRemoveable,
       isSelected,
       index,
     }: {
       address: string;
-      imported: boolean;
+      isAccountRemoveable: boolean;
       isSelected: boolean;
       index: number;
     }) => {
-      if (!imported || !isRemoveAccountEnabled) return;
+      if (!isAccountRemoveable || !isRemoveAccountEnabled) return;
       Alert.alert(
         strings('accounts.remove_account_title'),
         strings('accounts.remove_account_message'),
@@ -227,10 +227,12 @@ const AccountSelectorList = ({
       return (
         <Cell
           key={address}
+          testID={`${WalletViewSelectorsIDs.ACCOUNT_LIST_CELL}-${address}`}
           onLongPress={() => {
             onLongPress({
               address,
-              imported: type === KeyringTypes.simple,
+              isAccountRemoveable:
+                type === KeyringTypes.simple || type === KeyringTypes.snap,
               isSelected: isSelectedAccount,
               index,
             });
