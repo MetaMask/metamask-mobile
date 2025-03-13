@@ -17,7 +17,13 @@ import {
   snapInterfaceControllerInit,
   snapsRegistryInit,
 } from '../controllers/snaps';
-import { CronjobController } from '@metamask/snaps-controllers';
+import {
+  AbstractExecutionService,
+  CronjobController,
+  JsonSnapsRegistry,
+  SnapController,
+  SnapInterfaceController,
+} from '@metamask/snaps-controllers';
 import { multichainAssetsRatesControllerInit } from '../controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import {
   CurrencyRateController,
@@ -133,6 +139,18 @@ describe('initModularizedControllers', () => {
     });
     mockCronjobControllerInit.mockReturnValue({
       controller: {} as unknown as CronjobController,
+    });
+    mockExecutionServiceInit.mockReturnValue({
+      controller: {} as unknown as AbstractExecutionService<unknown>,
+    });
+    mockSnapControllerInit.mockReturnValue({
+      controller: {} as unknown as SnapController,
+    });
+    mockSnapInterfaceControllerInit.mockReturnValue({
+      controller: {} as unknown as SnapInterfaceController,
+    });
+    mockSnapsRegistryInit.mockReturnValue({
+      controller: {} as unknown as JsonSnapsRegistry,
     });
     mockMultichainAssetsControllerInit.mockReturnValue({
       controller: {} as unknown as MultichainAssetsController,
