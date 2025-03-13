@@ -30,7 +30,6 @@ import { getBridgeNavbar } from '../Navbar';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
