@@ -134,10 +134,10 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
 import {
   ContractExchangeRates,
-  fetchTokenContractExchangeRates,
   CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
 import { getTradeTxTokenFee } from '../../../util/smart-transactions';
+import { useFiatConversionRates } from './utils/useFiatConversionRates';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -1827,30 +1827,13 @@ function SwapsQuotesView({
       'https://support.metamask.io/token-swaps/user-guide-swaps/#gas-fees',
     );
 
-  const fiatConversionRates = useAsyncResultOrThrow(async () => {
-    if (!canUseGasIncludedSwap || !selectedQuote?.trade) {
-      return undefined;
-    }
-
-    const { token, balanceNeededToken } = tradeTxTokenFee;
-    if (!token?.decimals || !token?.address || !balanceNeededToken) {
-      return undefined;
-    }
-
-    const checksumAddress = toChecksumHexAddress(token.address);
-    return fetchTokenContractExchangeRates({
-      tokenPricesService: new CodefiTokenPricesServiceV2(),
-      nativeCurrency: currentCurrency,
-      tokenAddresses: [checksumAddress],
-      chainId,
-    });
-  }, [
+  const fiatConversionRates = useFiatConversionRates({
     canUseGasIncludedSwap,
-    selectedQuote?.trade,
+    selectedQuote,
     tradeTxTokenFee,
     currentCurrency,
     chainId,
-  ]);
+  });
 
   const gasTokenFiatAmount = useMemo(() => {
     if (!canUseGasIncludedSwap || !selectedQuote?.trade) {
