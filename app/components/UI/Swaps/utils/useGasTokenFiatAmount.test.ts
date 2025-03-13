@@ -57,16 +57,16 @@ describe('useGasTokenFiatAmount', () => {
   const mockCurrentCurrency = 'USD';
   // Create a mock that matches the ContractExchangeRates type
   const mockFiatConversionRates = {
-    [mockChecksumAddress]: {
-      USD: 1.5,
-    },
+    [mockChecksumAddress]: 1.5,
   } as unknown as ContractExchangeRates;
 
   beforeEach(() => {
     jest.clearAllMocks();
     (hexToDecimal as jest.Mock).mockReturnValue('123');
     (toChecksumHexAddress as jest.Mock).mockReturnValue(mockChecksumAddress);
-    (swapsUtils.calcTokenAmount as jest.Mock).mockReturnValue(new BigNumber('0.000123'));
+    (swapsUtils.calcTokenAmount as jest.Mock).mockReturnValue(
+      new BigNumber('0.000123'),
+    );
     (toWei as jest.Mock).mockReturnValue('123000000000000');
     (weiToFiat as jest.Mock).mockReturnValue('0.18');
   });
@@ -112,7 +112,30 @@ describe('useGasTokenFiatAmount', () => {
       useGasTokenFiatAmount({
         canUseGasIncludedSwap: true,
         selectedQuote: mockQuoteWithTrade,
-        tradeTxTokenFee: { token: { address: '0xTokenAddress', symbol: 'TKN', decimals: 0 } },
+        tradeTxTokenFee: {
+          token: { address: '0xTokenAddress', symbol: 'TKN', decimals: 0 },
+          balanceNeededToken: '0x123',
+        },
+        currentCurrency: mockCurrentCurrency,
+        fiatConversionRates: mockFiatConversionRates,
+      }),
+    );
+
+    expect(result.current).toBeUndefined();
+    expect(hexToDecimal).not.toHaveBeenCalled();
+    expect(swapsUtils.calcTokenAmount).not.toHaveBeenCalled();
+    expect(toWei).not.toHaveBeenCalled();
+    expect(weiToFiat).not.toHaveBeenCalled();
+  });
+
+  it('should return undefined when token fee is missing balanceNeededToken', () => {
+    const { result } = renderHook(() =>
+      useGasTokenFiatAmount({
+        canUseGasIncludedSwap: true,
+        selectedQuote: mockQuoteWithTrade,
+        tradeTxTokenFee: {
+          token: { address: '0xTokenAddress', symbol: 'TKN', decimals: 18 },
+        },
         currentCurrency: mockCurrentCurrency,
         fiatConversionRates: mockFiatConversionRates,
       }),
@@ -141,7 +164,9 @@ describe('useGasTokenFiatAmount', () => {
     expect(result.current).toBeUndefined();
     expect(hexToDecimal).toHaveBeenCalledWith('0x123');
     expect(swapsUtils.calcTokenAmount).toHaveBeenCalled();
-    expect(String((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][0])).toEqual('123');
+    expect(
+      String((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][0]),
+    ).toEqual('123');
     expect((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][1]).toBe(18);
     expect(toWei).not.toHaveBeenCalled();
     expect(weiToFiat).not.toHaveBeenCalled();
@@ -161,7 +186,9 @@ describe('useGasTokenFiatAmount', () => {
     expect(result.current).toBe('0.18');
     expect(hexToDecimal).toHaveBeenCalledWith('0x123');
     expect(swapsUtils.calcTokenAmount).toHaveBeenCalled();
-    expect(String((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][0])).toEqual('123');
+    expect(
+      String((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][0]),
+    ).toEqual('123');
     expect((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][1]).toBe(18);
     expect(toWei).toHaveBeenCalledWith('0.000123');
     expect(weiToFiat).toHaveBeenCalledWith('123000000000000', 1.5, 'USD');
@@ -183,7 +210,9 @@ describe('useGasTokenFiatAmount', () => {
     expect(result.current).toBe('');
     expect(hexToDecimal).toHaveBeenCalledWith('0x123');
     expect(swapsUtils.calcTokenAmount).toHaveBeenCalled();
-    expect(String((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][0])).toEqual('123');
+    expect(
+      String((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][0]),
+    ).toEqual('123');
     expect((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][1]).toBe(18);
     expect(toWei).toHaveBeenCalledWith('0.000123');
     expect(weiToFiat).toHaveBeenCalledWith('123000000000000', 1.5, 'USD');
@@ -205,7 +234,9 @@ describe('useGasTokenFiatAmount', () => {
     expect(result.current).toBe('');
     expect(hexToDecimal).toHaveBeenCalledWith('0x123');
     expect(swapsUtils.calcTokenAmount).toHaveBeenCalled();
-    expect(String((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][0])).toEqual('123');
+    expect(
+      String((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][0]),
+    ).toEqual('123');
     expect((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][1]).toBe(18);
     expect(toWei).toHaveBeenCalledWith('0.000123');
     expect(weiToFiat).toHaveBeenCalledWith('123000000000000', undefined, 'USD');
@@ -228,9 +259,11 @@ describe('useGasTokenFiatAmount', () => {
     expect(result.current).toBe('');
     expect(hexToDecimal).toHaveBeenCalledWith('0x123');
     expect(swapsUtils.calcTokenAmount).toHaveBeenCalled();
-    expect(String((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][0])).toEqual('123');
+    expect(
+      String((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][0]),
+    ).toEqual('123');
     expect((swapsUtils.calcTokenAmount as jest.Mock).mock.calls[0][1]).toBe(18);
     expect(toWei).toHaveBeenCalledWith('0.000123');
     expect(weiToFiat).toHaveBeenCalledWith('123000000000000', undefined, 'USD');
   });
-}); 
+});

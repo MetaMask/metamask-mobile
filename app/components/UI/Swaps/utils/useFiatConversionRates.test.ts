@@ -1,10 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useFiatConversionRates } from './useFiatConversionRates';
 import { safeToChecksumAddress } from '../../../../util/address';
-import {
-  fetchTokenContractExchangeRates,
-  CodefiTokenPricesServiceV2,
-} from '@metamask/assets-controllers';
+import { fetchTokenContractExchangeRates } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { Quote } from '@metamask/swaps-controller/dist/types';
 import React from 'react';
@@ -54,27 +51,32 @@ describe('useFiatConversionRates', () => {
   const mockCurrentCurrency = 'USD';
   const mockContractExchangeRates = {
     [mockChecksumAddress]: {
-      'USD': 1.5,
+      USD: 1.5,
     },
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     (safeToChecksumAddress as jest.Mock).mockReturnValue(mockChecksumAddress);
-    (fetchTokenContractExchangeRates as jest.Mock).mockResolvedValue(mockContractExchangeRates);
+    (fetchTokenContractExchangeRates as jest.Mock).mockResolvedValue(
+      mockContractExchangeRates,
+    );
   });
 
   it('should return undefined when canUseGasIncludedSwap is false', async () => {
     const { result, waitForNextUpdate } = renderHook(() => {
       // Use React.useMemo to stabilize object references
-      const stableProps = React.useMemo(() => ({
-        canUseGasIncludedSwap: false,
-        selectedQuote: mockQuoteWithTrade,
-        tradeTxTokenFee: mockTradeTxTokenFee,
-        currentCurrency: mockCurrentCurrency,
-        chainId: mockChainId,
-      }), []);
-      
+      const stableProps = React.useMemo(
+        () => ({
+          canUseGasIncludedSwap: false,
+          selectedQuote: mockQuoteWithTrade,
+          tradeTxTokenFee: mockTradeTxTokenFee,
+          currentCurrency: mockCurrentCurrency,
+          chainId: mockChainId,
+        }),
+        [],
+      );
+
       return useFiatConversionRates(stableProps);
     });
 
@@ -92,21 +94,24 @@ describe('useFiatConversionRates', () => {
   it('should return undefined when selectedQuote has no trade', async () => {
     const { result, waitForNextUpdate } = renderHook(() => {
       // Use React.useMemo to stabilize object references
-      const stableProps = React.useMemo(() => ({
-        canUseGasIncludedSwap: true,
-        selectedQuote: mockQuoteWithoutTrade,
-        tradeTxTokenFee: mockTradeTxTokenFee,
-        currentCurrency: mockCurrentCurrency,
-        chainId: mockChainId,
-      }), []);
-      
+      const stableProps = React.useMemo(
+        () => ({
+          canUseGasIncludedSwap: true,
+          selectedQuote: mockQuoteWithoutTrade,
+          tradeTxTokenFee: mockTradeTxTokenFee,
+          currentCurrency: mockCurrentCurrency,
+          chainId: mockChainId,
+        }),
+        [],
+      );
+
       return useFiatConversionRates(stableProps);
     });
 
     expect(result.current.pending).toBe(true);
-    
+
     await waitForNextUpdate();
-    
+
     expect(result.current.pending).toBe(false);
     expect(result.current.value).toBeUndefined();
     expect(fetchTokenContractExchangeRates).not.toHaveBeenCalled();
@@ -115,28 +120,31 @@ describe('useFiatConversionRates', () => {
   it('should return undefined when token is missing required properties', async () => {
     const { result, waitForNextUpdate } = renderHook(() => {
       // Use React.useMemo to stabilize object references
-      const stableProps = React.useMemo(() => ({
-        canUseGasIncludedSwap: true,
-        selectedQuote: mockQuoteWithTrade,
-        tradeTxTokenFee: { 
-          token: { 
-            address: '0xAddress', 
-            decimals: 0, // Using 0 as a falsy value to trigger the check
-            symbol: 'TKN' 
+      const stableProps = React.useMemo(
+        () => ({
+          canUseGasIncludedSwap: true,
+          selectedQuote: mockQuoteWithTrade,
+          tradeTxTokenFee: {
+            token: {
+              address: '0xAddress',
+              decimals: 0, // Using 0 as a falsy value to trigger the check
+              symbol: 'TKN',
+            },
+            balanceNeededToken: '0x123',
           },
-          balanceNeededToken: '0x123'
-        },
-        currentCurrency: mockCurrentCurrency,
-        chainId: mockChainId,
-      }), []);
-      
+          currentCurrency: mockCurrentCurrency,
+          chainId: mockChainId,
+        }),
+        [],
+      );
+
       return useFiatConversionRates(stableProps);
     });
 
     expect(result.current.pending).toBe(true);
-    
+
     await waitForNextUpdate();
-    
+
     expect(result.current.pending).toBe(false);
     expect(result.current.value).toBeUndefined();
     expect(fetchTokenContractExchangeRates).not.toHaveBeenCalled();
@@ -145,24 +153,27 @@ describe('useFiatConversionRates', () => {
   it('should return undefined when balanceNeededToken is missing', async () => {
     const { result, waitForNextUpdate } = renderHook(() => {
       // Use React.useMemo to stabilize object references
-      const stableProps = React.useMemo(() => ({
-        canUseGasIncludedSwap: true,
-        selectedQuote: mockQuoteWithTrade,
-        tradeTxTokenFee: { 
-          token: { address: '0xAddress', decimals: 18, symbol: 'TKN' },
-          balanceNeededToken: ''  // Using empty string to trigger the check
-        },
-        currentCurrency: mockCurrentCurrency,
-        chainId: mockChainId,
-      }), []);
-      
+      const stableProps = React.useMemo(
+        () => ({
+          canUseGasIncludedSwap: true,
+          selectedQuote: mockQuoteWithTrade,
+          tradeTxTokenFee: {
+            token: { address: '0xAddress', decimals: 18, symbol: 'TKN' },
+            balanceNeededToken: '', // Using empty string to trigger the check
+          },
+          currentCurrency: mockCurrentCurrency,
+          chainId: mockChainId,
+        }),
+        [],
+      );
+
       return useFiatConversionRates(stableProps);
     });
 
     expect(result.current.pending).toBe(true);
-    
+
     await waitForNextUpdate();
-    
+
     expect(result.current.pending).toBe(false);
     expect(result.current.value).toBeUndefined();
     expect(fetchTokenContractExchangeRates).not.toHaveBeenCalled();
@@ -173,21 +184,24 @@ describe('useFiatConversionRates', () => {
 
     const { result, waitForNextUpdate } = renderHook(() => {
       // Use React.useMemo to stabilize object references
-      const stableProps = React.useMemo(() => ({
-        canUseGasIncludedSwap: true,
-        selectedQuote: mockQuoteWithTrade,
-        tradeTxTokenFee: mockTradeTxTokenFee,
-        currentCurrency: mockCurrentCurrency,
-        chainId: mockChainId,
-      }), []);
-      
+      const stableProps = React.useMemo(
+        () => ({
+          canUseGasIncludedSwap: true,
+          selectedQuote: mockQuoteWithTrade,
+          tradeTxTokenFee: mockTradeTxTokenFee,
+          currentCurrency: mockCurrentCurrency,
+          chainId: mockChainId,
+        }),
+        [],
+      );
+
       return useFiatConversionRates(stableProps);
     });
 
     expect(result.current.pending).toBe(true);
-    
+
     await waitForNextUpdate();
-    
+
     expect(result.current.pending).toBe(false);
     expect(result.current.value).toBeUndefined();
     expect(fetchTokenContractExchangeRates).not.toHaveBeenCalled();
@@ -196,21 +210,24 @@ describe('useFiatConversionRates', () => {
   it('should fetch and return exchange rates when all conditions are met', async () => {
     const { result, waitForNextUpdate } = renderHook(() => {
       // Use React.useMemo to stabilize object references
-      const stableProps = React.useMemo(() => ({
-        canUseGasIncludedSwap: true,
-        selectedQuote: mockQuoteWithTrade,
-        tradeTxTokenFee: mockTradeTxTokenFee,
-        currentCurrency: mockCurrentCurrency,
-        chainId: mockChainId,
-      }), []);
-      
+      const stableProps = React.useMemo(
+        () => ({
+          canUseGasIncludedSwap: true,
+          selectedQuote: mockQuoteWithTrade,
+          tradeTxTokenFee: mockTradeTxTokenFee,
+          currentCurrency: mockCurrentCurrency,
+          chainId: mockChainId,
+        }),
+        [],
+      );
+
       return useFiatConversionRates(stableProps);
     });
 
     expect(result.current.pending).toBe(true);
-    
+
     await waitForNextUpdate();
-    
+
     expect(result.current.pending).toBe(false);
     expect(result.current.value).toEqual(mockContractExchangeRates);
     expect(fetchTokenContractExchangeRates).toHaveBeenCalledWith({
@@ -228,58 +245,66 @@ describe('useFiatConversionRates', () => {
     try {
       const { result, waitForNextUpdate } = renderHook(() => {
         // Use React.useMemo to stabilize object references
-        const stableProps = React.useMemo(() => ({
-          canUseGasIncludedSwap: true,
-          selectedQuote: mockQuoteWithTrade,
-          tradeTxTokenFee: mockTradeTxTokenFee,
-          currentCurrency: mockCurrentCurrency,
-          chainId: mockChainId,
-        }), []);
-        
+        const stableProps = React.useMemo(
+          () => ({
+            canUseGasIncludedSwap: true,
+            selectedQuote: mockQuoteWithTrade,
+            tradeTxTokenFee: mockTradeTxTokenFee,
+            currentCurrency: mockCurrentCurrency,
+            chainId: mockChainId,
+          }),
+          [],
+        );
+
         return useFiatConversionRates(stableProps);
       });
 
       expect(result.current.pending).toBe(true);
-      
+
       await waitForNextUpdate();
       // This should throw an error with useAsyncResultOrThrow
     } catch (error) {
       expect(error).toEqual(mockError);
     }
-    
+
     expect(fetchTokenContractExchangeRates).toHaveBeenCalled();
   });
 
   it('should re-fetch when dependencies change', async () => {
-    let currentCurrency = mockCurrentCurrency;
-    
-    const { result, waitForNextUpdate, rerender } = renderHook(() => {
-      // Use React.useMemo to stabilize object references, but now depends on currentCurrency
-      const stableProps = React.useMemo(() => ({
-        canUseGasIncludedSwap: true,
-        selectedQuote: mockQuoteWithTrade,
-        tradeTxTokenFee: mockTradeTxTokenFee,
-        currentCurrency, // This will change when we rerender
-        chainId: mockChainId,
-      }), [currentCurrency]);
-      
-      return useFiatConversionRates(stableProps);
+    // First render with USD
+    const initialProps = {
+      canUseGasIncludedSwap: true,
+      selectedQuote: mockQuoteWithTrade,
+      tradeTxTokenFee: mockTradeTxTokenFee,
+      currentCurrency: 'USD',
+      chainId: mockChainId,
+    };
+
+    const { result, waitForNextUpdate, rerender } = renderHook(
+      (props) => {
+        // Use React.useMemo to stabilize object references
+        const stableProps = React.useMemo(() => props, [props]);
+        return useFiatConversionRates(stableProps);
+      },
+      { initialProps },
+    );
+
+    expect(result.current.pending).toBe(true);
+
+    await waitForNextUpdate();
+
+    expect(fetchTokenContractExchangeRates).toHaveBeenCalledTimes(1);
+
+    // Rerender with new props (EUR instead of USD)
+    rerender({
+      ...initialProps,
+      currentCurrency: 'EUR',
     });
 
     expect(result.current.pending).toBe(true);
-    
-    await waitForNextUpdate();
-    
-    expect(fetchTokenContractExchangeRates).toHaveBeenCalledTimes(1);
 
-    // Change a dependency
-    currentCurrency = 'EUR';
-    rerender();
-
-    expect(result.current.pending).toBe(true);
-    
     await waitForNextUpdate();
-    
+
     expect(fetchTokenContractExchangeRates).toHaveBeenCalledTimes(2);
     expect(fetchTokenContractExchangeRates).toHaveBeenLastCalledWith({
       tokenPricesService: expect.any(Object),
@@ -288,4 +313,4 @@ describe('useFiatConversionRates', () => {
       chainId: mockChainId,
     });
   });
-}); 
+});

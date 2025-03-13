@@ -54,7 +54,7 @@ export function useFiatConversionRates({
 
     const checksumAddress = safeToChecksumAddress(token.address);
     if (!checksumAddress) return undefined;
-    
+
     return fetchTokenContractExchangeRates({
       tokenPricesService: new CodefiTokenPricesServiceV2(),
       nativeCurrency: currentCurrency,
@@ -68,4 +68,4 @@ export function useFiatConversionRates({
     currentCurrency,
     chainId,
   ]);
-} 
+}
