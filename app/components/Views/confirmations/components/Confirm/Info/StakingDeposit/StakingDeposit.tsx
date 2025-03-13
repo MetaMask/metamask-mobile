@@ -2,9 +2,10 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
-import AdvancedDetails from '../../AdvancedDetails/AdvancedDetails';
+import InfoSectionAccordion from '../../../UI/InfoSectionAccordion';
 import { getNavbar } from '../../Navbar/Navbar';
-import StakingDetails from '../../StakingDetails';
+import StakingContractInteractionDetails from '../../StakingContractInteractionDetails/StakingContractInteractionDetails';
+import StakingDetails from '../../StakingDetails/StakingDetails';
 import TokenHero from '../../TokenHero';
 import GasFeesDetails from '../GasFeesDetails';
 
@@ -26,7 +27,9 @@ const StakingDeposit = () => {
       <TokenHero />
       <StakingDetails />
       <GasFeesDetails />
-      <AdvancedDetails />
+      <InfoSectionAccordion header={strings('stake.advanced_details')}>
+        <StakingContractInteractionDetails />
+      </InfoSectionAccordion>
     </>
   );
 };

@@ -19,6 +19,10 @@ bitrise.yml                                                 @MetaMask/mobile-pla
 yarn.lock                                                   @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
+app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
+app/components/Nav/ControllersGate                          @MetaMask/mobile-platform
+app/components/Views/Root                                   @MetaMask/mobile-platform
+app/core/NavigationService                                  @MetaMask/mobile-platform
 app/core/Engine/messengers/                                 @MetaMask/mobile-platform
 app/core/Engine/utils/                                      @MetaMask/mobile-platform
 app/core/Engine/constants/                                  @MetaMask/mobile-platform
@@ -151,3 +155,6 @@ app/reducers/navigation @MetaMask/wallet-ux
 app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
+
+# Transactions Team
+app/components/Views/transactions @MetaMask/transactions
