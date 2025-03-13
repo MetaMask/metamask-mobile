@@ -189,9 +189,6 @@ export const selectAccountTokensAcrossChains = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectNativeTokensAcrossChains,
   (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
-    if (!isPortfolioViewEnabled()) {
-      return {};
-    }
     const selectedAddress = selectedAccount?.address;
     const tokensByChain: {
       [chainId: string]: (
@@ -241,7 +238,6 @@ export const selectNativeEvmAsset = createDeepEqualSelector(
       return;
     }
     return {
-      // TODO: Add name property to Token interface in controllers.
       decimals: 18,
       name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
       symbol: getTicker(ticker),
@@ -270,10 +266,7 @@ export const selectStakedEvmAsset = createDeepEqualSelector(
     if (!accountBalanceByChainId.stakedBalance) {
       return;
     }
-    if (
-      accountBalanceByChainId.stakedBalance &&
-      hexToBN(accountBalanceByChainId.stakedBalance).isZero()
-    ) {
+    if (hexToBN(accountBalanceByChainId.stakedBalance).isZero()) {
       return;
     }
     if (!nativeAsset) {
