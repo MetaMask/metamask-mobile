@@ -91,6 +91,7 @@ import {
 
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
+import { selectSendFlowContextualChainId } from '../../../../../selectors/transaction';
 import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
@@ -140,6 +141,7 @@ import { selectContractExchangeRatesByChainId } from '../../../../../selectors/t
 import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../utils/generic';
+import { setTransactionSendFlowContextualChainId } from '../../../../../actions/transaction';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -301,6 +303,10 @@ class Confirm extends PureComponent {
      * Function that sets the transaction value
      */
     setTransactionValue: PropTypes.func,
+    /**
+     * ID of the send flow contextual chain
+     */
+    sendFlowContextualChainId: PropTypes.string,
   };
 
   state = {
@@ -337,7 +343,10 @@ class Confirm extends PureComponent {
   setNetworkNonce = async () => {
     const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
+    const proposedNonce = await getNetworkNonce(
+      transaction,
+      globalNetworkClientId,
+    );
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -558,6 +567,11 @@ class Confirm extends PureComponent {
     };
 
     ppomUtil.validateRequest(reqObject, id);
+
+    console.log(
+      '>>> Confirm component - sendFlowContextualChainId:',
+      this.props.sendFlowContextualChainId,
+    );
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -695,6 +709,19 @@ class Confirm extends PureComponent {
         }
         this.parseTransactionDataHeader();
       }
+    }
+
+    if (
+      prevProps.sendFlowContextualChainId !==
+      this.props.sendFlowContextualChainId
+    ) {
+      console.log(
+        '>>> Confirm component - sendFlowContextualChainId changed:',
+        'previous:',
+        prevProps.sendFlowContextualChainId,
+        'current:',
+        this.props.sendFlowContextualChainId,
+      );
     }
   };
 
@@ -894,10 +921,7 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (
-      isNativeToken(selectedAsset) ||
-      selectedAsset.tokenId
-    ) {
+    if (isNativeToken(selectedAsset) || selectedAsset.tokenId) {
       return insufficientBalanceMessage;
     }
 
@@ -1429,7 +1453,9 @@ class Confirm extends PureComponent {
                 style={styles.blockaidBanner}
                 onContactUsClicked={this.onContactUsClicked}
               />
-              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
+              <SmartTransactionsMigrationBanner
+                style={styles.smartTransactionsMigrationBanner}
+              />
             </>
           )}
           {!selectedAsset.tokenId ? (
@@ -1597,7 +1623,7 @@ Confirm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
-  const chainId = transaction?.chainId;
+  const chainId = selectSendFlowContextualChainId(state);
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
 
@@ -1630,13 +1656,17 @@ const mapStateToProps = (state) => {
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+    sendFlowContextualChainId: selectSendFlowContextualChainId(state),
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
   prepareTransaction: (transaction) =>
     dispatch(prepareTransaction(transaction)),
-  resetTransaction: () => dispatch(resetTransaction()),
+  resetTransaction: () => {
+    dispatch(setTransactionSendFlowContextualChainId(null));
+    dispatch(resetTransaction());
+  },
   setTransactionId: (transactionId) =>
     dispatch(setTransactionId(transactionId)),
   setNonce: (nonce) => dispatch(setNonce(nonce)),

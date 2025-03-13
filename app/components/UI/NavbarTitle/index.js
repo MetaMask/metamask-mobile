@@ -71,6 +71,10 @@ class NavbarTitle extends PureComponent {
      * Content to display inside text element
      */
     children: PropTypes.node,
+    /**
+     * Source of the network selector
+     */
+    source: PropTypes.string,
   };
 
   static defaultProps = {
@@ -86,13 +90,18 @@ class NavbarTitle extends PureComponent {
         this.animating = true;
         this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.NETWORK_SELECTOR,
+          params: {
+            source: this.props.source,
+          },
         });
 
         this.props.metrics.trackEvent(
           this.props.metrics
             .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
             .addProperties({
+              // TODO: if contextual chainId is used, the providerConfig is the chain needed for this tracking
               chain_id: getDecimalChainId(this.props.providerConfig.chainId),
+              source: this.props.source,
             })
             .build(),
         );
