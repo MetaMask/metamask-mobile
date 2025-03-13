@@ -41,7 +41,7 @@ import {
   AcceptOptions,
   ApprovalController,
 } from '@metamask/approval-controller';
-import HDKeyring from '@metamask/eth-hd-keyring';
+import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { SelectedNetworkController } from '@metamask/selected-network-controller';
 import {
   PermissionController,
@@ -449,10 +449,10 @@ export class Engine {
     additionalKeyrings.push(ledgerKeyringBuilder);
 
     const hdKeyringBuilder = () =>
-      new HDKeyring({
+      new HdKeyring({
         cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
       });
-    hdKeyringBuilder.type = HDKeyring.type;
+    hdKeyringBuilder.type = HdKeyring.type;
     additionalKeyrings.push(hdKeyringBuilder);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -526,6 +526,19 @@ export class Engine {
       return keyring.mnemonic;
     };
 
+    const getPrimaryKeyringMnemonicSeed = () => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const [keyring]: any = this.keyringController.getKeyringsByType(
+        KeyringTypes.hd,
+      );
+      if (!keyring.seed) {
+        throw new Error('Primary keyring mnemonic unavailable.');
+      }
+
+      return keyring.seed;
+    };
+
     const getUnlockPromise = () => {
       if (this.keyringController.isUnlocked()) {
         return Promise.resolve();
@@ -546,7 +559,68 @@ export class Engine {
         this.controllerMessenger,
         SnapControllerClearSnapStateAction,
       ),
-      getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+      getMnemonic: async (source?: string) => {
+        if (!source) {
+          return getPrimaryKeyringMnemonic();
+        }
+
+        try {
+          const { type, mnemonic } = await this.controllerMessenger.call(
+            'KeyringController:withKeyring',
+            {
+              id: source,
+            },
+            async (keyring) => ({
+              type: keyring.type,
+              mnemonic: keyring.mnemonic,
+            }),
+          );
+
+          if (type !== KeyringTypes.hd || !mnemonic) {
+            // The keyring isn't guaranteed to have a mnemonic (e.g.,
+            // hardware wallets, which can't be used as entropy sources),
+            // so we throw an error if it doesn't.
+            throw new Error(
+              `Entropy source with ID "${source}" not found.`,
+            );
+          }
+
+          return mnemonic;
+        } catch {
+          throw new Error(`Entropy source with ID "${source}" not found.`);
+        }
+      },
+      getMnemonicSeed: async (source?: string) => {
+        if (!source) {
+          return getPrimaryKeyringMnemonicSeed();
+        }
+
+        try {
+          const { type, seed } = await this.controllerMessenger.call(
+            'KeyringController:withKeyring',
+            {
+              id: source,
+            },
+            async (keyring) => ({
+              type: keyring.type,
+              seed: keyring.seed,
+            }),
+          );
+
+          if (type !== KeyringTypes.hd || !seed) {
+            // The keyring isn't guaranteed to have a seed (e.g.,
+            // hardware wallets, which can't be used as entropy sources),
+            // so we throw an error if it doesn't.
+            throw new Error(
+              `Entropy source with ID "${source}" not found.`,
+            );
+          }
+
+          return seed;
+        } catch {
+          throw new Error(`Entropy source with ID "${source}" not found.`);
+        }
+      },
       getUnlockPromise: getUnlockPromise.bind(this),
       getSnap: this.controllerMessenger.call.bind(
         this.controllerMessenger,

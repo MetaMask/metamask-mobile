@@ -7,8 +7,8 @@ import {
 import { SnapRpcHookArgs } from '@metamask/snaps-utils';
 import { RestrictedMethods } from '../Permissions/constants';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
-import { SnapId } from '@metamask/snaps-sdk';
-import { EngineContext } from '../Engine';
+import { BackgroundEvent, SnapId } from '@metamask/snaps-sdk';
+import { BaseControllerMessenger, EngineContext } from '../Engine';
 import { handleSnapRequest } from './utils';
 import {
   SnapControllerGetPermittedSnapsAction,
@@ -16,6 +16,7 @@ import {
   SnapControllerGetSnapFileAction,
   SnapControllerInstallSnapsAction,
 } from '../Engine/controllers/SnapController/constants';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -29,9 +30,7 @@ export function getSnapIdFromRequest(
     */
 const snapMethodMiddlewareBuilder = (
   engineContext: EngineContext,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  controllerMessenger: any,
+  controllerMessenger: BaseControllerMessenger,
   origin: string,
   subjectType: SubjectType,
 ) =>
@@ -92,19 +91,17 @@ const snapMethodMiddlewareBuilder = (
       'SnapInterfaceController:updateInterface',
       origin,
     ),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getInterfaceContext: (...args: any) =>
+    getInterfaceContext: (id: string) =>
       controllerMessenger.call(
         'SnapInterfaceController:getInterface',
-        origin,
-        ...args,
+        origin as SnapId,
+        id,
       ).context,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getInterfaceState: (...args: any) =>
+    getInterfaceState: (id: string) =>
       controllerMessenger.call(
         'SnapInterfaceController:getInterface',
-        origin,
-        ...args,
+        origin as SnapId,
+        id,
       ).state,
     resolveInterface: controllerMessenger.call.bind(
       controllerMessenger,
@@ -141,6 +138,41 @@ const snapMethodMiddlewareBuilder = (
         engineContext.ApprovalController,
       ),
     getIsLocked: () => !engineContext.KeyringController.isUnlocked(),
+    getEntropySources: () => {
+      const state = controllerMessenger.call(
+        'KeyringController:getState',
+      );
+
+      return state.keyrings
+        .map((keyring, index) => {
+          if (keyring.type === KeyringTypes.hd) {
+            return {
+              id: state.keyringsMetadata[index].id,
+              name: state.keyringsMetadata[index].name,
+              type: 'mnemonic',
+              primary: index === 0,
+            };
+          }
+
+          return null;
+        })
+        .filter(Boolean);
+    },
+    scheduleBackgroundEvent: (event: Omit<BackgroundEvent, "id" | "scheduledAt">) =>
+      controllerMessenger.call(
+        'CronjobController:scheduleBackgroundEvent',
+        { ...event, snapId: origin as SnapId },
+      ),
+    cancelBackgroundEvent: controllerMessenger.call.bind(
+      controllerMessenger,
+      'CronjobController:cancelBackgroundEvent',
+      origin,
+    ),
+    getBackgroundEvents: controllerMessenger.call.bind(
+      controllerMessenger,
+      'CronjobController:getBackgroundEvents',
+      origin,
+    ),
   });
 
 export default snapMethodMiddlewareBuilder;
