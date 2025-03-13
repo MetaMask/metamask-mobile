@@ -57,7 +57,6 @@ import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon
 import {
   selectAccountTokensAcrossChains,
   selectEvmTokens,
-  selectTokensToDisplay,
 } from '../../../selectors/multichain';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
