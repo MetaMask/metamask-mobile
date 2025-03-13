@@ -1,11 +1,6 @@
 import { skeleton } from './skeleton';
 import { SkeletonElement } from '@metamask/snaps-sdk/jsx';
-import { mapSnapBorderRadiusToMobileBorderRadius } from '../utils';
 import { mockTheme } from '../../../../util/theme';
-
-jest.mock('../utils', () => ({
-  mapSnapBorderRadiusToMobileBorderRadius: jest.fn((value) => value),
-}));
 
 describe('skeleton component', () => {
   const defaultParams = {
@@ -40,17 +35,12 @@ describe('skeleton component', () => {
   });
 
   it('should render skeleton with all custom props', () => {
-    const mockBorderRadius = 'full';
-    (mapSnapBorderRadiusToMobileBorderRadius as jest.Mock).mockReturnValue(
-      9999,
-    );
-
     const el: SkeletonElement = {
       type: 'Skeleton',
       props: {
         width: '75%',
         height: 40,
-        borderRadius: mockBorderRadius,
+        borderRadius: 'full',
       },
       key: null,
     };
@@ -67,8 +57,5 @@ describe('skeleton component', () => {
         },
       },
     });
-    expect(mapSnapBorderRadiusToMobileBorderRadius).toHaveBeenCalledWith(
-      mockBorderRadius,
-    );
   });
 });
