@@ -44,6 +44,8 @@ import {
   RatesControllerActions,
   TokenSearchDiscoveryDataController,
   TokenSearchDiscoveryDataControllerState,
+  TokenSearchDiscoveryDataControllerActions,
+  TokenSearchDiscoveryDataControllerEvents,
   MultichainAssetsController,
   MultichainAssetsControllerState,
   MultichainAssetsControllerEvents,
@@ -340,7 +342,7 @@ type GlobalActions =
   | AssetsContractControllerActions
   | RemoteFeatureFlagControllerActions
   | TokenSearchDiscoveryControllerActions
-  | TokenSearchDiscoveryControllerActions
+  | TokenSearchDiscoveryDataControllerActions
   | MultichainNetworkControllerActions
   | BridgeControllerActions
   | BridgeStatusControllerActions
@@ -389,7 +391,7 @@ type GlobalEvents =
   | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
   | TokenSearchDiscoveryControllerEvents
-  | TokenSearchDiscoveryControllerEvents
+  | TokenSearchDiscoveryDataControllerEvents
   | SnapKeyringEvents
   | MultichainNetworkControllerEvents
   | BridgeControllerEvents
