@@ -1,5 +1,4 @@
 import { SnapController } from '@metamask/snaps-controllers';
-import { Messenger } from '@metamask/base-controller';
 import { ControllerInitRequest } from '../../types';
 import {
   getSnapControllerInitMessenger,
