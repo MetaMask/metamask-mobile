@@ -160,7 +160,7 @@ describe('useConfirmationLocation', () => {
     // Initial render with staking deposit
     mockUseApprovalRequest.mockReturnValue(
       createApprovalRequestMock({
-        type: TransactionType.personalSign,
+        type: ApprovalType.Transaction,
         requestData: {},
       }),
     );
