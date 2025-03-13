@@ -3726,6 +3726,8 @@
   "bridge": {
     "continue": "Continue",
     "terms_and_conditions": "Terms & Conditions",
-    "select_token": "Select token"
+    "select_token": "Select token",
+    "select_network": "Select network",
+    "all_networks": "All networks"
   }
 }
