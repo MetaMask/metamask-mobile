@@ -101,7 +101,7 @@ const submitSmartTransaction = async ({
 
 
 
-export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quote & GasIncludedQuote, gasEstimates: {
+export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quote & Partial<GasIncludedQuote>, gasEstimates: {
   gasPrice: string;
   medium: string;
 } }) => {
