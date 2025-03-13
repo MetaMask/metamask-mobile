@@ -26,6 +26,7 @@ import { SnapUISelector } from '../../Snaps/SnapUISelector/SnapUISelector';
 import InfoRow from '../../Views/confirmations/components/UI/InfoRow';
 import { SnapUISpinner } from '../../Snaps/SnapUISpinner/SnapUISpinner';
 import { SnapUITooltip } from '../../Snaps/SnapUITooltip/SnapUITooltip';
+import { Skeleton } from '../../../component-library/components/Skeleton';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -58,6 +59,7 @@ export const safeComponentList = {
   RNText,
   ScrollView,
   SnapUITooltip,
+  Skeleton,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;
