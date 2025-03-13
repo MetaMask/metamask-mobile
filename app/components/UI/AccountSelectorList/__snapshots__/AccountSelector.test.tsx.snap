@@ -79,7 +79,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
               "zIndex": 1,
             }
           }
-          testID="select-with-menu"
+          testID="account-list-cell-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         >
           <View
             accessibilityRole="none"
@@ -479,7 +479,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
               "zIndex": 1,
             }
           }
-          testID="select-with-menu"
+          testID="account-list-cell-0xd018538C87232FF95acbCe4870629b75640a78E7"
         >
           <View
             accessibilityRole="none"
@@ -908,7 +908,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
               "zIndex": 1,
             }
           }
-          testID="select-with-menu"
+          testID="account-list-cell-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         >
           <View
             accessibilityRole="none"
@@ -1244,7 +1244,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
               "zIndex": 1,
             }
           }
-          testID="select-with-menu"
+          testID="account-list-cell-0xd018538C87232FF95acbCe4870629b75640a78E7"
         >
           <View
             accessibilityRole="none"
@@ -1635,7 +1635,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
               "zIndex": 1,
             }
           }
-          testID="select-with-menu"
+          testID="account-list-cell-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         >
           <View
             accessibilityRole="none"
@@ -2035,7 +2035,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
               "zIndex": 1,
             }
           }
-          testID="select-with-menu"
+          testID="account-list-cell-0xd018538C87232FF95acbCe4870629b75640a78E7"
         >
           <View
             accessibilityRole="none"
@@ -2460,7 +2460,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
               "zIndex": 1,
             }
           }
-          testID="select-with-menu"
+          testID="account-list-cell-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         >
           <View
             accessibilityRole="none"
@@ -2744,7 +2744,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
               "zIndex": 1,
             }
           }
-          testID="select-with-menu"
+          testID="account-list-cell-0xd018538C87232FF95acbCe4870629b75640a78E7"
         >
           <View
             accessibilityRole="none"
