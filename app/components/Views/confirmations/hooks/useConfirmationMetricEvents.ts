@@ -12,12 +12,13 @@ export function useConfirmationMetricEvents() {
   const { location } = useConfirmContext();
 
   const events = useMemo(() => {
-    const trackAdvancedDetailsToggledEvent = () => {
+    const trackAdvancedDetailsToggledEvent = ({ isExpanded }: JsonMap) => {
       const event = generateEvent({
         createEventBuilder,
         metametricsEvent: CONFIRMATION_EVENTS.ADVANCED_DETAILS_CLICKED,
         properties: {
           location,
+          is_expanded: isExpanded,
         },
       });
 

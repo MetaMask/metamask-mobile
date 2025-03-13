@@ -6,10 +6,8 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import { NETWORKS_CHAIN_ID } from '../../../../../../../constants/network';
 import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
-import { TOOLTIP_TYPES as CONFIRMATION_TOOLTIP_TYPES } from '../../../../constants/metricEvents';
+import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import GasFeesDetails from './GasFeesDetails';
-
-const mockLocation = 'staking_deposit_confirmation';
 
 jest.mock('../../../../hooks/useConfirmationMetricEvents');
 jest.mock('../../../../../../../core/Engine', () => ({
@@ -37,12 +35,9 @@ describe('GasFeesDetails', () => {
   });
 
   it('contains required text', async () => {
-    const { getByText } = renderWithProvider(
-      <GasFeesDetails location={mockLocation} />,
-      {
-        state: stakingDepositConfirmationState,
-      },
-    );
+    const { getByText } = renderWithProvider(<GasFeesDetails />, {
+      state: stakingDepositConfirmationState,
+    });
     expect(getByText('Network Fee')).toBeDefined();
     expect(getByText('$0.34')).toBeDefined();
     expect(getByText('0.0001 ETH')).toBeDefined();
@@ -55,12 +50,9 @@ describe('GasFeesDetails', () => {
     clonedStakingDepositConfirmationState.engine.backgroundState.TransactionController.transactions[0].chainId =
       NETWORKS_CHAIN_ID.SEPOLIA;
 
-    const { getByText } = renderWithProvider(
-      <GasFeesDetails location={mockLocation} />,
-      {
-        state: clonedStakingDepositConfirmationState,
-      },
-    );
+    const { getByText } = renderWithProvider(<GasFeesDetails />, {
+      state: clonedStakingDepositConfirmationState,
+    });
     expect(getByText('$0.34')).toBeDefined();
   });
 
@@ -72,12 +64,9 @@ describe('GasFeesDetails', () => {
       NETWORKS_CHAIN_ID.SEPOLIA;
     clonedStakingDepositConfirmationState.settings.showFiatOnTestnets = false;
 
-    const { queryByText } = renderWithProvider(
-      <GasFeesDetails location={mockLocation} />,
-      {
-        state: clonedStakingDepositConfirmationState,
-      },
-    );
+    const { queryByText } = renderWithProvider(<GasFeesDetails />, {
+      state: clonedStakingDepositConfirmationState,
+    });
     expect(queryByText('$0.34')).toBeNull();
   });
 
@@ -94,29 +83,24 @@ describe('GasFeesDetails', () => {
         usdConversionRate: number;
       };
 
-    const { queryByText } = renderWithProvider(
-      <GasFeesDetails location={mockLocation} />,
-      {
-        state: clonedStakingDepositConfirmationState,
-      },
-    );
+    const { queryByText } = renderWithProvider(<GasFeesDetails />, {
+      state: clonedStakingDepositConfirmationState,
+    });
     expect(queryByText('$0.34')).toBeNull();
   });
 
   it('tracks tooltip clicked event', async () => {
-    const { getByTestId } = renderWithProvider(
-      <GasFeesDetails location={mockLocation} />,
-      {
-        state: stakingDepositConfirmationState,
-      },
-    );
+    const { getByTestId } = renderWithProvider(<GasFeesDetails />, {
+      state: stakingDepositConfirmationState,
+    });
 
     fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
 
     expect(mockTrackTooltipClickedEvent).toHaveBeenCalled();
-    expect(mockTrackTooltipClickedEvent).toHaveBeenCalledWith({
-      location: mockLocation,
-      tooltip: CONFIRMATION_TOOLTIP_TYPES.NETWORK_FEE,
-    });
+    expect(mockTrackTooltipClickedEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tooltip: TOOLTIP_TYPES.NETWORK_FEE,
+      }),
+    );
   });
 });

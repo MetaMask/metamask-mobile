@@ -1,4 +1,4 @@
-import {
+import React, {
   ReactElement,
   createContext,
   useContext,
@@ -10,9 +10,9 @@ import { useTransactionMetadataRequest } from '../../hooks/useTransactionMetadat
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { determineConfirmationLocation } from './helpers';
 
-type ConfirmContextType = {
+interface ConfirmContextType {
   location?: CONFIRMATION_EVENT_LOCATIONS;
-};
+}
 
 export const ConfirmContext = createContext<ConfirmContextType>({
   location: undefined,
@@ -50,6 +50,4 @@ export const ConfirmContextProvider = ({
   );
 };
 
-export const useConfirmContext = () => {
-  return useContext(ConfirmContext);
-};
+export const useConfirmContext = () => useContext(ConfirmContext);

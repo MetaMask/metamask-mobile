@@ -35,7 +35,7 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
 /**
  * Analytics Tracking Events
  */
-export enum EVENT_NAME {
+enum EVENT_NAME {
   // App
   APP_OPENED = 'App Opened',
 
@@ -1380,4 +1380,4 @@ const legacyMetaMetricsEvents = {
 
 const MetaMetricsEvents = { ...events, ...legacyMetaMetricsEvents };
 
-export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION };
+export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION, EVENT_NAME };

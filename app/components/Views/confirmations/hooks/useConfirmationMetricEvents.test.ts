@@ -1,9 +1,13 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { CONFIRMATION_EVENTS } from '../../../../core/Analytics/events/confirmations';
 import { useMetrics } from '../../../hooks/useMetrics';
+import { useConfirmContext } from '../context/ConfirmationContext/ConfirmationContext';
 import { useConfirmationMetricEvents } from './useConfirmationMetricEvents';
 
 jest.mock('../../../hooks/useMetrics');
+jest.mock('../context/ConfirmationContext/ConfirmationContext');
+
+const MOCK_LOCATION = 'test-location';
 
 describe('useConfirmationMetricEvents', () => {
   const mockCreateEventBuilder = jest.fn();
@@ -11,6 +15,7 @@ describe('useConfirmationMetricEvents', () => {
   const mockAddProperties = jest.fn();
   const mockAddSensitiveProperties = jest.fn();
   const mockBuild = jest.fn();
+  const mockUseConfirmContext = jest.mocked(useConfirmContext);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -27,11 +32,15 @@ describe('useConfirmationMetricEvents', () => {
       createEventBuilder: mockCreateEventBuilder,
       trackEvent: mockTrackEvent,
     });
+
+    mockUseConfirmContext.mockReturnValue({
+      location: MOCK_LOCATION,
+    } as unknown as ReturnType<typeof useConfirmContext>);
   });
 
   it('tracks advanced details toggled event', () => {
     const expectedProperties = {
-      location: 'test-location',
+      location: MOCK_LOCATION,
     };
 
     mockBuild.mockReturnValue(expectedProperties);
@@ -39,14 +48,14 @@ describe('useConfirmationMetricEvents', () => {
     const { result } = renderHook(() => useConfirmationMetricEvents());
 
     result.current.trackAdvancedDetailsToggledEvent({
-      location: 'test-location',
+      location: MOCK_LOCATION,
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.CONFIRMATION_ADVANCED_DETAILS_CLICKED,
+      CONFIRMATION_EVENTS.ADVANCED_DETAILS_CLICKED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
-      location: 'test-location',
+      location: MOCK_LOCATION,
     });
     expect(mockAddSensitiveProperties).toHaveBeenCalledWith({});
     expect(mockBuild).toHaveBeenCalled();
@@ -54,7 +63,7 @@ describe('useConfirmationMetricEvents', () => {
 
   it('tracks tooltip clicked event', () => {
     const expectedProperties = {
-      location: 'test-location',
+      location: MOCK_LOCATION,
       tooltip: 'test-tooltip',
     };
 
@@ -63,12 +72,12 @@ describe('useConfirmationMetricEvents', () => {
     const { result } = renderHook(() => useConfirmationMetricEvents());
 
     result.current.trackTooltipClickedEvent({
-      location: 'test-location',
+      location: MOCK_LOCATION,
       tooltip: 'test-tooltip',
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.CONFIRMATION_TOOLTIP_CLICKED,
+      CONFIRMATION_EVENTS.TOOLTIP_CLICKED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith(expectedProperties);
     expect(mockAddSensitiveProperties).toHaveBeenCalledWith({});
@@ -78,19 +87,17 @@ describe('useConfirmationMetricEvents', () => {
 
   it('tracks page viewed event', () => {
     const expectedProperties = {
-      location: 'test-location',
+      location: MOCK_LOCATION,
     };
 
     mockBuild.mockReturnValue(expectedProperties);
 
     const { result } = renderHook(() => useConfirmationMetricEvents());
 
-    result.current.trackPageViewedEvent({
-      location: 'test-location',
-    });
+    result.current.trackPageViewedEvent();
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.CONFIRMATION_PAGE_VIEWED,
+      CONFIRMATION_EVENTS.SCREEN_VIEWED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith(expectedProperties);
     expect(mockBuild).toHaveBeenCalled();

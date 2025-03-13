@@ -4,11 +4,11 @@ import React from 'react';
 import { RootState } from '../../../../../../reducers';
 import { decGWEIToHexWEI } from '../../../../../../util/conversions';
 import { stakingDepositConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
+import { TOOLTIP_TYPES } from '../../../../../../core/Analytics/events/confirmations';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
 import { mockEarnControllerRootState } from '../../../../../UI/Stake/testUtils';
-import { TOOLTIP_TYPES } from '../../../constants/metricEvents';
 import { useConfirmationMetricEvents } from '../../../hooks/useConfirmationMetricEvents';
 import StakingDetails from './StakingDetails';
 

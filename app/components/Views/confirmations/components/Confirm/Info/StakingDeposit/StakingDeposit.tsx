@@ -13,7 +13,8 @@ import GasFeesDetails from '../GasFeesDetails';
 const StakingDeposit = () => {
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
-  const { trackPageViewedEvent } = useConfirmationMetricEvents();
+  const { trackAdvancedDetailsToggledEvent, trackPageViewedEvent } =
+    useConfirmationMetricEvents();
 
   useEffect(() => {
     navigation.setOptions(
@@ -24,14 +25,21 @@ const StakingDeposit = () => {
     );
   }, [navigation, onReject]);
 
-  useEffect(trackPageViewedEvent, []);
+  useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+
+  const handleAdvancedDetailsToggledEvent = (isExpanded: boolean) => {
+    trackAdvancedDetailsToggledEvent({ isExpanded });
+  };
 
   return (
     <>
       <TokenHero />
       <StakingDetails />
       <GasFeesDetails />
-      <InfoSectionAccordion header={strings('stake.advanced_details')}>
+      <InfoSectionAccordion
+        onStateChange={handleAdvancedDetailsToggledEvent}
+        header={strings('stake.advanced_details')}
+      >
         <StakingContractInteractionDetails />
       </InfoSectionAccordion>
     </>
