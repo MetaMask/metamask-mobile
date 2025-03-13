@@ -15,6 +15,17 @@ jest.mock('redux-persist', () => {
     .fn()
     .mockImplementation((_, reducers) => reducers);
   const mockCombineReducers = jest
+    .fn()
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .mockReturnValue((reducers: any) => reducers);
+  return {
+    ...real,
+    persistReducer: mockPersistReducer,
+    combineReducers: mockCombineReducers,
+  };
+});
+
 const MOCK_CHILD_ID = 'MOCK_CHILD_ID';
 
 jest.mock('react-native-safe-area-context', () => ({
