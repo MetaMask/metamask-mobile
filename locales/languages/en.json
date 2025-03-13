@@ -790,7 +790,7 @@
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
-    "disabling_notifications": "Disabling notifications...",
+    "updating_notifications": "Updating notifications...",
     "updating_account_settings": "Updating account settings...",
     "reset_notifications_title": "Reset notifications",
     "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
@@ -1138,7 +1138,7 @@
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
-    "smart_transactions_opt_in_desc": "Turn on Smart Transactions for more reliable and secure transactions on Ethereum Mainnet.",
+    "smart_transactions_opt_in_desc_supported_networks": "Turn on Smart Transactions for more reliable and secure transactions on supported networks.",
     "smart_transactions_learn_more": "Learn more.",
     "simulation_details": "Estimate balance changes",
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
@@ -1862,6 +1862,7 @@
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
     "add_specific_network": "Add {{network_name}}",
+    "update_network": "Update {{network_name}}",
     "select_network": "Select a network",
     "enabled_networks": "Enabled networks",
     "additional_networks": "Additional networks",
@@ -2836,9 +2837,12 @@
     "n_quotes": "{{numberOfQuotes}} quotes",
     "view_details": "View details",
     "estimated_gas_fee": "Estimated gas fee",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Max gas fee",
     "edit": "Edit",
     "quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Tap to Swap",
     "swipe_to_swap": "Swipe to swap",
     "swipe_to": "Swipe to",
@@ -2908,6 +2912,8 @@
     "high_recommendation": "Swaps are typically time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "recommended": "Recommended",
     "recommended_gas": "Recommended gas fee",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Estimated gas fees",
     "gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
     "gas_education_2_ethereum": "Ethereum network.",
@@ -2996,6 +3002,8 @@
     "title_new_network": "New network added",
     "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
     "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
+    "update_network_and_give_dapp_permission_warning": "You're updating this network in MetaMask and giving {{dapp_origin}} permission to use it.",
+    "request_update_network_url": "{{dapp_origin}} is requesting to update your default network URL. You can edit defaults and network information any time.",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
     "switch": "Switch Network"
@@ -3648,6 +3656,7 @@
     "title": {
       "signature": "Signature request",
       "permit": "Spending cap request",
+      "permit_revoke": "Remove permission",
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request"
     },
@@ -3681,6 +3690,7 @@
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
+      "info_revoke": "You're removing someone's permission to spend tokens from your account.",
       "label_change_type_bidding": "You bid",
       "label_change_type_listing": "You list",
       "label_change_type_nft_listing": "Listing price",
@@ -3713,5 +3723,9 @@
     "title": "Transactions just got smarter",
     "link": "Higher success rates",
     "description": " and MEV protection. Now on by default."
+  },
+  "bridge": {
+    "continue": "Continue",
+    "terms_and_conditions": "Terms & Conditions"
   }
 }

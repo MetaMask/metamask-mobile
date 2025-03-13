@@ -23,6 +23,8 @@ jest.mock('../../store', () => ({
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
+  selectSmartTransactionsEnabled: jest.fn().mockReturnValue(false),
+  selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
@@ -82,6 +84,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('BridgeController');
     expect(engine.context).toHaveProperty('BridgeStatusController');
     expect(engine.context).toHaveProperty('EarnController');
+    expect(engine.context).toHaveProperty('MultichainTransactionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {

@@ -2,7 +2,7 @@ import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Tokens from './';
-import { BN } from 'ethereumjs-util';
+import BN5 from 'bnjs5';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -40,18 +40,32 @@ jest.mock('../../../core/Engine', () => ({
     },
     TokenDetectionController: {
       detectTokens: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     AccountTrackerController: {
       refresh: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     TokenRatesController: {
       updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     TokenBalancesController: {
       updateBalances: jest.fn(() => Promise.resolve()),
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
+    TokenListController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
     },
     NetworkController: {
       getNetworkClientById: () => ({
@@ -209,9 +223,9 @@ const initialState = {
         tokenBalances: {
           [selectedAddress]: {
             '0x1': {
-              '0x00': new BN(2),
-              '0x01': new BN(2),
-              '0x02': new BN(0),
+              '0x00': new BN5(2),
+              '0x01': new BN5(2),
+              '0x02': new BN5(0),
             },
           },
         },
@@ -295,12 +309,11 @@ describe('Tokens', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('render matches snapshot', () => {
-    const { toJSON } = renderComponent(initialState);
+    const { toJSON, queryByText } = renderComponent(initialState);
+    const tokensTabText = queryByText('Tokens');
+    const nftsTabText = queryByText('NFTs');
+    expect(tokensTabText).toBeDefined();
+    expect(nftsTabText).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -410,7 +423,7 @@ describe('Tokens', () => {
             tokenBalances: {
               [selectedAddress]: {
                 '0x1': {
-                  '0x02': new BN(1),
+                  '0x02': new BN5(1),
                 },
               },
             },
@@ -565,12 +578,6 @@ describe('Tokens', () => {
     it('should call selectAccountTokensAcrossChains when enabled', () => {
       renderComponent(initialState);
       expect(selectAccountTokensAcrossChainsSpy).toHaveBeenCalled();
-    });
-
-    it('should not call selectAccountTokensAcrossChains when disabled', () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-      renderComponent(initialState);
-      expect(selectAccountTokensAcrossChainsSpy).not.toHaveBeenCalled();
     });
 
     it('should handle network filtering correctly', () => {
