@@ -4747,16 +4747,16 @@
     "@metamask/utils" "^11.1.0"
     ethereum-cryptography "^2.1.2"
 
-"@metamask/eth-hd-keyring@^9.0.0":
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-9.0.0.tgz#cba58308af5cfb9b7b1b958eeea380ec9c798e64"
-  integrity sha512-dhvirCCWmFGd0HyiEmho0Zwdl2g86kLA+K78f3uHnV1PV0ELKsMgRqlcA8OuXlrz0jnGQPDRNFXGG6/yFyyLlg==
+"@metamask/eth-hd-keyring@^12.1.0":
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-12.1.0.tgz#f70e421cc7fbecc039b3f6347172444dadb10168"
+  integrity sha512-jL7l1oPasTClknOuT0LleqyV9WbuXdM7fU5POramgjyh+sl++PyRh1W6cZzskNEXSpPH08pVy1Xh/LU7rNBPqQ==
   dependencies:
-    "@ethereumjs/util" "^8.1.0"
-    "@metamask/eth-sig-util" "^8.0.0"
-    "@metamask/key-tree" "^10.0.0"
+    "@ethereumjs/util" "^9.1.0"
+    "@metamask/eth-sig-util" "^8.2.0"
+    "@metamask/key-tree" "^10.0.2"
     "@metamask/scure-bip39" "^2.1.1"
-    "@metamask/utils" "^9.2.1"
+    "@metamask/utils" "^11.1.0"
     ethereum-cryptography "^2.1.2"
 
 "@metamask/eth-json-rpc-filters@^9.0.0":
@@ -4999,7 +4999,7 @@
     "@metamask/utils" "^11.1.0"
     readable-stream "^3.6.2"
 
-"@metamask/key-tree@^10.0.0", "@metamask/key-tree@^10.0.2", "@metamask/key-tree@^10.1.0":
+"@metamask/key-tree@^10.0.2", "@metamask/key-tree@^10.1.0":
   version "10.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/key-tree/-/key-tree-10.1.0.tgz#fe0ab9f1fd5a60a8ed1726386ad666523c0644bf"
   integrity sha512-IRPhStU3HFkajqjHWfMzYSWbKbh63PdJ7XptWKZP/xJO7fPioge8E+HvobBKxvgaOGLqDhEf/5feBh+2E7QHdg==

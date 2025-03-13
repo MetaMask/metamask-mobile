@@ -163,7 +163,7 @@
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^5.0.0",
     "@metamask/earn-controller": "^0.8.0",
-    "@metamask/eth-hd-keyring": "^9.0.0",
+    "@metamask/eth-hd-keyring": "^12.1.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
     "@metamask/eth-json-rpc-middleware": "^15.0.0",
     "@metamask/eth-ledger-bridge-keyring": "8.0.3",
