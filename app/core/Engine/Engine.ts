@@ -312,7 +312,14 @@ export class Engine {
         ApprovalType.WatchAsset,
       ],
     });
-    const appMetadataController = new AppMetadataController();
+    const appMetadataController = new AppMetadataController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'AppMetadataController',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      state: initialState.AppMetadataController,
+    });
 
     const preferencesController = new PreferencesController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
