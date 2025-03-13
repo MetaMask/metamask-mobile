@@ -138,6 +138,7 @@ import {
 } from '@metamask/assets-controllers';
 import { getTradeTxTokenFee } from '../../../util/smart-transactions';
 import { useFiatConversionRates } from './utils/useFiatConversionRates';
+import { useGasTokenFiatAmount } from './utils/useGasTokenFiatAmount';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -1835,32 +1836,13 @@ function SwapsQuotesView({
     chainId,
   });
 
-  const gasTokenFiatAmount = useMemo(() => {
-    if (!canUseGasIncludedSwap || !selectedQuote?.trade) {
-      return undefined;
-    }
-
-    const { token, balanceNeededToken } = tradeTxTokenFee;
-    if (!token?.decimals || !token?.address || !balanceNeededToken) {
-      return;
-    }
-
-    const tokenAmount = swapsUtils
-      .calcTokenAmount(hexToDecimal(balanceNeededToken), token.decimals)
-      .toString(10);
-
-    const fiatConversionRate =
-      fiatConversionRates?.value?.[toChecksumHexAddress(token.address)];
-    return (
-      weiToFiat(toWei(tokenAmount), fiatConversionRate, currentCurrency) || ''
-    );
-  }, [
+  const gasTokenFiatAmount = useGasTokenFiatAmount({
     canUseGasIncludedSwap,
-    selectedQuote?.trade,
+    selectedQuote,
     tradeTxTokenFee,
     currentCurrency,
-    fiatConversionRates?.value,
-  ]);
+    fiatConversionRates: fiatConversionRates?.value,
+  });
 
   /* Rendering */
   if (isFirstLoad || (!error?.key && !selectedQuote)) {
