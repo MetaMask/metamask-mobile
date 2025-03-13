@@ -1,15 +1,4 @@
-import { getFetchParams } from './index';
-import { isSwapsNativeAsset, shouldShowMaxBalanceLink } from './index';
-
-// Mock the isSwapsNativeAsset function since we don't have direct access to swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
-jest.mock('./index', () => {
-  const original = jest.requireActual('./index');
-  return {
-    ...original,
-    isSwapsNativeAsset: (token) =>
-      token?.address === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-  };
-});
+import { getFetchParams, shouldShowMaxBalanceLink } from './index';
 
 describe('getFetchParams', () => {
   const mockSourceToken = {
