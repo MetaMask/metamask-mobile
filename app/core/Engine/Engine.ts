@@ -12,9 +12,6 @@ import {
   TokenRatesController,
   TokensController,
   CodefiTokenPricesServiceV2,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  MultichainBalancesControllerMessenger,
-  ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
