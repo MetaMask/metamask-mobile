@@ -14,6 +14,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
  */
 export const STATELESS_NON_CONTROLLER_NAMES = [
   'AssetsContractController',
+  'ExecutionService',
   'NftDetectionController',
   'TokenDetectionController',
 ] as const;

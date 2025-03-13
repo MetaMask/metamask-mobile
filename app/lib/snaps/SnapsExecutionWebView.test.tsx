@@ -11,17 +11,14 @@ describe('SnapsExecutionWebView', () => {
   it('should render correctly', () => {
     const wrapper = render(<SnapsExecutionWebView />);
     expect(wrapper).toMatchInlineSnapshot(`
-      <RCTScrollView>
-        <View>
-          <View
-            style={
-              {
-                "height": 0,
-              }
-            }
-          />
-        </View>
-      </RCTScrollView>
+      <View
+        style={
+          {
+            "height": 0,
+            "width": 0,
+          }
+        }
+      />
     `);
   });
 
