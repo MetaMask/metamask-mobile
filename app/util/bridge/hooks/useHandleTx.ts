@@ -6,7 +6,7 @@ import { addHexPrefix, BNToHex } from '../../../util/number';
 import { TransactionMeta, TransactionType, WalletDevice } from '@metamask/transaction-controller';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import AppConstants from '../../../core/AppConstants';
-import { TxData } from '../../../components/UI/Bridge/types';
+import { TxData } from '@metamask/bridge-controller';
 import { EthGasPriceEstimate, GasFeeEstimates, LegacyGasPriceEstimate } from '@metamask/gas-fee-controller';
 import BigNumber from 'bignumber.js';
 import { getTransaction1559GasFeeEstimates } from '../../../components/UI/Swaps/utils/gas';

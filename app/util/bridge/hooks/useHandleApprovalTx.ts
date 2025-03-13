@@ -1,7 +1,7 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import useHandleTx from './useHandleTx';
-import { QuoteResponse, TxData } from '../../../components/UI/Bridge/types';
-import { FeeType, isEthUsdt, getEthUsdtResetData } from '@metamask/bridge-controller';
+import { QuoteResponse } from '../../../components/UI/Bridge/types';
+import { FeeType, isEthUsdt, getEthUsdtResetData, TxData } from '@metamask/bridge-controller';
 import { decimalToHex } from '../../conversions';
 import { addHexPrefix } from 'ethereumjs-util';
 import BigNumber from 'bignumber.js';

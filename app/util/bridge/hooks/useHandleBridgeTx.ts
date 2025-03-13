@@ -1,9 +1,10 @@
 import { BigNumber } from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
 import useHandleTx from './useHandleTx';
-import { QuoteResponse, FeeType } from '../../../components/UI/Bridge/types';
+import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import { addHexPrefix } from '../../number';
 import { Hex } from '@metamask/utils';
+import { FeeType } from '@metamask/bridge-controller';
 
 export default function useHandleBridgeTx() {
   const { handleTx } = useHandleTx();
