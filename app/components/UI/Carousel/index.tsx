@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, FC, useMemo } from 'react';
+import React, { useState, useCallback, FC, useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -27,7 +27,6 @@ import { selectDismissedBanners } from '../../../selectors/banner';
 export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
-  const [hasRendered, setHasRendered] = useState(false);
   const { trackEvent, createEventBuilder } = useMetrics();
   const { multichainBalances } = useMultichainBalances();
   const { colors } = useTheme();
@@ -35,10 +34,6 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
   const dismissedBanners = useSelector(selectDismissedBanners);
-
-  const [previousIsZeroBalance, setPreviousIsZeroBalance] = useState<
-    boolean | null
-  >(null);
   const isZeroBalance = multichainBalances.totalFiatBalance === 0;
 
   const slidesConfig = useMemo(
@@ -69,16 +64,6 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
     [slidesConfig, isZeroBalance, dismissedBanners],
   );
 
-  useEffect(() => {
-    if (
-      previousIsZeroBalance !== null &&
-      previousIsZeroBalance !== isZeroBalance
-    ) {
-      setHasRendered(false);
-    }
-    setPreviousIsZeroBalance(isZeroBalance);
-  }, [isZeroBalance, previousIsZeroBalance]);
-
   const isSingleSlide = visibleSlides.length === 1;
 
   const openUrl =
@@ -87,25 +72,6 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
       Linking.openURL(href).catch((error) => {
         console.error('Failed to open URL:', error);
       });
-
-  const handleRenderSlides = useCallback(
-    (renderedSlides: typeof PREDEFINED_SLIDES) => {
-      if (!hasRendered) {
-        renderedSlides.forEach((slide) => {
-          trackEvent(
-            createEventBuilder({
-              category: 'Banner Display',
-              properties: {
-                name: slide.id,
-              },
-            }).build(),
-          );
-        });
-        setHasRendered(true);
-      }
-    },
-    [hasRendered, trackEvent, createEventBuilder],
-  );
 
   const handleSlideClick = useCallback(
     (slideId: string, navigation: NavigationAction) => {
@@ -141,58 +107,71 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
   );
 
   const renderBannerSlides = useCallback(
-    ({ item: slide }: { item: CarouselSlide }) => (
-      <Pressable
-        key={slide.id}
-        testID={slide.testID}
-        style={[
-          styles.slideContainer,
-          pressedSlideId === slide.id && styles.slideContainerPressed,
-        ]}
-        onPress={() => handleSlideClick(slide.id, slide.navigation)}
-        onPressIn={() => setPressedSlideId(slide.id)}
-        onPressOut={() => setPressedSlideId(null)}
-      >
-        <View style={styles.slideContent}>
-          <View style={styles.imageContainer}>
-            <Image
-              source={BANNER_IMAGES[slide.id]}
-              style={styles.bannerImage}
-              resizeMode="contain"
-            />
-          </View>
-          <View style={styles.textContainer}>
-            <View style={styles.textWrapper}>
-              <Text
-                variant={TextVariant.BodyMD}
-                style={styles.title}
-                testID={slide.testIDTitle}
-              >
-                {slide.title}
-              </Text>
-              <Text variant={TextVariant.BodySM} style={styles.description}>
-                {slide.description}
-              </Text>
+    ({ item: slide }: { item: CarouselSlide }) => {
+      trackEvent(
+        createEventBuilder({
+          category: 'Banner Display',
+          properties: {
+            name: slide.id,
+          },
+        }).build(),
+      );
+
+      return (
+        <Pressable
+          key={slide.id}
+          testID={slide.testID}
+          style={[
+            styles.slideContainer,
+            pressedSlideId === slide.id && styles.slideContainerPressed,
+          ]}
+          onPress={() => handleSlideClick(slide.id, slide.navigation)}
+          onPressIn={() => setPressedSlideId(slide.id)}
+          onPressOut={() => setPressedSlideId(null)}
+        >
+          <View style={styles.slideContent}>
+            <View style={styles.imageContainer}>
+              <Image
+                source={BANNER_IMAGES[slide.id]}
+                style={styles.bannerImage}
+                resizeMode="contain"
+              />
             </View>
+            <View style={styles.textContainer}>
+              <View style={styles.textWrapper}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  style={styles.title}
+                  testID={slide.testIDTitle}
+                >
+                  {slide.title}
+                </Text>
+                <Text variant={TextVariant.BodySM} style={styles.description}>
+                  {slide.description}
+                </Text>
+              </View>
+            </View>
+            {!slide.undismissable && (
+              <TouchableOpacity
+                testID={slide.testIDCloseButton}
+                style={styles.closeButton}
+                onPress={() => handleClose(slide.id)}
+              >
+                <Icon name="close" size={18} color={colors.icon.default} />
+              </TouchableOpacity>
+            )}
           </View>
-          {!slide.undismissable && (
-            <TouchableOpacity
-              testID={slide.testIDCloseButton}
-              style={styles.closeButton}
-              onPress={() => handleClose(slide.id)}
-            >
-              <Icon name="close" size={18} color={colors.icon.default} />
-            </TouchableOpacity>
-          )}
-        </View>
-      </Pressable>
-    ),
+        </Pressable>
+      );
+    },
     [
       styles,
       handleSlideClick,
       handleClose,
       colors.icon.default,
       pressedSlideId,
+      trackEvent,
+      createEventBuilder,
     ],
   );
 
@@ -221,12 +200,6 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
       styles.progressDotActive,
     ],
   );
-
-  useEffect(() => {
-    if (visibleSlides.length > 0) {
-      handleRenderSlides(visibleSlides);
-    }
-  }, [visibleSlides, handleRenderSlides, isZeroBalance]);
 
   if (visibleSlides.length === 0) {
     return null;
