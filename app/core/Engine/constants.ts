@@ -11,6 +11,7 @@ import { RatesControllerStateChangeEvent } from './controllers/RatesController/c
  */
 export const STATELESS_NON_CONTROLLER_NAMES = [
   'AssetsContractController',
+  'ExecutionService',
   'NftDetectionController',
   'TokenDetectionController',
 ] as const;
