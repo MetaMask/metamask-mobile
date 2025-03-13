@@ -24,7 +24,6 @@ import {
   isTestNet,
   isPortfolioViewEnabled,
 } from '../../../util/networks';
-import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
 import { TokenList } from './TokenList';
 import { TokenI, TokensI } from './types';
@@ -55,7 +54,10 @@ import {
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
+import {
+  selectAccountTokensAcrossChains,
+  selectTokensToDisplay,
+} from '../../../selectors/multichain';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -93,7 +95,7 @@ interface TokenListNavigationParamList {
   [key: string]: undefined | object;
 }
 
-const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
+const Tokens: React.FC<TokensI> = memo(() => {
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
@@ -153,55 +155,9 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
 
   const styles = createStyles(colors);
 
-  const getTokensToDisplay = (allTokens: TokenI[]): TokenI[] => {
-    if (hideZeroBalanceTokens) {
-      const tokensToDisplay: TokenI[] = [];
-      for (const curToken of allTokens) {
-        const multiChainTokenBalances =
-          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-            curToken.chainId as Hex
-          ];
-        const balance =
-          multiChainTokenBalances?.[curToken.address as Hex] ||
-          curToken.balance;
+  const assets = useSelector(selectTokensToDisplay);
 
-        if (
-          !isZero(balance) ||
-          (isUserOnCurrentNetwork && (curToken.isNative || curToken.isStaked))
-        ) {
-          tokensToDisplay.push(curToken);
-        }
-      }
-
-      return tokensToDisplay;
-    }
-    return allTokens;
-  };
-
-  const categorizeTokens = (filteredTokens: TokenI[]) => {
-    const nativeTokens: TokenI[] = [];
-    const nonNativeTokens: TokenI[] = [];
-
-    for (const currToken of filteredTokens) {
-      const token = currToken as TokenI & { chainId: string };
-
-      // Skip tokens if they are on a test network and the current chain is not a test network
-      if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
-        continue;
-      }
-
-      // Categorize tokens as native or non-native
-      if (token.isNative) {
-        nativeTokens.push(token);
-      } else {
-        nonNativeTokens.push(token);
-      }
-    }
-
-    return [...nativeTokens, ...nonNativeTokens];
-  };
-
-  const calculateFiatBalances = (assets: TokenI[]) =>
+  const calculateFiatBalances = () =>
     assets.map((token) => {
       const chainId = token.chainId as Hex;
       const multiChainExchangeRates = multiChainMarketData?.[chainId];
@@ -225,13 +181,6 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
           ).balanceFiatCalculation;
     });
 
-  const filterTokensByNetwork = (tokensToDisplay: TokenI[]): TokenI[] => {
-    if (isAllNetworks && isPopularNetwork && isEvmSelected) {
-      return tokensToDisplay;
-    }
-    return tokensToDisplay.filter((token) => token.chainId === currentChainId);
-  };
-
   const tokensList = useMemo((): TokenI[] => {
     trace({
       name: TraceName.Tokens,
@@ -243,23 +192,8 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
         tags: getTraceTags(store.getState()),
       });
 
-      // MultiChain implementation
-      const allTokens = Object.values(
-        selectedAccountTokensChains,
-      ).flat() as TokenI[];
-
-      /*
-        If hideZeroBalanceTokens is ON and user is on "all Networks" we respect the setting and filter native and ERC20 tokens when zero
-        If user is on "current Network" we want to show native tokens, even with zero balance
-      */
-      const tokensToDisplay = getTokensToDisplay(allTokens);
-
-      const filteredTokens: TokenI[] = filterTokensByNetwork(tokensToDisplay);
-
-      const assets = categorizeTokens(filteredTokens);
-
       // Calculate fiat balances for tokens
-      const tokenFiatBalances = calculateFiatBalances(assets);
+      const tokenFiatBalances = calculateFiatBalances();
 
       const tokensWithBalances = assets.map((token, i) => ({
         ...token,
@@ -272,17 +206,10 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
       });
       return tokensSorted;
     }
-    // Previous implementation
-    // Filter tokens based on hideZeroBalanceTokens flag
-    const tokensToDisplay = hideZeroBalanceTokens
-      ? tokens.filter(
-          ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
-        )
-      : tokens;
 
     // Calculate fiat balances for tokens
     const tokenFiatBalances = conversionRate
-      ? tokensToDisplay.map((asset) =>
+      ? assets.map((asset) =>
           asset.isETH
             ? parseFloat(asset.balance) * conversionRate
             : deriveBalanceFromAssetMarketDetails(
@@ -299,7 +226,7 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
     // this key in the controller is also used by extension, so this is for consistency in syntax and config
     // actual balance rendering for each token list item happens in TokenListItem component
-    const tokensWithBalances = tokensToDisplay.map((token, i) => ({
+    const tokensWithBalances = assets.map((token, i) => ({
       ...token,
       tokenFiatAmount: tokenFiatBalances[i],
     }));

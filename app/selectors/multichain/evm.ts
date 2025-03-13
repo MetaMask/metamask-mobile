@@ -4,6 +4,7 @@ import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
   selectSelectedInternalAccountFormattedAddress,
   selectSelectedInternalAccount,
+  selectSelectedInternalAccountAddress,
 } from '../accountsController';
 import { selectAllTokens } from '../tokensController';
 import {
@@ -11,8 +12,11 @@ import {
   selectAccountsByChainId,
 } from '../accountTrackerController';
 import {
+  selectChainId,
   selectEvmNetworkConfigurationsByChainId,
   selectEvmTicker,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
 } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
@@ -25,6 +29,12 @@ import {
 import { createDeepEqualSelector } from '../util';
 import { getTicker } from '../../util/transactions';
 import { zeroAddress } from 'ethereumjs-util';
+import { selectHideZeroBalanceTokens } from '../settings';
+import { selectTokensBalances } from '../tokenBalancesController';
+import { isZero } from '../../util/lodash';
+import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../preferencesController';
+import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
+import { isTestNet } from '../../util/networks';
 
 interface NativeTokenBalance {
   balance: string;
@@ -282,5 +292,79 @@ export const selectStakedEvmAsset = createDeepEqualSelector(
         currentCurrency,
       ),
     };
+  },
+);
+
+export const selectTokensToDisplay = createDeepEqualSelector(
+  selectHideZeroBalanceTokens,
+  selectAccountTokensAcrossChains,
+  selectTokensBalances,
+  selectSelectedInternalAccountAddress,
+  selectIsTokenNetworkFilterEqualCurrentNetwork,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectIsEvmNetworkSelected,
+  selectChainId,
+  (
+    hideZeroBalanceTokens,
+    selectedAccountTokensChains,
+    multiChainTokenBalance,
+    selectedInternalAccountAddress,
+    isUserOnCurrentNetwork,
+    isAllNetworks,
+    isPopularNetwork,
+    isEvmSelected,
+    currentChainId,
+  ) => {
+    const allTokens = Object.values(
+      selectedAccountTokensChains,
+    ).flat() as TokenI[];
+
+    let tokensToDisplay: TokenI[] = allTokens;
+
+    // Respect zero balance filtering settings
+    if (hideZeroBalanceTokens) {
+      tokensToDisplay = allTokens.filter((token) => {
+        const multiChainTokenBalances =
+          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+            token.chainId as Hex
+          ];
+        const balance =
+          multiChainTokenBalances?.[token.address as Hex] || token.balance;
+
+        return (
+          !isZero(balance) ||
+          (isUserOnCurrentNetwork && (token.isNative || token.isStaked))
+        );
+      });
+    }
+
+    // Apply network filtering
+    const filteredTokens =
+      isAllNetworks && isPopularNetwork && isEvmSelected
+        ? tokensToDisplay
+        : tokensToDisplay.filter((token) => token.chainId === currentChainId);
+
+    // Categorize tokens as native or non-native, filtering out testnet tokens if applicable
+    const nativeTokens: TokenI[] = [];
+    const nonNativeTokens: TokenI[] = [];
+
+    for (const currToken of filteredTokens) {
+      const token = currToken as TokenI & { chainId: string };
+
+      // Skip tokens if they are on a test network and the current chain is not a test network
+      if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
+        continue;
+      }
+
+      // Categorize tokens as native or non-native
+      if (token.isNative) {
+        nativeTokens.push(token);
+      } else {
+        nonNativeTokens.push(token);
+      }
+    }
+
+    return [...nativeTokens, ...nonNativeTokens];
   },
 );
