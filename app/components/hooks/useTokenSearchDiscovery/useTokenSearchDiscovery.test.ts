@@ -70,7 +70,9 @@ describe('useTokenSearchDiscovery', () => {
     const { result } = renderHook(() => useTokenSearchDiscovery());
 
     await act(async () => {
-      result.current.searchTokens({});
+      result.current.searchTokens({
+        query: 'doge',
+      });
       jest.advanceTimersByTime(300);
       await Promise.resolve();
     });
