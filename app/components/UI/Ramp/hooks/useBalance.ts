@@ -21,8 +21,10 @@ import {
   toHexadecimal,
   weiToFiat,
 } from '../../../../util/number';
-import { selectMultichainBalances } from '../../../../selectors/multichain';
 import { Hex } from '@metamask/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainBalances } from '../../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF
 
 const defaultReturn = {
   balance: null,
@@ -39,7 +41,9 @@ interface Asset {
 
 export default function useBalance(asset?: Asset) {
   const accountsByChainId = useSelector(selectAccountsByChainId);
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multiChainTokenBalance = useSelector(selectMultichainBalances);
+  ///: END:ONLY_INCLUDE_IF
   const chainId = useSelector(selectEvmChainId);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -60,6 +64,8 @@ export default function useBalance(asset?: Asset) {
   }
 
   let balance, balanceFiat, balanceBN;
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   if (asset.assetId) {
     // CAIP19 asset identifier
     const assetCaip19Identifier = `${asset.chainId}/${asset.assetId}`;
@@ -68,7 +74,9 @@ export default function useBalance(asset?: Asset) {
     balance = `${assetBalance?.amount ?? ''} ${
       assetBalance?.unit ?? ''
     }`.trim();
-  } else if (asset.address === NATIVE_ADDRESS) {
+  } else
+  ///: END:ONLY_INCLUDE_IF
+  if (asset.address === NATIVE_ADDRESS) {
     // Chain id should exist in accountsByChainId in AccountTrackerController at this point in time
     if (!accountsByChainId[toHexadecimal(chainId)]) {
       return defaultReturn;
