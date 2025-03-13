@@ -31,6 +31,7 @@ import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../util/bridge/hooks/useSubmitBridgeTx';
 import { QuoteResponse } from './types';
+import Engine from '../../../core/Engine';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -84,6 +85,18 @@ const createStyles = (params: { theme: Theme }) => {
 
 // We get here through handleBridgeNavigation in AssetOverview and WalletActions
 const BridgeView = () => {
+  useEffect(() => {
+    const setBridgeFeatureFlags = async () => {
+      try {
+        await Engine.context.BridgeController.setBridgeFeatureFlags();
+      } catch (error) {
+        console.error('Error setting bridge feature flags', error);
+      }
+    };
+
+    setBridgeFeatureFlags();
+  }, []);
+
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
