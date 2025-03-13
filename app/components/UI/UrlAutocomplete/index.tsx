@@ -279,7 +279,7 @@ const UrlAutocomplete = forwardRef<
     <View style={styles.categoryWrapper}>
       <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
       {category === 'tokens' && isTokenSearchLoading && (
-        <ActivityIndicator size="small" />
+        <ActivityIndicator testID="loading-indicator" size="small" />
       )}
     </View>
   ), [styles, isTokenSearchLoading]);
@@ -295,7 +295,7 @@ const UrlAutocomplete = forwardRef<
     />
   ), [hide, onSelect, goToSwaps]);
 
-  if (!hasResults) {
+  if (!hasResults && !isTokenSearchLoading) {
     return (
       <View ref={resultsRef} style={styles.wrapper}>
         <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
