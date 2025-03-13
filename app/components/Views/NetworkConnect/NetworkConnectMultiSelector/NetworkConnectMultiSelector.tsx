@@ -33,10 +33,14 @@ import {
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
-import { getNetworkImageSource } from '../../../../util/networks';
+import {
+  getNetworkImageSource,
+  isPerDappSelectedNetworkEnabled,
+} from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Logger from '../../../../util/Logger';
+import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -57,7 +61,10 @@ const NetworkConnectMultiSelector = ({
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const currentChainId = useSelector(selectEvmChainId);
+  const globalChainId = useSelector(selectEvmChainId);
+  const { chainId: currentChainId } = isPerDappSelectedNetworkEnabled()
+    ? useNetworkInfo(hostname)
+    : { chainId: globalChainId };
 
   useEffect(() => {
     if (propSelectedChainIds && !isInitializedWithPermittedChains) {
@@ -117,13 +124,22 @@ const NetworkConnectMultiSelector = ({
           const { rpcEndpoints, defaultRpcEndpointIndex } = config;
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
-          // Switch to the network using networkClientId
-          await Engine.context.MultichainNetworkController.setActiveNetwork(
-            networkClientId,
-          );
+          if (isPerDappSelectedNetworkEnabled()) {
+            // For per-dapp network selection, directly set the network for this domain
+            Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
+              hostname,
+              networkClientId,
+            );
+          } else {
+            // For global network selection, switch the active network
+            await Engine.context.MultichainNetworkController.setActiveNetwork(
+              networkClientId,
+            );
+          }
         }
       }
 
+      // Update permissions in PermissionController
       let hasPermittedChains = false;
       try {
         hasPermittedChains = Engine.context.PermissionController.hasCaveat(
@@ -134,6 +150,7 @@ const NetworkConnectMultiSelector = ({
       } catch (e) {
         Logger.error(e as Error, 'Error checking for permitted chains caveat');
       }
+
       if (hasPermittedChains) {
         Engine.context.PermissionController.updateCaveat(
           hostname,
