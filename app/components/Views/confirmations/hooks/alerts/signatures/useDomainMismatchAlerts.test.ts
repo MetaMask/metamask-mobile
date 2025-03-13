@@ -16,17 +16,20 @@ jest.mock('../../../utils/signature');
 describe('useDomainMismatchAlerts', () => {
   const mockApprovalRequest = {
     requestData: {
-      origin: 'https://example.com',
+      origin: 'example.com',
+      meta: {
+        url: 'https://example.com',
+      },
     },
   };
 
   const mockSignatureRequest = {
-    origin: 'https://example.com',
+    origin: 'example.com',
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useApprovalRequest as jest.Mock).mockResolvedValue({ approvalRequest: mockApprovalRequest });
+    (useApprovalRequest as jest.Mock).mockReturnValue({ approvalRequest: mockApprovalRequest });
     (useSignatureRequest as jest.Mock).mockReturnValue(mockSignatureRequest);
   });
 
@@ -67,5 +70,37 @@ describe('useDomainMismatchAlerts', () => {
       title: 'Suspicious sign-in request',
       severity: Severity.Danger,
     });
+  });
+
+  it('uses meta.url when requestData.origin does not have a protocol', () => {
+    (isSIWESignatureRequest as jest.Mock).mockReturnValue(true);
+    (isValidSIWEOrigin as jest.Mock).mockImplementation((request) => request.origin === 'https://example.com');
+
+    const { result } = renderHookWithProvider(() => useDomainMismatchAlerts(), {
+      state: siweSignatureConfirmationState,
+    });
+
+    expect(result.current).toEqual([]);
+  });
+
+  it('uses requestData.origin when it has a protocol', () => {
+    const mockApprovalRequestWithProtocol = {
+      requestData: {
+        origin: 'https://example.com',
+        meta: {
+          url: 'https://example.com',
+        },
+      },
+    };
+
+    (useApprovalRequest as jest.Mock).mockReturnValue({ approvalRequest: mockApprovalRequestWithProtocol });
+    (isSIWESignatureRequest as jest.Mock).mockReturnValue(true);
+    (isValidSIWEOrigin as jest.Mock).mockImplementation((request) => request.origin === 'https://example.com');
+
+    const { result } = renderHookWithProvider(() => useDomainMismatchAlerts(), {
+      state: siweSignatureConfirmationState,
+    });
+
+    expect(result.current).toEqual([]);
   });
 });
