@@ -8,7 +8,6 @@ jobs:
   check-changelog:
     uses: MetaMask/github-tools/.github/workflows/changelog-check.yml@changelog-checker
     with:
-      pr-number: ${{ github.event.pull_request.number }}
       base-branch: main
       feature-branch: ${{ github.head_ref }}
     secrets:
