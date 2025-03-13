@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
+import { getVersion } from 'react-native-device-info';
+import { version as currentMigrationVersion } from '../../store/migrations';
 
 import {
   AccountTrackerController,
@@ -312,13 +314,15 @@ export class Engine {
         ApprovalType.WatchAsset,
       ],
     });
+
     const appMetadataController = new AppMetadataController({
+      currentAppVersion: getVersion(),
+      currentMigrationVersion,
       messenger: this.controllerMessenger.getRestricted({
         name: 'AppMetadataController',
         allowedActions: [],
         allowedEvents: [],
       }),
-      state: initialState.AppMetadataController,
     });
 
     const preferencesController = new PreferencesController({

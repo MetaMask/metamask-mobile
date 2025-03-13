@@ -20,6 +20,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AccountTrackerController:stateChange',
   'AddressBookController:stateChange',
   'ApprovalController:stateChange',
+  'AppMetadataController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
   'KeyringController:stateChange',
