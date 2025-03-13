@@ -64,13 +64,11 @@ export default function useHandleTx() {
     const gasLimitHex = BNToHex(new BigNumber(txParams.gasLimit ?? 0));
     const { transactionMeta } = await addTransaction(
       {
-        ...{
-          ...txParams,
-          chainId: txParams.chainId.toString() as `0x${string}`,
-          gasLimit: gasLimitHex,
-          gas: gasLimitHex,
-        },
+        ...txParams,
         ...gasFeeEstimates,
+        chainId: txParams.chainId.toString() as Hex,
+        gasLimit: gasLimitHex,
+        gas: gasLimitHex,
       },
       {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
