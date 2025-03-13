@@ -514,11 +514,10 @@ export class Engine {
      * Gets the mnemonic of the user's primary keyring.
      */
     const getPrimaryKeyringMnemonic = () => {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const [keyring]: any = this.keyringController.getKeyringsByType(
+      const [keyring] = this.keyringController.getKeyringsByType(
         KeyringTypes.hd,
-      );
+      ) as HdKeyring[];
+
       if (!keyring.mnemonic) {
         throw new Error('Primary keyring mnemonic unavailable.');
       }
@@ -527,11 +526,10 @@ export class Engine {
     };
 
     const getPrimaryKeyringMnemonicSeed = () => {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const [keyring]: any = this.keyringController.getKeyringsByType(
+      const [keyring] = this.keyringController.getKeyringsByType(
         KeyringTypes.hd,
-      );
+      ) as HdKeyring[];
+
       if (!keyring.seed) {
         throw new Error('Primary keyring mnemonic unavailable.');
       }
@@ -565,7 +563,7 @@ export class Engine {
         }
 
         try {
-          const { type, mnemonic } = await this.controllerMessenger.call(
+          const { type, mnemonic } = (await this.controllerMessenger.call(
             'KeyringController:withKeyring',
             {
               id: source,
@@ -574,15 +572,13 @@ export class Engine {
               type: keyring.type,
               mnemonic: (keyring as unknown as HdKeyring).mnemonic,
             }),
-          ) as { type: string; mnemonic?: Uint8Array; };
+          )) as { type: string; mnemonic?: Uint8Array };
 
           if (type !== KeyringTypes.hd || !mnemonic) {
             // The keyring isn't guaranteed to have a mnemonic (e.g.,
             // hardware wallets, which can't be used as entropy sources),
             // so we throw an error if it doesn't.
-            throw new Error(
-              `Entropy source with ID "${source}" not found.`,
-            );
+            throw new Error(`Entropy source with ID "${source}" not found.`);
           }
 
           return mnemonic;
@@ -596,7 +592,7 @@ export class Engine {
         }
 
         try {
-          const { type, seed } = await this.controllerMessenger.call(
+          const { type, seed } = (await this.controllerMessenger.call(
             'KeyringController:withKeyring',
             {
               id: source,
@@ -605,15 +601,13 @@ export class Engine {
               type: keyring.type,
               seed: (keyring as unknown as HdKeyring).seed,
             }),
-          ) as { type: string; seed?: Uint8Array; };;
+          )) as { type: string; seed?: Uint8Array };
 
           if (type !== KeyringTypes.hd || !seed) {
             // The keyring isn't guaranteed to have a seed (e.g.,
             // hardware wallets, which can't be used as entropy sources),
             // so we throw an error if it doesn't.
-            throw new Error(
-              `Entropy source with ID "${source}" not found.`,
-            );
+            throw new Error(`Entropy source with ID "${source}" not found.`);
           }
 
           return seed;

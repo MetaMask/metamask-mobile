@@ -11,11 +11,18 @@ import { BackgroundEvent, SnapId } from '@metamask/snaps-sdk';
 import { BaseControllerMessenger, EngineContext } from '../Engine';
 import { handleSnapRequest } from './utils';
 import {
+  CronjobControllerCancelBackgroundEventAction,
+  CronjobControllerGetBackgroundEventsAction,
+  SnapControllerClearSnapStateAction,
   SnapControllerGetPermittedSnapsAction,
   SnapControllerGetSnapAction,
   SnapControllerGetSnapFileAction,
+  SnapControllerGetSnapStateAction,
   SnapControllerInstallSnapsAction,
-} from '../Engine/controllers/SnapController/constants';
+  SnapControllerUpdateSnapStateAction,
+  SnapInterfaceControllerCreateInterfaceAction,
+  SnapInterfaceControllerUpdateInterfaceStateAction,
+} from '../Engine/controllers/snaps';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 export function getSnapIdFromRequest(
@@ -69,7 +76,7 @@ const snapMethodMiddlewareBuilder = (
     getSnapFile: controllerMessenger.call.bind(
       controllerMessenger,
       SnapControllerGetSnapFileAction,
-      origin,
+      origin as SnapId,
     ),
     installSnaps: controllerMessenger.call.bind(
       controllerMessenger,
@@ -83,13 +90,13 @@ const snapMethodMiddlewareBuilder = (
     ),
     createInterface: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapInterfaceController:createInterface',
-      origin,
+      SnapInterfaceControllerCreateInterfaceAction,
+      origin as SnapId,
     ),
     updateInterface: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapInterfaceController:updateInterface',
-      origin,
+      SnapInterfaceControllerUpdateInterfaceAction,
+      origin as SnapId,
     ),
     getInterfaceContext: (id: string) =>
       controllerMessenger.call(
@@ -105,8 +112,8 @@ const snapMethodMiddlewareBuilder = (
       ).state,
     resolveInterface: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapInterfaceController:resolveInterface',
-      origin,
+      SnapInterfaceControllerResolveInterfaceAction,
+      origin as SnapId,
     ),
     getSnap: controllerMessenger.call.bind(
       controllerMessenger,
@@ -114,8 +121,8 @@ const snapMethodMiddlewareBuilder = (
     ),
     updateInterfaceState: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapInterfaceController:updateInterfaceState',
-      origin,
+      SnapInterfaceControllerUpdateInterfaceStateAction,
+      origin as SnapId,
     ),
     handleSnapRpcRequest: async (request: Omit<SnapRpcHookArgs, 'origin'>) => {
       const snapId = getSnapIdFromRequest(request);
@@ -139,9 +146,7 @@ const snapMethodMiddlewareBuilder = (
       ),
     getIsLocked: () => !engineContext.KeyringController.isUnlocked(),
     getEntropySources: () => {
-      const state = controllerMessenger.call(
-        'KeyringController:getState',
-      );
+      const state = controllerMessenger.call('KeyringController:getState');
 
       return state.keyrings
         .map((keyring, index) => {
@@ -160,32 +165,34 @@ const snapMethodMiddlewareBuilder = (
     },
     clearSnapState: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapController:clearSnapState',
-      origin,
+      SnapControllerClearSnapStateAction,
+      origin as SnapId,
     ),
     getSnapState: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapController:getSnapState',
-      origin,
+      SnapControllerGetSnapStateAction,
+      origin as SnapId,
     ),
     updateSnapState: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapController:updateSnapState',
-      origin,
+      SnapControllerUpdateSnapStateAction,
+      origin as SnapId,
     ),
-    scheduleBackgroundEvent: (event: Omit<BackgroundEvent, "id" | "scheduledAt">) =>
-      controllerMessenger.call(
-        'CronjobController:scheduleBackgroundEvent',
-        { ...event, snapId: origin as SnapId },
-      ),
+    scheduleBackgroundEvent: (
+      event: Omit<BackgroundEvent, 'id' | 'scheduledAt'>,
+    ) =>
+      controllerMessenger.call('CronjobController:scheduleBackgroundEvent', {
+        ...event,
+        snapId: origin as SnapId,
+      }),
     cancelBackgroundEvent: controllerMessenger.call.bind(
       controllerMessenger,
-      'CronjobController:cancelBackgroundEvent',
+      CronjobControllerCancelBackgroundEventAction,
       origin,
     ),
     getBackgroundEvents: controllerMessenger.call.bind(
       controllerMessenger,
-      'CronjobController:getBackgroundEvents',
+      CronjobControllerGetBackgroundEventsAction,
       origin,
     ),
   });
