@@ -5,6 +5,7 @@ import {
   selectedAccountNativeTokenCachedBalanceByChainId,
   selectAccountTokensAcrossChains,
   selectNativeEvmAsset,
+  selectStakedEvmAsset,
 } from './evm';
 import { SolScope } from '@metamask/keyring-api';
 import { GetByQuery } from '@testing-library/react-native/build/queries/makeQueries';
@@ -27,10 +28,7 @@ import {
   POLYGON_CHAIN_ID,
 } from '@metamask/swaps-controller/dist/constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { renderFromWei, weiToFiat } from '../../util/number';
-import { hexToBN } from '@metamask/controller-utils';
 import { zeroAddress } from 'ethereumjs-util';
-import { PreferencesController } from '@metamask/preferences-controller';
 
 describe('Multichain Selectors', () => {
   const mockState: RootState = {
@@ -42,11 +40,13 @@ describe('Multichain Selectors', () => {
               chainId: '0x1',
               name: 'Ethereum Mainnet',
               nativeCurrency: 'ETH',
+              rpcEndpoints: [{ networkClientId: '0x1' }],
             },
             '0x89': {
               chainId: '0x89',
               name: 'Polygon',
-              nativeCurrency: 'MATIC',
+              nativeCurrency: 'POL',
+              rpcEndpoints: [{ networkClientId: '0x89' }],
             },
           },
         },
@@ -98,9 +98,13 @@ describe('Multichain Selectors', () => {
         },
         CurrencyRateController: {
           currentCurrency: 'USD',
-          conversionRates: {
-            ETH: 2000,
-            MATIC: 1,
+          currencyRates: {
+            ETH: {
+              conversionRate: 2000,
+            },
+            POL: {
+              conversionRate: 1,
+            },
           },
         },
         AccountsController: {
@@ -202,17 +206,88 @@ describe('Multichain Selectors', () => {
 
     it('should handle multiple chains correctly', () => {
       const result = selectAccountTokensAcrossChains(mockState);
+      console.log('RESULT: ', result);
       expect(result).toHaveProperty('0x89');
       const polygonTokens = result['0x89'];
       expect(polygonTokens.length).toBeGreaterThan(0);
-      expect(polygonTokens.some((token) => token.symbol === 'MATIC')).toBe(
-        true,
-      );
+      expect(polygonTokens.some((token) => token.symbol === 'POL')).toBe(true);
     });
   });
 
   describe('selectNativeEvmAsset', () => {
-    it.only('should return undefined if accountBalanceByChainId is not provided', () => {
+    const testState: RootState = {
+      engine: {
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {},
+          },
+          NetworkController: {
+            ...mockState.engine.backgroundState.NetworkController,
+            selectedNetworkClientId: '0x1',
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: '',
+              accounts: {},
+            },
+          },
+        },
+      },
+      settings: {
+        showFiatOnTestnets: true,
+      },
+    } as unknown as RootState;
+    it('should return undefined if accountBalanceByChainId is not provided', () => {
+      const result = selectNativeEvmAsset(testState);
+      expect(result).toBeUndefined();
+    });
+
+    it('should return the correct native EVM asset structure', () => {
+      const result = selectNativeEvmAsset(mockState);
+
+      expect(result).toEqual({
+        decimals: 18,
+        name: 'Ethereum',
+        symbol: 'ETH',
+        isETH: true,
+        balance: '< 0.00001',
+        balanceFiat: '$0',
+        logo: '../images/eth-logo-new.png',
+        address: zeroAddress(),
+      });
+    });
+
+    it('should return asset name as ticker if not ETH', () => {
+      const testStateOverride = {
+        ...testState,
+        engine: {
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              ...mockState.engine.backgroundState.NetworkController,
+              selectedNetworkClientId: '0x89',
+            },
+          },
+        },
+      } as unknown as RootState;
+      const result = selectNativeEvmAsset(testStateOverride);
+
+      expect(result).toEqual({
+        decimals: 18,
+        name: 'POL',
+        symbol: 'POL',
+        isETH: true,
+        balance: '< 0.00001',
+        balanceFiat: '$0',
+        logo: '../images/eth-logo-new.png',
+        address: zeroAddress(),
+      });
+    });
+  });
+
+  describe('selectStakedEvmAsset', () => {
+    it('should return undefined if accountBalanceByChainId is not provided', () => {
       const testState: RootState = {
         engine: {
           backgroundState: {
@@ -232,51 +307,91 @@ describe('Multichain Selectors', () => {
           showFiatOnTestnets: true,
         },
       } as unknown as RootState;
-      const result = selectNativeEvmAsset(testState);
+
+      const result = selectStakedEvmAsset(testState);
       expect(result).toBeUndefined();
     });
 
-    // it('should return the correct native EVM asset structure', () => {
-    //   const accountBalanceByChainId = { balance: '1000000000000000000' }; // 1 ETH in wei
-    //   const result = selectNativeEvmAsset.resultFunc(
-    //     accountBalanceByChainId,
-    //     'ETH',
-    //     3000,
-    //     'USD',
-    //   );
+    it('should return undefined if stakedBalance is missing', () => {
+      const testState: RootState = {
+        ...mockState,
+        engine: {
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            AccountTrackerController: {
+              accountsByChainId: {
+                '0x1': {
+                  balance: '0x1', // 1 ETH
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
 
-    //   expect(result).toEqual({
-    //     decimals: 18,
-    //     name: 'Ethereum',
-    //     symbol: 'ETH',
-    //     isETH: true,
-    //     balance: '1000000000000000000 ETH', // Mocked `renderFromWei`
-    //     balanceFiat: '3000000000000000000000 USD', // Mocked `weiToFiat`
-    //     logo: '../images/eth-logo-new.png',
-    //     address: zeroAddress(),
-    //   });
-    // });
+      const result = selectStakedEvmAsset(testState);
+      expect(result).toBeUndefined();
+    });
 
-    // it('should return asset name as ticker if not ETH', () => {
-    //   const accountBalanceByChainId = { balance: '500000000000000000' }; // 0.5 XYZ
-    //   const result = selectNativeEvmAsset.resultFunc(
-    //     accountBalanceByChainId,
-    //     'XYZ',
-    //     2000,
-    //     'EUR',
-    //   );
+    it('should return undefined if stakedBalance is zero', () => {
+      const testState: RootState = {
+        ...mockState,
+        engine: {
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            AccountTrackerController: {
+              accountsByChainId: {
+                '0x1': {
+                  balance: '0x1',
+                  stakedBalance: '0x2',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
 
-    //   expect(result).toEqual({
-    //     decimals: 18,
-    //     name: 'XYZ',
-    //     symbol: 'XYZ',
-    //     isETH: true,
-    //     balance: '500000000000000000 ETH',
-    //     balanceFiat: '1000000000000000000000 EUR',
-    //     logo: '../images/eth-logo-new.png',
-    //     address: zeroAddress(),
-    //   });
-    // });
+      const result = selectStakedEvmAsset(testState);
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined if nativeAsset is missing', () => {
+      const testState: RootState = {
+        ...mockState,
+        engine: {
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            AccountTrackerController: {
+              accountsByChainId: {
+                '0x1': {
+                  balance: '0x1',
+                  stakedBalance: '0x2',
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectStakedEvmAsset(testState);
+      expect(result).toBeUndefined();
+    });
+
+    it('should return the correct staked EVM asset structure', () => {
+      const result = selectStakedEvmAsset(mockState);
+
+      expect(result).toEqual({
+        decimals: 18,
+        name: 'Staked Ethereum',
+        symbol: 'ETH',
+        isETH: true,
+        isStaked: true,
+        balance: '< 0.00001',
+        balanceFiat: '$0',
+        logo: '../images/eth-logo-new.png',
+        address: zeroAddress(),
+      });
+    });
   });
 });
 
