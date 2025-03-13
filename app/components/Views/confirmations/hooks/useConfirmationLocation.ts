@@ -11,6 +11,35 @@ import useApprovalRequest, {
   type ApprovalRequestType,
 } from '../hooks/useApprovalRequest';
 
+const ConfirmationLocationMap = {
+    [TransactionType.personalSign]: () =>
+      CONFIRMATION_EVENT_LOCATIONS.PERSONAL_SIGN,
+    [TransactionType.signTypedData]: ({
+      signatureRequestVersion,
+    }: {
+      signatureRequestVersion: string;
+    }) => {
+      if (signatureRequestVersion === 'V1')
+        return CONFIRMATION_EVENT_LOCATIONS.TYPED_SIGN_V1;
+      return CONFIRMATION_EVENT_LOCATIONS.TYPED_SIGN_V3_V4;
+    },
+    [ApprovalType.Transaction]: ({
+      transactionType,
+    }: {
+      transactionType?: TransactionType;
+    }) => {
+      switch (transactionType) {
+        case TransactionType.stakingDeposit:
+          return CONFIRMATION_EVENT_LOCATIONS.STAKING_DEPOSIT;
+        case TransactionType.stakingUnstake:
+          return CONFIRMATION_EVENT_LOCATIONS.STAKING_WITHDRAWAL;
+        default:
+          return undefined;
+      }
+    },
+  };
+  
+
 const determineConfirmationLocation = ({
   approvalRequest,
   transactionMeta,
@@ -25,8 +54,8 @@ const determineConfirmationLocation = ({
   const transactionType = transactionMeta?.type;
 
   const confirmationLocationFn =
-    ConfirmationLocationtMap[
-      approvalRequest?.type as keyof typeof ConfirmationLocationtMap
+    ConfirmationLocationMap[
+      approvalRequest?.type as keyof typeof ConfirmationLocationMap
     ];
 
   if (!confirmationLocationFn) {
@@ -70,30 +99,3 @@ export const useConfirmationLocation = ():
   return location;
 };
 
-const ConfirmationLocationtMap = {
-  [TransactionType.personalSign]: () =>
-    CONFIRMATION_EVENT_LOCATIONS.PERSONAL_SIGN,
-  [TransactionType.signTypedData]: ({
-    signatureRequestVersion,
-  }: {
-    signatureRequestVersion: string;
-  }) => {
-    if (signatureRequestVersion === 'V1')
-      return CONFIRMATION_EVENT_LOCATIONS.TYPED_SIGN_V1;
-    return CONFIRMATION_EVENT_LOCATIONS.TYPED_SIGN_V3_V4;
-  },
-  [ApprovalType.Transaction]: ({
-    transactionType,
-  }: {
-    transactionType?: TransactionType;
-  }) => {
-    switch (transactionType) {
-      case TransactionType.stakingDeposit:
-        return CONFIRMATION_EVENT_LOCATIONS.STAKING_DEPOSIT;
-      case TransactionType.stakingUnstake:
-        return CONFIRMATION_EVENT_LOCATIONS.STAKING_WITHDRAWAL;
-      default:
-        return undefined;
-    }
-  },
-};
