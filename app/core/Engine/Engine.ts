@@ -572,9 +572,9 @@ export class Engine {
             },
             async (keyring) => ({
               type: keyring.type,
-              mnemonic: keyring.mnemonic,
+              mnemonic: (keyring as unknown as HdKeyring).mnemonic,
             }),
-          );
+          ) as { type: string; mnemonic?: Uint8Array; };
 
           if (type !== KeyringTypes.hd || !mnemonic) {
             // The keyring isn't guaranteed to have a mnemonic (e.g.,
@@ -603,9 +603,9 @@ export class Engine {
             },
             async (keyring) => ({
               type: keyring.type,
-              seed: keyring.seed,
+              seed: (keyring as unknown as HdKeyring).seed,
             }),
-          );
+          ) as { type: string; seed?: Uint8Array; };;
 
           if (type !== KeyringTypes.hd || !seed) {
             // The keyring isn't guaranteed to have a seed (e.g.,
