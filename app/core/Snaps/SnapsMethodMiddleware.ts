@@ -21,6 +21,8 @@ import {
   SnapControllerInstallSnapsAction,
   SnapControllerUpdateSnapStateAction,
   SnapInterfaceControllerCreateInterfaceAction,
+  SnapInterfaceControllerResolveInterfaceAction,
+  SnapInterfaceControllerUpdateInterfaceAction,
   SnapInterfaceControllerUpdateInterfaceStateAction,
 } from '../Engine/controllers/snaps';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -188,12 +190,20 @@ const snapMethodMiddlewareBuilder = (
     cancelBackgroundEvent: controllerMessenger.call.bind(
       controllerMessenger,
       CronjobControllerCancelBackgroundEventAction,
-      origin,
+      origin as SnapId,
     ),
     getBackgroundEvents: controllerMessenger.call.bind(
       controllerMessenger,
       CronjobControllerGetBackgroundEventsAction,
-      origin,
+      origin as SnapId,
+    ),
+    getNetworkConfigurationByChainId: controllerMessenger.call.bind(
+      controllerMessenger,
+      'NetworkController:getNetworkConfigurationByChainId',
+    ),
+    getNetworkClientById: controllerMessenger.call.bind(
+      controllerMessenger,
+      'NetworkController:getNetworkClientById',
     ),
   });
 
