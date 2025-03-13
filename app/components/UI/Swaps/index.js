@@ -47,6 +47,7 @@ import {
   setQuotesNavigationsParams,
   isSwapsNativeAsset,
   isDynamicToken,
+  shouldShowMaxBalanceLink,
 } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
@@ -661,12 +662,11 @@ function SwapsAmountView({
   const disabledView =
     !destinationTokenHasEnoughOcurrances && !hasDismissedTokenAlert;
 
-  const isNonDefaultFromToken = !isSwapsNativeAsset(sourceToken);
-  const isTokenEligibleForMaxBalance =
-    shouldUseSmartTransaction ||
-    (!shouldUseSmartTransaction && isNonDefaultFromToken);
-  const showMaxBalanceLink =
-    sourceToken?.symbol && isTokenEligibleForMaxBalance && hasBalance;
+  const showMaxBalanceLink = shouldShowMaxBalanceLink({
+    sourceToken,
+    shouldUseSmartTransaction,
+    hasBalance,
+  });
 
   return (
     <ScreenView
