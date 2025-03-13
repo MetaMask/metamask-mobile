@@ -157,7 +157,7 @@ export const BridgeTokenSelector: React.FC = () => {
             <Button
               onPress={() => navigation.navigate(Routes.SHEET.BRIDGE_NETWORK_SELECTOR)}
               variant={ButtonVariants.Primary}
-              label="All networks"
+              label={strings('bridge.all_networks')}
             />
           </Box>
           <TextFieldSearch
