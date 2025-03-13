@@ -37,7 +37,7 @@ export const snapControllerInit: ControllerInitFunction<
   SnapControllerMessenger,
   SnapControllerInitMessenger
 > = ({ initMessenger, controllerMessenger, persistedState }) => {
-  const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
+  const requireAllowlist = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
 
