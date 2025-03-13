@@ -295,7 +295,7 @@ export const selectStakedEvmAsset = createDeepEqualSelector(
   },
 );
 
-export const selectTokensToDisplay = createDeepEqualSelector(
+export const selectEvmTokens = createDeepEqualSelector(
   selectHideZeroBalanceTokens,
   selectAccountTokensAcrossChains,
   selectTokensBalances,

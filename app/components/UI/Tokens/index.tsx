@@ -56,6 +56,7 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   selectAccountTokensAcrossChains,
+  selectEvmTokens,
   selectTokensToDisplay,
 } from '../../../selectors/multichain';
 import { TraceName, endTrace, trace } from '../../../util/trace';
@@ -155,10 +156,10 @@ const Tokens: React.FC<TokensI> = memo(() => {
 
   const styles = createStyles(colors);
 
-  const assets = useSelector(selectTokensToDisplay);
+  const evmTokens = useSelector(selectEvmTokens);
 
   const calculateFiatBalances = () =>
-    assets.map((token) => {
+    evmTokens.map((token) => {
       const chainId = token.chainId as Hex;
       const multiChainExchangeRates = multiChainMarketData?.[chainId];
       const multiChainTokenBalances =
@@ -195,7 +196,7 @@ const Tokens: React.FC<TokensI> = memo(() => {
       // Calculate fiat balances for tokens
       const tokenFiatBalances = calculateFiatBalances();
 
-      const tokensWithBalances = assets.map((token, i) => ({
+      const tokensWithBalances = evmTokens.map((token, i) => ({
         ...token,
         tokenFiatAmount: tokenFiatBalances[i],
       }));
@@ -209,7 +210,7 @@ const Tokens: React.FC<TokensI> = memo(() => {
 
     // Calculate fiat balances for tokens
     const tokenFiatBalances = conversionRate
-      ? assets.map((asset) =>
+      ? evmTokens.map((asset) =>
           asset.isETH
             ? parseFloat(asset.balance) * conversionRate
             : deriveBalanceFromAssetMarketDetails(
@@ -226,7 +227,7 @@ const Tokens: React.FC<TokensI> = memo(() => {
     // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
     // this key in the controller is also used by extension, so this is for consistency in syntax and config
     // actual balance rendering for each token list item happens in TokenListItem component
-    const tokensWithBalances = assets.map((token, i) => ({
+    const tokensWithBalances = evmTokens.map((token, i) => ({
       ...token,
       tokenFiatAmount: tokenFiatBalances[i],
     }));
