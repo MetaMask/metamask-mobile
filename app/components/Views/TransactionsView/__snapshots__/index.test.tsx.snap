@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`App renders according to latest snapshot 1`] = `
+exports[`TransactionsView renders correctly and matches snapshot 1`] = `
 <View
   style={
     {
@@ -124,7 +124,7 @@ exports[`App renders according to latest snapshot 1`] = `
                   }
                 }
               >
-                App
+                TransactionsView
               </Text>
             </View>
           </View>
@@ -301,7 +301,72 @@ exports[`App renders according to latest snapshot 1`] = `
                         "flex": 1,
                       }
                     }
-                  />
+                  >
+                    <View
+                      style={
+                        {
+                          "flex": 1,
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "flex": 1,
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                              "paddingBottom": 24,
+                            }
+                          }
+                        >
+                          <ActivityIndicator
+                            size="small"
+                            style={
+                              {
+                                "alignSelf": "center",
+                              }
+                            }
+                          />
+                        </View>
+                      </View>
+                      <Modal
+                        animationType="none"
+                        deviceHeight={null}
+                        deviceWidth={null}
+                        hardwareAccelerated={false}
+                        hideModalContentWhileAnimating={false}
+                        onBackdropPress={[Function]}
+                        onModalHide={[Function]}
+                        onModalWillHide={[Function]}
+                        onModalWillShow={[Function]}
+                        onRequestClose={[Function]}
+                        onSwipeComplete={[Function]}
+                        panResponderThreshold={4}
+                        scrollHorizontal={false}
+                        scrollOffset={0}
+                        scrollOffsetMax={0}
+                        scrollTo={null}
+                        statusBarTranslucent={false}
+                        supportedOrientations={
+                          [
+                            "portrait",
+                            "landscape",
+                          ]
+                        }
+                        swipeDirection="down"
+                        swipeThreshold={100}
+                        transparent={true}
+                        visible={false}
+                      />
+                    </View>
+                  </View>
                 </View>
               </View>
             </View>
