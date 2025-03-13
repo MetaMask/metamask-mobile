@@ -158,6 +158,21 @@ const snapMethodMiddlewareBuilder = (
         })
         .filter(Boolean);
     },
+    clearSnapState: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapController:clearSnapState',
+      origin,
+    ),
+    getSnapState: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapController:getSnapState',
+      origin,
+    ),
+    updateSnapState: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapController:updateSnapState',
+      origin,
+    ),
     scheduleBackgroundEvent: (event: Omit<BackgroundEvent, "id" | "scheduledAt">) =>
       controllerMessenger.call(
         'CronjobController:scheduleBackgroundEvent',
