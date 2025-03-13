@@ -1,4 +1,7 @@
-import { mapToTemplate } from './utils';
+import {
+  mapSnapBorderRadiusToExtensionBorderRadius,
+  mapToTemplate,
+} from './utils';
 import { strings } from '../../../../locales/i18n';
 import { JSXElement } from '@metamask/snaps-sdk/jsx';
 import { mockTheme } from '../../../util/theme';
@@ -45,6 +48,17 @@ describe('SnapUIRenderer utils', () => {
           },
         }
       `);
+    });
+  });
+  describe('mapSnapBorderRadiusToExtensionBorderRadius', () => {
+    it('should correctly map all border radius values', () => {
+      expect(mapSnapBorderRadiusToExtensionBorderRadius('none')).toBe(0);
+      expect(mapSnapBorderRadiusToExtensionBorderRadius('medium')).toBe(6);
+      expect(mapSnapBorderRadiusToExtensionBorderRadius('full')).toBe(9999);
+      expect(mapSnapBorderRadiusToExtensionBorderRadius(undefined)).toBe(0);
+      expect(mapSnapBorderRadiusToExtensionBorderRadius('invalid-value')).toBe(
+        0,
+      );
     });
   });
 });
