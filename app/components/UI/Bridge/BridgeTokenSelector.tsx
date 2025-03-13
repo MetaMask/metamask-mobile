@@ -23,6 +23,8 @@ import { strings } from '../../../../locales/i18n';
 import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
 import { useTokenSearch } from './useTokenSearch';
 import TextFieldSearch from '../../../component-library/components/Form/TextFieldSearch';
+import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -151,6 +153,13 @@ export const BridgeTokenSelector: React.FC = () => {
             </Box>
           </BottomSheetHeader>
 
+          <Box>
+            <Button
+              onPress={() => navigation.navigate(Routes.SHEET.BRIDGE_NETWORK_SELECTOR)}
+              variant={ButtonVariants.Primary}
+              label="All networks"
+            />
+          </Box>
           <TextFieldSearch
             value={searchString}
             onChangeText={handleSearchTextChange}
