@@ -6,7 +6,7 @@ import { performSignIn } from '../../../../actions/identity';
 /**
  * Custom hook to manage sign-in
  * Use this hook to manually sign in the user.
- * Any automatic sign-in should be handled by the `MetamaskIdentityProvider` with the `useAutoSignIn` hook.
+ * Any automatic sign-in should be handled by the `useIdentityEffects->useAutoSignIn` hook.
  *
  * This hook encapsulates the logic for initiating a sign-in process if the user is not already signed in
  * and at least one auth dependent feature is enabled. It needs the user to have basic functionality on.

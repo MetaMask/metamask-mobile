@@ -195,10 +195,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         await waitFor(() => {
           expect(mockAutoSignIn).toHaveBeenCalled();
         });
-        fireEvent(metaMetricsSwitch, 'valueChange', true);
-        await waitFor(() => {
-          expect(mockAutoSignIn).toHaveBeenCalled();
-        });
       });
 
       it('alerts and disables marketing when turned off', async () => {

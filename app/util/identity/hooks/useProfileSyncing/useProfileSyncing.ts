@@ -6,7 +6,7 @@ import {
 
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in
- * and enabling profile syncing via dispatch actions.
+ * and enabling profile syncing.
  *
  * @returns An object containing the `enableProfileSyncing` function, loading state, and error state.
  */
