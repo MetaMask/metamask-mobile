@@ -23,7 +23,6 @@ import {
   selectCurrentCurrency,
 } from '../currencyRateController';
 import { createDeepEqualSelector } from '../util';
-import { isPortfolioViewEnabled } from '../../util/networks';
 import { getTicker } from '../../util/transactions';
 import { zeroAddress } from 'ethereumjs-util';
 
