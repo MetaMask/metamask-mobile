@@ -3,7 +3,14 @@ import { getAccountsControllerMessenger } from './accounts-controller-messenger'
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { getCronjobControllerMessenger } from './cronjob-controller-messenger/cronjob-controller-messenger';
+import {
+  getCronjobControllerMessenger,
+  getExecutionServiceMessenger,
+  getSnapControllerInitMessenger,
+  getSnapControllerMessenger,
+  getSnapInterfaceControllerMessenger,
+  getSnapsRegistryMessenger,
+} from './snaps';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets-rates-controller-messenger/multichain-assets-rates-controller-messenger';
@@ -15,7 +22,6 @@ import {
   getTransactionControllerInitMessenger,
   getTransactionControllerMessenger,
 } from './transaction-controller-messenger';
-
 
 /**
  * The messengers for the controllers that have been.
@@ -40,6 +46,22 @@ export const CONTROLLER_MESSENGERS = {
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   CronjobController: {
     getMessenger: getCronjobControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ExecutionService: {
+    getMessenger: getExecutionServiceMessenger,
+    getInitMessenger: noop,
+  },
+  SnapController: {
+    getMessenger: getSnapControllerMessenger,
+    getInitMessenger: getSnapControllerInitMessenger,
+  },
+  SnapInterfaceController: {
+    getMessenger: getSnapInterfaceControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SnapsRegistry: {
+    getMessenger: getSnapsRegistryMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF

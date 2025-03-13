@@ -259,10 +259,16 @@ const Main = (props) => {
       //set here token network filter if portfolio view is enabled
       if (isPortfolioViewEnabled()) {
         const { PreferencesController } = Engine.context;
-        PreferencesController.setTokenNetworkFilter({
-          ...(isAllNetworks ? tokenNetworkFilter : {}),
-          [chainId]: true,
-        });
+        if (Object.keys(tokenNetworkFilter).length === 1) {
+          PreferencesController.setTokenNetworkFilter({
+            [chainId]: true,
+          });
+        } else {
+          PreferencesController.setTokenNetworkFilter({
+            ...tokenNetworkFilter,
+            [chainId]: true,
+          });
+        }
       }
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
