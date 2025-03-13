@@ -3,6 +3,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import useHandleTx from './useHandleTx';
 import { QuoteResponse, FeeType } from '../../../components/UI/Bridge/types';
 import { addHexPrefix } from '../../number';
+import { Hex } from '@metamask/utils';
 
 export default function useHandleBridgeTx() {
   const { handleTx } = useHandleTx();
@@ -25,7 +26,7 @@ export default function useHandleBridgeTx() {
       txType: TransactionType.bridge,
       txParams: quoteResponse.trade,
       fieldsToAddToTxMeta: {
-        destinationChainId: addHexPrefix(String(quoteResponse.quote.destChainId)).toLowerCase() as `0x${string}`,
+        destinationChainId: addHexPrefix(String(quoteResponse.quote.destChainId)).toLowerCase() as Hex,
         // estimatedBaseFee: decEstimatedBaseFee,
 
         sourceTokenAmount: quoteResponse.quote.srcTokenAmount,

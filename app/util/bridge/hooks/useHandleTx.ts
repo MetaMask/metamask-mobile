@@ -11,19 +11,20 @@ import { EthGasPriceEstimate, GasFeeEstimates, LegacyGasPriceEstimate } from '@m
 import BigNumber from 'bignumber.js';
 import { getTransaction1559GasFeeEstimates } from '../../../components/UI/Swaps/utils/gas';
 import { addTransaction, updateTransaction } from '../../transaction-controller';
+import { Hex } from '@metamask/utils';
 
 const DEFAULT_GAS_FEE_OPTION_LEGACY = AppConstants.GAS_OPTIONS.MEDIUM;
 
 async function getGasFeeEstimatesForTransaction(
   transaction: TxData,
   gasEstimates: GasFeeEstimates | EthGasPriceEstimate | LegacyGasPriceEstimate | Record<string, never>,
-  { chainId, isEIP1559Network }: { chainId: `0x${string}`, isEIP1559Network: boolean },
+  { chainId, isEIP1559Network }: { chainId: Hex, isEIP1559Network: boolean },
 ) {
   if (isEIP1559Network) {
     const transactionGasFeeEstimates = await getTransaction1559GasFeeEstimates(
       {
         ...transaction,
-        chainId: transaction.chainId.toString() as `0x${string}`,
+        chainId: transaction.chainId.toString() as Hex,
         gasLimit: transaction.gasLimit?.toString(),
       },
       chainId,
@@ -57,7 +58,7 @@ export default function useHandleTx() {
     const gasFeeEstimates = await getGasFeeEstimatesForTransaction(
       txParams,
       gasEstimates,
-      { chainId: chainId as `0x${string}`, isEIP1559Network },
+      { chainId: chainId as Hex, isEIP1559Network },
     );
 
     const gasLimitHex = BNToHex(new BigNumber(txParams.gasLimit ?? 0));

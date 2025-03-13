@@ -6,6 +6,7 @@ import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import { decimalToHex } from '../../conversions';
 import { addHexPrefix } from 'ethereumjs-util';
 import { PopularList } from '../../networks/customNetworks';
+import { Hex } from '@metamask/utils';
 
 export default function useAddToken() {
   const networkConfigurations = useSelector(selectEvmNetworkConfigurationsByChainId);
@@ -29,7 +30,7 @@ export default function useAddToken() {
 
   const addDestToken = async (quoteResponse: QuoteResponse) => {
     // Look up the destination chain
-    const hexDestChainId = addHexPrefix(String(decimalToHex(quoteResponse.quote.destChainId))) as `0x${string}`;
+    const hexDestChainId = addHexPrefix(String(decimalToHex(quoteResponse.quote.destChainId))) as Hex;
     const foundDestNetworkConfig: NetworkConfiguration | undefined =
       networkConfigurations[hexDestChainId];
     let addedDestNetworkConfig: NetworkConfiguration | undefined;

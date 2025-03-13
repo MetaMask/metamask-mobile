@@ -65,7 +65,7 @@ export default function useHandleApprovalTx() {
     try {
       // On Ethereum, we need to reset the allowance to 0 for USDT first if we need to set a new allowance
       // https://docs.unizen.io/trade-api/before-you-get-started/token-allowance-management-for-non-updatable-allowance-tokens
-      const hexChainId = addHexPrefix(String(decimalToHex(approval.chainId))) as `0x${string}`;
+      const hexChainId = addHexPrefix(String(decimalToHex(approval.chainId))) as Hex;
       if (isEthUsdt(hexChainId, quoteResponse.quote.srcAsset.address)) {
         await handleEthUsdtAllowanceReset({
           approval,
