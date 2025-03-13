@@ -19,7 +19,7 @@ export const defiPositionsControllerInit: ControllerInitFunction<
   const controller = new DeFiPositionsController({
     messenger: controllerMessenger,
     state: persistedState.DeFiPositionsController,
-    apiUrl: 'http://localhost:3000',
+    apiUrl: 'http://localhost:3000/positions',
   });
 
   return { controller };

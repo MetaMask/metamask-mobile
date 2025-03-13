@@ -1944,6 +1944,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      DeFiPositionsController,
     } = instance.datamodel.state;
 
     return {
@@ -1991,6 +1992,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      DeFiPositionsController,
     };
   },
 

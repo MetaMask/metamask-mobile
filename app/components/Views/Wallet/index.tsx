@@ -111,6 +111,7 @@ import { selectDeFiPositionsByAddress } from '../../../selectors/defiPositionsCo
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import NonEvmTokens from '../../UI/NonEvmTokens';
 ///: END:ONLY_INCLUDE_IF
+import Logger from '../../../util/Logger';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -254,6 +255,8 @@ const Wallet = ({
   );
 
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
+
+  Logger.log('DEFI POSITIONS', defiPositions);
 
   useEffect(() => {
     if (
