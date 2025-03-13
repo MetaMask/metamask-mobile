@@ -4515,7 +4515,7 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^24.0.1":
+"@metamask/accounts-controller@^24.1.0":
   version "24.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-24.1.0.tgz#749c2e9617610c058c38fa355a680152e81e08dd"
   integrity sha512-Yip2kbWEc0p0axaIB5accPHsrnON8p2277xPIklRNcJnMxjnkzDdqUQy8nc2eSiQoFsWnQLErDLeoSt4pgfooA==
@@ -4554,10 +4554,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^50.0.0":
-  version "50.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-50.0.0.tgz#de2e30659a32ac9371cfc055c1c4107336145808"
-  integrity sha512-mPT5g0GovgxQrZp7n/U85qxECbbezSdEL7Da5tGlbE5LkEwcEaYYBwVnlrE7Tv1cOrrW/GENlR1eG0nyDPvVlQ==
+"@metamask/assets-controllers@^51.0.2":
+  version "51.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-51.0.2.tgz#fc8ed8981fce62e4c7327393faffc2017874644d"
+  integrity sha512-dEJJw6qc5HMEiMJUTOrKhTYTMS8tuf3+gofZ9PHGSvPibUx/DivC1L3bouiMNgi2xzzH9ktfmkFyCN1lzFk22w==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4570,12 +4570,12 @@
     "@metamask/contract-metadata" "^2.4.0"
     "@metamask/controller-utils" "^11.5.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/keyring-api" "^17.0.0"
+    "@metamask/keyring-api" "^17.2.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^12.0.3"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/snaps-utils" "^8.10.0"
-    "@metamask/utils" "^11.1.0"
+    "@metamask/utils" "^11.2.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.5.0"
@@ -4607,6 +4607,34 @@
   version "0.9.0"
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
+
+"@metamask/bridge-controller@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-3.0.0.tgz#7dc45f8ba3a451d1e1c505dfb26f45aa4143cd09"
+  integrity sha512-7k2s3FxQorz/vi7XWmmXIjI7QNcmtoUBNZtXzAwu4W44YAZdY3ojVdA20qCnHQW1NkSHn44eaacfZynqiZmQ1Q==
+  dependencies:
+    "@ethersproject/address" "^5.7.0"
+    "@ethersproject/bignumber" "^5.7.0"
+    "@ethersproject/constants" "^5.7.0"
+    "@ethersproject/contracts" "^5.7.0"
+    "@ethersproject/providers" "^5.7.0"
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/metamask-eth-abis" "^3.1.1"
+    "@metamask/polling-controller" "^12.0.3"
+    "@metamask/utils" "^11.2.0"
+
+"@metamask/bridge-status-controller@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-3.0.0.tgz#472416e8f8e2c3ea159560f95c3078a351f87c73"
+  integrity sha512-SRXiIk7TNs2vUmckILHkaev3IGtpwUwoX8b+Hcg0VQ3aEH/8+cQFSLh3JHRfFHTkj9vTrsYRUj4qobMGIjElUQ==
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/bridge-controller" "^3.0.0"
+    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/polling-controller" "^12.0.3"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.2.0"
 
 "@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
@@ -5717,10 +5745,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.6.0":
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.10.0.tgz#5cf2f13363c2ceae51ff41437a624514101aba4b"
-  integrity sha512-1Oq93o45dE/On6rPyEI8laEfhVie/InaAtEtvs/8BTiN1/JFhd8B8GH6GBjdPaqrnzIIuP21iSRVldVIwJ1ohA==
+"@metamask/solana-wallet-snap@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.9.0.tgz#89b4b2ea80d9591b62958cd668cb595efd366b98"
+  integrity sha512-oDI6aBFHCnfYNTGKDxyAZdXvW5CsA/wVD9arVEsl5kLi2U7xZ1WERILU/buDEC3Q5bNelyK4bw8xLwXENIiWpw==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"
