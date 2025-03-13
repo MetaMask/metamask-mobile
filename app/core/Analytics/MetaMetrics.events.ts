@@ -76,6 +76,7 @@ enum EVENT_NAME {
   COLLECTIBLE_ADDED = 'Collectible Added',
   COLLECTIBLE_DETAILS_OPENED = 'Collectible Details Opened',
   COLLECTIBLE_REMOVED = 'Collectible Removed',
+  TOKEN_LIST_ITEM_PRESSED = 'Token List Item Pressed',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
@@ -995,6 +996,7 @@ const events = {
   EARN_TOKEN_LIST_ITEM_CLICKED: generateOpt(
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
+  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
 };
 
 /**
