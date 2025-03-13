@@ -2,12 +2,11 @@
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { isTestNet, isPortfolioViewEnabled } from '../../../util/networks';
-import { renderFiat } from '../../../util/number';
 import {
   selectChainId,
   selectIsPopularNetwork,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../../../selectors/preferencesController';
@@ -18,7 +17,7 @@ import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCros
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import useIsOriginalNativeTokenSymbol from '../useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { UseMultichainBalancesHook } from './useMultichainBalances.types';
-
+import { formatWithThreshold } from '../../../util/assets';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   selectMultichainSelectedAccountCachedBalance,
@@ -28,6 +27,8 @@ import {
 } from '../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
+// eslint-disable-next-line import/no-extraneous-dependencies
+import I18n from 'i18n-js';
 
 /**
  * Hook to manage portfolio balance data across chains.
@@ -45,7 +46,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   );
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const { type } = useSelector(selectProviderConfig);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
 
   // Production hooks (EVM)
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
@@ -99,7 +100,10 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       total = balance?.tokenFiat ?? 0;
     }
 
-    return renderFiat(total, currentCurrency);
+    return formatWithThreshold(total, 0, I18n.locale, {
+      style: 'currency',
+      currency: currentCurrency.toUpperCase(),
+    });
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -110,7 +114,10 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   ) => {
     const multichainBalance = Number(nativeTokenBalance);
     const fiatBalance = multichainBalance * conversionRate;
-    return renderFiat(fiatBalance, currency);
+    return formatWithThreshold(fiatBalance, 0, I18n.locale, {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+    });
   };
 
   const getNonEvmDisplayBalance = () => {
@@ -161,6 +168,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   return {
     multichainBalances: {
       displayBalance: getDisplayBalance(),
+      displayCurrency: currentCurrency,
       tokenFiatBalancesCrossChains:
         totalFiatBalancesCrossChain[selectedInternalAccount?.address as string]
           ?.tokenFiatBalancesCrossChains ?? [],

@@ -1,4 +1,4 @@
-import { JSXElement, GenericSnapElement , Text } from '@metamask/snaps-sdk/jsx';
+import { JSXElement, GenericSnapElement, Text } from '@metamask/snaps-sdk/jsx';
 import { hasChildren } from '@metamask/snaps-utils';
 import { memoize } from 'lodash';
 import { sha256 } from '@noble/hashes/sha256';
@@ -192,3 +192,23 @@ export const FIELD_ELEMENT_TYPES = [
  */
 export const getPrimaryChildElementIndex = (children: JSXElement[]) =>
   children.findIndex((c) => FIELD_ELEMENT_TYPES.includes(c.type));
+
+/**
+ * Map Snap custom size for border radius to mobile compatible size.
+ *
+ * @param snapBorderRadius - Snap custom border radius.
+ * @returns Number, representing border radius size used in mobile design system.
+ */
+export const mapSnapBorderRadiusToMobileBorderRadius = (
+  snapBorderRadius: string | undefined,
+): number => {
+  switch (snapBorderRadius) {
+    case 'none':
+    default:
+      return 0;
+    case 'medium':
+      return 6;
+    case 'full':
+      return 9999;
+  }
+};

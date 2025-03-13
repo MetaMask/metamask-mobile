@@ -51,16 +51,17 @@ jest.mock(
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
   selectShouldUseSmartTransaction: () => false,
+  selectPendingSmartTransactionsBySender: () => [],
 }));
 
 jest.mock('../../../../../reducers/swaps', () => ({
   swapsStateSelector: () => ({
     featureFlags: {
       smart_transactions: {
-        mobile_active: false
-      }
-    }
-  })
+        mobile_active: false,
+      },
+    },
+  }),
 }));
 
 const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';

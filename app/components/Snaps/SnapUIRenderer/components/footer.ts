@@ -1,9 +1,9 @@
 import { FooterElement, ButtonElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { UIComponent, UIComponentFactory, UIComponentParams } from './types';
-import { ButtonVariant } from '@metamask/snaps-sdk';
 import { button as buttonFn } from './button';
-import { TemplateConfirmation } from '../../SnapDialogApproval/SnapsDialogApproval';
+import { TemplateConfirmation } from '../../SnapDialogApproval/SnapDialogApproval';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 export const DEFAULT_FOOTER = {
   element: 'Box',
@@ -37,7 +37,7 @@ const getDefaultButtons = (
       key: 'default-button',
       props: {
         onCancel,
-        variant: ButtonVariant.Secondary,
+        variant: ButtonVariants.Secondary,
         isSnapAction: false,
       },
       children: t(TemplateConfirmation.CANCEL),
@@ -73,8 +73,8 @@ export const footer: UIComponentFactory<FooterElement> = ({
         ...buttonMapped.props,
         variant:
           providedChildren.length === 2 && index === 0
-            ? ButtonVariant.Secondary
-            : ButtonVariant.Primary,
+            ? ButtonVariants.Secondary
+            : ButtonVariants.Primary,
         isSnapAction: true,
         onCancel,
       },
