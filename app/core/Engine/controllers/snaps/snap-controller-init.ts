@@ -1,5 +1,5 @@
 import { SnapController } from '@metamask/snaps-controllers';
-import { hasProperty } from '@metamask/utils';
+import { Duration, hasProperty, inMilliseconds } from '@metamask/utils';
 import { ControllerInitFunction } from '../../types';
 import {
   SnapControllerInitMessenger,
@@ -93,6 +93,7 @@ export const snapControllerInit: ControllerInitFunction<
     // expected type.
     // TODO: Look into the type mismatch.
     messenger: controllerMessenger,
+    maxIdleTime: inMilliseconds(5, Duration.Minute),
     featureFlags: {
       allowLocalSnaps,
       disableSnapInstallation,
