@@ -55,6 +55,9 @@ const createStyles = (params: { theme: Theme }) => {
       marginVertical: 10,
       marginHorizontal: 24,
     },
+    networksButton: {
+      borderColor: theme.colors.border.muted,
+    },
   });
 };
 
@@ -125,6 +128,15 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString, styles],
   );
 
+  const navigateToNetworkSelector = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+      params: {
+        testing: 'testing',
+      },
+    });
+  }, [navigation]);
+
   return (
     <BottomSheet isFullscreen>
       <Box style={styles.content}>
@@ -153,11 +165,11 @@ export const BridgeTokenSelector: React.FC = () => {
             </Box>
           </BottomSheetHeader>
 
-          <Box>
             <Button
-              onPress={() => navigation.navigate(Routes.SHEET.BRIDGE_NETWORK_SELECTOR)}
-              variant={ButtonVariants.Primary}
+              onPress={navigateToNetworkSelector}
+              variant={ButtonVariants.Secondary}
               label={strings('bridge.all_networks')}
+              style={styles.networksButton }
             />
           </Box>
           <TextFieldSearch
@@ -181,7 +193,6 @@ export const BridgeTokenSelector: React.FC = () => {
           initialNumToRender={20}
           keyboardShouldPersistTaps="always"
         />
-      </Box>
     </BottomSheet>
   );
 };

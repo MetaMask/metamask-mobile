@@ -3728,6 +3728,7 @@
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
     "select_network": "Select network",
-    "all_networks": "All networks"
+    "all_networks": "All networks",
+    "select_all_networks": "Select all networks"
   }
 }

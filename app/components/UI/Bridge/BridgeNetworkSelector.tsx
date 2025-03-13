@@ -20,6 +20,7 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { addCurrencySymbol, renderNumber } from '../../../util/number';
+import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -71,7 +72,14 @@ const createStyles = (params: { theme: Theme }) => {
   });
 };
 
-export const BridgeNetworkSelector: React.FC = () => {
+interface Props {
+  route: {
+    params: {
+      testing: string;
+    };
+  };
+}
+export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
   const { styles, theme } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
@@ -152,6 +160,13 @@ export const BridgeNetworkSelector: React.FC = () => {
             </Box>
           </BottomSheetHeader>
         </Box>
+
+        <Button
+          label={strings('bridge.select_all_networks')}
+          // TODO: Implement all networks selection logic
+          onPress={() => {}}
+          variant={ButtonVariants.Link}
+        />
 
         <Box style={styles.listContent}>
           {sortedNetworks.map((chain) => {
