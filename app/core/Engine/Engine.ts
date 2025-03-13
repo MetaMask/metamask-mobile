@@ -169,6 +169,10 @@ import {
   snapControllerInit,
   snapInterfaceControllerInit,
   snapsRegistryInit,
+  SnapControllerClearSnapStateAction,
+  SnapControllerGetSnapAction,
+  SnapControllerGetSnapStateAction,
+  SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
@@ -194,12 +198,6 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import {
-  SnapControllerClearSnapStateAction,
-  SnapControllerGetSnapAction,
-  SnapControllerGetSnapStateAction,
-  SnapControllerUpdateSnapStateAction,
-} from './controllers/snaps';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
