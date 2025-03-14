@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import { Octokit } from "@octokit/rest";
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 
@@ -57,7 +58,13 @@ export interface GithubComment {
   body_text?: string;
   body_html?: string;
   html_url: string;
+  user?: {
+    name?: string | null;
+  } | null;
+  reactions?: {
+  };
 }
+
 
 export function printTime () {
   const date = new Date();
@@ -202,6 +209,7 @@ export async function getAllBitriseComments(): Promise<GithubComment[]> {
   const { owner, repo, number: pullRequestNumber } = context.issue;
 
   let allComments: GithubComment[] = [];
+
   let page = 1;
 
   while (true) {
@@ -216,6 +224,7 @@ export async function getAllBitriseComments(): Promise<GithubComment[]> {
     });
 
     allComments = allComments.concat(comments);
+
     if (comments.length < 100 || !headers.link || !headers.link.includes('rel="next"')) {
       break; // No more pages to fetch if fewer than 100 comments are returned or no next link
     }
