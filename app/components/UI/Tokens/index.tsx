@@ -37,14 +37,10 @@ import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import {
-  selectIsTokenNetworkFilterEqualCurrentNetwork,
-  selectTokenSortConfig,
-} from '../../../selectors/preferencesController';
+import { selectTokenSortConfig } from '../../../selectors/preferencesController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootState } from '../../../reducers';
 import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import {
   selectCurrentCurrency,
@@ -57,10 +53,7 @@ import {
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import {
-  selectAccountTokensAcrossChains,
-  selectEvmTokens,
-} from '../../../selectors/multichain';
+import { selectEvmTokens } from '../../../selectors/multichain';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -103,7 +96,6 @@ const Tokens = memo(() => {
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
-  useTokenBalancesController();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
@@ -113,13 +105,6 @@ const Tokens = memo(() => {
 
   const evmNetworkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
-  );
-
-  const hideZeroBalanceTokens = useSelector(
-    (state: RootState) => state.settings.hideZeroBalanceTokens,
-  );
-  const isUserOnCurrentNetwork = useSelector(
-    selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -132,10 +117,6 @@ const Tokens = memo(() => {
       ),
     ),
   ];
-
-  const selectedAccountTokensChains = useSelector(
-    selectAccountTokensAcrossChains,
-  );
 
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
