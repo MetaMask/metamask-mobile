@@ -265,7 +265,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             asset.chainId as Hex,
           );
 
-        if (!networkConfiguration) {
+        if (!networkConfiguration && isAssetFromSearch(asset)) {
           const network = PopularList.find((popularNetwork) => popularNetwork.chainId === asset.chainId);
           if (network) {
             try {
