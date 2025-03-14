@@ -123,8 +123,6 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString, styles],
   );
 
-  console.log('searchString', searchString);
-
   return (
     <BottomSheet isFullscreen>
       <Box style={styles.content}>
