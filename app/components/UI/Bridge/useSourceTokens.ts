@@ -33,7 +33,11 @@ const calculateBalances = ({
   multiChainCurrencyRates,
   currentCurrency,
   selectedAddress
-}: CalculateFiatBalancesParams) =>
+}: CalculateFiatBalancesParams): {
+  tokenFiatAmount: number;
+  balance: string;
+  balanceFiat: string;
+}[] =>
   assets.map((token) => {
     const chainId = token.chainId as Hex;
     const multiChainExchangeRates = multiChainMarketData?.[chainId];
