@@ -93,8 +93,6 @@ export const useSourceTokens = () => {
   // Chain ids to filter by
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
 
-  console.log('HELLO selectedSourceChainIds', selectedSourceChainIds, accountTokensAcrossChains);
-
   const sortedTokens = useMemo(() => {
     const allAccountTokens = (
       Object.values(accountTokensAcrossChains).flat() as TokenI[]
