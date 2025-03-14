@@ -251,7 +251,7 @@ TransactionsView.propTypes = {
   /**
    * Array of network tokens filter
    */
-  tokenNetworkFilter: PropTypes.array,
+  tokenNetworkFilter: PropTypes.object,
 };
 
 const mapStateToProps = (state) => {

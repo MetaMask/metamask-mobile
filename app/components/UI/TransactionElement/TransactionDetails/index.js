@@ -422,11 +422,9 @@ class TransactionDetails extends PureComponent {
             >
               {blockExplorerUrl ? (
                 <Text reset style={styles.viewOnEtherscan}>
-                  {(rpcBlockExplorer &&
-                    `${strings('transactions.view_on')} ${getBlockExplorerName(
-                      blockExplorerUrl,
-                    )}`) ||
-                    strings('transactions.view_on_etherscan')}
+                  {`${strings('transactions.view_on')} ${getBlockExplorerName(
+                    blockExplorerUrl,
+                  )}`}
                 </Text>
               ) : null}
             </TouchableOpacity>
