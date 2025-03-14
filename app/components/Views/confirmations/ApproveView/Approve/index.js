@@ -859,7 +859,7 @@ class Approve extends PureComponent {
             savedContactListToArray={savedContactListToArray}
             addressNickname={addressNickname}
             providerType={providerType}
-            providerChainId={providerChainId}
+            providerChainId={chainId}
             providerRpcTarget={providerRpcTarget}
             networkConfigurations={networkConfigurations}
           />
