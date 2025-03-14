@@ -11,6 +11,7 @@ import { SegmentedControlStyleSheetVars } from './SegmentedControl.types';
  * Style sheet function for SegmentedControl component.
  *
  * @param params Style sheet params.
+ * @param params.theme App theme from ThemeContext.
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
@@ -19,26 +20,26 @@ const styleSheet = (params: {
   vars: SegmentedControlStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style } = vars;
+  const { style, isButtonWidthFlexible } = vars;
 
   return StyleSheet.create({
     base: Object.assign(
       {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'flex-start',
+        justifyContent: 'center',
+        gap: 12,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+
     buttonContainer: {
-      marginRight: 12,
+      // Only use flex: 1 when buttons should have equal widths (default)
+      ...(isButtonWidthFlexible ? {} : { flex: 1 }),
+      alignItems: 'center',
+      justifyContent: 'center',
     } as ViewStyle,
-    button: {
-      marginRight: 0,
-    } as ViewStyle,
-    lastButton: {
-      marginRight: 0,
-    } as ViewStyle,
+
     scrollContentContainer: {
       alignItems: 'center',
     } as ViewStyle,

@@ -56,6 +56,14 @@ export interface BaseSegmentedControlProps extends ViewProps {
   size?: ButtonSize;
 
   /**
+   * Whether buttons should size to their content instead of having equal widths.
+   * When false (default), all buttons have equal widths filling the container.
+   * When true, buttons will size based on their content.
+   * @default false
+   */
+  isButtonWidthFlexible?: boolean;
+
+  /**
    * Whether the control is disabled
    * @default false
    */
@@ -125,4 +133,5 @@ export type SegmentedControlProps =
 export interface SegmentedControlStyleSheetVars {
   style?: ViewProps['style'];
   size?: ButtonSize;
+  isButtonWidthFlexible?: boolean;
 }

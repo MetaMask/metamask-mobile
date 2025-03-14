@@ -13,14 +13,17 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
     {
       "alignItems": "center",
       "flexDirection": "row",
-      "justifyContent": "flex-start",
+      "gap": 12,
+      "justifyContent": "center",
     }
   }
 >
   <View
     style={
       {
-        "marginRight": 12,
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
       }
     }
   >
@@ -58,14 +61,16 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           }
         }
       >
-        Mode 1
+        Mode 1 2 3 4 
       </Text>
     </TouchableOpacity>
   </View>
   <View
     style={
       {
-        "marginRight": 12,
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
       }
     }
   >
@@ -78,7 +83,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       style={
         {
           "alignItems": "center",
-          "alignSelf": "flex-start",
+          "alignSelf": "stretch",
           "backgroundColor": "transparent",
           "borderColor": "#848c96",
           "borderRadius": 20,
@@ -110,7 +115,9 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
   <View
     style={
       {
-        "marginRight": 12,
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
       }
     }
   >
@@ -123,7 +130,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       style={
         {
           "alignItems": "center",
-          "alignSelf": "flex-start",
+          "alignSelf": "stretch",
           "backgroundColor": "#0376C91A",
           "borderColor": "#0376c9",
           "borderRadius": 20,
@@ -152,7 +159,15 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       </Text>
     </TouchableOpacity>
   </View>
-  <View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
+      }
+    }
+  >
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}
@@ -162,7 +177,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
       style={
         {
           "alignItems": "center",
-          "alignSelf": "flex-start",
+          "alignSelf": "stretch",
           "backgroundColor": "transparent",
           "borderColor": "#848c96",
           "borderRadius": 20,
@@ -202,14 +217,17 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
     {
       "alignItems": "center",
       "flexDirection": "row",
-      "justifyContent": "flex-start",
+      "gap": 12,
+      "justifyContent": "center",
     }
   }
 >
   <View
     style={
       {
-        "marginRight": 12,
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
       }
     }
   >
@@ -247,14 +265,16 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           }
         }
       >
-        Mode 1
+        Mode 1 2 3 4 
       </Text>
     </TouchableOpacity>
   </View>
   <View
     style={
       {
-        "marginRight": 12,
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
       }
     }
   >
@@ -267,7 +287,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       style={
         {
           "alignItems": "center",
-          "alignSelf": "flex-start",
+          "alignSelf": "stretch",
           "backgroundColor": "transparent",
           "borderColor": "#848c96",
           "borderRadius": 20,
@@ -299,7 +319,9 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
   <View
     style={
       {
-        "marginRight": 12,
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
       }
     }
   >
@@ -312,7 +334,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       style={
         {
           "alignItems": "center",
-          "alignSelf": "flex-start",
+          "alignSelf": "stretch",
           "backgroundColor": "transparent",
           "borderColor": "#848c96",
           "borderRadius": 20,
@@ -341,7 +363,15 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       </Text>
     </TouchableOpacity>
   </View>
-  <View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
+      }
+    }
+  >
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}
@@ -351,7 +381,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
       style={
         {
           "alignItems": "center",
-          "alignSelf": "flex-start",
+          "alignSelf": "stretch",
           "backgroundColor": "transparent",
           "borderColor": "#848c96",
           "borderRadius": 20,

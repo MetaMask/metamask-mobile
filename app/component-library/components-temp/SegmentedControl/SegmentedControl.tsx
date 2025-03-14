@@ -5,6 +5,7 @@ import { View, ScrollView } from 'react-native';
 // External dependencies.
 import { useStyles } from '../../hooks';
 import ButtonToggle from '../../components-temp/Buttons/ButtonToggle';
+import { ButtonWidthTypes } from '../../components/Buttons/Button/Button.types';
 
 // Internal dependencies.
 import {
@@ -18,6 +19,7 @@ import { DEFAULT_SEGMENTEDCONTROL_SIZE } from './SegmentedControl.constants';
 const SegmentedControl = ({
   options,
   size = DEFAULT_SEGMENTEDCONTROL_SIZE,
+  isButtonWidthFlexible = false,
   isDisabled = false,
   isMultiSelect = false,
   isScrollable = false,
@@ -27,6 +29,7 @@ const SegmentedControl = ({
   const { styles } = useStyles(styleSheet, {
     style,
     size,
+    isButtonWidthFlexible,
   });
 
   // Single select state
@@ -153,23 +156,23 @@ const SegmentedControl = ({
 
   // Render the buttons with gap between them
   const renderButtons = () =>
-    options.map((option, index) => {
+    options.map((option) => {
       // Extract standard props and any additional props that might be in the option
       const { value, label, ...optionProps } = option;
 
       return (
-        <View
-          key={value}
-          style={
-            index < options.length - 1 ? styles.buttonContainer : undefined
-          }
-        >
+        <View key={value} style={styles.buttonContainer}>
           <ButtonToggle
             label={label}
             isActive={isOptionActive(value)}
             onPress={() => handleButtonPress(value)}
             size={size}
             isDisabled={isDisabled}
+            width={
+              isButtonWidthFlexible
+                ? ButtonWidthTypes.Auto
+                : ButtonWidthTypes.Full
+            }
             {...optionProps}
           />
         </View>
