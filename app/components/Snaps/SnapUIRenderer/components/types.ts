@@ -9,6 +9,7 @@ export interface UIComponentParams<T extends JSXElement> {
   onCancel?: () => void;
   t: (key: string) => string;
   theme: Theme;
+  inheritedSize?: string;
 }
 
 export interface UIComponent {

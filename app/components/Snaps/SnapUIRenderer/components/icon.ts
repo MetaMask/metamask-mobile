@@ -35,12 +35,13 @@ export const icon: UIComponentFactory<IconElement> = ({ element }) => {
     }
   };
 
+  console.log('ICON SIZE', element.props.size);
+
   const getIconSize = () => {
     switch (element.props.size) {
       case 'md':
         return IconSize.Md;
       default:
-        // TODO: In the extension this inherits the size of the parent.
         return IconSize.Sm;
     }
   };
