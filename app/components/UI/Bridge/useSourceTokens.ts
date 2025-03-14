@@ -62,8 +62,8 @@ const calculateBalances = ({
       currentCurrency || '',
     );
     return {
-      tokenFiatAmount: res.balanceFiatCalculation,
-      balance: res.balance,
+      tokenFiatAmount: res.balanceFiatCalculation ?? 0,
+      balance: res.balance ?? '0',
       balanceFiat: res.balanceFiat,
     };
   });
