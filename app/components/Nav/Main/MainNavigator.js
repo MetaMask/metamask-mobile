@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useContext } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -215,14 +215,14 @@ export const DrawerContext = React.createContext({
 const BrowserFlow = () => (
   <Stack.Navigator
     initialRouteName={Routes.BROWSER.VIEW}
-      mode={'modal'}
-      screenOptions={{
-        cardStyle: { backgroundColor: importedColors.transparent },
-      }}
-    >
-      <Stack.Screen
-        name={Routes.BROWSER.VIEW}
-        component={Browser}
+    mode={'modal'}
+    screenOptions={{
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+  >
+    <Stack.Screen
+      name={Routes.BROWSER.VIEW}
+      component={Browser}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -407,8 +407,8 @@ const SettingsFlow = () => (
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const drawerRef = useRef(null);
-  const accountsLength = useSelector(selectAccountsLength);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
+  const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -519,7 +519,7 @@ const HomeTabs = () => {
   }, []);
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
-    if (!isKeyboardHidden) {
+    if (isKeyboardHidden) {
       return (
         <TabBar
           state={state}
