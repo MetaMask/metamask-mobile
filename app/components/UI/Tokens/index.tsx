@@ -100,9 +100,9 @@ const Tokens = memo(() => {
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
+  useTokenBalancesController();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
@@ -119,9 +119,7 @@ const Tokens = memo(() => {
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId);
   const nativeCurrencies = [
