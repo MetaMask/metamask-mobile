@@ -145,6 +145,7 @@ import {
   SnapController,
   AllowedActions as SnapsAllowedActions,
   AllowedEvents as SnapsAllowedEvents,
+  ExecutionService,
   PersistedSnapControllerState,
   SnapControllerEvents,
   SnapControllerActions,
@@ -445,6 +446,7 @@ export type Controllers = {
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ExecutionService: ExecutionService;
   SnapController: SnapController;
   SnapsRegistry: SnapsRegistry;
   SubjectMetadataController: SubjectMetadataController;
@@ -560,6 +562,10 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 export type ControllersToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'CronjobController'
+  | 'ExecutionService'
+  | 'SnapController'
+  | 'SnapInterfaceController'
+  | 'SnapsRegistry'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'

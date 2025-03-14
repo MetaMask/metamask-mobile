@@ -189,13 +189,16 @@ const OrderDetails = () => {
     () => {
       handleOnRefresh({ fromInterval: true });
     },
-    !isLoading &&
-      !isRefreshingInterval &&
-      order &&
-      order.state === FIAT_ORDER_STATES.CREATED &&
-      order.sellTxHash
-      ? AppConstants.FIAT_ORDERS.POLLING_FREQUENCY
-      : null,
+    {
+      delay:
+        !isLoading &&
+        !isRefreshingInterval &&
+        order &&
+        order.state === FIAT_ORDER_STATES.CREATED &&
+        order.sellTxHash
+          ? AppConstants.FIAT_ORDERS.POLLING_FREQUENCY
+          : null,
+    },
   );
 
   if (!order) {
