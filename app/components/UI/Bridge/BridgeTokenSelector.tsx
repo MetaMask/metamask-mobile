@@ -45,17 +45,9 @@ const createStyles = (params: { theme: Theme }) => {
     listContent: {
       padding: 4,
     },
-    inputWrapper: {
+    input: {
       marginHorizontal: 24,
       marginVertical: 10,
-    },
-    searchIcon: {
-      marginRight: 8,
-    },
-    input: {
-      flex: 1,
-      color: theme.colors.text.default,
-      fontSize: 16,
     },
     emptyList: {
       marginVertical: 10,
@@ -165,7 +157,7 @@ export const BridgeTokenSelector: React.FC = () => {
             value={searchString}
             onChangeText={handleSearchTextChange}
             placeholder={strings('swaps.search_token')}
-            style={styles.inputWrapper}
+            style={styles.input}
           />
         </Box>
 
