@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/smart-transactions-controller/dist/SmartTransactionsController.js b/node_modules/@metamask/smart-transactions-controller/dist/SmartTransactionsController.js
-index c11179c..c600394 100644
+index 95ca6f9..c600394 100644
 --- a/node_modules/@metamask/smart-transactions-controller/dist/SmartTransactionsController.js
 +++ b/node_modules/@metamask/smart-transactions-controller/dist/SmartTransactionsController.js
 @@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -11,15 +11,6 @@ index c11179c..c600394 100644
  Object.defineProperty(exports, "__esModule", { value: true });
  exports.getDefaultSmartTransactionsControllerState = exports.DEFAULT_INTERVAL = void 0;
  const bytes_1 = require("@ethersproject/bytes");
-@@ -35,7 +35,7 @@ const ETH_QUERY_ERROR_MSG = '`ethQuery` is not defined on SmartTransactionsContr
- const controllerName = 'SmartTransactionsController';
- const controllerMetadata = {
-     smartTransactionsState: {
--        persist: false,
-+        persist: true,
-         anonymous: true,
-     },
- };
 @@ -117,20 +117,20 @@ class SmartTransactionsController extends (0, polling_controller_1.StaticInterva
          });
          this.messagingSystem.subscribe(`${controllerName}:stateChange`, (currentState) => this.checkPoll(currentState));
