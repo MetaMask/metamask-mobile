@@ -30,11 +30,17 @@ const styleSheet = (params: {
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    buttonContainer: {
+      marginRight: 12,
+    } as ViewStyle,
     button: {
-      marginRight: 8,
+      marginRight: 0,
     } as ViewStyle,
     lastButton: {
       marginRight: 0,
+    } as ViewStyle,
+    scrollContentContainer: {
+      alignItems: 'center',
     } as ViewStyle,
   });
 };
