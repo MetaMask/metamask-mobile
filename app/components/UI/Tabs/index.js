@@ -8,9 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import Text from '../../../component-library/components/Texts/Text';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { strings } from '../../../../locales/i18n';
@@ -21,13 +19,6 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
 import TabThumbnail from './TabThumbnail';
-import BottomSheet, { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetOverlay from '../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetOverlay';
-import BottomSheetDialog from '../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import { toHexadecimal } from '../../../util/number';
-import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
-import ReusableModal from '../ReusableModal';
 import Routes from '../../../constants/navigation/Routes';
 
 const THUMB_VERTICAL_MARGIN = 15;
@@ -288,13 +279,6 @@ class Tabs extends PureComponent {
       newTab();
       this.trackNewTabEvent(tabs.length);
     }
-  };
-
-  onMaxTabsDialogClose = () => {
-    this.sheetRef.current?.dismissModal();
-    setTimeout(() => {
-      this.setState({ isMaxTabsDialogVisible: false });
-    }, 2000)
   };
 
   trackNewTabEvent = (tabsNumber) => {
