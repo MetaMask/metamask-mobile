@@ -1,6 +1,10 @@
+import { VAULT_BACKUP_FAILED } from '../../constants/error';
 import { backupVault } from './backupVault';
-import { VAULT_BACKUP_FAILED_UNDEFINED } from '../../constants/error';
 import { KeyringControllerState } from '@metamask/keyring-controller';
+import { setInternetCredentials } from 'react-native-keychain';
+
+// Mock the setInternetCredentials function to return false, which simulates a failed vault backup
+(setInternetCredentials as jest.Mock).mockResolvedValue(false);
 
 //TODO Mock the react-native-keychain module test the other functions inside backupVault
 /*
@@ -19,8 +23,8 @@ describe('backupVault', () => {
       isUnlocked: false,
       keyringsMetadata: [],
     };
-    const response = await backupVault(keyringState);
-    expect(response.success).toBe(false);
-    expect(response.error).toBe(VAULT_BACKUP_FAILED_UNDEFINED);
+    expect(async () => await backupVault(keyringState)).rejects.toThrow(
+      VAULT_BACKUP_FAILED,
+    );
   });
 });
