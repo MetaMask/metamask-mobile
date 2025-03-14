@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 
 // External dependencies.
 import ButtonIcon from '../../Buttons/ButtonIcon';

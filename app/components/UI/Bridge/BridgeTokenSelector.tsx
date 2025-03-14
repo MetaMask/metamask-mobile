@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { StyleSheet, FlatList, TouchableOpacity, TextInput, View, Platform } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '../Box/Box';
