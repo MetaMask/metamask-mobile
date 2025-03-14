@@ -62,7 +62,7 @@ const calculateBalances = ({
       currentCurrency || '',
     );
     return {
-      tokenFiatAmount: res.balanceFiat,
+      tokenFiatAmount: res.balanceFiatCalculation,
       balance: res.balance,
       balanceFiat: res.balanceFiat,
     };
@@ -106,13 +106,14 @@ export const useSourceTokens = () => {
       currentCurrency,
       selectedAddress: selectedInternalAccountAddress,
     });
-    const tokensWithBalances = allAccountTokens.map((token, i) => ({
+    const properTokens = allAccountTokens.map((token, i) => ({
       ...token,
       tokenFiatAmount: balances[i].tokenFiatAmount ?? 0,
       balance: balances[i].balance,
       balanceFiat: balances[i].balanceFiat,
+      symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
     }));
-    return sortAssets(tokensWithBalances, tokenSortConfig);
+    return sortAssets(properTokens, tokenSortConfig);
   }, [
     accountTokensAcrossChains,
     multiChainMarketData,
