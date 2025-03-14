@@ -126,7 +126,7 @@ describe('StakingWithdrawal', () => {
       expect.objectContaining({
         properties: expect.objectContaining({
           selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          transaction_amount_eth: '1.0',
+          transaction_amount_eth: '1',
         }),
       }),
     );
