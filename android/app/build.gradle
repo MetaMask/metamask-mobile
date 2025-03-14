@@ -209,6 +209,8 @@ android {
       jniLibs {
         useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
       }
+      exclude 'META-INF/AL2.0'
+      exclude 'META-INF/LGPL2.1'
 	  }
 
     androidResources {
