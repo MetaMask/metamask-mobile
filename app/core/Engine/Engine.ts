@@ -1678,8 +1678,6 @@ export class Engine {
     const { NetworkController, TransactionController, PreferencesController } =
       this.context;
 
-    const chainId = getGlobalChainId(NetworkController);
-
     const chainIds = Object.keys(
       NetworkController.state.networkConfigurationsByChainId,
     );
