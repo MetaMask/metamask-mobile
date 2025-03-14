@@ -34,7 +34,7 @@ const styleSheet = (params: {
     ) as ViewStyle,
 
     buttonContainer: {
-      // Only use flex: 1 when buttons should have equal widths (default)
+      // Only use flex: 1 when buttons should have fixed equal widths (not the default)
       ...(isButtonWidthFlexible ? {} : { flex: 1 }),
       alignItems: 'center',
       justifyContent: 'center',

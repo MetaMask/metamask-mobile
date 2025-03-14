@@ -1,10 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import {
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../components/Buttons/Button/Button.types';
+import { ButtonSize } from '../../components/Buttons/Button/Button.types';
 
 // Internal dependencies.
 import {
@@ -18,7 +15,7 @@ export const DEFAULT_SEGMENTEDCONTROL_SIZE = ButtonSize.Md;
 
 // Samples
 export const SAMPLE_SEGMENTEDCONTROL_OPTIONS = [
-  { value: 'mode1', label: 'Mode 1 2 3 4 ', width: ButtonWidthTypes.Auto },
+  { value: 'mode1', label: 'Mode 1' },
   { value: 'mode2', label: 'Mode 2' },
   { value: 'mode3', label: 'Mode 3' },
   { value: 'mode4', label: 'Mode 4' },

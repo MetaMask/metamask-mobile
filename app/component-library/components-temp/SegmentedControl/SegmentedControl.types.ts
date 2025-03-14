@@ -57,9 +57,9 @@ export interface BaseSegmentedControlProps extends ViewProps {
 
   /**
    * Whether buttons should size to their content instead of having equal widths.
-   * When false (default), all buttons have equal widths filling the container.
-   * When true, buttons will size based on their content.
-   * @default false
+   * When true (default), buttons will size based on their content.
+   * When false, all buttons have equal widths filling the container.
+   * @default true
    */
   isButtonWidthFlexible?: boolean;
 
