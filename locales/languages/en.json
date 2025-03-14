@@ -3730,6 +3730,7 @@
     "select_network": "Select network",
     "all_networks": "All networks",
     "num_networks": "{{numNetworks}} networks",
+    "one_network": "1 network",
     "select_all_networks": "Select all networks",
     "deselect_all_networks": "Deselect all networks",
     "apply": "Apply"

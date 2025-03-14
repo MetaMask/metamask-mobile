@@ -13,7 +13,7 @@ import { Hex } from '@metamask/utils';
 import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
 import { BridgeToken } from './types';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { selectSelectedSourceChainIds, setSourceToken } from '../../../core/redux/slices/bridge';
+import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
@@ -67,6 +67,7 @@ export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
   const currentChainId = useSelector(selectChainId) as Hex;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const tokensList = useSourceTokens();
   const { searchString, setSearchString, searchResults } = useTokenSearch({
@@ -76,8 +77,6 @@ export const BridgeTokenSelector: React.FC = () => {
     searchString ? searchResults : tokensList,
     [searchString, searchResults, tokensList]
   );
-
-  console.log('tokensToRender', tokensToRender.length);
 
   const handleTokenPress = useCallback((token: TokenI) => {
     const bridgeToken: BridgeToken = {
@@ -140,6 +139,18 @@ export const BridgeTokenSelector: React.FC = () => {
     });
   }, [navigation]);
 
+  const numNetworksLabel = useMemo(() => {
+    if (selectedSourceChainIds.length === enabledSourceChains.length) {
+      return strings('bridge.all_networks');
+    }
+    if (selectedSourceChainIds.length === 1) {
+      return strings('bridge.one_network');
+    }
+
+    return strings('bridge.num_networks', { numNetworks: selectedSourceChainIds.length });
+
+  }, [selectedSourceChainIds, enabledSourceChains]);
+
   return (
     <BottomSheet isFullscreen>
       <Box style={styles.content}>
@@ -173,7 +184,7 @@ export const BridgeTokenSelector: React.FC = () => {
           <Button
             onPress={navigateToNetworkSelector}
             variant={ButtonVariants.Secondary}
-            label={strings('bridge.num_networks', { numNetworks: selectedSourceChainIds.length })}
+            label={numNetworksLabel}
             style={styles.networksButton}
             />
 
