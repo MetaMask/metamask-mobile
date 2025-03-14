@@ -158,6 +158,7 @@ export const BridgeTokenSelector: React.FC = () => {
             onChangeText={handleSearchTextChange}
             placeholder={strings('swaps.search_token')}
             style={styles.input}
+            testID="bridge-token-search-input"
           />
         </Box>
 
