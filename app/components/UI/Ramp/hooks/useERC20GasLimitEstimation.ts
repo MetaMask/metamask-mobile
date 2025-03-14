@@ -9,7 +9,7 @@ import { addHexPrefix, BN } from 'ethereumjs-util';
 import { toTokenMinimalUnit } from '../../../../util/number';
 
 const TRANSFER_GAS_LIMIT = 21000;
-const POLLING_INTERVAL = 15000; // 15 seconds
+const POLLING_INTERVAL = 15000; // 15s
 
 interface Options {
   tokenAddress?: string;

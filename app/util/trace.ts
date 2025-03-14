@@ -39,6 +39,7 @@ export enum TraceName {
   AccountList = 'Account List',
   StoreInit = 'Store Initialization',
   Tokens = 'Tokens List',
+  AddSnapAccount = 'Add Snap Account',
 }
 
 export enum TraceOperation {
@@ -56,6 +57,7 @@ export enum TraceOperation {
   AccountList = 'account.list',
   StoreInit = 'store.initialization',
   Login = 'login',
+  AddSnapAccount = 'add.snap.account',
 }
 
 const ID_DEFAULT = 'default';

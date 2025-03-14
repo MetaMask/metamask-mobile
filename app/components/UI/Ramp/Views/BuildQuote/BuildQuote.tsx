@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 
 import { useRampSDK } from '../../sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -83,6 +83,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 // TODO: Replace "any" with type
@@ -107,7 +108,7 @@ const BuildQuote = () => {
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN>();
+  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
@@ -401,7 +402,7 @@ const BuildQuote = () => {
       setAmountNumber(valueAsNumber);
       if (isSell) {
         setAmountBNMinimalUnit(
-          toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN,
+          toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN4,
         );
       }
     },
@@ -416,8 +417,8 @@ const BuildQuote = () => {
       } else {
         const percentage = value * 100;
         const amountPercentage = balanceBN
-          ?.mul(new BN(percentage))
-          .div(new BN(100));
+          ?.mul(new BN4(percentage))
+          .div(new BN4(100));
 
         if (!amountPercentage) {
           return;
@@ -785,7 +786,7 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (balanceBN && !balanceBN.isZero() && maxSellAmount?.gt(new BN(0))) {
+  } else if (balanceBN && !balanceBN.isZero() && maxSellAmount?.gt(new BN4(0))) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
