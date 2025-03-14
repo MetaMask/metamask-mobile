@@ -204,8 +204,6 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
-export const DrawerContext = React.createContext({ drawerRef: null });
-
 const BrowserFlow = () => (
   <Stack.Navigator
     initialRouteName={Routes.BROWSER.VIEW}
@@ -222,6 +220,7 @@ const BrowserFlow = () => (
   </Stack.Navigator>
 );
 
+export const DrawerContext = React.createContext({ drawerRef: null });
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
@@ -402,6 +401,7 @@ const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
+
   const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
