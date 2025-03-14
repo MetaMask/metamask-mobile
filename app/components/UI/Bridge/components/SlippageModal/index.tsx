@@ -80,6 +80,7 @@ export const SlippageModal = ({ route }: SlippageModalProps) => {
             selectedValue={selectedValue}
             onValueChange={handleOptionSelected}
             size={ButtonSize.Sm}
+            isButtonWidthFlexible={false}
           />
         </View>
         <BottomSheetFooter

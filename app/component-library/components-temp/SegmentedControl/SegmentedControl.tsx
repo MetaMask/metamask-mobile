@@ -19,7 +19,7 @@ import { DEFAULT_SEGMENTEDCONTROL_SIZE } from './SegmentedControl.constants';
 const SegmentedControl = ({
   options,
   size = DEFAULT_SEGMENTEDCONTROL_SIZE,
-  isButtonWidthFlexible = false,
+  isButtonWidthFlexible = true,
   isDisabled = false,
   isMultiSelect = false,
   isScrollable = false,

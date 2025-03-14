@@ -34,6 +34,14 @@ Size of the control and its buttons. Uses the same sizes as buttons.
 | :--------- | :------- | :------------ |
 | ButtonSize | No       | ButtonSize.Md |
 
+### `isButtonWidthFlexible`
+
+Whether buttons should size to their content instead of having equal widths.
+
+| Type    | Required | Default |
+| :------ | :------- | :------ |
+| boolean | No       | true    |
+
 ### `isDisabled`
 
 Whether the control is disabled.
