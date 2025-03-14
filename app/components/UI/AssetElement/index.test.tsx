@@ -4,6 +4,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import AssetElement from './';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
+import { TOKEN_BALANCE_LOADING } from '../Tokens/constants';
 
 describe('AssetElement', () => {
   const onPressMock = jest.fn();
@@ -84,5 +85,22 @@ describe('AssetElement', () => {
 
     expect(mainBalance.props.children).toBe('•••••••••');
     expect(secondaryBalance.props.children).toBe('••••••');
+  });
+
+  it('renders skeleton when balance is loading', () => {
+    const { getByTestId } = render(
+      <AssetElement
+        asset={erc20Token}
+        balance={TOKEN_BALANCE_LOADING}
+        secondaryBalance={TOKEN_BALANCE_LOADING}
+      />,
+    );
+
+    expect(getByTestId(BALANCE_TEST_ID).props.children.type.name).toBe(
+      'SkeletonText',
+    );
+    expect(
+      getByTestId(SECONDARY_BALANCE_TEST_ID).props.children.type.name,
+    ).toBe('SkeletonText');
   });
 });
