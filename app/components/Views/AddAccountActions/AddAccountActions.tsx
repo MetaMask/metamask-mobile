@@ -11,9 +11,11 @@ import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+///: END:ONLY_INCLUDE_IF
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
