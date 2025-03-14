@@ -1,16 +1,24 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import Keypad from '../../Base/Keypad';
 import { TokenInputArea } from './TokenInputArea';
-import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
 import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
-import Text, { TextColor } from '../../../component-library/components/Texts/Text';
-import Icon, { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
 import { useLatestBalance } from './useLatestBalance';
 import {
@@ -31,6 +39,7 @@ import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../util/bridge/hooks/useSubmitBridgeTx';
 import { QuoteResponse } from './types';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -99,30 +108,52 @@ const BridgeView = () => {
   const sourceChainId = useSelector(selectSourceChainId);
   const destChainId = useSelector(selectDestChainId);
 
-  const sourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-  }, sourceChainId);
+  // Add state for slippage
+  const [slippage, setSlippage] = useState('auto');
+
+  const sourceBalance = useLatestBalance(
+    {
+      address: sourceToken?.address,
+      decimals: sourceToken?.decimals,
+    },
+    sourceChainId,
+  );
 
   const hasInsufficientBalance = useMemo(() => {
-    if (!sourceAmount || !sourceBalance?.atomicBalance || !sourceToken?.decimals) {
+    if (
+      !sourceAmount ||
+      !sourceBalance?.atomicBalance ||
+      !sourceToken?.decimals
+    ) {
       return false;
     }
 
-    const sourceAmountAtomic = ethers.utils.parseUnits(sourceAmount, sourceToken.decimals);
+    const sourceAmountAtomic = ethers.utils.parseUnits(
+      sourceAmount,
+      sourceToken.decimals,
+    );
     return sourceAmountAtomic.gt(sourceBalance.atomicBalance);
   }, [sourceAmount, sourceBalance?.atomicBalance, sourceToken?.decimals]);
 
   // Reset bridge state when component unmounts
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       dispatch(resetBridgeState());
-    }, [dispatch]);
+    },
+    [dispatch],
+  );
 
   useEffect(() => {
     navigation.setOptions(getBridgeNavbar(navigation, route, colors));
   }, [navigation, route, colors]);
 
-  const handleKeypadChange = ({ value }: { value: string; valueAsNumber: number; pressedKey: string }) => {
+  const handleKeypadChange = ({
+    value,
+  }: {
+    value: string;
+    valueAsNumber: number;
+    pressedKey: string;
+  }) => {
     dispatch(setSourceAmount(value || undefined));
   };
 
@@ -131,7 +162,7 @@ const BridgeView = () => {
     // TESTING: Paste a quote from the Bridge API here to test the bridge flow
     const quoteResponse = undefined;
     if (quoteResponse) {
-        submitBridgeTx({quoteResponse: quoteResponse as QuoteResponse});
+      submitBridgeTx({ quoteResponse: quoteResponse as QuoteResponse });
     }
   };
 
@@ -145,21 +176,28 @@ const BridgeView = () => {
     }
   };
 
+  // Add function to navigate to slippage modal
+  const handleSlippagePress = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SLIPPAGE_MODAL,
+      params: {
+        selectedSlippage: slippage,
+        onSelectSlippage: setSlippage,
+      },
+    });
+  };
+
   const renderBottomContent = () => {
-    if (!sourceAmount || (sourceToken?.decimals && ethers.utils.parseUnits(sourceAmount, sourceToken.decimals).isZero())) {
-      return (
-        <Text color={TextColor.Alternative}>
-          Select amount
-        </Text>
-      );
+    if (
+      !sourceAmount ||
+      (sourceToken?.decimals &&
+        ethers.utils.parseUnits(sourceAmount, sourceToken.decimals).isZero())
+    ) {
+      return <Text color={TextColor.Alternative}>Select amount</Text>;
     }
 
     if (hasInsufficientBalance) {
-      return (
-        <Text color={TextColor.Error}>
-          Insufficient balance
-        </Text>
-      );
+      return <Text color={TextColor.Error}>Insufficient balance</Text>;
     }
 
     return (
@@ -172,7 +210,11 @@ const BridgeView = () => {
         />
         <Button
           variant={ButtonVariants.Link}
-          label={<Text color={TextColor.Alternative}>{strings('bridge.terms_and_conditions')}</Text>}
+          label={
+            <Text color={TextColor.Alternative}>
+              {strings('bridge.terms_and_conditions')}
+            </Text>
+          }
           onPress={handleTermsPress}
         />
       </>
@@ -196,7 +238,9 @@ const BridgeView = () => {
             tokenIconUrl={sourceToken?.image}
             tokenAddress={sourceToken?.address}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            networkImageSource={getNetworkImageSource({ chainId: sourceChainId })}
+            networkImageSource={getNetworkImageSource({
+              chainId: sourceChainId,
+            })}
             autoFocus
             isReadonly
             testID="source-token-area"
@@ -216,11 +260,20 @@ const BridgeView = () => {
             tokenAddress={destToken?.address}
             tokenIconUrl={destToken?.image}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            networkImageSource={destChainId ? getNetworkImageSource({ chainId: destChainId }) : undefined}
+            networkImageSource={getNetworkImageSource({
+              chainId: sourceChainId,
+            })}
             isReadonly
             testID="dest-token-area"
           />
         </Box>
+        <Button
+          variant={ButtonVariants.Secondary}
+          label={strings('bridge.slippage') + ' ' + slippage + '%'}
+          onPress={handleSlippagePress}
+          style={styles.button}
+          size={ButtonSize.Sm}
+        />
         <Box style={styles.bottomSection}>
           <Keypad
             value={sourceAmount}
