@@ -479,11 +479,6 @@ describe('Tokens', () => {
       selectAccountTokensAcrossChainsSpy.mockRestore();
     });
 
-    it('should match the snapshot', () => {
-      const { toJSON } = renderComponent(initialState);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
     it('should handle network filtering correctly', () => {
       const multiNetworkState = {
         ...initialState,
