@@ -212,12 +212,9 @@ export const DrawerContext = React.createContext({
   },
 });
 
-const BrowserFlow = () => {
-  const drawerContext = useContext(DrawerContext);
-  Logger.log('MainNavigator ->drawerContext: ', drawerContext);
-  return (
-    <Stack.Navigator
-      initialRouteName={Routes.BROWSER.VIEW}
+const BrowserFlow = () => (
+  <Stack.Navigator
+    initialRouteName={Routes.BROWSER.VIEW}
       mode={'modal'}
       screenOptions={{
         cardStyle: { backgroundColor: importedColors.transparent },
@@ -226,12 +223,10 @@ const BrowserFlow = () => {
       <Stack.Screen
         name={Routes.BROWSER.VIEW}
         component={Browser}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
-  )
-};
-
+      options={{ headerShown: false }}
+    />
+  </Stack.Navigator>
+);
 
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
@@ -412,8 +407,8 @@ const SettingsFlow = () => (
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const drawerRef = useRef(null);
-  const [isDrawerVisible, setIsDrawerVisible] = useState(true);
   const accountsLength = useSelector(selectAccountsLength);
+  const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -510,10 +505,10 @@ const HomeTabs = () => {
     // Better solution would be to update android:windowSoftInputMode in the AndroidManifest and refactor pages to support it.
     if (Platform.OS === 'android') {
       const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-        setIsDrawerVisible(false);
+        setIsKeyboardHidden(false);
       });
       const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-        setIsDrawerVisible(true);
+        setIsKeyboardHidden(true);
       });
 
       return () => {
@@ -524,7 +519,7 @@ const HomeTabs = () => {
   }, []);
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
-    if (isDrawerVisible) {
+    if (!isKeyboardHidden) {
       return (
         <TabBar
           state={state}
@@ -537,7 +532,7 @@ const HomeTabs = () => {
   };
 
   return (
-    <DrawerContext.Provider value={{ drawerRef, isDrawerVisible, setIsDrawerVisible }}>
+    <DrawerContext.Provider value={{ drawerRef }}>
       <Drawer ref={drawerRef}>
         <Tab.Navigator
           initialRouteName={Routes.WALLET.HOME}
