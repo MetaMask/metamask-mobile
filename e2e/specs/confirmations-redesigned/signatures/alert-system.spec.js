@@ -27,7 +27,6 @@ const typedSignRequestBody = {
 
 describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
   beforeAll(async () => {
-    jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
   });
 

@@ -38,7 +38,7 @@ class AlertSystem {
   }
 
   get confirmAlertModal() {
-    return Matchers.getElementByID(
+    return Matchers.getElementByText(
       ConfirmAlertModalSelectorsText.CONFIRM_ALERT_MODAL_TITLE,
     );
   }
