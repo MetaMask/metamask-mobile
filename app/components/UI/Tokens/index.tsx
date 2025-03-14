@@ -10,7 +10,6 @@ import { Hex } from '@metamask/utils';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
-import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import { useTheme } from '../../../util/theme';
@@ -26,11 +25,7 @@ import {
   selectIsPopularNetwork,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
-import {
-  getDecimalChainId,
-  isTestNet,
-  isPortfolioViewEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId, isTestNet } from '../../../util/networks';
 import createStyles from './styles';
 import { TokenList } from './TokenList';
 import { TokenI } from './types';
@@ -231,22 +226,15 @@ const Tokens = memo(() => {
       // TODO: [SOLANA] - Refresh must work with non-evm chains, replace evmNetworkConfigurationsByChainId with networkConfigurationsByChainId
       const actions = [
         TokenDetectionController.detectTokens({
-          chainIds: isPortfolioViewEnabled()
-            ? (Object.keys(evmNetworkConfigurationsByChainId) as Hex[])
-            : [currentChainId as Hex],
+          chainIds: Object.keys(evmNetworkConfigurationsByChainId) as Hex[],
         }),
 
         TokenBalancesController.updateBalances({
-          chainIds: isPortfolioViewEnabled()
-            ? (Object.keys(evmNetworkConfigurationsByChainId) as Hex[])
-            : [currentChainId as Hex],
+          chainIds: Object.keys(evmNetworkConfigurationsByChainId) as Hex[],
         }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        ...(isPortfolioViewEnabled()
-          ? Object.values(evmNetworkConfigurationsByChainId)
-          : [evmNetworkConfigurationsByChainId[currentChainId as Hex]]
-        ).map((network) =>
+        Object.values(evmNetworkConfigurationsByChainId).map((network) =>
           TokenRatesController.updateExchangeRatesByChainId({
             chainId: network.chainId,
             nativeCurrency: network.nativeCurrency,
@@ -262,9 +250,7 @@ const Tokens = memo(() => {
 
   const removeToken = async () => {
     const { TokensController, NetworkController } = Engine.context;
-    const chainId = isPortfolioViewEnabled()
-      ? tokenToRemove?.chainId
-      : currentChainId;
+    const chainId = tokenToRemove?.chainId;
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
       chainId as Hex,
     );
@@ -321,62 +307,43 @@ const Tokens = memo(() => {
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
         <View style={styles.actionBarWrapper}>
-          {isPortfolioViewEnabled() ? (
-            <View style={styles.controlButtonOuterWrapper}>
-              <ButtonBase
-                testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-                label={
-                  <Text style={styles.controlButtonText} numberOfLines={1}>
-                    {isAllNetworks && isPopularNetwork && isEvmSelected
-                      ? `${strings('app_settings.popular')} ${strings(
-                          'app_settings.networks',
-                        )}`
-                      : networkName ?? strings('wallet.current_network')}
-                  </Text>
-                }
-                isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
-                onPress={isEvmSelected ? showFilterControls : () => null}
-                endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
-                style={
-                  isTestNet(currentChainId) || !isPopularNetwork
-                    ? styles.controlButtonDisabled
-                    : styles.controlButton
-                }
-                disabled={isTestNet(currentChainId) || !isPopularNetwork}
-              />
-              <View style={styles.controlButtonInnerWrapper}>
-                <ButtonIcon
-                  testID={WalletViewSelectorsIDs.SORT_BY}
-                  onPress={showSortControls}
-                  iconName={IconName.SwapVertical}
-                  style={styles.controlIconButton}
-                />
-                <ButtonIcon
-                  testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-                  onPress={goToAddToken}
-                  iconName={IconName.Add}
-                  style={styles.controlIconButton}
-                />
-              </View>
-            </View>
-          ) : (
-            <>
-              <ButtonBase
+          <View style={styles.controlButtonOuterWrapper}>
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+              label={
+                <Text style={styles.controlButtonText} numberOfLines={1}>
+                  {isAllNetworks && isPopularNetwork && isEvmSelected
+                    ? `${strings('app_settings.popular')} ${strings(
+                        'app_settings.networks',
+                      )}`
+                    : networkName ?? strings('wallet.current_network')}
+                </Text>
+              }
+              isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
+              onPress={isEvmSelected ? showFilterControls : () => null}
+              endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
+              style={
+                isTestNet(currentChainId) || !isPopularNetwork
+                  ? styles.controlButtonDisabled
+                  : styles.controlButton
+              }
+              disabled={isTestNet(currentChainId) || !isPopularNetwork}
+            />
+            <View style={styles.controlButtonInnerWrapper}>
+              <ButtonIcon
                 testID={WalletViewSelectorsIDs.SORT_BY}
-                label={strings('wallet.sort_by')}
                 onPress={showSortControls}
-                endIconName={IconName.ArrowDown}
-                style={styles.controlButton}
+                iconName={IconName.SwapVertical}
+                style={styles.controlIconButton}
               />
-              <ButtonBase
+              <ButtonIcon
                 testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-                label={strings('wallet.import')}
                 onPress={goToAddToken}
-                startIconName={IconName.Add}
-                style={styles.controlButton}
+                iconName={IconName.Add}
+                style={styles.controlIconButton}
               />
-            </>
-          )}
+            </View>
+          </View>
         </View>
         {tokensList && (
           <TokenList
