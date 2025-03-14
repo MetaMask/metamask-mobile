@@ -3423,7 +3423,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "lineHeight": 24,
               }
             }
-            testID="fiat-balance-test-id"
+            testID="balance-test-id"
           >
             1500
           </Text>
@@ -3441,7 +3441,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "textTransform": "uppercase",
               }
             }
-            testID="main-balance-test-id"
+            testID="secondary-balance-test-id"
           >
             0 ETH
           </Text>
