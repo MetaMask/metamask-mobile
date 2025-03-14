@@ -144,7 +144,7 @@ const BridgeView = () => {
   const destChainId = useSelector(selectDestChainId);
 
   // Add state for slippage
-  const [slippage, setSlippage] = useState('auto');
+  const [slippage, setSlippage] = useState('0.5');
 
   const sourceBalance = useLatestBalance(
     {
