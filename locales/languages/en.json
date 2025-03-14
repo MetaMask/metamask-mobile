@@ -3729,6 +3729,7 @@
     "select_token": "Select token",
     "select_network": "Select network",
     "all_networks": "All networks",
+    "num_networks": "{{numNetworks}} networks",
     "select_all_networks": "Select all networks",
     "deselect_all_networks": "Deselect all networks",
     "apply": "Apply"
