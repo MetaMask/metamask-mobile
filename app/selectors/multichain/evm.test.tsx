@@ -401,6 +401,12 @@ describe('Multichain Selectors', () => {
   });
 
   describe('selectEvmTokens', () => {
+    it('should return the same memoized reference, when called with the same state', () => {
+      const result1 = selectEvmTokens(mockState);
+      const result2 = selectEvmTokens(mockState);
+      expect(result1 === result2).toBe(true);
+    });
+
     it('should return all tokens when hideZeroBalanceTokens is false', () => {
       const result = selectEvmTokens(mockState);
       expect(result).toBeDefined();
