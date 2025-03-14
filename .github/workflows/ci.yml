@@ -197,6 +197,16 @@ jobs:
           GITHUB_ACTOR: metamaskbot
           GITHUB_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
 
+  changelog-check:
+    if: ${{ github.event_name == 'pull_request' }}
+    uses: MetaMask/github-tools/.github/workflows/changelog-check.yml@changelog-checker
+    with:
+      base-branch: main
+      feature-branch: ${{ github.head_ref }}
+      pr-number: ${{ github.event.pull_request.number }}
+    secrets:
+      gh-token: ${{ secrets.PR_TOKEN }}
+
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-tests
@@ -315,6 +325,7 @@ jobs:
         check-workflows,
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,
+        changelog-check,
       ]
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
