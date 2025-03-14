@@ -13,7 +13,7 @@ import { Hex } from '@metamask/utils';
 import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
 import { BridgeToken } from './types';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { setSourceToken } from '../../../core/redux/slices/bridge';
+import { selectSelectedSourceChainIds, setSourceToken } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
@@ -67,6 +67,7 @@ export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
   const currentChainId = useSelector(selectChainId) as Hex;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const tokensList = useSourceTokens();
   const { searchString, setSearchString, searchResults } = useTokenSearch({
     tokens: tokensList || [],
@@ -104,13 +105,12 @@ export const BridgeTokenSelector: React.FC = () => {
     const networkDetails = getNetworkBadgeDetails(item.chainId as Hex);
 
     return (
-      // <TokenSelectorItem
-      //   token={item}
-      //   onPress={handleTokenPress}
-      //   networkName={networkDetails.name}
-      //   networkImageSource={networkDetails.imageSource}
-      // />
-      <Text>{item.symbol}</Text>
+      <TokenSelectorItem
+        token={item}
+        onPress={handleTokenPress}
+        networkName={networkDetails.name}
+        networkImageSource={networkDetails.imageSource}
+      />
     );
   }, [currentChainId, getNetworkBadgeDetails, handleTokenPress]);
 
@@ -173,7 +173,7 @@ export const BridgeTokenSelector: React.FC = () => {
           <Button
             onPress={navigateToNetworkSelector}
             variant={ButtonVariants.Secondary}
-            label={strings('bridge.all_networks')}
+            label={strings('bridge.num_networks', { numNetworks: selectedSourceChainIds.length })}
             style={styles.networksButton}
             />
 
