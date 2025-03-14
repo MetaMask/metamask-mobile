@@ -99,7 +99,7 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [networkConfigurations]);
 
   const renderItem = useCallback(({ item }: { item: TokenIWithFiatAmount }) => {
-    const networkDetails = getNetworkBadgeDetails(currentChainId);
+    const networkDetails = getNetworkBadgeDetails(item.chainId as Hex);
 
     return (
       <TokenSelectorItem
@@ -111,7 +111,7 @@ export const BridgeTokenSelector: React.FC = () => {
     );
   }, [currentChainId, getNetworkBadgeDetails, handleTokenPress]);
 
-  const keyExtractor = useCallback((token: TokenI) => token.address, []);
+  const keyExtractor = useCallback((token: TokenI) => `${token.chainId}-${token.address}`, []);
 
   const handleSearchTextChange = useCallback((text: string) => {
     setSearchString(text);
