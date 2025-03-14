@@ -1688,13 +1688,13 @@ export class Engine {
         PreferencesController.state.showIncomingTransactions[
           id as keyof typeof PreferencesController.state.showIncomingTransactions
         ],
-    );
+    ) as Hex[];
 
     TransactionController.stopIncomingTransactionPolling();
 
     // TODO HERE: add other chains
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling([chainId]);
+    TransactionController.startIncomingTransactionPolling(filteredChainIds);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     this.context.RatesController.start();
