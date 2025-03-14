@@ -175,7 +175,7 @@ class Tabs extends PureComponent {
     currentTab: null,
     isMaxTabsDialogVisible: false,
   };
-  sheetRef = React.createRef();
+
   scrollview = React.createRef();
 
   constructor(props) {
