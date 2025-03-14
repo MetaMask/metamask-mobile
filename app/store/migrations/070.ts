@@ -20,18 +20,18 @@ import type {
 const Caip25CaveatType = 'authorizedScopes';
 const Caip25EndowmentPermissionName = 'endowment:caip25';
 
-type InternalScopeObject = {
+interface InternalScopeObject {
   accounts: CaipAccountId[];
-};
+}
 
 type InternalScopesObject = Record<CaipChainId, InternalScopeObject>;
 
-type Caip25CaveatValue = {
+interface Caip25CaveatValue {
   requiredScopes: InternalScopesObject;
   optionalScopes: InternalScopesObject;
   sessionProperties?: Record<string, Json>;
   isMultichainOrigin: boolean;
-};
+}
 
 // Locally defined types
 type Caip25Caveat = Caveat<typeof Caip25CaveatType, Caip25CaveatValue>;
