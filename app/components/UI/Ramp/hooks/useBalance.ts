@@ -74,9 +74,9 @@ export default function useBalance(asset?: Asset) {
     balance = `${assetBalance?.amount ?? ''} ${
       assetBalance?.unit ?? ''
     }`.trim();
-  } else
+  }
   ///: END:ONLY_INCLUDE_IF
-  if (asset.address === NATIVE_ADDRESS) {
+  if (!balance && asset.address === NATIVE_ADDRESS) {
     // Chain id should exist in accountsByChainId in AccountTrackerController at this point in time
     if (!accountsByChainId[toHexadecimal(chainId)]) {
       return defaultReturn;
