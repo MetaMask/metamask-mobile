@@ -6,6 +6,7 @@ import {
   selectAccountTokensAcrossChains,
   selectNativeEvmAsset,
   selectStakedEvmAsset,
+  selectEvmTokens,
 } from './evm';
 import { SolScope } from '@metamask/keyring-api';
 import { GetByQuery } from '@testing-library/react-native/build/queries/makeQueries';
@@ -29,6 +30,7 @@ import {
 } from '@metamask/swaps-controller/dist/constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { zeroAddress } from 'ethereumjs-util';
+import { PreferencesController } from '@metamask/preferences-controller';
 
 describe('Multichain Selectors', () => {
   const mockState: RootState = {
@@ -126,6 +128,12 @@ describe('Multichain Selectors', () => {
 
           isEvmSelected: true,
           selectedMultichainNetworkChainId: SolScope.Mainnet,
+        },
+        PreferencesController: {
+          tokenNetworkFilter: {
+            '0x1': true,
+            '0x89': true,
+          },
         },
       },
     },
@@ -390,6 +398,208 @@ describe('Multichain Selectors', () => {
         logo: '../images/eth-logo-new.png',
         address: zeroAddress(),
       });
+    });
+  });
+
+  describe('selectEvmTokens', () => {
+    it('should return all tokens when hideZeroBalanceTokens is false', () => {
+      const result = selectEvmTokens(mockState);
+      expect(result).toBeDefined();
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('should filter out zero balance tokens when hideZeroBalanceTokens is true', () => {
+      const testState = {
+        ...mockState,
+        settings: { ...mockState.settings, hideZeroBalanceTokens: true },
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            AccountTrackerController: {
+              accountsByChainId: {
+                '0x1': {
+                  '0xAddress1': {
+                    balance: '0x0',
+                    stakedBalance: '0x0',
+                  },
+                },
+              },
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                '0xAddress1': {
+                  '0x1': {
+                    '0xToken1': '0x0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokens(testState);
+      expect(result).toBeDefined();
+      expect(result.length).toBe(0); // All tokens have zero balance, so none should be returned
+    });
+
+    it('when on current network, should filter out zero balance tokens except native and staking tokens when hideZeroBalanceTokens is true', () => {
+      const testState = {
+        ...mockState,
+        settings: { ...mockState.settings, hideZeroBalanceTokens: true },
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            AccountTrackerController: {
+              accountsByChainId: {
+                '0x1': {
+                  '0xAddress1': {
+                    balance: '0x0',
+                    stakedBalance: '0x2', // simulating a staked balance
+                  },
+                },
+              },
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                '0xAddress1': {
+                  '0x1': {
+                    '0xToken1': '0x0',
+                  },
+                },
+              },
+            },
+            PreferencesController: {
+              tokenNetworkFilter: {
+                '0x1': true, // user is on "current network" filter, since NetworkController has multiple networks, and we are only filtering to one chain here
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokens(testState);
+      expect(result).toBeDefined();
+      expect(result.length).toBe(2); // All tokens have zero balance, so none should be returned, however on current network view, we still want to show native token and staked token, even if zero
+    });
+
+    it('should return tokens only for the selected network if not on all networks', () => {
+      const testState = {
+        ...mockState,
+        settings: { ...mockState.settings, hideZeroBalanceTokens: true },
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  name: 'Ethereum Mainnet',
+                  nativeCurrency: 'ETH',
+                  rpcEndpoints: [{ networkClientId: '0x1' }],
+                },
+                '0x89': {
+                  chainId: '0x89',
+                  name: 'Polygon',
+                  nativeCurrency: 'POL',
+                  rpcEndpoints: [{ networkClientId: '0x89' }],
+                },
+              },
+              selectedNetworkClientId: '0x89',
+            },
+            PreferencesController: {
+              tokenNetworkFilter: {
+                '0x89': true, // user only wants to see tokens on Polygon
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokens(testState);
+      expect(result).toBeDefined();
+      console.log(result);
+      expect(result.every((token) => token.chainId === '0x89')).toBeTruthy();
+    });
+
+    it('should return only tokens from popular EVM networks when selected', () => {
+      const testState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            TokensController: {
+              allTokens: {
+                // chain not in popular networks
+                '0x99': {
+                  '0xAddress1': [
+                    {
+                      address: '0xUnpopularToken',
+                      symbol: 'TKN9',
+                      decimals: 18,
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokens(testState);
+      expect(result).toBeDefined();
+      expect(result.some((token) => token.chainId === '0x99')).toBeFalsy();
+      expect(
+        result.every(
+          (token) => token.chainId === '0x89' || token.chainId === '0x1',
+        ),
+      ).toBeTruthy();
+    });
+
+    it('should categorize native and non-native tokens correctly', () => {
+      const result = selectEvmTokens(mockState);
+
+      const nativeTokens = result.filter((token) => token.isNative);
+      const nonNativeTokens = result.filter((token) => !token.isNative);
+
+      expect(nativeTokens.length).toBeGreaterThan(0);
+      expect(nonNativeTokens.length).toBeGreaterThan(0);
+    });
+
+    it('should filter out testnet tokens if the all networks filter is selected', () => {
+      const testState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            TokensController: {
+              allTokens: {
+                // sepolia
+                '0xaa36a7': {
+                  '0xAddress1': [
+                    {
+                      address: '0xTestnetToken',
+                      symbol: 'TEST1',
+                      decimals: 18,
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokens(testState);
+      expect(result).toBeDefined();
+      expect(
+        result.find((token) => token.chainId === '0xaa36a7'),
+      ).toBeUndefined();
     });
   });
 });
