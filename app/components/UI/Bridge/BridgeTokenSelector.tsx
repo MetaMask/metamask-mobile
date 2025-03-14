@@ -76,6 +76,8 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString, searchResults, tokensList]
   );
 
+  console.log('tokensToRender', tokensToRender.length);
+
   const handleTokenPress = useCallback((token: TokenI) => {
     const bridgeToken: BridgeToken = {
       address: token.address,
@@ -102,12 +104,13 @@ export const BridgeTokenSelector: React.FC = () => {
     const networkDetails = getNetworkBadgeDetails(item.chainId as Hex);
 
     return (
-      <TokenSelectorItem
-        token={item}
-        onPress={handleTokenPress}
-        networkName={networkDetails.name}
-        networkImageSource={networkDetails.imageSource}
-      />
+      // <TokenSelectorItem
+      //   token={item}
+      //   onPress={handleTokenPress}
+      //   networkName={networkDetails.name}
+      //   networkImageSource={networkDetails.imageSource}
+      // />
+      <Text>{item.symbol}</Text>
     );
   }, [currentChainId, getNetworkBadgeDetails, handleTokenPress]);
 
