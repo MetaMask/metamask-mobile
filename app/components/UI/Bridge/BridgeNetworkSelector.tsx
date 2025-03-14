@@ -115,7 +115,7 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
   }, [navigation, dispatch, candidateSourceChainIds]);
 
   // Toggle chain selection
-  const toggleChainSelection = useCallback((chainId: string) => {
+  const toggleChain = useCallback((chainId: string) => {
     if (candidateSourceChainIds.includes(chainId)) {
       // Remove chain if already selected
       setCandidateSourceChainIds(candidateSourceChainIds.filter(id => id !== chainId));
@@ -126,7 +126,7 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
   }, [candidateSourceChainIds]);
 
   // Select or deselect all networks
-  const toggleSelectAll = useCallback(() => {
+  const toggleAllChains = useCallback(() => {
     if (candidateSourceChainIds.length === enabledSourceChainIds.length) {
       // If all are selected, deselect all
       setCandidateSourceChainIds([]);
@@ -201,7 +201,7 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
         <Box style={styles.selectAllContainer}>
           <Button
             label={areAllNetworksSelected ? strings('bridge.deselect_all_networks') : strings('bridge.select_all_networks')}
-            onPress={toggleSelectAll}
+            onPress={toggleAllChains}
             testID="select-all-networks-button"
             variant={ButtonVariants.Secondary}
           />
@@ -217,7 +217,7 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
             return (
               <TouchableOpacity
                 key={chain.chainId}
-                onPress={() => toggleChainSelection(chain.chainId)}
+                onPress={() => toggleChain(chain.chainId)}
                 testID={`network-selector-${chain.chainId}`}
               >
                 <ListItem
@@ -226,7 +226,7 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
                 >
                   <Checkbox
                     isChecked={isSelected}
-                    onPress={() => toggleChainSelection(chain.chainId)}
+                    onPress={() => toggleChain(chain.chainId)}
                     testID={`checkbox-${chain.chainId}`}
                   />
                   <Image source={networkImage} style={styles.networkIcon} />
