@@ -164,22 +164,22 @@ export const BridgeTokenSelector: React.FC = () => {
               </Box>
             </Box>
           </BottomSheetHeader>
-
-            <Button
-              onPress={navigateToNetworkSelector}
-              variant={ButtonVariants.Secondary}
-              label={strings('bridge.all_networks')}
-              style={styles.networksButton }
-            />
-          </Box>
-          <TextFieldSearch
-            value={searchString}
-            onChangeText={handleSearchTextChange}
-            placeholder={strings('swaps.search_token')}
-            style={styles.input}
-            testID="bridge-token-search-input"
-          />
         </Box>
+
+        <Button
+          onPress={navigateToNetworkSelector}
+          variant={ButtonVariants.Secondary}
+          label={strings('bridge.all_networks')}
+          style={styles.networksButton}
+        />
+
+        <TextFieldSearch
+          value={searchString}
+          onChangeText={handleSearchTextChange}
+          placeholder={strings('swaps.search_token')}
+          style={styles.input}
+          testID="bridge-token-search-input"
+        />
 
         <FlatList
           data={tokensToRender}
@@ -192,7 +192,8 @@ export const BridgeTokenSelector: React.FC = () => {
           windowSize={10}
           initialNumToRender={20}
           keyboardShouldPersistTaps="always"
-        />
+          />
+      </Box>
     </BottomSheet>
   );
 };
