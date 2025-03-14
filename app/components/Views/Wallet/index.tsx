@@ -617,6 +617,7 @@ const Wallet = ({
     [navigation],
   );
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // to be consolidated with tokensTabProps
   const nonEvmTokensTabProps = useMemo(
     () => ({
@@ -625,6 +626,7 @@ const Wallet = ({
     }),
     [],
   );
+  ///: END:ONLY_INCLUDE_IF
 
   const collectibleContractsTabProps = useMemo(
     () => ({
