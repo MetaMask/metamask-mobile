@@ -7,7 +7,12 @@ import { createSelector } from 'reselect';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { getNativeSwapsToken } from '@metamask/swaps-controller/dist/swapsUtil';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectChainId, selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { uniqBy } from 'lodash';
+import { ALLOWED_BRIDGE_CHAIN_IDS, AllowedBridgeChainIds, BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+
+export const selectBridgeControllerState = (state: RootState) =>
+  state.engine.backgroundState?.BridgeController;
 
 export interface BridgeState {
   sourceAmount: string | undefined;
@@ -16,6 +21,7 @@ export interface BridgeState {
   destChainId: SupportedCaipChainId | Hex | undefined;
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
+  selectedSourceChainIds: undefined | string[];
 }
 
 export const initialState: BridgeState = {
@@ -25,6 +31,7 @@ export const initialState: BridgeState = {
   destChainId: undefined,
   sourceToken: undefined,
   destToken: undefined,
+  selectedSourceChainIds: undefined,
 };
 
 const name = 'bridge';
@@ -44,6 +51,9 @@ const slice = createSlice({
     },
     setDestChainId: (state, action: PayloadAction<SupportedCaipChainId | Hex | undefined>) => {
       state.destChainId = action.payload;
+    },
+    setSelectedSourceChainIds: (state, action: PayloadAction<string[]>) => {
+      state.selectedSourceChainIds = action.payload;
     },
     resetBridgeState: () => initialState,
     switchTokens: (state) => {
@@ -91,9 +101,42 @@ export const selectDestAmount = createSelector(
   (bridgeState) => bridgeState.destAmount,
 );
 
+// only includes networks user has added
+// will include them regardless of feature flag enabled or not
+export const selectAllBridgeableNetworks = createSelector(
+  selectEvmNetworkConfigurationsByChainId,
+  (networkConfigurations) => {
+    const networks = uniqBy(
+      Object.values(networkConfigurations),
+      'chainId'
+    ).filter(({ chainId }) =>
+      ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId as AllowedBridgeChainIds)
+    );
+
+    return networks;
+  }
+);
+
+export const selectBridgeFeatureFlags = createSelector(
+  selectBridgeControllerState,
+  (bridgeControllerState) => bridgeControllerState.bridgeFeatureFlags,
+);
+
+export const selectEnabledSourceChains = createSelector(
+  selectAllBridgeableNetworks,
+  selectBridgeFeatureFlags,
+  (networks, bridgeFeatureFlags) => networks.filter(({ chainId }) =>
+    bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[chainId]?.isActiveSrc)
+);
+
 export const selectSourceChainId = createSelector(
   selectChainId,
   (chainId) => chainId,
+);
+
+export const getEnabledDestChains = createSelector(
+  selectAllBridgeableNetworks,
+  (networks) => networks,
 );
 
 export const selectDestChainId = createSelector(
@@ -134,6 +177,18 @@ export const selectDestToken = createSelector(
   (bridgeState) => bridgeState.destToken,
 );
 
+export const selectSelectedSourceChainIds = createSelector(
+  selectBridgeState,
+  selectEnabledSourceChains,
+  (bridgeState, enabledSourceChains) => {
+    // If selectedSourceChainIds is undefined, use the chainIds from enabledSourceChains
+    if (bridgeState.selectedSourceChainIds === undefined) {
+      return enabledSourceChains.map(chain => chain.chainId);
+    }
+    return bridgeState.selectedSourceChainIds;
+  },
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -143,4 +198,5 @@ export const {
   resetBridgeState,
   switchTokens,
   setSourceToken,
+  setSelectedSourceChainIds,
 } = actions;

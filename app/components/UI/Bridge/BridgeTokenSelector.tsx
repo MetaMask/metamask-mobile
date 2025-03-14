@@ -13,7 +13,7 @@ import { Hex } from '@metamask/utils';
 import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
 import { BridgeToken } from './types';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { setSourceToken } from '../../../core/redux/slices/bridge';
+import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
@@ -23,6 +23,8 @@ import { strings } from '../../../../locales/i18n';
 import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
 import { useTokenSearch } from './useTokenSearch';
 import TextFieldSearch from '../../../component-library/components/Form/TextFieldSearch';
+import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -45,13 +47,16 @@ const createStyles = (params: { theme: Theme }) => {
     listContent: {
       padding: 4,
     },
-    input: {
-      marginHorizontal: 24,
-      marginVertical: 10,
-    },
     emptyList: {
       marginVertical: 10,
       marginHorizontal: 24,
+    },
+    networksButton: {
+      borderColor: theme.colors.border.muted,
+    },
+    buttonContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
     },
   });
 };
@@ -62,6 +67,8 @@ export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
   const currentChainId = useSelector(selectChainId) as Hex;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const enabledSourceChains = useSelector(selectEnabledSourceChains);
+  const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const tokensList = useSourceTokens();
   const { searchString, setSearchString, searchResults } = useTokenSearch({
     tokens: tokensList || [],
@@ -94,7 +101,7 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [networkConfigurations]);
 
   const renderItem = useCallback(({ item }: { item: TokenIWithFiatAmount }) => {
-    const networkDetails = getNetworkBadgeDetails(currentChainId);
+    const networkDetails = getNetworkBadgeDetails(item.chainId as Hex);
 
     return (
       <TokenSelectorItem
@@ -106,7 +113,7 @@ export const BridgeTokenSelector: React.FC = () => {
     );
   }, [currentChainId, getNetworkBadgeDetails, handleTokenPress]);
 
-  const keyExtractor = useCallback((token: TokenI) => token.address, []);
+  const keyExtractor = useCallback((token: TokenI) => `${token.chainId}-${token.address}`, []);
 
   const handleSearchTextChange = useCallback((text: string) => {
     setSearchString(text);
@@ -122,6 +129,27 @@ export const BridgeTokenSelector: React.FC = () => {
     ),
     [searchString, styles],
   );
+
+  const navigateToNetworkSelector = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+      params: {
+        testing: 'testing',
+      },
+    });
+  }, [navigation]);
+
+  const numNetworksLabel = useMemo(() => {
+    if (selectedSourceChainIds.length === enabledSourceChains.length) {
+      return strings('bridge.all_networks');
+    }
+    if (selectedSourceChainIds.length === 1) {
+      return strings('bridge.one_network');
+    }
+
+    return strings('bridge.num_networks', { numNetworks: selectedSourceChainIds.length });
+
+  }, [selectedSourceChainIds, enabledSourceChains]);
 
   return (
     <BottomSheet isFullscreen>
@@ -150,14 +178,22 @@ export const BridgeTokenSelector: React.FC = () => {
               </Box>
             </Box>
           </BottomSheetHeader>
+        </Box>
+
+        <Box style={styles.buttonContainer} gap={16}>
+          <Button
+            onPress={navigateToNetworkSelector}
+            variant={ButtonVariants.Secondary}
+            label={numNetworksLabel}
+            style={styles.networksButton}
+            />
 
           <TextFieldSearch
             value={searchString}
             onChangeText={handleSearchTextChange}
             placeholder={strings('swaps.search_token')}
-            style={styles.input}
             testID="bridge-token-search-input"
-          />
+            />
         </Box>
 
         <FlatList
@@ -166,11 +202,6 @@ export const BridgeTokenSelector: React.FC = () => {
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={renderEmptyList}
-          removeClippedSubviews
-          maxToRenderPerBatch={10}
-          windowSize={10}
-          initialNumToRender={20}
-          keyboardShouldPersistTaps="always"
         />
       </Box>
     </BottomSheet>

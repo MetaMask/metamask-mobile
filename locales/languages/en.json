@@ -3726,6 +3726,13 @@
   "bridge": {
     "continue": "Continue",
     "terms_and_conditions": "Terms & Conditions",
-    "select_token": "Select token"
+    "select_token": "Select token",
+    "select_network": "Select network",
+    "all_networks": "All networks",
+    "num_networks": "{{numNetworks}} networks",
+    "one_network": "1 network",
+    "select_all_networks": "Select all networks",
+    "deselect_all_networks": "Deselect all networks",
+    "apply": "Apply"
   }
 }
