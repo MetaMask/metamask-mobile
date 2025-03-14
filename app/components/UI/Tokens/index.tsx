@@ -1,4 +1,11 @@
-import React, { useRef, useState, LegacyRef, useMemo, memo } from 'react';
+import React, {
+  useRef,
+  useState,
+  LegacyRef,
+  useMemo,
+  memo,
+  useCallback,
+} from 'react';
 import { Hex } from '@metamask/utils';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -151,29 +158,40 @@ const Tokens = memo(() => {
 
   const evmTokens = useSelector(selectEvmTokens);
 
-  const calculateFiatBalances = () =>
-    evmTokens.map((token) => {
-      const chainId = token.chainId as Hex;
-      const multiChainExchangeRates = multiChainMarketData?.[chainId];
-      const multiChainTokenBalances =
-        multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-          chainId
-        ];
-      const nativeCurrency =
-        networkConfigurationsByChainId[chainId].nativeCurrency;
-      const multiChainConversionRate =
-        multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
+  const calculateFiatBalances = useCallback(
+    () =>
+      evmTokens.map((token) => {
+        const chainId = token.chainId as Hex;
+        const multiChainExchangeRates = multiChainMarketData?.[chainId];
+        const multiChainTokenBalances =
+          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+            chainId
+          ];
+        const nativeCurrency =
+          networkConfigurationsByChainId[chainId].nativeCurrency;
+        const multiChainConversionRate =
+          multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
 
-      return token.isETH || token.isNative
-        ? parseFloat(token.balance) * multiChainConversionRate
-        : deriveBalanceFromAssetMarketDetails(
-            token,
-            multiChainExchangeRates || {},
-            multiChainTokenBalances || {},
-            multiChainConversionRate || 0,
-            currentCurrency || '',
-          ).balanceFiatCalculation;
-    });
+        return token.isETH || token.isNative
+          ? parseFloat(token.balance) * multiChainConversionRate
+          : deriveBalanceFromAssetMarketDetails(
+              token,
+              multiChainExchangeRates || {},
+              multiChainTokenBalances || {},
+              multiChainConversionRate || 0,
+              currentCurrency || '',
+            ).balanceFiatCalculation;
+      }),
+    [
+      evmTokens,
+      multiChainMarketData,
+      multiChainTokenBalance,
+      selectedInternalAccountAddress,
+      networkConfigurationsByChainId,
+      multiChainCurrencyRates,
+      currentCurrency,
+    ],
+  );
 
   const tokensList = useMemo((): TokenI[] => {
     trace({
@@ -198,17 +216,7 @@ const Tokens = memo(() => {
       name: TraceName.Tokens,
     });
     return tokensSorted;
-  }, [
-    hideZeroBalanceTokens,
-    tokenSortConfig,
-    // Dependencies for multichain implementation
-    multiChainTokenBalance,
-    multiChainMarketData,
-    multiChainCurrencyRates,
-    selectedAccountTokensChains,
-    selectedInternalAccountAddress,
-    isUserOnCurrentNetwork,
-  ]);
+  }, [calculateFiatBalances, evmTokens, tokenSortConfig]);
 
   const showRemoveMenu = (token: TokenI) => {
     if (actionSheet.current) {
