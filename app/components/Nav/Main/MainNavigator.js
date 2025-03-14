@@ -204,13 +204,7 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
-export const DrawerContext = React.createContext({
-  drawerRef: null,
-  isDrawerVisible: true,
-  setIsDrawerVisible: (isVisible) => {
-    Logger.log('setIsDrawerVisible', isVisible);
-  },
-});
+export const DrawerContext = React.createContext({ drawerRef: null });
 
 const BrowserFlow = () => (
   <Stack.Navigator
