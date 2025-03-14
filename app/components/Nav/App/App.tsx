@@ -143,6 +143,7 @@ import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
 import NavigationService from '../../../core/NavigationService';
 import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
+import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -563,6 +564,10 @@ const AppFlow = () => {
         name={Routes.ONBOARDING.LOGIN}
         component={Login}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
+        component={MaxBrowserTabsModal}
       />
       <Stack.Screen
         name="OnboardingRootNav"

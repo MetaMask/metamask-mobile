@@ -27,6 +27,8 @@ import BottomSheetDialog from '../../../component-library/components/BottomSheet
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import { toHexadecimal } from '../../../util/number';
 import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
+import ReusableModal from '../ReusableModal';
+import Routes from '../../../constants/navigation/Routes';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -125,13 +127,7 @@ const createStyles = (colors, shadows) =>
       width: 30,
       height: 30,
       marginTop: -7,
-    },
-    sheet: {
-      paddingHorizontal: 20
-    },
-    dialogDescription: {
-      marginBottom: 20,
-    },
+    }
   });
 
 /**
@@ -177,9 +173,9 @@ class Tabs extends PureComponent {
      */
     metrics: PropTypes.object,
     /**
-     * Drawer context
+     * Navigation object
      */
-    drawerContext: PropTypes.object,
+    navigation: PropTypes.object,
   };
 
   thumbnails = {};
@@ -284,9 +280,9 @@ class Tabs extends PureComponent {
   onNewTabPress = () => {
     const tabsLength = this.props.tabs.length;
     if (tabsLength === 5) {
-      this.props.drawerContext.setIsDrawerVisible(false);
-      this.setState({ isMaxTabsDialogVisible: true });
-      this.sheetRef.current?.onOpenDialog();
+      this.props.navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL, {
+        screen: Routes.MODAL.MAX_BROWSER_TABS_MODAL,
+      });
     } else {
       const { tabs, newTab } = this.props;
       newTab();
@@ -295,10 +291,9 @@ class Tabs extends PureComponent {
   };
 
   onMaxTabsDialogClose = () => {
-    // this.setState({ isMaxTabsDialogVisible: false });
-    this.sheetRef.current?.onCloseBottomSheet();
+    this.sheetRef.current?.dismissModal();
     setTimeout(() => {
-      this.props.drawerContext.setIsDrawerVisible(true);
+      this.setState({ isMaxTabsDialogVisible: false });
     }, 2000)
   };
 
@@ -383,21 +378,6 @@ class Tabs extends PureComponent {
             </View>
           )}
         </SafeAreaInsetsContext.Consumer>
-        {this.state.isMaxTabsDialogVisible && (
-          <BottomSheet ref={this.sheetRef}>
-            <SheetHeader title={strings('browser.max_tabs_title')} />
-            <View style={styles.sheet}>
-              <Text style={styles.dialogDescription}>{strings('browser.max_tabs_desc')}</Text>
-              <Button
-                variant={ButtonVariants.Primary}
-                label={strings('browser.got_it')}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-                onPress={this.onMaxTabsDialogClose}
-              />
-            </View>
-          </BottomSheet>
-        )}
       </>
     );
   }
