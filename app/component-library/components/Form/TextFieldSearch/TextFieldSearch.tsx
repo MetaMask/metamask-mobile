@@ -25,8 +25,6 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
   value,
   ...props
 }) => {
-  const [currentValue, setCurrentValue] = useState(value);
-
   const searchIcon = (
     <Icon
       name={DEFAULT_TEXTFIELDSEARCH_SEARCHICON_NAME}
@@ -35,9 +33,8 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
   );
 
   const clearButtonHandler = useCallback(() => {
-    setCurrentValue('');
     onPressClearButton?.();
-  }, [setCurrentValue, onPressClearButton]);
+  }, [onPressClearButton]);
 
   const clearButton = (
     <ButtonIcon
@@ -49,7 +46,7 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
   );
   return (
     <TextField
-      value={currentValue}
+      value={value}
       startAccessory={searchIcon}
       endAccessory={showClearButton && clearButton}
       testID={TEXTFIELDSEARCH_TEST_ID}

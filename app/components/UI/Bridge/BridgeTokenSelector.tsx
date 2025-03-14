@@ -22,6 +22,7 @@ import { useSourceTokens, TokenIWithFiatAmount } from './useSourceTokens';
 import { strings } from '../../../../locales/i18n';
 import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
 import { useTokenSearch } from './useTokenSearch';
+import TextFieldSearch from '../../../component-library/components/Form/TextFieldSearch';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -45,15 +46,8 @@ const createStyles = (params: { theme: Theme }) => {
       padding: 4,
     },
     inputWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
       marginHorizontal: 24,
       marginVertical: 10,
-      paddingVertical: Platform.OS === 'android' ? 0 : 10,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
     },
     searchIcon: {
       marginRight: 8,
@@ -77,12 +71,11 @@ export const BridgeTokenSelector: React.FC = () => {
   const currentChainId = useSelector(selectChainId) as Hex;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const tokensList = useSourceTokens();
-  const searchInput = useRef<TextInput>(null);
   const { searchString, setSearchString, searchResults } = useTokenSearch({
     tokens: tokensList || [],
   });
-  const tokensToRender = useMemo(() => 
-    searchString ? searchResults : tokensList, 
+  const tokensToRender = useMemo(() =>
+    searchString ? searchResults : tokensList,
     [searchString, searchResults, tokensList]
   );
 
@@ -123,17 +116,8 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const keyExtractor = useCallback((token: TokenI) => token.address, []);
 
-  const handleSearchPress = useCallback(() => {
-    searchInput?.current?.focus();
-  }, []);
-
   const handleSearchTextChange = useCallback((text: string) => {
     setSearchString(text);
-  }, [setSearchString]);
-
-  const handleClearSearch = useCallback(() => {
-    setSearchString('');
-    searchInput?.current?.focus();
   }, [setSearchString]);
 
   const renderEmptyList = useMemo(
@@ -146,6 +130,8 @@ export const BridgeTokenSelector: React.FC = () => {
     ),
     [searchString, styles],
   );
+
+  console.log('searchString', searchString);
 
   return (
     <BottomSheet isFullscreen>
@@ -175,37 +161,12 @@ export const BridgeTokenSelector: React.FC = () => {
             </Box>
           </BottomSheetHeader>
 
-          <TouchableOpacity onPress={handleSearchPress}>
-            <View style={styles.inputWrapper}>
-              <Icon
-                name={IconName.Search}
-                size={IconSize.Sm}
-                color={theme.colors.icon.alternative}
-                style={styles.searchIcon}
-              />
-              <TextInput
-                ref={searchInput}
-                style={styles.input}
-                placeholder={strings('swaps.search_token')}
-                placeholderTextColor={theme.colors.text.muted}
-                value={searchString}
-                onChangeText={handleSearchTextChange}
-                testID="bridge-token-search-input"
-              />
-              {searchString.length > 0 && (
-                <TouchableOpacity 
-                  onPress={handleClearSearch}
-                  testID="bridge-token-search-clear-button"
-                >
-                  <Icon
-                    name={IconName.Close}
-                    size={IconSize.Sm}
-                    color={theme.colors.icon.alternative}
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-          </TouchableOpacity>
+          <TextFieldSearch
+            value={searchString}
+            onChangeText={handleSearchTextChange}
+            placeholder={strings('swaps.search_token')}
+            style={styles.inputWrapper}
+          />
         </Box>
 
         <FlatList
