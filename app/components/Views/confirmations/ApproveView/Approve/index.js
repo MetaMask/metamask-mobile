@@ -122,10 +122,6 @@ class Approve extends PureComponent {
      */
     providerType: PropTypes.string,
     /**
-     * The chainId of the provider
-     */
-    providerChainId: PropTypes.string,
-    /**
      * Whether the modal is visible
      */
     modalVisible: PropTypes.bool,
@@ -789,7 +785,6 @@ class Approve extends PureComponent {
       primaryCurrency,
       chainId,
       providerType,
-      providerChainId,
       providerRpcTarget,
       networkConfigurations,
     } = this.props;
@@ -993,7 +988,6 @@ const mapStateToProps = (state) => {
     networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
-    providerChainId: selectEvmChainId(state),
   };
 };
 
