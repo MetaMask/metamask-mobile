@@ -35,8 +35,6 @@ export const icon: UIComponentFactory<IconElement> = ({ element }) => {
     }
   };
 
-  console.log('ICON SIZE', element.props.size);
-
   const getIconSize = () => {
     switch (element.props.size) {
       case 'md':
