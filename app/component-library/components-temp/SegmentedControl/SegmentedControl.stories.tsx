@@ -1,12 +1,13 @@
 // Third party dependencies.
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 
 // External dependencies.
 import { ButtonSize } from '../../components/Buttons/Button/Button.types';
 import Text, { TextVariant } from '../../components/Texts/Text';
 import { IconName } from '../../components/Icons/Icon';
 import { Theme } from '../../../util/theme/models';
+import { mockTheme } from '../../../util/theme';
 
 // Internal dependencies.
 import { default as SegmentedControlComponent } from './SegmentedControl';
@@ -41,14 +42,6 @@ const OPTIONS_WITH_ICONS = [
   { value: 'usdt', label: 'USDT', startIconName: IconName.Coin },
   { value: 'link', label: 'LINK', startIconName: IconName.Link },
   { value: 'uni', label: 'UNI', startIconName: IconName.Refresh },
-];
-
-// Sample options with varying text lengths for width examples
-const VARIED_TEXT_LENGTH_OPTIONS = [
-  { value: 'short', label: 'S' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'long', label: 'Very Long Text Label' },
-  { value: 'another', label: 'Another Option' },
 ];
 
 // Button size options
@@ -192,6 +185,7 @@ const SingleSelectWithIconsDemo = () => {
       options={OPTIONS_WITH_ICONS}
       selectedValue={selectedValue}
       isButtonWidthFlexible
+      isScrollable
       onValueChange={(value) => setSelectedValue(value)}
     />
   );
@@ -272,49 +266,7 @@ const ButtonSizesDemo = ({
   );
 };
 
-// 10. Width Comparison Demo
-const WidthComparisonDemo = ({
-  styles,
-}: {
-  styles: ReturnType<typeof createStyles>;
-}) => {
-  const [selectedValueFixed, setSelectedValueFixed] = useState<string>(
-    VARIED_TEXT_LENGTH_OPTIONS[0].value,
-  );
-  const [selectedValueFlexible, setSelectedValueFlexible] = useState<string>(
-    VARIED_TEXT_LENGTH_OPTIONS[0].value,
-  );
-
-  return (
-    <View>
-      <View style={styles.demoWrapper}>
-        <Text variant={TextVariant.BodySM} style={styles.description}>
-          Fixed Width: Buttons have equal widths regardless of content
-        </Text>
-        <SegmentedControlComponent
-          options={VARIED_TEXT_LENGTH_OPTIONS}
-          selectedValue={selectedValueFixed}
-          onValueChange={(value) => setSelectedValueFixed(value)}
-          isButtonWidthFlexible={false}
-        />
-      </View>
-
-      <View style={styles.demoWrapper}>
-        <Text variant={TextVariant.BodySM} style={styles.description}>
-          Flexible Width (default): Buttons size based on their content
-        </Text>
-        <SegmentedControlComponent
-          options={VARIED_TEXT_LENGTH_OPTIONS}
-          selectedValue={selectedValueFlexible}
-          isButtonWidthFlexible
-          onValueChange={(value) => setSelectedValueFlexible(value)}
-        />
-      </View>
-    </View>
-  );
-};
-
-// 11. Disabled State
+// 10. Disabled State
 const DisabledStateDemo = ({
   styles,
 }: {
@@ -334,28 +286,6 @@ const DisabledStateDemo = ({
   </View>
 );
 
-// 12. Custom Styling Examples
-const CustomStylingDemo = ({
-  styles,
-}: {
-  styles: ReturnType<typeof createStyles>;
-}) => {
-  const [selectedValue, setSelectedValue] = useState<string>(
-    SAMPLE_SEGMENTEDCONTROL_OPTIONS[0].value,
-  );
-
-  return (
-    <View style={styles.customStyle}>
-      <SegmentedControlComponent
-        options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
-        selectedValue={selectedValue}
-        onValueChange={(value) => setSelectedValue(value)}
-        style={styles.customControlStyle}
-      />
-    </View>
-  );
-};
-
 // This is needed to suppress the unused variable warnings
 // These components are used in the story but ESLint doesn't recognize it
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -367,7 +297,98 @@ const _unusedComponents = {
   SingleSelectWithIconsDemo,
   MultiSelectWithIconsScrollableDemo,
   ButtonSizesDemo,
-  WidthComparisonDemo,
   DisabledStateDemo,
-  CustomStylingDemo,
+};
+
+// Replace all the individual exports with a single comprehensive view
+export const SegmentedControl = {
+  render: () => {
+    const styles = createStyles(mockTheme);
+
+    return (
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text variant={TextVariant.HeadingSM}>
+            SegmentedControl Component
+          </Text>
+          <Text variant={TextVariant.BodySM}>
+            A set of buttons grouped together to switch between related views or
+            modes.
+          </Text>
+
+          <View style={styles.section}>
+            <Text variant={TextVariant.BodyMDBold}>Basic Single-Select</Text>
+            <Text variant={TextVariant.BodySM} style={styles.description}>
+              The default configuration with single-select behavior
+            </Text>
+            <BasicSingleSelectDemo />
+          </View>
+
+          <View style={styles.section}>
+            <Text variant={TextVariant.BodyMDBold}>Multi-Select</Text>
+            <Text variant={TextVariant.BodySM} style={styles.description}>
+              Allows selecting multiple options simultaneously
+            </Text>
+            <MultiSelectDemo />
+          </View>
+
+          <View style={styles.section}>
+            <Text variant={TextVariant.BodyMDBold}>
+              Scrollable with Flexible Width
+            </Text>
+            <Text variant={TextVariant.BodySM} style={styles.description}>
+              Horizontally scrollable with button width based on content
+            </Text>
+            <ScrollableFlexibleWidthDemo />
+          </View>
+
+          <View style={styles.section}>
+            <Text variant={TextVariant.BodyMDBold}>
+              Scrollable with Fixed Width
+            </Text>
+            <Text variant={TextVariant.BodySM} style={styles.description}>
+              Horizontally scrollable with equal button widths
+            </Text>
+            <ScrollableFixedWidthDemo />
+          </View>
+
+          <View style={styles.section}>
+            <Text variant={TextVariant.BodyMDBold}>
+              Single-Select with Icons
+            </Text>
+            <Text variant={TextVariant.BodySM} style={styles.description}>
+              Buttons with both text and icons for enhanced visual cues
+            </Text>
+            <SingleSelectWithIconsDemo />
+          </View>
+
+          <View style={styles.section}>
+            <Text variant={TextVariant.BodyMDBold}>
+              Multi-Select with Icons (Scrollable)
+            </Text>
+            <Text variant={TextVariant.BodySM} style={styles.description}>
+              Multi-select with icons in a scrollable container
+            </Text>
+            <MultiSelectWithIconsScrollableDemo />
+          </View>
+
+          <View style={styles.section}>
+            <Text variant={TextVariant.BodyMDBold}>Size Variations</Text>
+            <Text variant={TextVariant.BodySM} style={styles.description}>
+              Small, medium (default), and large button sizes
+            </Text>
+            <ButtonSizesDemo styles={styles} />
+          </View>
+
+          <View style={styles.section}>
+            <Text variant={TextVariant.BodyMDBold}>Disabled State</Text>
+            <Text variant={TextVariant.BodySM} style={styles.description}>
+              Control in a disabled state with interaction prevented
+            </Text>
+            <DisabledStateDemo styles={styles} />
+          </View>
+        </View>
+      </ScrollView>
+    );
+  },
 };
