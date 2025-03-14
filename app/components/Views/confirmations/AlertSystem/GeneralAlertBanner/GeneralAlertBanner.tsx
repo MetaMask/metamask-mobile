@@ -24,6 +24,7 @@ const GeneralAlertBanner = () => {
           title={selectedAlert.title}
           description={selectedAlert.content ?? selectedAlert.message}
           style={styles.wrapper}
+          testID={`security-alert-banner-${index}`}
         />
       ))}
     </View>
