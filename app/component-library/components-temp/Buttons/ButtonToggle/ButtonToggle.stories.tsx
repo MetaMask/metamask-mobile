@@ -62,16 +62,6 @@ export const ButtonToggle = {
           onPress={handlePress}
         />
       </View>
-
-      <View style={styles.section}>
-        <Text variant={TextVariant.BodyMDBold}>Loading</Text>
-        <ButtonToggleComponent
-          label="Loading"
-          isActive={false}
-          loading
-          onPress={handlePress}
-        />
-      </View>
     </View>
   ),
 };

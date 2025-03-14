@@ -16,5 +16,4 @@ export type ButtonToggleProps = Omit<ButtonBaseProps, 'labelColor'> & {
  */
 export type ButtonToggleStyleSheetVars = Pick<ButtonToggleProps, 'style'> & {
   isActive: boolean;
-  pressed: boolean;
 };

@@ -13,11 +13,8 @@ import { ButtonToggleProps } from './ButtonToggle.types';
 // Defaults
 export const DEFAULT_BUTTONTOGGLE_LABEL_TEXTVARIANT =
   DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT;
-export const DEFAULT_BUTTONTOGGLE_LABEL_COLOR = TextColor.Primary;
+export const DEFAULT_BUTTONTOGGLE_LABEL_COLOR = TextColor.Default;
 export const DEFAULT_BUTTONTOGGLE_LABEL_COLOR_ACTIVE = TextColor.Primary;
-export const DEFAULT_BUTTONTOGGLE_LABEL_COLOR_PRESSED = TextColor.Inverse;
-export const DEFAULT_BUTTONTOGGLE_LABEL_COLOR_ACTIVE_PRESSED =
-  TextColor.Inverse;
 
 // Samples
 export const SAMPLE_BUTTONTOGGLE_PROPS: ButtonToggleProps = {

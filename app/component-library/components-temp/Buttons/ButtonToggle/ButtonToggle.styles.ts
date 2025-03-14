@@ -20,21 +20,15 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, isActive, pressed } = vars;
+  const { style, isActive } = vars;
   const colorObj = colors.primary;
 
   return StyleSheet.create({
     base: Object.assign(
       {
-        backgroundColor: isActive
-          ? pressed
-            ? colorObj.alternative
-            : colorObj.default
-          : pressed
-          ? colorObj.alternative
-          : 'transparent',
+        backgroundColor: isActive ? colorObj.muted : 'transparent',
         borderWidth: 1,
-        borderColor: colorObj.default,
+        borderColor: isActive ? colorObj.default : colors.border.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,
