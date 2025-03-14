@@ -26,7 +26,7 @@ import {
 } from '../../../util/networks';
 import createStyles from './styles';
 import { TokenList } from './TokenList';
-import { TokenI, TokensI } from './types';
+import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -95,7 +95,7 @@ interface TokenListNavigationParamList {
   [key: string]: undefined | object;
 }
 
-const Tokens: React.FC<TokensI> = memo(() => {
+const Tokens = memo(() => {
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
@@ -186,46 +186,14 @@ const Tokens: React.FC<TokensI> = memo(() => {
       name: TraceName.Tokens,
       tags: getTraceTags(store.getState()),
     });
-    if (isPortfolioViewEnabled()) {
-      trace({
-        name: TraceName.Tokens,
-        tags: getTraceTags(store.getState()),
-      });
-
-      // Calculate fiat balances for tokens
-      const tokenFiatBalances = calculateFiatBalances();
-
-      const tokensWithBalances = evmTokens.map((token, i) => ({
-        ...token,
-        tokenFiatAmount: tokenFiatBalances[i],
-      }));
-
-      const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
-      endTrace({
-        name: TraceName.Tokens,
-      });
-      return tokensSorted;
-    }
+    trace({
+      name: TraceName.Tokens,
+      tags: getTraceTags(store.getState()),
+    });
 
     // Calculate fiat balances for tokens
-    const tokenFiatBalances = conversionRate
-      ? evmTokens.map((asset) =>
-          asset.isETH
-            ? parseFloat(asset.balance) * conversionRate
-            : deriveBalanceFromAssetMarketDetails(
-                asset,
-                tokenExchangeRates || {},
-                tokenBalances || {},
-                conversionRate || 0,
-                currentCurrency || '',
-              ).balanceFiatCalculation,
-        )
-      : [];
+    const tokenFiatBalances = calculateFiatBalances();
 
-    // Combine tokens with their fiat balances
-    // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
-    // this key in the controller is also used by extension, so this is for consistency in syntax and config
-    // actual balance rendering for each token list item happens in TokenListItem component
     const tokensWithBalances = evmTokens.map((token, i) => ({
       ...token,
       tokenFiatAmount: tokenFiatBalances[i],
@@ -236,7 +204,6 @@ const Tokens: React.FC<TokensI> = memo(() => {
       name: TraceName.Tokens,
     });
     return tokensSorted;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     hideZeroBalanceTokens,
     tokenSortConfig,

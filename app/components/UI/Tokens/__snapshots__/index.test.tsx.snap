@@ -476,24 +476,63 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                             tokens={
                               [
                                 {
-                                  "address": "0x0",
-                                  "balanceFiat": "< $0.01",
+                                  "address": "0x0000000000000000000000000000000000000000",
+                                  "aggregators": [],
+                                  "balance": "< 0.00001",
+                                  "balanceFiat": "$0",
                                   "chainId": "0x1",
                                   "decimals": 18,
+                                  "image": "",
                                   "isETH": true,
-                                  "isStaked": false,
-                                  "name": "Ethereum",
-                                  "symbol": "ETH",
+                                  "isNative": true,
+                                  "isStaked": true,
+                                  "logo": "../images/eth-logo-new.png",
+                                  "name": "Staked Ethereum",
+                                  "nativeAsset": {
+                                    "address": "0x0000000000000000000000000000000000000000",
+                                    "aggregators": [],
+                                    "balance": "0",
+                                    "balanceFiat": "$0",
+                                    "chainId": "0x1",
+                                    "decimals": 18,
+                                    "image": "",
+                                    "isETH": true,
+                                    "isNative": true,
+                                    "isStaked": false,
+                                    "logo": "../images/eth-logo-new.png",
+                                    "name": "Ethereum",
+                                    "stakedBalance": "0x2",
+                                    "symbol": "Ethereum",
+                                    "ticker": "ETH",
+                                  },
+                                  "stakedBalance": "0x2",
+                                  "symbol": "Ethereum",
+                                  "ticker": "ETH",
                                   "tokenFiatAmount": NaN,
                                 },
                                 {
                                   "address": "0x01",
-                                  "balanceFiat": "$0",
+                                  "balanceFiat": "",
                                   "chainId": "0x1",
                                   "decimals": 18,
-                                  "name": "Bat",
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
                                   "symbol": "BAT",
-                                  "tokenFiatAmount": 0,
+                                  "token": undefined,
+                                  "tokenFiatAmount": 200,
+                                },
+                                {
+                                  "address": "0x00",
+                                  "balanceFiat": "",
+                                  "chainId": "0x1",
+                                  "decimals": 18,
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
+                                  "symbol": "ETH",
+                                  "token": undefined,
+                                  "tokenFiatAmount": 1,
                                 },
                               ]
                             }
@@ -502,24 +541,63 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                         data={
                           [
                             {
-                              "address": "0x0",
-                              "balanceFiat": "< $0.01",
+                              "address": "0x0000000000000000000000000000000000000000",
+                              "aggregators": [],
+                              "balance": "< 0.00001",
+                              "balanceFiat": "$0",
                               "chainId": "0x1",
                               "decimals": 18,
+                              "image": "",
                               "isETH": true,
-                              "isStaked": false,
-                              "name": "Ethereum",
-                              "symbol": "ETH",
+                              "isNative": true,
+                              "isStaked": true,
+                              "logo": "../images/eth-logo-new.png",
+                              "name": "Staked Ethereum",
+                              "nativeAsset": {
+                                "address": "0x0000000000000000000000000000000000000000",
+                                "aggregators": [],
+                                "balance": "0",
+                                "balanceFiat": "$0",
+                                "chainId": "0x1",
+                                "decimals": 18,
+                                "image": "",
+                                "isETH": true,
+                                "isNative": true,
+                                "isStaked": false,
+                                "logo": "../images/eth-logo-new.png",
+                                "name": "Ethereum",
+                                "stakedBalance": "0x2",
+                                "symbol": "Ethereum",
+                                "ticker": "ETH",
+                              },
+                              "stakedBalance": "0x2",
+                              "symbol": "Ethereum",
+                              "ticker": "ETH",
                               "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x01",
-                              "balanceFiat": "$0",
+                              "balanceFiat": "",
                               "chainId": "0x1",
                               "decimals": 18,
-                              "name": "Bat",
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
                               "symbol": "BAT",
-                              "tokenFiatAmount": 0,
+                              "token": undefined,
+                              "tokenFiatAmount": 200,
+                            },
+                            {
+                              "address": "0x00",
+                              "balanceFiat": "",
+                              "chainId": "0x1",
+                              "decimals": 18,
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
+                              "symbol": "ETH",
+                              "token": undefined,
+                              "tokenFiatAmount": 1,
                             },
                           ]
                         }
@@ -571,7 +649,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                   "paddingVertical": 10,
                                 }
                               }
-                              testID="asset-ETH"
+                              testID="asset-Ethereum"
                             >
                               <View
                                 onLayout={[Function]}
@@ -585,33 +663,67 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                               >
                                 <View>
                                   <View
-                                    style={
-                                      {
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 16,
-                                        "height": 32,
-                                        "overflow": "hidden",
-                                        "width": 32,
-                                      }
-                                    }
+                                    useNativeDriver={true}
                                   >
                                     <Image
+                                      fadeIn={true}
                                       onError={[Function]}
-                                      resizeMode="contain"
+                                      onLoadEnd={[Function]}
                                       source={
                                         {
-                                          "uri": undefined,
+                                          "uri": "",
                                         }
                                       }
                                       style={
+                                        [
+                                          {
+                                            "borderRadius": 12,
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                          false,
+                                          false,
+                                          {
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          },
+                                        ]
+                                      }
+                                      testID="PLACE HOLDER"
+                                    />
+                                    <View
+                                      collapsable={false}
+                                      style={
                                         {
-                                          "flex": 1,
-                                          "height": undefined,
-                                          "width": undefined,
+                                          "bottom": 0,
+                                          "left": 0,
+                                          "opacity": 1,
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "top": 0,
                                         }
                                       }
-                                      testID="token-avatar-image"
-                                    />
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "borderRadius": 16,
+                                              "height": 32,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            },
+                                            {
+                                              "backgroundColor": "#eee",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      />
+                                    </View>
                                   </View>
                                 </View>
                                 <View
@@ -722,89 +834,8 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                       }
                                     }
                                   >
-                                    Ethereum
+                                    Staked Ethereum
                                   </Text>
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": undefined,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                    testID="stake-button"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 16,
-                                          "fontWeight": "500",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                       • 
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#0376c9",
-                                            "fontFamily": "EuclidCircularB-Medium",
-                                            "fontSize": 16,
-                                            "fontWeight": "500",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        Earn 
-                                      </Text>
-                                    </Text>
-                                    <SvgMock
-                                      color="#0376c9"
-                                      height={16}
-                                      name="Plant"
-                                      style={
-                                        {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      width={16}
-                                    />
-                                  </View>
                                 </View>
                                 <View>
                                   <Text
@@ -874,7 +905,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                   }
                                   testID="fiat-balance-test-id"
                                 >
-                                   ETH
+                                  &lt; 0.00001 ETH
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -892,7 +923,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                  $0
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -1065,7 +1096,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                       }
                                     }
                                   >
-                                    Bat
+                                    BAT
                                   </Text>
                                 </View>
                                 <View>
@@ -1136,7 +1167,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                   }
                                   testID="fiat-balance-test-id"
                                 >
-                                  &lt; 0.00001 BAT
+                                  1 BAT
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -1154,7 +1185,269 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  $0
+                                  $200
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-ETH"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": [
+                                        {
+                                          "translateX": 0,
+                                        },
+                                        {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badgenetwork"
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
+                                          "borderRadius": 16,
+                                          "borderWidth": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 32,
+                                            "width": 32,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    ETH
+                                  </Text>
+                                </View>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  0.01 ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  $1
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -1572,114 +1865,150 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           }
                         }
                       >
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
+                        <View
                           style={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#848c96",
-                              "borderRadius": 20,
-                              "borderStyle": "solid",
-                              "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
-                              "justifyContent": "center",
-                              "marginLeft": 5,
-                              "marginRight": 5,
-                              "maxWidth": "60%",
-                              "paddingHorizontal": 16,
+                              "justifyContent": "space-between",
+                              "width": "100%",
                             }
                           }
-                          testID="sort-by"
                         >
-                          <Text
-                            accessibilityRole="none"
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#848c96",
+                                "borderRadius": 20,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "marginLeft": 5,
+                                "marginRight": 5,
+                                "maxWidth": "60%",
+                                "paddingHorizontal": 16,
+                              }
+                            }
+                            testID="token-network-filter"
+                          >
+                            <Text
+                              numberOfLines={1}
+                              style={
+                                {
+                                  "color": "#141618",
+                                }
+                              }
+                            >
+                              Ethereum Main Network
+                            </Text>
+                            <SvgMock
+                              color="#141618"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                          <View
+                            style={
+                              {
+                                "flexDirection": "row",
                               }
                             }
                           >
-                            Sort by
-                          </Text>
-                          <SvgMock
-                            color="#141618"
-                            height={16}
-                            name="ArrowDown"
-                            style={
-                              {
-                                "height": 16,
-                                "marginLeft": 8,
-                                "width": 16,
+                            <TouchableOpacity
+                              accessible={true}
+                              activeOpacity={1}
+                              disabled={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#848c96",
+                                  "borderRadius": 50,
+                                  "borderStyle": "solid",
+                                  "borderWidth": 1,
+                                  "height": 40,
+                                  "justifyContent": "center",
+                                  "marginLeft": 5,
+                                  "marginRight": 5,
+                                  "opacity": 1,
+                                  "width": 50,
+                                }
                               }
-                            }
-                            width={16}
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#848c96",
-                              "borderRadius": 20,
-                              "borderStyle": "solid",
-                              "borderWidth": 1,
-                              "flexDirection": "row",
-                              "height": 40,
-                              "justifyContent": "center",
-                              "marginLeft": 5,
-                              "marginRight": 5,
-                              "maxWidth": "60%",
-                              "paddingHorizontal": 16,
-                            }
-                          }
-                          testID="import-token-button"
-                        >
-                          <SvgMock
-                            color="#141618"
-                            height={16}
-                            name="Add"
-                            style={
-                              {
-                                "height": 16,
-                                "marginRight": 8,
-                                "width": 16,
+                              testID="sort-by"
+                            >
+                              <SvgMock
+                                color="#141618"
+                                height={16}
+                                name="SwapVertical"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              accessible={true}
+                              activeOpacity={1}
+                              disabled={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#848c96",
+                                  "borderRadius": 50,
+                                  "borderStyle": "solid",
+                                  "borderWidth": 1,
+                                  "height": 40,
+                                  "justifyContent": "center",
+                                  "marginLeft": 5,
+                                  "marginRight": 5,
+                                  "opacity": 1,
+                                  "width": 50,
+                                }
                               }
-                            }
-                            width={16}
-                          />
-                          <Text
-                            accessibilityRole="none"
-                            style={
-                              {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 22,
-                              }
-                            }
-                          >
-                            Import
-                          </Text>
-                        </TouchableOpacity>
+                              testID="import-token-button"
+                            >
+                              <SvgMock
+                                color="#141618"
+                                height={16}
+                                name="Add"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
                       </View>
                       <RCTScrollView
                         ListFooterComponent={
@@ -1689,24 +2018,63 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             tokens={
                               [
                                 {
-                                  "address": "0x0",
-                                  "balanceFiat": "< $0.01",
+                                  "address": "0x0000000000000000000000000000000000000000",
+                                  "aggregators": [],
+                                  "balance": "< 0.00001",
+                                  "balanceFiat": "$0",
+                                  "chainId": "0x1",
                                   "decimals": 18,
-                                  "iconUrl": "",
+                                  "image": "",
                                   "isETH": true,
-                                  "isStaked": false,
-                                  "name": "Ethereum",
-                                  "symbol": "ETH",
+                                  "isNative": true,
+                                  "isStaked": true,
+                                  "logo": "../images/eth-logo-new.png",
+                                  "name": "Staked Ethereum",
+                                  "nativeAsset": {
+                                    "address": "0x0000000000000000000000000000000000000000",
+                                    "aggregators": [],
+                                    "balance": "0",
+                                    "balanceFiat": "$0",
+                                    "chainId": "0x1",
+                                    "decimals": 18,
+                                    "image": "",
+                                    "isETH": true,
+                                    "isNative": true,
+                                    "isStaked": false,
+                                    "logo": "../images/eth-logo-new.png",
+                                    "name": "Ethereum",
+                                    "stakedBalance": "0x2",
+                                    "symbol": "Ethereum",
+                                    "ticker": "ETH",
+                                  },
+                                  "stakedBalance": "0x2",
+                                  "symbol": "Ethereum",
+                                  "ticker": "ETH",
                                   "tokenFiatAmount": NaN,
                                 },
                                 {
                                   "address": "0x01",
-                                  "balanceFiat": "$0",
+                                  "balanceFiat": "",
+                                  "chainId": "0x1",
                                   "decimals": 18,
-                                  "iconUrl": "",
-                                  "name": "Bat",
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
                                   "symbol": "BAT",
-                                  "tokenFiatAmount": 0,
+                                  "token": undefined,
+                                  "tokenFiatAmount": 200,
+                                },
+                                {
+                                  "address": "0x00",
+                                  "balanceFiat": "",
+                                  "chainId": "0x1",
+                                  "decimals": 18,
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
+                                  "symbol": "ETH",
+                                  "token": undefined,
+                                  "tokenFiatAmount": 1,
                                 },
                               ]
                             }
@@ -1715,24 +2083,63 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                         data={
                           [
                             {
-                              "address": "0x0",
-                              "balanceFiat": "< $0.01",
+                              "address": "0x0000000000000000000000000000000000000000",
+                              "aggregators": [],
+                              "balance": "< 0.00001",
+                              "balanceFiat": "$0",
+                              "chainId": "0x1",
                               "decimals": 18,
-                              "iconUrl": "",
+                              "image": "",
                               "isETH": true,
-                              "isStaked": false,
-                              "name": "Ethereum",
-                              "symbol": "ETH",
+                              "isNative": true,
+                              "isStaked": true,
+                              "logo": "../images/eth-logo-new.png",
+                              "name": "Staked Ethereum",
+                              "nativeAsset": {
+                                "address": "0x0000000000000000000000000000000000000000",
+                                "aggregators": [],
+                                "balance": "0",
+                                "balanceFiat": "$0",
+                                "chainId": "0x1",
+                                "decimals": 18,
+                                "image": "",
+                                "isETH": true,
+                                "isNative": true,
+                                "isStaked": false,
+                                "logo": "../images/eth-logo-new.png",
+                                "name": "Ethereum",
+                                "stakedBalance": "0x2",
+                                "symbol": "Ethereum",
+                                "ticker": "ETH",
+                              },
+                              "stakedBalance": "0x2",
+                              "symbol": "Ethereum",
+                              "ticker": "ETH",
                               "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x01",
-                              "balanceFiat": "$0",
+                              "balanceFiat": "",
+                              "chainId": "0x1",
                               "decimals": 18,
-                              "iconUrl": "",
-                              "name": "Bat",
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
                               "symbol": "BAT",
-                              "tokenFiatAmount": 0,
+                              "token": undefined,
+                              "tokenFiatAmount": 200,
+                            },
+                            {
+                              "address": "0x00",
+                              "balanceFiat": "",
+                              "chainId": "0x1",
+                              "decimals": 18,
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
+                              "symbol": "ETH",
+                              "token": undefined,
+                              "tokenFiatAmount": 1,
                             },
                           ]
                         }
@@ -1784,7 +2191,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   "paddingVertical": 10,
                                 }
                               }
-                              testID="asset-ETH"
+                              testID="asset-Ethereum"
                             >
                               <View
                                 onLayout={[Function]}
@@ -1817,8 +2224,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                             "width": 24,
                                           },
                                           undefined,
-                                          undefined,
-                                          undefined,
+                                          false,
+                                          false,
                                           {
                                             "borderRadius": 16,
                                             "height": 32,
@@ -1827,6 +2234,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                           },
                                         ]
                                       }
+                                      testID="PLACE HOLDER"
                                     />
                                     <View
                                       collapsable={false}
@@ -1968,89 +2376,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       }
                                     }
                                   >
-                                    Ethereum
+                                    Staked Ethereum
                                   </Text>
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": undefined,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                    testID="stake-button"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 16,
-                                          "fontWeight": "500",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                       • 
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#0376c9",
-                                            "fontFamily": "EuclidCircularB-Medium",
-                                            "fontSize": 16,
-                                            "fontWeight": "500",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        Earn 
-                                      </Text>
-                                    </Text>
-                                    <SvgMock
-                                      color="#0376c9"
-                                      height={16}
-                                      name="Plant"
-                                      style={
-                                        {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      width={16}
-                                    />
-                                  </View>
                                 </View>
                                 <View>
                                   <Text
@@ -2120,7 +2447,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                   testID="fiat-balance-test-id"
                                 >
-                                   ETH
+                                  &lt; 0.00001 ETH
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -2138,7 +2465,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                  $0
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2311,7 +2638,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       }
                                     }
                                   >
-                                    Bat
+                                    BAT
                                   </Text>
                                 </View>
                                 <View>
@@ -2382,7 +2709,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                   testID="fiat-balance-test-id"
                                 >
-                                  &lt; 0.00001 BAT
+                                  1 BAT
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -2400,7 +2727,269 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  $0
+                                  $200
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-ETH"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": [
+                                        {
+                                          "translateX": 0,
+                                        },
+                                        {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badgenetwork"
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
+                                          "borderRadius": 16,
+                                          "borderWidth": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 32,
+                                            "width": 32,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    ETH
+                                  </Text>
+                                </View>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  0.01 ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  $1
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2818,114 +3407,150 @@ exports[`Tokens should render correctly 1`] = `
                           }
                         }
                       >
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
+                        <View
                           style={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#848c96",
-                              "borderRadius": 20,
-                              "borderStyle": "solid",
-                              "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
-                              "justifyContent": "center",
-                              "marginLeft": 5,
-                              "marginRight": 5,
-                              "maxWidth": "60%",
-                              "paddingHorizontal": 16,
+                              "justifyContent": "space-between",
+                              "width": "100%",
                             }
                           }
-                          testID="sort-by"
                         >
-                          <Text
-                            accessibilityRole="none"
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#848c96",
+                                "borderRadius": 20,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "marginLeft": 5,
+                                "marginRight": 5,
+                                "maxWidth": "60%",
+                                "paddingHorizontal": 16,
+                              }
+                            }
+                            testID="token-network-filter"
+                          >
+                            <Text
+                              numberOfLines={1}
+                              style={
+                                {
+                                  "color": "#141618",
+                                }
+                              }
+                            >
+                              Ethereum Main Network
+                            </Text>
+                            <SvgMock
+                              color="#141618"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                          <View
+                            style={
+                              {
+                                "flexDirection": "row",
                               }
                             }
                           >
-                            Sort by
-                          </Text>
-                          <SvgMock
-                            color="#141618"
-                            height={16}
-                            name="ArrowDown"
-                            style={
-                              {
-                                "height": 16,
-                                "marginLeft": 8,
-                                "width": 16,
+                            <TouchableOpacity
+                              accessible={true}
+                              activeOpacity={1}
+                              disabled={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#848c96",
+                                  "borderRadius": 50,
+                                  "borderStyle": "solid",
+                                  "borderWidth": 1,
+                                  "height": 40,
+                                  "justifyContent": "center",
+                                  "marginLeft": 5,
+                                  "marginRight": 5,
+                                  "opacity": 1,
+                                  "width": 50,
+                                }
                               }
-                            }
-                            width={16}
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#848c96",
-                              "borderRadius": 20,
-                              "borderStyle": "solid",
-                              "borderWidth": 1,
-                              "flexDirection": "row",
-                              "height": 40,
-                              "justifyContent": "center",
-                              "marginLeft": 5,
-                              "marginRight": 5,
-                              "maxWidth": "60%",
-                              "paddingHorizontal": 16,
-                            }
-                          }
-                          testID="import-token-button"
-                        >
-                          <SvgMock
-                            color="#141618"
-                            height={16}
-                            name="Add"
-                            style={
-                              {
-                                "height": 16,
-                                "marginRight": 8,
-                                "width": 16,
+                              testID="sort-by"
+                            >
+                              <SvgMock
+                                color="#141618"
+                                height={16}
+                                name="SwapVertical"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              accessible={true}
+                              activeOpacity={1}
+                              disabled={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#848c96",
+                                  "borderRadius": 50,
+                                  "borderStyle": "solid",
+                                  "borderWidth": 1,
+                                  "height": 40,
+                                  "justifyContent": "center",
+                                  "marginLeft": 5,
+                                  "marginRight": 5,
+                                  "opacity": 1,
+                                  "width": 50,
+                                }
                               }
-                            }
-                            width={16}
-                          />
-                          <Text
-                            accessibilityRole="none"
-                            style={
-                              {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 22,
-                              }
-                            }
-                          >
-                            Import
-                          </Text>
-                        </TouchableOpacity>
+                              testID="import-token-button"
+                            >
+                              <SvgMock
+                                color="#141618"
+                                height={16}
+                                name="Add"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
                       </View>
                       <RCTScrollView
                         ListFooterComponent={
@@ -2935,24 +3560,63 @@ exports[`Tokens should render correctly 1`] = `
                             tokens={
                               [
                                 {
-                                  "address": "0x0",
-                                  "balanceFiat": "< $0.01",
+                                  "address": "0x0000000000000000000000000000000000000000",
+                                  "aggregators": [],
+                                  "balance": "< 0.00001",
+                                  "balanceFiat": "$0",
+                                  "chainId": "0x1",
                                   "decimals": 18,
-                                  "iconUrl": "",
+                                  "image": "",
                                   "isETH": true,
-                                  "isStaked": false,
-                                  "name": "Ethereum",
-                                  "symbol": "ETH",
+                                  "isNative": true,
+                                  "isStaked": true,
+                                  "logo": "../images/eth-logo-new.png",
+                                  "name": "Staked Ethereum",
+                                  "nativeAsset": {
+                                    "address": "0x0000000000000000000000000000000000000000",
+                                    "aggregators": [],
+                                    "balance": "0",
+                                    "balanceFiat": "$0",
+                                    "chainId": "0x1",
+                                    "decimals": 18,
+                                    "image": "",
+                                    "isETH": true,
+                                    "isNative": true,
+                                    "isStaked": false,
+                                    "logo": "../images/eth-logo-new.png",
+                                    "name": "Ethereum",
+                                    "stakedBalance": "0x2",
+                                    "symbol": "Ethereum",
+                                    "ticker": "ETH",
+                                  },
+                                  "stakedBalance": "0x2",
+                                  "symbol": "Ethereum",
+                                  "ticker": "ETH",
                                   "tokenFiatAmount": NaN,
                                 },
                                 {
                                   "address": "0x01",
-                                  "balanceFiat": "$0",
+                                  "balanceFiat": "",
+                                  "chainId": "0x1",
                                   "decimals": 18,
-                                  "iconUrl": "",
-                                  "name": "Bat",
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
                                   "symbol": "BAT",
-                                  "tokenFiatAmount": 0,
+                                  "token": undefined,
+                                  "tokenFiatAmount": 200,
+                                },
+                                {
+                                  "address": "0x00",
+                                  "balanceFiat": "",
+                                  "chainId": "0x1",
+                                  "decimals": 18,
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
+                                  "symbol": "ETH",
+                                  "token": undefined,
+                                  "tokenFiatAmount": 1,
                                 },
                               ]
                             }
@@ -2961,24 +3625,63 @@ exports[`Tokens should render correctly 1`] = `
                         data={
                           [
                             {
-                              "address": "0x0",
-                              "balanceFiat": "< $0.01",
+                              "address": "0x0000000000000000000000000000000000000000",
+                              "aggregators": [],
+                              "balance": "< 0.00001",
+                              "balanceFiat": "$0",
+                              "chainId": "0x1",
                               "decimals": 18,
-                              "iconUrl": "",
+                              "image": "",
                               "isETH": true,
-                              "isStaked": false,
-                              "name": "Ethereum",
-                              "symbol": "ETH",
+                              "isNative": true,
+                              "isStaked": true,
+                              "logo": "../images/eth-logo-new.png",
+                              "name": "Staked Ethereum",
+                              "nativeAsset": {
+                                "address": "0x0000000000000000000000000000000000000000",
+                                "aggregators": [],
+                                "balance": "0",
+                                "balanceFiat": "$0",
+                                "chainId": "0x1",
+                                "decimals": 18,
+                                "image": "",
+                                "isETH": true,
+                                "isNative": true,
+                                "isStaked": false,
+                                "logo": "../images/eth-logo-new.png",
+                                "name": "Ethereum",
+                                "stakedBalance": "0x2",
+                                "symbol": "Ethereum",
+                                "ticker": "ETH",
+                              },
+                              "stakedBalance": "0x2",
+                              "symbol": "Ethereum",
+                              "ticker": "ETH",
                               "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x01",
-                              "balanceFiat": "$0",
+                              "balanceFiat": "",
+                              "chainId": "0x1",
                               "decimals": 18,
-                              "iconUrl": "",
-                              "name": "Bat",
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
                               "symbol": "BAT",
-                              "tokenFiatAmount": 0,
+                              "token": undefined,
+                              "tokenFiatAmount": 200,
+                            },
+                            {
+                              "address": "0x00",
+                              "balanceFiat": "",
+                              "chainId": "0x1",
+                              "decimals": 18,
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
+                              "symbol": "ETH",
+                              "token": undefined,
+                              "tokenFiatAmount": 1,
                             },
                           ]
                         }
@@ -3030,7 +3733,7 @@ exports[`Tokens should render correctly 1`] = `
                                   "paddingVertical": 10,
                                 }
                               }
-                              testID="asset-ETH"
+                              testID="asset-Ethereum"
                             >
                               <View
                                 onLayout={[Function]}
@@ -3063,8 +3766,8 @@ exports[`Tokens should render correctly 1`] = `
                                             "width": 24,
                                           },
                                           undefined,
-                                          undefined,
-                                          undefined,
+                                          false,
+                                          false,
                                           {
                                             "borderRadius": 16,
                                             "height": 32,
@@ -3073,6 +3776,7 @@ exports[`Tokens should render correctly 1`] = `
                                           },
                                         ]
                                       }
+                                      testID="PLACE HOLDER"
                                     />
                                     <View
                                       collapsable={false}
@@ -3214,89 +3918,8 @@ exports[`Tokens should render correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Ethereum
+                                    Staked Ethereum
                                   </Text>
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": undefined,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                    testID="stake-button"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Medium",
-                                          "fontSize": 16,
-                                          "fontWeight": "500",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                       • 
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#0376c9",
-                                            "fontFamily": "EuclidCircularB-Medium",
-                                            "fontSize": 16,
-                                            "fontWeight": "500",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        Earn 
-                                      </Text>
-                                    </Text>
-                                    <SvgMock
-                                      color="#0376c9"
-                                      height={16}
-                                      name="Plant"
-                                      style={
-                                        {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      width={16}
-                                    />
-                                  </View>
                                 </View>
                                 <View>
                                   <Text
@@ -3366,7 +3989,7 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                   testID="fiat-balance-test-id"
                                 >
-                                   ETH
+                                  &lt; 0.00001 ETH
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -3384,7 +4007,7 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                  $0
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3557,7 +4180,7 @@ exports[`Tokens should render correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Bat
+                                    BAT
                                   </Text>
                                 </View>
                                 <View>
@@ -3628,7 +4251,7 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                   testID="fiat-balance-test-id"
                                 >
-                                  &lt; 0.00001 BAT
+                                  1 BAT
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -3646,7 +4269,269 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  $0
+                                  $200
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-ETH"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": [
+                                        {
+                                          "translateX": 0,
+                                        },
+                                        {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badgenetwork"
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
+                                          "borderRadius": 16,
+                                          "borderWidth": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 32,
+                                            "width": 32,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    ETH
+                                  </Text>
+                                </View>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  0.01 ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  $1
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -4064,114 +4949,150 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           }
                         }
                       >
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
+                        <View
                           style={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#848c96",
-                              "borderRadius": 20,
-                              "borderStyle": "solid",
-                              "borderWidth": 1,
                               "flexDirection": "row",
-                              "height": 40,
-                              "justifyContent": "center",
-                              "marginLeft": 5,
-                              "marginRight": 5,
-                              "maxWidth": "60%",
-                              "paddingHorizontal": 16,
+                              "justifyContent": "space-between",
+                              "width": "100%",
                             }
                           }
-                          testID="sort-by"
                         >
-                          <Text
-                            accessibilityRole="none"
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#848c96",
+                                "borderRadius": 20,
+                                "borderStyle": "solid",
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 40,
+                                "justifyContent": "center",
+                                "marginLeft": 5,
+                                "marginRight": 5,
+                                "maxWidth": "60%",
+                                "paddingHorizontal": 16,
+                              }
+                            }
+                            testID="token-network-filter"
+                          >
+                            <Text
+                              numberOfLines={1}
+                              style={
+                                {
+                                  "color": "#141618",
+                                }
+                              }
+                            >
+                              Ethereum Main Network
+                            </Text>
+                            <SvgMock
+                              color="#141618"
+                              height={16}
+                              name="ArrowDown"
+                              style={
+                                {
+                                  "height": 16,
+                                  "marginLeft": 8,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                          <View
+                            style={
+                              {
+                                "flexDirection": "row",
                               }
                             }
                           >
-                            Sort by
-                          </Text>
-                          <SvgMock
-                            color="#141618"
-                            height={16}
-                            name="ArrowDown"
-                            style={
-                              {
-                                "height": 16,
-                                "marginLeft": 8,
-                                "width": 16,
+                            <TouchableOpacity
+                              accessible={true}
+                              activeOpacity={1}
+                              disabled={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#848c96",
+                                  "borderRadius": 50,
+                                  "borderStyle": "solid",
+                                  "borderWidth": 1,
+                                  "height": 40,
+                                  "justifyContent": "center",
+                                  "marginLeft": 5,
+                                  "marginRight": 5,
+                                  "opacity": 1,
+                                  "width": 50,
+                                }
                               }
-                            }
-                            width={16}
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#848c96",
-                              "borderRadius": 20,
-                              "borderStyle": "solid",
-                              "borderWidth": 1,
-                              "flexDirection": "row",
-                              "height": 40,
-                              "justifyContent": "center",
-                              "marginLeft": 5,
-                              "marginRight": 5,
-                              "maxWidth": "60%",
-                              "paddingHorizontal": 16,
-                            }
-                          }
-                          testID="import-token-button"
-                        >
-                          <SvgMock
-                            color="#141618"
-                            height={16}
-                            name="Add"
-                            style={
-                              {
-                                "height": 16,
-                                "marginRight": 8,
-                                "width": 16,
+                              testID="sort-by"
+                            >
+                              <SvgMock
+                                color="#141618"
+                                height={16}
+                                name="SwapVertical"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              accessible={true}
+                              activeOpacity={1}
+                              disabled={false}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#848c96",
+                                  "borderRadius": 50,
+                                  "borderStyle": "solid",
+                                  "borderWidth": 1,
+                                  "height": 40,
+                                  "justifyContent": "center",
+                                  "marginLeft": 5,
+                                  "marginRight": 5,
+                                  "opacity": 1,
+                                  "width": 50,
+                                }
                               }
-                            }
-                            width={16}
-                          />
-                          <Text
-                            accessibilityRole="none"
-                            style={
-                              {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
-                                "fontSize": 14,
-                                "fontWeight": "500",
-                                "letterSpacing": 0,
-                                "lineHeight": 22,
-                              }
-                            }
-                          >
-                            Import
-                          </Text>
-                        </TouchableOpacity>
+                              testID="import-token-button"
+                            >
+                              <SvgMock
+                                color="#141618"
+                                height={16}
+                                name="Add"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
                       </View>
                       <RCTScrollView
                         ListFooterComponent={
@@ -4181,32 +5102,92 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             tokens={
                               [
                                 {
-                                  "address": "0x0",
-                                  "balanceFiat": "< $0.01",
+                                  "address": "0x0000000000000000000000000000000000000000",
+                                  "aggregators": [],
+                                  "balance": "0",
+                                  "balanceFiat": "$0",
+                                  "chainId": "0x1",
                                   "decimals": 18,
-                                  "iconUrl": "",
+                                  "image": "",
                                   "isETH": true,
+                                  "isNative": true,
                                   "isStaked": false,
+                                  "logo": "../images/eth-logo-new.png",
                                   "name": "Ethereum",
-                                  "symbol": "ETH",
+                                  "stakedBalance": "0x2",
+                                  "symbol": "Ethereum",
+                                  "ticker": "ETH",
+                                  "tokenFiatAmount": 0,
+                                },
+                                {
+                                  "address": "0x0000000000000000000000000000000000000000",
+                                  "aggregators": [],
+                                  "balance": "< 0.00001",
+                                  "balanceFiat": "$0",
+                                  "chainId": "0x1",
+                                  "decimals": 18,
+                                  "image": "",
+                                  "isETH": true,
+                                  "isNative": true,
+                                  "isStaked": true,
+                                  "logo": "../images/eth-logo-new.png",
+                                  "name": "Staked Ethereum",
+                                  "nativeAsset": {
+                                    "address": "0x0000000000000000000000000000000000000000",
+                                    "aggregators": [],
+                                    "balance": "0",
+                                    "balanceFiat": "$0",
+                                    "chainId": "0x1",
+                                    "decimals": 18,
+                                    "image": "",
+                                    "isETH": true,
+                                    "isNative": true,
+                                    "isStaked": false,
+                                    "logo": "../images/eth-logo-new.png",
+                                    "name": "Ethereum",
+                                    "stakedBalance": "0x2",
+                                    "symbol": "Ethereum",
+                                    "ticker": "ETH",
+                                  },
+                                  "stakedBalance": "0x2",
+                                  "symbol": "Ethereum",
+                                  "ticker": "ETH",
                                   "tokenFiatAmount": NaN,
                                 },
                                 {
                                   "address": "0x01",
-                                  "balanceFiat": "$0",
+                                  "balanceFiat": "",
+                                  "chainId": "0x1",
                                   "decimals": 18,
-                                  "iconUrl": "",
-                                  "name": "Bat",
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
                                   "symbol": "BAT",
-                                  "tokenFiatAmount": 0,
+                                  "token": undefined,
+                                  "tokenFiatAmount": 200,
+                                },
+                                {
+                                  "address": "0x00",
+                                  "balanceFiat": "",
+                                  "chainId": "0x1",
+                                  "decimals": 18,
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
+                                  "symbol": "ETH",
+                                  "token": undefined,
+                                  "tokenFiatAmount": 1,
                                 },
                                 {
                                   "address": "0x02",
-                                  "balanceFiat": "$0",
+                                  "balanceFiat": "",
+                                  "chainId": "0x1",
                                   "decimals": 18,
-                                  "iconUrl": "",
-                                  "name": "Link",
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
                                   "symbol": "LINK",
+                                  "token": undefined,
                                   "tokenFiatAmount": 0,
                                 },
                               ]
@@ -4216,32 +5197,92 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                         data={
                           [
                             {
-                              "address": "0x0",
-                              "balanceFiat": "< $0.01",
+                              "address": "0x0000000000000000000000000000000000000000",
+                              "aggregators": [],
+                              "balance": "0",
+                              "balanceFiat": "$0",
+                              "chainId": "0x1",
                               "decimals": 18,
-                              "iconUrl": "",
+                              "image": "",
                               "isETH": true,
+                              "isNative": true,
                               "isStaked": false,
+                              "logo": "../images/eth-logo-new.png",
                               "name": "Ethereum",
-                              "symbol": "ETH",
+                              "stakedBalance": "0x2",
+                              "symbol": "Ethereum",
+                              "ticker": "ETH",
+                              "tokenFiatAmount": 0,
+                            },
+                            {
+                              "address": "0x0000000000000000000000000000000000000000",
+                              "aggregators": [],
+                              "balance": "< 0.00001",
+                              "balanceFiat": "$0",
+                              "chainId": "0x1",
+                              "decimals": 18,
+                              "image": "",
+                              "isETH": true,
+                              "isNative": true,
+                              "isStaked": true,
+                              "logo": "../images/eth-logo-new.png",
+                              "name": "Staked Ethereum",
+                              "nativeAsset": {
+                                "address": "0x0000000000000000000000000000000000000000",
+                                "aggregators": [],
+                                "balance": "0",
+                                "balanceFiat": "$0",
+                                "chainId": "0x1",
+                                "decimals": 18,
+                                "image": "",
+                                "isETH": true,
+                                "isNative": true,
+                                "isStaked": false,
+                                "logo": "../images/eth-logo-new.png",
+                                "name": "Ethereum",
+                                "stakedBalance": "0x2",
+                                "symbol": "Ethereum",
+                                "ticker": "ETH",
+                              },
+                              "stakedBalance": "0x2",
+                              "symbol": "Ethereum",
+                              "ticker": "ETH",
                               "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x01",
-                              "balanceFiat": "$0",
+                              "balanceFiat": "",
+                              "chainId": "0x1",
                               "decimals": 18,
-                              "iconUrl": "",
-                              "name": "Bat",
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
                               "symbol": "BAT",
-                              "tokenFiatAmount": 0,
+                              "token": undefined,
+                              "tokenFiatAmount": 200,
+                            },
+                            {
+                              "address": "0x00",
+                              "balanceFiat": "",
+                              "chainId": "0x1",
+                              "decimals": 18,
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
+                              "symbol": "ETH",
+                              "token": undefined,
+                              "tokenFiatAmount": 1,
                             },
                             {
                               "address": "0x02",
-                              "balanceFiat": "$0",
+                              "balanceFiat": "",
+                              "chainId": "0x1",
                               "decimals": 18,
-                              "iconUrl": "",
-                              "name": "Link",
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
                               "symbol": "LINK",
+                              "token": undefined,
                               "tokenFiatAmount": 0,
                             },
                           ]
@@ -4294,7 +5335,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   "paddingVertical": 10,
                                 }
                               }
-                              testID="asset-ETH"
+                              testID="asset-Ethereum"
                             >
                               <View
                                 onLayout={[Function]}
@@ -4327,8 +5368,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                             "width": 24,
                                           },
                                           undefined,
-                                          undefined,
-                                          undefined,
+                                          false,
+                                          false,
                                           {
                                             "borderRadius": 16,
                                             "height": 32,
@@ -4337,6 +5378,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           },
                                         ]
                                       }
+                                      testID="PLACE HOLDER"
                                     />
                                     <View
                                       collapsable={false}
@@ -4630,7 +5672,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                   testID="fiat-balance-test-id"
                                 >
-                                   ETH
+                                  0 ETH
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -4648,7 +5690,303 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                  $0
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-Ethereum"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    useNativeDriver={true}
+                                  >
+                                    <Image
+                                      fadeIn={true}
+                                      onError={[Function]}
+                                      onLoadEnd={[Function]}
+                                      source={
+                                        {
+                                          "uri": "",
+                                        }
+                                      }
+                                      style={
+                                        [
+                                          {
+                                            "borderRadius": 12,
+                                            "height": 24,
+                                            "width": 24,
+                                          },
+                                          undefined,
+                                          false,
+                                          false,
+                                          {
+                                            "borderRadius": 16,
+                                            "height": 32,
+                                            "overflow": "hidden",
+                                            "width": 32,
+                                          },
+                                        ]
+                                      }
+                                      testID="PLACE HOLDER"
+                                    />
+                                    <View
+                                      collapsable={false}
+                                      style={
+                                        {
+                                          "bottom": 0,
+                                          "left": 0,
+                                          "opacity": 1,
+                                          "position": "absolute",
+                                          "right": 0,
+                                          "top": 0,
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "borderRadius": 16,
+                                              "height": 32,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            },
+                                            {
+                                              "backgroundColor": "#eee",
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": [
+                                        {
+                                          "translateX": 0,
+                                        },
+                                        {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badgenetwork"
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
+                                          "borderRadius": 16,
+                                          "borderWidth": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 32,
+                                            "width": 32,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Staked Ethereum
+                                  </Text>
+                                </View>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  &lt; 0.00001 ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  $0
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -4821,7 +6159,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       }
                                     }
                                   >
-                                    Bat
+                                    BAT
                                   </Text>
                                 </View>
                                 <View>
@@ -4892,7 +6230,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                   testID="fiat-balance-test-id"
                                 >
-                                  &lt; 0.00001 BAT
+                                  1 BAT
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -4910,7 +6248,269 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  $0
+                                  $200
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-ETH"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": [
+                                        {
+                                          "translateX": 0,
+                                        },
+                                        {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badgenetwork"
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
+                                          "borderRadius": 16,
+                                          "borderWidth": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 32,
+                                            "width": 32,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    ETH
+                                  </Text>
+                                </View>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  0.01 ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  $1
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -5083,7 +6683,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       }
                                     }
                                   >
-                                    Link
+                                    LINK
                                   </Text>
                                 </View>
                                 <View>

@@ -602,7 +602,7 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  function renderTokensContent(assets: Token[]) {
+  function renderTokensContent() {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // TODO: [SOLANA] Consider please reusing the Tokens UI, since it handles portion of the UI already (If not please remove dead code from it)
     if (!isEvmSelected) {
@@ -627,12 +627,11 @@ const Wallet = ({
         onChangeTab={onChangeTab}
       >
         <Tokens
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error - TODO: Consolidate into the correct type.
           tabLabel={strings('wallet.tokens')}
           key={'tokens-tab'}
           navigation={navigation}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error - TODO: Consolidate into the correct type.
-          tokens={assets}
         />
         <CollectibleContracts
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -676,7 +675,7 @@ const Wallet = ({
         ) : null}
         <>
           <PortfolioBalance />
-          {renderTokensContent(assets)}
+          {renderTokensContent()}
         </>
       </View>
     );

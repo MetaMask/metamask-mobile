@@ -253,7 +253,7 @@ export const selectNativeEvmAsset = createDeepEqualSelector(
       isETH: true,
       balance: renderFromWei(accountBalanceByChainId.balance),
       balanceFiat: weiToFiat(
-        hexToBN(accountBalanceByChainId.balance).toNumber(),
+        hexToBN(accountBalanceByChainId.balance) as any,
         conversionRate,
         currentCurrency,
       ),
@@ -287,7 +287,7 @@ export const selectStakedEvmAsset = createDeepEqualSelector(
       isStaked: true,
       balance: renderFromWei(accountBalanceByChainId.stakedBalance),
       balanceFiat: weiToFiat(
-        hexToBN(accountBalanceByChainId.stakedBalance).toNumber(),
+        hexToBN(accountBalanceByChainId.stakedBalance) as any,
         conversionRate,
         currentCurrency,
       ),
