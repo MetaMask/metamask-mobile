@@ -83,7 +83,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
-import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 // TODO: Replace "any" with type
@@ -786,7 +785,11 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (balanceBN && !balanceBN.isZero() && maxSellAmount?.gt(new BN4(0))) {
+  } else if (
+    balanceBN &&
+    !balanceBN.isZero() &&
+    maxSellAmount?.gt(new BN4(0))
+  ) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
