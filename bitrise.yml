@@ -1861,7 +1861,7 @@ app:
       COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
-    stack: osx-xcode-15.1.x
+    stack: osx-xcode-15.2.x
     machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
