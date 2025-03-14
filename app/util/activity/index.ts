@@ -1,8 +1,6 @@
 import { safeToChecksumAddress } from '../../util/address';
 import { toLowerCaseEquals } from '../../util/general';
 import { TX_UNAPPROVED } from '../../constants/transaction';
-import { PopularList } from '../networks/customNetworks';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 /**
  * Determines if the transaction is from or to the current wallet
