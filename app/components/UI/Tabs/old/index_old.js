@@ -5,12 +5,10 @@ import {
   InteractionManager,
   ScrollView,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { strings } from '../../../../locales/i18n';
@@ -21,13 +19,15 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
 import TabThumbnail from './TabThumbnail';
-import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetOverlay from '../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetOverlay';
-import BottomSheetDialog from '../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
-import { toHexadecimal } from '../../../util/number';
-import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { lightTheme } from '@metamask/design-tokens';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -35,8 +35,7 @@ const THUMB_HEIGHT =
   Dimensions.get('window').height / (Device.isIphone5S() ? 4 : 5) +
   THUMB_VERTICAL_MARGIN;
 const ROWS_VISIBLE = Math.floor(
-  (Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) /
-  THUMB_HEIGHT,
+  (Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) / THUMB_HEIGHT
 );
 const TABS_VISIBLE = ROWS_VISIBLE;
 
@@ -127,12 +126,6 @@ const createStyles = (colors, shadows) =>
       height: 30,
       marginTop: -7,
     },
-    sheet: {
-      paddingHorizontal: 20
-    },
-    dialogDescription: {
-      marginBottom: 20,
-    },
   });
 
 /**
@@ -177,17 +170,14 @@ class Tabs extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
-    /**
-     * Drawer context
-     */
-    drawerContext: PropTypes.object,
+
+    toastRef: PropTypes.object,
   };
 
   thumbnails = {};
 
   state = {
     currentTab: null,
-    isMaxTabsDialogVisible: false,
   };
 
   scrollview = React.createRef();
@@ -283,20 +273,20 @@ class Tabs extends PureComponent {
   }
 
   onNewTabPress = () => {
-    const tabsLength = this.props.tabs.length;
-    if (tabsLength === 5) {
-      this.props.drawerContext.setIsDrawerVisible(false);
-      this.setState({ isMaxTabsDialogVisible: true });
-    } else {
-      const { tabs, newTab } = this.props;
-      newTab();
-      this.trackNewTabEvent(tabs.length);
+    const { tabs, newTab, toastRef } = this.props;
+    // newTab();
+    // this.trackNewTabEvent(tabs.length);
+    // Call showToast method
+    if (toastRef && toastRef.current) {
+      toastRef.current.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [{ label: strings('toast.nft_detection_enabled') }],
+        iconName: IconName.CheckBold,
+        iconColor: IconColor.Default,
+        backgroundColor: lightTheme.colors,
+        hasNoTimeout: false,
+      });
     }
-  };
-
-  onMaxTabsDialogClose = () => {
-    this.setState({ isMaxTabsDialogVisible: false });
-    this.props.drawerContext.setIsDrawerVisible(true);
   };
 
   trackNewTabEvent = (tabsNumber) => {
@@ -369,45 +359,16 @@ class Tabs extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <>
-        <SafeAreaInsetsContext.Consumer>
-          {(insets) => (
-            <View style={{ ...styles.tabsView, paddingTop: insets.top }}>
-              {tabs.length === 0
-                ? this.renderNoTabs()
-                : this.renderTabs(tabs, activeTab)}
-              {this.renderTabActions()}
-            </View>
-          )}
-        </SafeAreaInsetsContext.Consumer>
-        {this.state.isMaxTabsDialogVisible && (
-          <>
-            <BottomSheetOverlay
-              disabled={false}
-              onPress={this.onMaxTabsDialogClose}
-            />
-            <BottomSheetDialog
-              isInteractable={true}
-              onClose={this.onMaxTabsDialogClose}
-              onOpen={null}
-              ref={null}
-              isFullscreen={false}
-            >
-              <SheetHeader title={strings('browser.max_tabs_title')} />
-              <View style={styles.sheet}>
-                <Text style={styles.dialogDescription}>{strings('browser.max_tabs_desc')}</Text>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('browser.got_it')}
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  onPress={this.onMaxTabsDialogClose}
-                />
-              </View>
-            </BottomSheetDialog>
-          </>
+      <SafeAreaInsetsContext.Consumer>
+        {(insets) => (
+          <View style={{ ...styles.tabsView, paddingTop: insets.top }}>
+            {tabs.length === 0
+              ? this.renderNoTabs()
+              : this.renderTabs(tabs, activeTab)}
+            {this.renderTabActions()}
+          </View>
         )}
-      </>
+      </SafeAreaInsetsContext.Consumer>
     );
   }
 }
