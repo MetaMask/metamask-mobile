@@ -1538,6 +1538,10 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+    meta:
+      bitrise.io:
+        stack: osx-xcode-15.0.x
+        machine_type_id: g2.mac.large
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
@@ -1861,7 +1865,7 @@ app:
       COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
-    stack: osx-xcode-15.0.x
+    stack: osx-xcode-16.2.x
     machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
