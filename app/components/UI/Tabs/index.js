@@ -270,7 +270,7 @@ class Tabs extends PureComponent {
 
   onNewTabPress = () => {
     const tabsLength = this.props.tabs.length;
-    if (tabsLength === 5) {
+    if (tabsLength > 4) {
       this.props.navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL, {
         screen: Routes.MODAL.MAX_BROWSER_TABS_MODAL,
       });
