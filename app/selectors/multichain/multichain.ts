@@ -197,4 +197,19 @@ export const selectMultichainConversionRate = createDeepEqualSelector(
       : undefined;
   },
 );
+
+/**
+ *
+ * @param state - Root redux state
+ * @returns - MultichainTransactionsController state
+ */
+const selectMultichainTransactionsControllerState = (state: RootState) =>
+  state.engine.backgroundState.MultichainTransactionsController;
+
+export const selectMultichainTransactions = createDeepEqualSelector(
+  selectMultichainTransactionsControllerState,
+  (multichainTransactionsControllerState) =>
+    multichainTransactionsControllerState.nonEvmTransactions,
+);
+
 ///: END:ONLY_INCLUDE_IF
