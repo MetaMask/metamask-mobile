@@ -10,13 +10,13 @@ jest.mock('../../Analytics/MetricsEventBuilder');
 describe('switchToNetwork', () => {
   it('tracks the network switch event', async () => {
     const mockTrackEvent = jest.fn();
-    MetaMetrics.getInstance.mockReturnValue({
+    (MetaMetrics.getInstance as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
     });
 
     const mockAddProperties = jest.fn().mockReturnThis();
     const mockMetricsBuilderBuild = {};
-    MetricsEventBuilder.createEventBuilder.mockReturnValue({
+    (MetricsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
       addProperties: mockAddProperties,
       build: jest.fn().mockReturnValue(mockMetricsBuilderBuild),
     });
