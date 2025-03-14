@@ -119,16 +119,9 @@ const AccountActions = () => {
         const nonEvmChainId = selectedAccount.scopes?.[0];
 
         // Try to get the URL from the block explorer
-        const completeUrl =
+        explorerUrl =
           nonEvmChainId &&
           findBlockExplorerForNonEvmChainId(nonEvmChainId, accountAddress);
-
-        // If the URL still contains the {address} placeholder, manually replace it
-        if (completeUrl?.includes('{address}')) {
-          explorerUrl = completeUrl.replace('{address}', accountAddress);
-        } else {
-          explorerUrl = completeUrl;
-        }
       }
 
       // If we have a valid explorer URL, return it
