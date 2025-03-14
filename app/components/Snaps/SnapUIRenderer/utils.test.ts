@@ -85,5 +85,52 @@ describe('SnapUIRenderer utils', () => {
         },
       });
     });
+
+    it('should not modify size for non-Icon elements', () => {
+      const textElement: JSXElement = {
+        type: 'Text',
+        props: {
+          children: 'Test',
+        },
+        key: null,
+      };
+
+      const result = mapTextToTemplate([textElement], {
+        map: {},
+        theme: mockTheme,
+        size: 'sm',
+      });
+
+      expect(result[0]).toMatchObject({
+        element: 'Text',
+        props: expect.not.objectContaining({ size: 'sm' }),
+      });
+    });
+
+    it('should preserve existing icon props while adding size', () => {
+      const iconElement: JSXElement = {
+        type: 'Icon',
+        props: {
+          name: 'info',
+          color: 'primary',
+        },
+        key: null,
+      };
+
+      const result = mapTextToTemplate([iconElement], {
+        map: {},
+        theme: mockTheme,
+        size: 'md',
+      });
+
+      expect(result[0]).toMatchObject({
+        element: 'SnapUIIcon',
+        props: {
+          name: 'Info',
+          color: 'Primary',
+          size: '20',
+        },
+      });
+    });
   });
 });
