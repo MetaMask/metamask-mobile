@@ -26,5 +26,5 @@ export const selectBasicFunctionalityEnabled = createSelector(
 export const selectHideZeroBalanceTokens = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>
-    settingsState.hideZeroBalanceTokens,
+    Boolean(settingsState.hideZeroBalanceTokens),
 );
