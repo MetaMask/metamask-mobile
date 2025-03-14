@@ -89,25 +89,44 @@ const AccountActions = () => {
 
   const blockExplorer = useMemo(() => {
     if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-      return findBlockExplorerForRpc(
+      const baseUrl = findBlockExplorerForRpc(
         providerConfig.rpcUrl,
         networkConfigurations,
       );
+      if (baseUrl) {
+        return {
+          url: `${baseUrl}/address/${selectedAddress}`,
+          baseUrl,
+          title: new URL(baseUrl).hostname,
+        };
+      }
     }
     if (isNonEvmChainId(chainId)) {
-      // TODO: [SOLANA] - block explorer needs to be implemented
-      return findBlockExplorerForNonEvmChainId(chainId);
+      const fullUrl = findBlockExplorerForNonEvmChainId(
+        chainId,
+        selectedAddress,
+      );
+      if (fullUrl) {
+        return {
+          url: fullUrl,
+          baseUrl: fullUrl,
+          title: new URL(fullUrl).hostname,
+        };
+      }
     }
 
     return null;
   }, [
-    networkConfigurations,
     providerConfig.rpcUrl,
     providerConfig.type,
     chainId,
+    networkConfigurations,
+    selectedAddress,
   ]);
 
-  const blockExplorerName = getBlockExplorerName(blockExplorer);
+  const blockExplorerName = blockExplorer?.baseUrl
+    ? getBlockExplorerName(blockExplorer.baseUrl)
+    : undefined;
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
@@ -119,12 +138,10 @@ const AccountActions = () => {
     });
   };
 
-  const viewInEtherscan = () => {
+  const viewInBlockExplorer = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      if (blockExplorer) {
-        const url = `${blockExplorer}/address/${selectedAddress}`;
-        const title = new URL(blockExplorer).hostname;
-        goToBrowserUrl(url, title);
+      if (blockExplorer?.url) {
+        goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       } else {
         const url = getEtherscanAddressUrl(
           providerConfig.type,
@@ -369,8 +386,7 @@ const AccountActions = () => {
   };
 
   const isExplorerVisible = Boolean(
-    (providerConfig.type === 'rpc' && blockExplorer) ||
-      providerConfig.type !== 'rpc',
+    blockExplorer?.url || providerConfig.type !== 'rpc',
   );
 
   return (
@@ -385,12 +401,12 @@ const AccountActions = () => {
         {isExplorerVisible && (
           <AccountAction
             actionTitle={
-              (blockExplorer &&
+              (blockExplorer?.baseUrl &&
                 `${strings('drawer.view_in')} ${blockExplorerName}`) ||
               strings('drawer.view_in_etherscan')
             }
             iconName={IconName.Export}
-            onPress={viewInEtherscan}
+            onPress={viewInBlockExplorer}
             testID={AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN}
           />
         )}

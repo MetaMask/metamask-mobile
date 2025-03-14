@@ -45,7 +45,8 @@ import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { store } from '../../store';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../selectors/multichainNetworkController';
-
+import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../core/Multichain/constants';
+import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
 /**
  * List of the supported networks
  * including name, id, and color
@@ -308,14 +309,16 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
  * @param {string} chainId - Chain ID of the network
  * @returns {string} - Block explorer url
  */
-export function findBlockExplorerForNonEvmChainId(chainId) {
+export function findBlockExplorerForNonEvmChainId(chainId, address) {
   const nonEvmNetworks = selectNonEvmNetworkConfigurationsByChainId(
     store.getState(),
   );
   const network = Object.values(nonEvmNetworks).find(
     (network) => network.chainId === chainId,
   );
-  return network?.blockExplorers?.urls[network?.blockExplorers?.defaultIndex];
+  const blockExplorerFormatUrls =
+    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[chainId];
+  return formatBlockExplorerAddressUrl(blockExplorerFormatUrls, address);
 }
 
 /**
