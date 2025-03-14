@@ -747,13 +747,6 @@ workflows:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
       - script@1:
-          title: Install CCache & symlink
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                sudo apt update
-                sudo apt install ccache -y
-      - script@1:
           title: Run detox build
           timeout: 1200
           is_always_run: true
