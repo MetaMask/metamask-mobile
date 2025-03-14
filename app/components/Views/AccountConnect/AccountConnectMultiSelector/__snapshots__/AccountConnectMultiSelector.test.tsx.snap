@@ -247,7 +247,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 "padding": 16,
               }
             }
-            testID="cellmultiselect"
+            testID="account-list-cell-0x1234"
           >
             <View
               accessibilityRole="none"
@@ -438,7 +438,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 "padding": 16,
               }
             }
-            testID="cellmultiselect"
+            testID="account-list-cell-0x5678"
           >
             <View
               accessibilityRole="none"
