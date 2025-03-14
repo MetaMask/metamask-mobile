@@ -32,13 +32,12 @@ import { appendURLParams } from '../../../util/browser';
 import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
+
 /**
  * Component that wraps all the browser
  * individual tabs and the tabs view
  */
 export const Browser = (props) => {
-  const drawerContext = useContext(DrawerContext);
   const {
     route,
     navigation,
@@ -307,7 +306,6 @@ export const Browser = (props) => {
           closeTab={closeTab}
           closeTabsView={closeTabsView}
           closeAllTabs={closeAllTabs}
-          drawerContext={drawerContext}
         />
       );
     }
