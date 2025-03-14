@@ -47,16 +47,16 @@ const createStyles = (params: { theme: Theme }) => {
     listContent: {
       padding: 4,
     },
-    input: {
-      marginHorizontal: 24,
-      marginVertical: 10,
-    },
     emptyList: {
       marginVertical: 10,
       marginHorizontal: 24,
     },
     networksButton: {
       borderColor: theme.colors.border.muted,
+    },
+    buttonContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
     },
   });
 };
@@ -166,20 +166,21 @@ export const BridgeTokenSelector: React.FC = () => {
           </BottomSheetHeader>
         </Box>
 
-        <Button
-          onPress={navigateToNetworkSelector}
-          variant={ButtonVariants.Secondary}
-          label={strings('bridge.all_networks')}
-          style={styles.networksButton}
-        />
+        <Box style={styles.buttonContainer} gap={16}>
+          <Button
+            onPress={navigateToNetworkSelector}
+            variant={ButtonVariants.Secondary}
+            label={strings('bridge.all_networks')}
+            style={styles.networksButton}
+            />
 
-        <TextFieldSearch
-          value={searchString}
-          onChangeText={handleSearchTextChange}
-          placeholder={strings('swaps.search_token')}
-          style={styles.input}
-          testID="bridge-token-search-input"
-        />
+          <TextFieldSearch
+            value={searchString}
+            onChangeText={handleSearchTextChange}
+            placeholder={strings('swaps.search_token')}
+            testID="bridge-token-search-input"
+            />
+        </Box>
 
         <FlatList
           data={tokensToRender}
