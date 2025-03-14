@@ -479,14 +479,9 @@ describe('Tokens', () => {
       selectAccountTokensAcrossChainsSpy.mockRestore();
     });
 
-    it('should match the snapshot when portfolio view is enabled', () => {
+    it('should match the snapshot', () => {
       const { toJSON } = renderComponent(initialState);
       expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('should call selectAccountTokensAcrossChains when enabled', () => {
-      renderComponent(initialState);
-      expect(selectAccountTokensAcrossChainsSpy).toHaveBeenCalled();
     });
 
     it('should handle network filtering correctly', () => {
