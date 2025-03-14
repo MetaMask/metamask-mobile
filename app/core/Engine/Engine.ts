@@ -205,7 +205,6 @@ import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
-import { Caip25EndowmentPermissionName } from '@metamask/multichain';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 
 const NON_EMPTY = 'NON_EMPTY';

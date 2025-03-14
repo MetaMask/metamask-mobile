@@ -11,11 +11,13 @@ import {
 // TODO: [ffmcgee] fundamentally the functionality of these handlers seem different from `extension`, we define functionality like `getCaveat` inside the function itself
 // (see `switchNetwork`) instead of passing it as a hook from `BackgroundBridge` (as one would pass it from `MetamaskController` on `extension`). Ask about this.
 // A: keep following the pattern we are doing on mobile, no need for hooks because it fundamentally doesn't work the same as the browser extension (with separate processes)
+// TODO: [ffmcgee] docs
 const wallet_switchEthereumChain = async ({
   req,
   res,
   requestUserApproval,
   analytics,
+  hooks,
 }) => {
   const {
     CurrencyRateController,
@@ -77,6 +79,7 @@ const wallet_switchEthereumChain = async ({
       analytics,
       origin,
       isAddNetworkFlow: false,
+      hooks,
     });
 
     res.result = null;

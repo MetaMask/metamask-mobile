@@ -891,6 +891,7 @@ export const getRpcMethodMiddleware = ({
           },
           startApprovalFlow,
           endApprovalFlow,
+          hooks: {}, // TODO: address this, can we get from upstream ?
         });
       },
 
@@ -904,6 +905,7 @@ export const getRpcMethodMiddleware = ({
             request_source: getSource(),
             request_platform: analytics?.platform,
           },
+          hooks: {}, // TODO: address this, can we get from upstream ?
         });
       },
     };
