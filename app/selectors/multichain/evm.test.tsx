@@ -520,7 +520,6 @@ describe('Multichain Selectors', () => {
 
       const result = selectEvmTokens(testState);
       expect(result).toBeDefined();
-      console.log(result);
       expect(result.every((token) => token.chainId === '0x89')).toBeTruthy();
     });
 

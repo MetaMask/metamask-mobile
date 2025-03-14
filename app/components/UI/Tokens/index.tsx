@@ -38,12 +38,8 @@ import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
+import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import {
-  selectContractExchangeRates,
-  selectTokenMarketData,
-} from '../../../selectors/tokenRatesController';
-import {
-  selectConversionRate,
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
