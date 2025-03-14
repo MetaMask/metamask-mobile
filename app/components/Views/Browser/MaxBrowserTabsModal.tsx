@@ -7,9 +7,9 @@ import { strings } from '../../../../locales/i18n';
 import Text from '../../../component-library/components/Texts/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../../util/theme';
-import { lightTheme } from '@metamask/design-tokens';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors) => StyleSheet.create({
+const createStyles = (colors: Theme['colors']) => StyleSheet.create({
   sheet: {
     paddingHorizontal: 20
   },
