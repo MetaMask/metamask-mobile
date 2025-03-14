@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ButtonToggle should render correctly in active state 1`] = `
+exports[`ButtonToggle renders correctly in active state 1`] = `
 <TouchableOpacity
   accessibilityRole="button"
   accessible={true}
@@ -39,7 +39,7 @@ exports[`ButtonToggle should render correctly in active state 1`] = `
 </TouchableOpacity>
 `;
 
-exports[`ButtonToggle should render correctly in inactive state 1`] = `
+exports[`ButtonToggle renders correctly in inactive state 1`] = `
 <TouchableOpacity
   accessibilityRole="button"
   accessible={true}

@@ -6,7 +6,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import ButtonToggle from './ButtonToggle';
 
 describe('ButtonToggle', () => {
-  it('should render correctly in inactive state', () => {
+  it('renders correctly in inactive state', () => {
     const { toJSON, getByText } = render(
       <ButtonToggle isActive={false} label="Mode 1" onPress={jest.fn()} />,
     );
@@ -15,7 +15,7 @@ describe('ButtonToggle', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render correctly in active state', () => {
+  it('renders correctly in active state', () => {
     const { toJSON, getByText } = render(
       <ButtonToggle isActive label="Mode 1" onPress={jest.fn()} />,
     );
@@ -24,7 +24,7 @@ describe('ButtonToggle', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should call onPress handler when pressed', () => {
+  it('calls onPress handler when pressed', () => {
     const mockOnPress = jest.fn();
     const { getByText } = render(
       <ButtonToggle isActive={false} label="Mode 1" onPress={mockOnPress} />,
@@ -36,7 +36,7 @@ describe('ButtonToggle', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('should apply the correct text color based on active state', () => {
+  it('applies the correct text color based on active state', () => {
     const { rerender, getByText } = render(
       <ButtonToggle isActive={false} label="Mode 1" onPress={jest.fn()} />,
     );
