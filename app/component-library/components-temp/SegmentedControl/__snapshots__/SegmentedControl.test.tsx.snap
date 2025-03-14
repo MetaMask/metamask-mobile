@@ -60,7 +60,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           }
         }
       >
-        Mode 1 2 3 4 
+        Mode 1
       </Text>
     </TouchableOpacity>
   </View>
@@ -260,7 +260,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           }
         }
       >
-        Mode 1 2 3 4 
+        Mode 1
       </Text>
     </TouchableOpacity>
   </View>
