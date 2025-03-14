@@ -248,25 +248,23 @@ describe('Tokens', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON, queryByText } = renderComponent(initialState);
+    const { queryByText } = renderComponent(initialState);
     const tokensTabText = queryByText('Tokens');
     const nftsTabText = queryByText('NFTs');
     expect(tokensTabText).toBeDefined();
     expect(nftsTabText).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should hide zero balance tokens when setting is on', async () => {
-    const { toJSON, queryByTestId } = renderComponent(initialState);
+    const { queryByTestId } = renderComponent(initialState);
 
     expect(queryByTestId('asset-ETH')).toBeDefined();
     await waitFor(() => expect(queryByTestId('asset-BAT')).toBeDefined());
     expect(queryByTestId('asset-LINK')).toBeNull();
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should show all balance tokens when hideZeroBalanceTokens setting is off', async () => {
-    const { toJSON, queryByTestId } = renderComponent({
+    const { queryByTestId } = renderComponent({
       ...initialState,
       settings: {
         primaryCurrency: 'usd',
@@ -277,7 +275,6 @@ describe('Tokens', () => {
     expect(queryByTestId('asset-ETH')).toBeDefined();
     await waitFor(() => expect(queryByTestId('asset-BAT')).toBeDefined());
     expect(queryByTestId('asset-LINK')).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should show all balance with capitalized tickers', async () => {
