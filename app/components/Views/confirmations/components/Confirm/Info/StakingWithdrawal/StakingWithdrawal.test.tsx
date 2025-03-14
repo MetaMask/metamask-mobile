@@ -1,6 +1,7 @@
 import React from 'react';
 import { stakingWithdrawalConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
 import { getNavbar } from '../../Navbar/Navbar';
@@ -44,6 +45,7 @@ jest.mock('@react-navigation/native', () => {
 
 describe('StakingWithdrawal', () => {
   const mockTrackPageViewedEvent = jest.fn();
+  const mockSetTransactionMetrics = jest.fn();
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
@@ -59,6 +61,7 @@ describe('StakingWithdrawal', () => {
 
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackPageViewedEvent: mockTrackPageViewedEvent,
+      setTransactionMetrics: mockSetTransactionMetrics,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
@@ -117,5 +120,15 @@ describe('StakingWithdrawal', () => {
     );
 
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
+
+    expect(mockSetTransactionMetrics).toHaveBeenCalledTimes(1);
+    expect(mockSetTransactionMetrics).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          transaction_amount_eth: '1',
+        }),
+      }),
+    );
   });
 });

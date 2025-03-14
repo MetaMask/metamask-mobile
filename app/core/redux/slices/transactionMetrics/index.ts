@@ -1,14 +1,10 @@
+import { merge } from 'lodash';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
-import { merge } from 'lodash';
 
-interface TransactionMetrics {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  properties: Record<string, any>;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sensitiveProperties: Record<string, any>;
+export interface TransactionMetrics {
+  properties?: Record<string, unknown>;
+  sensitiveProperties?: Record<string, unknown>;
 }
 
 export interface TransactionMetricsState {
