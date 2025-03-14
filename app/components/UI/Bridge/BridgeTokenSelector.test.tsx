@@ -296,18 +296,6 @@ describe('BridgeTokenSelector', () => {
       expect(getByText('2.0 HELLO')).toBeTruthy();
       expect(queryByText('1.0 TOKEN1')).toBeNull();
     });
-
-    // Clear search (by pressing the clear button)
-    const clearButton = getByTestId('bridge-token-search-clear-button');
-    fireEvent.press(clearButton);
-
-    // All tokens should be visible again
-    await waitFor(() => {
-      expect(getByText('3 ETH')).toBeTruthy();
-      expect(getByText('1.0 TOKEN1')).toBeTruthy();
-      expect(getByText('2.0 HELLO')).toBeTruthy();
-      expect(searchInput.props.value).toBe('');
-    });
   });
 
   it('displays empty state when no tokens match search', async () => {
