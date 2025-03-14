@@ -397,6 +397,9 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
+    // TODO: [ffmcgee] - Ask Owen what takes precedence, I see `wallet_getPermissions` handler in here, but also see some method middlewares defined in BackgroundBridge (ex.:L#586, L#668)
+    // Background bridge is consumed by the in app browser (Owen suggests to make some sort of factory, and injecting the behaviour on both this file and BackgroundBridge)
+    // Owen to get more clarity on this
     const [requestPermissionsHandler, getPermissionsHandler] =
       permissionRpcMethods.handlers;
 
@@ -888,6 +891,7 @@ export const getRpcMethodMiddleware = ({
           },
           startApprovalFlow,
           endApprovalFlow,
+          hooks: {}, // TODO: address this, can we get from upstream ?
         });
       },
 
@@ -901,6 +905,7 @@ export const getRpcMethodMiddleware = ({
             request_source: getSource(),
             request_platform: analytics?.platform,
           },
+          hooks: {}, // TODO: address this, can we get from upstream ?
         });
       },
     };

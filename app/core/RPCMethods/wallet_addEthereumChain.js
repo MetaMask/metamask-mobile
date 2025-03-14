@@ -37,6 +37,7 @@ const addOrUpdateIndex = (array, value, comparator) => {
   return { updatedArray: array, index };
 };
 
+// TODO: [ffmcgee] docs
 const wallet_addEthereumChain = async ({
   req,
   res,
@@ -44,6 +45,7 @@ const wallet_addEthereumChain = async ({
   analytics,
   startApprovalFlow,
   endApprovalFlow,
+  hooks,
 }) => {
   const {
     NetworkController,
@@ -80,6 +82,7 @@ const wallet_addEthereumChain = async ({
       analytics,
       origin,
       isAddNetworkFlow,
+      hooks,
     });
   };
 
