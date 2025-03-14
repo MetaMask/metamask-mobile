@@ -30,17 +30,12 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../../../../constants/error';
-import {
-  selectEvmChainId,
-  selectEvmNetworkConfigurationsByChainId,
-  selectProviderType,
-  selectRpcUrl,
-} from '../../../../../../selectors/networkController';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import { selectIsEvmNetworkSelected } from '../../../../../../selectors/multichainNetworkController';
+import { NetworkType } from '@metamask/controller-utils';
 
 const getAnalyticsParams = () => ({});
 
@@ -162,13 +157,14 @@ const AddNickname = (props: AddNicknameProps) => {
     return errorMessage;
   };
 
-  const hasBlockExplorer = !isEvmSelected
-    ? false
-    : shouldShowBlockExplorer(
-        providerType,
-        providerRpcTarget,
-        networkConfigurations,
-      );
+  const hasBlockExplorer =
+    !isEvmSelected || !providerRpcTarget
+      ? false
+      : shouldShowBlockExplorer(
+          providerType as NetworkType,
+          providerRpcTarget,
+          networkConfigurations,
+        );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -268,12 +264,8 @@ const AddNickname = (props: AddNicknameProps) => {
 };
 
 const mapStateToProps = (state: RootState) => ({
-  providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcUrl(state),
-  providerChainId: selectEvmChainId(state),
   addressBook: selectAddressBook(state),
   internalAccounts: selectInternalAccounts(state),
-  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
 });
 
 // TODO: Replace "any" with type

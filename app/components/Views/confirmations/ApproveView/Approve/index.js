@@ -48,6 +48,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectProviderTypeByChainId,
   selectRpcUrlByChainId,
+  selectEvmChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectConversionRateByChainId,
@@ -120,6 +121,10 @@ class Approve extends PureComponent {
      * A string representing the network name
      */
     providerType: PropTypes.string,
+    /**
+     * The chainId of the provider
+     */
+    providerChainId: PropTypes.string,
     /**
      * Whether the modal is visible
      */
@@ -784,6 +789,7 @@ class Approve extends PureComponent {
       primaryCurrency,
       chainId,
       providerType,
+      providerChainId,
       providerRpcTarget,
       networkConfigurations,
     } = this.props;
@@ -852,6 +858,10 @@ class Approve extends PureComponent {
             address={address}
             savedContactListToArray={savedContactListToArray}
             addressNickname={addressNickname}
+            providerType={providerType}
+            providerChainId={providerChainId}
+            providerRpcTarget={providerRpcTarget}
+            networkConfigurations={networkConfigurations}
           />
         ) : this.state.isBlockExplorerVisible && !isNonEvmChainId(chainId) ? (
           <ShowBlockExplorer
@@ -983,6 +993,7 @@ const mapStateToProps = (state) => {
     networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
+    providerChainId: selectEvmChainId(state),
   };
 };
 
