@@ -199,23 +199,32 @@ export function getMergeQueueCommitHash() : string {
 }
 
 export async function getAllBitriseComments(): Promise<GithubComment[]> {
-
   const { owner, repo, number: pullRequestNumber } = context.issue;
 
-  // Look for existing Bitrise comments, requesting 30 comments per page, sorted by creation date in descending order
-  const { data: comments } = await getOctokitInstance().rest.issues.listComments({
-    owner,
-    repo,
-    issue_number: pullRequestNumber,
-    per_page: 30, // Set the number of comments to fetch per page
-    sort: 'created', // Sort by creation time
-    direction: 'desc' // Sort in descending order to have the newest comments first
-  });
-  // Filter comments to find those containing Bitrise tags
-  const bitriseComments = comments.filter(({ body }: { body?: string }) => body?.includes(bitriseTag));
+  let allComments: GithubComment[] = [];
+  let page = 1;
 
-  // Set the commit sha for each comment
-  const modifiedComments = bitriseComments.map((comment: any) => {
+  while (true) {
+    const { data: comments, headers } = await getOctokitInstance().rest.issues.listComments({
+      owner,
+      repo,
+      issue_number: pullRequestNumber,
+      per_page: 100,
+      page: page,
+      sort: 'created',
+      direction: 'desc'
+    });
+
+    allComments = allComments.concat(comments);
+    if (comments.length < 100 || !headers.link || !headers.link.includes('rel="next"')) {
+      break; // No more pages to fetch if fewer than 100 comments are returned or no next link
+    }
+    page++;
+  }
+
+  // Filter and modify comments as before
+  const bitriseComments = allComments.filter(({ body }) => body?.includes(bitriseTag));
+  const modifiedComments = bitriseComments.map(comment => {
     const commitSha = comment.body?.match(/<!-- ([a-f0-9]{40}) -->/)?.[1];
     return {
       ...comment,
@@ -224,8 +233,8 @@ export async function getAllBitriseComments(): Promise<GithubComment[]> {
   });
 
   return modifiedComments.reverse();
-
 }
+
 
 export async function getBitriseCommentForCommit(commitHash: string): Promise<GithubComment | undefined> {
 
