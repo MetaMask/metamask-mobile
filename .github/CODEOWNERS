@@ -19,6 +19,10 @@ bitrise.yml                                                 @MetaMask/mobile-pla
 yarn.lock                                                   @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
+app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
+app/components/Nav/ControllersGate                          @MetaMask/mobile-platform
+app/components/Views/Root                                   @MetaMask/mobile-platform
+app/core/NavigationService                                  @MetaMask/mobile-platform
 app/core/Engine/messengers/                                 @MetaMask/mobile-platform
 app/core/Engine/utils/                                      @MetaMask/mobile-platform
 app/core/Engine/constants/                                  @MetaMask/mobile-platform
@@ -36,6 +40,7 @@ app/reducers/fiatOrders/             @MetaMask/ramp
 # Confirmation Team
 app/components/Views/confirmations   @MetaMask/confirmations
 app/core/Engine/controllers/transaction-controller             @MetaMask/confirmations
+app/core/Analytics/events/confirmations   @MetaMask/confirmations
 ppom                                 @MetaMask/confirmations
 
 # All below files are maintained by the SDK team because they contain SDK related code, WalletConnect integrations, or critical SDK flows.
@@ -151,3 +156,6 @@ app/reducers/navigation @MetaMask/wallet-ux
 app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
+
+# Transactions Team
+app/components/Views/transactions @MetaMask/transactions
