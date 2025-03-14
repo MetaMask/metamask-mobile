@@ -54,9 +54,7 @@ const DeFiPositions: React.FC<DeFiPositionsProps> = ({ defiPositions }) => {
       return [];
     }
 
-    const positionsByProtocol = currentChainPositions.protocols;
-
-    return currentChainPositions.positions;
+    return Object.values(currentChainPositions.protocols);
   }, [defiPositions, isPopularNetwork, isAllNetworks, currentChainId]);
 
   return (

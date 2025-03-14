@@ -256,7 +256,11 @@ const Wallet = ({
 
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
 
-  Logger.log('DEFI POSITIONS', defiPositions);
+  Logger.log(
+    'DEFI POSITIONS FROM SELECTOR',
+    selectedInternalAccount?.address,
+    defiPositions,
+  );
 
   useEffect(() => {
     if (

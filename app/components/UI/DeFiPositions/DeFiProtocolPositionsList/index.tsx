@@ -8,8 +8,6 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
-import { TokenListFooter } from './TokenListFooter';
-import { TokenListItem } from './TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
@@ -29,14 +27,7 @@ interface DeFiProtocolPositionsListProps {
 
 export const DeFiProtocolPositionsList = ({
   defiPositions,
-}: //   refreshing,
-//   isAddTokenEnabled,
-//   onRefresh,
-//   showRemoveMenu,
-//   goToAddToken,
-//   showPercentageChange = true,
-//   showNetworkBadge = true,
-DeFiProtocolPositionsListProps) => {
+}: DeFiProtocolPositionsListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
 
@@ -49,7 +40,7 @@ DeFiProtocolPositionsListProps) => {
   //     });
   //   };
 
-  if (!positions.length) {
+  if () {
     return (
       <View style={styles.emptyView}>
         <View style={styles.emptyTokensView}>
