@@ -24,7 +24,7 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { addCurrencySymbol, renderNumber } from '../../../util/number';
-import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import Button, { ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import ListItem from '../../../component-library/components/List/ListItem/ListItem';
 import { VerticalAlignment } from '../../../component-library/components/List/ListItem/ListItem.types';
@@ -48,12 +48,7 @@ const createStyles = (params: { theme: Theme }) => {
       padding: 8,
     },
     listContent: {
-      padding: 16,
-    },
-    networkItem: {
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.muted,
-      paddingVertical: 16,
+      padding: 8,
     },
     networkIcon: {
       width: 24,
@@ -71,6 +66,10 @@ const createStyles = (params: { theme: Theme }) => {
     selectAllContainer: {
       paddingHorizontal: 16,
       paddingVertical: 12,
+    },
+    applyButtonContainer: {
+      padding: 16,
+      marginTop: 'auto',
     },
   });
 };
@@ -221,7 +220,6 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
                 testID={`network-selector-${chain.chainId}`}
               >
                 <ListItem
-                  style={styles.networkItem}
                   verticalAlignment={VerticalAlignment.Center}
                 >
                   <Checkbox
@@ -233,20 +231,23 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
                   <Box style={{ flex: 1 }}>
                     <Text style={styles.networkName}>{chain.name}</Text>
                   </Box>
-                  <Text style={styles.fiatValue}>{formatFiatValue(totalFiatValue)}</Text>
+                  <Text style={styles.fiatValue} variant={TextVariant.BodyLGMedium}>{formatFiatValue(totalFiatValue)}</Text>
                 </ListItem>
               </TouchableOpacity>
             );
           })}
         </Box>
 
-        <Button
-          label={strings('bridge.apply')}
-          onPress={handleApply}
-          testID="bridge-network-selector-apply-button"
-          variant={ButtonVariants.Primary}
-          disabled={candidateSourceChainIds.length === 0}
-        />
+        <Box style={styles.applyButtonContainer}>
+          <Button
+            label={strings('bridge.apply')}
+            onPress={handleApply}
+            testID="bridge-network-selector-apply-button"
+            variant={ButtonVariants.Secondary}
+            disabled={candidateSourceChainIds.length === 0}
+            width={ButtonWidthTypes.Full}
+          />
+        </Box>
       </Box>
     </BottomSheet>
   );
