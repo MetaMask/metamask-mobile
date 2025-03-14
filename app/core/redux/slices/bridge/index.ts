@@ -21,6 +21,7 @@ export interface BridgeState {
   destChainId: SupportedCaipChainId | Hex | undefined;
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
+  selectedSourceChainIds: undefined | string[];
 }
 
 export const initialState: BridgeState = {
@@ -30,6 +31,7 @@ export const initialState: BridgeState = {
   destChainId: undefined,
   sourceToken: undefined,
   destToken: undefined,
+  selectedSourceChainIds: undefined,
 };
 
 const name = 'bridge';
@@ -49,6 +51,9 @@ const slice = createSlice({
     },
     setDestChainId: (state, action: PayloadAction<SupportedCaipChainId | Hex | undefined>) => {
       state.destChainId = action.payload;
+    },
+    setSelectedSourceChainIds: (state, action: PayloadAction<string[]>) => {
+      state.selectedSourceChainIds = action.payload;
     },
     resetBridgeState: () => initialState,
     switchTokens: (state) => {
@@ -172,6 +177,18 @@ export const selectDestToken = createSelector(
   (bridgeState) => bridgeState.destToken,
 );
 
+export const selectSelectedSourceChainIds = createSelector(
+  selectBridgeState,
+  selectEnabledSourceChains,
+  (bridgeState, enabledSourceChains) => {
+    // If selectedSourceChainIds is undefined, use the chainIds from enabledSourceChains
+    if (bridgeState.selectedSourceChainIds === undefined) {
+      return enabledSourceChains.map(chain => chain.chainId);
+    }
+    return bridgeState.selectedSourceChainIds;
+  },
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -181,4 +198,5 @@ export const {
   resetBridgeState,
   switchTokens,
   setSourceToken,
+  setSelectedSourceChainIds,
 } = actions;
