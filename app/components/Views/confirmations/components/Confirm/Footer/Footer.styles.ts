@@ -1,5 +1,6 @@
 import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
+import Device from '../../../../../../util/device';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme: { colors }} = params;
@@ -8,7 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
     base: {
       backgroundColor: colors.background.alternative,
       paddingHorizontal: 16,
-      paddingBottom: 8,
+      paddingBottom: Device.isIos() ? 8 : 28,
       paddingTop: 16,
     },
     linkText: {
