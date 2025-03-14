@@ -17,7 +17,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { useAccounts } from '../../../components/hooks/useAccounts';
+import { useAccounts } from '../../hooks/useAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { getPermittedAccounts } from '../../../core/Permissions';
@@ -26,18 +26,19 @@ import getAccountNameWithENS from '../../../util/accounts';
 import Tabs from '../../UI/Tabs';
 import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appendURLParams } from '../../../util/browser';
 import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
-
+import { DrawerContext } from '../../Nav/Main/MainNavigator';
 /**
  * Component that wraps all the browser
  * individual tabs and the tabs view
  */
 export const Browser = (props) => {
+  const drawerContext = useContext(DrawerContext);
   const {
     route,
     navigation,
@@ -305,6 +306,7 @@ export const Browser = (props) => {
           closeTab={closeTab}
           closeTabsView={closeTabsView}
           closeAllTabs={closeAllTabs}
+          drawerContext={drawerContext}
         />
       );
     }

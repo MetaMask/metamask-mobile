@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useContext } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -204,23 +204,34 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
-const BrowserFlow = () => (
-  <Stack.Navigator
-    initialRouteName={Routes.BROWSER.VIEW}
-    mode={'modal'}
-    screenOptions={{
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-  >
-    <Stack.Screen
-      name={Routes.BROWSER.VIEW}
-      component={Browser}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
+export const DrawerContext = React.createContext({
+  drawerRef: null,
+  isDrawerVisible: true,
+  setIsDrawerVisible: (isVisible) => {
+    Logger.log('setIsDrawerVisible', isVisible);
+  },
+});
 
-export const DrawerContext = React.createContext({ drawerRef: null });
+const BrowserFlow = () => {
+  const drawerContext = useContext(DrawerContext);
+  Logger.log('MainNavigator ->drawerContext: ', drawerContext);
+  return (
+    <Stack.Navigator
+      initialRouteName={Routes.BROWSER.VIEW}
+      mode={'modal'}
+      screenOptions={{
+        cardStyle: { backgroundColor: importedColors.transparent },
+      }}
+    >
+      <Stack.Screen
+        name={Routes.BROWSER.VIEW}
+        component={Browser}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  )
+};
+
 
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
@@ -401,8 +412,7 @@ const SettingsFlow = () => (
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const drawerRef = useRef(null);
-  const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
-
+  const [isDrawerVisible, setIsDrawerVisible] = useState(true);
   const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
@@ -500,10 +510,10 @@ const HomeTabs = () => {
     // Better solution would be to update android:windowSoftInputMode in the AndroidManifest and refactor pages to support it.
     if (Platform.OS === 'android') {
       const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-        setIsKeyboardHidden(false);
+        setIsDrawerVisible(false);
       });
       const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-        setIsKeyboardHidden(true);
+        setIsDrawerVisible(true);
       });
 
       return () => {
@@ -514,7 +524,7 @@ const HomeTabs = () => {
   }, []);
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
-    if (isKeyboardHidden) {
+    if (isDrawerVisible) {
       return (
         <TabBar
           state={state}
@@ -527,7 +537,7 @@ const HomeTabs = () => {
   };
 
   return (
-    <DrawerContext.Provider value={{ drawerRef }}>
+    <DrawerContext.Provider value={{ drawerRef, isDrawerVisible, setIsDrawerVisible }}>
       <Drawer ref={drawerRef}>
         <Tab.Navigator
           initialRouteName={Routes.WALLET.HOME}

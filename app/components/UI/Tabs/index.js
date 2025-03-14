@@ -19,7 +19,12 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
 import TabThumbnail from './TabThumbnail';
-
+import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetOverlay from '../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetOverlay';
+import BottomSheetDialog from '../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog';
+import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import { DrawerContext } from '../../Nav/Main/MainNavigator';
+import { toHexadecimal } from '../../../util/number';
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
 const THUMB_HEIGHT =
@@ -162,12 +167,17 @@ class Tabs extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Drawer context
+     */
+    drawerContext: PropTypes.object,
   };
 
   thumbnails = {};
 
   state = {
     currentTab: null,
+    isMaxTabsDialogVisible: false,
   };
 
   scrollview = React.createRef();
@@ -263,9 +273,12 @@ class Tabs extends PureComponent {
   }
 
   onNewTabPress = () => {
-    const { tabs, newTab } = this.props;
-    newTab();
-    this.trackNewTabEvent(tabs.length);
+    // hide drawer
+    this.props.drawerContext.setIsDrawerVisible(false);
+    this.setState({ isMaxTabsDialogVisible: true });
+    // const { tabs, newTab } = this.props;
+    // newTab();
+    // this.trackNewTabEvent(tabs.length);
   };
 
   trackNewTabEvent = (tabsNumber) => {
@@ -338,16 +351,38 @@ class Tabs extends PureComponent {
     const styles = this.getStyles();
 
     return (
-      <SafeAreaInsetsContext.Consumer>
-        {(insets) => (
-          <View style={{ ...styles.tabsView, paddingTop: insets.top }}>
-            {tabs.length === 0
-              ? this.renderNoTabs()
-              : this.renderTabs(tabs, activeTab)}
-            {this.renderTabActions()}
-          </View>
+      <>
+        <SafeAreaInsetsContext.Consumer>
+          {(insets) => (
+            <View style={{ ...styles.tabsView, paddingTop: insets.top }}>
+              {tabs.length === 0
+                ? this.renderNoTabs()
+                : this.renderTabs(tabs, activeTab)}
+              {this.renderTabActions()}
+            </View>
+          )}
+
+        </SafeAreaInsetsContext.Consumer>
+        {this.state.isMaxTabsDialogVisible && (
+          <>
+            <SheetHeader title={strings('accounts.accounts_title')} />
+            <BottomSheetOverlay
+              disabled={false}
+              onPress={null}
+            />
+            <BottomSheetDialog
+              isInteractable={true}
+              onClose={null}
+              onOpen={null}
+              ref={null}
+              isFullscreen={false}
+              style={{ zIndex: 9999999999 }}
+            >
+              <Text>Some stuff</Text>
+            </BottomSheetDialog>
+          </>
         )}
-      </SafeAreaInsetsContext.Consumer>
+      </>
     );
   }
 }
