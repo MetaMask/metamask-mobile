@@ -202,12 +202,7 @@ export const BridgeTokenSelector: React.FC = () => {
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={renderEmptyList}
-          removeClippedSubviews
-          maxToRenderPerBatch={10}
-          windowSize={10}
-          initialNumToRender={20}
-          keyboardShouldPersistTaps="always"
-          />
+        />
       </Box>
     </BottomSheet>
   );
