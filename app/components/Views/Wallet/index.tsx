@@ -112,11 +112,11 @@ import { Token } from '@metamask/assets-controllers';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import NonEvmTokens from '../../UI/NonEvmTokens';
+///: END:ONLY_INCLUDE_IF
 import {
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
