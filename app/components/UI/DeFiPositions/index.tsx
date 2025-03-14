@@ -19,6 +19,7 @@ import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon
 import Logger from '../../../util/Logger';
 import { Hex } from '@metamask/utils';
 import { GroupedPositions } from '@metamask/assets-controllers';
+import { DeFiProtocolPositionsList } from './DeFiProtocolPositionsList';
 
 export interface DeFiPositionsProps {
   tabLabel: string;
@@ -44,18 +45,24 @@ const DeFiPositions: React.FC<DeFiPositionsProps> = ({ defiPositions }) => {
     portfolioViewEnabled: isPortfolioViewEnabled(),
   });
 
-  const defiPositionsList = useMemo(() => {
+  const refinedDeFiPositions = useMemo(() => {
     if (!defiPositions) {
-      return [];
+      return null;
+    }
+
+    if (isAllNetworks) {
+      return defiPositions;
     }
 
     const currentChainPositions = defiPositions?.[currentChainId as Hex];
     if (!currentChainPositions) {
-      return [];
+      return null;
     }
 
-    return Object.values(currentChainPositions.protocols);
-  }, [defiPositions, isPopularNetwork, isAllNetworks, currentChainId]);
+    return {
+      [currentChainId]: currentChainPositions,
+    };
+  }, [defiPositions, isAllNetworks, currentChainId]);
 
   return (
     <View
@@ -98,7 +105,7 @@ const DeFiPositions: React.FC<DeFiPositionsProps> = ({ defiPositions }) => {
         </View>
       </View>
       <View>
-        <Text>DeFi Positions List</Text>
+        <DeFiProtocolPositionsList defiPositions={refinedDeFiPositions} />
       </View>
     </View>
   );

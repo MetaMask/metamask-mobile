@@ -40,20 +40,13 @@ export const DeFiProtocolPositionsList = ({
   //     });
   //   };
 
-  if () {
+  if (!defiPositions || Object.keys(defiPositions).length === 0) {
     return (
       <View style={styles.emptyView}>
         <View style={styles.emptyTokensView}>
           <Text style={styles.emptyTokensViewText}>
+            {/* TODO: Custom message needed */}
             {strings('wallet.no_tokens')}
-          </Text>
-          <Text
-            style={styles.emptyTokensViewText}
-            color={TextColor.Info}
-            // onPress={handleLink}
-            onPress={() => null}
-          >
-            {strings('wallet.show_tokens_without_balance')}
           </Text>
         </View>
       </View>
@@ -61,21 +54,24 @@ export const DeFiProtocolPositionsList = ({
   }
 
   return (
-    <FlatList
-      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
-      data={positions}
-      renderItem={({ item }) => (
-        <TokenListItem
-          asset={item}
-          showRemoveMenu={showRemoveMenu}
-          showScamWarningModal={showScamWarningModal}
-          setShowScamWarningModal={setShowScamWarningModal}
-          privacyMode={privacyMode}
-          showPercentageChange={showPercentageChange}
-          showNetworkBadge={showNetworkBadge}
-        />
-      )}
-      keyExtractor={(_, index) => index.toString()}
-    />
+    <View>
+      <Text>DeFi Protocol Positions List</Text>
+    </View>
+    // <FlatList
+    //   testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+    //   data={positions}
+    //   renderItem={({ item }) => (
+    //     <TokenListItem
+    //       asset={item}
+    //       showRemoveMenu={showRemoveMenu}
+    //       showScamWarningModal={showScamWarningModal}
+    //       setShowScamWarningModal={setShowScamWarningModal}
+    //       privacyMode={privacyMode}
+    //       showPercentageChange={showPercentageChange}
+    //       showNetworkBadge={showNetworkBadge}
+    //     />
+    //   )}
+    //   keyExtractor={(_, index) => index.toString()}
+    // />
   );
 };
