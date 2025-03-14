@@ -202,7 +202,7 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
             label={areAllNetworksSelected ? strings('bridge.deselect_all_networks') : strings('bridge.select_all_networks')}
             onPress={toggleAllChains}
             testID="select-all-networks-button"
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariants.Link}
           />
         </Box>
 
