@@ -25,7 +25,7 @@ interface CalculateFiatBalancesParams {
 }
 
 // From app/components/UI/Tokens/index.tsx
-const calculateFiatBalances = ({
+const calculateBalances = ({
   assets,
   multiChainMarketData,
   multiChainTokenBalance,
@@ -46,15 +46,26 @@ const calculateFiatBalances = ({
     const multiChainConversionRate =
       multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
 
-    return token.isETH || token.isNative
-      ? parseFloat(token.balance) * multiChainConversionRate
-      : deriveBalanceFromAssetMarketDetails(
-          token,
-          multiChainExchangeRates || {},
-          multiChainTokenBalances || {},
-          multiChainConversionRate || 0,
-          currentCurrency || '',
-        ).balanceFiatCalculation;
+    if (token.isETH || token.isNative) {
+      return {
+        tokenFiatAmount: parseFloat(token.balance) * multiChainConversionRate,
+        balance: token.balance,
+        balanceFiat: token.balanceFiat,
+      };
+    }
+
+    const res = deriveBalanceFromAssetMarketDetails(
+      token,
+      multiChainExchangeRates || {},
+      multiChainTokenBalances || {},
+      multiChainConversionRate || 0,
+      currentCurrency || '',
+    );
+    return {
+      tokenFiatAmount: res.balanceFiat,
+      balance: res.balance,
+      balanceFiat: res.balanceFiat,
+    };
   });
 
 // TODO Look into useMultichainBalances hook, or useGetFormattedTokensPerChain hook
@@ -78,12 +89,15 @@ export const useSourceTokens = () => {
   // Chain ids to filter by
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
 
-  const sortedTokens = useMemo(() => {
-    const allAccountTokens = Object.values(accountTokensAcrossChains)
-    .flat()
-    .filter((token) => selectedSourceChainIds.includes(token.chainId as Hex)) as TokenI[];
+  console.log('HELLO selectedSourceChainIds', selectedSourceChainIds, accountTokensAcrossChains);
 
-    const tokenFiatBalances = calculateFiatBalances({
+  const sortedTokens = useMemo(() => {
+    const allAccountTokens = (
+      Object.values(accountTokensAcrossChains).flat() as TokenI[]
+    )
+    .filter((token) => selectedSourceChainIds.includes(token.chainId as Hex));
+
+    const balances = calculateBalances({
       assets: allAccountTokens,
       multiChainMarketData,
       multiChainTokenBalance,
@@ -94,7 +108,9 @@ export const useSourceTokens = () => {
     });
     const tokensWithBalances = allAccountTokens.map((token, i) => ({
       ...token,
-      tokenFiatAmount: tokenFiatBalances[i] ?? 0,
+      tokenFiatAmount: balances[i].tokenFiatAmount ?? 0,
+      balance: balances[i].balance,
+      balanceFiat: balances[i].balanceFiat,
     }));
     return sortAssets(tokensWithBalances, tokenSortConfig);
   }, [
@@ -108,8 +124,6 @@ export const useSourceTokens = () => {
     tokenSortConfig,
     selectedSourceChainIds,
   ]);
-
-  console.log('HELLO sortedTokens', sortedTokens[1]);
 
   return sortedTokens;
 };

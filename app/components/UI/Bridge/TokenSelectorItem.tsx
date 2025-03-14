@@ -79,7 +79,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       </BadgeWrapper>
       <Box style={styles.tokenInfo} flexDirection={FlexDirection.Column} gap={4}>
         <Text variant={TextVariant.BodyLGMedium}>
-          {token.symbol} {token.chainId}
+          {token.symbol}
         </Text>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {token.name}
