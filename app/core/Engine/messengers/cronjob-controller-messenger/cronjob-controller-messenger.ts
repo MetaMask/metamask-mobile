@@ -8,7 +8,7 @@ import {
   SnapControllerSnapUninstalledEvent,
   SnapControllerSnapUpdatedEvent,
   SnapControllerGetAllSnapsAction,
-} from '../../controllers/SnapController/constants';
+} from '../../controllers/snaps';
 
 /**
  * Get the CronjobControllerMessenger for the CronjobController.

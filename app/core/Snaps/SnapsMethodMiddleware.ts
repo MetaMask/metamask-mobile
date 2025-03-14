@@ -7,15 +7,25 @@ import {
 import { SnapRpcHookArgs } from '@metamask/snaps-utils';
 import { RestrictedMethods } from '../Permissions/constants';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
-import { SnapId } from '@metamask/snaps-sdk';
-import { EngineContext } from '../Engine';
+import { BackgroundEvent, SnapId } from '@metamask/snaps-sdk';
+import { BaseControllerMessenger, EngineContext } from '../Engine';
 import { handleSnapRequest } from './utils';
 import {
+  CronjobControllerCancelBackgroundEventAction,
+  CronjobControllerGetBackgroundEventsAction,
+  SnapControllerClearSnapStateAction,
   SnapControllerGetPermittedSnapsAction,
   SnapControllerGetSnapAction,
   SnapControllerGetSnapFileAction,
+  SnapControllerGetSnapStateAction,
   SnapControllerInstallSnapsAction,
-} from '../Engine/controllers/SnapController/constants';
+  SnapControllerUpdateSnapStateAction,
+  SnapInterfaceControllerCreateInterfaceAction,
+  SnapInterfaceControllerResolveInterfaceAction,
+  SnapInterfaceControllerUpdateInterfaceAction,
+  SnapInterfaceControllerUpdateInterfaceStateAction,
+} from '../Engine/controllers/snaps';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -29,9 +39,7 @@ export function getSnapIdFromRequest(
     */
 const snapMethodMiddlewareBuilder = (
   engineContext: EngineContext,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  controllerMessenger: any,
+  controllerMessenger: BaseControllerMessenger,
   origin: string,
   subjectType: SubjectType,
 ) =>
@@ -70,7 +78,7 @@ const snapMethodMiddlewareBuilder = (
     getSnapFile: controllerMessenger.call.bind(
       controllerMessenger,
       SnapControllerGetSnapFileAction,
-      origin,
+      origin as SnapId,
     ),
     installSnaps: controllerMessenger.call.bind(
       controllerMessenger,
@@ -84,32 +92,30 @@ const snapMethodMiddlewareBuilder = (
     ),
     createInterface: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapInterfaceController:createInterface',
-      origin,
+      SnapInterfaceControllerCreateInterfaceAction,
+      origin as SnapId,
     ),
     updateInterface: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapInterfaceController:updateInterface',
-      origin,
+      SnapInterfaceControllerUpdateInterfaceAction,
+      origin as SnapId,
     ),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getInterfaceContext: (...args: any) =>
+    getInterfaceContext: (id: string) =>
       controllerMessenger.call(
         'SnapInterfaceController:getInterface',
-        origin,
-        ...args,
+        origin as SnapId,
+        id,
       ).context,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getInterfaceState: (...args: any) =>
+    getInterfaceState: (id: string) =>
       controllerMessenger.call(
         'SnapInterfaceController:getInterface',
-        origin,
-        ...args,
+        origin as SnapId,
+        id,
       ).state,
     resolveInterface: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapInterfaceController:resolveInterface',
-      origin,
+      SnapInterfaceControllerResolveInterfaceAction,
+      origin as SnapId,
     ),
     getSnap: controllerMessenger.call.bind(
       controllerMessenger,
@@ -117,8 +123,8 @@ const snapMethodMiddlewareBuilder = (
     ),
     updateInterfaceState: controllerMessenger.call.bind(
       controllerMessenger,
-      'SnapInterfaceController:updateInterfaceState',
-      origin,
+      SnapInterfaceControllerUpdateInterfaceStateAction,
+      origin as SnapId,
     ),
     handleSnapRpcRequest: async (request: Omit<SnapRpcHookArgs, 'origin'>) => {
       const snapId = getSnapIdFromRequest(request);
@@ -141,6 +147,64 @@ const snapMethodMiddlewareBuilder = (
         engineContext.ApprovalController,
       ),
     getIsLocked: () => !engineContext.KeyringController.isUnlocked(),
+    getEntropySources: () => {
+      const state = controllerMessenger.call('KeyringController:getState');
+
+      return state.keyrings
+        .map((keyring, index) => {
+          if (keyring.type === KeyringTypes.hd) {
+            return {
+              id: state.keyringsMetadata[index].id,
+              name: state.keyringsMetadata[index].name,
+              type: 'mnemonic',
+              primary: index === 0,
+            };
+          }
+
+          return null;
+        })
+        .filter(Boolean);
+    },
+    clearSnapState: controllerMessenger.call.bind(
+      controllerMessenger,
+      SnapControllerClearSnapStateAction,
+      origin as SnapId,
+    ),
+    getSnapState: controllerMessenger.call.bind(
+      controllerMessenger,
+      SnapControllerGetSnapStateAction,
+      origin as SnapId,
+    ),
+    updateSnapState: controllerMessenger.call.bind(
+      controllerMessenger,
+      SnapControllerUpdateSnapStateAction,
+      origin as SnapId,
+    ),
+    scheduleBackgroundEvent: (
+      event: Omit<BackgroundEvent, 'id' | 'scheduledAt'>,
+    ) =>
+      controllerMessenger.call('CronjobController:scheduleBackgroundEvent', {
+        ...event,
+        snapId: origin as SnapId,
+      }),
+    cancelBackgroundEvent: controllerMessenger.call.bind(
+      controllerMessenger,
+      CronjobControllerCancelBackgroundEventAction,
+      origin as SnapId,
+    ),
+    getBackgroundEvents: controllerMessenger.call.bind(
+      controllerMessenger,
+      CronjobControllerGetBackgroundEventsAction,
+      origin as SnapId,
+    ),
+    getNetworkConfigurationByChainId: controllerMessenger.call.bind(
+      controllerMessenger,
+      'NetworkController:getNetworkConfigurationByChainId',
+    ),
+    getNetworkClientById: controllerMessenger.call.bind(
+      controllerMessenger,
+      'NetworkController:getNetworkClientById',
+    ),
   });
 
 export default snapMethodMiddlewareBuilder;

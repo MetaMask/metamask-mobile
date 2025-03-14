@@ -64,14 +64,14 @@ describe('SnapControllerInit', () => {
         requireAllowlist: true,
       },
       getFeatureFlags: expect.any(Function),
-      getMnemonic: expect.any(Function),
+      getMnemonicSeed: expect.any(Function),
       maxIdleTime: expect.any(Number),
       preinstalledSnaps: expect.any(Array),
     });
   });
 
-  describe('getMnemonic', () => {
-    it('returns the mnemonic phrase', () => {
+  describe('getMnemonicSeed', () => {
+    it('returns the mnemonic seed', () => {
       const messenger = new ExtendedControllerMessenger<
         KeyringControllerGetKeyringsByTypeAction,
         never
@@ -80,20 +80,20 @@ describe('SnapControllerInit', () => {
       snapControllerInit(getInitRequestMock(messenger));
 
       const mock = jest.mocked(SnapController);
-      const getMnemonic = mock.mock.calls[0][0].getMnemonic;
+      const getMnemonicSeed = mock.mock.calls[0][0].getMnemonicSeed;
 
-      const mnemonic = new Uint8Array([1, 2, 3, 4]);
+      const seed = new Uint8Array([1, 2, 3, 4]);
       messenger.registerActionHandler(
         'KeyringController:getKeyringsByType',
         () => [
           {
             type: 'HD Key Tree',
-            mnemonic,
+            seed,
           },
         ],
       );
 
-      expect(getMnemonic()).resolves.toBe(mnemonic);
+      expect(getMnemonicSeed()).resolves.toBe(seed);
     });
 
     it('throws an error if the keyring is not available', () => {
@@ -105,14 +105,14 @@ describe('SnapControllerInit', () => {
       snapControllerInit(getInitRequestMock(messenger));
 
       const controllerMock = jest.mocked(SnapController);
-      const getMnemonic = controllerMock.mock.calls[0][0].getMnemonic;
+      const getMnemonicSeed = controllerMock.mock.calls[0][0].getMnemonicSeed;
 
       messenger.registerActionHandler(
         'KeyringController:getKeyringsByType',
         () => [],
       );
 
-      expect(getMnemonic()).rejects.toThrow(
+      expect(getMnemonicSeed()).rejects.toThrow(
         'Primary keyring mnemonic unavailable.',
       );
     });

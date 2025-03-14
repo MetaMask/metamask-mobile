@@ -14,9 +14,15 @@ import {
   SnapEnabled as SnapControllerSnapEnabledEventType,
   SnapDisabled as SnapControllerSnapDisabledEventType,
   GetAllSnaps as SnapControllerGetAllSnapsActionType,
+  CreateInterface,
+  UpdateInterface,
+  ResolveInterface,
+  UpdateInterfaceState,
+  CancelBackgroundEvent,
+  GetBackgroundEvents,
 } from '@metamask/snaps-controllers';
 
-// Events
+// SnapController Events
 export const SnapControllerStateChangeEvent: SnapControllerStateChangeEventType['type'] =
   'SnapController:stateChange';
 
@@ -35,7 +41,7 @@ export const SnapControllerSnapEnabledEvent: SnapControllerSnapEnabledEventType[
 export const SnapControllerSnapDisabledEvent: SnapControllerSnapDisabledEventType['type'] =
   'SnapController:snapDisabled';
 
-// Actions
+// SnapController Actions
 export const SnapControllerHandleRequestAction: SnapControllerHandleRequestActionType['type'] =
   'SnapController:handleRequest';
 
@@ -62,3 +68,23 @@ export const SnapControllerGetSnapFileAction: SnapControllerGetSnapFileActionTyp
 
 export const SnapControllerGetAllSnapsAction: SnapControllerGetAllSnapsActionType['type'] =
   'SnapController:getAll';
+
+// SnapInterfaceController Actions
+export const SnapInterfaceControllerCreateInterfaceAction: CreateInterface['type'] =
+  'SnapInterfaceController:createInterface';
+
+export const SnapInterfaceControllerUpdateInterfaceAction: UpdateInterface['type'] =
+  'SnapInterfaceController:updateInterface';
+
+export const SnapInterfaceControllerResolveInterfaceAction: ResolveInterface['type'] =
+  'SnapInterfaceController:resolveInterface';
+
+export const SnapInterfaceControllerUpdateInterfaceStateAction: UpdateInterfaceState['type'] =
+  'SnapInterfaceController:updateInterfaceState';
+
+// CronjobController Actions
+export const CronjobControllerCancelBackgroundEventAction: CancelBackgroundEvent['type'] =
+  'CronjobController:cancelBackgroundEvent';
+
+export const CronjobControllerGetBackgroundEventsAction: GetBackgroundEvents['type'] =
+  'CronjobController:getBackgroundEvents';
