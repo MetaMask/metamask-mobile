@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 
 // External dependencies.
 import { ButtonSize } from '../../components/Buttons/Button/Button.types';
@@ -24,13 +24,9 @@ const handleSingleValueChange = (_value: string) => {
   /* For demo purposes only */
 };
 
-const handleMultiValueChange = (_values: string[]) => {
-  /* For demo purposes only */
-};
-
 // Sample options with many items to demonstrate scrollable behavior
 const MANY_OPTIONS = [
-  { value: 'option1', label: 'Option 1' },
+  { value: 'option1', label: 'Option 1 5 6 7  8 ' },
   { value: 'option2', label: 'Option 2' },
   { value: 'option3', label: 'Option 3' },
   { value: 'option4', label: 'Option 4' },
@@ -52,12 +48,29 @@ const OPTIONS_WITH_ICONS = [
   { value: 'uni', label: 'UNI', startIconName: IconName.Refresh },
 ];
 
+// Sample options with varying text lengths for width examples
+const VARIED_TEXT_LENGTH_OPTIONS = [
+  { value: 'short', label: 'S' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'long', label: 'Very Long Text Label' },
+  { value: 'another', label: 'Another Option' },
+];
+
 const styles = StyleSheet.create({
   container: {
     padding: 16,
   },
+  scrollContainer: {
+    flexGrow: 1,
+  },
   section: {
     marginVertical: 16,
+  },
+  description: {
+    marginBottom: 8,
+  },
+  spacer: {
+    height: 40,
   },
 });
 
@@ -127,72 +140,147 @@ const MultiSelectIconsScrollableDemo = () => {
   );
 };
 
-export const SegmentedControl = {
-  render: () => (
-    <View style={styles.container}>
-      <Title>SegmentedControl Component</Title>
-      <Text variant={TextVariant.BodySM}>
-        A set of buttons grouped together to switch between related views or
-        modes.
-      </Text>
+// Demo component for flexible width buttons
+const FlexibleWidthDemo = () => {
+  const [selectedValue, setSelectedValue] = useState<string>(
+    VARIED_TEXT_LENGTH_OPTIONS[0].value,
+  );
 
+  return (
+    <SegmentedControlComponent
+      options={VARIED_TEXT_LENGTH_OPTIONS}
+      selectedValue={selectedValue}
+      isButtonWidthFlexible
+      onValueChange={(value) => setSelectedValue(value)}
+    />
+  );
+};
+
+// Demo component showing width comparison (fixed vs flexible)
+const WidthComparisonDemo = () => {
+  const [selectedValueFixed, setSelectedValueFixed] = useState<string>(
+    VARIED_TEXT_LENGTH_OPTIONS[0].value,
+  );
+  const [selectedValueFlexible, setSelectedValueFlexible] = useState<string>(
+    VARIED_TEXT_LENGTH_OPTIONS[0].value,
+  );
+
+  return (
+    <View>
       <View style={styles.section}>
-        <Text variant={TextVariant.BodyMDBold}>
-          Single Select (Controlled Demo)
+        <Text variant={TextVariant.BodySM} style={styles.description}>
+          Fixed Width (default): Buttons have equal widths regardless of content
         </Text>
-        <SingleSelectDemo />
-      </View>
-
-      <View style={styles.section}>
-        <Text variant={TextVariant.BodyMDBold}>
-          Multi-Select (Controlled Demo)
-        </Text>
-        <MultiSelectDemo />
-      </View>
-
-      <View style={styles.section}>
-        <Text variant={TextVariant.BodyMDBold}>
-          Scrollable SegmentedControl
-        </Text>
-        <ScrollableSingleSelectDemo />
-      </View>
-
-      <View style={styles.section}>
-        <Text variant={TextVariant.BodyMDBold}>
-          Multi-Select with Icons (Scrollable)
-        </Text>
-        <MultiSelectIconsScrollableDemo />
-      </View>
-
-      <View style={styles.section}>
-        <Text variant={TextVariant.BodyMDBold}>Large Size</Text>
         <SegmentedControlComponent
-          options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
-          selectedValue={SAMPLE_SEGMENTEDCONTROL_OPTIONS[0].value}
-          size={ButtonSize.Lg}
-          onValueChange={handleSingleValueChange}
+          options={VARIED_TEXT_LENGTH_OPTIONS}
+          selectedValue={selectedValueFixed}
+          onValueChange={(value) => setSelectedValueFixed(value)}
         />
       </View>
 
       <View style={styles.section}>
-        <Text variant={TextVariant.BodyMDBold}>Small Size</Text>
+        <Text variant={TextVariant.BodySM} style={styles.description}>
+          Flexible Width: Buttons size based on their content
+        </Text>
         <SegmentedControlComponent
-          options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
-          selectedValue={SAMPLE_SEGMENTEDCONTROL_OPTIONS[0].value}
-          size={ButtonSize.Sm}
-          onValueChange={handleSingleValueChange}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text variant={TextVariant.BodyMDBold}>Disabled</Text>
-        <SegmentedControlComponent
-          options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
-          selectedValue={SAMPLE_SEGMENTEDCONTROL_OPTIONS[0].value}
-          isDisabled
-          onValueChange={handleSingleValueChange}
+          options={VARIED_TEXT_LENGTH_OPTIONS}
+          selectedValue={selectedValueFlexible}
+          isButtonWidthFlexible
+          onValueChange={(value) => setSelectedValueFlexible(value)}
         />
       </View>
     </View>
+  );
+};
+
+export const SegmentedControl = {
+  render: () => (
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Title>SegmentedControl Component</Title>
+        <Text variant={TextVariant.BodySM}>
+          A set of buttons grouped together to switch between related views or
+          modes.
+        </Text>
+
+        <View style={styles.section}>
+          <Text variant={TextVariant.BodyMDBold}>Button Width Options</Text>
+          <Text variant={TextVariant.BodySM} style={styles.description}>
+            SegmentedControl supports both fixed width and flexible width
+            buttons
+          </Text>
+          <WidthComparisonDemo />
+        </View>
+
+        <View style={styles.section}>
+          <Text variant={TextVariant.BodyMDBold}>
+            Single Select (Controlled Demo)
+          </Text>
+          <SingleSelectDemo />
+        </View>
+
+        <View style={styles.section}>
+          <Text variant={TextVariant.BodyMDBold}>
+            Multi-Select (Controlled Demo)
+          </Text>
+          <MultiSelectDemo />
+        </View>
+
+        <View style={styles.section}>
+          <Text variant={TextVariant.BodyMDBold}>Flexible Width Example</Text>
+          <Text variant={TextVariant.BodySM} style={styles.description}>
+            When isButtonWidthFlexible is true, buttons size to fit their
+            content
+          </Text>
+          <FlexibleWidthDemo />
+        </View>
+
+        <View style={styles.section}>
+          <Text variant={TextVariant.BodyMDBold}>
+            Scrollable SegmentedControl
+          </Text>
+          <ScrollableSingleSelectDemo />
+        </View>
+
+        <View style={styles.section}>
+          <Text variant={TextVariant.BodyMDBold}>
+            Multi-Select with Icons (Scrollable)
+          </Text>
+          <MultiSelectIconsScrollableDemo />
+        </View>
+
+        <View style={styles.section}>
+          <Text variant={TextVariant.BodyMDBold}>Large Size</Text>
+          <SegmentedControlComponent
+            options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
+            selectedValue={SAMPLE_SEGMENTEDCONTROL_OPTIONS[0].value}
+            size={ButtonSize.Lg}
+            onValueChange={handleSingleValueChange}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text variant={TextVariant.BodyMDBold}>Small Size</Text>
+          <SegmentedControlComponent
+            options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
+            selectedValue={SAMPLE_SEGMENTEDCONTROL_OPTIONS[0].value}
+            size={ButtonSize.Sm}
+            onValueChange={handleSingleValueChange}
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text variant={TextVariant.BodyMDBold}>Disabled</Text>
+          <SegmentedControlComponent
+            options={SAMPLE_SEGMENTEDCONTROL_OPTIONS}
+            selectedValue={SAMPLE_SEGMENTEDCONTROL_OPTIONS[0].value}
+            isDisabled
+            onValueChange={handleSingleValueChange}
+          />
+        </View>
+
+        <View style={styles.spacer} />
+      </View>
+    </ScrollView>
   ),
 };
