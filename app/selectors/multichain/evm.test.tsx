@@ -7,6 +7,7 @@ import {
   selectNativeEvmAsset,
   selectStakedEvmAsset,
   selectEvmTokens,
+  selectEvmTokensWithZeroBalanceFilter,
 } from './evm';
 import { SolScope } from '@metamask/keyring-api';
 import { GetByQuery } from '@testing-library/react-native/build/queries/makeQueries';
@@ -397,6 +398,107 @@ describe('Multichain Selectors', () => {
         logo: '../images/eth-logo-new.png',
         address: zeroAddress(),
       });
+    });
+  });
+
+  describe('selectEvmTokensWithZeroBalanceFilter', () => {
+    it('should return the same memoized reference, when called with the same state', () => {
+      const result1 = selectEvmTokensWithZeroBalanceFilter(mockState);
+      const result2 = selectEvmTokensWithZeroBalanceFilter(mockState);
+      expect(result1 === result2).toBe(true);
+    });
+
+    it('should return all tokens when hideZeroBalanceTokens is false', () => {
+      const testState = {
+        ...mockState,
+        settings: { ...mockState.settings, hideZeroBalanceTokens: false },
+      } as unknown as RootState;
+
+      const result = selectEvmTokensWithZeroBalanceFilter(testState);
+
+      expect(result).toBeDefined();
+      expect(result.length).toBeGreaterThan(0); // Ensure all tokens are returned
+    });
+
+    it('should filter out zero balance tokens when hideZeroBalanceTokens is true', () => {
+      const testState = {
+        ...mockState,
+        settings: { ...mockState.settings, hideZeroBalanceTokens: true },
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            AccountTrackerController: {
+              accountsByChainId: {
+                '0x1': {
+                  '0xAddress1': {
+                    balance: '0x0',
+                    stakedBalance: '0x0',
+                  },
+                },
+              },
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                '0xAddress1': {
+                  '0x1': {
+                    '0xToken1': '0x0', // Simulating zero balance token
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokensWithZeroBalanceFilter(testState);
+
+      expect(result).toBeDefined();
+      expect(result.length).toBe(0); // Should remove all tokens with zero balance
+    });
+
+    it('should keep native tokens when on current network, even if zero balance', () => {
+      const testState = {
+        ...mockState,
+        settings: { ...mockState.settings, hideZeroBalanceTokens: true },
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            AccountTrackerController: {
+              accountsByChainId: {
+                '0x1': {
+                  '0xAddress1': {
+                    balance: '0x0',
+                    stakedBalance: '0x0', // simulating a staked balance
+                  },
+                },
+              },
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                '0xAddress1': {
+                  '0x1': {
+                    '0xToken1': '0x0',
+                  },
+                },
+              },
+            },
+            PreferencesController: {
+              tokenNetworkFilter: {
+                '0x1': true, // user is on "current network" filter, since NetworkController has multiple networks, and we are only filtering to one chain here
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectEvmTokensWithZeroBalanceFilter(testState);
+
+      expect(result).toBeDefined();
+      expect(result.every((token) => token.isNative === true)).toBeTruthy();
+      expect(result.every((token) => token.balance === '0')).toBeTruthy();
+      expect(result.length).toBe(2); // Native tokens should remain
     });
   });
 
