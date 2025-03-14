@@ -299,26 +299,18 @@ export const selectStakedEvmAsset = createDeepEqualSelector(
   },
 );
 
-export const selectEvmTokens = createDeepEqualSelector(
+export const selectEvmTokensWithZeroBalanceFilter = createDeepEqualSelector(
   selectHideZeroBalanceTokens,
   selectAccountTokensAcrossChains,
   selectTokensBalances,
   selectSelectedInternalAccountAddress,
   selectIsTokenNetworkFilterEqualCurrentNetwork,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-  selectIsEvmNetworkSelected,
-  selectChainId,
   (
     hideZeroBalanceTokens,
     selectedAccountTokensChains,
     multiChainTokenBalance,
     selectedInternalAccountAddress,
     isUserOnCurrentNetwork,
-    isAllNetworks,
-    isPopularNetwork,
-    isEvmSelected,
-    currentChainId,
   ) => {
     const allTokens = Object.values(
       selectedAccountTokensChains,
@@ -342,7 +334,23 @@ export const selectEvmTokens = createDeepEqualSelector(
         );
       });
     }
+    return tokensToDisplay;
+  },
+);
 
+export const selectEvmTokens = createDeepEqualSelector(
+  selectEvmTokensWithZeroBalanceFilter,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectIsEvmNetworkSelected,
+  selectChainId,
+  (
+    tokensToDisplay,
+    isAllNetworks,
+    isPopularNetwork,
+    isEvmSelected,
+    currentChainId,
+  ) => {
     // Apply network filtering
     const filteredTokens =
       isAllNetworks && isPopularNetwork && isEvmSelected
