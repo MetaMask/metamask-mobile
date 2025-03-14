@@ -221,6 +221,7 @@ const BrowserFlow = () => (
 );
 
 export const DrawerContext = React.createContext({ drawerRef: null });
+
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
   <Stack.Navigator>
