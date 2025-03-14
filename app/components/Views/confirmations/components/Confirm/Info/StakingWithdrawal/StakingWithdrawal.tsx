@@ -41,7 +41,7 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
         transaction_amount_eth: tokenAmountDisplayValue,
       },
     });
-  }, [amountWei, setTransactionMetrics]);
+  }, [tokenAmountDisplayValue, setTransactionMetrics]);
 
   return (
     <>
