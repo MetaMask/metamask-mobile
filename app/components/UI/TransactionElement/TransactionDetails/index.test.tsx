@@ -5,8 +5,12 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsCo
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { mockNetworkState } from '../../../../util/test/network';
+import { query } from '@metamask/controller-utils';
 
 const Stack = createStackNavigator();
+const mockEthQuery = {
+  getBalance: jest.fn(),
+};
 const initialState = {
   settings: {
     showFiatOnTestnets: true,
@@ -42,6 +46,15 @@ const initialState = {
     },
   },
 };
+
+jest.mock('../../../../util/networks/global-network', () => ({
+  getGlobalEthQuery: jest.fn(() => mockEthQuery),
+}));
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  query: jest.fn(),
+}));
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -86,6 +99,42 @@ describe('TransactionDetails', () => {
   });
 
   it('should render correctly for multi-layer fee network', () => {
+    jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
+      timestamp: 1234,
+      l1Fee: '0x1',
+    });
+
+    const { toJSON } = renderComponent(
+      {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            NetworkController: {
+              ...mockNetworkState({
+                chainId: '0xa',
+                id: 'optimism',
+                nickname: 'OP Mainnet',
+                ticker: 'ETH',
+                blockExplorerUrl: 'https://optimistic.etherscan.io/',
+              }),
+            },
+          },
+        },
+      },
+      '0x3',
+      {
+        multiLayerL1FeeTotal: '0x1',
+      },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+  it('should render correctly for multi-layer fee network with no l1 fee', () => {
+    jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
+      timestamp: 1234,
+      l1Fee: '0x0',
+    });
     const { toJSON } = renderComponent(
       {
         ...initialState,
