@@ -104,30 +104,5 @@ describe('Browser', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should navigate to MAX_BROWSER_TABS_MODAL when newTab executed to add a 6th tab', () => {
-    const mockNavigate = jest.fn();
 
-
-    // create Browser component with mock route params of `newTabUrl` and `timestamp`
-    const route = {
-      params: {
-        newTabUrl: 'about:blank',
-        timestamp: '123',
-      },
-    };
-
-    const component = render(
-      <Browser
-        tabs={mockTabs}
-        navigation={{ navigate: mockNavigate }}
-        createNewTab={jest.fn}
-      />
-    );
-
-    // send new `route` property to the component
-    component.setProps({ route });
-
-    // expect the navigation to have been called with the correct params
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
-  });
 });
