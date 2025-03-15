@@ -7,13 +7,11 @@ import { connect } from 'react-redux';
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import {
-  findBlockExplorerForRpc,
   getBlockExplorerName,
   isMainNet,
   isMultiLayerFeeNetwork,
   getBlockExplorerTxUrl,
   findBlockExplorerForNonEvmChainId,
-  getBlockExplorerNameByChainId,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -30,7 +28,6 @@ import decodeTransaction from '../../TransactionElement/utils';
 import {
   selectChainId,
   selectNetworkConfigurations,
-  selectProviderConfig,
   selectEvmTicker,
 } from '../../../../selectors/networkController';
 import {
@@ -54,7 +51,6 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
