@@ -57,6 +57,30 @@ const mockEngine = jest.mocked(Engine);
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
+// Create a mock account for use in tests
+const MOCK_ACCOUNT = {
+  address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+  id: '123',
+  metadata: {
+    name: 'Account 2',
+    importTime: 1684232000456,
+    keyring: {
+      type: 'HD Key Tree',
+    },
+  },
+  options: {},
+  methods: [
+    'personal_sign',
+    'eth_signTransaction',
+    'eth_signTypedData_v1',
+    'eth_signTypedData_v3',
+    'eth_signTypedData_v4',
+  ],
+  type: 'eoa',
+  scopes: ['eip155:1'],
+};
+
+// Mock the navigation module
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -65,20 +89,22 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
     }),
-    useRoute: () => ({
-      params: {
-        selectedAccount: {
-          address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-          metadata: {
-            keyring: {
-              type: 'HD Key Tree',
-            },
-          },
-        },
-      },
-    }),
+    useRoute: jest.fn(),
   };
 });
+
+// Import the mocked module to set implementation
+import { useRoute } from '@react-navigation/native';
+
+// Set the implementation after the mock is defined
+const mockedUseRoute = jest.mocked(useRoute);
+mockedUseRoute.mockImplementation(() => ({
+  key: 'mock-key',
+  name: 'mock-route',
+  params: {
+    selectedAccount: MOCK_ACCOUNT,
+  },
+}));
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -100,6 +126,15 @@ jest.mock('react-native-share', () => ({
 jest.mock('../../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn().mockResolvedValue(true),
 }));
+
+// Mock isEvmAccountType to return true for our test account
+jest.mock('@metamask/keyring-api', () => {
+  const original = jest.requireActual('@metamask/keyring-api');
+  return {
+    ...original,
+    isEvmAccountType: jest.fn().mockReturnValue(true),
+  };
+});
 
 describe('AccountActions', () => {
   const mockKeyringController = mockEngine.context.KeyringController;
@@ -152,7 +187,9 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS));
+    fireEvent.press(
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS),
+    );
 
     expect(Share.open).toHaveBeenCalledWith({
       message: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
@@ -173,14 +210,7 @@ describe('AccountActions', () => {
       {
         credentialName: 'private_key',
         shouldUpdateNav: true,
-        selectedAccount: {
-          address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-          metadata: {
-            keyring: {
-              type: 'HD Key Tree',
-            },
-          },
-        },
+        selectedAccount: MOCK_ACCOUNT,
       },
     );
   });
@@ -190,17 +220,12 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT));
+    fireEvent.press(
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT),
+    );
 
     expect(mockNavigate).toHaveBeenCalledWith('EditAccountName', {
-      selectedAccount: {
-        address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-        metadata: {
-          keyring: {
-            type: 'HD Key Tree',
-          },
-        },
-      },
+      selectedAccount: MOCK_ACCOUNT,
     });
   });
 
@@ -218,7 +243,9 @@ describe('AccountActions', () => {
       );
 
       fireEvent.press(
-        getByTestId(AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
+        getByTestId(
+          AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT,
+        ),
       );
 
       const alertFnMock = Alert.alert as jest.MockedFn<typeof Alert.alert>;
