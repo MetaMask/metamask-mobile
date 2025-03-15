@@ -162,9 +162,7 @@ exports[`AccountPermissions renders correctly 1`] = `
               "lineHeight": 24,
             }
           }
-        >
-          test
-        </Text>
+        />
       </View>
       <View
         style={

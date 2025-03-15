@@ -1,12 +1,18 @@
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
 import { Duplex } from 'readable-stream';
+import { Port } from './BackgroundBridge/types';
+
+type ExtendedBuffer = Buffer & { _isBuffer?: boolean };
 
 // eslint-disable-next-line no-empty-function
 const noop = () => {};
 
 export default class PortDuplexStream extends Duplex {
-  constructor(port, url) {
+  private _port: Port;
+  private _url: string;
+
+  constructor(port: Port, url: string) {
     super({
       objectMode: true,
     });
@@ -23,9 +29,9 @@ export default class PortDuplexStream extends Duplex {
    * @private
    * @param {Object} msg - Payload from the onMessage listener of Port
    */
-  _onMessage = function (msg) {
+  _onMessage = (msg: unknown) => {
     if (Buffer.isBuffer(msg)) {
-      delete msg._isBuffer;
+      delete (msg as ExtendedBuffer)._isBuffer;
       const data = new Buffer(msg);
       this.push(data);
     } else {
@@ -39,7 +45,7 @@ export default class PortDuplexStream extends Duplex {
    *
    * @private
    */
-  _onDisconnect = function () {
+  _onDisconnect = () => {
     this.destroy && this.destroy();
   };
 
@@ -57,10 +63,10 @@ export default class PortDuplexStream extends Duplex {
    * @param {string} encoding Encoding to use when writing payload
    * @param {Function} cb Called when writing is complete or an error occurs
    */
-  _write = function (msg, encoding, cb) {
+  _write = (msg: unknown, _: string, cb: (err?: Error) => void) => {
     try {
       if (Buffer.isBuffer(msg)) {
-        const data = msg.toJSON();
+        const data = { ...msg.toJSON(), _isBuffer: true };
         data._isBuffer = true;
         this._port.postMessage(data, this._url);
       } else {

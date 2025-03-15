@@ -28,6 +28,8 @@ import { hideWCLoadingState, showWCLoadingState } from './wc-utils';
 import { getDefaultNetworkByChainId } from '../../util/networks';
 import { ERROR_MESSAGES } from './WalletConnectV2';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
+import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
+import { PROTOCOLS } from '../../constants/deeplinks';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -83,7 +85,7 @@ class WalletConnect2Session {
     );
     this.navigation = navigation;
 
-    const url = session.peer.metadata.url;
+    // const url = session.peer.metadata.url;
     const name = session.peer.metadata.name;
     const icons = session.peer.metadata.icons;
 
@@ -92,54 +94,42 @@ class WalletConnect2Session {
     );
 
     this.backgroundBridge = backgroundBridgeFactory.create({
-      webview: null,
-      url,
+      url: `${PROTOCOLS.WC}://${channelId}`,
       isWalletConnect: true,
-      channelId,
-      wcRequestActions: {
+      port: new WalletConnectPort({
         approveRequest: this.approveRequest.bind(this),
         rejectRequest: this.rejectRequest.bind(this),
         updateSession: this.updateSession.bind(this),
-      },
+      }),
       getRpcMethodMiddleware: ({
         getProviderState,
+        getSubjectInfo,
       }: {
-        hostname: string;
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         getProviderState: any;
+        getSubjectInfo: () => {
+          origin: string;
+          domain: string;
+        };
       }) =>
         getRpcMethodMiddleware({
-          hostname: url,
           getProviderState,
-          channelId,
-          analytics: {},
-          isMMSDK: false,
+          getSubjectInfo,
           isHomepage: () => false,
           fromHomepage: { current: false },
           injectHomePageScripts: () => false,
           navigation: this.navigation,
           // Website info
-          url: {
-            current: url,
-          },
-          title: {
-            current: name,
-          },
-          icon: {
-            current: icons?.[0] as ImageSourcePropType, // Need to cast here because this cames from @walletconnect/types as string
+          subjectDisplayInfo: {
+            title: name,
+            // Need to cast here because this cames from @walletconnect/types as string
+            icon: icons?.[0] as ImageSourcePropType,
           },
           toggleUrlModal: () => null,
           wizardScrollAdjusted: { current: false },
           tabId: '',
-          isWalletConnect: true,
         }),
-      isMMSDK: false,
-      isMainFrame: true,
-      getApprovedHosts: undefined,
-      isRemoteConn: false,
-      sendMessage: undefined,
-      remoteConnHost: undefined,
     });
 
     this.checkPendingRequests();
@@ -334,6 +324,7 @@ class WalletConnect2Session {
           );
           accounts = approvedAccounts;
         } else {
+          const origin = this.session.peer.metadata.url;
           console.warn(
             `WC2::updateSession no permitted accounts found for topic=${this.session.topic} origin=${origin}`,
           );
@@ -379,8 +370,9 @@ class WalletConnect2Session {
       )}`,
     );
 
-    const origin = this.session.peer.metadata.url;
-    return await getPermittedAccounts(origin);
+    const id = this.session.pairingTopic;
+    const subject = `${PROTOCOLS.WC}://${id}`;
+    return await getPermittedAccounts(subject);
   }
 
   handleRequest = async (requestEvent: SingleEthereumTypes.SessionRequest) => {
@@ -491,7 +483,6 @@ class WalletConnect2Session {
         method,
         params: methodParams,
       },
-      origin,
     });
   };
 

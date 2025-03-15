@@ -28,6 +28,8 @@ import parseWalletConnectUri from './wc-utils';
 import { store } from '../../store';
 import { selectEvmChainId } from '../../selectors/networkController';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
+import { PROTOCOLS } from '../../constants/deeplinks';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -160,7 +162,7 @@ class WalletConnect {
       if (payload.method) {
         const payloadUrl = this.walletConnector.session.peerMeta.url;
         const payloadHostname = new URL(payloadUrl).hostname;
-        if (payloadHostname === this.backgroundBridge.hostname) {
+        if (payloadHostname === this.backgroundBridge.domain) {
           if (METHODS_TO_REDIRECT[payload.method]) {
             this.requestsToRedirect[payload.id] = true;
           }
@@ -232,7 +234,6 @@ class WalletConnect {
           this.backgroundBridge.onMessage({
             name: 'walletconnect-provider',
             data: payload,
-            origin: this.hostname,
           });
         }
       }
@@ -334,24 +335,23 @@ class WalletConnect {
     this.hostname = new URL(this.url.current).hostname;
 
     this.backgroundBridge = new BackgroundBridge({
-      webview: null,
-      url: this.url.current,
+      url: `${PROTOCOLS.WC}://${sessionData.handshakeTopic}`,
       isWalletConnect: true,
-      wcWalletConnector: this.walletConnector,
-      wcRequestActions: {
-        approveRequest: this.approveRequest,
-        rejectRequest: this.rejectRequest,
-        updateSession: this.updateSession,
-      },
-      getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+      port: new WalletConnectPort({
+        approveRequest: this.approveRequest.bind(this),
+        rejectRequest: this.rejectRequest.bind(this),
+        updateSession: this.updateSession.bind(this),
+      }),
+      getRpcMethodMiddleware: ({ getProviderState, getSubjectInfo }) =>
         getRpcMethodMiddleware({
-          hostname: WALLET_CONNECT_ORIGIN + this.hostname,
           getProviderState,
+          getSubjectInfo,
           navigation: null, //props.navigation,
           // Website info
-          url: this.url,
-          title: this.title,
-          icon: this.icon,
+          subjectDisplayInfo: {
+            title: this.title.current,
+            icon: this.icon.current,
+          },
           // Bookmarks
           isHomepage: false,
           // Show autocomplete
@@ -360,9 +360,7 @@ class WalletConnect {
           // Wizard
           wizardScrollAdjusted: () => null,
           tabId: false,
-          isWalletConnect: true,
         }),
-      isMainFrame: true,
     });
   };
 
