@@ -16,6 +16,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import initialRootState from '../../../util/test/initial-root-state';
+import navigation from '../../../util/testUtils/mocks/navigation';
 
 const mockTabs = [
   { id: 1, url: 'about:blank', image: '' },
@@ -32,9 +33,7 @@ const mockInitialState = {
       BrowserController: { tabs: mockTabs },
     },
   },
-  security: {
-    dataCollectionForMarketing: false,
-  },
+  security: {},
   settings: {
     showFiatOnTestnets: true,
     primaryCurrency: 'ETH',
@@ -58,6 +57,14 @@ jest.mock('../../../core/Engine', () => ({
       }),
     },
   },
+}));
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
 }));
 
 const Stack = createStackNavigator();
@@ -104,5 +111,68 @@ describe('Browser', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('should call navigate when route param `newTabUrl` and `timestamp` are added', () => {
+    // Render the component with an initial prop value
+    const { rerender } = renderWithProvider(
+      <Provider store={mockStore(mockInitialState)}>
+        <ThemeContext.Provider value={mockTheme}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={routeMock}
+                    tabs={[]}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn}
+                    closeAllTabs={jest.fn}
+                    closeTab={jest.fn}
+                    setActiveTab={jest.fn}
+                    updateTab={jest.fn}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </ThemeContext.Provider>
+      </Provider>,
+      { state: { ...mockInitialState } },
+    );
 
+    // Spy on the console.log to check if myFunction was called
+    const navigationSpy = jest.spyOn(mockNavigation, 'navigate');
+
+    // rerender with a different route value
+    rerender(
+      <Provider store={mockStore(mockInitialState)}>
+        <ThemeContext.Provider value={mockTheme}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params: { newTabUrl: 'about:blank', timestamp: '987' } }}
+                    tabs={mockTabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn}
+                    closeAllTabs={jest.fn}
+                    closeTab={jest.fn}
+                    setActiveTab={jest.fn}
+                    updateTab={jest.fn}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </ThemeContext.Provider>
+      </Provider>
+    );
+    // Check if myFunction was called
+    expect(navigationSpy).toHaveBeenCalledWith(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+
+    // Clean up the spy
+    navigationSpy.mockRestore();
+  });
 });

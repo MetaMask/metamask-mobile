@@ -50,6 +50,7 @@ export const Browser = (props) => {
     activeTab: activeTabId,
     tabs,
   } = props;
+  console.log('Browser', props);
   const previousTabs = useRef(null);
   const { top: topInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { topInset });
@@ -318,8 +319,9 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabs = () =>
-    tabs.map((tab) => (
+  const renderBrowserTabs = () => {
+    console.log('renderBrowserTabs', tabs);
+    return tabs.map((tab) => (
       <BrowserTab
         id={tab.id}
         key={`tab_${tab.id}`}
@@ -332,6 +334,7 @@ export const Browser = (props) => {
         homePageUrl={homePageUrl()}
       />
     ));
+  }
 
   return (
     <View
