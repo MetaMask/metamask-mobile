@@ -32,6 +32,7 @@ import { appendURLParams } from '../../../util/browser';
 import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
+import Routes from '../../../constants/navigation/Routes';
 
 /**
  * Component that wraps all the browser
@@ -74,8 +75,13 @@ export const Browser = (props) => {
     }).href;
 
   const newTab = (url, linkType) => {
-    // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-    createNewTab(url || homePageUrl(), linkType);
+    // if tabs.length > 4, show the max browser tabs modal
+    if (tabs.length > 4) {
+      navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+    } else {
+      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+      createNewTab(url || homePageUrl(), linkType);
+    }
   };
 
   const updateTabInfo = (url, tabID) =>

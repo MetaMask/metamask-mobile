@@ -19,7 +19,6 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
 import TabThumbnail from './TabThumbnail';
-import Routes from '../../../constants/navigation/Routes';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -162,11 +161,7 @@ class Tabs extends PureComponent {
     /**
      * Metrics injected by withMetricsAwareness HOC
      */
-    metrics: PropTypes.object,
-    /**
-     * Navigation object
-     */
-    navigation: PropTypes.object,
+    metrics: PropTypes.object
   };
 
   thumbnails = {};
@@ -269,16 +264,9 @@ class Tabs extends PureComponent {
   }
 
   onNewTabPress = () => {
-    const tabsLength = this.props.tabs.length;
-    if (tabsLength > 4) {
-      this.props.navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL, {
-        screen: Routes.MODAL.MAX_BROWSER_TABS_MODAL,
-      });
-    } else {
-      const { tabs, newTab } = this.props;
-      newTab();
-      this.trackNewTabEvent(tabs.length);
-    }
+    const { tabs, newTab } = this.props;
+    newTab();
+    this.trackNewTabEvent(tabs.length);
   };
 
   trackNewTabEvent = (tabsNumber) => {
