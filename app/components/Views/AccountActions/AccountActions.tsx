@@ -29,7 +29,6 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { RPC } from '../../../constants/network';
 import {
-  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
@@ -56,7 +55,6 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isEvmAccountType } from '@metamask/keyring-api';
 
 interface AccountActionsParams {
@@ -80,13 +78,7 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-  console.log('selectedAccount', selectedAccount);
-
   const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
-
-  console.log('providerConfig', providerConfig);
-  console.log('chainId', chainId);
 
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;

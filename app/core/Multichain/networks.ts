@@ -59,5 +59,5 @@ export function formatBlockExplorerAddressUrl(
   urls: MultichainBlockExplorerFormatUrls,
   address: string,
 ) {
-  return formatBlockExplorerUrl(urls.address, '{address}', address);
+  return formatBlockExplorerUrl(urls.address, 'address', address);
 }
