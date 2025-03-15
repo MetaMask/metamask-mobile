@@ -465,10 +465,10 @@ class TransactionDetails extends PureComponent {
               onPress={this.viewOnEtherscan}
               style={styles.touchableViewOnEtherscan}
             >
-              {blockExplorerUrl ? (
+              {rpcBlockExplorer ? (
                 <Text reset style={styles.viewOnEtherscan}>
                   {`${strings('transactions.view_on')} ${getBlockExplorerName(
-                    blockExplorerUrl,
+                    rpcBlockExplorer,
                   )}`}
                 </Text>
               ) : null}

@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { mockNetworkState } from '../../../../util/test/network';
 import { query } from '@metamask/controller-utils';
+import { fireEvent } from '@testing-library/react-native';
 
 const Stack = createStackNavigator();
 const mockEthQuery = {
@@ -56,6 +57,11 @@ jest.mock('@metamask/controller-utils', () => ({
   query: jest.fn(),
 }));
 
+const navigationMock = {
+  navigate: jest.fn(),
+  push: jest.fn(),
+};
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}, hash?: string, txParams?: any) =>
@@ -71,6 +77,7 @@ const renderComponent = (state: any = {}, hash?: string, txParams?: any) =>
               transaction: {
                 nonce: '',
               },
+              chainId: '0x1',
               ...(txParams ? { txParams } : {}),
             }}
             //@ts-expect-error - TransactionDetails needs to be converted to typescript
@@ -85,6 +92,8 @@ const renderComponent = (state: any = {}, hash?: string, txParams?: any) =>
               renderTotalValueFiat: '',
               ...(hash ? { hash } : {}),
             }}
+            //@ts-expect-error - navigation is not typed
+            navigation={navigationMock}
           />
         )}
       </Stack.Screen>
@@ -160,5 +169,41 @@ describe('TransactionDetails', () => {
       },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should view transaction details on etherscan', () => {
+    jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
+      timestamp: 1234,
+      l1Fee: '0x1',
+    });
+
+    const { getByText } = renderComponent(
+      {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            NetworkController: {
+              ...mockNetworkState({
+                chainId: '0x1',
+                id: 'mainnet',
+                nickname: 'Mainnet',
+                ticker: 'ETH',
+                blockExplorerUrl: 'https://etherscan.io/',
+              }),
+            },
+          },
+        },
+      },
+      '0x3',
+      {
+        multiLayerL1FeeTotal: '0x1',
+      },
+    );
+    const etherscanButton = getByText('VIEW ON Etherscan');
+    expect(etherscanButton).toBeDefined();
+    fireEvent.press(etherscanButton);
+    expect(navigationMock.push).toHaveBeenCalled();
   });
 });
