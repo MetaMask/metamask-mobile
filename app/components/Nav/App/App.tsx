@@ -118,6 +118,7 @@ import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetec
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
+import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
@@ -143,7 +144,6 @@ import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
 import NavigationService from '../../../core/NavigationService';
 import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
-import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
