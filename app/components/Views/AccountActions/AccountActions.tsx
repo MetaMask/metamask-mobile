@@ -133,7 +133,7 @@ const AccountActions = () => {
     });
   };
 
-  const viewInEtherscan = () => {
+  const viewOnBlockExplorer = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
         goToBrowserUrl(blockExplorer.url, blockExplorer.title);
@@ -391,7 +391,7 @@ const AccountActions = () => {
               strings('drawer.view_in_etherscan')
             }
             iconName={IconName.Export}
-            onPress={viewInEtherscan}
+            onPress={viewOnBlockExplorer}
             testID={AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN}
           />
         )}
