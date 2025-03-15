@@ -105,6 +105,7 @@ import {
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
+import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import NonEvmTokens from '../../UI/NonEvmTokens';
@@ -146,6 +147,9 @@ const createStyles = ({ colors, typography }: Theme) =>
       widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
+    },
+    carouselContainer: {
+      marginTop: 12,
     },
   });
 
@@ -719,6 +723,7 @@ const Wallet = ({
         ) : null}
         <>
           <PortfolioBalance />
+          <Carousel style={styles.carouselContainer} />
           {renderTokensContent(assets)}
         </>
       </View>
@@ -727,11 +732,10 @@ const Wallet = ({
   }, [
     tokens,
     accountBalanceByChainId,
-    styles.wrapper,
-    styles.banner,
+    styles,
+    colors,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
-    renderTabBar,
     onChangeTab,
     navigation,
     ticker,

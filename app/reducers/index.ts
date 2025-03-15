@@ -29,7 +29,9 @@ import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
+import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
+
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { MultichainSettingsState } from '../actions/multichain/state';
 import multichainReducer from './multichain';
@@ -123,6 +125,7 @@ export interface RootState {
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
+  banners: BannersState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: MultichainSettingsState;
   ///: END:ONLY_INCLUDE_IF
@@ -165,6 +168,7 @@ const rootReducer = combineReducers<RootState, any>({
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
   bridge: bridgeReducer,
+  banners: bannersReducer,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: multichainReducer,
   ///: END:ONLY_INCLUDE_IF
