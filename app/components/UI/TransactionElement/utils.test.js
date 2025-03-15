@@ -71,6 +71,12 @@ describe('Utils', () => {
         primaryCurrency: 'ETH',
         selectedAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
         ticker: 'ETH',
+        txChainId: '0x1',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
       };
 
       // Act
@@ -98,6 +104,7 @@ describe('Utils', () => {
         summaryFee: '< 0.00001 ETH',
         summaryTotalAmount: '5.43 USDT / < 0.00001 ETH',
         summarySecondaryTotalAmount: undefined,
+        txChainId: '0x1',
       });
     });
 
@@ -124,6 +131,12 @@ describe('Utils', () => {
         primaryCurrency: 'ETH',
         selectedAddress: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
         ticker: 'ETH',
+        txChainId: '0x1',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
       };
 
       // Act
@@ -151,6 +164,7 @@ describe('Utils', () => {
         summaryFee: '< 0.00001 ETH',
         summaryTotalAmount: '1000 USDT / < 0.00001 ETH',
         summarySecondaryTotalAmount: undefined,
+        txChainId: '0x1',
       });
     });
   });
@@ -168,6 +182,7 @@ describe('Utils', () => {
       summaryFee: '0.00002 ETH',
       summarySecondaryTotalAmount: undefined,
       summaryTotalAmount: '0.00002 ETH',
+      txChainId: '0x1',
     };
 
     const txParamsMock = {
@@ -193,6 +208,12 @@ describe('Utils', () => {
         primaryCurrency: 'ETH',
         selectedAddress: '0x1234567890abcdef1234567890abcdef12345678',
         ticker: 'ETH',
+        txChainId: '0x1',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
       };
 
       const result = await decodeTransaction(args);
@@ -230,6 +251,12 @@ describe('Utils', () => {
         primaryCurrency: 'ETH',
         selectedAddress: '0x1234567890abcdef1234567890abcdef12345678',
         ticker: 'ETH',
+        txChainId: '0x1',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
       };
 
       const result = await decodeTransaction(args);
@@ -266,6 +293,12 @@ describe('Utils', () => {
         primaryCurrency: 'ETH',
         selectedAddress: '0x1234567890abcdef1234567890abcdef12345678',
         ticker: 'ETH',
+        txChainId: '0x1',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
       };
 
       const result = await decodeTransaction(args);

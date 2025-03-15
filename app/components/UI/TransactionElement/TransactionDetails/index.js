@@ -13,6 +13,7 @@ import {
   isMultiLayerFeeNetwork,
   getBlockExplorerTxUrl,
   findBlockExplorerForNonEvmChainId,
+  getBlockExplorerNameByChainId,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -49,6 +50,13 @@ import {
 import { swapsControllerTokens } from '../../../../reducers/swaps';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -82,6 +90,22 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       paddingTop: 10,
     },
+    cellAccount: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+    },
+    accountNameLabel: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    accountNameAvatar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    accountAvatar: {
+      marginRight: 8,
+    },
   });
 
 /**
@@ -97,10 +121,6 @@ class TransactionDetails extends PureComponent {
      * Chain Id
      */
     chainId: PropTypes.string,
-    /**
-     * Object representing the configuration of the current selected network
-     */
-    providerConfig: PropTypes.object,
     /**
      * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
      */
@@ -210,16 +230,17 @@ class TransactionDetails extends PureComponent {
 
   componentDidMount = () => {
     const {
-      providerConfig: { rpcUrl, type },
-      networkConfigurations,
+      transactionObject: { chainId: txChainId },
       chainId,
+      networkConfigurations,
     } = this.props;
-    let blockExplorer;
-    if (type === RPC) {
-      blockExplorer =
-        findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
-        NO_RPC_BLOCK_EXPLORER;
-    } else if (isNonEvmChainId(chainId)) {
+
+    let blockExplorer =
+      networkConfigurations?.[txChainId]?.blockExplorerUrls[
+        networkConfigurations[txChainId]?.defaultBlockExplorerUrlIndex
+      ] || NO_RPC_BLOCK_EXPLORER;
+
+    if (isNonEvmChainId(chainId)) {
       blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
     }
     this.setState({ rpcBlockExplorer: blockExplorer });
@@ -231,16 +252,11 @@ class TransactionDetails extends PureComponent {
       navigation,
       transactionObject: { networkID },
       transactionDetails: { hash },
-      providerConfig: { type },
       close,
     } = this.props;
     const { rpcBlockExplorer } = this.state;
     try {
-      const { url, title } = getBlockExplorerTxUrl(
-        type,
-        hash,
-        rpcBlockExplorer,
-      );
+      const { url, title } = getBlockExplorerTxUrl(RPC, hash, rpcBlockExplorer);
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: { url, title },
@@ -317,6 +333,12 @@ class TransactionDetails extends PureComponent {
     } = this.props;
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
+    const blockExplorerUrl =
+      this.props.networkConfigurations?.[updatedTransactionDetails?.txChainId]
+        ?.blockExplorerUrls[
+        this.props.networkConfigurations?.[updatedTransactionDetails?.txChainId]
+          ?.defaultBlockExplorerUrlIndex
+      ];
 
     const renderTxActions =
       (status === 'submitted' || status === 'approved') &&
@@ -331,12 +353,13 @@ class TransactionDetails extends PureComponent {
               {strings('transactions.status')}
             </DetailsModal.SectionTitle>
             <StatusText status={status} />
-            {!!renderTxActions && (
-              <View style={styles.transactionActionsContainer}>
-                {this.renderSpeedUpButton()}
-                {this.renderCancelButton()}
-              </View>
-            )}
+            {!!renderTxActions &&
+              updatedTransactionDetails?.txChainId === chainId && (
+                <View style={styles.transactionActionsContainer}>
+                  {this.renderSpeedUpButton()}
+                  {this.renderCancelButton()}
+                </View>
+              )}
           </DetailsModal.Column>
           <DetailsModal.Column end>
             <DetailsModal.SectionTitle>
@@ -352,23 +375,57 @@ class TransactionDetails extends PureComponent {
             <DetailsModal.SectionTitle>
               {strings('transactions.from')}
             </DetailsModal.SectionTitle>
-            <Text small primary>
-              <EthereumAddress
-                type="short"
-                address={updatedTransactionDetails.renderFrom}
-              />
-            </Text>
+            <View style={styles.cellAccount}>
+              <View style={styles.accountNameLabel}>
+                <View style={styles.accountNameAvatar}>
+                  <Avatar
+                    variant={AvatarVariant.Account}
+                    type={AvatarAccountType.Jazzicon}
+                    accountAddress={updatedTransactionDetails.renderFrom}
+                    size={AvatarSize.Md}
+                    style={styles.accountAvatar}
+                  />
+                  <Text
+                    small
+                    primary
+                    testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
+                  >
+                    <EthereumAddress
+                      type="short"
+                      address={updatedTransactionDetails.renderFrom}
+                    />
+                  </Text>
+                </View>
+              </View>
+            </View>
           </DetailsModal.Column>
           <DetailsModal.Column end>
             <DetailsModal.SectionTitle>
               {strings('transactions.to')}
             </DetailsModal.SectionTitle>
-            <Text small primary>
-              <EthereumAddress
-                type="short"
-                address={updatedTransactionDetails.renderTo}
-              />
-            </Text>
+            <View style={styles.cellAccount}>
+              <View style={styles.accountNameLabel}>
+                <View style={styles.accountNameAvatar}>
+                  <Avatar
+                    variant={AvatarVariant.Account}
+                    type={AvatarAccountType.Jazzicon}
+                    accountAddress={updatedTransactionDetails.renderFrom}
+                    size={AvatarSize.Md}
+                    style={styles.accountAvatar}
+                  />
+                  <Text
+                    small
+                    primary
+                    testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
+                  >
+                    <EthereumAddress
+                      type="short"
+                      address={updatedTransactionDetails.renderTo}
+                    />
+                  </Text>
+                </View>
+              </View>
+            </View>
           </DetailsModal.Column>
         </DetailsModal.Section>
         <DetailsModal.Section>
@@ -412,13 +469,13 @@ class TransactionDetails extends PureComponent {
               onPress={this.viewOnEtherscan}
               style={styles.touchableViewOnEtherscan}
             >
-              <Text reset style={styles.viewOnEtherscan}>
-                {(rpcBlockExplorer &&
-                  `${strings('transactions.view_on')} ${getBlockExplorerName(
-                    rpcBlockExplorer,
-                  )}`) ||
-                  strings('transactions.view_on_etherscan')}
-              </Text>
+              {blockExplorerUrl ? (
+                <Text reset style={styles.viewOnEtherscan}>
+                  {`${strings('transactions.view_on')} ${getBlockExplorerName(
+                    blockExplorerUrl,
+                  )}`}
+                </Text>
+              ) : null}
             </TouchableOpacity>
           )}
       </DetailsModal.Body>
@@ -427,7 +484,6 @@ class TransactionDetails extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  providerConfig: selectProviderConfig(state),
   chainId: selectChainId(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
