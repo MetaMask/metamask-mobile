@@ -116,6 +116,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     skipAccountNameSuggestionDialog: boolean;
   }): Promise<{ accountName?: string }> {
     return await this.withApprovalFlow(async (_) => {
+      endTrace({
+        name: TraceName.CreateSnapAccount,
+      });
       const { success, accountName } = skipAccountNameSuggestionDialog
         ? await this.getAccountNameFromSuggestion(accountNameSuggestion)
         : await this.getAccountNameFromDialog(snapId, accountNameSuggestion);
