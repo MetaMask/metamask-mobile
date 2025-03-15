@@ -31,7 +31,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import I18n from 'i18n-js';
 
 /**
- * Hook to manage portfolio balance data across chains.
+ * Hook to manage portfolio balance data across chains for a single account.
  *
  * @returns Portfolio balance data
  */

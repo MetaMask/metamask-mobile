@@ -44,11 +44,16 @@ import { getAccountBalances } from './utils';
 /**
  * Hook that returns both wallet accounts and ens name information.
  *
+ * @param checkBalanceErrorFn - Function to check balance error.
+ * @param isLoading - Whether the accounts are loading.
+ * @param shouldAggregateAcrossChains - Whether to aggregate across chains.
+ *
  * @returns Object that contains both wallet accounts and ens name information.
  */
 const useAccounts = ({
   checkBalanceError: checkBalanceErrorFn,
   isLoading = false,
+  shouldAggregateAcrossChains = false,
 }: UseAccountsParams = {}): UseAccounts => {
   const isMountedRef = useRef(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -73,7 +78,7 @@ const useAccounts = ({
   );
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
     internalAccounts,
-    !isTokenNetworkFilterEqualCurrentNetwork,
+    shouldAggregateAcrossChains || !isTokenNetworkFilterEqualCurrentNetwork,
     allChainIDs,
   );
   const totalFiatBalancesCrossChain = useGetTotalFiatBalanceCrossChains(
