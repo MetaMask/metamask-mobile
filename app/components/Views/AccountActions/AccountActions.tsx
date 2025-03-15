@@ -18,7 +18,7 @@ import BottomSheet, {
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
-  findBlockExplorerForNonEvmChainId,
+  findBlockExplorerForNonEvmAccount,
   findBlockExplorerForRpc,
   getBlockExplorerName,
 } from '../../../util/networks';
@@ -29,7 +29,6 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { RPC } from '../../../constants/network';
 import {
-  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
@@ -56,7 +55,7 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { isEvmAccountType } from '@metamask/keyring-api';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -80,34 +79,49 @@ const AccountActions = () => {
   }, []);
 
   const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
 
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const blockExplorer = useMemo(() => {
-    if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-      return findBlockExplorerForRpc(
-        providerConfig.rpcUrl,
-        networkConfigurations,
-      );
-    }
-    if (isNonEvmChainId(chainId)) {
-      // TODO: [SOLANA] - block explorer needs to be implemented
-      return findBlockExplorerForNonEvmChainId(chainId);
-    }
+  const blockExplorer: { url: string; title: string } = useMemo(() => {
+    if (isEvmAccountType(selectedAccount.type)) {
+      if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
+        const explorer = findBlockExplorerForRpc(
+          providerConfig.rpcUrl,
+          networkConfigurations,
+        );
+        return {
+          url: `${explorer}/address/${selectedAddress}`,
+          title: new URL(explorer).hostname,
+        };
+      }
 
-    return null;
+      const url = getEtherscanAddressUrl(providerConfig.type, selectedAddress);
+      const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
+        'https://',
+        '',
+      );
+      return {
+        url,
+        title: etherscan_url,
+      };
+    }
+    const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
+    return {
+      url: explorer,
+      title: new URL(explorer).hostname,
+    };
   }, [
     networkConfigurations,
     providerConfig.rpcUrl,
     providerConfig.type,
-    chainId,
+    selectedAccount,
+    selectedAddress,
   ]);
 
-  const blockExplorerName = getBlockExplorerName(blockExplorer);
+  const blockExplorerName = getBlockExplorerName(blockExplorer.url);
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
@@ -122,21 +136,8 @@ const AccountActions = () => {
   const viewInEtherscan = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
-        const url = `${blockExplorer}/address/${selectedAddress}`;
-        const title = new URL(blockExplorer).hostname;
-        goToBrowserUrl(url, title);
-      } else {
-        const url = getEtherscanAddressUrl(
-          providerConfig.type,
-          selectedAddress,
-        );
-        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
-          'https://',
-          '',
-        );
-        goToBrowserUrl(url, etherscan_url);
+        goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }
-
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN,
