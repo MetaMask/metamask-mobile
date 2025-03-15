@@ -412,8 +412,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         : `${balance} ${asset.symbol}`;
     }
   } else {
-    mainBalance = `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`;
-    secondaryBalance = asset.balanceFiat || '';
+    mainBalance = asset.balanceFiat || '';
+    secondaryBalance = `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`;
   }
 
   let currentPrice = 0;

@@ -22,6 +22,10 @@ import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  BALANCE_TEST_ID,
+  SECONDARY_BALANCE_TEST_ID,
+} from '../AssetElement/index.constants';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -481,6 +485,23 @@ describe('AssetOverview', () => {
       expect(
         Engine.context.MultichainNetworkController.setActiveNetwork,
       ).not.toHaveBeenCalled();
+    });
+
+    it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={asset} />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const mainBalance = getByTestId(BALANCE_TEST_ID);
+      const secondaryBalance = getByTestId(SECONDARY_BALANCE_TEST_ID);
+
+      expect(mainBalance.props.children).toBe('1500');
+      expect(secondaryBalance.props.children).toBe('0 ETH');
     });
   });
 });
