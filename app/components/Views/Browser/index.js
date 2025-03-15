@@ -50,7 +50,6 @@ export const Browser = (props) => {
     activeTab: activeTabId,
     tabs,
   } = props;
-  console.log('Browser', props);
   const previousTabs = useRef(null);
   const { top: topInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { topInset });
@@ -319,22 +318,19 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabs = () => {
-    console.log('renderBrowserTabs', tabs);
-    return tabs.map((tab) => (
-      <BrowserTab
-        id={tab.id}
-        key={`tab_${tab.id}`}
-        initialUrl={tab.url}
-        linkType={tab.linkType}
-        updateTabInfo={updateTabInfo}
-        showTabs={showTabs}
-        newTab={newTab}
-        isInTabsView={route.params?.showTabs}
-        homePageUrl={homePageUrl()}
-      />
-    ));
-  }
+  const renderBrowserTabs = () => tabs.map((tab) => (
+    <BrowserTab
+      id={tab.id}
+      key={`tab_${tab.id}`}
+      initialUrl={tab.url}
+      linkType={tab.linkType}
+      updateTabInfo={updateTabInfo}
+      showTabs={showTabs}
+      newTab={newTab}
+      isInTabsView={route.params?.showTabs}
+      homePageUrl={homePageUrl()}
+    />
+  ));
 
   return (
     <View

@@ -3,7 +3,6 @@
 // 2. if tabs.length <= 4, create a new tab
 
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import { Browser } from './index';
 import Routes from '../../../constants/navigation/Routes';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -11,12 +10,9 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { Store } from 'redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import initialRootState from '../../../util/test/initial-root-state';
-import navigation from '../../../util/testUtils/mocks/navigation';
 
 const mockTabs = [
   { id: 1, url: 'about:blank', image: '' },
