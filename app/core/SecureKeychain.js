@@ -1,5 +1,5 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
+import { Encryptor, DERIVATION_OPTIONS_DEFAULT_OWASP2023 } from './Encryptor';
 import { strings } from '../../locales/i18n';
 import StorageWrapper from '../store/storage-wrapper';
 import { Platform } from 'react-native';
@@ -15,7 +15,7 @@ import Device from '../util/device';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor({
-  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
+  keyDerivationOptions: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
 });
 const defaultOptions = {
   service: 'com.metamask',
