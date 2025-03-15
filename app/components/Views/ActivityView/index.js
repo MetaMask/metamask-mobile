@@ -18,10 +18,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useParams } from '../../../util/navigation/navUtils';
 import HeaderBase from '../../../component-library/components/HeaderBase';
-import {
-  createTokenBottomSheetFilterNavDetails,
-  TokenFilterBottomSheet,
-} from '../../UI/Tokens/TokensBottomSheet';
+import { createTokenBottomSheetFilterNavDetails } from '../../UI/Tokens/TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { isTestNet } from '../../../util/networks';
