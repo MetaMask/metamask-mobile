@@ -310,9 +310,6 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
  * @returns {string} - Block explorer url
  */
 export function findBlockExplorerForNonEvmAccount(internalAccount) {
-  const nonEvmNetworks = selectNonEvmNetworkConfigurationsByChainId(
-    store.getState(),
-  );
   const blockExplorerFormatUrls =
     MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
       internalAccount.scopes[0]
