@@ -13,7 +13,9 @@ const mockEthQuery = {
 jest.mock('../core/Engine', () => ({
   context: {
     KeyringController: {
-      withKeyring: jest.fn((_keyring, callback) => callback(mockKeyring)),
+      withKeyring: jest.fn((_keyring, callback) =>
+        callback({ keyring: mockKeyring, metadata: { id: '1234', name: '' } }),
+      ),
     },
   },
 }));

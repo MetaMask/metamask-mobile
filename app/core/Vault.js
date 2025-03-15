@@ -164,7 +164,7 @@ function hasKeyringType(state, type) {
  */
 async function getSerializedKeyring(type) {
   const { KeyringController } = Engine.context;
-  return await KeyringController.withKeyring({ type }, (keyring) =>
+  return await KeyringController.withKeyring({ type }, ({ keyring }) =>
     keyring.serialize(),
   );
 }
