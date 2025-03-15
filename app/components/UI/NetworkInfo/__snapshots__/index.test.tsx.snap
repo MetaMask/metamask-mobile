@@ -56,7 +56,7 @@ exports[`NetworkInfo render correctly 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
@@ -712,7 +712,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
             {
               "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",

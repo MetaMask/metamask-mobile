@@ -301,7 +301,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderRadius": 12,
+                          "borderRadius": 8,
                           "height": 24,
                           "justifyContent": "center",
                           "marginRight": 16,
@@ -444,7 +444,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderRadius": 12,
+                          "borderRadius": 8,
                           "height": 24,
                           "justifyContent": "center",
                           "marginRight": 16,

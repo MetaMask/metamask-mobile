@@ -141,7 +141,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     {
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 12,
+                      "borderRadius": 8,
                       "height": 24,
                       "justifyContent": "center",
                       "marginRight": 16,
@@ -303,7 +303,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     {
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 12,
+                      "borderRadius": 8,
                       "height": 24,
                       "justifyContent": "center",
                       "marginRight": 16,
