@@ -29,6 +29,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
 import { RootState } from '../../../reducers';
+import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -53,6 +54,8 @@ const DeleteWalletModal = () => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
+
+  const { signOut } = useSignOut();
 
   const showConfirmModal = () => {
     setShowConfirm(true);
@@ -96,6 +99,7 @@ const DeleteWalletModal = () => {
     await dispatch(
       clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
     );
+    signOut();
     await CookieManager.clearAll(true);
     triggerClose();
     await resetWalletState();

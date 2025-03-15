@@ -11,8 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import styles from './ProfileSyncing.styles';
 import { ProfileSyncingComponentProps } from './ProfileSyncing.types';
 import AppConstants from '../../../core/AppConstants';
-import { useProfileSyncing } from '../../../util/identity/hooks/useProfileSyncing';
-import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { useDisableProfileSyncing } from '../../../util/identity/hooks/useProfileSyncing';
 
 function ProfileSyncingComponent({
   handleSwitchToggle,
@@ -21,7 +20,7 @@ function ProfileSyncingComponent({
 }: Readonly<ProfileSyncingComponentProps>) {
   const theme = useTheme();
   const { colors } = theme;
-  const { disableProfileSyncing } = useProfileSyncing();
+  const { disableProfileSyncing } = useDisableProfileSyncing();
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
@@ -67,9 +66,5 @@ function ProfileSyncingComponent({
 export default function ProfileSyncingContainer(
   props: Readonly<ProfileSyncingComponentProps>,
 ) {
-  if (!isNotificationsFeatureEnabled()) {
-    return null;
-  }
-
   return <ProfileSyncingComponent {...props} />;
 }

@@ -127,13 +127,6 @@ jest.mock('react-native-scrollable-tab-view', () => {
   return ScrollableTabViewMock;
 });
 
-jest.mock('../../../util/identity/hooks/useAccountSyncing', () => ({
-  useAccountSyncing: jest.fn().mockReturnValue({
-    dispatchAccountSyncing: jest.fn(),
-    error: undefined,
-  }),
-}));
-
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   getInternalAccountByAddress: jest.fn().mockReturnValue({
