@@ -18,7 +18,7 @@ import BottomSheet, {
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
-  findBlockExplorerForNonEvmChainId,
+  findBlockExplorerForNonEvmAccount,
   findBlockExplorerForRpc,
   getBlockExplorerName,
 } from '../../../util/networks';
@@ -29,6 +29,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { RPC } from '../../../constants/network';
 import {
+  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
@@ -55,7 +56,8 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
-import { isEthAccount } from '../../../core/Multichain/utils';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { isEvmAccountType } from '@metamask/keyring-api';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -78,73 +80,56 @@ const AccountActions = () => {
     return { KeyringController, PreferencesController };
   }, []);
 
-  const providerConfig = useSelector(selectProviderConfig);
+  console.log('selectedAccount', selectedAccount);
 
+  const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
+
+  console.log('providerConfig', providerConfig);
+  console.log('chainId', chainId);
+
+  const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const blockExplorer = useMemo(() => {
-    // Get the address from the account
-    const accountAddress = selectedAccount?.address;
-    if (!accountAddress) return null;
-
-    // Determine if this is a non-EVM account
-    const isNonEvm = !isEthAccount(selectedAccount);
-
-    if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-      return {
-        baseUrl: findBlockExplorerForRpc(
+  const blockExplorer: { url: string; title: string } = useMemo(() => {
+    if (isEvmAccountType(selectedAccount.type)) {
+      if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
+        const explorer = findBlockExplorerForRpc(
           providerConfig.rpcUrl,
           networkConfigurations,
-        ),
-        isNonEvm: false,
-      };
-    }
-
-    if (isNonEvm) {
-      // For non-EVM accounts, determine the appropriate block explorer URL
-      // based on the account type
-      let explorerUrl;
-
-      // Check if it's a Solana account
-      if (selectedAccount.type === 'solana:data-account') {
-        // Solana mainnet explorer URL
-        explorerUrl = `https://explorer.solana.com/address/${accountAddress}`;
-      } else if (selectedAccount.type === 'bip122:p2wpkh') {
-        // Bitcoin mainnet explorer URL
-        explorerUrl = `https://blockstream.info/address/${accountAddress}`;
-      } else {
-        // Try to use the account's scopes to determine the chain ID
-        const nonEvmChainId = selectedAccount.scopes?.[0];
-
-        // Try to get the URL from the block explorer
-        explorerUrl =
-          nonEvmChainId &&
-          findBlockExplorerForNonEvmChainId(nonEvmChainId, accountAddress);
-      }
-
-      // If we have a valid explorer URL, return it
-      if (explorerUrl) {
+        );
         return {
-          baseUrl: explorerUrl,
-          completeUrl: explorerUrl,
-          isNonEvm: true,
+          url: `${explorer}/address/${selectedAddress}`,
+          title: new URL(explorer).hostname,
         };
       }
-    }
 
-    return null;
+      const url = getEtherscanAddressUrl(providerConfig.type, selectedAddress);
+      const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
+        'https://',
+        '',
+      );
+      return {
+        url,
+        title: etherscan_url,
+      };
+    }
+    const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
+    return {
+      url: explorer,
+      title: new URL(explorer).hostname,
+    };
   }, [
     networkConfigurations,
     providerConfig.rpcUrl,
     providerConfig.type,
     selectedAccount,
+    selectedAddress,
   ]);
 
-  const blockExplorerName = blockExplorer?.baseUrl
-    ? getBlockExplorerName(blockExplorer.baseUrl)
-    : undefined;
+  const blockExplorerName = getBlockExplorerName(blockExplorer.url);
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
@@ -158,30 +143,9 @@ const AccountActions = () => {
 
   const viewInEtherscan = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      // Get the address from the account
-      const accountAddress = selectedAccount?.address;
-      if (!accountAddress) return;
-
       if (blockExplorer) {
-        if (blockExplorer.isNonEvm && blockExplorer.completeUrl) {
-          // For non-EVM chains, use the complete URL that already includes the address
-          const title = new URL(blockExplorer.baseUrl).hostname;
-          goToBrowserUrl(blockExplorer.completeUrl, title);
-        } else {
-          // For EVM chains, append the address to the base URL
-          const url = `${blockExplorer.baseUrl}/address/${accountAddress}`;
-          const title = new URL(blockExplorer.baseUrl).hostname;
-          goToBrowserUrl(url, title);
-        }
-      } else {
-        const url = getEtherscanAddressUrl(providerConfig.type, accountAddress);
-        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
-          'https://',
-          '',
-        );
-        goToBrowserUrl(url, etherscan_url);
+        goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }
-
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN,
@@ -192,12 +156,8 @@ const AccountActions = () => {
 
   const onShare = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      // Get the address from the account
-      const accountAddress = selectedAccount?.address;
-      if (!accountAddress) return;
-
       Share.open({
-        message: accountAddress,
+        message: selectedAddress,
       })
         .then(() => {
           dispatch(protectWalletModalVisible());
@@ -255,15 +215,14 @@ const AccountActions = () => {
    * @param address - The address to remove
    */
   const removeHardwareAccount = useCallback(async () => {
-    const accountAddress = selectedAccount?.address;
-    if (accountAddress) {
-      await controllers.KeyringController.removeAccount(accountAddress as Hex);
-      await removeAccountsFromPermissions([accountAddress]);
+    if (selectedAddress) {
+      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
+      await removeAccountsFromPermissions([selectedAddress]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
             accountType: keyring?.type,
-            address: accountAddress,
+            selectedAddress,
           })
           .build(),
       );
@@ -271,7 +230,7 @@ const AccountActions = () => {
   }, [
     controllers.KeyringController,
     keyring?.type,
-    selectedAccount?.address,
+    selectedAddress,
     trackEvent,
     createEventBuilder,
   ]);
@@ -292,15 +251,14 @@ const AccountActions = () => {
    * Remove the snap account from the keyring
    */
   const removeSnapAccount = useCallback(async () => {
-    const accountAddress = selectedAccount?.address;
-    if (accountAddress) {
-      await controllers.KeyringController.removeAccount(accountAddress as Hex);
-      await removeAccountsFromPermissions([accountAddress]);
+    if (selectedAddress) {
+      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
+      await removeAccountsFromPermissions([selectedAddress]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
             accountType: keyring?.type,
-            address: accountAddress,
+            selectedAddress,
           })
           .build(),
       );
@@ -308,7 +266,7 @@ const AccountActions = () => {
   }, [
     controllers.KeyringController,
     keyring?.type,
-    selectedAccount?.address,
+    selectedAddress,
     trackEvent,
     createEventBuilder,
   ]);
@@ -392,10 +350,9 @@ const AccountActions = () => {
    * Trigger the remove hardware account action when user click on the remove account button
    */
   const triggerRemoveHWAccount = useCallback(async () => {
-    const accountAddress = selectedAccount?.address;
-    if (blockingModalVisible && accountAddress) {
+    if (blockingModalVisible && selectedAddress) {
       if (!keyring) {
-        console.error('Keyring not found for address:', accountAddress);
+        console.error('Keyring not found for address:', selectedAddress);
         return;
       }
 
@@ -413,7 +370,7 @@ const AccountActions = () => {
     keyring,
     removeHardwareAccount,
     selectFirstAccount,
-    selectedAccount?.address,
+    selectedAddress,
   ]);
 
   const goToEditAccountName = () => {
@@ -421,7 +378,7 @@ const AccountActions = () => {
   };
 
   const isExplorerVisible = Boolean(
-    (providerConfig.type === 'rpc' && blockExplorer?.baseUrl) ||
+    (providerConfig.type === 'rpc' && blockExplorer) ||
       providerConfig.type !== 'rpc',
   );
 
@@ -437,7 +394,7 @@ const AccountActions = () => {
         {isExplorerVisible && (
           <AccountAction
             actionTitle={
-              (blockExplorer?.baseUrl &&
+              (blockExplorer &&
                 `${strings('drawer.view_in')} ${blockExplorerName}`) ||
               strings('drawer.view_in_etherscan')
             }
@@ -458,30 +415,26 @@ const AccountActions = () => {
           onPress={goToExportPrivateKey}
           testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
         />
-        {selectedAccount?.address &&
-          isHardwareAccount(selectedAccount.address) && (
-            <AccountAction
-              actionTitle={strings('accounts.remove_hardware_account')}
-              iconName={IconName.Close}
-              onPress={showRemoveHWAlert}
-              testID={
-                AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT
-              }
-            />
-          )}
+        {selectedAddress && isHardwareAccount(selectedAddress) && (
+          <AccountAction
+            actionTitle={strings('accounts.remove_hardware_account')}
+            iconName={IconName.Close}
+            onPress={showRemoveHWAlert}
+            testID={
+              AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT
+            }
+          />
+        )}
         {
           ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          selectedAccount?.address &&
-            isSnapAccount(selectedAccount.address) && (
-              <AccountAction
-                actionTitle={strings('accounts.remove_snap_account')}
-                iconName={IconName.Close}
-                onPress={showRemoveSnapAccountAlert}
-                testID={
-                  AccountActionsBottomSheetSelectorsIDs.REMOVE_SNAP_ACCOUNT
-                }
-              />
-            )
+          selectedAddress && isSnapAccount(selectedAddress) && (
+            <AccountAction
+              actionTitle={strings('accounts.remove_snap_account')}
+              iconName={IconName.Close}
+              onPress={showRemoveSnapAccountAlert}
+              testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_SNAP_ACCOUNT}
+            />
+          )
           ///: END:ONLY_INCLUDE_IF
         }
       </View>
