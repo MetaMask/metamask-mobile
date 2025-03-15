@@ -36,11 +36,13 @@ interface KeyringBackupResponse {
 export async function backupVault(
   keyringState: KeyringControllerState,
 ): Promise<KeyringBackupResponse> {
+  const keyringVault = keyringState.vault as string;
+
   // Backup vault
   const backupResult = await setInternetCredentials(
     VAULT_BACKUP_KEY,
     VAULT_BACKUP_KEY,
-    keyringState.vault!,
+    keyringVault,
     options,
   );
 
