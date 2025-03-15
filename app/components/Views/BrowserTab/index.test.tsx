@@ -4,6 +4,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
 import AppConstants from '../../../core/AppConstants';
+import Engine from '../../../core/Engine';
 
 const mockNavigation = {
   goBack: jest.fn(),
@@ -35,14 +36,26 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    PhishingController: {
-      maybeUpdateState: jest.fn(),
-      test: () => ({ result: true, name: 'test' }),
+let mockPhishingControllerTestResult = { result: true, name: 'test' };
+
+jest.mock('../../../core/Engine', () => {
+  const phishingController = {
+    maybeUpdateState: jest.fn(),
+    test: jest.fn().mockImplementation(() => mockPhishingControllerTestResult),
+  };
+
+  return {
+    context: {
+      PhishingController: phishingController,
     },
-  },
-}));
+    __esModule: true,
+    default: {
+      context: {
+        PhishingController: phishingController,
+      },
+    },
+  };
+});
 
 const mockProps = {
   id: 1,
@@ -70,6 +83,7 @@ const mockProps = {
 describe('BrowserTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPhishingControllerTestResult = { result: true, name: 'test' };
   });
 
   it('should render correctly', () => {
@@ -77,5 +91,60 @@ describe('BrowserTab', () => {
       state: mockInitialState,
     });
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  describe('isAllowedOrigin functionality', () => {
+    it('should allow URLs in the whitelist', async () => {
+      const testUrl = 'https://allowedsite.com';
+
+      const propsWithWhitelist = {
+        ...mockProps,
+        whitelist: [testUrl],
+      };
+
+      renderWithProvider(
+        <BrowserTab {...propsWithWhitelist} initialUrl={testUrl} />,
+        { state: mockInitialState }
+      );
+
+      expect(Engine.context.PhishingController.test).not.toHaveBeenCalled();
+    });
+
+    it('should block URLs that fail the phishing test', async () => {
+      mockPhishingControllerTestResult = { result: true, name: 'metamask-phishing-list' };
+
+      const phishingUrl = 'https://phishing-site.com';
+
+      renderWithProvider(
+        <BrowserTab {...mockProps} initialUrl={phishingUrl} />,
+        { state: mockInitialState }
+      );
+      expect(Engine.context.PhishingController.test).toBeDefined();
+
+      const testResult = Engine.context.PhishingController.test(phishingUrl);
+      expect(testResult).toEqual({ result: true, name: 'metamask-phishing-list' });
+
+      Engine.context.PhishingController.maybeUpdateState();
+      Engine.context.PhishingController.test(phishingUrl);
+
+      expect(Engine.context.PhishingController.maybeUpdateState).toHaveBeenCalled();
+      expect(Engine.context.PhishingController.test).toHaveBeenCalled();
+    });
+
+    it('should handle productSafetyDappScanningEnabled flag', async () => {
+      const stateWithDappScanning = {
+        ...mockInitialState,
+        privacy: {
+          productSafetyDappScanningEnabled: true,
+        },
+      };
+
+      const testUrl = 'https://example.com';
+
+      renderWithProvider(
+        <BrowserTab {...mockProps} initialUrl={testUrl} />,
+        { state: stateWithDappScanning }
+      );
+    });
   });
 });

@@ -1,5 +1,8 @@
-/* eslint-disable no-script-url */
 import isLinkSafe from './linkCheck';
+
+jest.mock('../selectors/featureFlagController', () => ({
+  selectProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
+}));
 
 jest.mock('../core/Engine', () => ({
   context: {
@@ -27,6 +30,7 @@ describe('linkCheck', () => {
       ),
     ).toEqual(false);
 
+    /* eslint-disable no-script-url */
     expect(isLinkSafe('javascript:alert(1)')).toEqual(false);
     expect(isLinkSafe('j&Tab;avascript:alert(1);')).toEqual(false);
     expect(isLinkSafe('&Tab;javascript:alert(1);&tab;')).toEqual(false);
@@ -44,5 +48,6 @@ describe('linkCheck', () => {
     expect(isLinkSafe('javas\x09cript:javascript:alert(1)')).toEqual(false);
     expect(isLinkSafe('javas\x06cript:javascript:alert(1)')).toEqual(false);
     expect(isLinkSafe('javas\x0Ccript:javascript:alert(1)')).toEqual(false);
+    /* eslint-enable no-script-url */
   });
 });
