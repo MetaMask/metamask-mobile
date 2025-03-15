@@ -856,7 +856,7 @@ workflows:
             - abi: 'x86_64'
             - create_command_flags: --sdcard 8192M
             - start_command_flags: -read-only
-            - profile: pixel_5
+            - profile: pixel_6
       - wait-for-android-emulator@1: {}
       - script@1:
           title: Run detox test
