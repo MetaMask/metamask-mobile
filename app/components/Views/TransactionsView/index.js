@@ -23,6 +23,7 @@ import {
   selectChainId,
   selectIsPopularNetwork,
   selectProviderType,
+  selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -30,7 +31,6 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -59,6 +59,7 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
@@ -174,23 +175,11 @@ const TransactionsView = ({
 
   useEffect(() => {
     setLoading(true);
-    /*
-    Since this screen is always mounted and computations happen on this screen everytime the user changes network
-    using the InteractionManager will help by giving enough time for any animations/screen transactions before it starts
-    computing the transactions which will make the app feel more responsive. Also this takes usually less than 1 seconds
-    so the effect will not be noticeable if the user is in this screen.
-    */
-    InteractionManager.runAfterInteractions(() => {
-      const state = store.getState();
-      const networkId =
-        state?.engine?.backgroundState?.NetworkController
-          ?.selectedNetworkClientId;
 
-      if (networkId) {
-        filterTransactions(networkId);
-      }
-    });
-  }, [filterTransactions]);
+    if (selectedNetworkClientId) {
+      filterTransactions(selectedNetworkClientId);
+    }
+  }, [filterTransactions, selectedNetworkClientId]);
 
   return (
     <View style={styles.wrapper}>
