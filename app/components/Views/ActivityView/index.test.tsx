@@ -4,18 +4,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 
-// Mock the navigation object.
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: jest.fn(),
-      setOptions: jest.fn(),
-    }),
-  };
-});
-
 const Stack = createStackNavigator();
 
 // TODO: Replace "any" with type

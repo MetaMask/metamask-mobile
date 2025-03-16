@@ -54,10 +54,11 @@ exports[`ActivityView should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
+                "shadowColor": "transparent",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
@@ -110,22 +111,124 @@ exports[`ActivityView should render correctly 1`] = `
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={0.2}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Amount
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Transactions
+                </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#6a737d",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                    "marginBottom": 12,
+                    "marginLeft": 0,
+                    "marginRight": 16,
+                    "marginTop": 12,
+                  }
+                }
+                testID="navbar-account-button"
+              >
+                <TextInput
+                  style={
+                    {
+                      "height": 0,
+                      "paddingVertical": 0,
+                      "width": 0,
+                    }
+                  }
+                />
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderRadius": 16,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "width": 32,
+                    }
+                  }
+                >
+                  <Image
+                    onError={[Function]}
+                    resizeMode="contain"
+                    source={1}
+                    style={
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
+                    }
+                    testID="network-avatar-image"
+                  />
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
