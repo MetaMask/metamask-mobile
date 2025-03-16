@@ -197,8 +197,8 @@ describe('TransactionDetails', () => {
       l1Fee: '0x1',
     });
 
-    const { getByText } = renderComponent(
-      {
+    const { getByText } = renderComponent({
+      state: {
         ...initialState,
         engine: {
           ...initialState.engine,
@@ -216,11 +216,11 @@ describe('TransactionDetails', () => {
           },
         },
       },
-      '0x3',
-      {
+      hash: '0x3',
+      txParams: {
         multiLayerL1FeeTotal: '0x1',
       },
-    );
+    });
     const etherscanButton = getByText('VIEW ON Etherscan');
     expect(etherscanButton).toBeDefined();
     fireEvent.press(etherscanButton);
