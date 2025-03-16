@@ -116,20 +116,14 @@ const TransactionsView = ({
         return filter;
       });
 
-      let allTransactionsFiltered = allTransactions;
-
-      if (!isPopularNetwork) {
-        allTransactionsFiltered = allTransactions.filter(
-          (tx) => tx.chainId === chainId,
-        );
-      } else {
-        allTransactionsFiltered = allTransactions.filter(
-          (tx) =>
-            tx.chainId === CHAIN_IDS.MAINNET ||
-            tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
-            PopularList.some((network) => network.chainId === tx.chainId),
-        );
-      }
+      const allTransactionsFiltered = isPopularNetwork
+        ? allTransactions.filter(
+            (tx) =>
+              tx.chainId === CHAIN_IDS.MAINNET ||
+              tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
+              PopularList.some((network) => network.chainId === tx.chainId),
+          )
+        : allTransactions.filter((tx) => tx.chainId === chainId);
 
       const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
         const { from, nonce } = txParams;
