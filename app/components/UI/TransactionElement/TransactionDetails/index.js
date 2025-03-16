@@ -329,12 +329,6 @@ class TransactionDetails extends PureComponent {
     } = this.props;
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
-    const blockExplorerUrl =
-      this.props.networkConfigurations?.[updatedTransactionDetails?.txChainId]
-        ?.blockExplorerUrls[
-        this.props.networkConfigurations?.[updatedTransactionDetails?.txChainId]
-          ?.defaultBlockExplorerUrlIndex
-      ];
 
     const renderTxActions =
       (status === 'submitted' || status === 'approved') &&

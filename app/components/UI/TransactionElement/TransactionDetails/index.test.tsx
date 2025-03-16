@@ -1,12 +1,12 @@
 import React from 'react';
+import { query } from '@metamask/controller-utils';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import TransactionDetails from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { mockNetworkState } from '../../../../util/test/network';
-import { query } from '@metamask/controller-utils';
-import { fireEvent } from '@testing-library/react-native';
 
 const Stack = createStackNavigator();
 const mockEthQuery = {
@@ -45,6 +45,14 @@ const initialState = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
+    SmartTransactionsController: {
+      smartTransactionsState: {
+        liveness: 'live',
+      },
+    },
+    PreferencesController: {
+      smartTransactionsOptInStatus: true,
+    },
   },
 };
 
@@ -62,9 +70,20 @@ const navigationMock = {
   push: jest.fn(),
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderComponent = (state: any = {}, hash?: string, txParams?: any) =>
+const renderComponent = ({
+  state = {},
+  hash,
+  txParams,
+  status = 'confirmed',
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  state?: any;
+  hash?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  txParams?: any;
+  status?: string;
+  shouldUseSmartTransaction?: boolean;
+}) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Amount" options={{}}>
@@ -73,7 +92,7 @@ const renderComponent = (state: any = {}, hash?: string, txParams?: any) =>
             // @ts-expect-error - TransactionDetails needs to be converted to typescript
             transactionObject={{
               networkID: '1',
-              status: 'confirmed',
+              status,
               transaction: {
                 nonce: '',
               },
@@ -90,6 +109,7 @@ const renderComponent = (state: any = {}, hash?: string, txParams?: any) =>
               renderGasPrice: '2',
               renderTotalValue: '2 TKN / 0.001 ETH',
               renderTotalValueFiat: '',
+              txChainId: '0x1',
               ...(hash ? { hash } : {}),
             }}
             //@ts-expect-error - navigation is not typed
@@ -103,7 +123,7 @@ const renderComponent = (state: any = {}, hash?: string, txParams?: any) =>
 
 describe('TransactionDetails', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderComponent(initialState);
+    const { toJSON } = renderComponent({ state: initialState });
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -113,8 +133,8 @@ describe('TransactionDetails', () => {
       l1Fee: '0x1',
     });
 
-    const { toJSON } = renderComponent(
-      {
+    const { toJSON } = renderComponent({
+      state: {
         ...initialState,
         engine: {
           ...initialState.engine,
@@ -132,11 +152,11 @@ describe('TransactionDetails', () => {
           },
         },
       },
-      '0x3',
-      {
+      hash: '0x3',
+      txParams: {
         multiLayerL1FeeTotal: '0x1',
       },
-    );
+    });
     expect(toJSON()).toMatchSnapshot();
   });
   it('should render correctly for multi-layer fee network with no l1 fee', () => {
@@ -144,8 +164,8 @@ describe('TransactionDetails', () => {
       timestamp: 1234,
       l1Fee: '0x0',
     });
-    const { toJSON } = renderComponent(
-      {
+    const { toJSON } = renderComponent({
+      state: {
         ...initialState,
         engine: {
           ...initialState.engine,
@@ -163,11 +183,11 @@ describe('TransactionDetails', () => {
           },
         },
       },
-      '0x3',
-      {
+      hash: '0x3',
+      txParams: {
         multiLayerL1FeeTotal: '0x1',
       },
-    );
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -205,5 +225,36 @@ describe('TransactionDetails', () => {
     expect(etherscanButton).toBeDefined();
     fireEvent.press(etherscanButton);
     expect(navigationMock.push).toHaveBeenCalled();
+  });
+
+  it('should render speed up and cancel buttons', async () => {
+    const { getByText } = renderComponent({
+      state: {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            PreferencesController: {
+              smartTransactionsOptInStatus: false,
+            },
+          },
+        },
+      },
+      hash: '0x3',
+      txParams: {
+        multiLayerL1FeeTotal: '0x1',
+      },
+      status: 'submitted',
+    });
+
+    await waitFor(() => {
+      const speedUpButton = getByText('Speed up');
+      expect(speedUpButton).toBeDefined();
+      const cancelButton = getByText('Cancel');
+      expect(cancelButton).toBeDefined();
+      fireEvent.press(speedUpButton);
+      fireEvent.press(cancelButton);
+    });
   });
 });
