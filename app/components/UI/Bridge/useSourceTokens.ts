@@ -66,14 +66,14 @@ const calculateBalances = ({
       currentCurrency || '',
     );
     return {
-      tokenFiatAmount: res.balanceFiatCalculation ?? 0,
-      balance: res.balance ?? '0',
-      balanceFiat: res.balanceFiat,
+      tokenFiatAmount: res.balanceFiatCalculation ?? 0, // A sortable fiat value, e.g. 100.12345
+      balance: res.balance ?? '0', // A truncated non-atomic balance, e.g. 1.23456
+      balanceFiat: res.balanceFiat, // A formatted fiat value, e.g. "$100.12345", "100.12345 cad"
     };
   });
 
 // TODO Look into useMultichainBalances hook, or useGetFormattedTokensPerChain hook
-export const useSourceTokens = () => {
+export const useSourceTokens: () => TokenIWithFiatAmount[] = () => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedInternalAccountAddress = useSelector(selectSelectedInternalAccountAddress) as Hex;
