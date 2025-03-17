@@ -1,26 +1,16 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
 
 // External dependencies
 import { ThemeContext } from '../../../util/theme';
-import ThemeProvider from './ThemeProvider';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
-// Mocking useAppTheme
-jest.mock('../../../util/theme', () => ({
-  ...jest.requireActual('../../../util/theme'),
-  useAppTheme: jest.fn(() => ({
-    colors: {
-      background: {
-        alternative: 'white',
-      },
-    },
-  })),
-}));
+// Internal dependencies
+import ThemeProvider from './ThemeProvider';
 
 describe('ThemeProvider', () => {
   it('renders children correctly', () => {
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <ThemeProvider>
         <View testID="child-component" />
       </ThemeProvider>,
@@ -30,24 +20,22 @@ describe('ThemeProvider', () => {
   });
 
   it('provides the correct theme via ThemeContext', () => {
-    let themeValue;
+    let themeValue = {
+      brandColors: {
+        black: '',
+      },
+    };
     const TestComponent = () => {
       themeValue = React.useContext(ThemeContext);
       return null;
     };
 
-    render(
+    renderWithProvider(
       <ThemeProvider>
         <TestComponent />
       </ThemeProvider>,
     );
 
-    expect(themeValue).toStrictEqual({
-      colors: {
-        background: {
-          alternative: 'white',
-        },
-      },
-    });
+    expect(themeValue.brandColors.black).toStrictEqual('#000000');
   });
 });
