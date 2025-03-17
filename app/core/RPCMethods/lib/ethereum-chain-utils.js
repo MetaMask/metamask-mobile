@@ -247,7 +247,7 @@ export async function switchToNetwork({
   const caip25Caveat = getCaveat({
     target: Caip25EndowmentPermissionName,
     caveatType: Caip25CaveatType,
-  }); // TODO: fix hook injection, for now calling this should break because not passing from RPCMethodMiddleware.ts
+  });
 
   let ethChainIds;
 
