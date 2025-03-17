@@ -4,6 +4,7 @@ import { useAlerts } from '../context';
 import ConfirmAlertModal, { ConfirmAlertModalProps } from './ConfirmAlertModal';
 import { Severity } from '../../types/alerts';
 
+
 jest.mock('../context', () => ({
   useAlerts: jest.fn(),
 }));
@@ -16,7 +17,7 @@ const REJECT_BTN = 'Reject';
 const REVIEW_ALERTS_LABEL = 'Review all alerts';
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
 const ALERT_DETAILS_MOCK = ['Detail 1', 'Detail 2'];
-const ALERT_MOCK = {
+const ALERT_MOCK =   {
   key: 'alert1',
   title: 'Test Alert',
   message: ALERT_MESSAGE_MOCK,
