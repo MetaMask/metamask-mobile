@@ -5,7 +5,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { AccountCardProps } from './AccountCard.types';
-import { MOCK_POOL_STAKING_SDK } from '../../../__mocks__/mockData';
+import { MOCK_VAULT_DATA } from '../../../__mocks__/earnControllerMockData';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -46,9 +46,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../hooks/useStakeContext', () => ({
+jest.mock('../../../hooks/useVaultMetadata', () => ({
   __esModule: true,
-  useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
+  default: () => ({
+    vaultMetadata: MOCK_VAULT_DATA,
+    isLoadingVaultMetadata: false,
+    error: null,
+    annualRewardRate: '2.5%',
+    annualRewardRateDecimal: 0.025,
+  }),
 }));
 
 describe('AccountCard', () => {

@@ -39,7 +39,7 @@ const ExpandableSection = ({
   const [expanded, setExpanded] = useState(false);
 
   const iconStyle =
-    iconVerticalPosition === IconVerticalPosition.Top ? { top: 18 } : {};
+    iconVerticalPosition === IconVerticalPosition.Top ? { top: 20 } : {};
 
   return (
     <>
@@ -65,7 +65,7 @@ const ExpandableSection = ({
         </View>
       </TouchableOpacity>
       {expanded && (
-        <BottomModal onClose={() => setExpanded(false)} canCloseOnBackdropClick>
+        <BottomModal onClose={() => setExpanded(false)}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <ButtonIcon

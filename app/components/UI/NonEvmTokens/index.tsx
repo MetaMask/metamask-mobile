@@ -4,7 +4,6 @@ import {
   selectMultichainDefaultToken,
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainConversionRate,
-  selectMultichainCurrentNetwork,
   selectMultichainShouldShowFiat,
 } from '../../../selectors/multichain';
 import { TokenList } from '../Tokens/TokenList';
@@ -12,12 +11,15 @@ import { TokenI } from '../Tokens/types';
 import { renderFiat } from '../../../util/number';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { Image } from 'react-native';
-import Engine from '../../../core/Engine/Engine';
+import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import { MULTICHAIN_TOKEN_IMAGES } from '../../../core/Multichain/constants';
 import {
-  MULTICHAIN_TOKEN_IMAGES,
-  MultichainProviderConfig,
-} from '../../../core/Multichain/constants';
+  selectSelectedNonEvmNetworkChainId,
+  selectSelectedNonEvmNetworkDecimals,
+  selectSelectedNonEvmNetworkSymbol,
+} from '../../../selectors/multichainNetworkController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 // We need this type to match ScrollableTabView's requirements
 interface NonEvmTokensProps {
@@ -36,8 +38,10 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const { symbol } = useSelector(selectMultichainDefaultToken);
   const conversionRate = useSelector(selectMultichainConversionRate);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
-  const networkConfig = useSelector(selectMultichainCurrentNetwork);
-
+  const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
+  const nonEvmTicker = useSelector(selectSelectedNonEvmNetworkSymbol);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const decimals = useSelector(selectSelectedNonEvmNetworkDecimals);
   function getMultiChainFiatBalance(): string {
     if (conversionRate) {
       const multichainBalance = Number(nativeTokenBalance);
@@ -51,7 +55,7 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const getTokenImage = () => {
     const imageSource =
       MULTICHAIN_TOKEN_IMAGES[
-        networkConfig.chainId as keyof typeof MULTICHAIN_TOKEN_IMAGES
+        nonEvmNetworkChainId as unknown as keyof typeof MULTICHAIN_TOKEN_IMAGES
       ];
     return imageSource ? Image.resolveAssetSource(imageSource).uri : '';
   };
@@ -61,9 +65,9 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
     {
       address: '', // Non-EVM chains don't use EVM-style addresses for native tokens
       aggregators: [],
-      decimals: (networkConfig.network as MultichainProviderConfig).decimal,
+      decimals,
       image: getTokenImage(),
-      name: networkConfig.nickname,
+      name: nonEvmTicker,
       symbol: defaultToken.symbol,
       balance: nativeTokenBalance || '0',
       balanceFiat: shouldShowFiat ? getMultiChainFiatBalance() : '',
@@ -79,11 +83,14 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
       setRefreshing(true);
 
       const { MultichainBalancesController } = Engine.context;
-
-      const actions = [MultichainBalancesController.updateBalances()];
-      await Promise.all(actions).catch((error) => {
-        Logger.error(error, 'Error while refreshing NonEvm tokens');
-      });
+      if (selectedAccount) {
+        const actions = [
+          MultichainBalancesController.updateBalance(selectedAccount?.id),
+        ];
+        await Promise.all(actions).catch((error) => {
+          Logger.error(error, 'Error while refreshing NonEvm tokens');
+        });
+      }
       setRefreshing(false);
     });
   };

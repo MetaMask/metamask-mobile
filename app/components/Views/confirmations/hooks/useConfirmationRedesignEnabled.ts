@@ -1,25 +1,31 @@
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { ApprovalType } from '@metamask/controller-utils';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { ApprovalType } from '@metamask/controller-utils';
-
-import { isExternalHardwareAccount } from '../../../../util/address';
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
   type ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../selectors/featureFlagController';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import {
+  isExternalHardwareAccount,
+  isHardwareAccount,
+} from '../../../../util/address';
+import { isStakingConfirmation } from '../utils/confirm';
 import useApprovalRequest from './useApprovalRequest';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 const REDESIGNED_SIGNATURE_TYPES = [
   ApprovalType.EthSignTypedData,
   ApprovalType.PersonalSign,
 ];
 
-const REDESIGNED_TRANSACTION_TYPES = [TransactionType.stakingDeposit];
+const REDESIGNED_TRANSACTION_TYPES = [
+  TransactionType.stakingDeposit,
+  TransactionType.stakingUnstake,
+];
 
 function isRedesignedSignature({
   approvalRequestType,
@@ -32,20 +38,21 @@ function isRedesignedSignature({
 }) {
   return (
     confirmationRedesignFlags?.signatures &&
-    // following condition will ensure that user is redirected to old designs for hardware wallets
-    !isExternalHardwareAccount(fromAddress) &&
     approvalRequestType &&
-    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType)
+    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType) &&
+    !isExternalHardwareAccount(fromAddress)
   );
 }
 
 function isRedesignedTransaction({
   approvalRequestType,
   confirmationRedesignFlags,
+  fromAddress,
   transactionMetadata,
 }: {
   approvalRequestType: ApprovalType;
   confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
+  fromAddress: string;
   transactionMetadata?: TransactionMeta;
 }) {
   const isTransactionTypeRedesigned = REDESIGNED_TRANSACTION_TYPES.includes(
@@ -55,12 +62,13 @@ function isRedesignedTransaction({
   if (
     !isTransactionTypeRedesigned ||
     approvalRequestType !== ApprovalType.Transaction ||
-    !transactionMetadata
+    !transactionMetadata ||
+    isHardwareAccount(fromAddress)
   ) {
     return false;
   }
 
-  if (transactionMetadata.type === TransactionType.stakingDeposit) {
+  if (isStakingConfirmation(transactionMetadata?.type as string)) {
     return confirmationRedesignFlags?.staking_transactions;
   }
 
@@ -69,13 +77,13 @@ function isRedesignedTransaction({
 
 export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
+  const fromAddress = approvalRequest?.requestData?.from;
   const transactionMetadata = useTransactionMetadataRequest();
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
 
   const approvalRequestType = approvalRequest?.type as ApprovalType;
-  const fromAddress = approvalRequest?.requestData?.from;
 
   const isRedesignedEnabled = useMemo(
     () =>
@@ -87,6 +95,7 @@ export const useConfirmationRedesignEnabled = () => {
       isRedesignedTransaction({
         approvalRequestType,
         confirmationRedesignFlags,
+        fromAddress,
         transactionMetadata,
       }),
     [

@@ -97,7 +97,8 @@ const persistTransform = createTransform(
 
 const persistUserTransform = createTransform(
   (inboundState: UserState) => {
-    const { initialScreen, isAuthChecked, ...state } = inboundState;
+    const { initialScreen, isAuthChecked, appServicesReady, ...state } =
+      inboundState;
     // Reconstruct data to persist
     return state;
   },
@@ -108,7 +109,13 @@ const persistUserTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'multichainSettings'],
+  blacklist: [
+    'onboarding',
+    'rpcEvents',
+    'accounts',
+    'multichainSettings',
+    'transactionMetrics',
+  ],
   storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.

@@ -13,5 +13,6 @@ export const EVENT_LOCATIONS = {
   STAKING_EARNINGS: 'StakingEarnings',
   UNSTAKE_INPUT_VIEW: 'UnstakeInputView',
   UNSTAKE_CONFIRMATION_VIEW: 'UnstakeConfirmationView',
+  WALLET_ACTIONS_BOTTOM_SHEET: 'WalletActionsBottomSheet',
   UNIT_TEST: 'UnitTest',
 };

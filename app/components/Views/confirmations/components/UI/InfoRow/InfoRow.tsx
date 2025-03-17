@@ -1,6 +1,5 @@
 import React, { ReactNode } from 'react';
 import { View } from 'react-native';
-
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip';
@@ -9,6 +8,7 @@ import styleSheet from './InfoRow.styles';
 interface InfoRowProps {
   label: string;
   children: ReactNode | string;
+  onTooltipPress?: () => void;
   tooltip?: string;
   style?: Record<string, unknown>;
   testID?: string;
@@ -17,6 +17,7 @@ interface InfoRowProps {
 const InfoRow = ({
   label,
   children,
+  onTooltipPress,
   style = {},
   tooltip,
   testID,
@@ -28,14 +29,18 @@ const InfoRow = ({
       style={{ ...styles.container, ...style }}
       testID={testID ?? 'info-row'}
     >
-      <View style={styles.labelContainer}>
-        <Text style={styles.label}>{label}</Text>
-        {tooltip && <Tooltip content={tooltip} />}
-      </View>
+      {Boolean(label) && (
+        <View style={styles.labelContainer}>
+          <Text style={styles.label}>{label}</Text>
+          {tooltip && (
+            <Tooltip content={tooltip} onPress={onTooltipPress} title={label} />
+          )}
+        </View>
+      )}
       {typeof children === 'string' ? (
         <Text style={styles.value}>{children}</Text>
       ) : (
-        <View style={styles.valueComponent}>{children}</View>
+        <>{children}</>
       )}
     </View>
   );

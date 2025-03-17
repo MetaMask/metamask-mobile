@@ -26,7 +26,7 @@ import { EVENT_LOCATIONS } from '../../../../constants/events';
 import Engine from '../../../../../../../core/Engine';
 import useStakingChain from '../../../../hooks/useStakingChain';
 import { useStakeContext } from '../../../../hooks/useStakeContext';
-import { selectChainId } from '../../../../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
@@ -38,13 +38,13 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isSubmittingClaimTransaction, setIsSubmittingClaimTransaction] =
     useState(false);
-  const { NetworkController } = Engine.context;
+  const { MultichainNetworkController } = Engine.context;
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const [shouldAttemptClaim, setShouldAttemptClaim] = useState(false);
   const { attemptPoolStakedClaimTransaction } = usePoolStakedClaim();
   const { stakingContract } = useStakeContext();
   const { pooledStakesData, refreshPooledStakes } = usePooledStakes();
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   const { isStakingSupportedChain } = useStakingChain();
 
   const attemptClaim = useCallback(async () => {
@@ -124,7 +124,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const onClaimPress = async () => {
     setShouldAttemptClaim(true);
     if (!isStakingSupportedChain) {
-      await NetworkController.setActiveNetwork('mainnet');
+      await MultichainNetworkController.setActiveNetwork('mainnet');
     }
   };
 
