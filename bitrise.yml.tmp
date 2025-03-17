@@ -1373,7 +1373,6 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: "$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false

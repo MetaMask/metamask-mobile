@@ -1,0 +1,1 @@
+            - deploy_path: "$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"

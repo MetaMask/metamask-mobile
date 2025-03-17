@@ -1373,7 +1373,12 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: "$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
+            - deploy_path: |-
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  echo "$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
+                else
+                  echo "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk"
+                fi
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
