@@ -1,7 +1,6 @@
-import * as core from '@actions/core';
-import { Octokit } from "@octokit/rest";
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
+import { Octokit } from "@octokit/rest";  // Import the Octokit class
 
   // Define Bitrise comment tags
   const bitriseTag = '<!-- BITRISE_TAG -->';
@@ -64,6 +63,22 @@ export interface GithubComment {
   reactions?: {
   };
 }
+
+export interface InternalGithubComment {
+  id: number;
+  node_id: string;
+  url: string;
+  body?: string;
+  body_text?: string;
+  body_html?: string;
+  html_url: string;
+  user?: {
+    name?: string | null;
+  } | null;
+  reactions?: {
+  };
+}
+
 
 
 export function printTime () {
@@ -208,7 +223,8 @@ export function getMergeQueueCommitHash() : string {
 export async function getAllBitriseComments(): Promise<GithubComment[]> {
   const { owner, repo, number: pullRequestNumber } = context.issue;
 
-  let allComments: GithubComment[] = [];
+  let allComments: InternalGithubComment[] = [];
+  let convertedComments: GithubComment[] = [];
 
   let page = 1;
 
@@ -223,7 +239,20 @@ export async function getAllBitriseComments(): Promise<GithubComment[]> {
       direction: 'desc'
     });
 
-    allComments = allComments.concat(comments);
+
+    // Transform GitHub API comments to GithubComment objects
+    const convertedComments = comments.map((comment: InternalGithubComment) => ({
+      id: comment.id,
+      node_id: comment.node_id,
+      url: comment.url,
+      body: comment.body,
+      body_text: comment.body_text || undefined,
+      body_html: comment.body_html || undefined,
+      html_url: comment.html_url,
+      user: comment.user,  // Retain or handle as needed
+    }));
+
+    allComments = allComments.concat(convertedComments);
 
     if (comments.length < 100 || !headers.link || !headers.link.includes('rel="next"')) {
       break; // No more pages to fetch if fewer than 100 comments are returned or no next link
