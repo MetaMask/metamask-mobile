@@ -86,7 +86,7 @@ export const useSourceTokens = () => {
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
 
   // All tokens across chains and their balances
-   // Includes native and non-native tokens
+  // Includes native and non-native tokens
   const accountTokensAcrossChains = useSelector(selectAccountTokensAcrossChains);
   const multiChainTokenBalance = useSelector(selectTokensBalances);
 
