@@ -1,4 +1,7 @@
-import { renderScreen, DeepPartial } from '../../../util/test/renderWithProvider';
+import {
+  renderScreen,
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import BridgeView from '../Bridge';
