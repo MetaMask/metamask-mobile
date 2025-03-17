@@ -67,6 +67,7 @@
     "node_modules/expect-webdriverio",
     "node_modules/expect-webdriverio/jest",
     "storybook/**/*",
+    "e2e/**/*",
   ],
   "exclude": [
     "node_modules",
