@@ -120,7 +120,6 @@ describe('BridgeView', () => {
       destToken: undefined,
       sourceAmount: undefined,
       destAmount: undefined,
-      sourceChainId: '0x1' as const,
       destChainId: undefined,
     } as BridgeState,
   };
