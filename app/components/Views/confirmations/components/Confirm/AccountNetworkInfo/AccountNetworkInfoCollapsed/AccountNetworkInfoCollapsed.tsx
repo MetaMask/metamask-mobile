@@ -66,7 +66,7 @@ const AccountNetworkInfoCollapsed = () => {
             numberOfLines={1}
             style={styles.accountName}
           >
-            {accountName} {accountName} {accountName}
+            {accountName}
           </Text>
           {accountLabel && (
             <TagBase
