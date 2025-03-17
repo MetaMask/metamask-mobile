@@ -7,13 +7,16 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
 import ErrorBoundary from '../ErrorBoundary';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import ThemeProvider from '../../../component-library/providers/ThemeProvider/ThemeProvider';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { SnapsExecutionWebView } from '../../../lib/snaps';
+///: END:ONLY_INCLUDE_IF
 
 /**
  * Top level of the component hierarchy
@@ -59,7 +62,13 @@ const Root = ({ foxCode }: RootProps) => {
     <SafeAreaProvider>
       <Provider store={store}>
         <PersistGate persistor={persistor}>
-          <ThemeContext.Provider value={mockTheme}>
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+            // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
+            <SnapsExecutionWebView />
+            ///: END:ONLY_INCLUDE_IF
+          }
+          <ThemeProvider>
             <NavigationProvider>
               <ControllersGate>
                 <ToastContextWrapper>
@@ -69,7 +78,7 @@ const Root = ({ foxCode }: RootProps) => {
                 </ToastContextWrapper>
               </ControllersGate>
             </NavigationProvider>
-          </ThemeContext.Provider>
+          </ThemeProvider>
         </PersistGate>
       </Provider>
     </SafeAreaProvider>

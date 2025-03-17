@@ -10,6 +10,10 @@ import { Hex } from '@metamask/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Logger from '../../../../util/Logger';
 import { Fee } from '@metamask/smart-transactions-controller/dist/types';
+import {
+  getGasIncludedTransactionFees,
+  type GasIncludedQuote
+} from '../../../../util/smart-transactions';
 
 interface TemporarySmartTransactionGasFees {
   maxFeePerGas: string;
@@ -97,7 +101,7 @@ const submitSmartTransaction = async ({
 
 
 
-export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quote, gasEstimates: {
+export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quote & Partial<GasIncludedQuote>, gasEstimates: {
   gasPrice: string;
   medium: string;
 } }) => {
@@ -112,7 +116,13 @@ export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quot
     const { SmartTransactionsController } = Engine.context;
 
     // Calc fees
-    const smartTransactionFees = await SmartTransactionsController.getFees(tradeTransaction, approvalTransaction);
+    let smartTransactionFees;
+    if (quote?.isGasIncludedTrade) {
+      smartTransactionFees = getGasIncludedTransactionFees(quote as unknown as GasIncludedQuote);
+    }
+    if (!smartTransactionFees) {
+      smartTransactionFees = await SmartTransactionsController.getFees(tradeTransaction, approvalTransaction);
+    }
 
     // Approval transaction (if it exists)
     let approvalTxUuid: string | undefined;
