@@ -189,23 +189,23 @@ export const TokenListItem = React.memo(
     // Set main and secondary balances based on the primary currency and asset type.
     if (primaryCurrency === 'ETH') {
       // Default to displaying the formatted balance value and its fiat equivalent.
-      mainBalance = balanceValueFormatted;
-      secondaryBalance = balanceFiat;
+      mainBalance = balanceValueFormatted?.toUpperCase();
+      secondaryBalance = balanceFiat?.toUpperCase();
       // For ETH as a native currency, adjust display based on network safety.
       if (asset.isETH) {
         // Main balance always shows the formatted balance value for ETH.
-        mainBalance = balanceValueFormatted;
+        mainBalance = balanceValueFormatted?.toUpperCase();
         // Display fiat value as secondary balance only for original native tokens on safe networks.
         if (isPortfolioViewEnabled()) {
           secondaryBalance = shouldNotShowBalanceOnTestnets
             ? undefined
-            : balanceFiat;
+            : balanceFiat?.toUpperCase();
         } else {
           secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
         }
       }
     } else {
-      secondaryBalance = balanceValueFormatted;
+      secondaryBalance = balanceValueFormatted?.toUpperCase();
       if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
         mainBalance = undefined;
       } else {

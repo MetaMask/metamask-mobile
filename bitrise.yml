@@ -1771,7 +1771,7 @@ app:
   envs:
     - opts:
         is_expand: false
-      MM_NOTIFICATIONS_UI_ENABLED: true
+      MM_NOTIFICATIONS_UI_ENABLED: false
     - opts:
         is_expand: false
       MM_NETWORK_UI_REDESIGN_ENABLED: false
@@ -1825,16 +1825,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.42.991
+      VERSION_NAME: 7.43.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1595
+      VERSION_NUMBER: 1624
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.42.991
+      FLASK_VERSION_NAME: 7.43.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1595
+      FLASK_VERSION_NUMBER: 1624
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1861,7 +1861,7 @@ app:
       COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
-    stack: osx-xcode-16.2.x
+    stack: osx-xcode-15.0.x
     machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
