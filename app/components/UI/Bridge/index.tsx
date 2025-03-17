@@ -109,13 +109,13 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const destAmount = useSelector(selectDestAmount);
-  const sourceChainId = useSelector(selectSourceChainId);
   const destChainId = useSelector(selectDestChainId);
 
   const sourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
-  }, sourceChainId);
+    chainId: sourceToken?.chainId,
+  });
 
   const hasInsufficientBalance = useMemo(() => {
     if (!sourceAmount || !sourceBalance?.atomicBalance || !sourceToken?.decimals) {
@@ -209,7 +209,7 @@ const BridgeView = () => {
             tokenIconUrl={sourceToken?.image}
             tokenAddress={sourceToken?.address}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            networkImageSource={getNetworkImageSource({ chainId: sourceChainId })}
+            networkImageSource={getNetworkImageSource({ chainId: sourceToken?.chainId })}
             autoFocus
             isReadonly
             testID="source-token-area"

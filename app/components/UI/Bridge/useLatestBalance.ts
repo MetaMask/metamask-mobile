@@ -5,7 +5,6 @@ import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { selectChainId } from '../../../selectors/networkController';
 import { getProviderByChainId } from '../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
 
@@ -51,22 +50,22 @@ export const useLatestBalance = (
   token: {
     address?: string;
     decimals?: number;
+    chainId?: Hex | CaipChainId;
   },
-  chainId?: Hex | CaipChainId,
 ) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
   const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
-  const currentChainId = useSelector(selectChainId);
+
+  const chainId = token.chainId;
 
   const handleFetchAtomicBalance = useCallback(async () => {
     if (
       token.address &&
       token.decimals &&
       chainId && !isCaipChainId(chainId) &&
-      currentChainId === chainId &&
       selectedAddress
     ) {
-      const web3Provider = getProviderByChainId(currentChainId);
+      const web3Provider = getProviderByChainId(chainId);
       const atomicBalance = await fetchAtomicBalance(
         web3Provider,
         selectedAddress,
@@ -80,7 +79,7 @@ export const useLatestBalance = (
         });
       }
     }
-  }, [token.address, token.decimals, chainId, currentChainId, selectedAddress]);
+  }, [token.address, token.decimals, chainId, selectedAddress]);
 
   useEffect(() => {
     handleFetchAtomicBalance();
