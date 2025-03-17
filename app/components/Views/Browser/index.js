@@ -34,6 +34,8 @@ import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 
+const MAX_BROWSER_TABS = 5;
+
 /**
  * Component that wraps all the browser
  * individual tabs and the tabs view
@@ -75,8 +77,8 @@ export const Browser = (props) => {
     }).href;
 
   const newTab = (url, linkType) => {
-    // if tabs.length > 4, show the max browser tabs modal
-    if (tabs.length > 4) {
+    // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+    if (tabs.length >= MAX_BROWSER_TABS) {
       navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
     } else {
       // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
@@ -317,19 +319,20 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabs = () => tabs.map((tab) => (
-    <BrowserTab
-      id={tab.id}
-      key={`tab_${tab.id}`}
-      initialUrl={tab.url}
-      linkType={tab.linkType}
-      updateTabInfo={updateTabInfo}
-      showTabs={showTabs}
-      newTab={newTab}
-      isInTabsView={route.params?.showTabs}
-      homePageUrl={homePageUrl()}
-    />
-  ));
+  const renderBrowserTabs = () =>
+    tabs.map((tab) => (
+      <BrowserTab
+        id={tab.id}
+        key={`tab_${tab.id}`}
+        initialUrl={tab.url}
+        linkType={tab.linkType}
+        updateTabInfo={updateTabInfo}
+        showTabs={showTabs}
+        newTab={newTab}
+        isInTabsView={route.params?.showTabs}
+        homePageUrl={homePageUrl()}
+      />
+    ));
 
   return (
     <View
