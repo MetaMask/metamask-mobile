@@ -31,7 +31,6 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';

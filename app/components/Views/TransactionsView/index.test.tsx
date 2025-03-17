@@ -39,6 +39,33 @@ jest.mock('../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
 }));
 
+jest.mock('../../../selectors/transactionController', () => ({
+  selectSortedTransactions: jest.fn(() => [
+    {
+      txParams: {
+        id: TRANSACTION_ID_MOCK,
+        time: 1,
+        from: '0x123',
+        to: '0x456',
+        value: '100',
+        status: 'pending',
+        type: 'send',
+        networkId: '1',
+        hash: '0x123',
+        txChainId: '0x1',
+      },
+    },
+  ]),
+  selectTransactions: jest.fn(() => [
+    {
+      id: TRANSACTION_ID_MOCK,
+      time: 1,
+      from: '0x123',
+    },
+  ]),
+  selectCurrentTransactionId: jest.fn(() => TRANSACTION_ID_MOCK),
+}));
+
 describe('TransactionsView', () => {
   let store: Store;
 
