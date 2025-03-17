@@ -69,8 +69,6 @@ const TransactionsView = ({
 
   const filterTransactions = useCallback(
     (networkId) => {
-      if (networkId === NETWORK_ID_LOADING) return;
-
       let accountAddedTimeInsertPointFound = false;
       const addedAccountTime = selectedInternalAccount?.metadata.importTime;
 
