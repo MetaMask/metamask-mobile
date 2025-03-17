@@ -49,7 +49,7 @@ async function requestEthereumAccountsHandler(
   {
     getAccounts,
     getUnlockPromise,
-    metamaskState, // TODO: [ffmcgee] pass in this hook
+    metamaskState,
     getCaip25PermissionFromLegacyPermissionsForOrigin,
     requestPermissionsForOrigin,
   },
