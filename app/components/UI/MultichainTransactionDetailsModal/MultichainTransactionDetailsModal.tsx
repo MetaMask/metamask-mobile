@@ -39,7 +39,7 @@ const TransactionDetailRow = {
   To: strings('transactions.to'),
   Amount: strings('transactions.amount'),
   NetworkFee: strings('transactions.network_fee'),
-  PriorityFee: strings('transactions.priority_fee'),
+  PriorityFee: strings('transactions.multichain_priority_fee'),
 } as const;
 
 const createStyles = (colors: Colors, typography: ThemeTypography) =>

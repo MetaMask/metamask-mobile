@@ -116,7 +116,7 @@ describe('MultichainTransactionDetailsModal', () => {
 
     expect(getByText('transactions.network_fee')).toBeTruthy();
     expect(getByText('0.000005 SOL')).toBeTruthy();
-    expect(getByText('transactions.priority_fee')).toBeTruthy();
+    expect(getByText('transactions.multichain_priority_fee')).toBeTruthy();
     expect(getByText('0.000001 SOL')).toBeTruthy();
   });
 

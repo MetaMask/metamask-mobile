@@ -10,10 +10,7 @@ import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { validate, Network } from 'bitcoin-address-validation';
-import {
-  MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP,
-  MultichainNetworks,
-} from './constants';
+import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from './constants';
 import { formatAddress } from '../../util/address';
 import {
   formatBlockExplorerAddressUrl,
@@ -157,11 +154,12 @@ export function isBtcTestnetAddress(address: string): boolean {
  * @param chainId - Network chain ID
  * @returns Full URL to transaction in block explorer, or empty string if no explorer URL
  */
-export const getTransactionUrl = (txId: string, chainId: string): string => {
+export const getTransactionUrl = (
+  txId: string,
+  chainId: CaipChainId,
+): string => {
   const explorerUrls =
-    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-      chainId as MultichainNetworks
-    ];
+    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[chainId];
   if (!explorerUrls) {
     return '';
   }
@@ -181,11 +179,12 @@ export const getTransactionUrl = (txId: string, chainId: string): string => {
  * @param chainId - Network chain ID
  * @returns Full URL to address in block explorer, or empty string if no explorer URL
  */
-export const getAddressUrl = (address: string, chainId: string): string => {
+export const getAddressUrl = (
+  address: string,
+  chainId: CaipChainId,
+): string => {
   const explorerUrls =
-    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-      chainId as MultichainNetworks
-    ];
+    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[chainId];
   if (!explorerUrls) {
     return '';
   }
