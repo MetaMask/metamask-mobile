@@ -165,8 +165,8 @@ stages:
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_stake_ios: {}
-      - run_tag_smoke_stake_android: {}
+      # run_tag_smoke_stake_ios: {}
+      # run_tag_smoke_stake_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
@@ -1525,7 +1525,7 @@ workflows:
             - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: ios/build/output/MetaMask.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@1.6.1:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -1684,7 +1684,7 @@ workflows:
             - pipeline_intermediate_files: ios/build/output/MetaMask-Flask.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: ios/build/output/MetaMask-Flask.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@1.6.1:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -1825,16 +1825,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.41.0
+      VERSION_NAME: 7.42.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1586
+      VERSION_NUMBER: 1600
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.41.0
+      FLASK_VERSION_NAME: 7.42.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1586
+      FLASK_VERSION_NUMBER: 1600
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

@@ -1564,8 +1564,8 @@ export class NetworkSettings extends PureComponent {
     this.setState({ showMultiBlockExplorerAddModal: { isVisible: false } });
   };
 
-  switchToMainnet = () => {
-    const { NetworkController } = Engine.context;
+  switchToMainnet = async () => {
+    const { MultichainNetworkController } = Engine.context;
     const { networkConfigurations } = this.props;
 
     const { networkClientId } =
@@ -1573,20 +1573,21 @@ export class NetworkSettings extends PureComponent {
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    NetworkController.setActiveNetwork(networkClientId);
+    await MultichainNetworkController.setActiveNetwork(networkClientId);
+
     setTimeout(async () => {
       await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);
   };
 
-  removeRpcUrl = () => {
+  removeRpcUrl = async () => {
     const { navigation, networkConfigurations, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
       compareSanitizedUrl(rpcUrl, providerConfig.rpcUrl) &&
       providerConfig.type === RPC
     ) {
-      this.switchToMainnet();
+      await this.switchToMainnet();
     }
 
     const entry = Object.entries(networkConfigurations).find(

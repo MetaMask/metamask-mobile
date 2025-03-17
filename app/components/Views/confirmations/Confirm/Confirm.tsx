@@ -5,24 +5,20 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { TransactionType } from '@metamask/transaction-controller';
 
+import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
-import BottomModal from '../components/UI/BottomModal';
-import Footer from '../components/Confirm/Footer';
+import { Footer } from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
+import { LedgerContextProvider } from '../context/LedgerContext';
 import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
 import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
-import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
-import { useTransactionMetadataRequest } from '../hooks/useTransactionMetadataRequest';
+import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
+import useApprovalRequest from '../hooks/useApprovalRequest';
+import { useConfirmActions } from '../hooks/useConfirmActions';
 import styleSheet from './Confirm.styles';
-
-// todo: if possible derive way to dynamically check if confirmation should be rendered flat
-const FLAT_TRANSACTION_CONFIRMATIONS: TransactionType[] = [
-  TransactionType.stakingDeposit,
-];
 
 const ConfirmWrapped = ({
   styles,
@@ -30,27 +26,26 @@ const ConfirmWrapped = ({
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
 }) => (
   <QRHardwareContextProvider>
-    <Title />
-    <ScrollView style={styles.scrollable}>
-      <TouchableWithoutFeedback>
-        <View style={styles.scrollableSection}>
-          <SignatureBlockaidBanner />
-          <Info />
-        </View>
-      </TouchableWithoutFeedback>
-    </ScrollView>
-    <Footer />
+    <LedgerContextProvider>
+      <Title />
+      <ScrollView style={styles.scrollView}>
+        <TouchableWithoutFeedback>
+          <>
+            <SignatureBlockaidBanner />
+            <Info />
+          </>
+        </TouchableWithoutFeedback>
+      </ScrollView>
+      <Footer />
+    </LedgerContextProvider>
   </QRHardwareContextProvider>
 );
 
-const Confirm = () => {
+export const Confirm = () => {
   const { approvalRequest } = useApprovalRequest();
-  const transactionMetadata = useTransactionMetadataRequest();
+  const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
-
-  const isFlatConfirmation = FLAT_TRANSACTION_CONFIRMATIONS.includes(
-    transactionMetadata?.type as TransactionType,
-  );
+  const { onReject } = useConfirmActions();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -67,15 +62,14 @@ const Confirm = () => {
   }
 
   return (
-    <BottomModal
-      canCloseOnBackdropClick={false}
+    <BottomSheet
+      onClose={onReject}
+      style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >
-      <View style={styles.modalContainer} testID={approvalRequest?.type}>
+      <View testID={approvalRequest?.type} style={styles.confirmContainer}>
         <ConfirmWrapped styles={styles} />
       </View>
-    </BottomModal>
+    </BottomSheet>
   );
 };
-
-export default Confirm;

@@ -1,9 +1,11 @@
 import { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
-import { useQRHardwareContext } from '../context/QRHardwareContext/QRHardwareContext';
+import { useLedgerContext } from '../context/LedgerContext';
+import { useQRHardwareContext } from '../context/QRHardwareContext';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './useSignatureMetrics';
 
@@ -19,11 +21,33 @@ export const useConfirmActions = () => {
     isQRSigningInProgress,
     setScannerVisible,
   } = useQRHardwareContext();
+  const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
+  const navigation = useNavigation();
 
-  const signatureRequest =
+  const isSignatureReq =
     approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
 
+  const onReject = useCallback(async () => {
+    await cancelQRScanRequestIfPresent();
+    onRequestReject();
+    navigation.goBack();
+    if (isSignatureReq) {
+      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
+      PPOMUtil.clearSignatureSecurityAlertResponse();
+    }
+  }, [
+    cancelQRScanRequestIfPresent,
+    captureSignatureMetrics,
+    navigation,
+    onRequestReject,
+    isSignatureReq,
+  ]);
+
   const onConfirm = useCallback(async () => {
+    if (ledgerSigningInProgress) {
+      openLedgerSignModal();
+      return;
+    }
     if (isQRSigningInProgress) {
       setScannerVisible(true);
       return;
@@ -33,30 +57,20 @@ export const useConfirmActions = () => {
       deleteAfterResult: true,
       handleErrors: false,
     });
-    if (signatureRequest) {
+    navigation.goBack();
+    if (isSignatureReq) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
       PPOMUtil.clearSignatureSecurityAlertResponse();
     }
   }, [
-    captureSignatureMetrics,
     isQRSigningInProgress,
-    onRequestConfirm,
+    ledgerSigningInProgress,
+    navigation,
+    openLedgerSignModal,
     setScannerVisible,
-    signatureRequest,
-  ]);
-
-  const onReject = useCallback(async () => {
-    await cancelQRScanRequestIfPresent();
-    onRequestReject();
-    if (signatureRequest) {
-      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
-      PPOMUtil.clearSignatureSecurityAlertResponse();
-    }
-  }, [
-    cancelQRScanRequestIfPresent,
     captureSignatureMetrics,
-    onRequestReject,
-    signatureRequest,
+    onRequestConfirm,
+    isSignatureReq,
   ]);
 
   return { onConfirm, onReject };

@@ -539,6 +539,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                                   "flexDirection": "column",
                                                 }
                                               }
+                                              testID="view-transaction-details"
                                             >
                                               <View
                                                 style={

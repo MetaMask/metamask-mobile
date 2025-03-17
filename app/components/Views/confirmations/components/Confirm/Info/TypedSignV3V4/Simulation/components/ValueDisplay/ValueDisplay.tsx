@@ -115,11 +115,14 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     tokenDetails as TokenDetailsERC20,
   );
 
+  const isNFT = tokenId !== undefined && tokenId !== '0';
+
   const tokenAmount =
     isNumberValue(value) && !tokenId
       ? calcTokenAmount(value as number | string, tokenDecimals)
       : null;
   const isValidTokenAmount =
+    !isNFT &&
     tokenAmount !== null &&
     tokenAmount !== undefined &&
     tokenAmount instanceof BigNumber;
@@ -150,32 +153,31 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     return null;
   }
 
+  // Avoid empty button pill container
+  const showValueButtonPill = Boolean(isPendingTokenDetails
+    || shouldShowUnlimitedValue
+    || (tokenValue !== null || tokenId));
+
   function handlePressTokenValue() {
     setHasValueModalOpen(true);
   }
 
-  return (
-    <View style={styles.wrapper}>
-      <View style={styles.flexRowTokenValueAndAddress}>
-        <View style={styles.valueAndAddress}>
-          {
-            <AnimatedPulse
-              isPulsing={isPendingTokenDetails}
-              testID="simulation-value-display-loader"
-            >
-              <ButtonPill
-                isDisabled={!!tokenId || tokenId === '0'}
-                onPress={handlePressTokenValue}
-                onPressIn={handlePressTokenValue}
-                onPressOut={handlePressTokenValue}
-                style={[
-                  credit && styles.valueIsCredit,
-                  debit && styles.valueIsDebit,
-                ]}
-              >
-                {isPendingTokenDetails ? (
-                  <View style={styles.loaderButtonPillEmptyContent} />
-                ) : (
+    return (
+      <View style={styles.wrapper}>
+        <View style={styles.flexRowTokenValueAndAddress}>
+          <View style={styles.valueAndAddress}>
+            {showValueButtonPill &&
+              <AnimatedPulse isPulsing={isPendingTokenDetails} testID="simulation-value-display-loader">
+                <ButtonPill
+                  isDisabled={isNFT}
+                  onPress={handlePressTokenValue}
+                  onPressIn={handlePressTokenValue}
+                  onPressOut={handlePressTokenValue}
+                  style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
+                >
+                  {isPendingTokenDetails ?
+                    <View style={styles.loaderButtonPillEmptyContent} />
+                  :
                   <Text>
                     {credit && '+ '}
                     {debit && '- '}
@@ -190,7 +192,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                         })}
                     {tokenId && `#${tokenId}`}
                   </Text>
-                )}
+                }
               </ButtonPill>
             </AnimatedPulse>
           }

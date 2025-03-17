@@ -206,8 +206,11 @@ export async function switchToNetwork({
   origin,
   isAddNetworkFlow = false,
 }) {
-  const { NetworkController, PermissionController, SelectedNetworkController } =
-    controllers;
+  const {
+    MultichainNetworkController,
+    PermissionController,
+    SelectedNetworkController,
+  } = controllers;
   const getCaveat = ({ target, caveatType }) => {
     try {
       return PermissionController.getCaveat(origin, target, caveatType);
@@ -296,7 +299,7 @@ export async function switchToNetwork({
       networkConfigurationId || networkConfiguration.networkType,
     );
   } else {
-    NetworkController.setActiveNetwork(
+    await MultichainNetworkController.setActiveNetwork(
       networkConfigurationId || networkConfiguration.networkType,
     );
   }
