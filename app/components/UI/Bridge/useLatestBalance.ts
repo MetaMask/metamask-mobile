@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getProviderByChainId } from '../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
+import usePrevious from '../../hooks/usePrevious';
 
 export async function fetchAtomicTokenBalance(
   address: string,
@@ -55,6 +56,7 @@ export const useLatestBalance = (
 ) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
   const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
+  const previousToken = usePrevious(token);
 
   const chainId = token.chainId;
 
@@ -84,6 +86,11 @@ export const useLatestBalance = (
   useEffect(() => {
     handleFetchAtomicBalance();
   }, [handleFetchAtomicBalance]);
+
+  // If the token has changed, return undefined, so we have time to fetch the new balance
+  if (previousToken?.address !== token.address) {
+    return undefined;
+  }
 
   return balance;
 };
