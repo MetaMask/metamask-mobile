@@ -4,7 +4,9 @@ import { useSelector } from 'react-redux';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
   TextColor,
   TextVariant,
@@ -63,6 +65,7 @@ const EarnTokenListItem = ({
     <TouchableOpacity style={styles.container} onPress={() => onPress(token)}>
       <View style={styles.left}>
         <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}

@@ -25,17 +25,17 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
         {
           "alignItems": "center",
           "aspectRatio": 1,
+          "bottom": 0,
           "height": 0,
           "justifyContent": "center",
           "position": "absolute",
           "right": 0,
-          "top": 0,
           "transform": [
             {
               "translateX": 0,
             },
             {
-              "translateY": -0,
+              "translateY": 0,
             },
           ],
         }
@@ -296,17 +296,17 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
         {
           "alignItems": "center",
           "aspectRatio": 1,
+          "bottom": 0,
           "height": 0,
           "justifyContent": "center",
           "position": "absolute",
           "right": 0,
-          "top": 0,
           "transform": [
             {
               "translateX": 0,
             },
             {
-              "translateY": -0,
+              "translateY": 0,
             },
           ],
         }
@@ -567,17 +567,17 @@ exports[`Token Component renders correctly 1`] = `
         {
           "alignItems": "center",
           "aspectRatio": 1,
+          "bottom": 0,
           "height": 0,
           "justifyContent": "center",
           "position": "absolute",
           "right": 0,
-          "top": 0,
           "transform": [
             {
               "translateX": 0,
             },
             {
-              "translateY": -0,
+              "translateY": 0,
             },
           ],
         }
@@ -838,17 +838,17 @@ exports[`Token Component renders correctly with token chainId 1`] = `
         {
           "alignItems": "center",
           "aspectRatio": 1,
+          "bottom": 0,
           "height": 0,
           "justifyContent": "center",
           "position": "absolute",
           "right": 0,
-          "top": 0,
           "transform": [
             {
               "translateX": 0,
             },
             {
-              "translateY": -0,
+              "translateY": 0,
             },
           ],
         }
