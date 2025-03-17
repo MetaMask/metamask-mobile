@@ -838,25 +838,6 @@ workflows:
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
-      - save-gradle-cache@1: {}
-      - script@1:
-          title: Set APK Path for Deployment
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
-                else
-                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk"
-                fi
-                echo "Using APK path: $APK_PATH"
-                envman add --key DEPLOY_APK_PATH --value "$APK_PATH"
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $DEPLOY_APK_PATH
-          title: Bitrise Deploy APK
   android_e2e_test:
     before_run:
       - setup
@@ -1416,25 +1397,6 @@ workflows:
                 FLASK_APK_PATH_1=$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
                 echo "Flask APK path set to: $FLASK_APK_PATH_1"
           title: Set Flask APK Path
-      - save-gradle-cache@1: {}
-      - script@1:
-          title: Set APK Path for Deployment
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
-                else
-                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk"
-                fi
-                echo "Using APK path: $APK_PATH"
-                envman add --key DEPLOY_APK_PATH --value "$APK_PATH"
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $DEPLOY_APK_PATH
-          title: Bitrise Deploy APK
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
