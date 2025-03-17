@@ -161,12 +161,12 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_ramps_android: {}
-      # run_tag_smoke_ramps_ios: {}
+      - run_tag_smoke_ramps_ios: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
-      # run_tag_smoke_stake_ios: {}
-      # run_tag_smoke_stake_android: {}
+      # - run_tag_smoke_stake_ios: {}
+      # - run_tag_smoke_stake_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
@@ -189,7 +189,7 @@ stages:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
-      # run_tag_smoke_ramps_ios: {}
+      - run_tag_smoke_ramps_ios: {}
       # - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
@@ -1538,6 +1538,10 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+    meta:
+      bitrise.io:
+        stack: osx-xcode-15.0.x
+        machine_type_id: g2.mac.large
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
@@ -1771,7 +1775,7 @@ app:
   envs:
     - opts:
         is_expand: false
-      MM_NOTIFICATIONS_UI_ENABLED: true
+      MM_NOTIFICATIONS_UI_ENABLED: false
     - opts:
         is_expand: false
       MM_NETWORK_UI_REDESIGN_ENABLED: false
@@ -1861,7 +1865,7 @@ app:
       COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
-    stack: osx-xcode-15.0.x
+    stack: osx-xcode-16.2.x
     machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
