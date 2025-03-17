@@ -40,6 +40,9 @@ export enum TraceName {
   StoreInit = 'Store Initialization',
   Tokens = 'Tokens List',
   AddSnapAccount = 'Add Snap Account',
+  SelectAccount = 'Select Account',
+  AddNetwork = 'Add Network',
+  UpdateNetwork = 'Update Network',
 }
 
 export enum TraceOperation {

@@ -28,6 +28,9 @@ import Engine from '../../../../core/Engine/Engine';
 import Logger from '../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
+import { getTraceTags } from '../../../../util/sentry/tags';
+import { store } from '../../../../core/Analytics';
 
 interface RpcSelectionModalProps {
   showMultiRpcSelectModal: {
@@ -76,12 +79,16 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
         );
         return;
       }
-
+      trace({
+        name: TraceName.UpdateNetwork,
+        tags: getTraceTags(store.getState()),
+      });
       // Proceed to update the network with the correct index
       await NetworkController.updateNetwork(existingNetwork.chainId, {
         ...existingNetwork,
         defaultRpcEndpointIndex: indexOfRpc,
       });
+      endTrace({ name: TraceName.UpdateNetwork });
 
       // Set the active network
       MultichainNetworkController.setActiveNetwork(clientId);

@@ -42,6 +42,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { getDecimalChainId } from '../../../../../util/networks';
+import {
+  endTrace,
+  TraceOperation,
+  trace,
+  TraceName,
+} from '../../../../../util/trace';
+import { store } from '../../../../../core/Analytics';
+import { getTraceTags } from '../../../../../util/sentry/tags';
 
 function NetworkSwitcher() {
   const navigation = useNavigation();
@@ -155,6 +163,11 @@ function NetworkSwitcher() {
 
   const switchNetwork = useCallback(
     async (networkConfiguration) => {
+      trace({
+        name: TraceName.SwitchCustomNetwork,
+        tags: getTraceTags(store.getState()),
+        op: TraceOperation.SwitchCustomNetwork,
+      });
       const { MultichainNetworkController } = Engine.context;
       const config = Object.values(networkConfigurations).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
@@ -169,6 +182,7 @@ function NetworkSwitcher() {
         await MultichainNetworkController.setActiveNetwork(networkClientId);
 
         navigateToGetStarted();
+        endTrace({ name: TraceName.SwitchCustomNetwork });
       }
     },
     [navigateToGetStarted, networkConfigurations],
