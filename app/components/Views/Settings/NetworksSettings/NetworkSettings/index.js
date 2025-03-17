@@ -93,7 +93,14 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import ReusableModal from '../../../../../components/UI/ReusableModal';
 import Device from '../../../../../util/device';
 import { ScrollView } from 'react-native-gesture-handler';
-import { TraceName, TraceOperation } from '../../../../../util/trace';
+import {
+  trace,
+  TraceName,
+  TraceOperation,
+  endTrace,
+} from '../../../../../util/trace';
+import { store } from '../../../../../core/Analytics';
+import { getTraceTags } from '../../../../../util/sentry/tags';
 
 const createStyles = (colors) =>
   StyleSheet.create({
