@@ -126,28 +126,18 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
           }
         }
       >
-        <Text
-          allowFontScaling={false}
+        <SvgMock
+          color="#0376c9"
+          height={24}
+          name="Info"
           style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 28,
-              },
-              {
-                "color": "#0376c9",
-              },
-              {
-                "fontFamily": "Material Design Icons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
+            {
+              "height": 24,
+              "width": 24,
+            }
           }
-        >
-          
-        </Text>
+          width={24}
+        />
       </View>
       <View
         style={
