@@ -304,7 +304,6 @@ export const Browser = (props) => {
     if (showTabs) {
       return (
         <Tabs
-          navigation={navigation}
           tabs={tabs}
           activeTab={activeTabId}
           switchToTab={switchToTab}
