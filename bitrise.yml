@@ -1437,6 +1437,18 @@ workflows:
           inputs:
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
+          title: Deploy Flask APK to Bitrise
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                FLASK_APK_PATH_1=$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
+                echo "Flask APK path set to: $FLASK_APK_PATH_1"
+          title: Set Flask APK Path
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
