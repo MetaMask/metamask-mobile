@@ -76,7 +76,7 @@ prerequisiteCombinations.forEach((combinedState) => {
   }
 });
 
-describe('useAutoSignIn', () => {
+describe('useAutoSignOut', () => {
   it('should initialize correctly', () => {
     const { state } = arrangeMocks({
       isUnlocked: false,
