@@ -22,7 +22,7 @@ export const performSignIn = async () => {
 
 export const performSignOut = async () => {
   try {
-    await Engine.context.AuthenticationController.performSignOut();
+    Engine.context.AuthenticationController.performSignOut();
   } catch (error) {
     return getErrorMessage(error);
   }
