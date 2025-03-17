@@ -229,7 +229,11 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
           <Text style={styles.date}>
             {timestamp && toDateFormat(new Date(timestamp * 1000))}
           </Text>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={onClose}
+            testID={`transaction-details-close-button`}
+          >
             <Icon name="x" size={24} color="#000" />
           </TouchableOpacity>
         </View>

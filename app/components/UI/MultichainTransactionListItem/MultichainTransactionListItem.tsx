@@ -173,6 +173,7 @@ const MultichainTransactionListItem = ({
         onPress={handlePress}
         underlayColor={colors.background.alternative}
         activeOpacity={1}
+        testID={`transaction-list-item-${transaction.id}`}
       >
         <ListItem>
           <ListItem.Date style={styles.listItemDate}>
