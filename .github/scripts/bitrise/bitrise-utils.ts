@@ -1,6 +1,5 @@
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
-import { Octokit } from "@octokit/rest";  // Import the Octokit class
 
   // Define Bitrise comment tags
   const bitriseTag = '<!-- BITRISE_TAG -->';
