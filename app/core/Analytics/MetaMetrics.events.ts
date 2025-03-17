@@ -5,7 +5,7 @@
 
 import { IMetaMetricsEvent } from './MetaMetrics.types';
 
-const generateOpt = (
+export const generateOpt = (
   name: EVENT_NAME,
   action?: ACTIONS,
   description?: DESCRIPTION,
