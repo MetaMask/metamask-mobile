@@ -11,7 +11,6 @@ const requestEthereumAccounts = {
   hookNames: {
     getAccounts: true,
     getUnlockPromise: true,
-    sendMetrics: true,
     metamaskState: true,
     getCaip25PermissionFromLegacyPermissionsForOrigin: true,
     requestPermissionsForOrigin: true,
