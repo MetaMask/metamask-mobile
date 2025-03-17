@@ -62,3 +62,4 @@
 -dontwarn com.huawei.hms.ads.**
 -dontwarn com.google.common.util.concurrent.**
 -dontwarn org.objectweb.asm.**
+-dontwarn net.bytebuddy.**
