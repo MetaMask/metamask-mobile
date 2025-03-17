@@ -1,11 +1,11 @@
 import { toHex } from '@metamask/controller-utils';
-import { NetworkController } from '@metamask/network-controller';
 import Engine from '../../core/Engine';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../selectors/networkController';
 import { store } from '../../store';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 /**
  * Switch to the given chain ID.
@@ -21,10 +21,12 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     return;
   }
 
-  const networkController = Engine.context
-    .NetworkController as NetworkController;
-  const chainId = selectChainId(store.getState());
-  const networkConfigurations = selectNetworkConfigurations(store.getState());
+  const multichainNetworkController = Engine.context
+    .MultichainNetworkController as MultichainNetworkController;
+  const chainId = selectEvmChainId(store.getState());
+  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
+    store.getState(),
+  );
 
   // If current network is the same as the one we want to switch to, do nothing
   if (chainId === toHex(switchToChainId)) {
@@ -40,7 +42,7 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] = entry;
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-    networkController.setActiveNetwork(networkClientId);
+    multichainNetworkController.setActiveNetwork(networkClientId);
 
     return nickname;
   }

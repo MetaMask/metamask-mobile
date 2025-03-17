@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
+import { StyleProp, StyleSheet, TextStyle, View } from 'react-native';
 import { hexToText } from '@metamask/controller-utils';
 import { numberToHex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../../locales/i18n';
+import Text from '../../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../../styles/common';
 import { useStyles } from '../../../../../../../component-library/hooks';
@@ -11,7 +12,6 @@ import { sanitizeString } from '../../../../../../../util/string';
 import { getSIWEDetails, SIWEMessage } from '../../../../utils/signature';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import Address from '../../../UI/InfoRow/InfoValue/Address';
-import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
 import InfoDate from '../../../UI/InfoRow/InfoValue/InfoDate';
 import InfoRow from '../../../UI/InfoRow';
 import Network from '../../../UI/InfoRow/InfoValue/Network';
@@ -58,9 +58,7 @@ const DetailedSIWEMessage = ({
   return (
     <View>
       <Text style={styles.siweTos}>{parsedMessage?.statement}</Text>
-      <InfoRow label={strings('confirm.siwe_message.url')}>
-        <DisplayURL url={uri} />
-      </InfoRow>
+      <InfoRow label={strings('confirm.siwe_message.url')}>{uri}</InfoRow>
       <InfoRow label={strings('confirm.siwe_message.network')}>
         <Network chainId={numberToHex(parseInt(chainId))} />
       </InfoRow>

@@ -23,7 +23,7 @@ describe('PermissionController specifications', () => {
   describe('caveat specifications', () => {
     it('getCaveatSpecifications returns the expected specifications object', () => {
       const caveatSpecifications = getCaveatSpecifications({});
-      expect(Object.keys(caveatSpecifications)).toHaveLength(13);
+      expect(Object.keys(caveatSpecifications)).toHaveLength(14);
       expect(
         caveatSpecifications[CaveatTypes.restrictReturnedAccounts].type,
       ).toStrictEqual(CaveatTypes.restrictReturnedAccounts);
@@ -59,6 +59,9 @@ describe('PermissionController specifications', () => {
       );
       expect(caveatSpecifications.lookupMatchers.type).toStrictEqual(
         SnapCaveatType.LookupMatchers,
+      );
+      expect(caveatSpecifications.protocolSnapScopes.type).toStrictEqual(
+        SnapCaveatType.ProtocolSnapScopes,
       );
     });
 

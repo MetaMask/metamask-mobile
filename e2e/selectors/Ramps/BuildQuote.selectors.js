@@ -13,4 +13,6 @@ export const BuildQuoteSelectors = {
   DONE_BUTTON: enContent.fiat_on_ramp_aggregator.done,
   MIN_LIMIT_ERROR: 'min-limit-error',
   MAX_LIMIT_ERROR: 'max-limit-error',
+  INSUFFICIENT_BALANCE_ERROR: 'insufficient-balance-error',
+  KEYPAD_DELETE_BUTTON: 'keypad-delete-button',
 };

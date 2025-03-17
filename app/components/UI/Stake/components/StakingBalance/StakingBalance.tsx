@@ -24,7 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { renderFromWei } from '../../../../../util/number';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { filterExitRequests } from './utils';
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import bn from 'bignumber.js';
 import {
   CommonPercentageInputUnits,
@@ -37,7 +37,6 @@ import StakingCta from './StakingCta/StakingCta';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
 import usePooledStakes from '../../hooks/usePooledStakes';
-import useVaultData from '../../hooks/useVaultData';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import type { TokenI } from '../../../Tokens/types';
 import useBalance from '../../hooks/useBalance';
@@ -49,6 +48,7 @@ import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import { isPortfolioViewEnabled } from '../../../../../util/networks';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
+import useVaultApyAverages from '../../hooks/useVaultApyAverages';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -81,8 +81,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     hasEthToUnstake,
     isLoadingPooledStakesData,
   } = usePooledStakes();
-  const { vaultData } = useVaultData();
-  const annualRewardRate = vaultData?.apy || '';
+
+  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
 
   const {
     formattedStakedBalanceETH: stakedBalanceETH,
@@ -99,8 +99,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
       renderFromWei(
         claimableRequests.reduce(
           (acc, { claimedAssets }) =>
-            claimedAssets ? acc.add(new BN(claimedAssets)) : acc,
-          new BN(0),
+            claimedAssets ? acc.add(new BN4(claimedAssets)) : acc,
+          new BN4(0),
         ),
       ),
     [claimableRequests],
@@ -182,10 +182,10 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           />
         )}
 
-        {!hasStakedPositions && (
+        {!hasStakedPositions && !isLoadingVaultApyAverages && (
           <StakingCta
             style={styles.stakingCta}
-            estimatedRewardRate={formatPercent(annualRewardRate, {
+            estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
               inputFormat: CommonPercentageInputUnits.PERCENTAGE,
               outputFormat: PercentageOutputFormat.PERCENT_SIGN,
               fixed: 1,
@@ -194,6 +194,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         )}
 
         <StakingButtons
+          asset={asset}
           style={styles.buttonsContainer}
           hasEthToUnstake={hasEthToUnstake}
           hasStakedPositions={hasStakedPositions}
@@ -236,7 +237,11 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
               <NetworkMainAssetLogo style={styles.ethLogo} />
             )}
           </BadgeWrapper>
-          <Text style={styles.balances} variant={TextVariant.BodyLGMedium} testID="staked-ethereum-label">
+          <Text
+            style={styles.balances}
+            variant={TextVariant.BodyLGMedium}
+            testID="staked-ethereum-label"
+          >
             {strings('stake.staked_ethereum')}
           </Text>
         </AssetElement>

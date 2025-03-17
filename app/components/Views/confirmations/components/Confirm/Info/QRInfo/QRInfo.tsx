@@ -1,11 +1,12 @@
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
-import { Text, View, Linking, TouchableOpacity } from 'react-native';
+import { View, Linking, TouchableOpacity } from 'react-native';
 import { UR } from '@ngraveio/bc-ur';
 import { stringify as uuidStringify } from 'uuid';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Engine from '../../../../../../../core/Engine';
+import Text from '../../../../../../../component-library/components/Texts/Text';
 import AnimatedQRCode from '../../../../../../UI/QRHardware/AnimatedQRCode';
 import AnimatedQRScannerModal from '../../../../../../UI/QRHardware/AnimatedQRScanner';
 import Alert, { AlertType } from '../../../../../../Base/Alert';
@@ -14,7 +15,7 @@ import {
   useMetrics,
 } from '../../../../../../hooks/useMetrics';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { useQRHardwareContext } from '../../../../context/QRHardwareContext/QRHardwareContext';
+import { useQRHardwareContext } from '../../../../context/QRHardwareContext';
 import styleSheet from './QRInfo.styles';
 
 const QRInfo = () => {
@@ -30,7 +31,7 @@ const QRInfo = () => {
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [shouldPause, setShouldPause] = useState(false);
 
-  const submitQRSignature = Engine.context.KeyringController.submitQRSignature;
+  const KeyringController = Engine.context.KeyringController;
 
   useEffect(() => {
     if (scannerVisible) {
@@ -46,7 +47,7 @@ const QRInfo = () => {
       if (buffer) {
         const requestId = uuidStringify(buffer);
         if (QRState?.sign?.request?.requestId === requestId) {
-          submitQRSignature(
+          KeyringController.submitQRSignature(
             QRState.sign.request?.requestId as string,
             ur.cbor.toString('hex'),
           );
@@ -69,7 +70,7 @@ const QRInfo = () => {
       createEventBuilder,
       setRequestCompleted,
       setScannerVisible,
-      submitQRSignature,
+      KeyringController,
       trackEvent,
     ],
   );

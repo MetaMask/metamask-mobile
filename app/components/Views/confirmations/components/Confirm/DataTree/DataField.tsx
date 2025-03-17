@@ -1,9 +1,10 @@
 import React, { memo } from 'react';
 import { Hex, isValidHexAddress } from '@metamask/utils';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { startCase } from 'lodash';
 
 import { strings } from '../../../../../../../locales/i18n';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import { NONE_DATE_VALUE } from '../../../utils/date';
 import {
   PRIMARY_TYPES_ORDER,
@@ -71,7 +72,7 @@ const createStyles = (depth: number) =>
     },
     dataRow: {
       paddingHorizontal: 0,
-      paddingBottom: 16,
+      paddingBottom: 8,
     },
   });
 
@@ -107,7 +108,13 @@ const DataField = memo(
           <InfoDate unixTimestamp={parseInt(value, 10)} />
         );
     } else if (isTokenValueField(label, primaryType)) {
-      fieldDisplay = <TokenValue value={value} decimals={tokenDecimals} />;
+      fieldDisplay = (
+        <TokenValue
+          label={startCase(label)}
+          value={value}
+          decimals={tokenDecimals}
+        />
+      );
     } else if (typeof value === 'object' && value !== null) {
       fieldDisplay = (
         <DataTree
@@ -118,6 +125,8 @@ const DataField = memo(
           tokenDecimals={tokenDecimals}
         />
       );
+    } else if (type === 'bool') {
+      fieldDisplay = <Text>{value ? 'true' : 'false'}</Text>;
     } else {
       fieldDisplay = <Text>{value}</Text>;
     }

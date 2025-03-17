@@ -1,58 +1,62 @@
-import { useState, useCallback } from 'react';
-import { getErrorMessage } from '../../errorHandling';
+import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import {
-  disablePushNotifications,
-  enablePushNotifications,
+  assertIsFeatureEnabled,
+  disablePushNotifications as disablePushNotificationsHelper,
+  enablePushNotifications as enablePushNotificationsHelper,
 } from '../../../actions/notification/helpers';
-import { mmStorage } from '../settings';
-import { UserStorage } from '@metamask/notification-services-controller/notification-services';
-import { isNotificationsFeatureEnabled } from '../constants';
+import {
+  selectIsMetaMaskPushNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsLoading,
+} from '../../../selectors/notifications';
+import {
+  hasPushPermission,
+  requestPushPermissions,
+} from '../services/NotificationService';
 
-export function usePushNotifications() {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const resetStates = useCallback(() => {
-    setLoading(false);
-    setError(null);
+export interface UsePushNotificationsToggleProps {
+  // Depending on the instance, we may want to nudge to enable push notifications
+  // Or skip nudging.
+  // E.g. Onboarding = nudge, settings page = don't nudge
+  nudgeEnablePush: boolean;
+}
+export function usePushNotificationsToggle(
+  props: UsePushNotificationsToggleProps = { nudgeEnablePush: true },
+) {
+  const data = useSelector(selectIsMetaMaskPushNotificationsEnabled);
+  const loading = useSelector(selectIsMetaMaskPushNotificationsLoading);
+
+  const enablePushNotifications = useCallback(async () => {
+    assertIsFeatureEnabled();
+    const pushPermCallback = props.nudgeEnablePush
+      ? requestPushPermissions
+      : hasPushPermission;
+
+    const result = await pushPermCallback().catch(() => false);
+    if (!result) return;
+
+    await enablePushNotificationsHelper().catch(() => {
+      /* Do Nothing */
+    });
+  }, [props.nudgeEnablePush]);
+
+  const disablePushNotifications = useCallback(async () => {
+    assertIsFeatureEnabled();
+    await disablePushNotificationsHelper().catch(() => {
+      /* Do Nothing */
+    });
   }, []);
 
-  const switchPushNotifications = useCallback(
-    async (state: boolean) => {
-      if (!isNotificationsFeatureEnabled()) {
-        return;
-      }
-
-      resetStates();
-      setLoading(true);
-      let errorMessage: string | undefined;
-
-      try {
-        const userStorage: UserStorage = mmStorage.getLocal('pnUserStorage');
-        if (state) {
-          const fcmToken = mmStorage.getLocal('metaMaskFcmToken');
-          errorMessage = await enablePushNotifications(
-            userStorage,
-            fcmToken?.data,
-          );
-        } else {
-          errorMessage = await disablePushNotifications(userStorage);
-        }
-        if (errorMessage) {
-          setError(getErrorMessage(errorMessage));
-        }
-      } catch (e) {
-        errorMessage = getErrorMessage(e);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
+  const togglePushNotification = useCallback(
+    async (val: boolean) => {
+      val ? await enablePushNotifications() : await disablePushNotifications();
     },
-    [resetStates],
+    [disablePushNotifications, enablePushNotifications],
   );
 
   return {
-    switchPushNotifications,
+    data,
+    togglePushNotification,
     loading,
-    error,
   };
 }

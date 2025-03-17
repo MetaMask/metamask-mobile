@@ -3,7 +3,10 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { merge, cloneDeep } from 'lodash';
 
 // eslint-disable-next-line import/no-namespace
-import { isExternalHardwareAccount } from '../../../../util/address';
+import {
+  isExternalHardwareAccount,
+  isHardwareAccount,
+} from '../../../../util/address';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
@@ -13,6 +16,7 @@ import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled
 
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
+  isHardwareAccount: jest.fn(),
   isExternalHardwareAccount: jest.fn(),
 }));
 
@@ -33,13 +37,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 describe('useConfirmationRedesignEnabled', () => {
   describe('signature confirmations', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      (isExternalHardwareAccount as jest.Mock).mockReturnValue(true);
-    });
-
     it('returns true for personal sign request', async () => {
-      (isExternalHardwareAccount as jest.Mock).mockReturnValue(false);
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
         {
@@ -51,6 +49,7 @@ describe('useConfirmationRedesignEnabled', () => {
     });
 
     it('returns false for external accounts', async () => {
+      (isExternalHardwareAccount as jest.Mock).mockReturnValue(true);
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
         {
@@ -62,9 +61,10 @@ describe('useConfirmationRedesignEnabled', () => {
     });
 
     it('returns false when remote flag is disabled', async () => {
-      const state = merge(personalSignatureConfirmationState, {
+      const state = {
         engine: {
           backgroundState: {
+            ...personalSignatureConfirmationState.engine.backgroundState,
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
                 confirmation_redesign: {
@@ -74,7 +74,7 @@ describe('useConfirmationRedesignEnabled', () => {
             },
           },
         },
-      });
+      };
 
       const { result } = renderHookWithProvider(
         useConfirmationRedesignEnabled,
@@ -90,6 +90,11 @@ describe('useConfirmationRedesignEnabled', () => {
   describe('transaction redesigned confirmations', () => {
     describe('staking confirmations', () => {
       describe('staking deposit', () => {
+        beforeEach(() => {
+          jest.clearAllMocks();
+          (isHardwareAccount as jest.Mock).mockReturnValue(false);
+        });
+
         it('returns true when enabled', async () => {
           const { result } = renderHookWithProvider(
             useConfirmationRedesignEnabled,
@@ -155,6 +160,18 @@ describe('useConfirmationRedesignEnabled', () => {
             useConfirmationRedesignEnabled,
             {
               state,
+            },
+          );
+
+          expect(result.current.isRedesignedEnabled).toBe(false);
+        });
+
+        it('returns false when from address is external hardware account', async () => {
+          (isHardwareAccount as jest.Mock).mockReturnValue(true);
+          const { result } = renderHookWithProvider(
+            useConfirmationRedesignEnabled,
+            {
+              state: stakingDepositConfirmationState,
             },
           );
 

@@ -1,6 +1,9 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
-import { fontStyles, colors as importedColors } from '../../../../../../../../../../styles/common';
+import {
+  fontStyles,
+  colors as importedColors,
+} from '../../../../../../../../../../styles/common';
 
 const styleSheet = (colors: Theme['colors']) =>
   StyleSheet.create({
@@ -12,17 +15,18 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
-    fiatDisplay: {
-      paddingEnd: 8,
-    },
     flexRowTokenValueAndAddress: {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'flex-end',
-      alignItems: 'center',
+      alignItems: 'flex-end',
       borderColor: importedColors.transparent,
       borderWidth: 0,
       padding: 0,
+      flexWrap: 'wrap',
+    },
+    loadingFiatValue: {
+      height: 24,
     },
     loaderButtonPillEmptyContent: {
       height: 22,
@@ -41,10 +45,12 @@ const styleSheet = (colors: Theme['colors']) =>
     valueAndAddress: {
       paddingVertical: 4,
       paddingLeft: 8,
-      gap: 5,
+      columnGap: 5,
+      rowGap: 8,
       flexDirection: 'row',
       alignItems: 'center',
-      alignSelf: 'center',
+      justifyContent: 'flex-end',
+      flexWrap: 'wrap',
     },
     valueIsCredit: {
       backgroundColor: colors.success.muted,
@@ -80,7 +86,6 @@ const styleSheet = (colors: Theme['colors']) =>
       color: colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
-      fontWeight: '700',
       textAlign: 'center',
       width: '100%',
       // height of header icon

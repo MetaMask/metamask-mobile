@@ -32,6 +32,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { parseVaultApyAveragesResponse } from './PoolStakingLearnMoreModal.utils';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import useVaultApyAverages from '../../hooks/useVaultApyAverages';
+import {
+  CommonPercentageInputUnits,
+  formatPercent,
+  PercentageOutputFormat,
+} from '../../utils/value';
 
 const BodyText = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -76,13 +81,15 @@ const PoolStakingLearnMoreModal = () => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const { vaultApys, isLoadingVaultApys, refreshVaultApys } = useVaultApys();
+  const { vaultApys, isLoadingVaultApys } = useVaultApys();
 
-  const {
-    vaultApyAverages,
-    isLoadingVaultApyAverages,
-    refreshVaultApyAverages,
-  } = useVaultApyAverages();
+  // Order apys from oldest to newest
+  const reversedVaultApys = useMemo(
+    () => [...vaultApys].reverse(),
+    [vaultApys],
+  );
+
+  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
 
   // Converts VaultApyAverage for use with interactive graph timespan buttons.
   const parsedVaultTimespanApyAverages = useMemo(() => {
@@ -99,20 +106,6 @@ const PoolStakingLearnMoreModal = () => {
       setActiveTimespanApyAverage(parsedVaultTimespanApyAverages?.[7]);
     }
   }, [parsedVaultTimespanApyAverages]);
-
-  useEffect(() => {
-    async function refreshGraphData() {
-      await Promise.all([refreshVaultApyAverages(), refreshVaultApys()]).catch(
-        (err) =>
-          console.error(
-            'Failed to refresh Pool-Staking Learn More Modal Data: ',
-            err,
-          ),
-      );
-    }
-
-    refreshGraphData();
-  }, [refreshVaultApyAverages, refreshVaultApys]);
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -168,18 +161,24 @@ const PoolStakingLearnMoreModal = () => {
             {strings('stake.stake_eth_and_earn')}
           </Text>
         </BottomSheetHeader>
-        {Boolean(vaultApys.length) && activeTimespanApyAverage && (
+        {Boolean(reversedVaultApys.length) && activeTimespanApyAverage && (
           <InteractiveTimespanChart
-            dataPoints={vaultApys}
+            dataPoints={reversedVaultApys}
             yAccessor={(point) => new BigNumber(point.daily_apy).toNumber()}
-            defaultTitle={`${new BigNumber(
+            defaultTitle={`${formatPercent(
               activeTimespanApyAverage.apyAverage,
-            ).toFixed(2, BigNumber.ROUND_DOWN)}% ${strings('stake.apr')}`}
+              {
+                inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                fixed: 1,
+              },
+            )} ${strings('stake.apr')}`}
             titleAccessor={(point) =>
-              `${new BigNumber(point.daily_apy).toFixed(
-                2,
-                BigNumber.ROUND_DOWN,
-              )}% ${strings('stake.apr')}`
+              `${formatPercent(point.daily_apy, {
+                inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                fixed: 1,
+              })} ${strings('stake.apr')}`
             }
             defaultSubtitle={activeTimespanApyAverage.label}
             subtitleAccessor={(point) => formatChartDate(point.timestamp)}

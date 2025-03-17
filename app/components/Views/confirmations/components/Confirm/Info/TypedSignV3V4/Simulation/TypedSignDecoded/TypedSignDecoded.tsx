@@ -84,7 +84,7 @@ const getStateChangeLabelMap = (
         ? strings('confirm.simulation.label_change_type_nft_listing')
         : strings('confirm.simulation.label_change_type_receive'),
     [DecodingDataChangeType.Approve]: strings('confirm.simulation.label_change_type_permit'),
-    [DecodingDataChangeType.Revoke]: strings('confirm.simulation.label_change_type_permit'),
+    [DecodingDataChangeType.Revoke]: strings('confirm.simulation.label_change_type_revoke'),
     [DecodingDataChangeType.Bidding]: strings('confirm.simulation.label_change_type_bidding'),
     [DecodingDataChangeType.Listing]: strings('confirm.simulation.label_change_type_listing'),
   }[changeType]);
@@ -110,21 +110,22 @@ const StateChangeRow = ({
     (changeType === DecodingDataChangeType.Approve ||
       changeType === DecodingDataChangeType.Revoke);
 
-  const changeLabel = shouldDisplayLabel
+  const labelChangeType = shouldDisplayLabel
     ? getStateChangeLabelMap(changeType, nftTransactionType)
     : '';
 
   return (
     <InfoRow
-      label={changeLabel}
+      label={labelChangeType}
       tooltip={tooltip}
     >
       {(assetType === TokenStandard.ERC20 ||
         assetType === TokenStandard.ERC721 ||
         assetType === TokenStandard.ERC1155) && (
         <SimulationValueDisplay
-          labelChangeType={changeType}
+          modalHeaderText={changeType}
           tokenContract={contractAddress}
+          allowed={amount}
           value={amount}
           chainId={chainId}
           tokenId={tokenID}
@@ -145,7 +146,7 @@ const StateChangeRow = ({
             changeType === DecodingDataChangeType.Receive
           }
           debit={changeType === DecodingDataChangeType.Transfer}
-          labelChangeType={changeLabel}
+          modalHeaderText={labelChangeType}
         />
       )}
     </InfoRow>

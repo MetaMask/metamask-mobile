@@ -6,8 +6,10 @@ import Engine from '../../../../core/Engine';
 import useAddressBalance from '../../../../components/hooks/useAddressBalance/useAddressBalance';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { renderAccountName } from '../../../../util/address';
-import { renderFiat } from '../../../../util/number';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { formatWithThreshold } from '../../../../util/assets';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import I18n from 'i18n-js';
 
 const useAccountInfo = (address: string) => {
   const internalAccounts = useSelector(selectInternalAccounts);
@@ -18,9 +20,14 @@ const useAccountInfo = (address: string) => {
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const balance = Engine.getTotalFiatAccountBalance();
-  const accountFiatBalance = `${renderFiat(
+  const accountFiatBalance = `${formatWithThreshold(
     balance.tokenFiat,
-    currentCurrency,
+    0,
+    I18n.locale,
+    {
+      style: 'currency',
+      currency: currentCurrency.toUpperCase(),
+    },
   )}`;
 
   const accountName = useMemo(

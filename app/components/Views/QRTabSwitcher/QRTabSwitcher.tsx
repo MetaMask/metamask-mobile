@@ -48,6 +48,7 @@ export interface QRTabSwitcherParams {
   initialScreen?: QRTabSwitcherScreens;
   disableTabber?: boolean;
   origin?: string;
+  networkName?: string;
 }
 
 export const createQRScannerNavDetails =
@@ -62,6 +63,7 @@ const QRTabSwitcher = () => {
     initialScreen,
     origin,
     disableTabber,
+    networkName,
   } = route.params as QRTabSwitcherParams;
 
   const [selectedIndex, setSelectedIndex] = useState(
@@ -136,6 +138,8 @@ const QRTabSwitcher = () => {
               translate={false}
               // @ts-expect-error proptypes components requires ts-expect-error
               disableNetwork
+              // @ts-expect-error proptypes components requires ts-expect-error
+              networkName={networkName}
             />
           ) : null}
         </HeaderBase>
