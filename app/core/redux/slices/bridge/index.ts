@@ -10,6 +10,7 @@ import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { uniqBy } from 'lodash';
 import { ALLOWED_BRIDGE_CHAIN_IDS, AllowedBridgeChainIds, BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import { TokenI } from '../../../../components/UI/Tokens/types';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -18,8 +19,8 @@ export interface BridgeState {
   sourceAmount: string | undefined;
   destAmount: string | undefined;
   destChainId: SupportedCaipChainId | Hex | undefined;
-  sourceToken: BridgeToken | undefined;
-  destToken: BridgeToken | undefined;
+  sourceToken: TokenI | undefined;
+  destToken: TokenI | undefined;
   selectedSourceChainIds: undefined | string[];
 }
 
@@ -66,7 +67,7 @@ const slice = createSlice({
       state.sourceAmount = undefined;
       state.destAmount = undefined;
     },
-    setSourceToken: (state, action: PayloadAction<BridgeToken>) => {
+    setSourceToken: (state, action: PayloadAction<TokenI>) => {
       state.sourceToken = action.payload;
     },
   },
@@ -152,8 +153,8 @@ export const selectSourceToken = createSelector(
       symbol: sourceToken.symbol,
       image: 'iconUrl' in sourceToken ? sourceToken.iconUrl : '',
       decimals: sourceToken.decimals,
-      chainId: currentChainId as SupportedCaipChainId,
-    } as BridgeToken;
+      chainId: currentChainId as Hex,
+    } as TokenI;
   },
 );
 

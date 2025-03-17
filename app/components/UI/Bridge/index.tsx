@@ -31,6 +31,7 @@ import { strings } from '../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../util/bridge/hooks/useSubmitBridgeTx';
 import { QuoteResponse } from './types';
 import Engine from '../../../core/Engine';
+import { Hex } from '@metamask/utils';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -110,25 +111,26 @@ const BridgeView = () => {
   const destAmount = useSelector(selectDestAmount);
   const destChainId = useSelector(selectDestChainId);
 
-  const sourceBalance = useLatestBalance({
+  const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
+    chainId: sourceToken?.chainId as Hex,
+    balance: sourceToken?.balance
   });
 
   const hasInsufficientBalance = useMemo(() => {
-    if (!sourceAmount || !sourceBalance?.atomicBalance || !sourceToken?.decimals) {
+    if (!sourceAmount || !latestSourceBalance?.atomicBalance || !sourceToken?.decimals) {
       return false;
     }
 
     const sourceAmountAtomic = ethers.utils.parseUnits(sourceAmount, sourceToken.decimals);
-    return sourceAmountAtomic.gt(sourceBalance.atomicBalance);
-  }, [sourceAmount, sourceBalance?.atomicBalance, sourceToken?.decimals]);
+    return sourceAmountAtomic.gt(latestSourceBalance.atomicBalance);
+  }, [sourceAmount, latestSourceBalance?.atomicBalance, sourceToken?.decimals]);
 
   // Reset bridge state when component unmounts
   useEffect(() => () => {
-      dispatch(resetBridgeState());
-    }, [dispatch]);
+    dispatch(resetBridgeState());
+  }, [dispatch]);
 
   useEffect(() => {
     navigation.setOptions(getBridgeNavbar(navigation, route, colors));
@@ -202,13 +204,11 @@ const BridgeView = () => {
       >
         <Box style={styles.inputsContainer} gap={8}>
           <TokenInputArea
-            value={sourceAmount}
-            tokenSymbol={sourceToken?.symbol}
-            tokenBalance={sourceBalance?.displayBalance}
-            tokenIconUrl={sourceToken?.image}
-            tokenAddress={sourceToken?.address}
+            amount={sourceAmount}
+            token={sourceToken}
+            tokenBalance={latestSourceBalance?.displayBalance}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            networkImageSource={getNetworkImageSource({ chainId: sourceToken?.chainId })}
+            networkImageSource={getNetworkImageSource({ chainId: sourceToken?.chainId as Hex })}
             autoFocus
             isReadonly
             testID="source-token-area"
@@ -224,12 +224,10 @@ const BridgeView = () => {
             </TouchableOpacity>
           </Box>
           <TokenInputArea
-            value={destAmount}
-            tokenSymbol={destToken?.symbol}
-            tokenAddress={destToken?.address}
-            tokenIconUrl={destToken?.image}
+            amount={destAmount}
+            token={destToken}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            networkImageSource={destChainId ? getNetworkImageSource({ chainId: destChainId }) : undefined}
+            networkImageSource={destChainId ? getNetworkImageSource({ chainId: destChainId as Hex }) : undefined}
             isReadonly
             testID="dest-token-area"
             tokenType="destination"

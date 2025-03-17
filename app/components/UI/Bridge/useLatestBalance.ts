@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { type Hex, type CaipChainId, isCaipChainId } from '@metamask/utils';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
-import { formatUnits, getAddress } from 'ethers/lib/utils';
+import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getProviderByChainId } from '../../../util/notifications/methods/common';
@@ -43,6 +43,7 @@ interface Balance {
 
 /**
  * A hook that fetches and returns the latest balance for a given token.
+ * Latest balance is important because token balances can be cached and may not be updated immediately.
  * @param token - The token object containing address, decimals, and symbol.
  * @param chainId - The chain ID to be used for fetching the balance. Optional.
  * @returns An object containing the the balance as a non-atomic decimal string and the atomic balance as a BigNumber.
@@ -52,6 +53,7 @@ export const useLatestBalance = (
     address?: string;
     decimals?: number;
     chainId?: Hex | CaipChainId;
+    balance?: string
   },
 ) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
@@ -87,10 +89,21 @@ export const useLatestBalance = (
     handleFetchAtomicBalance();
   }, [handleFetchAtomicBalance]);
 
-  // If the token has changed, return undefined, so we have time to fetch the new balance
+  // If the token has changed, return cached balance of new token, so we have time to fetch the new balance
   if (previousToken?.address !== token.address) {
-    return undefined;
+    return {
+      displayBalance: token.balance,
+      atomicBalance: token.balance
+        ? parseUnits(token.balance, token.decimals)
+        : undefined,
+    };
   }
 
-  return balance;
+  // Return balance if it exists, otherwise return cached balance of new token
+  return balance ?? {
+    displayBalance: token.balance,
+    atomicBalance: token.balance
+      ? parseUnits(token.balance, token.decimals)
+      : undefined,
+  };
 };

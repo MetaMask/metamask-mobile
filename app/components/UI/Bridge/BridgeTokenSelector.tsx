@@ -10,9 +10,7 @@ import BottomSheetHeader from '../../../component-library/components/BottomSheet
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import { TokenI } from '../Tokens/types';
 import { Hex } from '@metamask/utils';
-import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
-import { BridgeToken } from './types';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
@@ -65,7 +63,6 @@ export const BridgeTokenSelector: React.FC = () => {
   const { styles, theme } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const currentChainId = useSelector(selectChainId) as Hex;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
@@ -79,15 +76,7 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const handleTokenPress = useCallback((token: TokenI) => {
-    const bridgeToken: BridgeToken = {
-      address: token.address,
-      symbol: token.symbol,
-      image: token.image,
-      decimals: token.decimals,
-      chainId: token.chainId as SupportedCaipChainId,
-    };
-
-    dispatch(setSourceToken(bridgeToken));
+    dispatch(setSourceToken(token));
     navigation.goBack();
   }, [dispatch, navigation]);
 
@@ -111,7 +100,7 @@ export const BridgeTokenSelector: React.FC = () => {
         networkImageSource={networkDetails.imageSource}
       />
     );
-  }, [currentChainId, getNetworkBadgeDetails, handleTokenPress]);
+  }, [getNetworkBadgeDetails, handleTokenPress]);
 
   const keyExtractor = useCallback((token: TokenI) => `${token.chainId}-${token.address}`, []);
 

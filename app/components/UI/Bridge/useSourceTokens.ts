@@ -24,8 +24,25 @@ interface CalculateFiatBalancesParams {
   selectedAddress: Hex;
 }
 
-// From app/components/UI/Tokens/index.tsx
-const calculateBalances = ({
+/**
+ * Calculate the fiat value of tokens and their balances
+ * Originally rom app/components/UI/Tokens/index.tsx
+ * @param {Object} params - The parameters object
+ * @param {TokenI[]} params.assets - Array of tokens to calculate balances for
+ * @param {Object} params.multiChainMarketData - Market data for tokens across chains
+ * @param {Object} params.multiChainTokenBalance - Token balances across chains
+ * @param {Object} params.networkConfigurationsByChainId - Network configurations by chain ID
+ * @param {Object} params.multiChainCurrencyRates - Currency conversion rates across chains
+ * @param {string} params.currentCurrency - Current currency code
+ * @param {Hex} params.selectedAddress - Selected account address
+ * @returns {Array<{tokenFiatAmount: number, balance: string, balanceFiat: string}>} Array of token balances with fiat values
+ * @example
+ * // Returns array of objects with:
+ * // tokenFiatAmount: A sortable fiat value in the user's currency, e.g. 100.12345
+ * // balance: A truncated non-atomic balance, e.g. 1.23456
+ * // balanceFiat: A formatted fiat value, e.g. "$100.12345", "100.12345 cad"
+ */
+export const calculateBalances = ({
   assets,
   multiChainMarketData,
   multiChainTokenBalance,
@@ -66,7 +83,7 @@ const calculateBalances = ({
       currentCurrency || '',
     );
     return {
-      tokenFiatAmount: res.balanceFiatCalculation ?? 0, // A sortable fiat value, e.g. 100.12345
+      tokenFiatAmount: res.balanceFiatCalculation ?? 0, // A sortable fiat value in the user's currency, e.g. 100.12345
       balance: res.balance ?? '0', // A truncated non-atomic balance, e.g. 1.23456
       balanceFiat: res.balanceFiat, // A formatted fiat value, e.g. "$100.12345", "100.12345 cad"
     };
