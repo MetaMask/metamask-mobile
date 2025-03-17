@@ -168,7 +168,6 @@ class Tabs extends PureComponent {
 
   state = {
     currentTab: null,
-    isMaxTabsDialogVisible: false,
   };
 
   scrollview = React.createRef();
