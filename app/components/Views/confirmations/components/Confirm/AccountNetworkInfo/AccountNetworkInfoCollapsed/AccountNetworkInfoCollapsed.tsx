@@ -33,7 +33,9 @@ const AccountNetworkInfoCollapsed = () => {
   const fromAddress = signatureRequest?.messageParams?.from as string;
   const { accountName } = useAccountInfo(fromAddress);
   const accountLabel = getLabelTextByAddress(fromAddress);
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {
+    accountNameWide: Boolean(!accountLabel),
+  });
 
   return (
     <View style={styles.container}>
@@ -59,7 +61,13 @@ const AccountNetworkInfoCollapsed = () => {
       </BadgeWrapper>
       <View>
         <View style={styles.accountInfo}>
-          <Text style={styles.accountName}>{accountName}</Text>
+          <Text
+            ellipsizeMode="tail"
+            numberOfLines={1}
+            style={styles.accountName}
+          >
+            {accountName}
+          </Text>
           {accountLabel && (
             <TagBase
               style={styles.accountLabel}
