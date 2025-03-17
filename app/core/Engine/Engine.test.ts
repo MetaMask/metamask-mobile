@@ -54,6 +54,7 @@ describe('Engine', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+    (backupVault as jest.Mock).mockReset();
   });
 
   it('should expose an API', () => {
