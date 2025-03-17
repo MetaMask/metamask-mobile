@@ -110,6 +110,7 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { RecommendedAction } from '@metamask/phishing-controller/';
 
 /**
  * Tab component for the in-app browser
@@ -207,7 +208,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const isFocused = useIsFocused();
 
-  const productSafetyDappScanningEnabled = useSelector(selectProductSafetyDappScanningEnabled);
+  const productSafetyDappScanningEnabled = useSelector(
+    selectProductSafetyDappScanningEnabled,
+  );
 
   /**
    * Checks if a given url or the current url is the homepage
@@ -296,7 +299,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Check if an origin is allowed
    */
   const isAllowedOrigin = useCallback(
-    (urlOrigin: string) => {
+    async (urlOrigin: string) => {
       const whitelisted = whitelist?.includes(urlOrigin);
       if (whitelisted) {
         return true;
@@ -306,18 +309,32 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
       if (productSafetyDappScanningEnabled) {
         Logger.log('Real time dapp scanning enabled');
-      } else {
-        // Fire-and-forget update.
-        PhishingController.maybeUpdateState();
 
-        const testResult = PhishingController.test(urlOrigin);
-        if (testResult.result && testResult.name) {
-          blockListType.current = testResult.name;
-          return whitelisted || false;
+        const scanResult = await PhishingController.scanUrl(urlOrigin);
+        if (scanResult.fetchError) {
+          // Log error but don't block the site based on a failed scan
+          Logger.log(
+            '[BrowserTab][isAllowedOriginV2] Fetch error:',
+            scanResult.fetchError,
+          );
+          return true;
         }
+
+        return !(
+          scanResult.recommendedAction === RecommendedAction.Block ||
+          scanResult.recommendedAction === RecommendedAction.Warn
+        );
+      }
+      // Fire-and-forget update.
+      PhishingController.maybeUpdateState();
+      const testResult = PhishingController.test(urlOrigin);
+
+      if (testResult.result && testResult.name) {
+        blockListType.current = testResult.name;
+        return false;
       }
 
-      return whitelisted || true;
+      return true;
     },
     [whitelist, productSafetyDappScanningEnabled],
   );
@@ -455,15 +472,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const prefixedUrl = prefixUrlWithProtocol(initialUrl);
     const { origin: urlOrigin } = new URLParse(prefixedUrl);
 
-    if (isAllowedOrigin(urlOrigin)) {
-      setAllowedInitialUrl(prefixedUrl);
-      setFirstUrlLoaded(true);
-      setProgress(0);
+    isAllowedOrigin(urlOrigin).then((isAllowed) => {
+      if (isAllowed) {
+        setAllowedInitialUrl(prefixedUrl);
+        setFirstUrlLoaded(true);
+        setProgress(0);
+        return;
+      }
+      handleNotAllowedUrl(prefixedUrl);
       return;
-    }
-
-    handleNotAllowedUrl(prefixedUrl);
-    return;
+    });
   }, [initialUrl, handleNotAllowedUrl, isAllowedOrigin]);
 
   /**

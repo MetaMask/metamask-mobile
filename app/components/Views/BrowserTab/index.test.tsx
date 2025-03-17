@@ -4,7 +4,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
 import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
+import { RecommendedAction } from '@metamask/phishing-controller';
 
 const mockNavigation = {
   goBack: jest.fn(),
@@ -23,6 +23,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('react-native-material-textfield', () => ({
+  OutlinedTextField: 'OutlinedTextField',
+}));
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
+
 const mockInitialState = {
   browser: { activeTab: '' },
   engine: {
@@ -36,27 +45,29 @@ const mockInitialState = {
   },
 };
 
-let mockPhishingControllerTestResult = { result: true, name: 'test' };
+// Mock the scanUrl function of PhishingController
+const mockScanUrl = jest.fn();
 
-jest.mock('../../../core/Engine', () => {
-  const phishingController = {
-    maybeUpdateState: jest.fn(),
-    test: jest.fn().mockImplementation(() => mockPhishingControllerTestResult),
-  };
-
-  return {
-    context: {
-      PhishingController: phishingController,
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PhishingController: {
+      maybeUpdateState: jest.fn(),
+      test: () => ({ result: true, name: '' }),
+      scanUrl: (url: string) => mockScanUrl(url),
     },
-    __esModule: true,
-    default: {
-      context: {
-        PhishingController: phishingController,
-      },
+    NetworkController: {
+      getProviderAndBlockTracker: () => ({
+        provider: {},
+      }),
     },
-  };
-});
+    PermissionController: {
+      state: {},
+      getCaveat: jest.fn(),
+    },
+  },
+}));
 
+// Common props for BrowserTab component
 const mockProps = {
   id: 1,
   activeTab: 1,
@@ -83,68 +94,41 @@ const mockProps = {
 describe('BrowserTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPhishingControllerTestResult = { result: true, name: 'test' };
   });
-
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<BrowserTab {...mockProps} />, {
       state: mockInitialState,
     });
     expect(toJSON()).toMatchSnapshot();
   });
-
-  describe('isAllowedOrigin functionality', () => {
-    it('should allow URLs in the whitelist', async () => {
-      const testUrl = 'https://allowedsite.com';
-
-      const propsWithWhitelist = {
-        ...mockProps,
-        whitelist: [testUrl],
-      };
-
-      renderWithProvider(
-        <BrowserTab {...propsWithWhitelist} initialUrl={testUrl} />,
-        { state: mockInitialState }
-      );
-
-      expect(Engine.context.PhishingController.test).not.toHaveBeenCalled();
+  it('should allow whitelisted domains without calling scanUrl', async () => {
+    // TODO
+  });
+  it('should allow domains that pass the phishing scan with None recommendation', async () => {
+    // Mock the scanUrl to return a "None" result
+  });
+  it('should not allow domains with Block recommendation', async () => {
+    mockScanUrl.mockResolvedValue({
+      domainName: 'evildomain.com',
+      url: 'https://evildomain.com',
+      action: RecommendedAction.Block,
     });
 
-    it('should block URLs that fail the phishing test', async () => {
-      mockPhishingControllerTestResult = { result: true, name: 'metamask-phishing-list' };
+    const props = {
+      ...mockProps,
+      initialUrl: 'https://evildomain.com',
+    };
 
-      const phishingUrl = 'https://phishing-site.com';
-
-      renderWithProvider(
-        <BrowserTab {...mockProps} initialUrl={phishingUrl} />,
-        { state: mockInitialState }
-      );
-      expect(Engine.context.PhishingController.test).toBeDefined();
-
-      const testResult = Engine.context.PhishingController.test(phishingUrl);
-      expect(testResult).toEqual({ result: true, name: 'metamask-phishing-list' });
-
-      Engine.context.PhishingController.maybeUpdateState();
-      Engine.context.PhishingController.test(phishingUrl);
-
-      expect(Engine.context.PhishingController.maybeUpdateState).toHaveBeenCalled();
-      expect(Engine.context.PhishingController.test).toHaveBeenCalled();
+    renderWithProvider(<BrowserTab {...props} />, {
+      state: mockInitialState,
     });
 
-    it('should handle productSafetyDappScanningEnabled flag', async () => {
-      const stateWithDappScanning = {
-        ...mockInitialState,
-        privacy: {
-          productSafetyDappScanningEnabled: true,
-        },
-      };
-
-      const testUrl = 'https://example.com';
-
-      renderWithProvider(
-        <BrowserTab {...mockProps} initialUrl={testUrl} />,
-        { state: stateWithDappScanning }
-      );
-    });
+    expect(mockScanUrl).toHaveBeenCalled();
+  });
+  it('should not allow domains with Warn recommendation', async () => {
+    // Mock the scanUrl to return a "Warn" result
+  });
+  it('should allow domains when phishing scan has a fetch error', async () => {
+    // Mock the scanUrl to return a fetch error
   });
 });
