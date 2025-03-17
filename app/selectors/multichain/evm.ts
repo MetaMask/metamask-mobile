@@ -84,7 +84,7 @@ export const selectNativeTokensAcrossChains = createSelector(
       );
 
       const name = isETH ? 'Ethereum' : token.nativeCurrency;
-      const logo = isETH ? '../images/eth-logo-new.png' : '';
+      const logo = isETH ? '../images/network-icons/eth-logo-new.png' : '';
       tokensByChain[nativeChainId] = [];
 
       const nativeBalanceFormatted = renderFromWei(

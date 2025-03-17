@@ -268,17 +268,17 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 {
                   "alignItems": "center",
                   "aspectRatio": 1,
+                  "bottom": 0,
                   "height": 0,
                   "justifyContent": "center",
                   "position": "absolute",
                   "right": 0,
-                  "top": 0,
                   "transform": [
                     {
                       "translateX": 0,
                     },
                     {
-                      "translateY": -0,
+                      "translateY": 0,
                     },
                   ],
                 }
@@ -526,17 +526,17 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 {
                   "alignItems": "center",
                   "aspectRatio": 1,
+                  "bottom": 0,
                   "height": 0,
                   "justifyContent": "center",
                   "position": "absolute",
                   "right": 0,
-                  "top": 0,
                   "transform": [
                     {
                       "translateX": 0,
                     },
                     {
-                      "translateY": -0,
+                      "translateY": 0,
                     },
                   ],
                 }

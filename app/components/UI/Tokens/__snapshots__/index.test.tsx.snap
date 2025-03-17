@@ -619,17 +619,17 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                     {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
+                                      "bottom": 0,
                                       "height": 0,
                                       "justifyContent": "center",
                                       "position": "absolute",
                                       "right": 0,
-                                      "top": 0,
                                       "transform": [
                                         {
                                           "translateX": 0,
                                         },
                                         {
-                                          "translateY": -0,
+                                          "translateY": 0,
                                         },
                                       ],
                                     }
@@ -962,17 +962,17 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                     {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
+                                      "bottom": 0,
                                       "height": 0,
                                       "justifyContent": "center",
                                       "position": "absolute",
                                       "right": 0,
-                                      "top": 0,
                                       "transform": [
                                         {
                                           "translateX": 0,
                                         },
                                         {
-                                          "translateY": -0,
+                                          "translateY": 0,
                                         },
                                       ],
                                     }
@@ -1865,17 +1865,17 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
+                                      "bottom": 0,
                                       "height": 0,
                                       "justifyContent": "center",
                                       "position": "absolute",
                                       "right": 0,
-                                      "top": 0,
                                       "transform": [
                                         {
                                           "translateX": 0,
                                         },
                                         {
-                                          "translateY": -0,
+                                          "translateY": 0,
                                         },
                                       ],
                                     }
@@ -2208,17 +2208,17 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
+                                      "bottom": 0,
                                       "height": 0,
                                       "justifyContent": "center",
                                       "position": "absolute",
                                       "right": 0,
-                                      "top": 0,
                                       "transform": [
                                         {
                                           "translateX": 0,
                                         },
                                         {
-                                          "translateY": -0,
+                                          "translateY": 0,
                                         },
                                       ],
                                     }
@@ -3111,17 +3111,17 @@ exports[`Tokens should render correctly 1`] = `
                                     {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
+                                      "bottom": 0,
                                       "height": 0,
                                       "justifyContent": "center",
                                       "position": "absolute",
                                       "right": 0,
-                                      "top": 0,
                                       "transform": [
                                         {
                                           "translateX": 0,
                                         },
                                         {
-                                          "translateY": -0,
+                                          "translateY": 0,
                                         },
                                       ],
                                     }
@@ -3454,17 +3454,17 @@ exports[`Tokens should render correctly 1`] = `
                                     {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
+                                      "bottom": 0,
                                       "height": 0,
                                       "justifyContent": "center",
                                       "position": "absolute",
                                       "right": 0,
-                                      "top": 0,
                                       "transform": [
                                         {
                                           "translateX": 0,
                                         },
                                         {
-                                          "translateY": -0,
+                                          "translateY": 0,
                                         },
                                       ],
                                     }
@@ -4375,17 +4375,17 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
+                                      "bottom": 0,
                                       "height": 0,
                                       "justifyContent": "center",
                                       "position": "absolute",
                                       "right": 0,
-                                      "top": 0,
                                       "transform": [
                                         {
                                           "translateX": 0,
                                         },
                                         {
-                                          "translateY": -0,
+                                          "translateY": 0,
                                         },
                                       ],
                                     }
@@ -4718,17 +4718,17 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
+                                      "bottom": 0,
                                       "height": 0,
                                       "justifyContent": "center",
                                       "position": "absolute",
                                       "right": 0,
-                                      "top": 0,
                                       "transform": [
                                         {
                                           "translateX": 0,
                                         },
                                         {
-                                          "translateY": -0,
+                                          "translateY": 0,
                                         },
                                       ],
                                     }
@@ -4980,17 +4980,17 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
+                                      "bottom": 0,
                                       "height": 0,
                                       "justifyContent": "center",
                                       "position": "absolute",
                                       "right": 0,
-                                      "top": 0,
                                       "transform": [
                                         {
                                           "translateX": 0,
                                         },
                                         {
-                                          "translateY": -0,
+                                          "translateY": 0,
                                         },
                                       ],
                                     }

@@ -350,7 +350,9 @@ describe('Amount', () => {
     });
 
     // The conversion should happen and update the input
-    const amountInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    const amountInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
     expect(amountInput.props.value).toBeDefined();
     expect(typeof amountInput.props.value).toBe('string');
     expect(amountInput.props.value).toBe('5000'); // $5000 from 5 ETH at $1000/ETH
@@ -514,7 +516,7 @@ describe('Amount', () => {
           address: '',
           isETH: false,
           isNative: true,
-          logo: '../images/avalanche.png',
+          logo: '../images/network-icons/avalanche.png',
           name: 'Avalanche',
           symbol: 'AVAX',
         },
@@ -919,8 +921,8 @@ describe('Amount', () => {
       },
       settings: {
         ...initialState.settings,
-        primaryCurrency: 'Fiat'
-      }
+        primaryCurrency: 'Fiat',
+      },
     });
 
     const textInput = getByTestId(

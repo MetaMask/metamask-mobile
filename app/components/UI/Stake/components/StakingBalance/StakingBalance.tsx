@@ -3,7 +3,9 @@ import { Hex } from '@metamask/utils';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -213,6 +215,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         >
           <BadgeWrapper
             style={styles.badgeWrapper}
+            badgePosition={BadgePosition.BottomRight}
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}

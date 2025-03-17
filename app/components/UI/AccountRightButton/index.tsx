@@ -22,7 +22,9 @@ import { getDecimalChainId } from '../../../util/networks';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../component-library/components/Badges/BadgeWrapper';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
@@ -166,6 +168,7 @@ const AccountRightButton = ({
       {selectedAddress ? (
         isNetworkVisible ? (
           <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}

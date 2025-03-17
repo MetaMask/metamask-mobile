@@ -73,7 +73,6 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
-import Fox from '../../../images/fantom.png';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;

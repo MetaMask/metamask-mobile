@@ -18,7 +18,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://snowtrace.io',
       imageUrl: 'AVAX',
-      imageSource: require('../../images/avalanche.png'),
+      imageSource: require('../../images/network-icons/avalanche.png'),
     },
   },
   {
@@ -29,7 +29,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://arbiscan.io',
       imageUrl: 'AETH',
-      imageSource: require('../../images/arbitrum.png'),
+      imageSource: require('../../images/network-icons/arbitrum.png'),
     },
   },
   {
@@ -41,7 +41,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://bscscan.com',
       imageUrl: 'BNB',
-      imageSource: require('../../images/binance.png'),
+      imageSource: require('../../images/network-icons/binance.png'),
     },
   },
   {
@@ -53,7 +53,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://basescan.org',
       imageUrl: 'BASE',
-      imageSource: require('../../images/base.png'),
+      imageSource: require('../../images/network-icons/base.png'),
     },
   },
   {
@@ -64,7 +64,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://optimistic.etherscan.io',
       imageUrl: 'OPTIMISM',
-      imageSource: require('../../images/optimism.png'),
+      imageSource: require('../../images/network-icons/optimism.png'),
     },
   },
   {
@@ -75,7 +75,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.palm.io',
       imageUrl: 'PALM',
-      imageSource: require('../../images/palm.png'),
+      imageSource: require('../../images/network-icons/palm.png'),
     },
   },
   {
@@ -86,7 +86,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://polygonscan.com',
       imageUrl: 'POL',
-      imageSource: require('../../images/pol.png'),
+      imageSource: require('../../images/network-icons/pol.png'),
     },
   },
   {
@@ -98,17 +98,17 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.zksync.io/',
       imageUrl: 'ZK_SYNC',
-      imageSource: require('../../images/zk-sync.png'),
+      imageSource: require('../../images/network-icons/zk-sync.png'),
     },
   },
 ];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
   if (chainId === SolScope.Mainnet) {
-    return require('../../images/solana-logo.png');
+    return require('../../images/network-icons/solana-logo.png');
   }
   if (chainId === BtcScope.Mainnet) {
-    return require('../../images/bitcoin-logo.png');
+    return require('../../images/network-icons/bitcoin-logo.png');
   }
   return undefined;
 };
@@ -203,7 +203,7 @@ export const UnpopularNetworkList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://ftmscan.com',
       imageUrl: 'FTM',
-      imageSource: require('../../images/fantom.png'),
+      imageSource: require('../../images/network-icons/fantom.png'),
     },
   },
   {
@@ -215,7 +215,7 @@ export const UnpopularNetworkList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.harmony.one',
       imageUrl: 'ONE',
-      imageSource: require('../../images/harmony.png'),
+      imageSource: require('../../images/network-icons/harmony.png'),
     },
   },
 ];
@@ -241,12 +241,12 @@ export const NETWORK_CHAIN_ID: {
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 export const CustomNetworkImgMapping: Record<Hex, string> = {
-  [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/flare-mainnet.png'),
-  [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/songbird.png'),
-  [NETWORK_CHAIN_ID.APE_CHAIN_TESTNET]: require('../../images/ape-network.png'),
-  [NETWORK_CHAIN_ID.APE_CHAIN_MAINNET]: require('../../images/ape-network.png'),
-  [NETWORK_CHAIN_ID.GRAVITY_ALPHA_MAINNET]: require('../../images/gravity.png'),
-  [NETWORK_CHAIN_ID.LINEA_MAINNET]: require('../../images/linea-mainnet-logo.png'),
-  [NETWORK_CHAIN_ID.KAIA_MAINNET]: require('../../images/kaia.png'),
-  [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: require('../../images/kaia.png'),
+  [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/network-icons/flare-mainnet.png'),
+  [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/network-icons/songbird.png'),
+  [NETWORK_CHAIN_ID.APE_CHAIN_TESTNET]: require('../../images/network-icons/ape-network.png'),
+  [NETWORK_CHAIN_ID.APE_CHAIN_MAINNET]: require('../../images/network-icons/ape-network.png'),
+  [NETWORK_CHAIN_ID.GRAVITY_ALPHA_MAINNET]: require('../../images/network-icons/gravity.png'),
+  [NETWORK_CHAIN_ID.LINEA_MAINNET]: require('../../images/network-icons/linea-mainnet-logo.png'),
+  [NETWORK_CHAIN_ID.KAIA_MAINNET]: require('../../images/network-icons/kaia.png'),
+  [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: require('../../images/network-icons/kaia.png'),
 };

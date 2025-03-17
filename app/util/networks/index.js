@@ -16,10 +16,10 @@ import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
 
 /* eslint-disable */
-const ethLogo = require('../../images/eth-logo-new.png');
-const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
-const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
+const ethLogo = require('../../images/network-icons/eth-logo-new.png');
+const sepoliaLogo = require('../../images/network-icons/sepolia-logo-dark.png');
+const lineaTestnetLogo = require('../../images/network-icons/linea-testnet-logo.png');
+const lineaMainnetLogo = require('../../images/network-icons/linea-mainnet-logo.png');
 
 /* eslint-enable */
 import {

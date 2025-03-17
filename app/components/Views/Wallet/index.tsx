@@ -667,7 +667,7 @@ const Wallet = ({
           conversionRate,
           currentCurrency,
         ),
-        logo: '../images/eth-logo-new.png',
+        logo: '../images/network-icons/eth-logo-new.png',
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
