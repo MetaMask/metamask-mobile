@@ -882,9 +882,10 @@ const App: React.FC = () => {
                 },
               ],
             });
-            endTrace({ name: TraceName.AddNetwork });
           } catch (error) {
             Logger.error(error as Error);
+          } finally {
+            endTrace({ name: TraceName.AddNetwork });
           }
         }
       }
