@@ -558,6 +558,7 @@ workflows:
       - android_e2e_build
   run_android_app_launch_times_appium_test:
     envs:
+      - TEST_SUITE_FOLDER: './wdio/features/Performance/*'
       - TEST_TYPE: 'performance'
     meta:
       bitrise.io:
@@ -581,6 +582,7 @@ workflows:
 
   run_ios_app_launch_times_appium_test:
     envs:
+      - TEST_SUITE_FOLDER: './wdio/features/Performance/*'
       - TEST_TYPE: 'performance'
     meta:
       bitrise.io:
