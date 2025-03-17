@@ -12,7 +12,8 @@ import {
 
 function useSortedQuotes(amount: number | string) {
   const ordersProviders = useSelector(getOrdersProviders);
-  const { quotes, sorted, isFetching, error, query } = useQuotes(amount);
+  const { quotes, customActions, sorted, isFetching, error, query } =
+    useQuotes(amount);
 
   const quotesWithoutError: (QuoteResponse | SellQuoteResponse)[] = useMemo(
     () =>
@@ -69,6 +70,7 @@ function useSortedQuotes(amount: number | string) {
 
   return {
     quotes,
+    customActions,
     quotesWithoutError,
     quotesWithError,
     quotesByPriceWithoutError,

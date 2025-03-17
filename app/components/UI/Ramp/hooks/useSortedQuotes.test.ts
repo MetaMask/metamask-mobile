@@ -34,6 +34,19 @@ describe('useSortedQuotes', () => {
           ],
         },
       ],
+      customActions: [
+        {
+          button: { light: {}, dark: {} },
+          buy: { providerId: '/providers/paypal' },
+          buyButton: { light: {}, dark: {} },
+          paymentMethodId: '/payments/paypal',
+          sellButton: { light: {}, dark: {} },
+          supportedPaymentMethodIds: [
+            '/payments/paypal',
+            '/payments/paypal-staging',
+          ],
+        },
+      ],
       error: null,
       isFetching: false,
     });
@@ -43,6 +56,42 @@ describe('useSortedQuotes', () => {
       { id: 'quote-4', provider: { id: 'provider-id-4' } },
       { id: 'quote-1', provider: { id: 'provider-id-1' } },
       { id: 'quote-3', provider: { id: 'provider-id-3' } },
+    ]);
+  });
+
+  it('returns the custom actions', () => {
+    (useQuotes as jest.Mock).mockReturnValue({
+      quotes: [],
+      sorted: [],
+      customActions: [
+        {
+          button: { light: {}, dark: {} },
+          buy: { providerId: '/providers/paypal' },
+          buyButton: { light: {}, dark: {} },
+          paymentMethodId: '/payments/paypal',
+          sellButton: { light: {}, dark: {} },
+          supportedPaymentMethodIds: [
+            '/payments/paypal',
+            '/payments/paypal-staging',
+          ],
+        },
+      ],
+      error: null,
+      isFetching: false,
+    });
+    const { result } = renderHookWithProvider(() => useSortedQuotes(100));
+    expect(result.current.customActions).toEqual([
+      {
+        button: { light: {}, dark: {} },
+        buy: { providerId: '/providers/paypal' },
+        buyButton: { light: {}, dark: {} },
+        paymentMethodId: '/payments/paypal',
+        sellButton: { light: {}, dark: {} },
+        supportedPaymentMethodIds: [
+          '/payments/paypal',
+          '/payments/paypal-staging',
+        ],
+      },
     ]);
   });
 
