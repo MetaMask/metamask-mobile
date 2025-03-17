@@ -7,7 +7,7 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
 import ErrorBoundary from '../ErrorBoundary';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import ThemeProvider from '../../../component-library/providers/ThemeProvider/ThemeProvider';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
@@ -59,7 +59,7 @@ const Root = ({ foxCode }: RootProps) => {
     <SafeAreaProvider>
       <Provider store={store}>
         <PersistGate persistor={persistor}>
-          <ThemeContext.Provider value={mockTheme}>
+          <ThemeProvider>
             <NavigationProvider>
               <ControllersGate>
                 <ToastContextWrapper>
@@ -69,7 +69,7 @@ const Root = ({ foxCode }: RootProps) => {
                 </ToastContextWrapper>
               </ControllersGate>
             </NavigationProvider>
-          </ThemeContext.Provider>
+          </ThemeProvider>
         </PersistGate>
       </Provider>
     </SafeAreaProvider>
