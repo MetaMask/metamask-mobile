@@ -51,6 +51,7 @@ function loadStories() {
   require('../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories');
   require('../app/component-library/components/Overlay/Overlay.stories');
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
+  require('../app/component-library/components/Pickers/PickerBase/PickerBase.stories');
   require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
   require('../app/component-library/components/RadioButton/RadioButton.stories');
   require('../app/component-library/components/Select/SelectButton/SelectButton.stories');
@@ -58,8 +59,10 @@ function loadStories() {
   require('../app/component-library/components/Select/SelectValue/SelectValue.stories');
   require('../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories');
   require('../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories');
+  require('../app/component-library/components/Skeleton/Skeleton.stories');
   require('../app/component-library/components/Tags/Tag/Tag.stories');
   require('../app/component-library/components/Tags/TagUrl/TagUrl.stories');
+  require('../app/component-library/components/Texts/SensitiveText/SensitiveText.stories');
   require('../app/component-library/components/Texts/Text/Text.stories');
   require('../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories');
   require('../app/component-library/components/Toast/Toast.stories');
@@ -72,11 +75,18 @@ function loadStories() {
   require('../app/components/UI/Name/Name.stories');
   require('../app/components/UI/SimulationDetails/SimulationDetails.stories');
   require('../app/components/UI/StyledButton/StyledButton.stories');
+  require('../app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories');
   require('../app/components/UI/WarningAlert/WarningAlert.stories');
   require('../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories');
   require('../app/components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.stories');
+  require('../app/components/Views/confirmations/components/UI/CopyButton/CopyButton.stories');
+  require('../app/components/Views/confirmations/components/UI/ExpandableSection/ExpandableSection.stories');
+  require('../app/components/Views/confirmations/components/UI/InfoRow/InfoRow.stories');
+  require('../app/components/Views/confirmations/components/UI/TextWithTooltip/TextWithTooltip.stories');
+  require('../app/components/Views/confirmations/components/UI/Tooltip/Tooltip.stories');
   require('../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories');
   require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
+  require('../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories');
   require('../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories');
   require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
   require('../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories');
@@ -135,6 +145,7 @@ const stories = [
   '../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories',
   '../app/component-library/components/Overlay/Overlay.stories',
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',
+  '../app/component-library/components/Pickers/PickerBase/PickerBase.stories',
   '../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories',
   '../app/component-library/components/RadioButton/RadioButton.stories',
   '../app/component-library/components/Select/SelectButton/SelectButton.stories',
@@ -142,8 +153,10 @@ const stories = [
   '../app/component-library/components/Select/SelectValue/SelectValue.stories',
   '../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories',
   '../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories',
+  '../app/component-library/components/Skeleton/Skeleton.stories',
   '../app/component-library/components/Tags/Tag/Tag.stories',
   '../app/component-library/components/Tags/TagUrl/TagUrl.stories',
+  '../app/component-library/components/Texts/SensitiveText/SensitiveText.stories',
   '../app/component-library/components/Texts/Text/Text.stories',
   '../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories',
   '../app/component-library/components/Toast/Toast.stories',
@@ -156,11 +169,18 @@ const stories = [
   '../app/components/UI/Name/Name.stories',
   '../app/components/UI/SimulationDetails/SimulationDetails.stories',
   '../app/components/UI/StyledButton/StyledButton.stories',
+  '../app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories',
   '../app/components/UI/WarningAlert/WarningAlert.stories',
   '../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories',
   '../app/components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.stories',
+  '../app/components/Views/confirmations/components/UI/CopyButton/CopyButton.stories',
+  '../app/components/Views/confirmations/components/UI/ExpandableSection/ExpandableSection.stories',
+  '../app/components/Views/confirmations/components/UI/InfoRow/InfoRow.stories',
+  '../app/components/Views/confirmations/components/UI/TextWithTooltip/TextWithTooltip.stories',
+  '../app/components/Views/confirmations/components/UI/Tooltip/Tooltip.stories',
   '../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories',
   '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
+  '../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories',
   '../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories',
   '../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories',
   '../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories',
