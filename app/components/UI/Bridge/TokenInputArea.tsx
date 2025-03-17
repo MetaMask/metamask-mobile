@@ -22,6 +22,7 @@ interface TokenInputAreaProps {
   autoFocus?: boolean;
   isReadonly?: boolean;
   testID?: string;
+  tokenType?: 'source' | 'destination';
 }
 
 const createStyles = () =>
@@ -62,6 +63,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   autoFocus,
   isReadonly = false,
   testID,
+  tokenType
 }) => {
   const { styles } = useStyles(createStyles, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -76,7 +78,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   ) : undefined;
   const formattedAddress = tokenAddress ? formatAddress(tokenAddress) : undefined;
 
-  const subtitle = formattedBalance ?? formattedAddress;
+  const subtitle = tokenType === 'source' ? formattedBalance : formattedAddress;
 
   // Convert token amount to fiat value using actual conversion rate
   const weiAmount = toWei(value ?? '0');

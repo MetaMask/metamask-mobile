@@ -16,7 +16,6 @@ import { useLatestBalance } from './useLatestBalance';
 import {
   selectSourceAmount,
   selectDestAmount,
-  selectSourceChainId,
   selectDestChainId,
   selectSourceToken,
   selectDestToken,
@@ -213,6 +212,7 @@ const BridgeView = () => {
             autoFocus
             isReadonly
             testID="source-token-area"
+            tokenType="source"
           />
           <Box style={styles.arrowContainer}>
             <TouchableOpacity
@@ -232,6 +232,7 @@ const BridgeView = () => {
             networkImageSource={destChainId ? getNetworkImageSource({ chainId: destChainId }) : undefined}
             isReadonly
             testID="dest-token-area"
+            tokenType="destination"
           />
         </Box>
         <Box style={styles.bottomSection}>
