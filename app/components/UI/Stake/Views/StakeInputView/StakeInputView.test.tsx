@@ -9,7 +9,10 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Stake } from '../../sdk/stakeSdkProvider';
-import { MOCK_ETH_MAINNET_ASSET } from '../../__mocks__/mockData';
+import {
+  MOCK_ETH_MAINNET_ASSET,
+  MOCK_GET_VAULT_RESPONSE,
+} from '../../__mocks__/mockData';
 import { toWei } from '../../../../../util/number';
 import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
@@ -29,6 +32,9 @@ import {
 } from '../../../../../selectors/featureFlagController';
 import { flushPromises } from '../../../../../util/test/utils';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import { EVENT_PROVIDERS } from '../../constants/events';
 
 const MOCK_SELECTED_INTERNAL_ACCOUNT = {
   address: '0x123',
@@ -38,6 +44,8 @@ const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockPop = jest.fn();
+
+jest.mock('../../../../hooks/useMetrics/useMetrics');
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -160,6 +168,19 @@ jest.mock('../../hooks/useVaultApyAverages', () => ({
   }),
 }));
 
+const mockVaultMetadata = MOCK_GET_VAULT_RESPONSE;
+
+jest.mock('../../hooks/useVaultMetadata', () => ({
+  __esModule: true,
+  default: () => ({
+    vaultMetadata: mockVaultMetadata,
+    isLoadingVaultMetadata: false,
+    error: null,
+    annualRewardRate: '2.5%',
+    annualRewardRateDecimal: 0.02522049624725908,
+  }),
+}));
+
 jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -193,6 +214,8 @@ describe('StakeInputView', () => {
       name: 'params',
     },
   };
+  const mockTrackEvent = jest.fn();
+  const useMetricsMock = jest.mocked(useMetrics);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -208,6 +231,10 @@ describe('StakeInputView', () => {
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
+    useMetricsMock.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useMetrics>);
   });
 
   const renderComponent = () =>
@@ -249,7 +276,7 @@ describe('StakeInputView', () => {
 
       fireEvent.press(getByText('2'));
 
-      expect(getByText('0.06515 ETH')).toBeTruthy();
+      expect(getByText('0.05044 ETH')).toBeTruthy();
     });
   });
 
@@ -313,9 +340,9 @@ describe('StakeInputView', () => {
           params: {
             amountFiat: '750',
             amountWei: '375000000000000000',
-            annualRewardRate: '3.3%',
-            annualRewardsETH: '0.01222 ETH',
-            annualRewardsFiat: '24.43 USD',
+            annualRewardRate: '2.5%',
+            annualRewardsETH: '0.00946 ETH',
+            annualRewardsFiat: '18.92 USD',
             estimatedGasFee: '0.25',
             estimatedGasFeePercentage: '66%',
           },
@@ -350,6 +377,20 @@ describe('StakeInputView', () => {
         expect(attemptDepositTransactionMock).toHaveBeenCalledWith(
           '375000000000000000',
           MOCK_SELECTED_INTERNAL_ACCOUNT.address,
+          undefined,
+          true,
+        );
+
+        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              is_redesigned: true,
+              selected_provider: EVENT_PROVIDERS.CONSENSYS,
+              tokens_to_stake_native_value: '0.375',
+              tokens_to_stake_usd_value: '750',
+            }),
+          }),
         );
       });
 
@@ -366,9 +407,9 @@ describe('StakeInputView', () => {
           params: {
             amountFiat: '750',
             amountWei: '375000000000000000',
-            annualRewardRate: '3.3%',
-            annualRewardsETH: '0.01222 ETH',
-            annualRewardsFiat: '24.43 USD',
+            annualRewardRate: '2.5%',
+            annualRewardsETH: '0.00946 ETH',
+            annualRewardsFiat: '18.92 USD',
           },
         });
       });
