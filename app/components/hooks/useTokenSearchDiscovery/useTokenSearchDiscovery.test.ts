@@ -61,6 +61,43 @@ describe('useTokenSearchDiscovery', () => {
     ).toHaveBeenCalledWith(mockSearchParams);
   });
 
+  it('does not search when less than two characters are queried', async () => {
+    const { result } = renderHook(() => useTokenSearchDiscovery());
+    await act(async () => {
+      result.current.searchTokens({ query: 'a' });
+      jest.advanceTimersByTime(300);
+      await Promise.resolve();
+    });
+
+    expect(Engine.context.TokenSearchDiscoveryController.searchTokens).not.toHaveBeenCalled();
+  });
+
+  it('resets the state when reset() is called', async () => {
+    const mockSearchResult = [{ name: 'DAI', address: '0x123' }];
+
+    (
+      Engine.context.TokenSearchDiscoveryController.searchTokens as jest.Mock
+    ).mockResolvedValueOnce(mockSearchResult);
+
+    const { result } = renderHook(() => useTokenSearchDiscovery());
+
+    await act(async () => {
+      result.current.searchTokens({
+        query: 'doge',
+      });
+      jest.advanceTimersByTime(300);
+      await Promise.resolve();
+    });
+
+    expect(result.current.results).toEqual(mockSearchResult);
+
+    await act(async () => {
+      result.current.reset();
+    });
+
+    expect(result.current.results).toEqual([]);
+  });
+
   it('returns error and empty results if search failed', async () => {
     const mockError = new Error('Search failed');
     (
