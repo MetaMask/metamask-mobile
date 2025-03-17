@@ -59,6 +59,12 @@ const Root = ({ foxCode }: RootProps) => {
     <SafeAreaProvider>
       <Provider store={store}>
         <PersistGate persistor={persistor}>
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+            // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
+            <SnapsExecutionWebView />
+            ///: END:ONLY_INCLUDE_IF
+          }
           <ThemeProvider>
             <NavigationProvider>
               <ControllersGate>
