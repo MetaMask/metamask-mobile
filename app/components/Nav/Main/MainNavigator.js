@@ -91,6 +91,7 @@ import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import BridgeView from '../../UI/Bridge';
+import { RampSDKProvider } from '../../UI/Ramp/sdk';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -206,9 +207,11 @@ const TransactionsHome = () => (
 );
 
 const NativeRampFlow = () => (
-  <Stack.Navigator>
-    <Stack.Screen name={Routes.RAMP.NATIVE} component={NativeRamp} />
-  </Stack.Navigator>
+  <RampSDKProvider>
+    <Stack.Navigator>
+      <Stack.Screen name={Routes.RAMP.NATIVE} component={NativeRamp} />
+    </Stack.Navigator>
+  </RampSDKProvider>
 );
 
 const BrowserFlow = () => (

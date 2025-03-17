@@ -18,8 +18,10 @@ import {
   KycForm,
   NativeTransakAccessToken,
   BuyOrder,
+  TransakEnvironment,
 } from '@consensys/on-ramp-sdk/dist/NativeRampService';
 import { storeTransakToken, getTransakToken } from './TransakTokenVault';
+import { useRampSDK } from '../../sdk';
 
 function NativeRamp() {
   const navigation = useNavigation();
@@ -46,10 +48,16 @@ function NativeRamp() {
   );
   const [orderData, setOrderData] = useState<BuyOrder | null>(null);
   const [sepaData, setSepaData] = useState<any>(null);
+  const [idProofFormData, setIdProofFormData] = useState<KycForm | null>(null);
+  const [purposeOfUsageFormData, setPurposeOfUsageFormData] =
+    useState<KycForm | null>(null);
+
+  const { selectedAddress } = useRampSDK();
 
   const [nativeRampService] = useState(
     () =>
       new NativeRampService(
+        TransakEnvironment.Staging,
         process.env.TRANSAK_API_KEY || '',
         process.env.TRANSAK_FRONTEND_AUTH || '',
       ),
@@ -98,48 +106,53 @@ function NativeRamp() {
   };
 
   const fetchKycForms = async (token: NativeTransakAccessToken) => {
-    setLoadingMessage('Getting quote...');
-    const newQuote = await nativeRampService.getBuyQuote(
-      'EUR',
-      'USDC',
-      'arbitrum',
-      'sepa_bank_transfer',
-      amount,
-    );
-    setQuote(newQuote);
-
-    setLoadingMessage('Fetching KYC forms...');
-    const kycForms = await nativeRampService.getKYCForms(token, newQuote);
-
-    // Handle special forms first
-    const purposeOfUsageForm = kycForms.forms.find(
-      (form) => form.id === 'purposeOfUsage',
-    );
-
-    // Process special forms
-    if (purposeOfUsageForm) {
-      setLoadingMessage('Processing usage information...');
-      await nativeRampService.submitPurposeOfUsageForm(token, [
-        'Buying/selling crypto for investments',
-      ]);
-    }
-
-    // Get remaining forms
-    const filteredForms = kycForms.forms.filter(
-      (form) => form.id !== 'purposeOfUsage' && form.id !== 'idProof',
-    );
-
-    if (filteredForms.length > 0) {
-      setLoadingMessage('Preparing KYC forms...');
-      const formDetails = await nativeRampService.getKycForm(
-        token,
-        newQuote,
-        filteredForms[0],
+    try {
+      setLoadingMessage('Getting quote...');
+      const newQuote = await nativeRampService.getBuyQuote(
+        'EUR',
+        'USDC',
+        'arbitrum',
+        'sepa_bank_transfer',
+        amount,
       );
-      setCurrentFormFields(formDetails.fields || []);
-    }
+      setQuote(newQuote);
+      setLoadingMessage('Fetching KYC forms...');
+      const kycForms = await nativeRampService.getKYCForms(token, newQuote);
 
-    setForms(filteredForms);
+      const purposeOfUsageForm = kycForms.forms.find(
+        (form) => form.id === 'purposeOfUsage',
+      );
+      const idProofForm = kycForms.forms.find((form) => form.id === 'idProof');
+
+      // Get regular forms (excluding special forms)
+      const filteredForms = kycForms.forms.filter(
+        (form) => ![purposeOfUsageForm?.id, idProofForm?.id].includes(form.id),
+      );
+
+      setForms(filteredForms);
+
+      // Set initial form fields if we have regular forms
+      if (filteredForms.length > 0) {
+        setLoadingMessage('Preparing KYC forms...');
+        const formDetails = await nativeRampService.getKycForm(
+          token,
+          newQuote,
+          filteredForms[0],
+        );
+        setCurrentFormFields(formDetails.fields || []);
+      }
+
+      // Store idProof and purposeOfUsage form for later use
+      if (idProofForm) {
+        setIdProofFormData(idProofForm);
+      }
+
+      if (purposeOfUsageForm) {
+        setPurposeOfUsageFormData(purposeOfUsageForm);
+      }
+    } catch (error) {
+      console.error('Error in fetchKycForms:', error);
+    }
   };
 
   const handleOtpSubmit = async () => {
@@ -154,8 +167,18 @@ function NativeRamp() {
       }
 
       setAccessToken(token);
-      await fetchKycForms(token); // need to move this here bc now we skip directly to step 5
-      setCurrentStep(5);
+
+      setLoadingMessage('Checking user details...');
+      const userDetails = await nativeRampService.getUserDetails(token);
+      // If KYC is already approved, we can skip the KYC forms
+      if (userDetails.isKycApproved()) {
+        setIsKycApproved(true);
+        await fetchKycForms(token); // Still need quote for the next steps
+        setCurrentStep(6);
+      } else {
+        await fetchKycForms(token);
+        setCurrentStep(5);
+      }
     } catch (error) {
       console.error('Error verifying OTP:', error);
     } finally {
@@ -243,7 +266,7 @@ function NativeRamp() {
       // Reserve wallet with actual address
       const reservation = await nativeRampService.walletReserve(
         quote,
-        '0xB0eA09C34BB257B4935d73C5f3AeD81Cd6a29228',
+        selectedAddress,
       );
 
       console.log('reservation', reservation);
@@ -303,13 +326,33 @@ function NativeRamp() {
   const handleContinue = async () => {
     switch (currentStep) {
       case 1: {
+        // if we have an accessToken and the token is still valid, skip the login
         const tokenResult = await getTransakToken();
         if (tokenResult.success && tokenResult.token) {
           setIsLoading(true);
-          setAccessToken(tokenResult.token);
-          await fetchKycForms(tokenResult.token);
-          setCurrentStep(5);
-          setIsLoading(false);
+          try {
+            setAccessToken(tokenResult.token);
+            setLoadingMessage('Checking user details...');
+            const userDetails = await nativeRampService.getUserDetails(
+              tokenResult.token,
+            );
+
+            if (userDetails.isKycApproved()) {
+              setIsKycApproved(true);
+              await fetchKycForms(tokenResult.token); // Still need quote for the next steps
+              setCurrentStep(6); // Skip to KYC approved screen
+            } else {
+              await fetchKycForms(tokenResult.token);
+              setCurrentStep(5);
+            }
+          } catch (error) {
+            console.log('Error checking user details:', error);
+            // Token is invalid/expired, continue with normal flow
+            setAccessToken(null);
+            setCurrentStep(2);
+          } finally {
+            setIsLoading(false);
+          }
         } else {
           setCurrentStep(2);
         }
