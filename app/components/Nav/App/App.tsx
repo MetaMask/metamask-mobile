@@ -10,12 +10,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import {
-  Linking,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  View,
-  ///: END:ONLY_INCLUDE_IF
-} from 'react-native';
+import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -122,9 +117,6 @@ import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapsExecutionWebView } from '../../../lib/snaps';
-///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
@@ -927,15 +919,6 @@ const App: React.FC = () => {
 
   return (
     <>
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      }
-      <View>
-        <SnapsExecutionWebView />
-      </View>
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />

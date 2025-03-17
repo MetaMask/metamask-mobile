@@ -3,7 +3,7 @@ import Assertions from '../../../utils/Assertions';
 import Browser from '../../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
-// import SecurityAlerts from '../../../pages/Browser/Confirmations/SecurityAlerts';
+import SecurityAlerts from '../../../pages/Browser/Confirmations/SecurityAlerts';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import TestHelpers from '../../../helpers';
@@ -11,7 +11,6 @@ import { loginToApp } from '../../../viewHelper';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { withFixtures } from '../../../fixtures/fixture-helper';
-import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
@@ -72,7 +71,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
     await runTest(testSpecificMock, async () => {
       try {
         await Assertions.checkIfNotVisible(
-          ConfirmationView.securityAlertBanner,
+          SecurityAlerts.securityAlertBanner,
         );
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -99,7 +98,8 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
-      await Assertions.checkIfVisible(ConfirmationView.securityAlertBanner);
+      await Assertions.checkIfVisible(SecurityAlerts.securityAlertBanner);
+      await Assertions.checkIfVisible(SecurityAlerts.securityAlertResponseMaliciousBanner);
     });
   });
 
@@ -127,7 +127,10 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
 
     await runTest(testSpecificMock, async () => {
       await Assertions.checkIfVisible(
-        ConfirmationView.securityAlertResponseFailedBanner,
+        SecurityAlerts.securityAlertBanner,
+      );
+      await Assertions.checkIfVisible(
+        SecurityAlerts.securityAlertResponseFailedBanner,
       );
     });
   });
