@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -8,10 +8,10 @@ import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
-import { 
-  selectEnabledSourceChains, 
-  selectSelectedSourceChainIds, 
-  setSelectedSourceChainIds 
+import {
+  selectEnabledSourceChains,
+  selectSelectedSourceChainIds,
+  setSelectedSourceChainIds
 } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
@@ -71,17 +71,13 @@ const createStyles = (params: { theme: Theme }) => {
       padding: 16,
       marginTop: 'auto',
     },
+    chainName: {
+      flex: 1,
+    },
   });
 };
 
-interface Props {
-  route: {
-    params: {
-      testing: string;
-    };
-  };
-}
-export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
+export const BridgeNetworkSelector: React.FC = () => {
   const { styles, theme } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -90,10 +86,10 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  
+
   // Local state for candidate network selections
   const [candidateSourceChainIds, setCandidateSourceChainIds] = useState<string[]>(selectedSourceChainIds);
-  
+
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
     [selectedInternalAccount as InternalAccount],
     true,
@@ -164,7 +160,7 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
     })
   , [enabledSourceChains, getChainTotalFiatValue]);
 
-  const areAllNetworksSelected = useMemo(() => 
+  const areAllNetworksSelected = useMemo(() =>
     candidateSourceChainIds.length === enabledSourceChainIds.length,
   [candidateSourceChainIds, enabledSourceChainIds]);
 
@@ -228,7 +224,7 @@ export const BridgeNetworkSelector: React.FC<Props> = ({ route }) => {
                     testID={`checkbox-${chain.chainId}`}
                   />
                   <Image source={networkImage} style={styles.networkIcon} />
-                  <Box style={{ flex: 1 }}>
+                  <Box style={styles.chainName}>
                     <Text style={styles.networkName}>{chain.name}</Text>
                   </Box>
                   <Text style={styles.fiatValue} variant={TextVariant.BodyLGMedium}>{formatFiatValue(totalFiatValue)}</Text>
