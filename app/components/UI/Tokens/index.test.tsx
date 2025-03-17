@@ -338,7 +338,26 @@ describe('Tokens', () => {
     expect(getByText('Ethereum')).toBeDefined();
     await waitFor(() => expect(getByText('Bat')).toBeDefined());
     expect(getByText('Link')).toBeDefined();
+
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should show all balance with capitalized tickers', async () => {
+    const { getAllByTestId } = renderComponent({
+      ...initialState,
+      settings: {
+        primaryCurrency: 'usd',
+        hideZeroBalanceTokens: false,
+      },
+    });
+
+    const fiatBalances = getAllByTestId('fiat-balance-test-id');
+
+    fiatBalances.forEach((balance) => {
+      const originalText = balance.props.children;
+      const capitalizedText = balance.props.children.toUpperCase();
+      expect(originalText).toStrictEqual(capitalizedText);
+    });
   });
 
   it('navigates to Asset screen when token is pressed', () => {

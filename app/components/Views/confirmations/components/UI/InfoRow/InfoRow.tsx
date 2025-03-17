@@ -8,6 +8,7 @@ import styleSheet from './InfoRow.styles';
 export interface InfoRowProps {
   label: string;
   children: ReactNode | string;
+  onTooltipPress?: () => void;
   tooltip?: string;
   style?: Record<string, unknown>;
   labelChildren?: React.ReactNode;
@@ -18,6 +19,7 @@ export interface InfoRowProps {
 const InfoRow = ({
   label,
   children,
+  onTooltipPress,
   style = {},
   labelChildren = null,
   tooltip,
@@ -35,7 +37,9 @@ const InfoRow = ({
         <View style={styles.labelContainer}>
           <Text style={styles.label} color={variant}>{label}</Text>
           {labelChildren}
-          {!labelChildren && tooltip && <Tooltip content={tooltip} title={label} />}
+          {!labelChildren && tooltip && (
+            <Tooltip content={tooltip} onPress={onTooltipPress} title={label} />
+          )}
         </View>
       )}
       {typeof children === 'string' ? (
