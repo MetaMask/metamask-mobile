@@ -14,6 +14,7 @@ import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
+import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../../app/core/Multichain/constants';
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
@@ -309,13 +310,8 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
  * @returns {string} - Block explorer url
  */
 export function findBlockExplorerForNonEvmChainId(chainId) {
-  const nonEvmNetworks = selectNonEvmNetworkConfigurationsByChainId(
-    store.getState(),
-  );
-  const network = Object.values(nonEvmNetworks).find(
-    (network) => network.chainId === chainId,
-  );
-  return network?.blockExplorers?.urls[network?.blockExplorers?.defaultIndex];
+  const blockExplorerUrls = MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[chainId];
+  return blockExplorerUrls?.url;
 }
 
 /**

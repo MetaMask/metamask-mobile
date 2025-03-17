@@ -15,7 +15,7 @@ export type MultichainBlockExplorerFormatUrl<Tag extends string> =
 /**
  * A group of URL and format URL for block explorers.
  */
-export type MultichainBlockExplorerFormatUrls = {
+export interface MultichainBlockExplorerFormatUrls {
   /**
    * Base URL of the block explorer.
    */
@@ -30,7 +30,7 @@ export type MultichainBlockExplorerFormatUrls = {
    * Format URL of the block explorer for transactions.
    */
   transaction: MultichainBlockExplorerFormatUrl<'txId'>;
-};
+}
 
 /**
  * Format a URL by replacing a "tag" with a corresponding value.

@@ -1,3 +1,4 @@
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React from 'react';
 import {
   View,
@@ -21,13 +22,14 @@ import {
   getAddressUrl,
   getTransactionUrl,
 } from '../../../core/Multichain/utils';
+import { Colors } from '../../../util/theme/models';
 
 interface TransactionDetailsProps {
   isVisible: boolean;
   onClose: () => void;
   transaction: Transaction;
   userAddress: string;
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
 }
 
 const TransactionDetailRow = {
@@ -40,6 +42,89 @@ const TransactionDetailRow = {
   PriorityFee: strings('transactions.priority_fee'),
 } as const;
 
+const createStyles = (colors: Colors, typography: ThemeTypography) =>
+  StyleSheet.create({
+    modal: {
+      margin: 0,
+      justifyContent: 'flex-end',
+    },
+    container: {
+      backgroundColor: colors.background.default,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+    },
+    header: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      marginBottom: 20,
+      position: 'relative',
+      paddingBottom: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.muted,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 5,
+    },
+    date: {
+      fontSize: 14,
+      color: colors.text.muted,
+    },
+    closeButton: {
+      position: 'absolute',
+      right: 0,
+      top: 0,
+    },
+    content: {
+      marginBottom: 20,
+    },
+    detailRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.muted,
+    },
+    label: {
+      fontSize: 16,
+      color: colors.text.default,
+    },
+    valueContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    value: {
+      fontSize: 16,
+      color: colors.text.default,
+      textAlign: 'right',
+    },
+    linkText: {
+      color: colors.primary.default,
+    },
+    linkContainer: {
+      flexDirection: 'row',
+    },
+    linkIcon: {
+      marginLeft: 5,
+    },
+    viewDetailsButton: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 10,
+    },
+    viewDetailsText: {
+      color: colors.primary.default,
+      fontSize: 16,
+      marginRight: 5,
+    },
+    listItemStatus: {
+      ...(typography.sBodyMDBold as TextStyle),
+    },
+  });
+
 const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
   isVisible,
   onClose,
@@ -47,8 +132,8 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
   userAddress,
   navigation,
 }) => {
-  const { typography } = useTheme();
-  const styles = createStyles(typography);
+  const { colors, typography } = useTheme();
+  const styles = createStyles(colors, typography);
 
   const {
     id,
@@ -81,7 +166,7 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
 
     try {
       onClose();
-      navigation.push('Webview', {
+      navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: { url },
       });
@@ -108,7 +193,12 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
             <Text style={[styles.value, styles.linkText]}>
               {formatAddress(value, 'short')}
             </Text>
-            <Icon name="external-link" size={16} color="#0376C9" style={styles.linkIcon} />
+            <Icon
+              name="external-link"
+              size={16}
+              color="#0376C9"
+              style={styles.linkIcon}
+            />
           </TouchableOpacity>
         ) : label === 'Status' ? (
           <StatusText
@@ -184,88 +274,5 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
     </Modal>
   );
 };
-
-const createStyles = (typography: ThemeTypography) =>
-  StyleSheet.create({
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-end',
-    },
-    container: {
-      backgroundColor: 'white',
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-    },
-    header: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      marginBottom: 20,
-      position: 'relative',
-      paddingBottom: 15,
-      borderBottomWidth: 1,
-      borderBottomColor: '#F2F4F6',
-    },
-    title: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 5,
-    },
-    date: {
-      fontSize: 14,
-      color: '#535A61',
-    },
-    closeButton: {
-      position: 'absolute',
-      right: 0,
-      top: 0,
-    },
-    content: {
-      marginBottom: 20,
-    },
-    detailRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: '#F2F4F6',
-    },
-    label: {
-      fontSize: 16,
-      color: '#24272A',
-    },
-    valueContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    value: {
-      fontSize: 16,
-      color: '#24272A',
-      textAlign: 'right',
-    },
-    linkText: {
-      color: '#0376C9',
-    },
-    linkContainer: {
-      flexDirection: 'row',
-    },
-    linkIcon: {
-      marginLeft: 5,
-    },
-    viewDetailsButton: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 10,
-    },
-    viewDetailsText: {
-      color: '#0376C9',
-      fontSize: 16,
-      marginRight: 5,
-    },
-    listItemStatus: {
-      ...(typography.sBodyMDBold as TextStyle),
-    },
-  });
 
 export default MultichainTransactionDetailsModal;

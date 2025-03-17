@@ -1,23 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, FlatList, Text, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
-import { selectMultichainTransactions, selectSolanaAccountTransactions } from '../../../selectors/multichain/multichain';
+import { selectSolanaAccountTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import { baseStyles } from '../../../styles/common';
 
-type NonEvmTransaction = {
+interface NonEvmTransaction {
   id: string;
-};
-
-type TransactionStateEntry = {
-  transactions: NonEvmTransaction[];
-  next: string | null;
-  lastUpdated: number;
-};
+}
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -40,7 +34,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const MultichainTransactionsView = ({ tabLabel }: { tabLabel: string }) => {
+const MultichainTransactionsView = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
@@ -75,7 +69,7 @@ const MultichainTransactionsView = ({ tabLabel }: { tabLabel: string }) => {
     </View>
   );
 
-  const renderTransactionItem = ({ item }: { item: any }) => (
+  const renderTransactionItem = ({ item }: { item: NonEvmTransaction }) => (
     <MultichainTransactionListItem 
       transaction={item} 
       selectedAddress={selectedAddress || ''}

@@ -1,4 +1,3 @@
-import transactionIconApprove from '../../images/transaction-icons/approve.png';
 import transactionIconInteraction from '../../images/transaction-icons/interaction.png';
 import transactionIconSent from '../../images/transaction-icons/send.png';
 import transactionIconReceived from '../../images/transaction-icons/receive.png';

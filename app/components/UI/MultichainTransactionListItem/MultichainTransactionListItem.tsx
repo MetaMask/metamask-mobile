@@ -1,3 +1,4 @@
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -8,7 +9,7 @@ import {
 } from 'react-native';
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { capitalize } from 'lodash';
-import { TransactionType } from '@metamask/keyring-api';
+import { Transaction, TransactionType } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import ListItem from '../../Base/ListItem';
@@ -127,9 +128,9 @@ const MultichainTransactionListItem = ({
   selectedAddress,
   navigation,
 }: {
-  transaction: any;
+  transaction: Transaction;
   selectedAddress: string;
-  navigation: any;
+  navigation: NavigationProp<ParamListBase>;
 }) => {
   const { colors, typography } = useTheme();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -143,10 +144,10 @@ const MultichainTransactionListItem = ({
   if (type === TransactionType.Swap) {
     const fromAsset = from?.asset;
     const toAsset = to?.asset;
-    
+
     const fromUnit = fromAsset?.fungible ? fromAsset.unit : '';
     const toUnit = toAsset?.fungible ? toAsset.unit : '';
-    
+
     title = `${strings('swap')} ${fromUnit} ${strings('to')} ${toUnit}`;
   }
 
@@ -154,12 +155,10 @@ const MultichainTransactionListItem = ({
 
   const handlePress = () => {
     setIsModalVisible(true);
-
-    console.log('Transaction pressed:', transaction.id);
   };
 
-  const renderTxElementIcon = (transactionType: string, status: string) => {
-    const isFailedTransaction = status === 'cancelled' || status === 'failed';
+  const renderTxElementIcon = (transactionType: string) => {
+    const isFailedTransaction = status === 'failed';
     const icon = getTransactionIcon(transactionType, isFailedTransaction);
     return <Image source={icon} style={styles.icon} resizeMode="stretch" />;
   };
@@ -167,43 +166,44 @@ const MultichainTransactionListItem = ({
   return (
     <>
       <TouchableHighlight
-        style={[styles.itemContainer, { borderBottomColor: colors.border.muted }]}
+        style={[
+          styles.itemContainer,
+          { borderBottomColor: colors.border.muted },
+        ]}
         onPress={handlePress}
         underlayColor={colors.background.alternative}
         activeOpacity={1}
-    >
-      <ListItem>
-        <ListItem.Date style={styles.listItemDate}>
-          {toDateFormat(new Date(transaction.timestamp * 1000))}
-        </ListItem.Date>
-        <ListItem.Content style={styles.listItemContent}>
-          <ListItem.Icon>
-            {renderTxElementIcon(type, status)}
-          </ListItem.Icon>
-          <ListItem.Body>
-            <ListItem.Title
-              numberOfLines={1}
-              style={styles.listItemTitle as TextStyle}
-            >
-              {title}
-            </ListItem.Title>
-            <StatusText
-              testID={`transaction-status-${transaction.id}`}
-              status={status}
-              style={styles.listItemStatus as TextStyle}
-              context="transaction"
-            />
-          </ListItem.Body>
-          {Boolean(asset?.amount) && (
-            <ListItem.Amount style={styles.listItemAmount as TextStyle}>
-              {asset?.amount} {asset?.unit}
-            </ListItem.Amount>
-          )}
-        </ListItem.Content>
-      </ListItem>
-    </TouchableHighlight>
+      >
+        <ListItem>
+          <ListItem.Date style={styles.listItemDate}>
+            {toDateFormat(new Date(transaction.timestamp ?? 0 * 1000))}
+          </ListItem.Date>
+          <ListItem.Content style={styles.listItemContent}>
+            <ListItem.Icon>{renderTxElementIcon(type)}</ListItem.Icon>
+            <ListItem.Body>
+              <ListItem.Title
+                numberOfLines={1}
+                style={styles.listItemTitle as TextStyle}
+              >
+                {title}
+              </ListItem.Title>
+              <StatusText
+                testID={`transaction-status-${transaction.id}`}
+                status={status}
+                style={styles.listItemStatus as TextStyle}
+                context="transaction"
+              />
+            </ListItem.Body>
+            {Boolean(asset?.amount) && (
+              <ListItem.Amount style={styles.listItemAmount as TextStyle}>
+                {asset?.amount} {asset?.unit}
+              </ListItem.Amount>
+            )}
+          </ListItem.Content>
+        </ListItem>
+      </TouchableHighlight>
 
-    <MultichainTransactionDetailsModal
+      <MultichainTransactionDetailsModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
         transaction={transaction}
