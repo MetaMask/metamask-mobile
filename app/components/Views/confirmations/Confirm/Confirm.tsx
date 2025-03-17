@@ -25,7 +25,6 @@ import GeneralAlertBanner from '../AlertSystem/GeneralAlertBanner';
 const ConfirmWrapped = ({
   styles,
   route,
-  alerts,
 }: {
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
   route?: UnstakeConfirmationViewProps['route'];
@@ -61,7 +60,6 @@ export const Confirm = ({ route }: ConfirmProps) => {
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const { onReject } = useConfirmActions();
-  const alerts = useConfirmationAlerts();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -72,7 +70,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
   if (isFlatConfirmation) {
     return (
       <View style={styles.flatContainer} testID="flat-confirmation-container">
-        <ConfirmWrapped styles={styles} route={route} alerts={alerts} />
+        <ConfirmWrapped styles={styles} route={route} />
       </View>
     );
   }
@@ -84,7 +82,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
       testID="modal-confirmation-container"
     >
       <View testID={approvalRequest?.type} style={styles.confirmContainer}>
-        <ConfirmWrapped styles={styles} route={route} alerts={alerts} />
+        <ConfirmWrapped styles={styles} route={route} />
       </View>
     </BottomSheet>
   );
