@@ -3725,6 +3725,7 @@
   },
   "bridge": {
     "continue": "Continue",
-    "terms_and_conditions": "Terms & Conditions"
+    "terms_and_conditions": "Terms & Conditions",
+    "select_token": "Select token"
   }
 }

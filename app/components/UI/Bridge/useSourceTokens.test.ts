@@ -1,29 +1,20 @@
-import { fireEvent, waitFor } from '@testing-library/react-native';
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import { BridgeTokenSelector } from './BridgeTokenSelector';
-import Routes from '../../../constants/navigation/Routes';
+import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
+import { useSourceTokens } from './useSourceTokens';
+import { constants } from 'ethers';
+import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
-import { setSourceToken } from '../../../core/redux/slices/bridge';
 
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
-  }),
+// Mock dependencies
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../../core/redux/slices/bridge', () => {
-  const actual = jest.requireActual('../../../core/redux/slices/bridge');
-  return {
-    setSourceToken: jest.fn(actual.setSourceToken),
-  };
-});
+jest.mock('../Tokens/util', () => ({
+  sortAssets: jest.fn().mockImplementation((assets) => assets),
+}));
 
-describe('BridgeTokenSelector', () => {
+describe('useSourceTokens', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
   const mockChainId = '0x1' as Hex;
   const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
@@ -38,7 +29,7 @@ describe('BridgeTokenSelector', () => {
             [mockAddress]: {
               [mockChainId]: {
                 [token1Address]: '0x0de0b6b3a7640000' as Hex, // 1 TOKEN1
-                [token2Address]: '0x1bc16d674ec80000' as Hex, // 2 HELLO
+                [token2Address]: '0x1bc16d674ec80000' as Hex, // 2 TOKEN2
               },
             },
           },
@@ -57,10 +48,10 @@ describe('BridgeTokenSelector', () => {
                 },
                 {
                   address: token2Address,
-                  symbol: 'HELLO',
+                  symbol: 'TOKEN2',
                   decimals: 18,
                   image: 'https://token2.com/logo.png',
-                  name: 'Hello Token',
+                  name: 'Token Two',
                   aggregators: ['uniswap'],
                 },
               ],
@@ -77,10 +68,10 @@ describe('BridgeTokenSelector', () => {
             },
             {
               address: token2Address,
-              symbol: 'HELLO',
+              symbol: 'TOKEN2',
               decimals: 18,
               image: 'https://token2.com/logo.png',
-              name: 'Hello Token',
+              name: 'Token Two',
               aggregators: ['uniswap'],
             },
           ],
@@ -149,7 +140,7 @@ describe('BridgeTokenSelector', () => {
               [token2Address]: {
                 tokenAddress: token2Address,
                 currency: 'ETH',
-                price: 50, // 1 TOKEN2 = 5 ETH
+                price: 5, // 1 TOKEN2 = 5 ETH
               },
             },
           },
@@ -197,121 +188,93 @@ describe('BridgeTokenSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('renders with initial state and displays tokens', async () => {
-    const { getByText } = renderScreen(
-      BridgeTokenSelector,
-      {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
-      },
-      { state: initialState }
-    );
-
-    // Header should be visible
-    expect(getByText('Select token')).toBeTruthy();
-
-    // Native token (ETH) should be visible with correct balance
-    await waitFor(() => {
-      expect(getByText('3 ETH')).toBeTruthy();
-      expect(getByText('$6000')).toBeTruthy();
+  it('should include native token with correct properties', async () => {
+    const { result } = renderHookWithProvider(() => useSourceTokens(), {
+      state: initialState,
     });
 
-    // ERC20 tokens should be visible with correct balances
     await waitFor(() => {
-      expect(getByText('1.0 TOKEN1')).toBeTruthy();
-      expect(getByText('$20000')).toBeTruthy();
-
-      expect(getByText('2.0 HELLO')).toBeTruthy();
-      expect(getByText('$200000')).toBeTruthy();
+      const nativeToken = result.current[0];
+      expect(nativeToken).toMatchObject({
+        address: constants.AddressZero,
+        symbol: 'ETH',
+        name: 'Ether',
+        decimals: 18,
+        isNative: true,
+        balance: '3',
+        balanceFiat: '$6000',
+        tokenFiatAmount: 6000,
+      });
     });
   });
 
-  it('handles token selection correctly', async () => {
-    const { getByText } = renderScreen(
-      BridgeTokenSelector,
-      {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
-      },
-      { state: initialState }
-    );
-
-    await waitFor(() => {
-      const token1Element = getByText('1.0 TOKEN1');
-      fireEvent.press(token1Element);
+  it('should show correct balances and fiat values for tokens', async () => {
+    const { result } = renderHookWithProvider(() => useSourceTokens(), {
+      state: initialState,
     });
 
-    expect(setSourceToken).toHaveBeenCalledWith({
-      address: token1Address,
-      symbol: 'TOKEN1',
-      image: 'https://token1.com/logo.png',
-      decimals: 18,
-      chainId: mockChainId,
-    });
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('handles close button correctly', () => {
-    const { getByTestId } = renderScreen(
-      BridgeTokenSelector,
-      {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
-      },
-      { state: initialState }
-    );
-
-    const closeButton = getByTestId('bridge-token-selector-close-button');
-    fireEvent.press(closeButton);
-
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('handles token search functionality correctly', async () => {
-    const { getByTestId, getByText, queryByText } = renderScreen(
-      BridgeTokenSelector,
-      {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
-      },
-      { state: initialState }
-    );
-
-    // Initially all tokens should be visible
     await waitFor(() => {
-      expect(getByText('3 ETH')).toBeTruthy();
-      expect(getByText('1.0 TOKEN1')).toBeTruthy();
-      expect(getByText('2.0 HELLO')).toBeTruthy();
-    });
+      const token1 = result.current.find((t) => t.address === token1Address);
+      const token2 = result.current.find((t) => t.address === token2Address);
 
-    // Search for TOKEN1
-    const searchInput = getByTestId('bridge-token-search-input');
-    fireEvent.changeText(searchInput, 'HELLO');
+      expect(token1).toMatchObject({
+        balance: '1.0',
+        balanceFiat: '$20000', // 1 TOKEN1 * 10 ETH/TOKEN1 * $2000/ETH
+        tokenFiatAmount: 20000,
+      });
 
-    // Should only show HELLO, not TOKEN1
-    await waitFor(() => {
-      expect(getByText('2.0 HELLO')).toBeTruthy();
-      expect(queryByText('1.0 TOKEN1')).toBeNull();
-    });
-
-    // Search should be case-insensitive
-    fireEvent.changeText(searchInput, 'hello');
-    await waitFor(() => {
-      expect(getByText('2.0 HELLO')).toBeTruthy();
-      expect(queryByText('1.0 TOKEN1')).toBeNull();
+      expect(token2).toMatchObject({
+        balance: '2.0',
+        balanceFiat: '$20000', // 2 TOKEN2 * 5 ETH/TOKEN2 * $2000/ETH
+        tokenFiatAmount: 20000,
+      });
     });
   });
 
-  it('displays empty state when no tokens match search', async () => {
-    const { getByTestId, getByText } = renderScreen(
-      BridgeTokenSelector,
-      {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
-      },
-      { state: initialState }
-    );
-
-    const searchInput = getByTestId('bridge-token-search-input');
-    fireEvent.changeText(searchInput, 'NONEXISTENT');
+  it('should include additional tokens from token list with zero balance', async () => {
+    const { result } = renderHookWithProvider(() => useSourceTokens(), {
+      state: initialState,
+    });
 
     await waitFor(() => {
-      expect(getByText('No tokens match', { exact: false })).toBeTruthy();
+      const token3 = result.current.find((t) => t.address === token3Address);
+      expect(token3).toMatchObject({
+        balance: '0',
+        balanceFiat: '$0',
+        tokenFiatAmount: 0,
+        name: 'Token Three',
+        symbol: 'TOKEN3',
+      });
+    });
+  });
+
+  it('should format small fiat values correctly', async () => {
+    const stateWithSmallBalance = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokenBalancesController: {
+            tokenBalances: {
+              [mockAddress]: {
+                [mockChainId]: {
+                  [token1Address]: '0x1' as Hex, // Very small amount
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { result } = renderHookWithProvider(() => useSourceTokens(), {
+      state: stateWithSmallBalance,
+    });
+
+    await waitFor(() => {
+      const token1 = result.current.find((t) => t.address === token1Address);
+      expect(token1?.balanceFiat).toBe('$0');
     });
   });
 });
