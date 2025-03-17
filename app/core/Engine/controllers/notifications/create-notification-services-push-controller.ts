@@ -27,7 +27,9 @@ export const createNotificationServicesPushController = (props: {
         pushService: {
           createRegToken,
           deleteRegToken,
-          subscribeToPushNotifications: createSubscribeToPushNotifications(),
+          subscribeToPushNotifications: createSubscribeToPushNotifications(
+            props.messenger,
+          ),
         },
       },
     });
