@@ -228,6 +228,8 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { LANGUAGE } from '../../constants/storage';
+import StorageWrapper from '../../store/storage-wrapper';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -647,6 +649,29 @@ export class Engine {
           target,
         ),
       getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
+      getPreferences: async () => {
+        const {
+          securityAlertsEnabled,
+          useTransactionSimulations,
+          useTokenDetection,
+          privacyMode,
+          useNftDetection,
+          displayNftMedia,
+          isMultiAccountBalancesEnabled,
+        } = this.getPreferences();
+        const locale = await StorageWrapper.getItem(LANGUAGE);
+        return {
+          locale,
+          currency: this.context.CurrencyRateController.state.currentCurrency,
+          hideBalances: privacyMode,
+          useSecurityAlerts: securityAlertsEnabled,
+          simulateOnChainActions: useTransactionSimulations,
+          useTokenDetection,
+          batchCheckBalances: isMultiAccountBalancesEnabled,
+          displayNftMedia,
+          useNftDetection,
+        };
+      },
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -1841,6 +1866,31 @@ export class Engine {
       tokenFiat: 0,
       ethFiat1dAgo: 0,
       tokenFiat1dAgo: 0,
+    };
+  };
+
+  /**
+   * Gets a subset of preferences from the PreferencesController to pass to a snap.
+   */
+  getPreferences = () => {
+    const {
+      securityAlertsEnabled,
+      useTransactionSimulations,
+      useTokenDetection,
+      privacyMode,
+      useNftDetection,
+      displayNftMedia,
+      isMultiAccountBalancesEnabled,
+    } = this.context.PreferencesController.state;
+
+    return {
+      securityAlertsEnabled,
+      useTransactionSimulations,
+      useTokenDetection,
+      privacyMode,
+      useNftDetection,
+      displayNftMedia,
+      isMultiAccountBalancesEnabled,
     };
   };
 
