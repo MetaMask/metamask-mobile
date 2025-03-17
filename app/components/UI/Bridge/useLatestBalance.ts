@@ -44,8 +44,10 @@ interface Balance {
 /**
  * A hook that fetches and returns the latest balance for a given token.
  * Latest balance is important because token balances can be cached and may not be updated immediately.
- * @param token - The token object containing address, decimals, and symbol.
- * @param chainId - The chain ID to be used for fetching the balance. Optional.
+ * @param token.address - The token address.
+ * @param token.decimals - The token decimals.
+ * @param token.chainId - The chain ID to be used for fetching the balance.
+ * @param token.balance - The cached token balance as a non-atomic decimal string, e.g. "1.23456".
  * @returns An object containing the the balance as a non-atomic decimal string and the atomic balance as a BigNumber.
  */
 export const useLatestBalance = (
@@ -89,21 +91,22 @@ export const useLatestBalance = (
     handleFetchAtomicBalance();
   }, [handleFetchAtomicBalance]);
 
-  // If the token has changed, return cached balance of new token, so we have time to fetch the new balance
-  if (previousToken?.address !== token.address) {
-    return {
-      displayBalance: token.balance,
-      atomicBalance: token.balance
-        ? parseUnits(token.balance, token.decimals)
-        : undefined,
-    };
+  if (isCaipChainId(chainId) || !token.address || !token.decimals) {
+    return undefined;
   }
 
-  // Return balance if it exists, otherwise return cached balance of new token
-  return balance ?? {
+  const cachedBalance = {
     displayBalance: token.balance,
     atomicBalance: token.balance
       ? parseUnits(token.balance, token.decimals)
       : undefined,
   };
+
+  // If the token has changed, return cached balance of new token, so we have time to fetch the new balance
+  if (previousToken?.address !== token.address) {
+    return cachedBalance;
+  }
+
+  // Return balance if it exists, otherwise return cached balance of new token
+  return balance ?? cachedBalance;
 };
