@@ -187,6 +187,7 @@ export const removeAccountsFromPermissions = async (addresses: string[]) => {
  * @returns An array containing permitted accounts for the specified host.
  * The active account is the first item in the returned array.
  */
+// TODO: This method needs to be updated. See getPermittedAccounts in Extension.
 export const getPermittedAccounts = async (
   hostname: string,
 ): Promise<string[]> => {
