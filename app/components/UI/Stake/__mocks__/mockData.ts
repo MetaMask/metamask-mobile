@@ -1,6 +1,5 @@
 import {
   ChainId,
-  StakingApiService,
   StakingType,
   type PooledStakes,
   type VaultData,
@@ -8,30 +7,9 @@ import {
 import { TokenI } from '../../Tokens/types';
 import { Contract } from 'ethers';
 import { Stake } from '../sdk/stakeSdkProvider';
-
-export const MOCK_STAKED_ETH_ASSET = {
-  decimals: 18,
-  address: '0x0000000000000000000000000000000000000000',
-  chainId: '0x1',
-  balance: '4.9999 ETH',
-  balanceFiat: '$13,292.20',
-  name: 'Staked Ethereum',
-  symbol: 'Ethereum',
-  ticker: 'ETH',
-  isETH: true,
-} as TokenI;
-
-export const MOCK_USDC_ASSET = {
-  decimals: 6,
-  address: '0xUSDC000000000000000000000000000000000000',
-  chainId: '0x1',
-  balance: '200.9999 USDC',
-  balanceFiat: '$200.98',
-  name: 'USD Coin',
-  symbol: 'USD Coin',
-  ticker: 'USDC',
-  isETH: false,
-} as TokenI;
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { createMockToken, getCreateMockTokenOptions } from '../testUtils';
+import { TOKENS_WITH_DEFAULT_OPTIONS } from '../testUtils/testUtils.types';
 
 export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   accounts: [
@@ -106,35 +84,6 @@ export const MOCK_GET_VAULT_RESPONSE: VaultData = {
   vaultAddress: '0x0a1b2c3d4e5f6a7b8c9dabecfd0123456789abcd',
 };
 
-export const MOCK_STAKING_EARNINGS_DATA = {
-  ANNUAL_EARNING_RATE: '2.6%',
-  LIFETIME_REWARDS: {
-    FIAT: '$2',
-    ETH: '0.02151 ETH',
-  },
-  EST_ANNUAL_EARNINGS: {
-    FIAT: '$15.93',
-    ETH: '0.0131 ETH',
-  },
-};
-
-export const MOCK_REWARD_DATA = {
-  REWARDS: {
-    ETH: '0.13 ETH',
-    FIAT: '$334.93',
-  },
-};
-
-export const MOCK_STAKING_API_SERVICE: Partial<StakingApiService> = {
-  fetchFromApi: jest.fn(),
-  getPooledStakes: jest.fn(),
-  getVaultData: jest.fn(),
-  getPooledStakingEligibility: jest.fn(),
-  getVaultDailyApys: jest.fn(),
-  getVaultApyAverages: jest.fn(),
-  baseUrl: 'https://staking.api.com',
-};
-
 const MOCK_POOLED_STAKING_CONTRACT_SERVICE = {
   chainId: ChainId.ETHEREUM,
   connectSignerOrProvider: jest.fn(),
@@ -155,4 +104,101 @@ export const MOCK_POOL_STAKING_SDK: Stake = {
   stakingContract: MOCK_POOLED_STAKING_CONTRACT_SERVICE,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
+};
+
+export const MOCK_ETH_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.ETH),
+);
+
+export const MOCK_STAKED_ETH_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.STAKED_ETH,
+  ),
+);
+
+export const MOCK_USDC_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.USDC,
+  ),
+);
+
+const MOCK_USDT_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.USDT,
+  ),
+);
+
+const MOCK_DAI_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.MAINNET, TOKENS_WITH_DEFAULT_OPTIONS.DAI),
+);
+
+const MOCK_LINK_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.LINK,
+  ),
+);
+
+const MOCK_MATIC_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.MATIC,
+  ),
+);
+
+const MOCK_ETH_BASE_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.BASE, TOKENS_WITH_DEFAULT_OPTIONS.ETH),
+);
+
+export const MOCK_USDC_BASE_MAINNET_ASSET = createMockToken(
+  getCreateMockTokenOptions(CHAIN_IDS.BASE, TOKENS_WITH_DEFAULT_OPTIONS.USDC),
+);
+
+export const MOCK_ACCOUNT_MULTI_CHAIN_TOKENS = [
+  MOCK_ETH_MAINNET_ASSET,
+  MOCK_STAKED_ETH_MAINNET_ASSET,
+  MOCK_LINK_MAINNET_ASSET,
+  MOCK_DAI_MAINNET_ASSET,
+  MOCK_MATIC_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
+  MOCK_USDT_MAINNET_ASSET,
+] as unknown as TokenI[];
+
+export const MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE = [
+  MOCK_ETH_MAINNET_ASSET,
+  MOCK_DAI_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
+  MOCK_USDT_MAINNET_ASSET,
+] as unknown as TokenI[];
+
+export const MOCK_SUPPORTED_EARN_TOKENS_WITH_FIAT_BALANCE = [
+  {
+    ...MOCK_ETH_MAINNET_ASSET,
+    tokenBalanceFormatted: '0.29166 ETH',
+  },
+  { ...MOCK_DAI_MAINNET_ASSET, tokenBalanceFormatted: '108.06408 DAI' },
+  {
+    ...MOCK_USDC_MAINNET_ASSET,
+    tokenBalanceFormatted: '6.84314 USDC',
+  },
+  {
+    ...MOCK_USDT_MAINNET_ASSET,
+    tokenBalanceFormatted: '0 USDT',
+  },
+  {
+    ...MOCK_ETH_BASE_MAINNET_ASSET,
+    tokenBalanceFormatted: '390.76791 ETH',
+  },
+  {
+    ...MOCK_USDC_BASE_MAINNET_ASSET,
+    tokenBalanceFormatted: '33.39041 USDC',
+  },
+];
+
+export const MOCK_SELECT_POOLED_STAKING_VAULT_APY = {
+  apyDecimal: 0.03257560263513173,
+  apyPercentString: '3.3%',
 };

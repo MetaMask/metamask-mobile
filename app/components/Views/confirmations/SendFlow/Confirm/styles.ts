@@ -135,7 +135,7 @@ const createStyles = (colors: any) =>
       textDecorationLine: 'underline',
       ...fontStyles.bold,
     },
-    blockaidBanner: {
+    blockaidBannerContainer: {
       marginBottom: 10,
       marginTop: 20,
       marginHorizontal: 10,

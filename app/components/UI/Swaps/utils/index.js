@@ -236,3 +236,28 @@ export function getQuotesSourceMessage(type) {
     }
   }
 }
+
+/**
+ * Determines whether to show the max balance link in Swaps
+ * @param {object} params - Function parameters
+ * @param {object} params.sourceToken - Source token object
+ * @param {boolean} params.shouldUseSmartTransaction - Whether smart transactions are enabled
+ * @param {boolean} params.hasBalance - Whether the user has a balance of the source token
+ * @return {boolean} Whether to show the max balance link
+ */
+export function shouldShowMaxBalanceLink({
+  sourceToken,
+  shouldUseSmartTransaction,
+  hasBalance,
+}) {
+  if (!sourceToken?.symbol || !hasBalance) {
+    return false;
+  }
+
+  const isNonDefaultFromToken = !isSwapsNativeAsset(sourceToken);
+  const isTokenEligibleForMaxBalance =
+    shouldUseSmartTransaction ||
+    (!shouldUseSmartTransaction && isNonDefaultFromToken);
+
+  return isTokenEligibleForMaxBalance;
+}

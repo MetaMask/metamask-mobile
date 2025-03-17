@@ -20,6 +20,7 @@ describe('Tooltip', () => {
   });
 
   it('should display content when info icon is clicked', async () => {
+    const mockOnPress = jest.fn();
     const { getByTestId, getByText } = render(
       <Tooltip
         title="Tooltip title"
@@ -29,9 +30,11 @@ describe('Tooltip', () => {
           </View>
         }
         tooltipTestId="tooltipTestId"
+        onPress={mockOnPress}
       />,
     );
-    fireEvent.press(getByTestId('tooltipTestId'));
+    fireEvent.press(getByTestId('tooltipTestId-open-btn'));
     expect(getByText('Tooltip content to be displayed here!')).toBeDefined();
+    expect(mockOnPress).toHaveBeenCalled();
   });
 });

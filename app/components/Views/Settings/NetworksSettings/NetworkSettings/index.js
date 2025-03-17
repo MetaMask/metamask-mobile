@@ -1,3 +1,4 @@
+/* eslint-disable */
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
@@ -175,11 +176,6 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      height: Device.getDeviceHeight() * 0.7,
-    },
-    sheetContent: {
-      flex: 1,
-      flexShrink: 1,
     },
     notch: {
       width: 48,
@@ -1564,8 +1560,8 @@ export class NetworkSettings extends PureComponent {
     this.setState({ showMultiBlockExplorerAddModal: { isVisible: false } });
   };
 
-  switchToMainnet = () => {
-    const { NetworkController } = Engine.context;
+  switchToMainnet = async () => {
+    const { MultichainNetworkController } = Engine.context;
     const { networkConfigurations } = this.props;
 
     const { networkClientId } =
@@ -1573,20 +1569,21 @@ export class NetworkSettings extends PureComponent {
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    NetworkController.setActiveNetwork(networkClientId);
+    await MultichainNetworkController.setActiveNetwork(networkClientId);
+
     setTimeout(async () => {
       await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);
   };
 
-  removeRpcUrl = () => {
+  removeRpcUrl = async () => {
     const { navigation, networkConfigurations, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
       compareSanitizedUrl(rpcUrl, providerConfig.rpcUrl) &&
       providerConfig.type === RPC
     ) {
-      this.switchToMainnet();
+      await this.switchToMainnet();
     }
 
     const entry = Object.entries(networkConfigurations).find(
@@ -2168,7 +2165,6 @@ export class NetworkSettings extends PureComponent {
               </Text>
             </BottomSheetHeader>
             <KeyboardAwareScrollView
-              style={styles.sheetContent}
               enableOnAndroid
               keyboardShouldPersistTaps="handled"
             >
@@ -2247,7 +2243,6 @@ export class NetworkSettings extends PureComponent {
               </Text>
             </BottomSheetHeader>
             <KeyboardAwareScrollView
-              style={styles.sheetContent}
               enableOnAndroid
               keyboardShouldPersistTaps="handled"
             >

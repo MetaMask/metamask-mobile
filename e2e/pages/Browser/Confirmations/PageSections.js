@@ -1,4 +1,5 @@
 import { ConfirmationPageSectionsSelectorIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import Gestures from '../../../utils/Gestures';
 import Matchers from '../../../utils/Matchers';
 
 class PageSections {

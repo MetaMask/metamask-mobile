@@ -1,13 +1,13 @@
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import { useState, useMemo, useCallback } from 'react';
 import {
   limitToMaximumDecimalPlaces,
   renderFiat,
 } from '../../../../util/number';
-import useVaultData from './useVaultData';
 import useStakingGasFee from './useStakingGasFee';
 import useBalance from './useBalance';
 import useInputHandler from './useInputHandler';
+import useVaultMetadata from './useVaultMetadata';
 
 const useStakingInputHandlers = () => {
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
@@ -38,18 +38,18 @@ const useStakingInputHandlers = () => {
     () =>
       !isStakingGasFeeError && balance.gt(estimatedGasFeeWei)
         ? balance.sub(estimatedGasFeeWei)
-        : new BN(0),
+        : new BN4(0),
 
     [balance, estimatedGasFeeWei, isStakingGasFeeError],
   );
 
   const isOverMaximum = useMemo(() => {
     const additionalFundsRequired = amountWei.sub(maxStakeableAmountWei);
-    return isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
+    return isNonZeroAmount && additionalFundsRequired.gt(new BN4(0));
   }, [amountWei, isNonZeroAmount, maxStakeableAmountWei]);
 
-  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultData } =
-    useVaultData();
+  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
+    useVaultMetadata();
 
   const handleMax = useCallback(async () => {
     if (!balance) return;
@@ -98,13 +98,13 @@ const useStakingInputHandlers = () => {
     : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
   const getDepositTxGasPercentage = useCallback(
-    () => estimatedGasFeeWei.mul(new BN(100)).div(amountWei).toString(),
+    () => estimatedGasFeeWei.mul(new BN4(100)).div(amountWei).toString(),
     [amountWei, estimatedGasFeeWei],
   );
 
   // Gas fee make up 30% or more of the deposit amount.
   const isHighGasCostImpact = useCallback(
-    () => new BN(getDepositTxGasPercentage()).gt(new BN(30)),
+    () => new BN4(getDepositTxGasPercentage()).gt(new BN4(30)),
     [getDepositTxGasPercentage],
   );
 
@@ -129,9 +129,9 @@ const useStakingInputHandlers = () => {
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultData,
     handleMax,
     isLoadingStakingGasFee,
+    isLoadingVaultMetadata,
     balanceValue,
     getDepositTxGasPercentage,
     isHighGasCostImpact,

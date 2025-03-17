@@ -115,6 +115,7 @@ const Routes = {
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
+    BRIDGE_TOKEN_SELECTOR: 'BridgeTokenSelector',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -137,7 +138,10 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
+  BRIDGE: 'Bridge',
   LOCK_SCREEN: 'LockScreen',
+  CONFIRM_FLAT_PAGE: 'Confirmation Flat Page',
+  CONFIRM_MODAL: 'Confirmation Modal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -155,7 +159,12 @@ const Routes = {
       LEARN_MORE: 'LearnMore',
       MAX_INPUT: 'MaxInput',
       GAS_IMPACT: 'GasImpact',
+      EARN_TOKEN_LIST: 'EarnTokenList',
     },
+  },
+  STANDALONE_CONFIRMATIONS: {
+    STAKE_DEPOSIT: 'RedesignedStakeDeposit',
+    STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {

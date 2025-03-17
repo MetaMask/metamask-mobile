@@ -61,11 +61,8 @@ import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/R
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import {
-  isBtcAccount,
-  isSolanaAccount,
-  getFormattedAddressFromInternalAccount,
-} from '../../../core/Multichain/utils';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+
 ///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 
@@ -882,6 +879,7 @@ export function getOfflineModalNavbar() {
  * @param {boolean | null} isProfileSyncingEnabled - Whether profile syncing is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
+ * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -1007,7 +1005,7 @@ export function getWalletNavbarOptions(
   }
 
   const renderNetworkPicker = () => {
-    let networkPicker = (
+    const networkPicker = (
       <PickerNetwork
         label={networkName}
         imageSource={networkImageSource}
@@ -1016,33 +1014,6 @@ export function getWalletNavbarOptions(
         hideNetworkName
       />
     );
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (isSolanaAccount(selectedInternalAccount)) {
-      networkPicker = (
-        <PickerNetwork
-          label={'Solana'}
-          imageSource={require('../../../images/solana-logo.png')}
-          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-          hideNetworkName
-          isDisabled
-        />
-      );
-    }
-
-    if (isBtcAccount(selectedInternalAccount)) {
-      networkPicker = (
-        <PickerNetwork
-          label={'Bitcoin'}
-          imageSource={require('../../../images/bitcoin-logo.png')}
-          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-          hideNetworkName
-          isDisabled
-        />
-      );
-    }
-
-    ///: END:ONLY_INCLUDE_IF
 
     return <View style={styles.leftElementContainer}>{networkPicker}</View>;
   };
@@ -1752,9 +1723,55 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
   };
 }
 
+export function getBridgeNavbar(navigation, route, themeColors) {
+  const innerStyles = StyleSheet.create({
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
+    },
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+  });
+  const title = route.params?.title ?? 'Swap/Bridge';
+
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
+    headerRight: () => (
+      // eslint-disable-next-line react/jsx-no-bind
+      <TouchableOpacity
+        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        style={styles.closeButton}
+      >
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.cancel')}
+        </Text>
+      </TouchableOpacity>
+    ),
+    headerStyle: innerStyles.headerStyle,
+  };
+}
+
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title, showBack = true, showCancel = true } = {},
+  { title = 'Buy', showBack = true, showCancel = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -1776,7 +1793,6 @@ export function getFiatOnRampAggNavbar(
       ...(!showBack && { textAlign: 'center' }),
     },
   });
-  const headerTitle = title ?? 'Buy';
 
   const leftActionText = strings('navigation.back');
 
@@ -1786,7 +1802,7 @@ export function getFiatOnRampAggNavbar(
 
   return {
     headerTitle: () => (
-      <NavbarTitle title={headerTitle} disableNetwork translate={false} />
+      <NavbarTitle title={title} disableNetwork translate={false} />
     ),
     headerLeft: () => {
       if (!showBack) return <View />;

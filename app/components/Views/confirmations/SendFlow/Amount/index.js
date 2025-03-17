@@ -62,7 +62,6 @@ import CollectibleMedia from '../../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../../util/collectibles-transfer';
 import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
-import { BN } from 'ethereumjs-util';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../../UI/NetworkMainAssetLogo';
@@ -102,7 +101,7 @@ import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 import {
   // Pending updated multichain UX to specify the send chain.
   /* eslint-disable no-restricted-syntax */
-  selectChainId,
+  selectEvmChainId,
   selectNetworkClientId,
   /* eslint-enable no-restricted-syntax */
   selectNativeCurrencyByChainId,
@@ -924,7 +923,7 @@ class Amount extends PureComponent {
       const balanceBN = hexToBN(accounts[selectedAddress].balance);
       const realMaxValue = balanceBN.sub(estimatedTotalGas);
       const maxValue =
-        balanceBN.isZero() || realMaxValue.isNeg() ? new BN(0) : realMaxValue;
+        balanceBN.isZero() || realMaxValue.isNeg() ? hexToBN('0x0') : realMaxValue;
       if (internalPrimaryCurrencyIsCrypto) {
         input = fromWei(maxValue);
       } else {
@@ -1053,18 +1052,15 @@ class Amount extends PureComponent {
     this.setState({ assetsModalVisible: !assetsModalVisible });
   };
 
-  handleSelectedAssetBalance = (
-    selectedAsset,
-    renderableBalance,
-  ) => {
+  handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
     const { accounts, selectedAddress, contractBalances } = this.props;
     let currentBalance;
     if (renderableBalance) {
       currentBalance = `${renderableBalance} ${selectedAsset.symbol}`;
     } else if (isNativeToken(selectedAsset)) {
-      currentBalance = `${renderFromWei(
-        accounts[selectedAddress].balance,
-      )} ${selectedAsset.symbol}`;
+      currentBalance = `${renderFromWei(accounts[selectedAddress].balance)} ${
+        selectedAsset.symbol
+      }`;
     } else {
       currentBalance = `${renderFromTokenMinimalUnit(
         contractBalances[selectedAsset.address],
@@ -1588,12 +1584,15 @@ Amount.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => {
   const transaction = ownProps.transaction || state.transaction;
-  const globalChainId = selectChainId(state);
+  const globalChainId = selectEvmChainId(state);
   const globalNetworkClientId = selectNetworkClientId(state);
 
   return {
     accounts: selectAccounts(state),
-    contractExchangeRates: selectContractExchangeRatesByChainId(state, globalChainId),
+    contractExchangeRates: selectContractExchangeRatesByChainId(
+      state,
+      globalChainId,
+    ),
     contractBalances: selectContractBalances(state),
     collectibles: collectiblesSelector(state),
     collectibleContracts: collectibleContractsSelector(state),

@@ -1,24 +1,25 @@
+import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 
-import { Theme } from '../../../../../../util/theme/models';
-
 const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+  const { theme: { colors }} = params;
 
   return StyleSheet.create({
-    footerButton: {
-      flex: 1,
+    base: {
+      backgroundColor: colors.background.alternative,
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+      paddingTop: 16,
     },
-    divider: {
-      height: 1,
-      backgroundColor: theme.colors.border.muted,
+    linkText: {
+      textDecorationLine: 'underline',
     },
-    buttonsContainer: {
+    textContainer: {
       flexDirection: 'row',
-      paddingVertical: 16,
-    },
-    buttonDivider: {
-      width: 8,
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+      marginBottom: 24,
+      paddingBottom: 16,
     },
   });
 };

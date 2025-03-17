@@ -105,7 +105,6 @@ const createStyles = (colors, shadows) =>
       zIndex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      transform: [{ translateX: -20 }, { translateY: -10 }],
     },
   });
 

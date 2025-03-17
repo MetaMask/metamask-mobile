@@ -113,10 +113,15 @@ jest.mock('../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
+let mockState = {};
+
 jest.mock('../../store', () => ({
   store: {
-    getState: jest.fn(),
+    getState: jest.fn().mockImplementation(() => mockState),
     dispatch: jest.fn(),
+  },
+  _updateMockState: (state) => {
+    mockState = state;
   },
 }));
 
@@ -178,9 +183,7 @@ jest.mock('react-native-keychain', () => ({
 
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-branch', () => ({
-  BranchSubscriber: () => {
-    () => 'RNBranch';
-  },
+  subscribe: jest.fn(),
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('@metamask/react-native-search-api', () => 'SearchApi');

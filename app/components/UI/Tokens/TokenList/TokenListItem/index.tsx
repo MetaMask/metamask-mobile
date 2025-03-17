@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
-import { zeroAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -10,11 +9,11 @@ import { useTheme } from '../../../../../util/theme';
 import { TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
 import {
-  selectChainId,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
   selectNetworkConfigurations,
   selectNetworkConfigurationByChainId,
+  selectChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectContractExchangeRates,
@@ -64,6 +63,9 @@ import {
   CustomNetworkImgMapping,
 } from '../../../../../util/networks/customNetworks';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
+import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -85,6 +87,7 @@ export const TokenListItem = React.memo(
     showPercentageChange = true,
     showNetworkBadge = true,
   }: TokenListItemProps) => {
+    const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
     const { colors } = useTheme();
     const selectedInternalAccountAddress = useSelector(
@@ -94,10 +97,12 @@ export const TokenListItem = React.memo(
 
     const { type } = useSelector(selectProviderConfig);
     const selectedChainId = useSelector(selectChainId);
+    const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+
     const chainId = isPortfolioViewEnabled()
       ? (asset.chainId as Hex)
       : selectedChainId;
-    const ticker = useSelector(selectTicker);
+    const ticker = useSelector(selectEvmTicker);
     const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
       chainId,
       ticker,
@@ -135,6 +140,7 @@ export const TokenListItem = React.memo(
           chainId as Hex
         ]
       : selectedChainTokenBalance;
+
     const nativeCurrency =
       networkConfigurations?.[chainId as Hex]?.nativeCurrency;
 
@@ -163,13 +169,15 @@ export const TokenListItem = React.memo(
         : 0;
 
       pricePercentChange1d = asset.isNative
-        ? multiChainMarketData?.[chainId as Hex]?.[zeroAddress() as Hex]
-            ?.pricePercentChange1d
+        ? multiChainMarketData?.[chainId as Hex]?.[
+            getNativeTokenAddress(chainId as Hex) as Hex
+          ]?.pricePercentChange1d
         : tokenPercentageChange;
     } else {
       pricePercentChange1d = itemAddress
         ? exchangeRates?.[itemAddress as Hex]?.pricePercentChange1d
-        : exchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+        : exchangeRates?.[getNativeTokenAddress(chainId as Hex) as Hex]
+            ?.pricePercentChange1d;
     }
 
     // render balances according to primary currency
@@ -181,23 +189,23 @@ export const TokenListItem = React.memo(
     // Set main and secondary balances based on the primary currency and asset type.
     if (primaryCurrency === 'ETH') {
       // Default to displaying the formatted balance value and its fiat equivalent.
-      mainBalance = balanceValueFormatted;
-      secondaryBalance = balanceFiat;
+      mainBalance = balanceValueFormatted?.toUpperCase();
+      secondaryBalance = balanceFiat?.toUpperCase();
       // For ETH as a native currency, adjust display based on network safety.
       if (asset.isETH) {
         // Main balance always shows the formatted balance value for ETH.
-        mainBalance = balanceValueFormatted;
+        mainBalance = balanceValueFormatted?.toUpperCase();
         // Display fiat value as secondary balance only for original native tokens on safe networks.
         if (isPortfolioViewEnabled()) {
           secondaryBalance = shouldNotShowBalanceOnTestnets
             ? undefined
-            : balanceFiat;
+            : balanceFiat?.toUpperCase();
         } else {
           secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
         }
       }
     } else {
-      secondaryBalance = balanceValueFormatted;
+      secondaryBalance = balanceValueFormatted?.toUpperCase();
       if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
         mainBalance = undefined;
       } else {
@@ -231,8 +239,8 @@ export const TokenListItem = React.memo(
 
           if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-          if (CustomNetworkImgMapping[chainId]) {
-            return CustomNetworkImgMapping[chainId];
+          if (CustomNetworkImgMapping[chainId as Hex]) {
+            return CustomNetworkImgMapping[chainId as Hex];
           }
 
           return ticker ? images[ticker] : undefined;
@@ -271,6 +279,21 @@ export const TokenListItem = React.memo(
     );
 
     const onItemPress = (token: TokenI) => {
+      // Track the event
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+          .addProperties({
+            source: 'mobile-token-list',
+            chain_id: token.chainId,
+            token_symbol: token.symbol,
+          })
+          .build(),
+      );
+
+      if (!isEvmNetworkSelected) {
+        return;
+      }
+
       // if the asset is staked, navigate to the native asset details
       if (asset.isStaked) {
         return navigation.navigate('Asset', {
@@ -333,7 +356,7 @@ export const TokenListItem = React.memo(
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource(chainId)}
+                imageSource={networkBadgeSource(chainId as Hex)}
                 name={networkConfigurationByChainId?.name}
               />
             }

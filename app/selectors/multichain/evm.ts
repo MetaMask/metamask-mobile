@@ -7,7 +7,7 @@ import {
 } from '../accountsController';
 import { selectAllTokens } from '../tokensController';
 import { selectAccountsByChainId } from '../accountTrackerController';
-import { selectNetworkConfigurations } from '../networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
 import { hexToBN, toHex } from '@metamask/controller-utils';
@@ -15,6 +15,8 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../currencyRateController';
+import { createDeepEqualSelector } from '../util';
+import { isPortfolioViewEnabled } from '../../util/networks';
 
 interface NativeTokenBalance {
   balance: string;
@@ -61,7 +63,7 @@ export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
  */
 export const selectNativeTokensAcrossChains = createSelector(
   [
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
     selectedAccountNativeTokenCachedBalanceByChainId,
     selectCurrencyRates,
     selectCurrentCurrency,
@@ -172,14 +174,15 @@ export const selectNativeTokensAcrossChains = createSelector(
  * @param {RootState} state - The root state.
  * @returns {TokensByChain} The tokens for the selected account across all chains.
  */
-export const selectAccountTokensAcrossChains = createSelector(
-  [
-    selectSelectedInternalAccount,
-    selectAllTokens,
-    selectNetworkConfigurations,
-    selectNativeTokensAcrossChains,
-  ],
+export const selectAccountTokensAcrossChains = createDeepEqualSelector(
+  selectSelectedInternalAccount,
+  selectAllTokens,
+  selectEvmNetworkConfigurationsByChainId,
+  selectNativeTokensAcrossChains,
   (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
+    if (!isPortfolioViewEnabled()) {
+      return {};
+    }
     const selectedAddress = selectedAccount?.address;
     const tokensByChain: {
       [chainId: string]: (

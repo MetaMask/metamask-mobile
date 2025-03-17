@@ -5,7 +5,7 @@
 
 import { IMetaMetricsEvent } from './MetaMetrics.types';
 
-const generateOpt = (
+export const generateOpt = (
   name: EVENT_NAME,
   action?: ACTIONS,
   description?: DESCRIPTION,
@@ -76,6 +76,7 @@ enum EVENT_NAME {
   COLLECTIBLE_ADDED = 'Collectible Added',
   COLLECTIBLE_DETAILS_OPENED = 'Collectible Details Opened',
   COLLECTIBLE_REMOVED = 'Collectible Removed',
+  TOKEN_LIST_ITEM_PRESSED = 'Token List Item Pressed',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
@@ -304,6 +305,7 @@ enum EVENT_NAME {
   UNSTAKE_TRANSACTION_CONFIRMED = 'Unstake Transaction Confirmed',
   UNSTAKE_TRANSACTION_SUBMITTED = 'Unstake Transaction Submitted',
   VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS = 'Visited ETH Overview with Staked Positions',
+  EARN_TOKEN_LIST_ITEM_CLICKED = 'Earn Token List Item Clicked',
 
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
@@ -991,6 +993,10 @@ const events = {
   VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS: generateOpt(
     EVENT_NAME.VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS,
   ),
+  EARN_TOKEN_LIST_ITEM_CLICKED: generateOpt(
+    EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
+  ),
+  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
 };
 
 /**
