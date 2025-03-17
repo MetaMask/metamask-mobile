@@ -6,7 +6,6 @@ import { ethers } from 'ethers';
 import { createSelector } from 'reselect';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { getNativeSwapsToken } from '@metamask/swaps-controller/dist/swapsUtil';
-import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { uniqBy } from 'lodash';
 import { ALLOWED_BRIDGE_CHAIN_IDS, AllowedBridgeChainIds, BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
