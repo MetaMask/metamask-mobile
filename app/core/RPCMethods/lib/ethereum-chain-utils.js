@@ -10,6 +10,7 @@ import {
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  getPermittedEthChainIds,
 } from '@metamask/multichain';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -209,11 +210,9 @@ export async function switchToNetwork({
 }) {
   const {
     getCaveat,
-    getPermittedEthChainIds,
     requestPermittedChainsPermissionIncrementalForOrigin,
     hasApprovalRequestsForOrigin,
-    autoApprove,
-    isAddFlow,
+    autoApprove, // TODO: [ffmcgee] this should come from the add/switch Ethereum Chain handler function, not from upstream hooks passed. Check.
     toNetworkConfiguration,
     fromNetworkConfiguration,
   } = hooks;
@@ -260,7 +259,7 @@ export async function switchToNetwork({
         chainId,
         autoApprove,
       });
-    } else if (hasApprovalRequestsForOrigin?.() && !isAddFlow) {
+    } else if (hasApprovalRequestsForOrigin?.() && !isAddNetworkFlow) {
       await requestUserApproval({
         origin,
         type: ApprovalType.SwitchEthereumChain,

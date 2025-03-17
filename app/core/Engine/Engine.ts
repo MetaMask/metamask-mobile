@@ -206,6 +206,12 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  setPermittedEthChainIds,
+} from '@metamask/multichain';
+import { isSnapId } from '@metamask/snaps-utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1865,6 +1871,76 @@ export class Engine {
     }
     AccountsController.setAccountName(accountToBeNamed.id, label);
     PreferencesController.setAccountLabel(address, label);
+  }
+
+  /**
+   * Requests incremental permittedChains permission for the specified origin.
+   * and updates the existing CAIP-25 permission.
+   * Allows for granting without prompting for user approval which
+   * would be used as part of flows like `wallet_addEthereumChain`
+   * requests where the addition of the network and the permitting
+   * of the chain are combined into one approval.
+   *
+   * @param {object} options - The options object
+   * @param {string} options.origin - The origin to request approval for.
+   * @param {Hex} options.chainId - The chainId to add to the existing permittedChains.
+   * @param {boolean} options.autoApprove - If the chain should be granted without prompting for user approval.
+   */
+  async requestPermittedChainsPermissionIncremental({
+    origin,
+    chainId,
+    autoApprove,
+  }: {
+    origin: string;
+    chainId: Hex;
+    autoApprove: boolean;
+  }) {
+    if (isSnapId(origin)) {
+      throw new Error(
+        `Cannot request permittedChains permission for Snaps with origin "${origin}"`,
+      );
+    }
+
+    const permissionController = this.context.PermissionController;
+    const caveatValueWithChains = setPermittedEthChainIds(
+      {
+        requiredScopes: {},
+        optionalScopes: {},
+        isMultichainOrigin: false,
+      },
+      [chainId],
+    );
+
+    if (!autoApprove) {
+      await permissionController.requestPermissionsIncremental(
+        { origin },
+        {
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: caveatValueWithChains,
+              },
+            ],
+          },
+        },
+      );
+      return;
+    }
+
+    await permissionController.grantPermissionsIncremental({
+      subject: { origin },
+      approvedPermissions: {
+        [Caip25EndowmentPermissionName]: {
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: caveatValueWithChains,
+            },
+          ],
+        },
+      },
+    });
   }
 }
 
