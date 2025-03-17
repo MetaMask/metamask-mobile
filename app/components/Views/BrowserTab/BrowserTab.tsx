@@ -208,7 +208,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const isFocused = useIsFocused();
 
-  const productSafetyDappScanningEnabled = useSelector(selectProductSafetyDappScanningEnabled);
+  const productSafetyDappScanningEnabled = useSelector(
+    selectProductSafetyDappScanningEnabled,
+  );
 
   /**
    * Checks if a given url or the current url is the homepage
@@ -297,7 +299,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Check if an origin is allowed
    */
   const isAllowedOrigin = useCallback(
-    (urlOrigin: string) => {
+    async (urlOrigin: string) => {
       const whitelisted = whitelist?.includes(urlOrigin);
       if (whitelisted) {
         return true;
@@ -307,47 +309,34 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
       if (productSafetyDappScanningEnabled) {
         Logger.log('Real time dapp scanning enabled');
-      } else {
-        // Fire-and-forget update.
-        PhishingController.maybeUpdateState();
 
-        const testResult = PhishingController.test(urlOrigin);
-        if (testResult.result && testResult.name) {
-          blockListType.current = testResult.name;
-          return whitelisted || false;
+        const scanResult = await PhishingController.scanUrl(urlOrigin);
+        if (scanResult.fetchError) {
+          // Log error but don't block the site based on a failed scan
+          Logger.log(
+            '[BrowserTab][isAllowedOriginV2] Fetch error:',
+            scanResult.fetchError,
+          );
+          return true;
         }
+
+        return !(
+          scanResult.recommendedAction === RecommendedAction.Block ||
+          scanResult.recommendedAction === RecommendedAction.Warn
+        );
+      }
+      // Fire-and-forget update.
+      PhishingController.maybeUpdateState();
+      const testResult = PhishingController.test(urlOrigin);
+
+      if (testResult.result && testResult.name) {
+        blockListType.current = testResult.name;
+        return false;
       }
 
-      return whitelisted || true;
+      return true;
     },
     [whitelist, productSafetyDappScanningEnabled],
-  );
-
-  /**
-   * Checks if an origin is allowed using an async call to an API.
-   */
-  const isAllowedOriginV2 = useCallback(
-    async (urlOrigin: string) => {
-      if (whitelist?.includes(urlOrigin)) {
-        return true;
-      }
-
-      const { PhishingController } = Engine.context;
-      const scanResult = await PhishingController.scanUrl(urlOrigin);
-      if (scanResult.fetchError) {
-        // Log error but don't block the site based on a failed scan
-        Logger.log(
-          '[BrowserTab][isAllowedOriginV2] Fetch error:',
-          scanResult.fetchError,
-        );
-        return true;
-      }
-      return !(
-        scanResult.recommendedAction === RecommendedAction.Block ||
-        scanResult.recommendedAction === RecommendedAction.Warn
-      );
-    },
-    [whitelist],
   );
 
   /**
@@ -483,24 +472,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     const prefixedUrl = prefixUrlWithProtocol(initialUrl);
     const { origin: urlOrigin } = new URLParse(prefixedUrl);
 
-    if (isAllowedOrigin(urlOrigin)) {
-      setAllowedInitialUrl(prefixedUrl);
-      setFirstUrlLoaded(true);
-      setProgress(0);
-      return;
-    }
-    isAllowedOriginV2(urlOrigin).then((isAllowed) => {
+    isAllowedOrigin(urlOrigin).then((isAllowed) => {
       if (isAllowed) {
         setAllowedInitialUrl(prefixedUrl);
         setFirstUrlLoaded(true);
         setProgress(0);
         return;
       }
+      handleNotAllowedUrl(prefixedUrl);
+      return;
     });
-
-    handleNotAllowedUrl(prefixedUrl);
-    return;
-  }, [initialUrl, handleNotAllowedUrl, isAllowedOrigin, isAllowedOriginV2]);
+  }, [initialUrl, handleNotAllowedUrl, isAllowedOrigin]);
 
   /**
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
@@ -777,13 +759,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       handleNotAllowedUrl(urlOrigin);
       return false;
     }
-
-    isAllowedOriginV2(urlOrigin).then((isAllowed) => {
-      if (!isAllowed) {
-        handleNotAllowedUrl(urlOrigin);
-        return false;
-      }
-    });
 
     if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
       setIpfsBannerVisible(true);
