@@ -5,12 +5,12 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../../component-library/components/Texts/Text';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import styleSheet from './MaxBrowserTabsModal.styles';
 import { useStyles } from '../../../component-library/hooks';
+import Icon, { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
 
 const MaxBrowserTabsModal = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme: { colors } } = useStyles(styleSheet, {});
   const modalRef = useRef<BottomSheetRef>(null);
 
   const dismissModal = (): void => {
@@ -20,10 +20,10 @@ const MaxBrowserTabsModal = () => {
   return (
     <BottomSheet ref={modalRef}>
       <View style={styles.infoIconWrap}>
-        <MaterialCommunityIcons
-          name="information"
-          size={28}
-          style={styles.infoIcon}
+        <Icon
+          size={IconSize.Lg}
+          name={IconName.Info}
+          color={colors.primary.default}
         />
       </View>
       <SheetHeader title={strings('browser.max_tabs_title')} />
