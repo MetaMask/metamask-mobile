@@ -1349,7 +1349,7 @@ workflows:
       - file-downloader@1:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-            - destination: android/keystores/internalRelease.keystore
+            - destination: android/keystores/release.keystore
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
