@@ -29,6 +29,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { getBridgeNavbar } from '../Navbar';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
+import useSubmitBridgeTx from '../../../util/bridge/hooks/useSubmitBridgeTx';
+import { QuoteResponse } from './types';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -87,6 +89,7 @@ const BridgeView = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
+  const { submitBridgeTx } = useSubmitBridgeTx();
 
   // Bridge state from Redux
   const sourceToken = useSelector(selectSourceToken);
@@ -125,6 +128,11 @@ const BridgeView = () => {
 
   const handleContinue = () => {
     // TODO: Implement bridge transaction with source and destination amounts
+    // TESTING: Paste a quote from the Bridge API here to test the bridge flow
+    const quoteResponse = undefined;
+    if (quoteResponse) {
+        submitBridgeTx({quoteResponse: quoteResponse as QuoteResponse});
+    }
   };
 
   const handleTermsPress = () => {
