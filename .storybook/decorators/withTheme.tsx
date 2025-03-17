@@ -1,12 +1,12 @@
 import React from 'react';
 import { Dimensions, View } from 'react-native';
-import { useAppThemeFromContext } from '../../app/util/theme';
+import { useAppTheme } from '../../app/util/theme';
 
 import ThemeProvider from '../../app/component-library/providers/ThemeProvider/ThemeProvider';
 
 const withTheme = (storyFn: () => React.ReactNode) => {
   const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
-  const theme = useAppThemeFromContext();
+  const theme = useAppTheme();
 
   return (
     <ThemeProvider>
