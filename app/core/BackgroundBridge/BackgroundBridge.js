@@ -521,6 +521,7 @@ export class BackgroundBridge extends EventEmitter {
 
     engine.push(
       createEip1193MethodMiddleware({
+        metamaskState: this.getState(),
         // Permission-related
         getAccounts: async () =>
           await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
