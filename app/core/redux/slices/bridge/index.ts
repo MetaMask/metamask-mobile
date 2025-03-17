@@ -7,7 +7,7 @@ import { createSelector } from 'reselect';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { getNativeSwapsToken } from '@metamask/swaps-controller/dist/swapsUtil';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
-import { selectChainId, selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId, selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { uniqBy } from 'lodash';
 import { ALLOWED_BRIDGE_CHAIN_IDS, AllowedBridgeChainIds, BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
 
@@ -119,11 +119,6 @@ export const selectEnabledSourceChains = createSelector(
     bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[chainId]?.isActiveSrc)
 );
 
-export const selectSourceChainId = createSelector(
-  selectChainId,
-  (chainId) => chainId,
-);
-
 export const getEnabledDestChains = createSelector(
   selectAllBridgeableNetworks,
   (networks) => networks,
@@ -138,16 +133,16 @@ export const selectDestChainId = createSelector(
 export const selectSourceToken = createSelector(
   selectBridgeState,
   selectTokensList,
-  selectSourceChainId,
-  (bridgeState, tokens, sourceChainId) => {
+  selectEvmChainId,
+  (bridgeState, tokens, currentChainId) => {
     // If we have a selected source token in the bridge state, use that
     if (bridgeState.sourceToken) {
       return bridgeState.sourceToken;
     }
 
-    // Otherwise, fall back to the native token
-    const sourceToken = !isCaipChainId(sourceChainId)
-      ? getNativeSwapsToken(sourceChainId)
+    // Otherwise, fall back to the native token of current chain
+    const sourceToken = !isCaipChainId(currentChainId)
+      ? getNativeSwapsToken(currentChainId)
       : tokens.find((token) => token.address === ethers.constants.AddressZero);
 
     if (!sourceToken) return undefined;
@@ -157,7 +152,7 @@ export const selectSourceToken = createSelector(
       symbol: sourceToken.symbol,
       image: 'iconUrl' in sourceToken ? sourceToken.iconUrl : '',
       decimals: sourceToken.decimals,
-      chainId: sourceChainId as SupportedCaipChainId,
+      chainId: currentChainId as SupportedCaipChainId,
     } as BridgeToken;
   },
 );
