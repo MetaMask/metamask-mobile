@@ -223,7 +223,6 @@ export async function getAllBitriseComments(): Promise<GithubComment[]> {
   const { owner, repo, number: pullRequestNumber } = context.issue;
 
   let allComments: InternalGithubComment[] = [];
-  let convertedComments: GithubComment[] = [];
 
   let page = 1;
 
@@ -269,7 +268,7 @@ export async function getAllBitriseComments(): Promise<GithubComment[]> {
     };
   });
 
-  return modifiedComments.reverse();
+  return modifiedComments.reverse().slice(0, 5); // Return the last 5 bitrise comments
 }
 
 
