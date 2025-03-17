@@ -15,6 +15,7 @@ export const MESSAGE_TYPE = {
   ADD_ETHEREUM_CHAIN: 'wallet_addEthereumChain',
   SWITCH_ETHEREUM_CHAIN: 'wallet_switchEthereumChain',
   WATCH_ASSET: 'wallet_watchAsset',
+  ETH_REQUEST_ACCOUNTS: 'eth_requestAccounts',
 };
 
 const METHOD_TYPE_TO_TRACE_NAME: Record<string, TraceName> = {
