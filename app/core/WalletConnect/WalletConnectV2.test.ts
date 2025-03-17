@@ -124,6 +124,11 @@ jest.mock('../../selectors/networkController', () => ({
   selectSelectedNetworkClientId: jest.fn().mockReturnValue('0x1'),
 }));
 
+jest.mock('../../selectors/tokensController.ts', () => ({
+  selectAllTokens: jest.fn(),
+  selectTokens: jest.fn(),
+}));
+
 jest.mock('../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
   getItem: jest.fn(),
