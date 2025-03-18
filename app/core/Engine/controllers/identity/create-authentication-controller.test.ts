@@ -6,7 +6,6 @@ import {
 } from '@metamask/profile-sync-controller/auth';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { createAuthenticationController } from './create-authentication-controller';
-import { Platform } from '@metamask/profile-sync-controller/dist/shared/env.cjs';
 
 jest.mock('@metamask/profile-sync-controller/auth');
 
@@ -31,7 +30,7 @@ describe('Authentication Controller', () => {
         ],
       });
     const metametrics = {
-      agent: Platform.MOBILE as const,
+      agent: 'mobile' as const,
       getMetaMetricsId: () => 'metametricsId',
     };
 

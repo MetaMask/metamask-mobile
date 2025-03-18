@@ -206,7 +206,6 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
-import { Platform } from '@metamask/profile-sync-controller/dist/shared/env.cjs';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -776,7 +775,7 @@ export class Engine {
       messenger: authenticationControllerMessenger,
       initialState: initialState.AuthenticationController,
       metametrics: {
-        agent: Platform.MOBILE,
+        agent: 'mobile',
         getMetaMetricsId: async () =>
           (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
       },

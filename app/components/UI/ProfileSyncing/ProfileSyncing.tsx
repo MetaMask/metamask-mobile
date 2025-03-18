@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 
 import { View, Switch, Linking, InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
