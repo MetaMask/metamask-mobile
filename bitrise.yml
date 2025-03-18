@@ -787,6 +787,24 @@ workflows:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
       - script@1:
+          title: Setup Flask Keystore (if needed)
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  echo "Setting up Flask keystore..."
+                  mkdir -p android/keystores
+                  cp android/keystores/release.keystore android/keystores/flaskRelease.keystore
+                  ls -la android/keystores/
+                  echo "Flask keystore setup complete"
+                fi
+      - restore-gradle-cache@2: {}
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
           title: Install CCache & symlink
           inputs:
             - content: |-
@@ -857,6 +875,20 @@ workflows:
           inputs:
             - deploy_path: $DEPLOY_APK_PATH
           title: Bitrise Deploy APK
+      - script@1:
+          title: Setup Flask Keystore (if needed)
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  echo "Setting up Flask keystore..."
+                  mkdir -p android/keystores
+                  cp android/keystores/release.keystore android/keystores/flaskRelease.keystore
+                  ls -la android/keystores/
+                  echo "Flask keystore setup complete"
+                fi
+      - restore-gradle-cache@2: {}
   android_e2e_test:
     before_run:
       - setup
@@ -1338,98 +1370,99 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _upload_apk_to_browserstack
       - notify_failure
     steps:
+      - script@1:
+          title: Set environment variables for Flask build
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Set up environment variables for Flask build
+                envman add --key METAMASK_BUILD_TYPE --value "flask"
+                envman add --key APP_NAME --value "flask"
+                envman add --key OUTPUT_PATH --value "flaskRelease"
+                envman add --key METAMASK_ENVIRONMENT --value "production"
+                envman add --key NAME --value "$VERSION_NAME"
+                envman add --key NUMBER --value "$VERSION_NUMBER"
+                envman add --key KEYSTORE_PATH --value "android/keystores/release.keystore"
       - change-android-versioncode-and-versionname@1:
           inputs:
-            - new_version_name: $VERSION_NAME
-            - new_version_code: $VERSION_NUMBER
+            - new_version_name: $NAME
+            - new_version_code: $NUMBER
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-            - destination: android/keystores/release.keystore
+            - destination: $KEYSTORE_PATH
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-
       - script@1:
+          title: Build Android Pre-Release Bundle
+          is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                  METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask
-                else
-                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
-                fi
-          title: Build Android Pre-Release Bundle
-          is_always_run: false
+                # We're only building Flask here
+                yarn build:android:pre-release:bundle:flask
       - save-gradle-cache@1: {}
+      - script@1:
+          title: Rename release files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Set base paths for release builds
+                APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
+                BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
+                
+                # Generate new names based on build type and version
+                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                
+                # Rename APK
+                OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+                NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
+                mv "$OLD_APK" "$NEW_APK"
+                
+                # Rename AAB
+                OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
+                NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+                mv "$OLD_AAB" "$NEW_AAB"
+                
+                # Export new names as environment variables
+                envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
+                envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
+                envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: "$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
+            - deploy_path: $APK_DEPLOY_PATH
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/sha512sums.txt:BITRISE_PLAY_STORE_SHA512SUMS_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/sha512sums.txt
           title: Bitrise Deploy Checksum
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/$OUTPUT_PATH/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/$OUTPUT_PATH/mapping.txt
           title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
-      - deploy-to-bitrise-io@2:
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
-          title: Deploy Flask APK to Bitrise
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                FLASK_APK_PATH_1=$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
-                echo "Flask APK path set to: $FLASK_APK_PATH_1"
-          title: Set Flask APK Path
-      - save-gradle-cache@1: {}
-      - script@1:
-          title: Set APK Path for Deployment
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
-                else
-                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk"
-                fi
-                echo "Using APK path: $APK_PATH"
-                envman add --key DEPLOY_APK_PATH --value "$APK_PATH"
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $DEPLOY_APK_PATH
-          title: Bitrise Deploy APK
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -1874,7 +1907,7 @@ workflows:
       - file-downloader@1:
           inputs:
             - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL
-            - destination: android/keystores/flaskRelease.keystore
+            - destination: android/keystores/release.keystore
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -2207,10 +2240,39 @@ workflows:
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
+      - save-gradle-cache@1: {}
+      - script@1:
+          title: Set APK Path for Deployment
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
+                else
+                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk"
+                fi
+                echo "Using APK path: $APK_PATH"
+                envman add --key DEPLOY_APK_PATH --value "$APK_PATH"
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $DEPLOY_APK_PATH
+          title: Bitrise Deploy APK
+      - script@1:
+          title: Setup Flask Keystore (if needed)
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  echo "Setting up Flask keystore..."
+                  mkdir -p android/keystores
+                  cp android/keystores/release.keystore android/keystores/flaskRelease.keystore
+                  ls -la android/keystores/
+                  echo "Flask keystore setup complete"
+                fi
+      - restore-gradle-cache@2: {}
   android_e2e_test_flask:
     before_run:
       - setup
