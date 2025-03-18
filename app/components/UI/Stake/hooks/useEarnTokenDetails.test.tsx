@@ -105,7 +105,7 @@ describe('useEarnTokenDetails', () => {
       balanceFiat: '$200,000.00',
       rewardRateDecimal: 0.023,
       estimatedAnnualRewardsDecimal: 4600,
-      estimatedAnnualRewardsFormatted: '$460000',
+      estimatedAnnualRewardsFormatted: '$4600',
     });
   });
 
@@ -124,7 +124,7 @@ describe('useEarnTokenDetails', () => {
       balanceFiat: '$100',
       rewardRateDecimal: 0.045,
       estimatedAnnualRewardsDecimal: 4.5,
-      estimatedAnnualRewardsFormatted: '$450',
+      estimatedAnnualRewardsFormatted: '$5',
     });
   });
 
