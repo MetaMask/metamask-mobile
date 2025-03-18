@@ -269,44 +269,6 @@ const sortAccountsByLastSelected = (accounts: Hex[]) => {
     });
   };
 
-/**
- * Get permitted accounts for the given the host.
- *
- * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
- * @returns An array containing permitted accounts for the specified host.
- * The active account is the first item in the returned array.
- */
-// TODO: This method needs to be updated. See getPermittedAccounts in Extension.
-export const getPermittedAccounts = async (
-  hostname: string,
-): Promise<string[]> => {
-  const { AccountsController } = Engine.context;
-
-  try {
-    if (INTERNAL_ORIGINS.includes(hostname)) {
-      const selectedAccountAddress =
-        AccountsController.getSelectedAccount().address;
-
-      return [selectedAccountAddress];
-    }
-
-    const accounts =
-      await Engine.context.PermissionController.executeRestrictedMethod(
-        hostname,
-        RestrictedMethods.eth_accounts,
-      );
-    return accounts;
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    if (error.code === rpcErrorCodes.provider.unauthorized) {
-      return [];
-    }
-    throw error;
-  }
-};
-
-
   /**
    * Gets the sorted permitted accounts for the specified origin. Returns an empty
    * array if no accounts are permitted or the wallet is locked. Returns any permitted
@@ -320,10 +282,19 @@ export const getPermittedAccounts = async (
    * @returns {Promise<string[]>} The origin's permitted accounts, or an empty
    * array.
    */
-  const newGetPermittedAccounts = (origin: string, { ignoreLock }: { ignoreLock?: boolean } = {}) => {
+  export const getPermittedAccounts = (origin: string, { ignoreLock }: { ignoreLock?: boolean } = {}) => {
+  const { AccountsController, PermissionController, KeyringController } = Engine.context;
+
     let caveat;
     try {
-      caveat = Engine.context.PermissionController.getCaveat(
+      if (INTERNAL_ORIGINS.includes(origin)) {
+        const selectedAccountAddress =
+          AccountsController.getSelectedAccount().address;
+
+        return [selectedAccountAddress];
+      }
+
+      caveat = PermissionController.getCaveat(
         origin,
         Caip25EndowmentPermissionName,
         Caip25CaveatType,
@@ -337,7 +308,7 @@ export const getPermittedAccounts = async (
       throw err;
     }
 
-    if (!Engine.context.KeyringController.isUnlocked() && !ignoreLock) {
+    if (!KeyringController.isUnlocked() && !ignoreLock) {
       return [];
     }
 

@@ -558,6 +558,7 @@ export const getRpcMethodMiddleware = ({
       eth_requestAccounts: async () => {
         const { params } = req;
 
+        // TODO: Investigate this later
         const permittedAccounts = await getPermittedAccounts(origin);
 
         if (!params?.force && permittedAccounts.length) {

@@ -290,9 +290,9 @@ export class BackgroundBridge extends EventEmitter {
         `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
       );
       if (this.isWalletConnect) {
-        approvedAccounts = await getPermittedAccounts(this.url);
+        approvedAccounts = getPermittedAccounts(this.url);
       } else {
-        approvedAccounts = await getPermittedAccounts(
+        approvedAccounts = getPermittedAccounts(
           this.channelId ?? this.hostname,
         );
       }
@@ -528,8 +528,8 @@ export class BackgroundBridge extends EventEmitter {
       createEip1193MethodMiddleware({
         metamaskState: this.getState(), // FIX: this isn't correctly shaped for these handlers
         // Permission-related
-        getAccounts: async () =>
-          await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
+        getAccounts: (...args) =>
+          getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
         getCaip25PermissionFromLegacyPermissionsForOrigin:
           this.getCaip25PermissionFromLegacyPermissions.bind(this, origin),
         getPermissionsForOrigin: PermissionController.getPermissions.bind(
@@ -635,8 +635,8 @@ export class BackgroundBridge extends EventEmitter {
     // Legacy RPC methods that need to be implemented ahead of the permission middleware
     engine.push(
       createEthAccountsMethodMiddleware({
-        getAccounts: async () =>
-          await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
+        getAccounts: (...args) =>
+          getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
       }),
     );
 
