@@ -34,7 +34,7 @@ import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import {
   selectEvmChainId,
-  selectProviderConfig
+  selectProviderConfig,
 } from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
