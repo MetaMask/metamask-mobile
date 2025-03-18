@@ -47,7 +47,7 @@ import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
-import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
+import { selectConfirmationMetrics } from '../../../../core/redux/slices/confirmationMetrics';
 import {
   selectCurrentTransactionSecurityAlertResponse,
   selectCurrentTransactionMetadata,
@@ -132,9 +132,9 @@ class Approval extends PureComponent {
     shouldUseSmartTransaction: PropTypes.bool,
 
     /**
-     * Object containing transaction metrics by id
+     * Object containing confirmation metrics by id
      */
-    transactionMetricsById: PropTypes.object,
+    confirmationMetricsById: PropTypes.object,
 
     /**
      * Object containing blockaid validation response for confirmation
@@ -379,8 +379,8 @@ class Approval extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     };
 
     try {
@@ -452,7 +452,7 @@ class Approval extends PureComponent {
         .addProperties({
           ...this.getAnalyticsParams(),
           ...this.getBlockaidMetricsParams(),
-          ...this.getTransactionMetrics(),
+          ...this.getConfirmationMetrics(),
         })
         .build(),
     );
@@ -596,7 +596,7 @@ class Approval extends PureComponent {
             onConfirmationComplete: (approve) =>
               this.onLedgerConfirmation(approve, transaction.id, {
                 ...this.getAnalyticsParams({ gasEstimateType, gasSelected }),
-                ...this.getTransactionMetrics(),
+                ...this.getConfirmationMetrics(),
               }),
             type: 'signTransaction',
           }),
@@ -647,7 +647,7 @@ class Approval extends PureComponent {
             gasSelected,
           }),
           ...this.getBlockaidMetricsParams(),
-          ...this.getTransactionMetrics(),
+          ...this.getConfirmationMetrics(),
         })
         .build(),
     );
@@ -704,12 +704,12 @@ class Approval extends PureComponent {
     });
   };
 
-  getTransactionMetrics = () => {
-    const { transactionMetricsById, transaction } = this.props;
+  getConfirmationMetrics = () => {
+    const { confirmationMetricsById, transaction } = this.props;
     const { id: transactionId } = transaction;
 
     // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
-    return transactionMetricsById[transactionId]?.properties || {};
+    return confirmationMetricsById[transactionId]?.properties || {};
   };
 
   render = () => {
@@ -764,7 +764,7 @@ const mapStateToProps = (state) => {
     chainId,
     activeTabUrl: getActiveTabUrl(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-    transactionMetricsById: selectTransactionMetrics(state),
+    confirmationMetricsById: selectConfirmationMetrics(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };
 };

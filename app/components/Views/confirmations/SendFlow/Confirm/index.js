@@ -119,9 +119,9 @@ import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/TransactionConfirmView.selectors.js';
 import {
-  selectTransactionMetrics,
-  updateTransactionMetrics,
-} from '../../../../../core/redux/slices/transactionMetrics';
+  selectConfirmationMetrics,
+  updateConfirmationMetric,
+} from '../../../../../core/redux/slices/confirmationMetrics';
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import {
@@ -274,17 +274,17 @@ class Confirm extends PureComponent {
      */
     shouldUseSmartTransaction: PropTypes.bool,
     /**
-     * Object containing transaction metrics by id
+     * Object containing confirmation metrics by id
      */
-    transactionMetricsById: PropTypes.object,
+    confirmationMetricsById: PropTypes.object,
     /**
      * Transaction metadata from the transaction controller
      */
     transactionMetadata: PropTypes.object,
     /**
-     * Update transaction metrics
+     * Update confirmation metrics
      */
-    updateTransactionMetrics: PropTypes.func,
+    updateConfirmationMetric: PropTypes.func,
     /**
      * Indicates whether the transaction simulations feature is enabled
      */
@@ -337,7 +337,10 @@ class Confirm extends PureComponent {
   setNetworkNonce = async () => {
     const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
+    const proposedNonce = await getNetworkNonce(
+      transaction,
+      globalNetworkClientId,
+    );
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -864,7 +867,7 @@ class Confirm extends PureComponent {
       transactionState: {
         transaction: { value },
       },
-      updateTransactionMetrics,
+      updateConfirmationMetric,
     } = this.props;
     const { transactionMeta } = this.state;
     const { id: transactionId } = transactionMeta;
@@ -884,8 +887,8 @@ class Confirm extends PureComponent {
     );
 
     if (insufficientBalanceMessage) {
-      updateTransactionMetrics({
-        transactionId,
+      updateConfirmationMetric({
+        id: transactionId,
         params: {
           properties: {
             alert_triggered: ['insufficient_funds_for_gas'],
@@ -894,10 +897,7 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (
-      isNativeToken(selectedAsset) ||
-      selectedAsset.tokenId
-    ) {
+    if (isNativeToken(selectedAsset) || selectedAsset.tokenId) {
       return insufficientBalanceMessage;
     }
 
@@ -1031,7 +1031,7 @@ class Confirm extends PureComponent {
                 {
                   ...this.getAnalyticsParams(),
                   ...getBlockaidTransactionMetricsParams(transaction),
-                  ...this.getTransactionMetrics(),
+                  ...this.getConfirmationMetrics(),
                 },
               ),
             type: 'signTransaction',
@@ -1071,7 +1071,7 @@ class Confirm extends PureComponent {
             .addProperties({
               ...this.getAnalyticsParams(transactionMeta),
               ...getBlockaidTransactionMetricsParams(transaction),
-              ...this.getTransactionMetrics(),
+              ...this.getConfirmationMetrics(),
             })
             .build(),
         );
@@ -1347,13 +1347,13 @@ class Confirm extends PureComponent {
     await updateTransaction(updatedTx);
   }
 
-  getTransactionMetrics = () => {
+  getConfirmationMetrics = () => {
     const { transactionMeta } = this.state;
-    const { transactionMetricsById } = this.props;
+    const { confirmationMetricsById } = this.props;
     const { id: transactionId } = transactionMeta;
 
     // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
-    return transactionMetricsById[transactionId]?.properties || {};
+    return confirmationMetricsById[transactionId]?.properties || {};
   };
 
   render = () => {
@@ -1429,7 +1429,9 @@ class Confirm extends PureComponent {
                 style={styles.blockaidBanner}
                 onContactUsClicked={this.onContactUsClicked}
               />
-              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
+              <SmartTransactionsMigrationBanner
+                style={styles.smartTransactionsMigrationBanner}
+              />
             </>
           )}
           {!selectedAsset.tokenId ? (
@@ -1626,7 +1628,7 @@ const mapStateToProps = (state) => {
       getRampNetworks(state),
     ),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-    transactionMetricsById: selectTransactionMetrics(state),
+    confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
@@ -1644,8 +1646,8 @@ const mapDispatchToProps = (dispatch) => ({
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
     dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
   showAlert: (config) => dispatch(showAlert(config)),
-  updateTransactionMetrics: ({ transactionId, params }) =>
-    dispatch(updateTransactionMetrics({ transactionId, params })),
+  updateConfirmationMetric: ({ id, params }) =>
+    dispatch(updateConfirmationMetric({ id, params })),
   setTransactionValue: (value) => dispatch(setTransactionValue(value)),
 });
 
