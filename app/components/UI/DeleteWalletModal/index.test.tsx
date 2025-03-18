@@ -44,6 +44,13 @@ jest.mock('../../../util/identity/hooks/useAuthentication', () => ({
   }),
 }));
 
+jest.mock('../../hooks/DeleteWallet', () => ({
+  useDeleteWallet: () => [
+    jest.fn(() => Promise.resolve()),
+    jest.fn(() => Promise.resolve()),
+  ],
+}));
+
 describe('DeleteWalletModal', () => {
   it('should render correctly', () => {
     const wrapper = renderWithProvider(<DeleteWalletModal />, {
