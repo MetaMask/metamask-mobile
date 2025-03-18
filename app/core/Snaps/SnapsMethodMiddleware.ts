@@ -36,7 +36,18 @@ const snapMethodMiddlewareBuilder = (
   subjectType: SubjectType,
 ) =>
   createSnapsMethodMiddleware(subjectType === SubjectType.Snap, {
-    getUnlockPromise: () => Promise.resolve(),
+    getUnlockPromise: () => {
+      if (engineContext.KeyringController.isUnlocked()) {
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        controllerMessenger.subscribeOnceIf(
+          'KeyringController:unlock',
+          resolve,
+          () => true,
+        );
+      });
+    },
     getSnaps: controllerMessenger.call.bind(
       controllerMessenger,
       SnapControllerGetPermittedSnapsAction,
