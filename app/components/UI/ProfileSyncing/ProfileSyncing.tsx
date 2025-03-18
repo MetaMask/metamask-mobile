@@ -38,11 +38,9 @@ const ProfileSyncingComponent = ({
   const isProfileSyncingUpdateLoading = useSelector(
     selectIsProfileSyncingUpdateLoading,
   );
-
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
-
-  const isBasicFunctionalityEnabled = useSelector(
-    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  const isBasicFunctionalityEnabled = useSelector((state: RootState) =>
+    Boolean(state?.settings?.basicFunctionalityEnabled),
   );
 
   const { enableProfileSyncing, error: enableProfileSyncingError } =
