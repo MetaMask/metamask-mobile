@@ -94,6 +94,7 @@ function loadStories() {
   require('../app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories');
   require('../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories');
   require('../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories');
+  require('../app/component-library/components-temp/SegmentedControl/SegmentedControl.stories');
   require('../app/component-library/components-temp/TagColored/TagColored.stories');
 }
 
@@ -188,6 +189,7 @@ const stories = [
   '../app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories',
   '../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories',
   '../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories',
+  '../app/component-library/components-temp/SegmentedControl/SegmentedControl.stories',
   '../app/component-library/components-temp/TagColored/TagColored.stories',
 ];
 
