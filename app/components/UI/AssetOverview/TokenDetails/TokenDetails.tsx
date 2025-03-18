@@ -69,9 +69,14 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const tokenContractAddress = safeToChecksumAddress(asset.address);
   const tokenList = useSelector(selectTokenList);
 
-  const conversionRate = isAssetFromSearch(asset) ? 1 : isPortfolioViewEnabled()
-    ? conversionRateBySymbol
-    : conversionRateLegacy;
+  let conversionRate;
+  if (isAssetFromSearch(asset)) {
+    conversionRate = 1;
+  } else if (isPortfolioViewEnabled()) {
+    conversionRate = conversionRateBySymbol;
+  } else {
+    conversionRate = conversionRateLegacy;
+  }
   const tokenExchangeRates = isPortfolioViewEnabled()
     ? tokenExchangeRatesByChainId
     : tokenExchangeRatesLegacy;

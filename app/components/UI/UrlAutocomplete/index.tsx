@@ -237,7 +237,7 @@ const UrlAutocomplete = forwardRef<
         Engine.context;
       let networkConfiguration =
         NetworkController.getNetworkConfigurationByChainId(
-          result.chainId as Hex,
+          result.chainId,
         );
 
       if (!networkConfiguration) {
@@ -310,7 +310,11 @@ const UrlAutocomplete = forwardRef<
       <SectionList
         contentContainerStyle={styles.contentContainer}
         sections={resultsByCategory}
-        keyExtractor={(item) => `${item.type}-${item.type === 'tokens' ? `${item.chainId}-${item.address}` : item.url}`}
+        keyExtractor={(item) =>
+          item.type === 'tokens'
+            ? `${item.type}-${item.chainId}-${item.address}`
+            : `${item.type}-${item.url}`
+        }
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
