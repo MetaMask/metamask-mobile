@@ -135,7 +135,7 @@ describe('BridgeNetworkSelector', () => {
                 1559: true,
               },
             },
-            optimism: {
+            '0xa': {
               EIPS: {
                 1559: true,
               },
