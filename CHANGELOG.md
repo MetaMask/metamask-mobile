@@ -11,41 +11,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
-- bump semvar version to 7.43.0 && build version to 1618
 - Bump version number to 1617
-- version bump 7.43.0
 - chore: Performance instrumentation for adding a snap account ([#13984](https://github.com/MetaMask/metamask-mobile/pull/13984))
 - chore: restructure transactions and define CODEOWNERS ([#13733](https://github.com/MetaMask/metamask-mobile/pull/13733))
-- feat(ramp): estimate gasLimit for ERC20 transfers (sell feature) ([#12467](https://github.com/MetaMask/metamask-mobile/pull/12467))
-- refactor: Update Snaps-related controllers to use modular initialisation ([#13971](https://github.com/MetaMask/metamask-mobile/pull/13971))
-- fix(deps): unpin ethereumjs-abi@0.6,x ethereumjs-util@6.x ([#11972](https://github.com/MetaMask/metamask-mobile/pull/11972))
-- feat(snaps): Add Snap UI Skeleton component integration and mapping ([#13966](https://github.com/MetaMask/metamask-mobile/pull/13966))
 - chore: Bump Babel ([#13979](https://github.com/MetaMask/metamask-mobile/pull/13979))
 - chore: adds necessary initial code to work with non-evm transactions ([#13954](https://github.com/MetaMask/metamask-mobile/pull/13954))
 - chore: added staking team as codeowners for earn-controller files ([#13940](https://github.com/MetaMask/metamask-mobile/pull/13940))
 - chore: Bump axios ([#13950](https://github.com/MetaMask/metamask-mobile/pull/13950))
 - chore: Update `CODEOWNERS` file for template renderer ([#13918](https://github.com/MetaMask/metamask-mobile/pull/13918))
 - chore(snaps): Refactor Snap UI components folder structure ([#13905](https://github.com/MetaMask/metamask-mobile/pull/13905))
-- feat(snaps): Add icon next to SnapUILink ([#13878](https://github.com/MetaMask/metamask-mobile/pull/13878))
 - chore: upgrade NDK 26 on bitrise.yml ([#13862](https://github.com/MetaMask/metamask-mobile/pull/13862))
 - chore: add workflow_dispatch to security-code-scanner ([#13759](https://github.com/MetaMask/metamask-mobile/pull/13759))
 - chore: upgrade Xcode 16 on bitrise.yml ([#13807](https://github.com/MetaMask/metamask-mobile/pull/13807))
-- feat(snaps): Add Snap UI Spinner component ([#13832](https://github.com/MetaMask/metamask-mobile/pull/13832))
 - chore: update identity codeowners ([#13855](https://github.com/MetaMask/metamask-mobile/pull/13855))
 - chore: update swaps destination token search text ([#13605](https://github.com/MetaMask/metamask-mobile/pull/13605))
-- ci: Use ubuntu-latest ([#13844](https://github.com/MetaMask/metamask-mobile/pull/13844))
-- feat(ramp): payment method selector UI update ([#13722](https://github.com/MetaMask/metamask-mobile/pull/13722))
-- feat(snaps): Add support for full border radius for SnapUIImage ([#13816](https://github.com/MetaMask/metamask-mobile/pull/13816))
-- Slack prod cfg ([#13752](https://github.com/MetaMask/metamask-mobile/pull/13752))
-- fix(close bug report action): target branch name has been renamed stable ([#13755](https://github.com/MetaMask/metamask-mobile/pull/13755))
-- fix(sentry sampling): reduce by 25% our sentry trace sample rate to avoid exceeding our quota ([#13745](https://github.com/MetaMask/metamask-mobile/pull/13745))
-- refactor: Replace redesign confirmation BottomModal with BottomSheet ([#13268](https://github.com/MetaMask/metamask-mobile/pull/13268))
-- chore: update network info component for non evm networks ([#13734](https://github.com/MetaMask/metamask-mobile/pull/13734))
-- feat(ramp): enable non-evm support for Ramp, buy only ([#13718](https://github.com/MetaMask/metamask-mobile/pull/13718))
 - chore: Enable key caching of keyring controller ([#13675](https://github.com/MetaMask/metamask-mobile/pull/13675))
+- chore: update network info component for non evm networks ([#13734](https://github.com/MetaMask/metamask-mobile/pull/13734))
+- ci: Use ubuntu-latest ([#13844](https://github.com/MetaMask/metamask-mobile/pull/13844))
+- Slack prod cfg ([#13752](https://github.com/MetaMask/metamask-mobile/pull/13752))
+- refactor: Update Snaps-related controllers to use modular initialisation ([#13971](https://github.com/MetaMask/metamask-mobile/pull/13971))
+- refactor: Replace redesign confirmation BottomModal with BottomSheet ([#13268](https://github.com/MetaMask/metamask-mobile/pull/13268))
 
 ### Added
 
+- feat(ramp): estimate gasLimit for ERC20 transfers (sell feature) ([#12467](https://github.com/MetaMask/metamask-mobile/pull/12467))
+- feat(snaps): Add Snap UI Skeleton component integration and mapping ([#13966](https://github.com/MetaMask/metamask-mobile/pull/13966))
+- feat(snaps): Add icon next to SnapUILink ([#13878](https://github.com/MetaMask/metamask-mobile/pull/13878))
+- feat(snaps): Add Snap UI Spinner component ([#13832](https://github.com/MetaMask/metamask-mobile/pull/13832))
+- feat(ramp): payment method selector UI update ([#13722](https://github.com/MetaMask/metamask-mobile/pull/13722))
+- feat(snaps): Add support for full border radius for SnapUIImage ([#13816](https://github.com/MetaMask/metamask-mobile/pull/13816))
+- feat(ramp): enable non-evm support for Ramp, buy only ([#13718](https://github.com/MetaMask/metamask-mobile/pull/13718))
 - feat: Add confirmation UI metrics infra and some redesigned staking deposit events ([#13919](https://github.com/MetaMask/metamask-mobile/pull/13919))
 - feat: Add gas included swaps ([#13972](https://github.com/MetaMask/metamask-mobile/pull/13972))
 - feat: Add Base to Smart Transaction supported chains ([#13920](https://github.com/MetaMask/metamask-mobile/pull/13920))
@@ -72,6 +67,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix(close bug report action): target branch name has been renamed stable ([#13755](https://github.com/MetaMask/metamask-mobile/pull/13755))
+- fix(sentry sampling): reduce by 25% our sentry trace sample rate to avoid exceeding our quota ([#13745](https://github.com/MetaMask/metamask-mobile/pull/13745))
+- fix(deps): unpin ethereumjs-abi@0.6,x ethereumjs-util@6.x ([#11972](https://github.com/MetaMask/metamask-mobile/pull/11972))
 - fix: Uppercase currency code ([#13967](https://github.com/MetaMask/metamask-mobile/pull/13967))
 - fix: Max balance for dApp erc20 approval ([#13881](https://github.com/MetaMask/metamask-mobile/pull/13881))
 - fix: fix network filter on switch network from dapp ([#13987](https://github.com/MetaMask/metamask-mobile/pull/13987))
