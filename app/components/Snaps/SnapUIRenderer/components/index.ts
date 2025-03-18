@@ -17,8 +17,10 @@ import { icon } from './icon';
 import { field } from './field';
 import { section } from './section';
 import { spinner } from './spinner';
+import { skeleton } from './skeleton';
 import { address } from './address';
 import { avatar } from './avatar';
+import { tooltip } from './tooltip';
 
 export const COMPONENT_MAPPING = {
   Box: box,
@@ -40,6 +42,8 @@ export const COMPONENT_MAPPING = {
   Icon: icon,
   Section: section,
   Spinner: spinner,
+  Skeleton: skeleton,
   Avatar: avatar,
   Address: address,
+  Tooltip: tooltip,
 };

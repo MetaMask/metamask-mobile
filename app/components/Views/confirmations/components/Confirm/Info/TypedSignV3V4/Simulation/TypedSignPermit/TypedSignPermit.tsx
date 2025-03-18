@@ -8,7 +8,7 @@ import Engine from '../../../../../../../../../core/Engine';
 import { safeToChecksumAddress } from '../../../../../../../../../util/address';
 import { PrimaryType } from '../../../../../../constants/signatures';
 import { useSignatureRequest } from '../../../../../../hooks/useSignatureRequest';
-import { parseTypedDataMessage } from '../../../../../../utils/signature';
+import { isPermitDaiRevoke, parseTypedDataMessage } from '../../../../../../utils/signature';
 import InfoRow from '../../../../../UI/InfoRow';
 import InfoSection from '../../../../../UI/InfoRow/InfoSection';
 import PermitSimulationValueDisplay from '../components/ValueDisplay';
@@ -22,10 +22,17 @@ const styleSheet = () =>
     },
   });
 
+interface TokenDetails {
+  allowed?: string;
+  amount: string;
+  token: string;
+  // ... other properties may exist
+}
+
 function extractTokenDetailsByPrimaryType(
   message: Record<string, unknown>,
   primaryType: PrimaryType,
-): object[] | unknown {
+): TokenDetails[] | unknown {
   let tokenDetails;
 
   switch (primaryType) {
@@ -65,7 +72,7 @@ const PermitSimulation = () => {
   const {
     domain: { verifyingContract },
     message,
-    message: { tokenId },
+    message: { allowed, tokenId, value },
     primaryType,
   } = parseTypedDataMessage(msgData as string);
 
@@ -73,9 +80,20 @@ const PermitSimulation = () => {
 
   const isNFT = tokenId !== undefined && tokenId !== '0';
 
-  const labelChangeType = isNFT
+  let labelChangeType = isNFT
     ? strings('confirm.simulation.label_change_type_permit_nft')
-    : strings('confirm.simulation.label_change_type_permit');
+      : strings('confirm.simulation.label_change_type_permit');
+
+  const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+  const isRevoke = isDaiRevoke || value === '0';
+
+  if (isRevoke) {
+    labelChangeType = strings('confirm.simulation.label_change_type_revoke');
+  }
+
+  const infoText = isRevoke
+    ? strings('confirm.simulation.info_revoke')
+    : strings('confirm.simulation.info_permit');
 
   return (
     <InfoSection>
@@ -83,7 +101,7 @@ const PermitSimulation = () => {
         label={strings('confirm.simulation.title')}
         tooltip={strings('confirm.simulation.tooltip')}
       >
-        {strings('confirm.simulation.info_permit')}
+        {infoText}
       </InfoRow>
 
       <InfoRow label={labelChangeType}>
@@ -91,20 +109,25 @@ const PermitSimulation = () => {
           <>
             {tokenDetails.map(
               (
-                { token, amount }: { token: string; amount: string },
+                { allowed: tokenDetailAllowed, token, amount },
                 i: number,
-              ) => (
-                <View style={styles.permitValues} key={`${token}-${i}`}>
-                  <PermitSimulationValueDisplay
-                    modalHeaderText={labelChangeType}
-                    networkClientId={networkClientId}
-                    primaryType={primaryType}
-                    tokenContract={safeToChecksumAddress(token)}
-                    value={amount}
-                    chainId={chainId}
-                  />
-                </View>
-              ),
+              ) => {
+                const tokenContract = safeToChecksumAddress(token);
+
+                return (
+                  <View style={styles.permitValues} key={`${token}-${i}`}>
+                    <PermitSimulationValueDisplay
+                      modalHeaderText={labelChangeType}
+                      networkClientId={networkClientId}
+                      primaryType={primaryType}
+                      tokenContract={tokenContract}
+                      value={amount}
+                      chainId={chainId}
+                      allowed={tokenDetailAllowed}
+                    />
+                  </View>
+                );
+              },
             )}
           </>
         ) : (
@@ -112,6 +135,7 @@ const PermitSimulation = () => {
             modalHeaderText={labelChangeType}
             networkClientId={networkClientId}
             tokenContract={verifyingContract}
+            allowed={message.allowed}
             value={message.value}
             tokenId={message.tokenId}
             chainId={chainId}
