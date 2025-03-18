@@ -23,9 +23,7 @@ export const removeEvmToken = async ({
   tokenToRemove,
   currentChainId,
   trackEvent,
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   strings,
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   getDecimalChainId,
   createEventBuilder,
 }: RemoveEvmTokenProps) => {

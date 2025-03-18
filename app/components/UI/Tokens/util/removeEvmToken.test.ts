@@ -4,6 +4,8 @@ import NotificationManager from '../../../../core/NotificationManager';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { TokenI } from '../types';
+import { IMetaMetricsEvent } from '../../../../core/Analytics';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -29,7 +31,15 @@ describe('removeEvmToken', () => {
     chainId: '0x1' as Hex,
     address: '0x123456789abcdef',
     symbol: 'ETH',
-  };
+  } as TokenI;
+
+  const mockCreateEventBuilder = jest.fn(
+    () =>
+      ({
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue('mockEvent'),
+      } as unknown as MetricsEventBuilder),
+  );
 
   const mockProps = {
     tokenToRemove: mockToken,
@@ -37,10 +47,7 @@ describe('removeEvmToken', () => {
     trackEvent: jest.fn(),
     strings: jest.fn((key) => key),
     getDecimalChainId: jest.fn(() => 1),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue('mockEvent'),
-    })) as unknown as (event: string) => MetricsEventBuilder,
+    createEventBuilder: mockCreateEventBuilder,
   };
 
   afterEach(() => {
