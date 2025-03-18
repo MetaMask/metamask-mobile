@@ -337,10 +337,7 @@ class Confirm extends PureComponent {
   setNetworkNonce = async () => {
     const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(
-      transaction,
-      globalNetworkClientId,
-    );
+    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -897,7 +894,10 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (isNativeToken(selectedAsset) || selectedAsset.tokenId) {
+    if (
+      isNativeToken(selectedAsset) ||
+      selectedAsset.tokenId
+    ) {
       return insufficientBalanceMessage;
     }
 
@@ -1031,7 +1031,7 @@ class Confirm extends PureComponent {
                 {
                   ...this.getAnalyticsParams(),
                   ...getBlockaidTransactionMetricsParams(transaction),
-                  ...this.getConfirmationMetrics(),
+                  ...this.getTransactionMetrics(),
                 },
               ),
             type: 'signTransaction',
@@ -1071,7 +1071,7 @@ class Confirm extends PureComponent {
             .addProperties({
               ...this.getAnalyticsParams(transactionMeta),
               ...getBlockaidTransactionMetricsParams(transaction),
-              ...this.getConfirmationMetrics(),
+              ...this.getTransactionMetrics(),
             })
             .build(),
         );
@@ -1347,12 +1347,11 @@ class Confirm extends PureComponent {
     await updateTransaction(updatedTx);
   }
 
-  getConfirmationMetrics = () => {
+  getTransactionMetrics = () => {
     const { transactionMeta } = this.state;
     const { confirmationMetricsById } = this.props;
     const { id: transactionId } = transactionMeta;
 
-    // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
     return confirmationMetricsById[transactionId]?.properties || {};
   };
 
@@ -1429,9 +1428,7 @@ class Confirm extends PureComponent {
                 style={styles.blockaidBanner}
                 onContactUsClicked={this.onContactUsClicked}
               />
-              <SmartTransactionsMigrationBanner
-                style={styles.smartTransactionsMigrationBanner}
-              />
+              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
             </>
           )}
           {!selectedAsset.tokenId ? (
@@ -1628,7 +1625,7 @@ const mapStateToProps = (state) => {
       getRampNetworks(state),
     ),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-    confirmationMetricsById: selectConfirmationMetrics(state),
+    confirmationMetrics: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
