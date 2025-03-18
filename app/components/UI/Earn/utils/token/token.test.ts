@@ -7,10 +7,13 @@ import { TokenI } from '../../../Tokens/types';
 import {
   MOCK_ACCOUNT_MULTI_CHAIN_TOKENS,
   MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
-} from '../../__mocks__/mockData';
+} from '../../../Stake/__mocks__/mockData';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { createMockToken, getCreateMockTokenOptions } from '../../testUtils';
-import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../testUtils/testUtils.types';
+import {
+  createMockToken,
+  getCreateMockTokenOptions,
+} from '../../../Stake/testUtils';
+import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
 
 describe('tokenUtils', () => {
   describe('getSupportedEarnTokens', () => {

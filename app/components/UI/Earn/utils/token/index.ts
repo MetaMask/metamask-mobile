@@ -67,3 +67,10 @@ export const filterEligibleTokens = (
 
   return tokensCopy;
 };
+
+// TODO: Add tests
+export const isSupportedLendingTokenByChainId = (
+  tokenSymbol: string,
+  chainId: string,
+) =>
+  SUPPORTED_LENDING_TOKENS.has(tokenSymbol) && SUPPORTED_CHAIN_IDS.has(chainId);

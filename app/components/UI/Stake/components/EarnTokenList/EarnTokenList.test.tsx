@@ -11,7 +11,7 @@ import {
   MOCK_USDC_BASE_MAINNET_ASSET,
 } from '../../__mocks__/mockData';
 import Engine from '../../../../../core/Engine';
-import * as tokenUtils from '../../utils/token';
+import * as tokenUtils from '../../../Earn/utils/token';
 import * as useStakingEligibilityHook from '../../hooks/useStakingEligibility';
 import * as stakeConstants from '../../constants';
 import * as portfolioNetworkUtils from '../../../../../util/networks';
