@@ -5,7 +5,6 @@ import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { TokenI } from '../types';
-import { IMetaMetricsEvent } from '../../../../core/Analytics';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
