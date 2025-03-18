@@ -57,6 +57,7 @@ jest.mock('../Engine', () => ({
     PermissionController: {
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
+      revokePermission: jest.fn(),
     },
     NetworkController: {
       getNetworkClientById: () => ({
@@ -579,7 +580,51 @@ describe('getRpcMethodMiddleware', () => {
   }
 
   describe('wallet_revokePermissions', () => {
-    // TODO: implement
+    it('can revoke permissions for eth_accounts', async () => {
+      const hostname = 'example.metamask.io';
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname,
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_revokePermissions',
+        params: [{ eth_accounts: {} }],
+      };
+      await callMiddleware({ middleware, request });
+      expect(
+        MockEngine.context.PermissionController.revokePermission,
+      ).toHaveBeenCalledWith(hostname, { eth_accounts: {} }, ['eth_accounts']);
+    });
+
+    it('return error object if PermissionController throws an error', async () => {
+      MockEngine.context.PermissionController.revokePermission.mockImplementation(
+        () => {
+          throw new Error('permission error');
+        },
+      );
+      const hostname = 'example.metamask.io';
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname,
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_revokePermissions',
+        params: [{ eth_accounts: {} }],
+      };
+      const result = await callMiddleware({ middleware, request });
+      expect(result).toEqual({
+        error: expect.objectContaining({
+          code: -32603,
+          message: 'permission error',
+        }),
+        jsonrpc,
+        id: 1,
+      });
+    });
   });
 
   describe('wallet_requestPermissions', () => {
