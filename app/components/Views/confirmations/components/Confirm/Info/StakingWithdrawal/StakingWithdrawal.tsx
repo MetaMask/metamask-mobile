@@ -2,7 +2,9 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
 import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
+import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
+import { useTokenValues } from '../../../../hooks/useTokenValues';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
 import { getNavbar } from '../../Navbar/Navbar';
@@ -12,9 +14,14 @@ import UnstakingTimeSection from '../../UnstakingTime/UnstakingTime';
 import GasFeesDetails from '../GasFeesDetails';
 
 const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
+  const amountWei = route?.params?.amountWei;
+
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
-  const { trackPageViewedEvent } = useConfirmationMetricEvents();
+  const { trackPageViewedEvent, setTransactionMetrics } =
+    useConfirmationMetricEvents();
+  const { tokenAmountDisplayValue } = useTokenValues({ amountWei });
+
 
   useEffect(() => {
     navigation.setOptions(
@@ -27,9 +34,18 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
+  useEffect(() => {
+    setTransactionMetrics({
+      properties: {
+        selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        transaction_amount_eth: tokenAmountDisplayValue,
+      },
+    });
+  }, [tokenAmountDisplayValue, setTransactionMetrics]);
+
   return (
     <>
-      <TokenHero amountWei={route?.params?.amountWei} />
+      <TokenHero amountWei={amountWei} />
       <UnstakingTimeSection />
       <InfoSection>
         <StakingContractInteractionDetails />
