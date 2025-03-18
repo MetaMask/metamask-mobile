@@ -48,7 +48,7 @@ jest.mock('@react-navigation/native', () => {
 describe('StakingDeposit', () => {
   const mockTrackPageViewedEvent = jest.fn();
   const mockTrackAdvancedDetailsToggledEvent = jest.fn();
-  const mockSetTransactionMetrics = jest.fn();
+  const mockSetConfirmationMetric = jest.fn();
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
@@ -65,7 +65,7 @@ describe('StakingDeposit', () => {
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackAdvancedDetailsToggledEvent: mockTrackAdvancedDetailsToggledEvent,
       trackPageViewedEvent: mockTrackPageViewedEvent,
-      setTransactionMetrics: mockSetTransactionMetrics,
+      setConfirmationMetric: mockSetConfirmationMetric,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
@@ -108,8 +108,8 @@ describe('StakingDeposit', () => {
       }),
     );
 
-    expect(mockSetTransactionMetrics).toHaveBeenCalledTimes(1);
-    expect(mockSetTransactionMetrics).toHaveBeenCalledWith(
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
           transaction_amount_eth: '0.0001',

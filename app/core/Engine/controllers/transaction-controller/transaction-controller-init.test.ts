@@ -310,7 +310,7 @@ describe('Transaction Controller Init', () => {
       initMessenger: {
         subscribe: mockSubscribe,
       },
-      getState: () => ({ transactionMetrics: { metricsByTransactionId: {} } }),
+      getState: () => ({ confirmationMetrics: { metricsById: {} } }),
     });
 
     TransactionControllerInit(requestMock);
