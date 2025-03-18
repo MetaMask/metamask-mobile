@@ -61,7 +61,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultApyAverages,
+    isLoadingVaultMetadata,
     handleMax,
     balanceValue,
     isHighGasCostImpact,
@@ -77,17 +77,6 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
   };
 
   const handleStakePress = useCallback(async () => {
-    if (isStakingDepositRedesignedEnabled) {
-      await attemptDepositTransaction(
-        amountWei.toString(),
-        activeAccount?.address as string,
-      );
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-      });
-      return;
-    }
-
     if (isHighGasCostImpact()) {
       trackEvent(
         createEventBuilder(
@@ -119,23 +108,56 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       return;
     }
 
+    const amountWeiString = amountWei.toString();
+
+    const stakeButtonClickEventProperties = {
+      selected_provider: EVENT_PROVIDERS.CONSENSYS,
+      tokens_to_stake_native_value: amountEth,
+      tokens_to_stake_usd_value: fiatAmount,
+    };
+
+    if (isStakingDepositRedesignedEnabled) {
+      // Here we add the transaction to the transaction controller. The
+      // redesigned confirmations architecture relies on the transaction
+      // metadata object being defined by the time the confirmation is displayed
+      // to the user.
+      await attemptDepositTransaction(
+        amountWeiString,
+        activeAccount?.address as string,
+        undefined,
+        true,
+      );
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+      });
+
+      const withRedesignedPropEventProperties = {
+        ...stakeButtonClickEventProperties,
+        is_redesigned: true,
+      };
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
+          .addProperties(withRedesignedPropEventProperties)
+          .build(),
+      );
+      return;
+    }
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
-        amountWei: amountWei.toString(),
+        amountWei: amountWeiString,
         amountFiat: fiatAmount,
         annualRewardsETH,
         annualRewardsFiat,
         annualRewardRate,
       },
     });
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
-        .addProperties({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          tokens_to_stake_native_value: amountEth,
-          tokens_to_stake_usd_value: fiatAmount,
-        })
+        .addProperties(stakeButtonClickEventProperties)
         .build(),
     );
   }, [
@@ -244,7 +266,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
                 tooltip_name: 'MetaMask Pool Estimated Rewards',
               },
             })}
-            isLoading={isLoadingVaultApyAverages}
+            isLoading={isLoadingVaultMetadata}
           />
         )}
       </View>
