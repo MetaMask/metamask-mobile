@@ -97,7 +97,6 @@ const MultichainTransactionsView = () => {
   );
 
   const renderViewMore = () => {
-    const styles = createStyles(colors);
     const chainId = nonEvmNetworkChainIdByAccountAddress(selectedAddress || '');
 
     return (

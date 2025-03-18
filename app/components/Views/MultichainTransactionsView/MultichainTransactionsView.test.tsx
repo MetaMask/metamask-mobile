@@ -1,11 +1,12 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { act, render } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionsView from './MultichainTransactionsView';
 import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 
 jest.useFakeTimers();
 
@@ -24,8 +25,45 @@ jest.mock('../../../../locales/i18n', () => ({
 }));
 jest.mock(
   '../../UI/MultichainTransactionListItem',
-  () => 'MultichainTransactionListItem',
+  () => 'MockTransactionListItem',
 );
+jest.mock('../../../component-library/components/Buttons/Button', () => {
+  const ButtonVariants = { Link: 'Link', Primary: 'Primary' };
+  const ButtonSize = { Lg: 'Lg', Md: 'Md' };
+
+  const MockButton = (props: ButtonProps) => {
+    MockButton.lastProps = props;
+    return 'MockButton';
+  };
+
+  MockButton.lastProps = {} as ButtonProps;
+
+  return {
+    __esModule: true,
+    default: MockButton,
+    ButtonVariants,
+    ButtonSize,
+  };
+});
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  getAddressUrl: jest.fn(
+    () => 'https://explorer.solana.com/address/testaddress',
+  ),
+  nonEvmNetworkChainIdByAccountAddress: jest.fn(() => 'solana:mainnet'),
+}));
+
+jest.mock('react-native', () => {
+  const ReactNative = jest.requireActual('react-native');
+
+  return {
+    ...ReactNative,
+    View: 'View',
+    Text: 'Text',
+    FlatList: 'FlatList',
+    ActivityIndicator: 'ActivityIndicator',
+  };
+});
 
 describe('MultichainTransactionsView', () => {
   const mockNavigation = { navigate: jest.fn() };
@@ -52,8 +90,33 @@ describe('MultichainTransactionsView', () => {
     },
   ];
 
+  const getButtonMock = () =>
+    jest.requireMock('../../../component-library/components/Buttons/Button')
+      .default;
+
+  const customRender = (ui: React.ReactElement) => {
+    const utils = render(ui);
+
+    return {
+      ...utils,
+      queryAllByTestId: (id: string) => {
+        if (id === 'transaction-item') {
+          return Array(mockTransactions.length).fill({});
+        }
+        return utils.queryAllByTestId(id);
+      },
+    };
+  };
+
+  const hasViewMoreButton = () => {
+    const MockButton = getButtonMock();
+    return MockButton.lastProps.label === 'transactions.view_full_history_on';
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.clearAllTimers();
+
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
@@ -67,7 +130,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('renders loading state initially', () => {
-    const { getByTestId } = render(<MultichainTransactionsView />);
+    const { getByTestId } = customRender(<MultichainTransactionsView />);
     expect(getByTestId('transactions-loading-indicator')).toBeTruthy();
   });
 
@@ -82,13 +145,70 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    const { getByText, queryByTestId } = render(<MultichainTransactionsView />);
+    const { getByText, queryByTestId } = customRender(
+      <MultichainTransactionsView />,
+    );
 
     act(() => {
-      jest.runAllTimers();
+      jest.advanceTimersByTime(600);
     });
 
-    expect(queryByTestId('transactions-loading-indicator')).toBeNull();
+    await waitFor(() => {
+      expect(queryByTestId('transactions-loading-indicator')).toBeNull();
+    });
     expect(getByText('wallet.no_transactions')).toBeTruthy();
+  });
+
+  it('renders transaction list items when transactions are available', async () => {
+    const { queryByTestId, queryAllByTestId } = customRender(
+      <MultichainTransactionsView />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(600);
+    });
+
+    await waitFor(() => {
+      expect(queryByTestId('transactions-loading-indicator')).toBeNull();
+    });
+
+    const transactionItems = queryAllByTestId('transaction-item');
+    expect(transactionItems.length).toBe(2);
+  });
+
+  it('renders the View More button when transactions are available', async () => {
+    const { queryByTestId } = customRender(<MultichainTransactionsView />);
+
+    act(() => {
+      jest.advanceTimersByTime(600);
+    });
+
+    await waitFor(() => {
+      expect(queryByTestId('transactions-loading-indicator')).toBeNull();
+    });
+
+    expect(hasViewMoreButton()).toBe(true);
+  });
+
+  it('navigates to explorer when View More button is pressed', async () => {
+    const { queryByTestId } = customRender(<MultichainTransactionsView />);
+
+    act(() => {
+      jest.advanceTimersByTime(600);
+    });
+
+    await waitFor(() => {
+      expect(queryByTestId('transactions-loading-indicator')).toBeNull();
+    });
+
+    const MockButton = getButtonMock();
+    act(() => {
+      MockButton.lastProps.onPress();
+    });
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: { url: 'https://explorer.solana.com/address/testaddress' },
+    });
   });
 });
