@@ -1,4 +1,3 @@
-import { createSelector } from '@reduxjs/toolkit';
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
 
