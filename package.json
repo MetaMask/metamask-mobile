@@ -31,6 +31,7 @@
     "start:android:qa": "./scripts/build.sh android qaDebug",
     "start:android:e2e": "./scripts/build.sh android debugE2E",
     "start:android:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh android flaskDebug",
+    "start:api-logging-server": "node -r @babel/register scripts/start-api-logging-server.js",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
     "build:android:devbuild": "./scripts/build.sh android devBuild",
