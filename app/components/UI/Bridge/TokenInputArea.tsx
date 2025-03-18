@@ -60,7 +60,7 @@ interface GetDisplayFiatValueParams {
   currentCurrency: string;
 }
 
-const getDisplayFiatValue = ({
+export const getDisplayFiatValue = ({
   token,
   amount,
   multiChainMarketData,
