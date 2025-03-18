@@ -41,7 +41,7 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { add
     if (!tokenResult) {
         return (
             <View style={styles.container}>
-                <ActivityIndicator size="large" />
+                <ActivityIndicator testID="asset-loader-spinner" size="large" />
             </View>
         );
     }
