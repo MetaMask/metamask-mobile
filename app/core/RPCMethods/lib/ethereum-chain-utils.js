@@ -309,6 +309,7 @@ export async function switchToNetwork({
     });
   }
 
+  // TODO: This isn't right
   const originHasAccountsPermission = PermissionController.hasPermission(
     origin,
     'eth_accounts',

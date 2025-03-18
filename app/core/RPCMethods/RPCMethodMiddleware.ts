@@ -393,6 +393,7 @@ export const getRpcMethodMiddleware = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Used by eth_accounts and eth_coinbase RPCs.
+    // TODO: Check on this
     const getEthAccounts = async () => {
       const accounts = await getPermittedAccounts(origin);
       res.result = accounts;
@@ -566,6 +567,7 @@ export const getRpcMethodMiddleware = ({
         } else {
           try {
             checkTabActive();
+            // TODO: This is definitely not right
             await Engine.context.PermissionController.requestPermissions(
               { origin },
               { eth_accounts: {} },
