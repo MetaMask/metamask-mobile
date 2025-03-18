@@ -33,7 +33,7 @@ export const getMemoizedInterfaces = createDeepEqualSelector(
 /**
  * Get a Snap Interface with a given ID.
  */
-export const getInterface = createSelector(
+export const getInterface = createDeepEqualSelector(
   [getMemoizedInterfaces, selectInterfaceId],
   (interfaces, id) => interfaces[id],
 );
