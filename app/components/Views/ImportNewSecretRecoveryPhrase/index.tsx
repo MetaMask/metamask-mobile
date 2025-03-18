@@ -94,16 +94,16 @@ const ImportNewSecretRecoveryPhrase = () => {
     mounted.current = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
     if (inputWidth) {
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         mounted.current && setInputWidth('100%');
       }, 100);
 
       return () => {
+        clearTimeout(timeoutId);
         mounted.current = false;
       };
     }
-    // eslint-disable-next-line
-  }, []);
+  }, [inputWidth]);
 
   const hasUpperCase = (draftSrp: string) =>
     draftSrp !== draftSrp.toLowerCase();
@@ -113,10 +113,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     [secretRecoveryPhrase],
   );
 
-  const isValidSrp = useMemo(
-    () => isValidMnemonic(secretRecoveryPhrase.join(' ')),
-    [secretRecoveryPhrase],
-  );
+  const isValidSrp = isValidMnemonic(secretRecoveryPhrase.join(' '));
 
   // This is to keep the dropdown value in sync with the number of words when a user
   // pasted their srp
