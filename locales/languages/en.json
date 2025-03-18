@@ -2016,7 +2016,7 @@
     "error_srp_word_error_2": " is incorrect or misspelled.",
     "error_multiple_srp_word_error_1": "Word ",
     "error_multiple_srp_word_error_2": " and ",
-    "error_multiple_srp_word_error_3": " is incorrect or misspelled.",
+    "error_multiple_srp_word_error_3": " are incorrect or misspelled.",
     "error_invalid_srp": "Invalid Secret Recovery Phrase",
     "success_1": "Secret Recovery Phrase",
     "success_2": "imported"

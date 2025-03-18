@@ -79,7 +79,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     jest.clearAllMocks();
   });
 
-  it('handles valid 12 word srps being input manually', async () => {
+  it('imports valid manually entered 12-word SRP', async () => {
     const { getByTestId } = renderScreen(
       ImportNewSecretRecoveryPhrase,
       { name: 'ImportNewSecretRecoveryPhrase' },
@@ -100,7 +100,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     expect(importButton.props.disabled).toBe(false);
   });
 
-  it('handles valid 24 word srps being input manually', async () => {
+  it('imports valid manually entered 24-word SRP', async () => {
     const { getByTestId, getByText } = renderScreen(
       ImportNewSecretRecoveryPhrase,
       { name: 'ImportNewSecretRecoveryPhrase' },
@@ -129,7 +129,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     expect(importButton.props.disabled).toBe(false);
   });
 
-  it('handles pasting of 12 word srp', async () => {
+  it('imports valid pasted 12-word SRP', async () => {
     const { getByTestId } = await renderAndPasteSRP();
 
     await act(() => {
@@ -143,7 +143,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
   });
 
-  it('handles pasting of 24 word srp', async () => {
+  it('imports valid pasted 24-word SRP', async () => {
     const { getByTestId } = await renderAndPasteSRP();
 
     await act(() => {
@@ -157,7 +157,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
   });
 
-  it('should handle successful import', async () => {
+  it('imports valid SRP', async () => {
     const { getByTestId } = await renderAndPasteSRP();
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -170,7 +170,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   });
 
   describe('errors', () => {
-    it('should display error when the user inputs an invalid srp', async () => {
+    it('displays error for invalid SRP', async () => {
       const { getByText } = await renderAndPasteSRP('invalid mnemonic');
 
       expect(
@@ -181,7 +181,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       ).toBeTruthy();
     });
 
-    it('should display which word is incorrect', async () => {
+    it('displays single incorrect word', async () => {
       const { getByText } = await renderAndPasteSRP(
         valid24WordMnemonic.replace('verb', 'asdf'), // replace the first word
       );
@@ -197,7 +197,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       ).toBeTruthy();
     });
 
-    it('display which words are incorrect', async () => {
+    it('displays multiple incorrect words', async () => {
       const { getByText } = await renderAndPasteSRP(
         valid24WordMnemonic.replace('verb', 'asdf').replace('middle', 'sdfsdf'), // replace the first two word
       );
