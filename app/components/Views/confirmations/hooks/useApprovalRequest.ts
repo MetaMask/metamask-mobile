@@ -8,7 +8,7 @@ import { selectPendingApprovals } from '../../../../selectors/approvalController
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ApprovalRequestType = ApprovalRequest<any>;
+export type ApprovalRequestType = ApprovalRequest<any>;
 
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);

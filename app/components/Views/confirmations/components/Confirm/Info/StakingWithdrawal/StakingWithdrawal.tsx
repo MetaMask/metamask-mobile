@@ -2,16 +2,25 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
 import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
+import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
-import AdvancedDetails from '../../AdvancedDetails/AdvancedDetails';
+import { useTokenValues } from '../../../../hooks/useTokenValues';
+import InfoSection from '../../../UI/InfoRow/InfoSection';
+import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
 import { getNavbar } from '../../Navbar/Navbar';
-import StakingDetails from '../../StakingDetails';
+import StakingContractInteractionDetails from '../../StakingContractInteractionDetails/StakingContractInteractionDetails';
 import TokenHero from '../../TokenHero';
+import UnstakingTimeSection from '../../UnstakingTime/UnstakingTime';
 import GasFeesDetails from '../GasFeesDetails';
 
 const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
+  const amountWei = route?.params?.amountWei;
+
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
+  const { trackPageViewedEvent, setConfirmationMetric } =
+    useConfirmationMetricEvents();
+  const { tokenAmountDisplayValue } = useTokenValues({ amountWei });
 
   useEffect(() => {
     navigation.setOptions(
@@ -22,12 +31,25 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
     );
   }, [navigation, onReject]);
 
+  useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+
+  useEffect(() => {
+    setConfirmationMetric({
+      properties: {
+        selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        transaction_amount_eth: tokenAmountDisplayValue,
+      },
+    });
+  }, [tokenAmountDisplayValue, setConfirmationMetric]);
+
   return (
     <>
-      <TokenHero amountWei={route?.params?.amountWei} />
-      <StakingDetails />
+      <TokenHero amountWei={amountWei} />
+      <UnstakingTimeSection />
+      <InfoSection>
+        <StakingContractInteractionDetails />
+      </InfoSection>
       <GasFeesDetails />
-      <AdvancedDetails />
     </>
   );
 };
