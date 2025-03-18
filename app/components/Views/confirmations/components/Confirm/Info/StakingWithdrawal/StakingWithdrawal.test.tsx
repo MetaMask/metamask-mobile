@@ -45,7 +45,7 @@ jest.mock('@react-navigation/native', () => {
 
 describe('StakingWithdrawal', () => {
   const mockTrackPageViewedEvent = jest.fn();
-  const mockSetTransactionMetrics = jest.fn();
+  const mockSetConfirmationMetric = jest.fn();
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
@@ -61,7 +61,7 @@ describe('StakingWithdrawal', () => {
 
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackPageViewedEvent: mockTrackPageViewedEvent,
-      setTransactionMetrics: mockSetTransactionMetrics,
+      setConfirmationMetric: mockSetConfirmationMetric,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
@@ -121,8 +121,8 @@ describe('StakingWithdrawal', () => {
 
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
 
-    expect(mockSetTransactionMetrics).toHaveBeenCalledTimes(1);
-    expect(mockSetTransactionMetrics).toHaveBeenCalledWith(
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
           selected_provider: EVENT_PROVIDERS.CONSENSYS,
