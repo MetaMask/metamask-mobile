@@ -1,20 +1,22 @@
 import React from 'react';
 import { StyleSheet, ImageSourcePropType } from 'react-native';
 import { useSelector } from 'react-redux';
+import { utils } from 'ethers';
 import { useStyles } from '../../../component-library/hooks';
 import { Box } from '../Box/Box';
 import Text, { TextColor } from '../../../component-library/components/Texts/Text';
 import Input from '../../../component-library/components/Form/TextField/foundation/Input';
 import { Token } from './Token';
 import { selectCurrentCurrency, selectConversionRate } from '../../../selectors/currencyRateController';
-import { weiToFiat, toWei } from '../../../util/number';
+import { weiToFiat, toWei, renderFromTokenMinimalUnit } from '../../../util/number';
 
 interface TokenInputAreaProps {
   value?: string;
   tokenSymbol?: string;
   tokenAddress?: string;
   tokenBalance?: string;
-  tokenIconUrl?: ImageSourcePropType;
+  tokenDecimals?: number;
+  tokenIconUrl?: string;
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
   autoFocus?: boolean;
@@ -53,6 +55,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   tokenSymbol,
   tokenAddress,
   tokenBalance,
+  tokenDecimals = 18,
   tokenIconUrl,
   networkImageSource,
   networkName,
@@ -64,7 +67,13 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
 
-  const formattedBalance = tokenSymbol && tokenBalance ? `${tokenBalance} ${tokenSymbol}` : undefined;
+  // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
+  const formattedBalance = tokenSymbol && tokenBalance ? (
+    `${renderFromTokenMinimalUnit(
+      utils.parseUnits(tokenBalance, tokenDecimals).toString(),
+      tokenDecimals
+    )} ${tokenSymbol}`
+  ) : undefined;
   const formattedAddress = tokenAddress ? formatAddress(tokenAddress) : undefined;
 
   const subtitle = formattedBalance ?? formattedAddress;

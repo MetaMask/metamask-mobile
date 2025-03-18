@@ -258,7 +258,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             }
           >
-            Turn on Smart Transactions for more reliable and secure transactions on Ethereum Mainnet.
+            Turn on Smart Transactions for more reliable and secure transactions on supported networks.
              
             <Text
               accessibilityRole="text"

@@ -369,7 +369,7 @@ class AdvancedSettings extends PureComponent {
                 color={TextColor.Alternative}
                 style={styles.desc}
               >
-                {strings('app_settings.smart_transactions_opt_in_desc')}{' '}
+                {strings('app_settings.smart_transactions_opt_in_desc_supported_networks')}{' '}
                 <Text
                   color={TextColor.Primary}
                   link
