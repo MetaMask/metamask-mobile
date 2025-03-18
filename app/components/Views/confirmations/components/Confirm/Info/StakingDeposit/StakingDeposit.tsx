@@ -1,8 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
+import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
+import { useTokenValues } from '../../../../hooks/useTokenValues';
 import InfoSectionAccordion from '../../../UI/InfoSectionAccordion';
 import { getNavbar } from '../../Navbar/Navbar';
 import StakingContractInteractionDetails from '../../StakingContractInteractionDetails/StakingContractInteractionDetails';
@@ -13,8 +15,12 @@ import GasFeesDetails from '../GasFeesDetails';
 const StakingDeposit = () => {
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
-  const { trackAdvancedDetailsToggledEvent, trackPageViewedEvent } =
-    useConfirmationMetricEvents();
+  const { tokenAmountDisplayValue } = useTokenValues();
+  const {
+    trackAdvancedDetailsToggledEvent,
+    trackPageViewedEvent,
+    setConfirmationMetric,
+  } = useConfirmationMetricEvents();
 
   useEffect(() => {
     navigation.setOptions(
@@ -26,6 +32,15 @@ const StakingDeposit = () => {
   }, [navigation, onReject]);
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+
+  useEffect(() => {
+    setConfirmationMetric({
+      properties: {
+        selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        transaction_amount_eth: tokenAmountDisplayValue,
+      },
+    });
+  }, [tokenAmountDisplayValue, setConfirmationMetric]);
 
   const handleAdvancedDetailsToggledEvent = (isExpanded: boolean) => {
     trackAdvancedDetailsToggledEvent({ isExpanded });

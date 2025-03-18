@@ -228,16 +228,23 @@ exports[`Tabs should render correctly 1`] = `
       testID="tabs_close_all"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
+          {
+            "0": {
               "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
             },
-            null,
-          ]
+            "1": null,
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Close All
@@ -316,20 +323,27 @@ exports[`Tabs should render correctly 1`] = `
       testID="tabs_done"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
+          {
+            "0": {
               "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
             },
-            {
+            "1": {
               "fontFamily": "EuclidCircularB-Bold",
               "fontWeight": "600",
             },
-            null,
-          ]
+            "2": null,
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Done

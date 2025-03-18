@@ -485,8 +485,8 @@ describe('captureSentryFeedback', () => {
       inpageProvider: {
         networkId: '1',
       },
-      transactionMetrics: {
-        metricsByTransactionId: {},
+      confirmationMetrics: {
+        metricsById: {},
       },
     };
 
@@ -522,7 +522,7 @@ describe('captureSentryFeedback', () => {
         signatureRequest: 'object',
         swaps: 'object',
         transaction: 'object',
-        transactionMetrics: 'object',
+        confirmationMetrics: 'object',
         user: 'object',
         wizard: 'object',
       });
@@ -563,7 +563,7 @@ describe('captureSentryFeedback', () => {
         signatureRequest: 'object',
         swaps: 'object',
         transaction: 'object',
-        transactionMetrics: 'object',
+        confirmationMetrics: 'object',
         user: 'object',
         wizard: 'object',
       });
@@ -600,7 +600,7 @@ describe('captureSentryFeedback', () => {
         signatureRequest: 'object',
         swaps: 'object',
         transaction: 'object',
-        transactionMetrics: 'object',
+        confirmationMetrics: 'object',
         user: 'object',
         wizard: 'object',
       });
