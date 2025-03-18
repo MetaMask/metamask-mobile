@@ -48,7 +48,10 @@ import {
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import { selectEvmTokens } from '../../../selectors/multichain';
+import {
+  selectEvmTokenFiatBalances,
+  selectEvmTokens,
+} from '../../../selectors/multichain';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -134,6 +137,8 @@ const Tokens = memo(() => {
 
   const evmTokens = useSelector(selectEvmTokens);
 
+  const tokenFiatBalances = useSelector(selectEvmTokenFiatBalances);
+
   const calculateFiatBalances = useCallback(
     () =>
       evmTokens.map((token) => {
@@ -179,9 +184,6 @@ const Tokens = memo(() => {
       tags: getTraceTags(store.getState()),
     });
 
-    // Calculate fiat balances for tokens
-    const tokenFiatBalances = calculateFiatBalances();
-
     const tokensWithBalances = evmTokens.map((token, i) => ({
       ...token,
       tokenFiatAmount: tokenFiatBalances[i],
@@ -192,7 +194,7 @@ const Tokens = memo(() => {
       name: TraceName.Tokens,
     });
     return tokensSorted;
-  }, [calculateFiatBalances, evmTokens, tokenSortConfig]);
+  }, [evmTokens, tokenFiatBalances, tokenSortConfig]);
 
   const showRemoveMenu = (token: TokenI) => {
     if (actionSheet.current) {
