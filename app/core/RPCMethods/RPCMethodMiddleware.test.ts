@@ -57,7 +57,7 @@ jest.mock('../Engine', () => ({
     PermissionController: {
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
-      revokePermission: jest.fn(),
+      revokePermissions: jest.fn(),
     },
     NetworkController: {
       getNetworkClientById: () => ({
@@ -594,12 +594,32 @@ describe('getRpcMethodMiddleware', () => {
       };
       await callMiddleware({ middleware, request });
       expect(
-        MockEngine.context.PermissionController.revokePermission,
-      ).toHaveBeenCalledWith(hostname, { eth_accounts: {} }, ['eth_accounts']);
+        MockEngine.context.PermissionController.revokePermissions,
+      ).toHaveBeenCalledWith({ [hostname]: ['eth_accounts'] });
     });
 
-    it('return error object if PermissionController throws an error', async () => {
-      MockEngine.context.PermissionController.revokePermission.mockImplementation(
+    it('can revoke permissions for endowment:permitted-chains', async () => {
+      const hostname = 'example.metamask.io';
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname,
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_revokePermissions',
+        params: [{ 'endowment:permitted-chains': {} }],
+      };
+      await callMiddleware({ middleware, request });
+      expect(
+        MockEngine.context.PermissionController.revokePermissions,
+      ).toHaveBeenCalledWith({
+        [hostname]: ['endowment:permitted-chains'],
+      });
+    });
+
+    it('returns null result if PermissionController throws an error', async () => {
+      MockEngine.context.PermissionController.revokePermissions.mockImplementation(
         () => {
           throw new Error('permission error');
         },
@@ -615,12 +635,9 @@ describe('getRpcMethodMiddleware', () => {
         method: 'wallet_revokePermissions',
         params: [{ eth_accounts: {} }],
       };
-      const result = await callMiddleware({ middleware, request });
-      expect(result).toEqual({
-        error: expect.objectContaining({
-          code: -32603,
-          message: 'permission error',
-        }),
+
+      expect(await callMiddleware({ middleware, request })).toEqual({
+        result: null,
         jsonrpc,
         id: 1,
       });

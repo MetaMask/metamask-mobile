@@ -412,17 +412,25 @@ export const getRpcMethodMiddleware = ({
           res,
           next,
           (err) => {
+            Logger.log('request object params', req.params, req.params[0]);
             if (err) {
               throw err;
             }
           },
           {
-            revokePermissionsForOrigin:
-              Engine.context.PermissionController.revokePermission.bind(
-                Engine.context.PermissionController,
-                channelId ?? hostname,
-                req.params[0],
-              ),
+            revokePermissionsForOrigin: (permissionKeys) => {
+              try {
+                Engine.context.PermissionController.revokePermissions({
+                  [origin]: permissionKeys,
+                });
+              } catch (e) {
+                // we dont want to handle errors here because
+                // the revokePermissions api method should just
+                // return `null` if the permissions were not
+                // successfully revoked or if the permissions
+                // for the origin do not exist
+              }
+            },
           },
         ),
       wallet_getPermissions: async () =>
