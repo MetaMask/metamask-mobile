@@ -112,6 +112,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
                 iconName={IconName.SwapHorizontal}
                 onPress={() => onSwapPress(result)}
                 disabled={!swapsEnabled}
+                testID="autocomplete-result-swap-button"
               />
             )
           }
