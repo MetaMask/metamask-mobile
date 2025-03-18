@@ -50,6 +50,9 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
+import { getCaip25Caveat } from '../../../../core/Permissions';
+import { getPermittedEthChainIds } from '@metamask/multichain';
+import { Hex } from '@metamask/utils';
 
 const NetworkPermissionsConnected = ({
   onSetPermissionsScreen,
@@ -70,16 +73,10 @@ const NetworkPermissionsConnected = ({
   // Get permitted chain IDs
   const getPermittedChainIds = () => {
     try {
-      const caveat = Engine.context.PermissionController.getCaveat(
+      const caveat = getCaip25Caveat(
         hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
       );
-      if (Array.isArray(caveat?.value)) {
-        return caveat.value.filter(
-          (item): item is string => typeof item === 'string',
-        );
-      }
+      return getPermittedEthChainIds(caveat.value)
     } catch (e) {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
@@ -91,7 +88,7 @@ const NetworkPermissionsConnected = ({
 
   // Filter networks to only show permitted ones, excluding the active network
   const networks = Object.entries(networkConfigurations)
-    .filter(([key]) => permittedChainIds.includes(key))
+    .filter(([key]) => permittedChainIds.includes(key as Hex))
     .map(([key, network]) => ({
       id: key,
       name: network.name,

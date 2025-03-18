@@ -37,6 +37,9 @@ import { getNetworkImageSource } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Logger from '../../../../util/Logger';
+import { addPermittedChains, getCaip25Caveat } from '../../../../core/Permissions';
+import { getPermittedEthChainIds } from '@metamask/multichain';
+import { Hex } from '@metamask/utils';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -71,16 +74,8 @@ const NetworkConnectMultiSelector = ({
 
     let currentlyPermittedChains: string[] = [];
     try {
-      const caveat = Engine.context.PermissionController.getCaveat(
-        hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-      if (Array.isArray(caveat?.value)) {
-        currentlyPermittedChains = caveat.value.filter(
-          (item): item is string => typeof item === 'string',
-        );
-      }
+      const caveat = getCaip25Caveat(hostname)
+      currentlyPermittedChains = caveat ? getPermittedEthChainIds(caveat.value) : []
     } catch (e) {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
@@ -124,40 +119,9 @@ const NetworkConnectMultiSelector = ({
         }
       }
 
-      let hasPermittedChains = false;
-      try {
-        hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-        );
-      } catch (e) {
-        Logger.error(e as Error, 'Error checking for permitted chains caveat');
-      }
-      if (hasPermittedChains) {
-        Engine.context.PermissionController.updateCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-          selectedChainIds,
-        );
-      } else {
-        Engine.context.PermissionController.grantPermissionsIncremental({
-          subject: {
-            origin: hostname,
-          },
-          approvedPermissions: {
-            [PermissionKeys.permittedChains]: {
-              caveats: [
-                {
-                  type: CaveatTypes.restrictNetworkSwitching,
-                  value: selectedChainIds,
-                },
-              ],
-            },
-          },
-        });
-      }
+      // TODO: Verify if this can be called before CAIP-25 permissions have been granted
+      // Previous behavior was to incremental grant if no permittedChains permission existed
+      addPermittedChains(hostname, selectedChainIds as Hex[])
       onUserAction(USER_INTENT.Confirm);
     }
   }, [

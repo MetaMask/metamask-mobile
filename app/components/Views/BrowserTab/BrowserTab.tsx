@@ -51,7 +51,7 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import { getCaip25Caveat, getPermittedAccountsByHostname } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectIpfsGateway,
@@ -109,6 +109,8 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { getPermittedEthChainIds } from '@metamask/multichain';
+import { Hex } from '@metamask/utils';
 
 /**
  * Tab component for the in-app browser
@@ -625,16 +627,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     if (isConnected) {
       let permittedChains = [];
       try {
-        const caveat = Engine.context.PermissionController.getCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-        );
-        permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+        const caveat = getCaip25Caveat(hostname)
+        permittedChains = caveat ? getPermittedEthChainIds(caveat.value) : []
 
         const currentChainId = activeChainId;
         const isCurrentChainIdAlreadyPermitted =
-          permittedChains.includes(currentChainId);
+          permittedChains.includes(currentChainId as Hex);
 
         if (!isCurrentChainIdAlreadyPermitted) {
           navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

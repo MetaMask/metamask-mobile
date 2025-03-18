@@ -7,8 +7,8 @@ import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
 import { Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Caip25CaveatType, Caip25EndowmentPermissionName, getEthAccounts } from '@metamask/multichain';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { Caip25CaveatType, Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds } from '@metamask/multichain';
+import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -29,25 +29,20 @@ function getAccountsCaveatFromPermission(accountsPermission: any = {}) {
   );
 }
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsPermissionFromSubject(subject: any = {}) {
-  return subject.permissions?.eth_accounts || {};
-}
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsFromPermission(accountsPermission: any) {
-  const accountsCaveat = getAccountsCaveatFromPermission(accountsPermission);
-  return accountsCaveat && Array.isArray(accountsCaveat.value)
-    ? accountsCaveat.value.map((address: string) => address.toLowerCase())
-    : [];
-}
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsFromSubject(subject: any) {
-  return getAccountsFromPermission(getAccountsPermissionFromSubject(subject));
+  const caveats =
+  subject.permissions?.[Caip25EndowmentPermissionName]?.caveats || [];
+
+  const caveat = caveats.find(({ type }: CaveatConstraint) => type === Caip25CaveatType);
+  if (caveat) {
+    const ethAccounts = getEthAccounts(caveat.value);
+    return ethAccounts.map((address: string) => address.toLowerCase())
+  }
+
+  return [];
 }
 
 export const getPermittedAccountsByHostname = (
@@ -73,105 +68,150 @@ export const getPermittedAccountsByHostname = (
   return accountsByHostname?.[hostname] || [];
 };
 
+// TODO: we can't be relying on ordering in the actual permission itself to determine active account
 export const switchActiveAccounts = (hostname: string, accAddress: string) => {
-  const { PermissionController } = Engine.context;
-  const existingPermittedAccountAddresses: string[] =
-    PermissionController.getCaveat(
-      hostname,
-      RestrictedMethods.eth_accounts,
-      CaveatTypes.restrictReturnedAccounts,
-    ).value;
-  const accountIndex = existingPermittedAccountAddresses.findIndex(
-    (address) => address === accAddress,
-  );
-  if (accountIndex === -1) {
-    throw new Error(
-      `eth_accounts permission for hostname "${hostname}" does not permit "${accAddress} account".`,
-    );
-  }
-  let newPermittedAccountAddresses = [...existingPermittedAccountAddresses];
-  newPermittedAccountAddresses.splice(accountIndex, 1);
-  newPermittedAccountAddresses = getUniqueList([
-    accAddress,
-    ...newPermittedAccountAddresses,
-  ]);
+  // const { PermissionController } = Engine.context;
+  // const existingPermittedAccountAddresses: string[] =
+  //   // TODO: Fix this
+  //   PermissionController.getCaveat(
+  //     hostname,
+  //     RestrictedMethods.eth_accounts,
+  //     CaveatTypes.restrictReturnedAccounts,
+  //   ).value;
 
-  PermissionController.updateCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
-    newPermittedAccountAddresses,
-  );
+
+  // const accountIndex = existingPermittedAccountAddresses.findIndex(
+  //   (address) => address === accAddress,
+  // );
+  // if (accountIndex === -1) {
+  //   throw new Error(
+  //     `eth_accounts permission for hostname "${hostname}" does not permit "${accAddress} account".`,
+  //   );
+  // }
+  // let newPermittedAccountAddresses = [...existingPermittedAccountAddresses];
+  // newPermittedAccountAddresses.splice(accountIndex, 1);
+  // newPermittedAccountAddresses = getUniqueList([
+  //   accAddress,
+  //   ...newPermittedAccountAddresses,
+  // ]);
+
+  // PermissionController.updateCaveat(
+  //   hostname,
+  //   RestrictedMethods.eth_accounts,
+  //   CaveatTypes.restrictReturnedAccounts,
+  //   newPermittedAccountAddresses,
+  // );
 };
 
+
+  // Returns the CAIP-25 caveat or undefined if it does not exist
+  export const getCaip25Caveat = (origin: string) => {
+    let caip25Caveat;
+    try {
+      caip25Caveat = Engine.context.PermissionController.getCaveat(
+        origin,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+      );
+    } catch (err) {
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+      } else {
+        throw err;
+      }
+    }
+    return caip25Caveat;
+  };
+
+
 export const addPermittedAccounts = (
-  hostname: string,
-  addresses: string[],
+  origin: string,
+  accounts: Hex[],
 ): string => {
-  const { PermissionController } = Engine.context;
-  const existing = PermissionController.getCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
-  );
-  const existingPermittedAccountAddresses: string[] = existing.value;
+  const caip25Caveat = getCaip25Caveat(origin);
+    if (!caip25Caveat) {
+      throw new Error(
+        `Cannot add account permissions for origin "${origin}": no permission currently exists for this origin.`,
+      );
+    }
 
-  const newPermittedAccountsAddresses = getUniqueList(
-    addresses,
-    existingPermittedAccountAddresses,
-  );
+    const ethAccounts = getEthAccounts(caip25Caveat.value);
 
-  // No change in permitted account addresses
-  if (
-    newPermittedAccountsAddresses.length ===
-    existingPermittedAccountAddresses.length
-  ) {
-    console.error(
-      `eth_accounts permission for hostname: (${hostname}) already exists for account addresses: (${existingPermittedAccountAddresses}).`,
+    const updatedEthAccounts = Array.from(
+      new Set([...ethAccounts, ...accounts]),
     );
-    return existingPermittedAccountAddresses[0];
-  }
 
-  PermissionController.updateCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
-    newPermittedAccountsAddresses,
-  );
+    // TODO: This was copied over from the old implementation. Why have this check?..
+    // No change in permitted account addresses
+    if (ethAccounts.length === updatedEthAccounts.length) {
+      console.error(
+        `eth_accounts permission for hostname: (${origin}) already exists for account addresses: (${updatedEthAccounts}).`,
+      );
 
-  return newPermittedAccountsAddresses[0];
+      // TODO: why return the first account?...
+      return ethAccounts[0];
+    }
+
+    const updatedCaveatValue = setEthAccounts(
+      caip25Caveat.value,
+      updatedEthAccounts,
+    );
+
+    Engine.context.PermissionController.updateCaveat(
+      origin,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+      updatedCaveatValue,
+    );
+
+    // TODO: why return the first account?...
+    return updatedEthAccounts[0];
 };
 
 export const removePermittedAccounts = (
-  hostname: string,
-  accounts: string[],
+  origin: string,
+  accounts: Hex[],
 ) => {
   const { PermissionController } = Engine.context;
-  const existing = PermissionController.getCaveat(
-    hostname,
-    RestrictedMethods.eth_accounts,
-    CaveatTypes.restrictReturnedAccounts,
+
+  const caip25Caveat = getCaip25Caveat(origin);
+  if (!caip25Caveat) {
+    throw new Error(
+      `Cannot remove accounts "${accounts}": No permissions exist for origin "${origin}".`,
+    );
+  }
+
+  const existingAccounts = getEthAccounts(caip25Caveat.value);
+
+  const remainingAccounts = existingAccounts.filter(
+    (existingAccount) => !accounts.includes(existingAccount)
   );
-  const remainingAccounts = existing.value.filter(
-    (address: string) => !accounts.includes(address),
-  );
+
+  if (remainingAccounts.length === existingAccounts.length) {
+    return;
+  }
 
   if (remainingAccounts.length === 0) {
     PermissionController.revokePermission(
-      hostname,
-      RestrictedMethods.eth_accounts,
+      origin,
+      Caip25EndowmentPermissionName,
     );
   } else {
-    PermissionController.updateCaveat(
-      hostname,
-      RestrictedMethods.eth_accounts,
-      CaveatTypes.restrictReturnedAccounts,
+    const updatedCaveatValue = setEthAccounts(
+      caip25Caveat.value,
       remainingAccounts,
+    );
+    PermissionController.updateCaveat(
+      origin,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+      updatedCaveatValue,
     );
   }
 };
 
-export const removeAccountsFromPermissions = async (addresses: string[]) => {
+export const removeAccountsFromPermissions = async (addresses: Hex[]) => {
   const { PermissionController } = Engine.context;
   for (const subject in PermissionController.state.subjects) {
     try {
@@ -183,6 +223,40 @@ export const removeAccountsFromPermissions = async (addresses: string[]) => {
       );
     }
   }
+};
+
+export const addPermittedChains = (origin: string, chainIds: Hex[]) => {
+  const caip25Caveat = getCaip25Caveat(origin);
+  if (!caip25Caveat) {
+    throw new Error(
+      `Cannot add chain permissions for origin "${origin}": no permission currently exists for this origin.`,
+    );
+  }
+
+  const ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
+
+  const updatedEthChainIds = Array.from(
+    new Set([...ethChainIds, ...chainIds]),
+  );
+
+  const caveatValueWithChains = setPermittedEthChainIds(
+    caip25Caveat.value,
+    updatedEthChainIds,
+  );
+
+  // ensure that the list of permitted eth accounts is set for the newly added eth scopes
+  const ethAccounts = getEthAccounts(caveatValueWithChains);
+  const caveatValueWithAccountsSynced = setEthAccounts(
+    caveatValueWithChains,
+    ethAccounts,
+  );
+
+  Engine.context.PermissionController.updateCaveat(
+    origin,
+    Caip25EndowmentPermissionName,
+    Caip25CaveatType,
+    caveatValueWithAccountsSynced,
+  );
 };
 
 /**

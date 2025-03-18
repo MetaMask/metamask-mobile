@@ -82,6 +82,8 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { addPermittedChains } from '../../../core/Permissions';
+import { Hex } from '@metamask/utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -235,47 +237,16 @@ const AccountConnect = (props: AccountConnectProps) => {
     // No need to update selectedChainIds here since it's already initialized with all networks
   }, [networkConfigurations]);
 
+  // TODO: Verify if this can be called before CAIP-25 permissions have been granted
+  // Previous behavior was to incremental grant if no permittedChains permission existed
   const handleUpdateNetworkPermissions = useCallback(async () => {
-    let hasPermittedChains = false;
     let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
     if (chainId && chainsToPermit.length === 0) {
       chainsToPermit = [chainId];
     }
 
-    try {
-      hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-        new URL(hostname).hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-    } catch {
-      // noop
-    }
-
-    if (hasPermittedChains) {
-      Engine.context.PermissionController.updateCaveat(
-        new URL(hostname).hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-        chainsToPermit,
-      );
-    } else {
-      Engine.context.PermissionController.grantPermissionsIncremental({
-        subject: {
-          origin: new URL(hostname).hostname,
-        },
-        approvedPermissions: {
-          [PermissionKeys.permittedChains]: {
-            caveats: [
-              {
-                type: CaveatTypes.restrictNetworkSwitching,
-                value: chainsToPermit,
-              },
-            ],
-          },
-        },
-      });
-    }
+    const origin = new URL(hostname).hostname
+    addPermittedChains(origin, chainsToPermit as Hex[])
   }, [selectedChainIds, chainId, hostname]);
 
   const isAllowedOrigin = useCallback((origin: string) => {

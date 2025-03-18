@@ -828,6 +828,7 @@ class FixtureBuilder {
    */
   withChainPermission(chainIds = ['0x1']) {
     const chainPermission = {
+      // TODO: Fix this
       'endowment:permitted-chains': {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
         parentCapability: 'endowment:permitted-chains',
