@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
@@ -8,7 +6,7 @@ import Engine from '../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 import { toChecksumAddress } from 'ethereumjs-util';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import StyledButton from '../../../../../UI/StyledButton';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
@@ -32,12 +30,12 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../../../../constants/error';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/networkController';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import { selectIsEvmNetworkSelected } from '../../../../../../selectors/multichainNetworkController';
+import { NetworkType } from '@metamask/controller-utils';
 
 const getAnalyticsParams = () => ({});
 
@@ -159,13 +157,14 @@ const AddNickname = (props: AddNicknameProps) => {
     return errorMessage;
   };
 
-  const hasBlockExplorer = !isEvmSelected
-    ? false
-    : shouldShowBlockExplorer(
-        providerType,
-        providerRpcTarget,
-        networkConfigurations,
-      );
+  const hasBlockExplorer =
+    !isEvmSelected || !providerRpcTarget
+      ? false
+      : shouldShowBlockExplorer(
+          providerType as NetworkType,
+          providerRpcTarget,
+          networkConfigurations,
+        );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -265,12 +264,8 @@ const AddNickname = (props: AddNicknameProps) => {
 };
 
 const mapStateToProps = (state: RootState) => ({
-  providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcUrl(state),
-  providerChainId: selectEvmChainId(state),
   addressBook: selectAddressBook(state),
   internalAccounts: selectInternalAccounts(state),
-  networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
 });
 
 // TODO: Replace "any" with type
