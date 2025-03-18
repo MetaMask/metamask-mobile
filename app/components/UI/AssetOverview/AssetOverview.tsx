@@ -176,19 +176,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
         params: {
-        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-        destinationToken: asset.address,
-        sourcePage: 'MainView',
-        chainId: asset.chainId,
-      }});
+          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          destinationToken: asset.address,
+          sourcePage: 'MainView',
+          chainId: asset.chainId,
+        }
+      });
     } else {
       navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
         params: {
-        sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-        sourcePage: 'MainView',
-        chainId: asset.chainId,
-      }});
+          sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourcePage: 'MainView',
+          chainId: asset.chainId,
+        },
+      });
     }
   }, [navigation, asset]);
 
