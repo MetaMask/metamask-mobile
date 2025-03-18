@@ -63,6 +63,9 @@ const mockInitialState = {
         },
       },
     },
+    TokenSearchDiscoveryDataController: {
+      tokenDisplayData: [],
+    },
   },
   settings: {
     primaryCurrency: 'ETH',
