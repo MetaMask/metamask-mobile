@@ -13,11 +13,14 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from '../constants';
 import createStyles from './BlockaidSettings.styles';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import {
+    UserProfileProperty
+} from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const BlockaidSettings = () => {
   const theme = useTheme();
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const styles = createStyles();
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
@@ -36,6 +39,8 @@ const BlockaidSettings = () => {
     } else {
       PreferencesController?.setSecurityAlertsEnabled(true);
     }
+
+    addTraitsToUser({ [UserProfileProperty.SECURITY_PROVIDERS]: securityAlertsEnabled ? 'blockaid' : '' });
   };
 
   return (

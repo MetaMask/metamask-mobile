@@ -16,12 +16,17 @@ import {
   BATCH_BALANCE_REQUESTS_SECTION,
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
 } from './index.constants';
+import {
+    UserProfileProperty
+} from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import {useMetrics} from '../../../hooks/useMetrics';
 
 const BatchAccountBalanceSettings = () => {
   const { PreferencesController } = Engine.context;
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
+  const { addTraitsToUser } = useMetrics();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -32,6 +37,7 @@ const BatchAccountBalanceSettings = () => {
       PreferencesController.setIsMultiAccountBalancesEnabled(
         multiAccountBalancesEnabled,
       );
+        addTraitsToUser({ [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: multiAccountBalancesEnabled ? UserProfileProperty.ON : UserProfileProperty.OFF });
     },
     [PreferencesController],
   );
