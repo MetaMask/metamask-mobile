@@ -91,8 +91,10 @@ export const selectDestAmount = createSelector(
   (bridgeState) => bridgeState.destAmount,
 );
 
-// only includes networks user has added
-// will include them regardless of feature flag enabled or not
+/**
+ * Only includes networks user has added.
+ * Will include them regardless of feature flag enabled or not.
+ */
 export const selectAllBridgeableNetworks = createSelector(
   selectEvmNetworkConfigurationsByChainId,
   (networkConfigurations) => {
