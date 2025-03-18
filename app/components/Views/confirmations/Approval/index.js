@@ -452,7 +452,7 @@ class Approval extends PureComponent {
         .addProperties({
           ...this.getAnalyticsParams(),
           ...this.getBlockaidMetricsParams(),
-          ...this.getConfirmationMetrics(),
+          ...this.getTransactionMetrics(),
         })
         .build(),
     );
@@ -596,7 +596,7 @@ class Approval extends PureComponent {
             onConfirmationComplete: (approve) =>
               this.onLedgerConfirmation(approve, transaction.id, {
                 ...this.getAnalyticsParams({ gasEstimateType, gasSelected }),
-                ...this.getConfirmationMetrics(),
+                ...this.getTransactionMetrics(),
               }),
             type: 'signTransaction',
           }),
@@ -647,7 +647,7 @@ class Approval extends PureComponent {
             gasSelected,
           }),
           ...this.getBlockaidMetricsParams(),
-          ...this.getConfirmationMetrics(),
+          ...this.getTransactionMetrics(),
         })
         .build(),
     );
@@ -704,7 +704,7 @@ class Approval extends PureComponent {
     });
   };
 
-  getConfirmationMetrics = () => {
+  getTransactionMetrics = () => {
     const { confirmationMetricsById, transaction } = this.props;
     const { id: transactionId } = transaction;
 
