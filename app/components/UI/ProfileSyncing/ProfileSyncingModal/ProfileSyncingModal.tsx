@@ -19,6 +19,7 @@ import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
 import { useDisableProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import ModalContent from '../../Notification/Modal';
+import { InteractionManager } from 'react-native';
 
 const ProfileSyncingModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -35,7 +36,9 @@ const ProfileSyncingModal = () => {
   const closeBottomSheet = () => {
     bottomSheetRef.current?.onCloseBottomSheet(async () => {
       if (isProfileSyncingEnabled) {
-        await disableProfileSyncing();
+        InteractionManager.runAfterInteractions(async () => {
+          await disableProfileSyncing();
+        });
       }
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)

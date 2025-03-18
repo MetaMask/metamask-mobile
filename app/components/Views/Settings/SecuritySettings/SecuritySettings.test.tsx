@@ -72,11 +72,6 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('../../../../util/notifications/constants', () => ({
-  ...jest.requireActual('../../../../util/notifications/constants'),
-  isNotificationsFeatureEnabled: () => false,
-}));
-
 describe('SecuritySettings', () => {
   beforeEach(() => {
     mockUseParamsValues = {

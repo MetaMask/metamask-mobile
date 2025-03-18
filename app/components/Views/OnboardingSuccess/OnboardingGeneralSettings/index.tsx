@@ -10,8 +10,6 @@ import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import { useStyles } from '../../../../component-library/hooks';
 import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
-import { useEnableProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
-import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import styleSheet from '../DefaultSettings/index.styles';
@@ -25,7 +23,6 @@ const GeneralSettings = () => {
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
-  const { enableProfileSyncing } = useEnableProfileSyncing();
 
   const handleSwitchToggle = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -45,13 +42,6 @@ const GeneralSettings = () => {
   };
 
   const toggleProfileSyncing = async () => {
-    if (isProfileSyncingEnabled) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.PROFILE_SYNCING,
-      });
-    } else {
-      await enableProfileSyncing();
-    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
         .addProperties({
@@ -67,13 +57,7 @@ const GeneralSettings = () => {
   return (
     <ScrollView style={styles.root}>
       <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
-      {isNotificationsFeatureEnabled() && (
-        <ProfileSyncingComponent
-          handleSwitchToggle={toggleProfileSyncing}
-          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-          isProfileSyncingEnabled={isProfileSyncingEnabled}
-        />
-      )}
+      <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
       <ManageNetworksComponent />
     </ScrollView>
   );
