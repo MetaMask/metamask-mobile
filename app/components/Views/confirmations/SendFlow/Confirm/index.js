@@ -1625,7 +1625,7 @@ const mapStateToProps = (state) => {
       getRampNetworks(state),
     ),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-    confirmationMetrics: selectConfirmationMetrics(state),
+    confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
