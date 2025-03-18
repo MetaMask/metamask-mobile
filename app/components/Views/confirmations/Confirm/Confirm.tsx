@@ -34,21 +34,21 @@ const ConfirmWrapped = ({
   alerts: Alert[];
 }) => (
   <AlertsContextProvider alerts={alerts}>
-  <QRHardwareContextProvider>
-    <LedgerContextProvider>
-      <Title />
-      <ScrollView style={styles.scrollView}>
-        <TouchableWithoutFeedback>
-          <>
-            <GeneralAlertBanner />
-            <Info route={route} />
-          </>
-        </TouchableWithoutFeedback>
-      </ScrollView>
-      <Footer />
-    </LedgerContextProvider>
-    <MultipleAlertModal />
-  </QRHardwareContextProvider>
+    <QRHardwareContextProvider>
+      <LedgerContextProvider>
+        <Title />
+        <ScrollView style={styles.scrollView}>
+          <TouchableWithoutFeedback>
+            <>
+              <GeneralAlertBanner />
+              <Info route={route} />
+            </>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+        <Footer />
+      </LedgerContextProvider>
+      <MultipleAlertModal />
+    </QRHardwareContextProvider>
   </AlertsContextProvider>
 );
 
@@ -80,6 +80,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
   return (
     <BottomSheet
       onClose={onReject}
+      shouldNavigateBack={false}
       style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >
