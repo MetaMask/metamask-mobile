@@ -206,8 +206,7 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
-import { LANGUAGE } from '../../constants/storage';
-import StorageWrapper from '../../store/storage-wrapper';
+import I18n from '../../../locales/i18n';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -631,7 +630,7 @@ export class Engine {
           displayNftMedia,
           isMultiAccountBalancesEnabled,
         } = this.getPreferences();
-        const locale = await StorageWrapper.getItem(LANGUAGE);
+        const locale = I18n.locale;
         return {
           locale,
           currency: this.context.CurrencyRateController.state.currentCurrency,
