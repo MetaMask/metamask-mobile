@@ -4,6 +4,7 @@ import { decode, encode } from 'base-64';
 import {
   FIXTURE_SERVER_PORT,
   isTest,
+  enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
 import { LaunchArguments } from 'react-native-launch-arguments';
@@ -59,7 +60,7 @@ if (typeof localStorage !== 'undefined') {
 // crypto is loaded first, so it can populate global.crypto
 // require('crypto')
 
-if (isTest) {
+if (enableApiCallLogs || isTest) {
   (async () => {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
