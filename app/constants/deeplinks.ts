@@ -27,6 +27,7 @@ export enum ACTIONS {
   SELL = 'sell',
   SELL_CRYPTO = 'sell-crypto',
   EMPTY = '',
+  SWAP = 'swap',
 }
 
 export const PREFIXES = {

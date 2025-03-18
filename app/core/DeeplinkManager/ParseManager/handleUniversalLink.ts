@@ -53,10 +53,16 @@ function handleUniversalLink({
     }
 
     if (action === ACTIONS.CONNECT) {
-      if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-        SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        });
+      if (
+        params.redirect &&
+        origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+      ) {
+        SDKConnect.getInstance().state.navigation?.navigate(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          {
+            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          },
+        );
       } else if (params.channelId) {
         const protocolVersion = parseInt(params.v ?? '1', 10);
 
@@ -119,6 +125,12 @@ function handleUniversalLink({
         .replace(`${DEEP_LINK_BASE}/${ACTIONS.SELL_CRYPTO}`, '')
         .replace(`${DEEP_LINK_BASE}/${ACTIONS.SELL}`, '');
       instance._handleSellCrypto(rampPath);
+    } else if (action === ACTIONS.SWAP) {
+      const swapPath = urlObj.href
+        .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '')
+        .replace(`${DEEP_LINK_BASE}/${ACTIONS.SWAP}`, '');
+
+      instance._handleSwap(swapPath);
     } else {
       // If it's our universal link or Apple store deep link don't open it in the browser
       if (
