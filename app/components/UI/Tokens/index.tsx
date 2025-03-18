@@ -1,17 +1,8 @@
-import React, {
-  useRef,
-  useState,
-  LegacyRef,
-  useMemo,
-  memo,
-  useCallback,
-} from 'react';
+import React, { useRef, useState, LegacyRef, useMemo, memo } from 'react';
 import { Hex } from '@metamask/utils';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
-import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import { useTheme } from '../../../util/theme';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Engine from '../../../core/Engine';
@@ -23,6 +14,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
+  selectNativeNetworkCurrencies,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { getDecimalChainId, isTestNet } from '../../../util/networks';
@@ -33,14 +25,10 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectTokenSortConfig } from '../../../selectors/preferencesController';
-import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
+import { sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
-import {
-  selectCurrentCurrency,
-  selectCurrencyRates,
-} from '../../../selectors/currencyRateController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
@@ -97,82 +85,24 @@ const Tokens = memo(() => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
-  const networkConfigurationsByChainId = useSelector(
-    selectNetworkConfigurations,
-  );
-
   const evmNetworkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId);
-  const nativeCurrencies = [
-    ...new Set(
-      Object.values(networkConfigurationsByChainId).map(
-        (n) => n.nativeCurrency,
-      ),
-    ),
-  ];
+  const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const evmTokens = useSelector(selectEvmTokens);
+  const tokenFiatBalances = useSelector(selectEvmTokenFiatBalances);
 
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-
-  // multi chain
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  );
-  const multiChainMarketData = useSelector(selectTokenMarketData);
-  const multiChainTokenBalance = useSelector(selectTokensBalances);
-  const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
-
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const styles = createStyles(colors);
-
-  const evmTokens = useSelector(selectEvmTokens);
-
-  const tokenFiatBalances = useSelector(selectEvmTokenFiatBalances);
-
-  const calculateFiatBalances = useCallback(
-    () =>
-      evmTokens.map((token) => {
-        const chainId = token.chainId as Hex;
-        const multiChainExchangeRates = multiChainMarketData?.[chainId];
-        const multiChainTokenBalances =
-          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-            chainId
-          ];
-        const nativeCurrency =
-          networkConfigurationsByChainId[chainId].nativeCurrency;
-        const multiChainConversionRate =
-          multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
-
-        return token.isETH || token.isNative
-          ? parseFloat(token.balance) * multiChainConversionRate
-          : deriveBalanceFromAssetMarketDetails(
-              token,
-              multiChainExchangeRates || {},
-              multiChainTokenBalances || {},
-              multiChainConversionRate || 0,
-              currentCurrency || '',
-            ).balanceFiatCalculation;
-      }),
-    [
-      evmTokens,
-      multiChainMarketData,
-      multiChainTokenBalance,
-      selectedInternalAccountAddress,
-      networkConfigurationsByChainId,
-      multiChainCurrencyRates,
-      currentCurrency,
-    ],
-  );
 
   const tokensList = useMemo((): TokenI[] => {
     trace({
@@ -180,6 +110,7 @@ const Tokens = memo(() => {
       tags: getTraceTags(store.getState()),
     });
 
+    // we need to calculate fiat balances here in order to sort by descending fiat amount
     const tokensWithBalances = evmTokens.map((token, i) => ({
       ...token,
       tokenFiatAmount: tokenFiatBalances[i],
