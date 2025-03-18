@@ -62,7 +62,9 @@ describe('MultiSRP Actions', () => {
         },
       ]);
 
-      await importNewSecretRecoveryPhrase(testMnemonic);
+      await expect(
+        async () => await importNewSecretRecoveryPhrase(testMnemonic),
+      ).rejects.toThrow('This mnemonic has already been imported.');
 
       expect(mockAddNewKeyring).not.toHaveBeenCalled();
     });
@@ -88,6 +90,7 @@ describe('MultiSRP Actions', () => {
 
       await createNewSecretRecoveryPhrase();
 
+      expect(mockGetAccounts).not.toHaveBeenCalled();
       expect(mockSetSelectedAddress).not.toHaveBeenCalled();
     });
   });
