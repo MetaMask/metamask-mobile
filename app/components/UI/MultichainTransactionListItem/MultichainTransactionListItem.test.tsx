@@ -1,7 +1,8 @@
 import React from 'react';
 import { TouchableHighlight } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { TransactionType } from '@metamask/keyring-api';
+import { Transaction, TransactionType } from '@metamask/keyring-api';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import MultichainTransactionListItem from '../MultichainTransactionListItem';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
@@ -27,15 +28,25 @@ jest.mock(
 
 describe('MultichainTransactionListItem', () => {
   const mockNavigation = { navigate: jest.fn() };
-  const mockTransaction = {
+  const mockTransaction: Transaction = {
     id: 'tx-123',
-    chainId: 'solana:mainnet',
-    from: [{ address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' }],
-    to: [{ address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' }],
-    value: '1500000000',
+    chain: 'solana:mainnet',
+    account: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
+    from: [
+      {
+        address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
+        asset: null,
+      },
+    ],
+    to: [
+      { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY', asset: null },
+    ],
     type: TransactionType.Send,
     timestamp: 1742313600000,
-  } as any;
+    status: 'confirmed',
+    events: [],
+    fees: [],
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,7 +64,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={mockTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -74,8 +85,18 @@ describe('MultichainTransactionListItem', () => {
     const receiveTransaction = {
       ...mockTransaction,
       type: TransactionType.Receive,
-      from: [{ address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' }],
-      to: [{ address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' }],
+      from: [
+        {
+          address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
+          asset: null,
+        },
+      ],
+      to: [
+        {
+          address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
+          asset: null,
+        },
+      ],
       value: '2000000000',
     };
 
@@ -83,7 +104,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={receiveTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -110,7 +131,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={mockTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -122,7 +143,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={mockTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -146,7 +167,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={mockTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -168,7 +189,7 @@ describe('MultichainTransactionListItem', () => {
       <MultichainTransactionListItem
         transaction={mockTransaction}
         selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 

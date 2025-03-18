@@ -8,37 +8,55 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Transaction } from '@metamask/keyring-api';
+import { CaipChainId, Transaction } from '@metamask/keyring-api';
+import { ThemeColors } from '@metamask/design-tokens';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
+import { fontStyles, baseStyles } from '../../../styles/common';
+import {
+  getAddressUrl,
+  nonEvmNetworkChainIdByAccountAddress,
+} from '../../../core/Multichain/utils';
 import { selectSolanaAccountTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
-import { baseStyles } from '../../../styles/common';
 
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    wrapper: {
+      flex: 1,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    emptyText: {
+      fontSize: 20,
+      color: colors.text.muted,
+      ...fontStyles.normal,
+    },
+    viewMoreWrapper: {
+      padding: 16,
+    },
+    viewMoreButton: {
+      width: '100%',
+    },
+    loader: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
 
 const MultichainTransactionsView = () => {
   const { colors } = useTheme();
+  const styles = createStyles(colors);
   const navigation = useNavigation();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -78,6 +96,33 @@ const MultichainTransactionsView = () => {
     </View>
   );
 
+  const renderViewMore = () => {
+    const styles = createStyles(colors);
+    const chainId = nonEvmNetworkChainIdByAccountAddress(selectedAddress || '');
+
+    return (
+      <View style={styles.viewMoreWrapper}>
+        <Button
+          variant={ButtonVariants.Link}
+          size={ButtonSize.Lg}
+          label={`${strings('transactions.view_full_history_on')}`}
+          style={styles.viewMoreButton}
+          onPress={() => {
+            const url = getAddressUrl(
+              selectedAddress || '',
+              chainId as CaipChainId,
+            );
+
+            navigation.navigate('Webview', {
+              screen: 'SimpleWebview',
+              params: { url },
+            });
+          }}
+        />
+      </View>
+    );
+  };
+
   const renderTransactionItem = ({ item }: { item: Transaction }) => (
     <MultichainTransactionListItem
       transaction={item}
@@ -106,6 +151,7 @@ const MultichainTransactionsView = () => {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyList}
         style={baseStyles.flexGrow}
+        ListFooterComponent={transactions.length > 0 ? renderViewMore() : null}
       />
     </View>
   );

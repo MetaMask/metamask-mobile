@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { TransactionType } from '@metamask/keyring-api';
+import { ParamListBase, NavigationProp } from '@react-navigation/native';
+import { Transaction, TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionDetailsModal from './MultichainTransactionDetailsModal';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 
@@ -30,15 +31,22 @@ jest.mock('../../../core/Multichain/utils', () => ({
 describe('MultichainTransactionDetailsModal', () => {
   const mockNavigation = { navigate: jest.fn() };
   const mockOnClose = jest.fn();
-  const mockTransaction = {
+  const mockTransaction: Transaction = {
     id: 'tx-123',
-    chainId: 'solana:mainnet',
-    from: [{ address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' }],
-    to: [{ address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' }],
-    value: '1500000000',
+    chain: 'solana:mainnet',
+    account: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
+    from: [
+      { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV', asset: null },
+    ],
+    to: [
+      { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY', asset: null },
+    ],
     type: TransactionType.Send,
     timestamp: 1742313600000,
-  } as any;
+    status: 'confirmed',
+    events: [],
+    fees: [],
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -57,11 +65,11 @@ describe('MultichainTransactionDetailsModal', () => {
   it('renders correctly a transaction', () => {
     const { getByText } = render(
       <MultichainTransactionDetailsModal
-        isVisible={true}
+        isVisible
         onClose={mockOnClose}
         transaction={mockTransaction}
         userAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -77,11 +85,11 @@ describe('MultichainTransactionDetailsModal', () => {
   it('calls onClose when close button is pressed', () => {
     const { getByTestId } = render(
       <MultichainTransactionDetailsModal
-        isVisible={true}
+        isVisible
         onClose={mockOnClose}
         transaction={mockTransaction}
         userAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -106,11 +114,11 @@ describe('MultichainTransactionDetailsModal', () => {
 
     const { getByText } = render(
       <MultichainTransactionDetailsModal
-        isVisible={true}
+        isVisible
         onClose={mockOnClose}
         transaction={mockTransaction}
         userAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -123,11 +131,11 @@ describe('MultichainTransactionDetailsModal', () => {
   it('navigates to block explorer when view details is pressed', () => {
     const { getByText } = render(
       <MultichainTransactionDetailsModal
-        isVisible={true}
+        isVisible
         onClose={mockOnClose}
         transaction={mockTransaction}
         userAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
@@ -144,11 +152,11 @@ describe('MultichainTransactionDetailsModal', () => {
   it('navigates to address explorer when address link is pressed', () => {
     const { getAllByText } = render(
       <MultichainTransactionDetailsModal
-        isVisible={true}
+        isVisible
         onClose={mockOnClose}
         transaction={mockTransaction}
         userAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as any}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
