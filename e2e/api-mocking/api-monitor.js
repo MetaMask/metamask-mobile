@@ -47,7 +47,7 @@ export const startApiMonitor = async (port) => {
           console.log(JSON.stringify(body, null, 2));
         } catch (e) {
           console.log('\nRequest Body: (Raw)');
-          console.log(JSON.stringify(await requestBody.getText(), null, 2));
+          console.log(await requestBody.getText());
         }
       }
       console.log('----------------------------------------\n');
@@ -65,8 +65,15 @@ export const startApiMonitor = async (port) => {
       }
 
       try {
-        console.log('\nResponse Body:');
-        console.log(body);
+        const responseBody = await body.getText();
+        try {
+          const jsonBody = JSON.parse(responseBody);
+          console.log('\nResponse Body:');
+          console.log(JSON.stringify(jsonBody, null, 2));
+        } catch (e) {
+          console.log('\nResponse Body:');
+          console.log(responseBody);
+        }
       } catch (e) {
         console.log('\nResponse Body Error:');
         console.log(e);
