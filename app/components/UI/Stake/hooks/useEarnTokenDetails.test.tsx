@@ -103,6 +103,9 @@ describe('useEarnTokenDetails', () => {
       apr: '2.3',
       tokenBalanceFormatted: '100 ETH',
       balanceFiat: '$200,000.00',
+      rewardRateDecimal: 0.023,
+      estimatedAnnualRewardsDecimal: 4600,
+      estimatedAnnualRewardsFormatted: '$460000',
     });
   });
 
@@ -119,6 +122,9 @@ describe('useEarnTokenDetails', () => {
       apr: '4.5',
       tokenBalanceFormatted: '100 USDC',
       balanceFiat: '$100',
+      rewardRateDecimal: 0.045,
+      estimatedAnnualRewardsDecimal: 4.5,
+      estimatedAnnualRewardsFormatted: '$450',
     });
   });
 

@@ -11,6 +11,8 @@ import { selectTokenMarketData } from '../../../../selectors/tokenRatesControlle
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
+import BigNumber from 'bignumber.js';
+import { parseCurrencyString } from '../../Earn/utils';
 
 // Mock APR values - will be replaced with real API data later
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
@@ -22,6 +24,9 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
 
 interface EarnTokenDetails extends TokenI {
   apr: string;
+  rewardRateDecimal: number;
+  estimatedAnnualRewardsDecimal: number;
+  estimatedAnnualRewardsFormatted: string;
   tokenBalanceFormatted: string;
   balanceFiat: string;
 }
@@ -53,11 +58,34 @@ export const useEarnTokenDetails = () => {
           currentCurrency || '',
         );
 
+      const apr = MOCK_APR_VALUES[token.symbol] || '0.0';
+
+      const rewardRateDecimal = new BigNumber(apr).dividedBy(100).toNumber();
+
+      const tokenFiatBalanceFloat = parseCurrencyString(
+        token.balanceFiat,
+      ).toString();
+
+      const estimatedAnnualRewardsDecimal = new BigNumber(
+        parseFloat(tokenFiatBalanceFloat),
+      )
+        .multipliedBy(rewardRateDecimal)
+        .toNumber();
+
+      const estimatedAnnualRewardsFormatted = `$${new BigNumber(
+        estimatedAnnualRewardsDecimal,
+      )
+        .multipliedBy(100)
+        .toFixed(0, BigNumber.ROUND_HALF_UP)}`;
+
       return {
         ...token,
         tokenBalanceFormatted: balanceValueFormatted,
         balanceFiat,
-        apr: MOCK_APR_VALUES[token.symbol] || '0.0',
+        apr,
+        rewardRateDecimal,
+        estimatedAnnualRewardsDecimal,
+        estimatedAnnualRewardsFormatted,
       };
     },
     [
