@@ -56,6 +56,7 @@ import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
 import { isEvmAccountType } from '@metamask/keyring-api';
+import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichainNetworkController';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -84,6 +85,9 @@ const AccountActions = () => {
   const keyring = selectedAccount?.metadata.keyring;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const selectedNonEvmNetworkChainId = useSelector(
+    selectSelectedNonEvmNetworkChainId,
+  );
 
   const blockExplorer: { url: string | undefined; title: string | undefined } =
     useMemo(() => {
@@ -112,7 +116,10 @@ const AccountActions = () => {
             title: etherscan_url,
           };
         }
-        const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
+        const explorer = findBlockExplorerForNonEvmAccount(
+          selectedAccount,
+          selectedNonEvmNetworkChainId,
+        );
         return {
           url: explorer,
           title: new URL(explorer).hostname,
@@ -127,6 +134,7 @@ const AccountActions = () => {
       providerConfig.rpcUrl,
       providerConfig.type,
       selectedAccount,
+      selectedNonEvmNetworkChainId,
     ]);
 
   const blockExplorerName = blockExplorer.url

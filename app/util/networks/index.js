@@ -303,17 +303,46 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
 
   return undefined;
 }
+
 /**
  * Returns block explorer for non-evm chain id
  *
  * @param {object} internalAccount - Internal account object
- * @returns {string} - Block explorer url
+ * @param {string} selectedNonEvmNetworkChainId - Currently selected non-EVM chain ID
+ * @returns {string} - Block explorer url or undefined if not found
  */
-export function findBlockExplorerForNonEvmAccount(internalAccount) {
+export function findBlockExplorerForNonEvmAccount(
+  internalAccount,
+  selectedNonEvmNetworkChainId,
+) {
+  let scope;
+
+  // Check if the selectedNonEvmNetworkChainId exists in the scopes array
+  if (
+    selectedNonEvmNetworkChainId &&
+    internalAccount.scopes?.includes(selectedNonEvmNetworkChainId)
+  ) {
+    // Prioritize the selected chain ID if it's in the scopes array
+    scope = selectedNonEvmNetworkChainId;
+  } else {
+    // Fall back to scope from options or scopes array from the account object
+    scope =
+      internalAccount.options?.scope ||
+      (internalAccount.scopes && internalAccount.scopes[0]);
+  }
+
+  // If we couldn't determine a scope, return undefined
+  if (!scope) {
+    return undefined;
+  }
+
   const blockExplorerFormatUrls =
-    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-      internalAccount.scopes[0]
-    ];
+    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[scope];
+
+  if (!blockExplorerFormatUrls) {
+    return undefined;
+  }
+
   return formatBlockExplorerAddressUrl(
     blockExplorerFormatUrls,
     internalAccount.address,
