@@ -86,39 +86,47 @@ const AccountActions = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer: { url: string; title: string } = useMemo(() => {
-    if (isEvmAccountType(selectedAccount.type)) {
-      if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-        const explorer = findBlockExplorerForRpc(
-          providerConfig.rpcUrl,
-          networkConfigurations,
+    if (selectedAccount) {
+      if (isEvmAccountType(selectedAccount.type)) {
+        if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
+          const explorer = findBlockExplorerForRpc(
+            providerConfig.rpcUrl,
+            networkConfigurations,
+          );
+          return {
+            url: `${explorer}/address/${selectedAccount.address}`,
+            title: new URL(explorer).hostname,
+          };
+        }
+
+        const url = getEtherscanAddressUrl(
+          providerConfig.type,
+          selectedAccount.address,
+        );
+        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
+          'https://',
+          '',
         );
         return {
-          url: `${explorer}/address/${selectedAddress}`,
-          title: new URL(explorer).hostname,
+          url,
+          title: etherscan_url,
         };
       }
-
-      const url = getEtherscanAddressUrl(providerConfig.type, selectedAddress);
-      const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
-        'https://',
-        '',
-      );
+      const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
       return {
-        url,
-        title: etherscan_url,
+        url: explorer,
+        title: new URL(explorer).hostname,
       };
     }
-    const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
     return {
-      url: explorer,
-      title: new URL(explorer).hostname,
+      url: undefined,
+      title: undefined,
     };
   }, [
     networkConfigurations,
     providerConfig.rpcUrl,
     providerConfig.type,
     selectedAccount,
-    selectedAddress,
   ]);
 
   const blockExplorerName = getBlockExplorerName(blockExplorer.url);
@@ -135,7 +143,7 @@ const AccountActions = () => {
 
   const viewOnBlockExplorer = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      if (blockExplorer) {
+      if (blockExplorer.url && blockExplorer.title) {
         goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }
       trackEvent(
