@@ -509,6 +509,7 @@ export const isChainPermissionsFeatureEnabled = true;
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
-export const isPortfolioViewEnabled = () => 'true';
+// TODO: Remove this function once PORTFOLIO_VIEW feature flag is removed
+export const isPortfolioViewEnabled = () => true;
 
 export const isMultichainV1Enabled = () => process.env.MULTICHAIN_V1 === 'true';
