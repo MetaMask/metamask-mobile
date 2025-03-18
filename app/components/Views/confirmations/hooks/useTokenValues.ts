@@ -11,7 +11,7 @@ import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatF
 import { RootState } from '../../../../reducers';
 
 // TODO: This hook will be extended to calculate token and fiat information from transaction metadata on upcoming redesigned confirmations
-export const useTokenValues = ({ amountWei }: { amountWei?: string }) => {
+export const useTokenValues = ({ amountWei }: { amountWei?: string } = {}) => {
 
   const transactionMetadata = useTransactionMetadataRequest();
 

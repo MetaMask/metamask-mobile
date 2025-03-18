@@ -14,26 +14,30 @@ import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
   content: string | ReactNode;
+  onPress?: () => void;
   title?: string;
   tooltipTestId?: string;
 }
 
 interface TooltipModalProps {
+  content: string | ReactNode;
   open: boolean;
   setOpen: (open: boolean) => void;
-  content: string | ReactNode;
   title?: string;
   tooltipTestId?: string;
 }
 
-export const TooltipModal = ({ open, setOpen, content, title, tooltipTestId = 'tooltip-modal' }: TooltipModalProps) => {
+export const TooltipModal = ({
+  open,
+  setOpen,
+  content,
+  title,
+  tooltipTestId = 'tooltip-modal',
+}: TooltipModalProps) => {
   const { styles } = useStyles(styleSheet, { title: title ?? '' });
 
   return (
-    <BottomModal
-      visible={open}
-      onClose={() => setOpen(false)}
-    >
+    <BottomModal visible={open} onClose={() => setOpen(false)}>
       <View style={styles.modalView}>
         <View style={styles.modalHeader}>
           <ButtonIcon
@@ -43,7 +47,7 @@ export const TooltipModal = ({ open, setOpen, content, title, tooltipTestId = 't
             size={ButtonIconSizes.Sm}
             style={styles.closeModalBtn}
             testID={`${tooltipTestId}-close-btn`}
-            />
+          />
           {<Text style={styles.modalTitle}>{title ?? ''}</Text>}
         </View>
         <View style={styles.modalContent}>
@@ -58,15 +62,25 @@ export const TooltipModal = ({ open, setOpen, content, title, tooltipTestId = 't
   );
 };
 
-const Tooltip = ({ content, title, tooltipTestId = 'info-row-tooltip' }: TooltipProps) => {
+const Tooltip = ({
+  content,
+  title,
+  tooltipTestId = 'info-row-tooltip',
+  onPress,
+}: TooltipProps) => {
   const [open, setOpen] = useState(false);
+
+  const handlePress = () => {
+    setOpen(true);
+    onPress?.();
+  };
 
   return (
     <View>
       <ButtonIcon
         iconColor={IconColor.Muted}
         iconName={IconName.Info}
-        onPress={() => setOpen(true)}
+        onPress={handlePress}
         size={ButtonIconSizes.Sm}
         testID={`${tooltipTestId}-open-btn`}
       />

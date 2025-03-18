@@ -1118,7 +1118,6 @@
     "security_alerts": "安全提醒",
     "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
     "smart_transactions_opt_in_heading": "智能交易",
-    "smart_transactions_opt_in_desc": "开启智能交易，以便在以太坊主网上实现更加安全可靠的交易。",
     "smart_transactions_learn_more": "了解更多。",
     "simulation_details": "预计余额变化",
     "simulation_details_description": "开启此选项，以便在确认交易之前估计交易余额的变化。这并不能保证交易的最终结果。 ",
