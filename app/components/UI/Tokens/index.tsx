@@ -1,4 +1,11 @@
-import React, { useRef, useState, LegacyRef, useMemo, memo } from 'react';
+import React, {
+  useRef,
+  useState,
+  LegacyRef,
+  useMemo,
+  memo,
+  useCallback,
+} from 'react';
 import { Hex } from '@metamask/utils';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -7,7 +14,7 @@ import { useTheme } from '../../../util/theme';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   selectChainId,
@@ -43,6 +50,8 @@ import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -74,6 +83,115 @@ interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
   [key: string]: undefined | object;
 }
+
+interface RemoveEvmTokenProps {
+  tokenToRemove: TokenI;
+  currentChainId: string;
+  trackEvent: (event: ITrackingEvent, saveDataRecording?: boolean) => void;
+  strings: (key: string, args?: Record<string, unknown>) => string;
+  getDecimalChainId: (chainId: string) => number;
+  createEventBuilder: (event: IMetaMetricsEvent) => MetricsEventBuilder;
+}
+
+export const removeEvmToken = async ({
+  tokenToRemove,
+  currentChainId,
+  trackEvent,
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  strings,
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  getDecimalChainId,
+  createEventBuilder,
+}: RemoveEvmTokenProps) => {
+  const { TokensController, NetworkController } = Engine.context;
+  const chainId = tokenToRemove?.chainId;
+  const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    chainId as Hex,
+  );
+  const tokenAddress = tokenToRemove?.address || '';
+  const symbol = tokenToRemove?.symbol;
+
+  try {
+    await TokensController.ignoreTokens([tokenAddress], networkClientId);
+
+    NotificationManager.showSimpleNotification({
+      status: `simple_notification`,
+      duration: 5000,
+      title: strings('wallet.token_toast.token_hidden_title'),
+      description: strings('wallet.token_toast.token_hidden_desc', {
+        tokenSymbol: symbol,
+      }),
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+        .addProperties({
+          location: 'assets_list',
+          token_standard: 'ERC20',
+          asset_type: 'token',
+          tokens: [`${symbol} - ${tokenAddress}`],
+          chain_id: getDecimalChainId(currentChainId),
+        })
+        .build(),
+    );
+  } catch (err) {
+    Logger.log(err, 'Wallet: Failed to hide token!');
+  }
+};
+
+interface RefreshTokensProps {
+  isEvmSelected: boolean;
+  setRefreshing: (refreshing: boolean) => void;
+  evmNetworkConfigurationsByChainId: Record<
+    string,
+    { chainId: Hex; nativeCurrency: string }
+  >;
+  nativeCurrencies: string[];
+}
+
+export const refreshEvmTokens = async ({
+  isEvmSelected,
+  setRefreshing,
+  evmNetworkConfigurationsByChainId,
+  nativeCurrencies,
+}: RefreshTokensProps) => {
+  if (!isEvmSelected) {
+    return;
+  }
+
+  setRefreshing(true);
+
+  const {
+    TokenDetectionController,
+    AccountTrackerController,
+    CurrencyRateController,
+    TokenRatesController,
+    TokenBalancesController,
+  } = Engine.context;
+
+  const actions = [
+    TokenDetectionController.detectTokens({
+      chainIds: Object.keys(evmNetworkConfigurationsByChainId) as Hex[],
+    }),
+    TokenBalancesController.updateBalances({
+      chainIds: Object.keys(evmNetworkConfigurationsByChainId) as Hex[],
+    }),
+    AccountTrackerController.refresh(),
+    CurrencyRateController.updateExchangeRate(nativeCurrencies),
+    ...Object.values(evmNetworkConfigurationsByChainId).map((network) =>
+      TokenRatesController.updateExchangeRatesByChainId({
+        chainId: network.chainId,
+        nativeCurrency: network.nativeCurrency,
+      }),
+    ),
+  ];
+
+  await Promise.all(actions).catch((error) => {
+    Logger.error(error, 'Error while refreshing tokens');
+  });
+
+  setRefreshing(false);
+};
 
 const Tokens = memo(() => {
   const navigation =
@@ -128,87 +246,42 @@ const Tokens = memo(() => {
     }
   };
 
-  const showFilterControls = () => {
+  const showFilterControls = useCallback(() => {
     navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
-  };
+  }, [navigation]);
 
-  const showSortControls = () => {
+  const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
-  };
+  }, [navigation]);
 
-  const onRefresh = async () => {
-    requestAnimationFrame(async () => {
-      if (!isEvmSelected) {
-        return;
-      }
-      setRefreshing(true);
-
-      const {
-        TokenDetectionController,
-        AccountTrackerController,
-        CurrencyRateController,
-        TokenRatesController,
-        TokenBalancesController,
-      } = Engine.context;
-      // TODO: [SOLANA] - Refresh must work with non-evm chains, replace evmNetworkConfigurationsByChainId with networkConfigurationsByChainId
-      const actions = [
-        TokenDetectionController.detectTokens({
-          chainIds: Object.keys(evmNetworkConfigurationsByChainId) as Hex[],
-        }),
-
-        TokenBalancesController.updateBalances({
-          chainIds: Object.keys(evmNetworkConfigurationsByChainId) as Hex[],
-        }),
-        AccountTrackerController.refresh(),
-        CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        Object.values(evmNetworkConfigurationsByChainId).map((network) =>
-          TokenRatesController.updateExchangeRatesByChainId({
-            chainId: network.chainId,
-            nativeCurrency: network.nativeCurrency,
-          }),
-        ),
-      ];
-      await Promise.all(actions).catch((error) => {
-        Logger.error(error, 'Error while refreshing tokens');
+  const onRefresh = useCallback(async () => {
+    requestAnimationFrame(() => {
+      refreshEvmTokens({
+        isEvmSelected,
+        setRefreshing,
+        evmNetworkConfigurationsByChainId,
+        nativeCurrencies,
       });
-      setRefreshing(false);
     });
-  };
+  }, [
+    isEvmSelected,
+    setRefreshing,
+    evmNetworkConfigurationsByChainId,
+    nativeCurrencies,
+  ]);
 
-  const removeToken = async () => {
-    const { TokensController, NetworkController } = Engine.context;
-    const chainId = tokenToRemove?.chainId;
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
-      chainId as Hex,
-    );
-    const tokenAddress = tokenToRemove?.address || '';
-
-    const symbol = tokenToRemove?.symbol;
-    try {
-      await TokensController.ignoreTokens([tokenAddress], networkClientId);
-      NotificationManager.showSimpleNotification({
-        status: `simple_notification`,
-        duration: 5000,
-        title: strings('wallet.token_toast.token_hidden_title'),
-        description: strings('wallet.token_toast.token_hidden_desc', {
-          tokenSymbol: symbol,
-        }),
+  const removeToken = useCallback(async () => {
+    if (tokenToRemove) {
+      await removeEvmToken({
+        tokenToRemove,
+        currentChainId,
+        trackEvent,
+        strings,
+        getDecimalChainId,
+        createEventBuilder, // Now passed as a prop
       });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
-          .addProperties({
-            location: 'assets_list',
-            token_standard: 'ERC20',
-            asset_type: 'token',
-            tokens: [`${symbol} - ${tokenAddress}`],
-            chain_id: getDecimalChainId(currentChainId),
-          })
-          .build(),
-      );
-    } catch (err) {
-      Logger.log(err, 'Wallet: Failed to hide token!');
     }
-  };
+  }, [tokenToRemove, currentChainId, trackEvent, createEventBuilder]);
 
   const goToAddToken = () => {
     setIsAddTokenEnabled(false);
