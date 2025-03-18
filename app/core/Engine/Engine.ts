@@ -67,7 +67,7 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, DERIVATION_OPTIONS_DEFAULT_OWASP2023, pbkdf2 } from '../Encryptor';
+import { Encryptor, DERIVATION_OPTIONS_MINIMUM_OWASP2023, pbkdf2 } from '../Encryptor';
 import {
   isMainnetByChainId,
   isTestNet,
@@ -210,7 +210,7 @@ import { TransactionControllerInit } from './controllers/transaction-controller'
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
-  keyDerivationOptions: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
+  keyDerivationOptions: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
 });
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
