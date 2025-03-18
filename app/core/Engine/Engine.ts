@@ -620,7 +620,7 @@ export class Engine {
           target,
         ),
       getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
-      getPreferences: async () => {
+      getPreferences: () => {
         const {
           securityAlertsEnabled,
           useTransactionSimulations,
