@@ -213,7 +213,7 @@ export const BridgeNetworkSelector: React.FC = () => {
               <TouchableOpacity
                 key={chain.chainId}
                 onPress={() => toggleChain(chain.chainId)}
-                testID={`network-selector-${chain.chainId}`}
+                testID={`chain-${chain.chainId}`}
               >
                 <ListItem
                   verticalAlignment={VerticalAlignment.Center}
