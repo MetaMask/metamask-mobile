@@ -35,9 +35,12 @@ const AutoDetectNFTSettings = () => {
       }
       PreferencesController.setUseNftDetection(value);
       const traits = {
-        [UserProfileProperty.NFT_AUTODETECTION]: value
+        [UserProfileProperty.ENABLE_OPENSEA_API]: value
           ? UserProfileProperty.ON
           : UserProfileProperty.OFF,
+        [UserProfileProperty.NFT_AUTODETECTION]: value
+              ? UserProfileProperty.ON
+              : UserProfileProperty.OFF,
       };
       addTraitsToUser(traits);
       trackEvent(
