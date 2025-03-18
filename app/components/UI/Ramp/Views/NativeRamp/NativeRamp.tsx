@@ -22,6 +22,7 @@ import {
 } from '@consensys/on-ramp-sdk/dist/NativeRampService';
 import { storeTransakToken, getTransakToken } from './TransakTokenVault';
 import { useRampSDK } from '../../sdk';
+import { baseStyles } from '../../../../../styles/common';
 
 function NativeRamp() {
   const navigation = useNavigation();
@@ -51,6 +52,7 @@ function NativeRamp() {
   const [idProofFormData, setIdProofFormData] = useState<KycForm | null>(null);
   const [purposeOfUsageFormData, setPurposeOfUsageFormData] =
     useState<KycForm | null>(null);
+  const [kycWebviewUrl, setKycWebviewUrl] = useState<string | null>(null);
 
   const { selectedAddress } = useRampSDK();
 
@@ -187,16 +189,49 @@ function NativeRamp() {
     }
   };
 
+  const waitForKycApproval = async (token: NativeTransakAccessToken) => {
+    const maxRetries = 20; // 10 minutes max wait time
+    let retries = 0;
+
+    while (retries < maxRetries) {
+      await new Promise((resolve) => setTimeout(resolve, 30000)); // Wait 30 seconds
+
+      const userDetails = await nativeRampService.getUserDetails(token);
+      console.log(`User KYC Status: ${userDetails.kyc?.l1?.status}`);
+
+      if (userDetails.kyc?.l1?.status === 'APPROVED') {
+        return true;
+      }
+
+      retries++;
+    }
+
+    throw new Error('KYC approval timeout reached.');
+  };
+
   const handleFormSubmit = async () => {
     try {
-      if (!accessToken) return;
+      if (!accessToken || !idProofFormData) return;
 
       setIsLoading(true);
       setLoadingMessage('Submitting form...');
       await nativeRampService.patchUser(accessToken, formValues);
 
-      // Move to next form if available
-      if (currentFormIndex < forms.length - 1) {
+      // If we're done with regular forms, move to ID proof
+      if (currentFormIndex === forms.length - 1) {
+        setLoadingMessage('Loading ID verification...');
+        const idProofFormDetails = await nativeRampService.getKycForm(
+          accessToken,
+          quote,
+          idProofFormData,
+        );
+
+        if (idProofFormDetails.data?.kycUrl) {
+          setKycWebviewUrl(idProofFormDetails.data.kycUrl);
+          setCurrentStep(5.5); // New step for webview
+        }
+      } else {
+        // Handle next regular form as before
         setLoadingMessage('Loading next form...');
         const nextForm = forms[currentFormIndex + 1];
         const formDetails = await nativeRampService.getKycForm(
@@ -207,20 +242,35 @@ function NativeRamp() {
         setCurrentFormFields(formDetails.fields || []);
         setCurrentFormIndex(currentFormIndex + 1);
         setFormValues({});
-      } else {
-        // Check KYC status
-        setLoadingMessage('Verifying KYC status...');
-        const updatedKycForms = await nativeRampService.getKYCForms(
-          accessToken,
-          quote,
-        );
-        if (updatedKycForms.isAllowedToPlaceOrder) {
-          setIsKycApproved(true);
-          setCurrentStep(6);
-        }
       }
     } catch (error) {
       console.error('Error submitting form:', error);
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+
+  const handleWebviewComplete = async () => {
+    try {
+      if (!accessToken || !purposeOfUsageFormData) return;
+
+      setIsLoading(true);
+      setLoadingMessage('Waiting for KYC approval...');
+
+      // Wait for KYC approval
+      await waitForKycApproval(accessToken);
+
+      // Submit purpose of usage form
+      setLoadingMessage('Submitting final verification...');
+      await nativeRampService.submitPurposeOfUsageForm(accessToken, [
+        'Buying/selling crypto for investments',
+      ]);
+
+      setIsKycApproved(true);
+      setCurrentStep(6);
+    } catch (error) {
+      console.error('Error completing KYC:', error);
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -620,6 +670,33 @@ function NativeRamp() {
     </>
   );
 
+  const renderWebviewStep = () => (
+    <>
+      <Row>
+        <Text variant={TextVariant.BodyMD}>
+          Please complete your ID verification in the window below:
+        </Text>
+      </Row>
+      {kycWebviewUrl && (
+        <View style={baseStyles.flexGrow}>
+          <StyledButton
+            type="confirm"
+            onPress={() => {
+              navigation.navigate('Webview', {
+                screen: 'SimpleWebview',
+                params: {
+                  url: kycWebviewUrl,
+                },
+              });
+            }}
+          >
+            Start Verification
+          </StyledButton>
+        </View>
+      )}
+    </>
+  );
+
   const renderLoadingScreen = () => (
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="large" color={colors.primary.default} />
@@ -699,7 +776,7 @@ function NativeRamp() {
       <ScreenLayout.Body>
         {currentStep >= 3 && currentStep < 6 && (
           <Row style={styles.progressBarContainer}>
-            <ProgressBar percentComplete={(currentStep - 2) * 33.33} />
+            <ProgressBar percentComplete={(currentStep - 2) * 25} />
           </Row>
         )}
         <ScreenLayout.Content>
@@ -712,6 +789,7 @@ function NativeRamp() {
               {currentStep === 3 && renderStepOne()}
               {currentStep === 4 && renderStepTwo()}
               {currentStep === 5 && renderStepKycForms()}
+              {currentStep === 5.5 && renderWebviewStep()}
               {currentStep === 6 && renderKycSuccessScreen()}
               {currentStep === 7 && !orderStatus && renderConfirmationScreen()}
               {currentStep === 8 && renderOrderSuccess()}
@@ -726,11 +804,15 @@ function NativeRamp() {
           <Row style={styles.cta}>
             <StyledButton
               type="confirm"
-              onPress={handleContinue}
+              onPress={
+                currentStep === 5.5 ? handleWebviewComplete : handleContinue
+              }
               loading={isLoading}
               disabled={orderStatus !== null}
             >
-              {currentStep === 8
+              {currentStep === 5.5
+                ? 'Complete Verification'
+                : currentStep === 8
                 ? 'Swap for tokens'
                 : currentStep === 7
                 ? 'Confirm bank transfer'

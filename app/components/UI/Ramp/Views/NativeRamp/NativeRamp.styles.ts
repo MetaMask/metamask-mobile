@@ -222,6 +222,11 @@ const styleSheet = (_params: { theme: Theme }) =>
     bankTransferNote: {
       marginBottom: 24,
     },
+    webview: {
+      flex: 1,
+      height: 400,
+      marginVertical: 16,
+    },
   });
 
 export default styleSheet;
