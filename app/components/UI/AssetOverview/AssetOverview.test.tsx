@@ -64,7 +64,18 @@ const mockInitialState = {
       },
     },
     TokenSearchDiscoveryDataController: {
-      tokenDisplayData: [],
+      tokenDisplayData: [
+        {
+          chainId: MOCK_CHAIN_ID,
+          address: '0x123',
+          currency: 'ETH',
+          found: true,
+          logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
+          name: 'Ethereum',
+          symbol: 'ETH',
+          price: {}
+        }
+      ],
     },
   },
   settings: {
