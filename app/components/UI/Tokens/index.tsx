@@ -15,7 +15,6 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNativeNetworkCurrencies,
-  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { getDecimalChainId, isTestNet } from '../../../util/networks';
 import createStyles from './styles';
@@ -28,7 +27,6 @@ import { selectTokenSortConfig } from '../../../selectors/preferencesController'
 import { sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
