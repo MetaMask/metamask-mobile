@@ -151,16 +151,16 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
           />
         </Box>
         <Box style={styles.row}>
-          {fiatValue && (
+          {fiatValue ? (
             <Text color={TextColor.Alternative}>
               {fiatValue}
             </Text>
-          )}
-          {subtitle && (
+          ) : null}
+          {subtitle ? (
             <Text color={TextColor.Alternative}>
               {subtitle}
             </Text>
-          )}
+          ) : null}
         </Box>
       </Box>
     </Box>
