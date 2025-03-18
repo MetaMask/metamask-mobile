@@ -347,6 +347,7 @@ class AdvancedSettings extends PureComponent {
                 </Text>
                 <View style={styles.toggle}>
                   <Switch
+                    testID={AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH}
                     value={smartTransactionsOptInStatus}
                     onValueChange={this.toggleSmartTransactionsOptInStatus}
                     trackColor={{
@@ -368,7 +369,7 @@ class AdvancedSettings extends PureComponent {
                 color={TextColor.Alternative}
                 style={styles.desc}
               >
-                {strings('app_settings.smart_transactions_opt_in_desc')}{' '}
+                {strings('app_settings.smart_transactions_opt_in_desc_supported_networks')}{' '}
                 <Text
                   color={TextColor.Primary}
                   link
