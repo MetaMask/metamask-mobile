@@ -179,10 +179,6 @@ const Tokens = memo(() => {
       name: TraceName.Tokens,
       tags: getTraceTags(store.getState()),
     });
-    trace({
-      name: TraceName.Tokens,
-      tags: getTraceTags(store.getState()),
-    });
 
     const tokensWithBalances = evmTokens.map((token, i) => ({
       ...token,
