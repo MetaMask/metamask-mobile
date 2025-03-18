@@ -805,7 +805,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
               thumbTintColor="#ffffff"
               tintColor="#BBC0C566"
-              value={false}
+              value={true}
             />
           </View>
           <Text
@@ -876,7 +876,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
           <RCTSwitch
             accessibilityRole="switch"
-            disabled={true}
+            disabled={false}
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
@@ -2632,7 +2632,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             <RCTSwitch
               accessibilityRole="switch"
-              disabled={true}
+              disabled={false}
               onChange={[Function]}
               onResponderTerminationRequest={[Function]}
               onStartShouldSetResponder={[Function]}
@@ -2755,7 +2755,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           >
             <RCTSwitch
               accessibilityRole="switch"
-              disabled={true}
+              disabled={false}
               onChange={[Function]}
               onResponderTerminationRequest={[Function]}
               onStartShouldSetResponder={[Function]}

@@ -23,7 +23,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsCo
 const initialState = {
   privacy: { approvedHosts: {} },
   browser: { history: [] },
-  settings: { lockTime: 1000 },
+  settings: { lockTime: 1000, basicFunctionalityEnabled: true },
   user: { passwordSet: true },
   engine: {
     backgroundState: {
