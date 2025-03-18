@@ -188,11 +188,11 @@ jest.mock('../../../../../reducers/swaps', () => ({
   swapsStateSelector: () => ({
     featureFlags: {
       smart_transactions: {
-        mobile_active: false
-      }
-    }
+        mobile_active: false,
+      },
+    },
   }),
-  swapsSmartTxFlagEnabled: () => false
+  swapsSmartTxFlagEnabled: () => false,
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -200,6 +200,7 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectSmartTransactionsMigrationApplied: () => false,
   selectSmartTransactionsOptInStatus: () => false,
   selectUseTransactionSimulations: () => false,
+  selectIsTokenNetworkFilterEqualCurrentNetwork: () => true,
 }));
 
 function render(
