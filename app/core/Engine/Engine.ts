@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
+import { getVersion } from 'react-native-device-info';
+import { version as currentMigrationVersion } from '../../store/migrations';
 
 import {
   AccountTrackerController,
@@ -200,6 +202,7 @@ import {
   SnapControllerGetSnapStateAction,
   SnapControllerUpdateSnapStateAction,
 } from './controllers/SnapController/constants';
+import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
@@ -283,6 +286,16 @@ export class Engine {
         ApprovalType.Transaction,
         ApprovalType.WatchAsset,
       ],
+    });
+
+    const appMetadataController = new AppMetadataController({
+      currentAppVersion: getVersion(),
+      currentMigrationVersion,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'AppMetadataController',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
     });
 
     const preferencesController = new PreferencesController({
@@ -1078,6 +1091,7 @@ export class Engine {
         state: initialState.AddressBookController,
       }),
       AssetsContractController: assetsContractController,
+      AppMetadataController: appMetadataController,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
@@ -1900,6 +1914,7 @@ export default {
     assertEngineExists(instance);
     const {
       AccountTrackerController,
+      AppMetadataController,
       AddressBookController,
       SnapInterfaceController,
       NftController,
@@ -1948,6 +1963,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,
