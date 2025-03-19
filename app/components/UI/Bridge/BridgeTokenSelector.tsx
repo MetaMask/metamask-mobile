@@ -23,6 +23,8 @@ import { useTokenSearch } from './useTokenSearch';
 import TextFieldSearch from '../../../component-library/components/Form/TextFieldSearch';
 import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import Routes from '../../../constants/navigation/Routes';
+import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import { useSortedSourceNetworks } from './useSortedSourceNetworks';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -74,6 +76,7 @@ export const BridgeTokenSelector: React.FC = () => {
     searchString ? searchResults : tokensList,
     [searchString, searchResults, tokensList]
   );
+  const { sortedSourceNetworks } = useSortedSourceNetworks();
 
   const handleTokenPress = useCallback((token: TokenI) => {
     dispatch(setSourceToken(token));
@@ -129,16 +132,34 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [navigation]);
 
   const numNetworksLabel = useMemo(() => {
+    let networkText = '';
     if (selectedSourceChainIds.length === enabledSourceChains.length) {
-      return strings('bridge.all_networks');
-    }
-    if (selectedSourceChainIds.length === 1) {
-      return strings('bridge.one_network');
+      networkText = strings('bridge.all_networks');
+    } else if (selectedSourceChainIds.length === 1) {
+      networkText = strings('bridge.one_network');
+    } else {
+      networkText = strings('bridge.num_networks', { numNetworks: selectedSourceChainIds.length });
     }
 
-    return strings('bridge.num_networks', { numNetworks: selectedSourceChainIds.length });
+    const networksToShow = sortedSourceNetworks.filter(({ chainId }) => selectedSourceChainIds.includes(chainId));
 
-  }, [selectedSourceChainIds, enabledSourceChains]);
+    return (
+      <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
+        <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={-8}>
+          {networksToShow.map(({ chainId }) => (
+            <Badge
+              key={chainId}
+            variant={BadgeVariant.Network}
+            // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+            imageSource={getNetworkImageSource({ chainId })}
+            name={networkConfigurations[chainId]?.name}
+            />
+          ))}
+        </Box>
+        <Text>{networkText}</Text>
+      </Box>
+    );
+  }, [selectedSourceChainIds, enabledSourceChains, networkConfigurations, sortedSourceNetworks]);
 
   return (
     <BottomSheet isFullscreen>
@@ -175,6 +196,7 @@ export const BridgeTokenSelector: React.FC = () => {
             variant={ButtonVariants.Secondary}
             label={numNetworksLabel}
             style={styles.networksButton}
+            endIconName={IconName.ArrowDown}
             />
 
           <TextFieldSearch
