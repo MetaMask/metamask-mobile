@@ -17,10 +17,10 @@ export const selectBridgeControllerState = (state: RootState) =>
 export interface BridgeState {
   sourceAmount: string | undefined;
   destAmount: string | undefined;
-  destChainId: SupportedCaipChainId | Hex | undefined;
   sourceToken: TokenI | undefined;
   destToken: TokenI | undefined;
   selectedSourceChainIds: undefined | string[];
+  destChainId: SupportedCaipChainId | Hex | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -28,8 +28,8 @@ export const initialState: BridgeState = {
   destAmount: undefined,
   destChainId: undefined,
   sourceToken: undefined,
-  destToken: undefined,
   selectedSourceChainIds: undefined,
+  destToken: undefined,
 };
 
 const name = 'bridge';
@@ -131,11 +131,6 @@ export const selectEnabledDestChains = createSelector(
     bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[chainId]?.isActiveDest)
 );
 
-export const selectDestChainId = createSelector(
-  selectBridgeState,
-  (bridgeState) => bridgeState.destChainId,
-);
-
 // Combined selectors for related state
 export const selectSourceToken = createSelector(
   selectBridgeState,
@@ -178,6 +173,19 @@ export const selectSelectedSourceChainIds = createSelector(
       return enabledSourceChains.map(chain => chain.chainId);
     }
     return bridgeState.selectedSourceChainIds;
+  },
+);
+
+export const selectDestChainId = createSelector(
+  selectBridgeState,
+  selectEnabledDestChains,
+  selectSourceToken,
+  (bridgeState, enabledDestChains, sourceToken) => {
+    // If selectedDestChainIds is undefined, use the same chain as the source token
+    if (bridgeState.destChainId === undefined) {
+      return sourceToken?.chainId;
+    }
+    return bridgeState.destChainId;
   },
 );
 
