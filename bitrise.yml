@@ -276,12 +276,6 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
-  - script@1:
-          title: Install Detox dependencies
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                yarn add -D detox
   prep_environment:
     steps:
       - script@1:
@@ -432,31 +426,30 @@ workflows:
           is_always_run: true
           title: Label PR with success
           inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              # Define label data
-              LABELS_JSON='{"labels":["bitrise-result-ready"]}'
+            - content: |-
+                #!/usr/bin/env bash
+                # Define label data
+                LABELS_JSON='{"labels":["bitrise-result-ready"]}'
 
-              # API URL to add labels to a PR
-              API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
+                # API URL to add labels to a PR
+                API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
 
-              # Perform the curl request and capture the HTTP status code
-              HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$LABELS_JSON" "$API_URL")
-              
-              # Output the HTTP status code
-              echo "HTTP Response Code: $HTTP_RESPONSE"
+                # Perform the curl request and capture the HTTP status code
+                HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$LABELS_JSON" "$API_URL")
 
-              # Optionally check the response
-              if [ "$HTTP_RESPONSE" -ne 200 ]; then
-                  echo "Failed to apply label. Status code: $HTTP_RESPONSE"
-                  cat response.txt  # Show error message from GitHub if any
-              else
-                  echo "Label applied successfully."
-              fi
+                # Output the HTTP status code
+                echo "HTTP Response Code: $HTTP_RESPONSE"
 
-              # Clean up the response file
-              rm response.txt
-                
+                # Optionally check the response
+                if [ "$HTTP_RESPONSE" -ne 200 ]; then
+                    echo "Failed to apply label. Status code: $HTTP_RESPONSE"
+                    cat response.txt  # Show error message from GitHub if any
+                else
+                    echo "Label applied successfully."
+                fi
+
+                # Clean up the response file
+                rm response.txt
 
   # Send a Slack message when workflow fails
   notify_failure:
