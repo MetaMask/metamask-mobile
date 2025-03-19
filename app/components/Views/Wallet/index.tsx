@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useCallback, useContext } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+  useMemo,
+} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -14,7 +20,6 @@ import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import {
   isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
@@ -31,7 +36,6 @@ import NotificationsService from '../../../util/notifications/services/Notificat
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
@@ -110,6 +114,10 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import NonEvmTokens from '../../UI/NonEvmTokens';
 ///: END:ONLY_INCLUDE_IF
+import {
+  selectNativeEvmAsset,
+  selectStakedEvmAsset,
+} from '../../../selectors/multichain';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -338,6 +346,8 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+  const nativeEvmAsset = useSelector(selectNativeEvmAsset);
+  const stakedEvmAsset = useSelector(selectStakedEvmAsset);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -490,7 +500,10 @@ const Wallet = ({
         return;
       }
       const { TokensController } = Engine.context;
-      if (currentDetectedTokens.length > 0) {
+      if (
+        Array.isArray(currentDetectedTokens) &&
+        currentDetectedTokens.length > 0
+      ) {
         if (isPortfolioViewEnabled()) {
           // Group tokens by their `chainId` using a plain object
           const tokensByChainId: Record<Hex, Token[]> = {};
@@ -602,7 +615,36 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  function renderTokensContent(assets: Token[]) {
+  const tokensTabProps = useMemo(
+    () => ({
+      key: 'tokens-tab',
+      tabLabel: strings('wallet.tokens'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  // to be consolidated with tokensTabProps
+  const nonEvmTokensTabProps = useMemo(
+    () => ({
+      key: 'tokens-tab',
+      tabLabel: strings('wallet.tokens'),
+    }),
+    [],
+  );
+  ///: END:ONLY_INCLUDE_IF
+
+  const collectibleContractsTabProps = useMemo(
+    () => ({
+      key: 'nfts-tab',
+      tabLabel: strings('wallet.collectibles'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  function renderTokensContent() {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // TODO: [SOLANA] Consider please reusing the Tokens UI, since it handles portion of the UI already (If not please remove dead code from it)
     if (!isEvmSelected) {
@@ -611,96 +653,29 @@ const Wallet = ({
           renderTabBar={renderTabBar}
           onChangeTab={onChangeTab}
         >
-          <NonEvmTokens
-            tabLabel={strings('wallet.tokens')}
-            key={'tokens-tab'}
-          />
+          <NonEvmTokens {...nonEvmTokensTabProps} />
         </ScrollableTabView>
       );
     }
     ///: END:ONLY_INCLUDE_IF
 
     return (
-      <ScrollableTabView
-        renderTabBar={renderTabBar}
-        // eslint-disable-next-line react/jsx-no-bind
-        onChangeTab={onChangeTab}
-      >
-        <Tokens
-          tabLabel={strings('wallet.tokens')}
-          key={'tokens-tab'}
-          navigation={navigation}
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error - TODO: Consolidate into the correct type.
-          tokens={assets}
-        />
-        <CollectibleContracts
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error - TODO: Consolidate into the correct type.
-          tabLabel={strings('wallet.collectibles')}
-          key={'nfts-tab'}
-          navigation={navigation}
-        />
+      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
+        <Tokens {...tokensTabProps} />
+        <CollectibleContracts {...collectibleContractsTabProps} />
       </ScrollableTabView>
     );
   }
 
   const renderContent = useCallback(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let balance: any = 0;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let stakedBalance: any = 0;
-
-    const assets = isPortfolioViewEnabled()
-      ? [...(tokensByChainIdAndAddress || [])]
-      : [...(tokens || [])];
-
-    if (accountBalanceByChainId) {
-      balance = renderFromWei(accountBalanceByChainId.balance);
-      const nativeAsset = {
-        // TODO: Add name property to Token interface in controllers.
-        name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
-        symbol: getTicker(ticker),
-        isETH: true,
-        balance,
-        balanceFiat: weiToFiat(
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          hexToBN(accountBalanceByChainId.balance) as any,
-          conversionRate,
-          currentCurrency,
-        ),
-        logo: '../images/eth-logo-new.png',
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
-      assets.push(nativeAsset);
-
-      // TODO: Need to handle staked asset in multi chain
-      if (
-        accountBalanceByChainId.stakedBalance &&
-        !hexToBN(accountBalanceByChainId.stakedBalance).isZero()
-      ) {
-        stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
-        const stakedAsset = {
-          ...nativeAsset,
-          nativeAsset,
-          name: 'Staked Ethereum',
-          isStaked: true,
-          balance: stakedBalance,
-          balanceFiat: weiToFiat(
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(accountBalanceByChainId.stakedBalance) as any,
-            conversionRate,
-            currentCurrency,
-          ),
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
-        assets.push(stakedAsset);
-      }
+    const assets = tokensByChainIdAndAddress
+      ? [...tokensByChainIdAndAddress]
+      : [];
+    if (nativeEvmAsset) {
+      assets.push(nativeEvmAsset);
+    }
+    if (stakedEvmAsset) {
+      assets.push(stakedEvmAsset);
     }
 
     return (
@@ -724,7 +699,7 @@ const Wallet = ({
         <>
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
-          {renderTokensContent(assets)}
+          {renderTokensContent()}
         </>
       </View>
     );
