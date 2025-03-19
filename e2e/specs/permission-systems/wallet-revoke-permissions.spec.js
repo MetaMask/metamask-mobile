@@ -44,14 +44,26 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
         await TestHelpers.delay(3000);
 
         await Assertions.checkIfTextIsDisplayed(
-          'Permissions result: eth_accounts, endowment:permitted-chains',
+          'eth_accounts, endowment:permitted-chains',
         );
+
+        const el0 = await Matchers.getElementByID(
+          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
+        );
+        // eslint-disable-next-line no-console
+        console.log({ el0 });
 
         await TestDApp.tapRevokeAccountPermissionsButton();
 
         await TestHelpers.delay(3000);
 
         await Assertions.checkIfTextIsDisplayed('Permissions result:');
+
+        const el1 = await Matchers.getElementByID(
+          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
+        );
+        // eslint-disable-next-line no-console
+        console.log({ el1 });
 
         await TestDApp.tapGetPermissionsButton();
 
@@ -65,6 +77,20 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
           elementId,
           'No permissions found.',
         );
+
+        const el2 = await Matchers.getElementByID(
+          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
+        );
+        // eslint-disable-next-line no-console
+        console.log({ el2 });
+
+        await Assertions.checkIfTextIsDisplayed('No permissions found.');
+
+        const el3 = await Matchers.getElementByID(
+          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
+        );
+        // eslint-disable-next-line no-console
+        console.log({ el3 });
 
         // await Assertions.checkIfElementToHaveText(
         //   TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
