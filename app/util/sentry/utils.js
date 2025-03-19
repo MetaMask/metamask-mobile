@@ -194,7 +194,15 @@ export const sentryStateMask = {
         [AllProperties]: false,
       },
       AuthenticationController: {
-        [AllProperties]: false,
+        isSignedIn: false,
+        sessionData: {
+          token: {
+            accessToken: false,
+            expiresIn: true,
+            obtainedAt: true,
+          },
+          profile: true,
+        },
       },
       NotificationServicesController: {
         isCheckingAccountsPresence: false,
