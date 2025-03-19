@@ -69,6 +69,9 @@ const slice = createSlice({
     setSourceToken: (state, action: PayloadAction<TokenI>) => {
       state.sourceToken = action.payload;
     },
+    setDestToken: (state, action: PayloadAction<TokenI>) => {
+      state.destToken = action.payload;
+    },
   },
 });
 
@@ -121,9 +124,11 @@ export const selectEnabledSourceChains = createSelector(
     bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[chainId]?.isActiveSrc)
 );
 
-export const getEnabledDestChains = createSelector(
+export const selectEnabledDestChains = createSelector(
   selectAllBridgeableNetworks,
-  (networks) => networks,
+  selectBridgeFeatureFlags,
+  (networks, bridgeFeatureFlags) => networks.filter(({ chainId }) =>
+    bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[chainId]?.isActiveDest)
 );
 
 export const selectDestChainId = createSelector(
@@ -184,5 +189,6 @@ export const {
   resetBridgeState,
   switchTokens,
   setSourceToken,
+  setDestToken,
   setSelectedSourceChainIds,
 } = actions;
