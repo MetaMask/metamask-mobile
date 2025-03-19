@@ -276,6 +276,12 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
+  - script@1:
+          title: Install Detox dependencies
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                yarn add -D detox
   prep_environment:
     steps:
       - script@1:
