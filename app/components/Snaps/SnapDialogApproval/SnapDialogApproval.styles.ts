@@ -15,9 +15,6 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
-      paddingTop: 24,
-      paddingLeft: 16,
-      paddingRight: 16,
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
       minHeight: 200,

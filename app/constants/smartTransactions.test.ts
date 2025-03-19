@@ -21,13 +21,17 @@ describe('smartTransactions', () => {
       expect(allowedChainIds).toStrictEqual([
         NETWORKS_CHAIN_ID.MAINNET,
         NETWORKS_CHAIN_ID.SEPOLIA,
+        NETWORKS_CHAIN_ID.BASE,
       ]);
     });
 
     it('returns the correct chain IDs for production environment', () => {
       mockIsProduction.mockReturnValue(true);
       const allowedChainIds = getAllowedSmartTransactionsChainIds();
-      expect(allowedChainIds).toStrictEqual([NETWORKS_CHAIN_ID.MAINNET]);
+      expect(allowedChainIds).toStrictEqual([
+        NETWORKS_CHAIN_ID.MAINNET,
+        // NETWORKS_CHAIN_ID.BASE, // TODO: Add base to production when ready
+      ]);
     });
   });
 });

@@ -71,9 +71,9 @@ const AssetFiatConversion = ({
   </Text>
 );
 
-const TokenHero = () => {
+const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { tokenAmountValue, tokenAmountDisplayValue, fiatDisplayValue } = useTokenValues();
+  const { tokenAmountValue, tokenAmountDisplayValue, fiatDisplayValue } = useTokenValues({ amountWei });
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const displayTokenAmountIsRounded = tokenAmountValue !== tokenAmountDisplayValue;
@@ -99,7 +99,7 @@ const TokenHero = () => {
           setOpen={setIsModalVisible}
           content={tokenAmountValue}
           title={strings('send.amount')}
-          tooltipTestId='token-hero-amount'
+          tooltipTestId="token-hero-amount"
         />
       )}
     </View>

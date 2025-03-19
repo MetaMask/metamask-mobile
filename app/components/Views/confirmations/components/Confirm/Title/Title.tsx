@@ -9,7 +9,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
-import { isSIWESignatureRequest , isRecognizedPermit, parseTypedDataMessageFromSignatureRequest } from '../../../utils/signature';
+import { isSIWESignatureRequest , isRecognizedPermit, parseTypedDataMessageFromSignatureRequest, isPermitDaiRevoke } from '../../../utils/signature';
 import { useStandaloneConfirmation } from '../../../hooks/useStandaloneConfirmation';
 import styleSheet from './Title.styles';
 
@@ -33,20 +33,33 @@ const getTitleAndSubTitle = (approvalRequest?: ApprovalRequest<{ data: string }>
       const isPermit = isRecognizedPermit(signatureRequest);
 
       if (isPermit) {
-        const { message } = parseTypedDataMessageFromSignatureRequest(signatureRequest);
-        const isERC721Permit = message?.tokenId !== undefined;
+        const parsedMessage = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
+        const { allowed, tokenId, value } = parsedMessage?.message ?? {};
+        const { verifyingContract } = parsedMessage?.domain ?? {};
 
+        const isERC721Permit = tokenId !== undefined;
         if (isERC721Permit) {
           return {
             title: strings('confirm.title.permit_NFTs'),
             subTitle: strings('confirm.sub_title.permit_NFTs'),
           };
         }
+
+        const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+        const isRevoke = isDaiRevoke || value === '0';
+
+        if (isRevoke) {
+          return {
+            title: strings('confirm.title.permit_revoke'),
+          };
+        }
+
         return {
           title: strings('confirm.title.permit'),
           subTitle: strings('confirm.sub_title.permit'),
         };
       }
+
       return {
         title: strings('confirm.title.signature'),
         subTitle: strings('confirm.sub_title.signature'),
@@ -72,7 +85,7 @@ const Title = () => {
   return (
     <View style={styles.titleContainer}>
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subTitle}>{subTitle}</Text>
+      {subTitle && <Text style={styles.subTitle}>{subTitle}</Text>}
     </View>
   );
 };

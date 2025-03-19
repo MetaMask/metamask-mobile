@@ -60,6 +60,15 @@ const initialState = {
           },
         },
       },
+      MultichainTransactionsController: {
+        nonEvmTransactions: {
+          [MOCK_SOLANA_ACCOUNT.id]: {
+            transactions: [],
+            next: null,
+            lastUpdated: 0,
+          },
+        },
+      },
       RatesController: {
         rates: {
           sol: {

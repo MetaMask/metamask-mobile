@@ -22,14 +22,27 @@ import {
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
+ * Non evm network mapping.
+ */
+export enum MultichainNetworks {
+  BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
+  BITCOIN_TESTNET = 'bip122:000000000933ea01ad0ee984209779ba',
+
+  SOLANA = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  SOLANA_DEVNET = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+  SOLANA_TESTNET = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
+}
+
+/**
+ * @deprecated TEMPORARY SOURCE OF TRUTH TBD
  * Native asset of each non evm network.
  */
 export enum MultichainNativeAssets {
   Bitcoin = `${BtcScope.Mainnet}/slip44:0`,
   BitcoinTestnet = `${BtcScope.Testnet}/slip44:0`,
-  Solana = `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
-  SolanaDevnet = `${SolScope.Devnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
-  SolanaTestnet = `${SolScope.Testnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+  Solana = `${SolScope.Mainnet}/slip44:501`,
+  SolanaDevnet = `${SolScope.Devnet}/slip44:501`,
+  SolanaTestnet = `${SolScope.Testnet}/slip44:501`,
 }
 
 /**
@@ -37,7 +50,10 @@ export enum MultichainNativeAssets {
  * Maps network identifiers to their corresponding native asset types.
  * Each network is mapped to an array containing its native asset for consistency.
  */
-export const NETWORK_ASSETS_MAP: Record<string, MultichainNativeAssets[]> = {
+export const MULTICHAIN_NETWORK_TO_ASSET_TYPES: Record<
+  string,
+  MultichainNativeAssets[]
+> = {
   [SolScope.Mainnet]: [MultichainNativeAssets.Solana],
   [SolScope.Testnet]: [MultichainNativeAssets.SolanaTestnet],
   [SolScope.Devnet]: [MultichainNativeAssets.SolanaDevnet],
@@ -144,7 +160,7 @@ const selectNonEvmCachedBalance = createDeepEqualSelector(
     }
     // We assume that there's at least one asset type in and that is the native
     // token for that network.
-    const asset = NETWORK_ASSETS_MAP[nonEvmChainId]?.[0];
+    const asset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
     const balancesForAccount = multichainBalances?.[selectedInternalAccount.id];
     const balanceOfAsset = balancesForAccount?.[asset];
     return balanceOfAsset?.amount ?? 0;
@@ -181,4 +197,19 @@ export const selectMultichainConversionRate = createDeepEqualSelector(
       : undefined;
   },
 );
+
+/**
+ *
+ * @param state - Root redux state
+ * @returns - MultichainTransactionsController state
+ */
+const selectMultichainTransactionsControllerState = (state: RootState) =>
+  state.engine.backgroundState.MultichainTransactionsController;
+
+export const selectMultichainTransactions = createDeepEqualSelector(
+  selectMultichainTransactionsControllerState,
+  (multichainTransactionsControllerState) =>
+    multichainTransactionsControllerState.nonEvmTransactions,
+);
+
 ///: END:ONLY_INCLUDE_IF
