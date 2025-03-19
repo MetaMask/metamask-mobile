@@ -28,7 +28,7 @@ import Button, { ButtonVariants, ButtonWidthTypes } from '../../../component-lib
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import ListItem from '../../../component-library/components/List/ListItem/ListItem';
 import { VerticalAlignment } from '../../../component-library/components/List/ListItem/ListItem.types';
-
+import { useSortedSourceNetworks } from './useSortedSourceNetworks';
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
@@ -86,6 +86,7 @@ export const BridgeNetworkSelector: React.FC = () => {
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const { sortedSourceNetworks } = useSortedSourceNetworks();
 
   // Local state for candidate network selections
   const [candidateSourceChainIds, setCandidateSourceChainIds] = useState<string[]>(selectedSourceChainIds);
@@ -151,15 +152,6 @@ export const BridgeNetworkSelector: React.FC = () => {
      addCurrencySymbol(renderNumber(value.toString()), currentCurrency)
   , [currentCurrency]);
 
-  // Sort networks by total fiat value in descending order
-  const sortedNetworks = useMemo(() =>
-    [...enabledSourceChains].sort((a, b) => {
-      const valueA = getChainTotalFiatValue(a.chainId);
-      const valueB = getChainTotalFiatValue(b.chainId);
-      return valueB - valueA; // Descending order
-    })
-  , [enabledSourceChains, getChainTotalFiatValue]);
-
   const areAllNetworksSelected = useMemo(() =>
     candidateSourceChainIds.length === enabledSourceChainIds.length,
   [candidateSourceChainIds, enabledSourceChainIds]);
@@ -203,7 +195,7 @@ export const BridgeNetworkSelector: React.FC = () => {
         </Box>
 
         <Box style={styles.listContent}>
-          {sortedNetworks.map((chain) => {
+          {sortedSourceNetworks.map((chain) => {
             const totalFiatValue = getChainTotalFiatValue(chain.chainId);
             // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
             const networkImage = getNetworkImageSource({ chainId: chain.chainId });
