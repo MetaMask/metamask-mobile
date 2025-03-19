@@ -267,12 +267,6 @@ class TestDApp {
     await Gestures.tapWebElement(elementId);
   }
 
-  async navigateToTestDapp() {
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_DAPP_LOCAL_URL);
-    await Browser.waitForBrowserPageToLoad();
-  }
-
   async navigateToTestDappWithContract({ contractAddress }) {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
