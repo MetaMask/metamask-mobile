@@ -119,6 +119,8 @@ const Routes = {
     SLIPPAGE_MODAL: 'SlippageModal',
     BRIDGE_SOURCE_TOKEN_SELECTOR: 'BridgeTokenSelector',
     BRIDGE_SOURCE_NETWORK_SELECTOR: 'BridgeNetworkSelector',
+    BRIDGE_DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
+    BRIDGE_DEST_TOKEN_SELECTOR: 'BridgeDestTokenSelector',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

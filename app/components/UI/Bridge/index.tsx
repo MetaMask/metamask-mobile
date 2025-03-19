@@ -201,6 +201,13 @@ const BridgeView = () => {
     });
   };
 
+  const handleDestTokenPress = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+      params: {},
+    });
+  };
+
   const renderBottomContent = () => {
     if (
       !sourceAmount ||
@@ -274,6 +281,7 @@ const BridgeView = () => {
             isReadonly
             testID="dest-token-area"
             tokenType={TokenInputAreaType.Destination}
+            onTokenPress={handleDestTokenPress}
           />
         </Box>
         <Button

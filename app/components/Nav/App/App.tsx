@@ -141,6 +141,8 @@ import NavigationService from '../../../core/NavigationService';
 import { BridgeSourceTokenSelector } from '../../UI/Bridge/BridgeSourceTokenSelector';
 import { BridgeNetworkSelector } from '../../UI/Bridge/BridgeNetworkSelector';
 import { SlippageModal } from '../../UI/Bridge/components/SlippageModal';
+import { BridgeDestNetworkSelector } from '../../UI/Bridge/BridgeDestNetworkSelector';
+import { BridgeDestTokenSelector } from '../../UI/Bridge/BridgeDestTokenSelector';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -472,6 +474,14 @@ const RootModalFlow = () => (
     <Stack.Screen
       name={Routes.SHEET.SLIPPAGE_MODAL}
       component={SlippageModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR}
+      component={BridgeDestTokenSelector}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.BRIDGE_DEST_NETWORK_SELECTOR}
+      component={BridgeDestNetworkSelector}
     />
   </Stack.Navigator>
 );
