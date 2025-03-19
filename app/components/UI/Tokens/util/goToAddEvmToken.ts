@@ -25,7 +25,6 @@ export const goToAddEvmToken = ({
   navigation,
   trackEvent,
   createEventBuilder,
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   getDecimalChainId,
   currentChainId,
 }: GoToAddEvmTokenProps) => {

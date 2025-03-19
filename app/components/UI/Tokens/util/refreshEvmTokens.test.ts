@@ -1,4 +1,4 @@
-import { refreshEvmTokens } from './refreshEvmTokens'; // Adjust path as needed
+import { refreshEvmTokens } from './refreshEvmTokens';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';

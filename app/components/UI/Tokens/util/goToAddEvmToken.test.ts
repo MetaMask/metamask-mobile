@@ -1,4 +1,4 @@
-import { goToAddEvmToken } from './goToAddEvmToken'; // Adjust the path as needed
+import { goToAddEvmToken } from './goToAddEvmToken';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { StackNavigationProp } from '@react-navigation/stack';
