@@ -1216,8 +1216,8 @@ describe('getRpcMethodMiddleware', () => {
       expect((response as JsonRpcFailure).error.message).toBe(
         expectedError.message,
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ((response as JsonRpcFailure).error as JsonRpcError<any>).data.cause
           .message,
       ).toBe(expectedError.message);
