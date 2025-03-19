@@ -276,6 +276,20 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
+      - script@1:
+          title: Install and setup Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Installing Detox..."
+                yarn add -D detox
+                echo "Building Detox configuration..."
+                yarn detox build -c android.emu.release.qa
+                echo "Verifying Detox installation..."
+                ls -la node_modules/.bin/detox
+                echo "Adding node_modules/.bin to PATH"
+                export PATH="$PATH:$(pwd)/node_modules/.bin"
+                envman add --key PATH --value "$PATH"
   prep_environment:
     steps:
       - script@1:
