@@ -12,13 +12,16 @@ import { IconName } from '../../../../../../component-library/components/Icons/I
 export function getNavbar({
   title,
   onReject,
+  addBackButton = true,
 }: {
   title: string;
   onReject: () => void;
+  addBackButton?: boolean;
 }) {
   const innerStyles = StyleSheet.create({
     headerLeft: {
       marginHorizontal: 16,
+      display: addBackButton ? undefined : 'none',
     },
     headerTitle: {
       alignItems: 'center',
