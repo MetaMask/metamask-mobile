@@ -18,10 +18,9 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
 
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
-  const { trackPageViewedEvent, setTransactionMetrics } =
+  const { trackPageViewedEvent, setConfirmationMetric } =
     useConfirmationMetricEvents();
   const { tokenAmountDisplayValue } = useTokenValues({ amountWei });
-
 
   useEffect(() => {
     navigation.setOptions(
@@ -35,13 +34,13 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   useEffect(() => {
-    setTransactionMetrics({
+    setConfirmationMetric({
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
         transaction_amount_eth: tokenAmountDisplayValue,
       },
     });
-  }, [tokenAmountDisplayValue, setTransactionMetrics]);
+  }, [tokenAmountDisplayValue, setConfirmationMetric]);
 
   return (
     <>

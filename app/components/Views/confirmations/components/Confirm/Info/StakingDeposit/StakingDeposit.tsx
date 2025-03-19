@@ -19,7 +19,7 @@ const StakingDeposit = () => {
   const {
     trackAdvancedDetailsToggledEvent,
     trackPageViewedEvent,
-    setTransactionMetrics,
+    setConfirmationMetric,
   } = useConfirmationMetricEvents();
 
   useEffect(() => {
@@ -34,13 +34,13 @@ const StakingDeposit = () => {
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
 
   useEffect(() => {
-    setTransactionMetrics({
+    setConfirmationMetric({
       properties: {
         selected_provider: EVENT_PROVIDERS.CONSENSYS,
         transaction_amount_eth: tokenAmountDisplayValue,
       },
     });
-  }, [tokenAmountDisplayValue, setTransactionMetrics]);
+  }, [tokenAmountDisplayValue, setConfirmationMetric]);
 
   const handleAdvancedDetailsToggledEvent = (isExpanded: boolean) => {
     trackAdvancedDetailsToggledEvent({ isExpanded });
