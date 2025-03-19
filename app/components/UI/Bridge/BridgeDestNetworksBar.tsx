@@ -26,8 +26,8 @@ const createStyles = (params: { theme: Theme }) => {
 
 const ChainPopularity: Record<Hex, number> = {
   [ETH_CHAIN_ID]: 1,
-  // TODO add solana as 2
-  [BASE_CHAIN_ID]: 1,
+  // TODO add solana as 2nd
+  [BASE_CHAIN_ID]: 3,
 };
 
 export const BridgeDestNetworksBar = () => {
@@ -36,7 +36,11 @@ export const BridgeDestNetworksBar = () => {
   const { styles } = useStyles(createStyles, {});
   const enabledDestChains = useSelector(selectEnabledDestChains);
 
-  const sortedDestChains = enabledDestChains.sort((a, b) => ChainPopularity[a.chainId] - ChainPopularity[b.chainId]);
+  const sortedDestChains = enabledDestChains.sort((a, b) => {
+    const aPopularity = ChainPopularity[a.chainId] ?? Infinity;
+    const bPopularity = ChainPopularity[b.chainId] ?? Infinity;
+    return aPopularity - bPopularity;
+  });
 
   const navigateToNetworkSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
