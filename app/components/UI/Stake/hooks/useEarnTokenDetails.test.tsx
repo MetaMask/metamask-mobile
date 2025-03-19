@@ -151,4 +151,33 @@ describe('useEarnTokenDetails', () => {
 
     expect(tokenDetails.apr).toBe('0.0');
   });
+
+  it('returns estimatedAnnualRewardsFormatted with two decimal places for rewards under one dollar', () => {
+    const usdcTokenWithSmallBalance = {
+      ...mockUSDCToken,
+      balanceFiat: '$5.00',
+    };
+
+    const { result } = renderHookWithProvider(() => useEarnTokenDetails(), {
+      state: mockInitialState,
+    });
+
+    const { estimatedAnnualRewardsFormatted, estimatedAnnualRewardsDecimal } =
+      result.current.getTokenWithBalanceAndApr(usdcTokenWithSmallBalance);
+
+    expect(estimatedAnnualRewardsFormatted).toBe('$0.23');
+    expect(estimatedAnnualRewardsDecimal).toBe(0.225);
+  });
+
+  it('returns estimatedAnnualRewardsFormatted rounded up to nearest dollar for rewards greater than one dollar', () => {
+    const { result } = renderHookWithProvider(() => useEarnTokenDetails(), {
+      state: mockInitialState,
+    });
+
+    const { estimatedAnnualRewardsFormatted, estimatedAnnualRewardsDecimal } =
+      result.current.getTokenWithBalanceAndApr(mockUSDCToken);
+
+    expect(estimatedAnnualRewardsFormatted).toBe('$5');
+    expect(estimatedAnnualRewardsDecimal).toBe(4.5);
+  });
 });

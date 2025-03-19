@@ -72,7 +72,7 @@ export const useEarnTokenDetails = () => {
         .multipliedBy(rewardRateDecimal)
         .toNumber();
 
-      // Show cents for small amounts. Otherwise round up to nearest dollar.
+      // Show cents ($0.50) for small amounts. Otherwise round up to nearest dollar ($2).
       const numDecimalPlacesToShow = estimatedAnnualRewardsDecimal > 1 ? 0 : 2;
 
       const estimatedAnnualRewardsFormatted = `$${new BigNumber(
