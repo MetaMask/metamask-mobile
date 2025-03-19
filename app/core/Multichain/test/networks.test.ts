@@ -3,10 +3,8 @@ import {
   formatBlockExplorerAddressUrl,
   type MultichainBlockExplorerFormatUrls,
 } from '../networks';
-import {
-  MultichainNetworks,
-  MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP,
-} from '../constants';
+import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../constants';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 describe('networks', () => {
   describe('formatBlockExplorerUrl', () => {
@@ -108,9 +106,7 @@ describe('networks', () => {
     describe('Bitcoin networks', () => {
       it('correctly formats Bitcoin mainnet address URLs', () => {
         const urls =
-          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-            MultichainNetworks.BITCOIN
-          ];
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[BtcScope.Mainnet];
         const address = 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq';
 
         const result = formatBlockExplorerAddressUrl(urls, address);
@@ -122,9 +118,7 @@ describe('networks', () => {
 
       it('correctly formats Bitcoin testnet address URLs', () => {
         const urls =
-          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-            MultichainNetworks.BITCOIN_TESTNET
-          ];
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[BtcScope.Testnet];
         const address = 'tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx';
 
         const result = formatBlockExplorerAddressUrl(urls, address);
@@ -138,9 +132,7 @@ describe('networks', () => {
     describe('Solana networks', () => {
       it('correctly formats Solana mainnet address URLs', () => {
         const urls =
-          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-            MultichainNetworks.SOLANA
-          ];
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[SolScope.Mainnet];
         const address = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
 
         const result = formatBlockExplorerAddressUrl(urls, address);
@@ -152,9 +144,7 @@ describe('networks', () => {
 
       it('correctly formats Solana devnet address URLs', () => {
         const urls =
-          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-            MultichainNetworks.SOLANA_DEVNET
-          ];
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[SolScope.Devnet];
         const address = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
 
         const result = formatBlockExplorerAddressUrl(urls, address);
@@ -166,9 +156,7 @@ describe('networks', () => {
 
       it('correctly formats Solana testnet address URLs', () => {
         const urls =
-          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-            MultichainNetworks.SOLANA_TESTNET
-          ];
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[SolScope.Testnet];
         const address = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
 
         const result = formatBlockExplorerAddressUrl(urls, address);
@@ -214,9 +202,7 @@ describe('networks', () => {
 
       it('correctly formats Bitcoin mainnet transaction URLs', () => {
         const urls =
-          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-            MultichainNetworks.BITCOIN
-          ];
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[BtcScope.Mainnet];
         const txId =
           '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b';
 
@@ -229,9 +215,7 @@ describe('networks', () => {
 
       it('correctly formats Solana mainnet transaction URLs', () => {
         const urls =
-          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-            MultichainNetworks.SOLANA
-          ];
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[SolScope.Mainnet];
         const txId =
           '4ETf86tK7b4W72f27kNLJLgRWi9UfJjgH4s8PYKUfuQP3wsMqXGEMt6eWoRu4V8YHJKkdKWCYTct6wUMqxHMKkRE';
 
@@ -244,9 +228,7 @@ describe('networks', () => {
 
       it('correctly formats Solana testnet transaction URLs', () => {
         const urls =
-          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-            MultichainNetworks.SOLANA_TESTNET
-          ];
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[SolScope.Testnet];
         const txId =
           '4ETf86tK7b4W72f27kNLJLgRWi9UfJjgH4s8PYKUfuQP3wsMqXGEMt6eWoRu4V8YHJKkdKWCYTct6wUMqxHMKkRE';
 
@@ -270,17 +252,13 @@ describe('networks', () => {
 
       it('verifies Bitcoin base URL formats', () => {
         const bitcoinUrls =
-          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-            MultichainNetworks.BITCOIN
-          ];
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[BtcScope.Mainnet];
         expect(bitcoinUrls.url).toBe('https://blockstream.info');
       });
 
       it('verifies Solana base URL formats', () => {
         const solanaUrls =
-          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[
-            MultichainNetworks.SOLANA
-          ];
+          MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[SolScope.Mainnet];
         expect(solanaUrls.url).toBe('https://explorer.solana.com');
       });
     });
