@@ -436,8 +436,6 @@ workflows:
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
             - update_comment_tag: '$GITHUB_PR_HASH'
-<<<<<<< HEAD
-=======
       - script@1:
           is_always_run: true
           title: Label PR with success
@@ -470,7 +468,6 @@ workflows:
               rm response.txt
                 	
 
->>>>>>> 92ed8d1cb1 (chore: 7.42.0 stable sync (#14093))
   # Send a Slack message when workflow fails
   notify_failure:
     before_run:
@@ -1573,13 +1570,10 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
-<<<<<<< HEAD
-=======
     meta:	
       bitrise.io:	
         stack: osx-xcode-15.0.x	
         machine_type_id: g2.mac.large
->>>>>>> 92ed8d1cb1 (chore: 7.42.0 stable sync (#14093))
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
@@ -1867,7 +1861,6 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-<<<<<<< HEAD
       VERSION_NAME: 7.42.1
     - opts:
         is_expand: false
@@ -1878,18 +1871,6 @@ app:
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 1631
-=======
-      VERSION_NAME: 7.42.0
-    - opts:
-        is_expand: false
-      VERSION_NUMBER: 1600
-    - opts:
-        is_expand: false
-      FLASK_VERSION_NAME: 7.42.0
-    - opts:
-        is_expand: false
-      FLASK_VERSION_NUMBER: 1600
->>>>>>> 92ed8d1cb1 (chore: 7.42.0 stable sync (#14093))
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
