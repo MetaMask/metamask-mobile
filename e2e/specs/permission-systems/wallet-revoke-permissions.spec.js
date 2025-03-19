@@ -14,6 +14,7 @@ import {
 import Assertions from '../../utils/Assertions';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Matchers from '../../utils/Matchers';
+import Logger from '../../../app/util/Logger';
 
 describe(SmokePermissions('Wallet Revoke Permissions'), () => {
   beforeAll(async () => {
@@ -41,12 +42,11 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TestHelpers.delay(3000);
 
-        const el0 = Matchers.getElementByID(
+        const el0 = await Matchers.getElementByID(
           TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         );
 
-        // eslint-disable-next-line no-console
-        console.log({ el0 });
+        Logger.log({ el0 });
         // await Assertions.checkIfTextIsDisplayed(
         //   'Permissions result: eth_accounts, endowment:permitted-chains',
         // );
@@ -55,12 +55,11 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TestHelpers.delay(3000);
 
-        const el1 = Matchers.getElementByID(
+        const el1 = await Matchers.getElementByID(
           TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         );
 
-        // eslint-disable-next-line no-console
-        console.log({ el1 });
+        Logger.log({ el1 });
 
         // await Assertions.checkIfTextIsDisplayed('Permissions result:');
 
@@ -68,12 +67,11 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TestHelpers.delay(3000);
 
-        const el2 = Matchers.getElementByID(
+        const el2 = await Matchers.getElementByID(
           TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         );
 
-        // eslint-disable-next-line no-console
-        console.log({ el2 });
+        Logger.log({ el2 });
         await Assertions.checkIfElementToHaveText(
           TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
           'No permissions found.',
