@@ -14,7 +14,9 @@ import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/Wall
 import { strings } from '../../../../../locales/i18n';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
 import {
   createTokenBottomSheetFilterNavDetails,
@@ -22,6 +24,7 @@ import {
 } from '../TokensBottomSheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -62,7 +65,7 @@ export const TokenListControlBar = ({
   return (
     <View style={styles.actionBarWrapper}>
       <View style={styles.controlButtonOuterWrapper}>
-        <ButtonBase
+        {/* <ButtonBase
           testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
           label={
             <Text style={styles.controlButtonText} numberOfLines={1}>
@@ -80,7 +83,25 @@ export const TokenListControlBar = ({
             isDisabled ? styles.controlButtonDisabled : styles.controlButton
           }
           disabled={isDisabled}
-        />
+        /> */}
+        <TouchableOpacity
+          style={
+            isDisabled ? styles.controlButtonDisabled : styles.controlButton
+          }
+        >
+          <Text style={styles.controlButtonText} numberOfLines={1}>
+            {isAllNetworks && isPopularNetwork && isEvmSelected
+              ? `${strings('app_settings.popular')} ${strings(
+                  'app_settings.networks',
+                )}`
+              : networkName ?? strings('wallet.current_network')}
+          </Text>
+          <Icon
+            name={IconName.ArrowDown}
+            // size={ICONSIZE_BY_BUTTONICONSIZE[size]}
+            // color={iconColor}
+          />
+        </TouchableOpacity>
         <View style={styles.controlButtonInnerWrapper}>
           <ButtonIcon
             testID={WalletViewSelectorsIDs.SORT_BY}
