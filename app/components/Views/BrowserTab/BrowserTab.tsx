@@ -139,7 +139,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const [backEnabled, setBackEnabled] = useState(false);
   const [forwardEnabled, setForwardEnabled] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [allowedInitialUrl, setAllowedInitialUrl] = useState('');
   const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
   const [error, setError] = useState<boolean | WebViewError>(false);
   const [showOptions, setShowOptions] = useState(false);
@@ -467,22 +466,21 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     dismissTextSelectionIfNeeded();
   }, [dismissTextSelectionIfNeeded]);
 
+  const delay = (ms: number): Promise<void> =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
   const handleFirstUrl = useCallback(async () => {
     setIsResolvedIpfsUrl(false);
     const prefixedUrl = prefixUrlWithProtocol(initialUrl);
-    const { origin: urlOrigin } = new URLParse(prefixedUrl);
 
-    isAllowedOrigin(urlOrigin).then((isAllowed) => {
-      if (isAllowed) {
-        setAllowedInitialUrl(prefixedUrl);
         setFirstUrlLoaded(true);
         setProgress(0);
         return;
       }
       handleNotAllowedUrl(prefixedUrl);
-      return;
-    });
-  }, [initialUrl, handleNotAllowedUrl, isAllowedOrigin]);
+    // eslint-disable-next-line no-console
+    console.log(
+      `${new Date().toISOString()} [BrowserTab][handleFirstUrl] url:`,
 
   /**
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
@@ -1374,7 +1372,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                       />
                     )}
                     source={{
-                      uri: allowedInitialUrl,
+                      uri: prefixUrlWithProtocol(initialUrl),
                       ...(isExternalLink ? { headers: { Cookie: '' } } : null),
                     }}
                     injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
