@@ -52,13 +52,13 @@ const createStyles = (params: { theme: Theme }) => {
 };
 
 interface BridgeTokenSelectorBaseProps {
-  renderNetworksBar: () => React.ReactNode;
+  networksBar: React.ReactNode;
   renderTokenItem: ({ item }: { item: TokenIWithFiatAmount }) => React.JSX.Element;
   tokensList: TokenIWithFiatAmount[];
 }
 
 export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = ({
-  renderNetworksBar,
+  networksBar,
   renderTokenItem,
   tokensList,
 }) => {
@@ -119,7 +119,7 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = (
         </Box>
 
         <Box style={styles.buttonContainer} gap={16}>
-          {renderNetworksBar()}
+          {networksBar}
 
           <TextFieldSearch
             value={searchString}

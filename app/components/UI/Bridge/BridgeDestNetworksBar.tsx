@@ -4,9 +4,23 @@ import { useNavigation } from '@react-navigation/native';
 import Text from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
 import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import { strings } from '../../../../locales/i18n';
+import { useStyles } from '../../../component-library/hooks';
+import { Theme } from '../../../util/theme/models';
+import { StyleSheet } from 'react-native';
+
+const createStyles = (params: { theme: Theme }) => {
+  const { theme } = params;
+  return StyleSheet.create({
+    networksButton: {
+      borderColor: theme.colors.border.muted,
+    },
+  });
+};
 
 export const BridgeDestNetworksBar = () => {
   const navigation = useNavigation();
+  const { styles } = useStyles(createStyles, {});
 
   const navigateToNetworkSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -19,7 +33,8 @@ export const BridgeDestNetworksBar = () => {
       <Button
         onPress={navigateToNetworkSelector}
         variant={ButtonVariants.Secondary}
-        label={<Text>Dest Networks</Text>}
+        label={<Text>{strings('bridge.see_all')}</Text>}
+        style={styles.networksButton}
       />
     </Box>
   );};

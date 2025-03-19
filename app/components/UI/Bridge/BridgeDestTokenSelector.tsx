@@ -42,7 +42,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
 
   return (
     <BridgeTokenSelectorBase
-      renderNetworksBar={() => <BridgeDestNetworksBar />}
+      networksBar={<BridgeDestNetworksBar />}
       renderTokenItem={renderItem}
       tokensList={tokensList}
     />
