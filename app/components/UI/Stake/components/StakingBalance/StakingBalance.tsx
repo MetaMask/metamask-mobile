@@ -205,7 +205,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
       {hasEthToUnstake && !isLoadingPooledStakesData && (
         <AssetElement
           asset={asset}
-          mainBalance={stakedBalanceETH}
+          secondaryBalance={stakedBalanceETH}
           balance={stakedBalanceFiat}
         >
           <BadgeWrapper
