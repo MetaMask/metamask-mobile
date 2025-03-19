@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ShowNftSheet should render correctly 1`] = `
+exports[`ShowNftSheet render matches snapshot 1`] = `
 <View
   style={
     {
