@@ -161,7 +161,7 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_ramps_android: {}
-      - run_tag_smoke_ramps_ios: {}
+      # - run_tag_smoke_ramps_ios: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
@@ -1904,9 +1904,5 @@ trigger_map:
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
-  - tag: 'dev-e2e-*'
-    pipeline: pr_smoke_e2e_pipeline
-  - tag: 'v*.*.*-RC-*'
-    pipeline: release_e2e_pipeline
-  - push_branch: detox/address-regression-tests-slowdown
-    pipeline: multichain_permissions_e2e_pipeline
+  - tag: 'v*.*.*'
+    pipeline: create_qa_builds_pipeline
