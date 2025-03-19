@@ -334,7 +334,7 @@ describe('BridgeNetworkSelector', () => {
     });
 
     // "Select all networks" button should be visible
-    expect(getByText('Deselect all networks')).toBeTruthy();
+    expect(getByText('Deselect all')).toBeTruthy();
   });
 
   it('handles network selection toggle correctly', async () => {
@@ -378,10 +378,10 @@ describe('BridgeNetworkSelector', () => {
     );
 
     // Initially should show "Deselect all networks" since all networks are selected
-    expect(getByText('Deselect all networks')).toBeTruthy();
+    expect(getByText('Deselect all')).toBeTruthy();
 
     // Click "Deselect all networks"
-    const allNetworksToggle = getByText('Deselect all networks');
+    const allNetworksToggle = getByText('Deselect all');
     fireEvent.press(allNetworksToggle);
 
     // Now both networks should be unchecked
@@ -392,8 +392,8 @@ describe('BridgeNetworkSelector', () => {
     expect(optimism.length).toBe(1);
 
     // Button should now say "Select all networks"
-    expect(getByText('Select all networks')).toBeTruthy();
-    expect(queryByText('Deselect all networks')).toBeNull();
+    expect(getByText('Select all')).toBeTruthy();
+    expect(queryByText('Deselect all')).toBeNull();
 
     // Click "Select all networks"
     fireEvent.press(allNetworksToggle);
@@ -409,8 +409,8 @@ describe('BridgeNetworkSelector', () => {
     expect(optimismAfter.length).toBe(2);
 
     // Button should now say "Deselect all networks" again
-    expect(getByText('Deselect all networks')).toBeTruthy();
-    expect(queryByText('Select all networks')).toBeNull();
+    expect(getByText('Deselect all')).toBeTruthy();
+    expect(queryByText('Select all')).toBeNull();
   });
 
   it('applies selected networks when clicking Apply button', async () => {
@@ -462,7 +462,7 @@ describe('BridgeNetworkSelector', () => {
     );
 
     // Deselect all networks
-    const selectAllButton = getByText('Deselect all networks');
+    const selectAllButton = getByText('Deselect all');
     fireEvent.press(selectAllButton);
 
     // Apply button should be disabled
