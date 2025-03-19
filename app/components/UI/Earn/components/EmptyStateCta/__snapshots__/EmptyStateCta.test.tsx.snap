@@ -93,7 +93,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
         }
       }
     >
-      $0
+      $0.00
        (
       4.5
       % 

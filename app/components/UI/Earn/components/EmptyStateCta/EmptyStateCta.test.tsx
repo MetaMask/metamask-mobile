@@ -123,7 +123,7 @@ describe('EmptyStateCta', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith({
       name: MetaMetricsEvents.EARN_EMPTY_STATE_CTA_CLICKED.category,
       properties: {
-        estimatedAnnualRewards: '$0',
+        estimatedAnnualRewards: '$0.00',
         location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
         provider: EVENT_PROVIDERS.CONSENSYS,
         token_chain_id: '1',
