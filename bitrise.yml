@@ -171,6 +171,8 @@ stages:
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
       - run_tag_multichain_permissions_android: {}
+      - run_tag_permissions_ios: {}
+      - run_tag_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -440,31 +442,30 @@ workflows:
           is_always_run: true
           title: Label PR with success
           inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              # Define label data
-              LABELS_JSON='{"labels":["bitrise-result-ready"]}'
+            - content: |-
+                #!/usr/bin/env bash
+                # Define label data
+                LABELS_JSON='{"labels":["bitrise-result-ready"]}'
 
-              # API URL to add labels to a PR
-              API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
+                # API URL to add labels to a PR
+                API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
 
-              # Perform the curl request and capture the HTTP status code
-              HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$LABELS_JSON" "$API_URL")
-              
-              # Output the HTTP status code
-              echo "HTTP Response Code: $HTTP_RESPONSE"
+                # Perform the curl request and capture the HTTP status code
+                HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$LABELS_JSON" "$API_URL")
 
-              # Optionally check the response
-              if [ "$HTTP_RESPONSE" -ne 200 ]; then
-                  echo "Failed to apply label. Status code: $HTTP_RESPONSE"
-                  cat response.txt  # Show error message from GitHub if any
-              else
-                  echo "Label applied successfully."
-              fi
+                # Output the HTTP status code
+                echo "HTTP Response Code: $HTTP_RESPONSE"
 
-              # Clean up the response file
-              rm response.txt
-                
+                # Optionally check the response
+                if [ "$HTTP_RESPONSE" -ne 200 ]; then
+                    echo "Failed to apply label. Status code: $HTTP_RESPONSE"
+                    cat response.txt  # Show error message from GitHub if any
+                else
+                    echo "Label applied successfully."
+                fi
+
+                # Clean up the response file
+                rm response.txt
 
   # Send a Slack message when workflow fails
   notify_failure:
@@ -620,6 +621,22 @@ workflows:
       - wdio_ios_e2e_test
 
   ### Separating workflows so they run concurrently during smoke runs
+  run_tag_permissions_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/permission-systems/*'
+      - TEST_SUITE_TAG: '.*SmokePermissions.*'
+    after_run:
+      - android_e2e_test
+  run_tag_permissions_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/permission-systems/*'
+      - TEST_SUITE_TAG: '.*SmokePermissions.*'
+    after_run:
+      - ios_e2e_test
   run_tag_smoke_accounts_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
