@@ -227,7 +227,6 @@ const AccountSelectorList = ({
       return (
         <Cell
           key={address}
-          testID={`${WalletViewSelectorsIDs.ACCOUNT_LIST_CELL}-${address}`}
           onLongPress={() => {
             onLongPress({
               address,

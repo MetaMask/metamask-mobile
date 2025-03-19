@@ -18,10 +18,10 @@ import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import Engine from '../../../core/Engine';
+import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 
 // eslint-disable-next-line import/no-namespace
 import * as Utils from '../../hooks/useAccounts/utils';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
@@ -347,13 +347,12 @@ describe('AccountSelectorList', () => {
       },
     };
 
-    const { getByTestId } = renderComponent(stateWithSimpleAccount);
+    const { getAllByTestId } = renderComponent(stateWithSimpleAccount);
 
-    // Find and long press the simple account
-    const simpleAccountCell = getByTestId(
-      `${WalletViewSelectorsIDs.ACCOUNT_LIST_CELL}-${BUSINESS_ACCOUNT}`,
-    );
-    simpleAccountCell.props.onLongPress();
+    // Find all cell elements with the select-with-menu test ID
+    const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+    // Trigger long press on the first cell (since we only have one account in this test)
+    cells[0].props.onLongPress();
 
     await waitFor(() => {
       // Verify Alert was shown with correct text
@@ -402,13 +401,12 @@ describe('AccountSelectorList', () => {
       },
     };
 
-    const { getByTestId } = renderComponent(stateWithSnapAccount);
+    const { getAllByTestId } = renderComponent(stateWithSnapAccount);
 
-    // Find and long press the snap account
-    const snapAccountCell = getByTestId(
-      `${WalletViewSelectorsIDs.ACCOUNT_LIST_CELL}-${MOCK_ADDRESS_1}`,
-    );
-    snapAccountCell.props.onLongPress();
+    // Find all cell elements with the select-with-menu test ID
+    const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+    // Trigger long press on the first cell that should correspond to MOCK_ADDRESS_1
+    cells[0].props.onLongPress();
 
     await waitFor(() => {
       // Verify Alert was shown with correct text
