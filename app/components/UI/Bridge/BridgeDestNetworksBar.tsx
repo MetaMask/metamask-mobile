@@ -8,6 +8,8 @@ import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { StyleSheet } from 'react-native';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { AlignItems, FlexDirection } from '../Box/box.types';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -29,12 +31,13 @@ export const BridgeDestNetworksBar = () => {
   }, [navigation]);
 
   return (
-    <Box>
+    <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
       <Button
         onPress={navigateToNetworkSelector}
         variant={ButtonVariants.Secondary}
         label={<Text>{strings('bridge.see_all')}</Text>}
         style={styles.networksButton}
+        endIconName={IconName.ArrowDown}
       />
     </Box>
   );};
