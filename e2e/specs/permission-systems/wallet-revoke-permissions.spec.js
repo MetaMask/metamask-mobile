@@ -43,55 +43,24 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TestHelpers.delay(3000);
 
-        const el0 = await Matchers.getElementByID(
-          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
+        await Assertions.checkIfTextIsDisplayed(
+          'Permissions result: eth_accounts, endowment:permitted-chains',
         );
-        const what = await el0.getAttributes();
-        // eslint-disable-next-line no-console
-        console.log(what.text, 'text of el0');
-        // eslint-disable-next-line no-console
-        console.log({ el0 });
-        // await Assertions.checkIfTextIsDisplayed(
-        //   'Permissions result: eth_accounts, endowment:permitted-chains',
-        // );
 
         await TestDApp.tapRevokeAccountPermissionsButton();
 
         await TestHelpers.delay(3000);
 
-        const el1 = await Matchers.getElementByID(
-          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
-        );
-
-        // eslint-disable-next-line no-console
-        console.log({ el1 });
-        const what1 = await el0.getAttributes();
-        // eslint-disable-next-line no-console
-        console.log(what1.text, 'text of el1');
-        // await Assertions.checkIfTextIsDisplayed('Permissions result:');
+        await Assertions.checkIfTextIsDisplayed('Permissions result:');
 
         await TestDApp.tapGetPermissionsButton();
 
         await TestHelpers.delay(3000);
 
-        const el2 = await Matchers.getElementByID(
-          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
-        );
-
-        // eslint-disable-next-line no-console
-        console.log({ el2 });
-        const what2 = await el2.getAttributes();
-        // eslint-disable-next-line no-console
-        console.log(what2.text, 'text of el2');
         const elementId = Matchers.getElementByID(
           TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         );
 
-        // eslint-disable-next-line no-console
-        console.log({ el2, elementId: await elementId });
-        const elIdTetx = await (await elementId).getAttributes();
-        // eslint-disable-next-line no-console
-        console.log(elIdTetx.text, 'elementId text HERE!');
         await Assertions.checkIfElementToHaveText(
           elementId,
           'No permissions found.',
