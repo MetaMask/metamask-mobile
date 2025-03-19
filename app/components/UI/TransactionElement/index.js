@@ -294,6 +294,11 @@ class TransactionElement extends PureComponent {
           ? transactionIconSwapFailed
           : transactionIconSwap;
         break;
+      case TRANSACTION_TYPES.BRIDGE_TRANSACTION:
+        icon = isFailedTransaction
+          ? transactionIconSwapFailed
+          : transactionIconSwap;
+        break;
       case TRANSACTION_TYPES.APPROVE:
       case TRANSACTION_TYPES.INCREASE_ALLOWANCE:
       case TRANSACTION_TYPES.SET_APPROVAL_FOR_ALL:
@@ -319,13 +324,14 @@ class TransactionElement extends PureComponent {
       i,
       tx: { time, status, isSmartTransaction },
     } = this.props;
+    const isBridgeTransaction = this.props.tx.type === 'bridge';
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
     const renderNormalActions =
       (status === 'submitted' ||
         (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
-      !isSmartTransaction;
+      !isSmartTransaction && !isBridgeTransaction;
     const renderUnsignedQRActions =
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
