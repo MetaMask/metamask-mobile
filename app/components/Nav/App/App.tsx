@@ -97,7 +97,7 @@ import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Con
 import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
-import { MetaMetrics } from '../../../core/Analytics';
+import { MetaMetrics, store } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
@@ -136,6 +136,7 @@ import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
 import NavigationService from '../../../core/NavigationService';
 import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
+import { getTraceTags } from '../../../util/sentry/tags';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -866,6 +867,10 @@ const App: React.FC = () => {
 
         // Loop through each selected network and call NetworkController.addNetwork
         for (const network of selectedNetworks) {
+          trace({
+            name: TraceName.AddNetwork,
+            tags: getTraceTags(store.getState()),
+          });
           try {
             await NetworkController.addNetwork({
               chainId: network.chainId,
@@ -884,6 +889,8 @@ const App: React.FC = () => {
             });
           } catch (error) {
             Logger.error(error as Error);
+          } finally {
+            endTrace({ name: TraceName.AddNetwork });
           }
         }
       }

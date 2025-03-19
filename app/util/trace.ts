@@ -41,6 +41,9 @@ export enum TraceName {
   Tokens = 'Tokens List',
   CreateSnapAccount = 'Create Snap Account',
   AddSnapAccount = 'Add Snap Account',
+  SelectAccount = 'Select Account',
+  AddNetwork = 'Add Network',
+  UpdateNetwork = 'Update Network',
 }
 
 export enum TraceOperation {
