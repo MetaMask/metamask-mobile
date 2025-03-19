@@ -653,6 +653,7 @@
 				1315792FDF9ED5C1277541D0 /* [CP] Embed Pods Frameworks */,
 				FFED9AB1AACD0DA25EAA971D /* [CP] Copy Pods Resources */,
 				9F2FDF243A79F1A3A790828C /* [CP-User] [RNFB] Core Configuration */,
+				B04B18D52D8B340C00C5C2CE /* Strip Bitcode */,
 			);
 			buildRules = (
 			);
@@ -679,6 +680,7 @@
 				22A0CDFA61EAF4604801C08E /* [CP] Embed Pods Frameworks */,
 				E6DF8EB7C7F8301263C260CE /* [CP] Copy Pods Resources */,
 				7DCEC09F2EFA897359942504 /* [CP-User] [RNFB] Core Configuration */,
+				B04B18D72D8B34BE00C5C2CE /* Strip Bitcode */,
 			);
 			buildRules = (
 			);
@@ -705,6 +707,7 @@
 				C809907F60335F19DA480743 /* [CP] Embed Pods Frameworks */,
 				475B37D211D24FD533A25DD4 /* [CP] Copy Pods Resources */,
 				13E0EBB030DB9498ACF206AC /* [CP-User] [RNFB] Core Configuration */,
+				B04B18D62D8B34AD00C5C2CE /* Strip Bitcode */,
 			);
 			buildRules = (
 			);
@@ -1198,6 +1201,60 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-MetaMask-Flask/expo-configure-project.sh\"\n";
+		};
+		B04B18D52D8B340C00C5C2CE /* Strip Bitcode */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Bitcode";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Script for stripping bitcode when building using Xcode 16+ and uploading to the App Store\n# Reference - https://discuss.bitrise.io/t/xcode-16-known-issues/24484\n# This script should be last to ensure that all bitcode is stripped after dependencies are installed\n\nfind \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\" -name 'OpenSSL' -exec xcrun bitcode_strip {} -r -o {} \\;\n";
+		};
+		B04B18D62D8B34AD00C5C2CE /* Strip Bitcode */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Bitcode";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Script for stripping bitcode when building using Xcode 16+ and uploading to the App Store\n# Reference - https://discuss.bitrise.io/t/xcode-16-known-issues/24484\n# This script should be last to ensure that all bitcode is stripped after dependencies are installed\n\nfind \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\" -name 'OpenSSL' -exec xcrun bitcode_strip {} -r -o {} \\;\n";
+		};
+		B04B18D72D8B34BE00C5C2CE /* Strip Bitcode */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Bitcode";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Script for stripping bitcode when building using Xcode 16+ and uploading to the App Store\n# Reference - https://discuss.bitrise.io/t/xcode-16-known-issues/24484\n# This script should be last to ensure that all bitcode is stripped after dependencies are installed\n\nfind \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\" -name 'OpenSSL' -exec xcrun bitcode_strip {} -r -o {} \\;\n";
 		};
 		B339FF00289ABD70001B89FB /* Override xcconfig files */ = {
 			isa = PBXShellScriptBuildPhase;
