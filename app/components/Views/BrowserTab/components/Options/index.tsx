@@ -93,16 +93,6 @@ const Options = ({
       createEventBuilder(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER).build(),
     );
   };
-  /**
-   * Go to favorites page
-   */
-  const goToFavorites = async () => {
-    toggleOptionsIfNeeded();
-    onSubmitEditing(OLD_HOMEPAGE_URL_HOST);
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
-    );
-  };
 
   /**
    * Track add site to favorites event
@@ -160,24 +150,6 @@ const Options = ({
       createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE).build(),
     );
   };
-
-  /**
-   * Renders Go to Favorites option
-   */
-  const renderGoToFavorites = () => (
-    <Button onPress={goToFavorites} style={styles.option}>
-      <View style={styles.optionIconWrapper}>
-        <Icon name="star" size={16} style={styles.optionIcon} />
-      </View>
-      <Text
-        style={styles.optionText}
-        numberOfLines={2}
-        {...generateTestId(Platform, OPEN_FAVORITES_OPTION)}
-      >
-        {strings('browser.go_to_favorites')}
-      </Text>
-    </Button>
-  );
 
   /**
    * Handles reload button press
@@ -265,7 +237,7 @@ const Options = ({
    * Render non-homepage options menu
    */
   const renderNonHomeOptions = () => {
-    if (isHomepage()) return renderGoToFavorites();
+    if (isHomepage()) return null;
     return (
       <React.Fragment>
         {renderReloadOption()}
@@ -283,7 +255,6 @@ const Options = ({
             </Text>
           </Button>
         )}
-        {renderGoToFavorites()}
         {renderShareOption()}
         <Button onPress={openInBrowser} style={styles.option}>
           <View style={styles.optionIconWrapper}>
