@@ -5,8 +5,8 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import DisplayNFTMediaSettings from '.';
 import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
-import {useMetrics} from '../../../hooks/useMetrics';
-import {MetricsEventBuilder} from '../../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics } from '../../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 let mockSetDisplayNftMedia: jest.Mock;
 let mockSetUseNftDetection: jest.Mock;
@@ -95,7 +95,8 @@ describe('DisplayNFTMediaSettings', () => {
     });
 
     it('toggles display NFT media OFF', () => {
-      initialState.engine.backgroundState.PreferencesController.displayNftMedia = true;
+      initialState.engine.backgroundState.PreferencesController.displayNftMedia =
+        true;
 
       const { getByTestId } = renderWithProvider(<DisplayNFTMediaSettings />, {
         state: initialState,

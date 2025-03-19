@@ -26,14 +26,16 @@ const BlockaidSettings = () => {
     const newSecurityAlertsEnabledState = !securityAlertsEnabled;
 
     const { PreferencesController } = Engine.context;
-    PreferencesController?.setSecurityAlertsEnabled(newSecurityAlertsEnabledState);
+    PreferencesController?.setSecurityAlertsEnabled(
+      newSecurityAlertsEnabledState,
+    );
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED)
-          .addProperties({
-              security_alerts_enabled: newSecurityAlertsEnabledState,
-          })
-          .build(),
+        .addProperties({
+          security_alerts_enabled: newSecurityAlertsEnabledState,
+        })
+        .build(),
     );
 
     addTraitsToUser({

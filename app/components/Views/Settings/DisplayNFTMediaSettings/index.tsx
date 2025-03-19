@@ -30,9 +30,9 @@ const DisplayNFTMediaSettings = () => {
       PreferencesController?.setUseNftDetection(false);
     }
     const traits = {
-      [UserProfileProperty.ENABLE_OPENSEA_API]:  value
-          ? UserProfileProperty.ON
-          : UserProfileProperty.OFF,
+      [UserProfileProperty.ENABLE_OPENSEA_API]: value
+        ? UserProfileProperty.ON
+        : UserProfileProperty.OFF,
       ...(!value && {
         [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.OFF,
       }),
