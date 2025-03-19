@@ -10,7 +10,6 @@ import {
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
-  getNetworkFees,
   getNotificationBadge,
 } from '../../methods/common';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
@@ -100,10 +99,6 @@ const state: NotificationState<ERC20Notification> = {
           type: ModalFieldType.NETWORK,
           iconUrl: nativeTokenDetails?.image,
           name: nativeTokenDetails?.name,
-        },
-        {
-          type: ModalFieldType.NETWORK_FEE,
-          getNetworkFees: () => getNetworkFees(notification),
         },
       ],
       footer: {

@@ -97,7 +97,8 @@ const persistTransform = createTransform(
 
 const persistUserTransform = createTransform(
   (inboundState: UserState) => {
-    const { initialScreen, isAuthChecked, ...state } = inboundState;
+    const { initialScreen, isAuthChecked, appServicesReady, ...state } =
+      inboundState;
     // Reconstruct data to persist
     return state;
   },
@@ -113,7 +114,7 @@ const persistConfig = {
     'rpcEvents',
     'accounts',
     'multichainSettings',
-    'transactionMetrics',
+    'confirmationMetrics',
   ],
   storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
