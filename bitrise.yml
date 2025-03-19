@@ -35,6 +35,12 @@ pipelines:
       - build_e2e_ios_stage: {}
       - run_e2e_ios_stage: {}
       - notify: {}
+  #Run E2E test suite for iOS Flask only
+  run_e2e_flask_pipeline:
+    stages:
+      - build_e2e_flask_stage: {}
+      - run_e2e_flask_stage: {}
+      - notify: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
@@ -132,9 +138,15 @@ stages:
   build_e2e_ios_stage:
     workflows:
       - ios_e2e_build: {}
+  build_e2e_ios_flask_stage:
+    workflows:
+      - ios_e2e_build_flask: {}
   run_e2e_ios_stage:
     workflows:
       - ios_e2e_test: {}
+  run_e2e_ios_flask_stage:
+    workflows:
+      - ios_e2e_test_flask: {}
   build_smoke_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
@@ -161,12 +173,12 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_ramps_android: {}
-      # - run_tag_smoke_ramps_ios: {}
+      # run_tag_smoke_ramps_ios: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
-      # - run_tag_smoke_stake_ios: {}
-      # - run_tag_smoke_stake_android: {}
+      # run_tag_smoke_stake_ios: {}
+      # run_tag_smoke_stake_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
@@ -189,7 +201,7 @@ stages:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
-      - run_tag_smoke_ramps_ios: {}
+      # run_tag_smoke_ramps_ios: {}
       # - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
@@ -241,6 +253,15 @@ stages:
           envs:
             - MM_ANDROID_PACKAGE_NAME: 'io.metamask.flask'
       - deploy_ios_to_store:
+  build_e2e_flask_stage:
+    abort_on_fail: true
+    workflows:
+      - ios_e2e_build_flask: {}
+      - android_e2e_build_flask: {}
+  run_e2e_flask_stage:
+    workflows:
+      - ios_e2e_test_flask: {}
+      - android_e2e_test_flask: {}
 
 workflows:
   # Code Setups
@@ -436,36 +457,6 @@ workflows:
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
             - update_comment_tag: '$GITHUB_PR_HASH'
-      - script@1:
-          is_always_run: true
-          title: Label PR with success
-          inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              # Define label data
-              LABELS_JSON='{"labels":["bitrise-result-ready"]}'
-
-              # API URL to add labels to a PR
-              API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
-
-              # Perform the curl request and capture the HTTP status code
-              HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$LABELS_JSON" "$API_URL")
-              
-              # Output the HTTP status code
-              echo "HTTP Response Code: $HTTP_RESPONSE"
-
-              # Optionally check the response
-              if [ "$HTTP_RESPONSE" -ne 200 ]; then
-                  echo "Failed to apply label. Status code: $HTTP_RESPONSE"
-                  cat response.txt  # Show error message from GitHub if any
-              else
-                  echo "Label applied successfully."
-              fi
-
-              # Clean up the response file
-              rm response.txt
-                
-
   # Send a Slack message when workflow fails
   notify_failure:
     before_run:
@@ -796,6 +787,24 @@ workflows:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
       - script@1:
+          title: Setup Flask Keystore (if needed)
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  echo "Setting up Flask keystore..."
+                  mkdir -p android/keystores
+                  cp android/keystores/release.keystore android/keystores/flaskRelease.keystore
+                  ls -la android/keystores/
+                  echo "Flask keystore setup complete"
+                fi
+      - restore-gradle-cache@2: {}
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
           title: Install CCache & symlink
           inputs:
             - content: |-
@@ -847,10 +856,39 @@ workflows:
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
-    meta:
-      bitrise.io:
-        machine_type_id: elite-xl
-        stack: linux-docker-android-22.04
+      - save-gradle-cache@1: {}
+      - script@1:
+          title: Set APK Path for Deployment
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
+                else
+                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk"
+                fi
+                echo "Using APK path: $APK_PATH"
+                envman add --key DEPLOY_APK_PATH --value "$APK_PATH"
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $DEPLOY_APK_PATH
+          title: Bitrise Deploy APK
+      - script@1:
+          title: Setup Flask Keystore (if needed)
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  echo "Setting up Flask keystore..."
+                  mkdir -p android/keystores
+                  cp android/keystores/release.keystore android/keystores/flaskRelease.keystore
+                  ls -la android/keystores/
+                  echo "Flask keystore setup complete"
+                fi
+      - restore-gradle-cache@2: {}
   android_e2e_test:
     before_run:
       - setup
@@ -1072,7 +1110,7 @@ workflows:
                 ./scripts/cache/setup-ccache.sh
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'flask'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
       - save-cocoapods-cache@1: {}
       - save-cache@1:
@@ -1161,7 +1199,7 @@ workflows:
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           is_always_run: true
@@ -1332,63 +1370,99 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _upload_apk_to_browserstack
       - notify_failure
     steps:
+      - script@1:
+          title: Set environment variables for Flask build
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Set up environment variables for Flask build
+                envman add --key METAMASK_BUILD_TYPE --value "flask"
+                envman add --key APP_NAME --value "flask"
+                envman add --key OUTPUT_PATH --value "flaskRelease"
+                envman add --key METAMASK_ENVIRONMENT --value "production"
+                envman add --key NAME --value "$VERSION_NAME"
+                envman add --key NUMBER --value "$VERSION_NUMBER"
+                envman add --key KEYSTORE_PATH --value "android/keystores/release.keystore"
       - change-android-versioncode-and-versionname@1:
           inputs:
-            - new_version_name: $VERSION_NAME
-            - new_version_code: $VERSION_NUMBER
+            - new_version_name: $NAME
+            - new_version_code: $NUMBER
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-            - destination: android/keystores/internalRelease.keystore
+            - destination: $KEYSTORE_PATH
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-
       - script@1:
+          title: Build Android Pre-Release Bundle
+          is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
-          title: Build Android Pre-Release Bundle
-          is_always_run: false
+                # We're only building Flask here
+                yarn build:android:pre-release:bundle:flask
       - save-gradle-cache@1: {}
+      - script@1:
+          title: Rename release files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Set base paths for release builds
+                APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
+                BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
+                
+                # Generate new names based on build type and version
+                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                
+                # Rename APK
+                OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+                NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
+                mv "$OLD_APK" "$NEW_APK"
+                
+                # Rename AAB
+                OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
+                NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+                mv "$OLD_AAB" "$NEW_AAB"
+                
+                # Export new names as environment variables
+                envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
+                envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
+                envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+            - deploy_path: $APK_DEPLOY_PATH
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/sha512sums.txt:BITRISE_PLAY_STORE_SHA512SUMS_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release/sha512sums.txt
           title: Bitrise Deploy Checksum
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/$OUTPUT_PATH/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/$OUTPUT_PATH/mapping.txt
           title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -1403,7 +1477,13 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
-                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+                
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
+                else
+                  APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+                fi
+                
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_ANDROID_APP_URL
@@ -1568,10 +1648,6 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
-    meta:
-      bitrise.io:
-        stack: osx-xcode-15.0.x
-        machine_type_id: g2.mac.large
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
@@ -1638,8 +1714,64 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                set -ex
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  echo "Building Flask version..."
+                  METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
+                  
+                  # Create necessary directories
+                  mkdir -p ios/build/output/
+                  
+                  # Debug: List all IPA files to help locate the correct path
+                  echo "Looking for Flask IPA files..."
+                  find ios -name "*.ipa" -type f
+                  
+                  # Try multiple possible locations for the Flask IPA
+                  # Option 1: Standard Flask release path
+                  FLASK_IPA_PATH_1=ios/build/output/MetaMask-Flask.ipa
+                  # Option 2: Production Flask path
+                  FLASK_IPA_PATH_2=ios/build/output/MetaMask.ipa
+                  # Option 3: Another common path
+                  FLASK_IPA_PATH_3=ios/build/MetaMask.ipa
+                  
+                  # Check each path and use the first one that exists
+                  if [ -f "$FLASK_IPA_PATH_1" ]; then
+                    echo "Found Flask IPA at: $FLASK_IPA_PATH_1"
+                    cp "$FLASK_IPA_PATH_1" ios/build/output/MetaMask-QA.ipa
+                  elif [ -f "$FLASK_IPA_PATH_2" ]; then
+                    echo "Found Flask IPA at: $FLASK_IPA_PATH_2"
+                    cp "$FLASK_IPA_PATH_2" ios/build/output/MetaMask-QA.ipa
+                  elif [ -f "$FLASK_IPA_PATH_3" ]; then
+                    echo "Found Flask IPA at: $FLASK_IPA_PATH_3"
+                    cp "$FLASK_IPA_PATH_3" ios/build/output/MetaMask-QA.ipa
+                  else
+                    echo "Warning: Flask IPA not found in any expected location"
+                    echo "Directory listing of ios/build:"
+                    ls -R ios/build
+                    
+                    # Last resort: find the most recently created IPA file
+                    echo "Looking for most recent IPA file..."
+                    NEWEST_IPA=$(find ios -name "*.ipa" -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")
+                    if [ -n "$NEWEST_IPA" ]; then
+                      echo "Using most recent IPA: $NEWEST_IPA"
+                      cp "$NEWEST_IPA" ios/build/output/MetaMask-QA.ipa
+                    else
+                      echo "No IPA files found at all. Build may have failed."
+                      exit 1
+                    fi
+                  fi
+                  
+                  # Check if the target file exists after copying
+                  if [ -f "ios/build/output/MetaMask-QA.ipa" ]; then
+                    echo "Successfully copied IPA to the required location"
+                  else
+                    echo "Failed to copy IPA to the required location"
+                    exit 1
+                  fi
+                else
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
+                fi
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
@@ -1672,9 +1804,39 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
+                
+                # Define expected IPA path
+                IPA_PATH=ios/build/output/MetaMask-QA.ipa
+                
+                # Check if the file exists
+                if [ ! -f "$IPA_PATH" ]; then
+                  echo "IPA not found at expected path: $IPA_PATH"
+                  echo "Looking for alternative IPA files..."
+                  
+                  # Try to find any IPA file
+                  ALTERNATIVE_IPA=$(find ios -name "*.ipa" -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")
+                  
+                  if [ -n "$ALTERNATIVE_IPA" ]; then
+                    echo "Found alternative IPA: $ALTERNATIVE_IPA"
+                    # Create the target directory if it doesn't exist
+                    mkdir -p $(dirname "$IPA_PATH")
+                    # Copy the alternative IPA to the expected location
+                    cp "$ALTERNATIVE_IPA" "$IPA_PATH"
+                    echo "Copied $ALTERNATIVE_IPA to $IPA_PATH"
+                  else
+                    echo "No IPA files found in the project. Build may have failed."
+                    exit 1
+                  fi
+                fi
+                
+                # Verify the file exists after all checks
+                if [ ! -f "$IPA_PATH" ]; then
+                  echo "IPA still not found at expected path after recovery attempts. Exiting."
+                  exit 1
+                fi
+                
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                IPA_PATH=ios/build/output/MetaMask-QA.ipa
                 IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_IOS_APP_URL
                 mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
@@ -1744,8 +1906,8 @@ workflows:
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
-            - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
-            - destination: android/keystores/flaskRelease.keystore
+            - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL
+            - destination: android/keystores/release.keystore
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -1800,6 +1962,541 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  ios_e2e_build_flask:
+    envs:
+      - NO_FLIPPER: '1'
+      - METAMASK_BUILD_TYPE: 'flask'
+    before_run:
+      - install_applesimutils
+      - code_setup
+      - set_commit_hash
+    after_run:
+      - notify_failure
+    steps:
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh ios
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - script@1:
+          title: Install CCache & symlink
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
+                ln -s $(which ccache) /usr/local/bin/gcc
+                ln -s $(which ccache) /usr/local/bin/g++
+                ln -s $(which ccache) /usr/local/bin/cc
+                ln -s $(which ccache) /usr/local/bin/c++
+                ln -s $(which ccache) /usr/local/bin/clang
+                ln -s $(which ccache) /usr/local/bin/clang++
+      - restore-cache@2:
+          title: Restore CCache
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      - script@1:
+          title: Run detox build
+          timeout: 1200
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/setup-ccache.sh
+                node -v
+                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE='flask'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
+      - save-cocoapods-cache@1: {}
+      - save-cache@1:
+          title: Save CCache
+          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+            - paths: |-
+                ccache
+      - deploy-to-bitrise-io@2.2.3:
+          inputs:
+            - pipeline_intermediate_files: |-
+                ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
+                ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
+          title: Save iOS build
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+            - paths: node_modules
+  ios_e2e_test_flask:
+    envs:
+      - NO_FLIPPER: '1'
+      - METAMASK_BUILD_TYPE: 'flask'
+    before_run:
+      - setup
+      - install_applesimutils
+      - prep_environment
+    after_run:
+      - notify_failure
+    steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull iOS build
+      - script@1:
+          title: Copy iOS build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
+                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
+      - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - script@1:
+          title: Start Metro bundler
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Start Metro bundler in the background
+                export PATH="$PATH:$BITRISE_SOURCE_DIR/node_modules/.bin"
+                yarn start --reset-cache &
+                # Save the PID to kill it later
+                echo $! > metro.pid
+                # Wait for Metro to start
+                sleep 30
+      - script@1:
+          title: Run detox test
+          timeout: 1200
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [ -n "$TEST_SUITE_FOLDER" ]; then
+                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
+                else
+                  # Default to Flask specs folder if not specified
+                  TEST_SUITE_FOLDER="e2e/specs/flask/"
+                fi
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                  TEST_SUITE="Regression"
+                else
+                  TEST_SUITE="Smoke"
+                fi
+                if [ -n "$TEST_SUITE_TAG" ]; then
+                  echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                  TEST_SUITE=$TEST_SUITE_TAG
+                fi
+                export PATH="$PATH:$BITRISE_SOURCE_DIR/node_modules/.bin"
+                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE='flask'
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/ 
+      - script@1:
+          title: Kill Metro bundler
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [ -f metro.pid ]; then
+                  kill $(cat metro.pid) || true
+                  rm metro.pid
+                fi
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: 'E2E_IOS_Failure_Artifacts'
+  android_e2e_build_flask:
+    before_run:
+      - code_setup
+      - set_commit_hash
+    after_run:
+      - notify_failure
+    steps:
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh android
+      - restore-gradle-cache@2: {}
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+      - file-downloader@1:
+          inputs:
+            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+            - destination: android/keystores/internalRelease.keystore
+      - script@1:
+          title: Install CCache & symlink
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                sudo apt update
+                sudo apt install ccache -y
+      - restore-cache@2:
+          title: Restore CCache
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      - script@1:
+          title: Run detox build
+          timeout: 1200
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/setup-ccache.sh
+                node -v
+                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE='flask'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
+      - save-gradle-cache@1: {}
+      - save-cache@1:
+          title: Save CCache
+          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+            - paths: |-
+                ccache
+      - deploy-to-bitrise-io@2.2.3:
+          inputs:
+            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+          title: Save Android build
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+            - paths: node_modules
+      - save-gradle-cache@1: {}
+      - script@1:
+          title: Set APK Path for Deployment
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk"
+                else
+                  APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk"
+                fi
+                echo "Using APK path: $APK_PATH"
+                envman add --key DEPLOY_APK_PATH --value "$APK_PATH"
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $DEPLOY_APK_PATH
+          title: Bitrise Deploy APK
+      - script@1:
+          title: Setup Flask Keystore (if needed)
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  echo "Setting up Flask keystore..."
+                  mkdir -p android/keystores
+                  cp android/keystores/release.keystore android/keystores/flaskRelease.keystore
+                  ls -la android/keystores/
+                  echo "Flask keystore setup complete"
+                fi
+      - restore-gradle-cache@2: {}
+  android_e2e_test_flask:
+    before_run:
+      - setup
+      - prep_environment
+    after_run:
+      - notify_failure
+    steps:
+      - restore-gradle-cache@2: {}
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull Android build
+      - script@1:
+          title: Copy Android build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/android/app/build/outputs"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
+                cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - avd-manager@1:
+          inputs:
+            - api_level: '34'
+            - abi: 'x86_64'
+            - create_command_flags: --sdcard 8192M
+            - start_command_flags: -read-only
+            - profile: pixel_5
+      - wait-for-android-emulator@1: {}
+      - script@1:
+          title: Run detox test
+          timeout: 1200
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [ -n "$TEST_SUITE_FOLDER" ]; then
+                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
+                else
+                  # Default to Flask specs folder if not specified
+                  TEST_SUITE_FOLDER="e2e/specs/flask/"
+                fi
+                if [ "$TEST_SUITE" = "Regression" ]; then
+                TEST_SUITE="Regression"
+                else
+                TEST_SUITE="Smoke"
+                fi
+                if [ -n "$TEST_SUITE_TAG" ]; then
+                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
+                TEST_SUITE=$TEST_SUITE_TAG
+                fi
+                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE='flask'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release e2e/specs/flask/
+      - custom-test-results-export@1:
+          title: Export test results
+          is_always_run: true
+          is_skippable: true
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          title: Deploy test report files
+          is_always_run: true
+          is_skippable: true
+      - script@1:
+          title: Copy screenshot files
+          is_always_run: true
+          run_if: .IsBuildFailed
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy test screenshots
+          is_always_run: true
+          run_if: .IsBuildFailed
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: E2E_Android_Failure_Artifacts
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+
+  build_qa_flask_stage:
+    abort_on_fail: true
+    workflows:
+      - create_qa_flask_build_pipeline: {}
+
+  create_qa_flask_build_pipeline:
+    before_run:
+      - setup
+    after_run:
+      - create_qa_flask_builds
+    
+  create_qa_flask_builds:
+    abort_on_fail: true
+    workflows:
+      - build_android_qa_flask:
+          name: "Build Android QA Flask"
+          is_always_run: false
+      - build_ios_qa_flask:
+          name: "Build iOS QA Flask"
+          is_always_run: false
+
+  build_android_qa_flask:
+    abort_on_fail: true
+    before_run:
+      - setup_release_keystore
+    after_run: []
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@6: {}
+      - cache-pull@2: {}
+      - script@1:
+          title: Set environment variables for QA Flask build
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Set up environment variables for QA Flask build
+                envman add --key APP_NAME --value qaFlask
+                envman add --key OUTPUT_PATH --value qaFlask
+                envman add --key METAMASK_ENVIRONMENT --value qa
+                envman add --key METAMASK_BUILD_TYPE --value flask
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
+          title: Build Android QA Flask Bundle
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                # Build QA Flask
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa:flask
+      - save-gradle-cache@1: {}
+      - script@1:
+          title: Rename release files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Set base paths for release builds
+                APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
+                BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
+                
+                # Generate new names based on build type and version
+                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                
+                # Rename APK
+                OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+                NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
+                mv "$OLD_APK" "$NEW_APK"
+                
+                # Rename AAB
+                OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
+                NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+                mv "$OLD_AAB" "$NEW_AAB"
+                
+                # Export new names as environment variables
+                envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
+                envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
+                envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
+
+  build_ios_qa_flask:
+    abort_on_fail: true
+    before_run:
+      - setup_certificates
+    after_run: []
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@6: {}
+      - cache-pull@2: {}
+      - cocoapods-install@2: {}
+      - script@1:
+          title: Set environment variables for iOS QA Flask build
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key METAMASK_ENVIRONMENT --value qa
+                envman add --key METAMASK_BUILD_TYPE --value flask
+      - script@1:
+          title: Build iOS QA Flask
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                export LC_ALL=en_US.UTF-8
+                export LANG=en_US.UTF-8
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa:flask
+      - script@1:
+          title: Rename and move IPA file
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Define possible IPA locations
+                QA_FLASK_IPA_PATH_1=ios/build/output/MetaMask-Flask.ipa
+                
+                # Check which one exists and copy it with a new name
+                if [ -f "$QA_FLASK_IPA_PATH_1" ]; then
+                  # Rename the file
+                  NEW_NAME="metamask-qa-flask-${NAME}-${NUMBER}.ipa"
+                  cp "$QA_FLASK_IPA_PATH_1" "ios/build/output/$NEW_NAME"
+                  envman add --key IPA_PATH --value "ios/build/output/$NEW_NAME"
+                else
+                  echo "ERROR: Could not find IPA file at any expected location"
+                  exit 1
+                fi
 
 app:
   envs:
@@ -1832,7 +2529,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 26.1.10909125
+      NDK_VERSION: 24.0.8215888
     - opts:
         is_expand: false
       QA_APK_NAME: app-qa-release
@@ -1895,7 +2592,7 @@ app:
       COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
-    stack: osx-xcode-16.2.x
+    stack: osx-xcode-15.0.x
     machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
@@ -1904,5 +2601,11 @@ trigger_map:
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
-  - tag: 'v*.*.*'
-    pipeline: create_qa_builds_pipeline
+  - tag: 'qa-flask-*'
+    pipeline: build_qa_flask_stage
+  - tag: 'dev-e2e-*'
+    pipeline: pr_smoke_e2e_pipeline
+  - tag: 'v*.*.*-RC-*'
+    pipeline: release_e2e_pipeline
+  - push_branch: detox/address-regression-tests-slowdown
+    pipeline: multichain_permissions_e2e_pipeline

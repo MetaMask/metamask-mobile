@@ -444,6 +444,49 @@ buildIosQA(){
 	fi
 }
 
+buildIosQAFlask(){
+	echo "Start iOS QA Flask build..."
+
+	# Configure both Flask and QA environment variables
+	remapFlaskEnvVariables
+	remapEnvVariableQA
+
+	prebuild_ios
+
+	# Replace release.xcconfig with ENV vars
+	if [ "$PRE_RELEASE" = true ] ; then
+		echo "Setting up env vars...";
+		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
+		echo "Build started..."
+		brew install watchman
+		cd ios
+		# Create a custom scheme for QA Flask in Xcode if it doesn't exist
+		# For this example, we'll use the Flask scheme with QA environment
+		generateArchivePackages "MetaMask-Flask"
+	else
+		if [ ! -f "ios/release.xcconfig" ] ; then
+			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+		fi
+		cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-Flask -configuration Release -sdk iphonesimulator -derivedDataPath build
+	fi
+}
+
+buildIosSimulatorQAFlask(){
+	prebuild_ios
+	# Use both Flask and QA environment variables
+	remapFlaskEnvVariables
+	remapEnvVariableQA
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
+}
+
+buildIosDeviceQAFlask(){
+	prebuild_ios
+	# Use both Flask and QA environment variables
+	remapFlaskEnvVariables
+	remapEnvVariableQA
+	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
+}
 
 buildAndroidQA(){
 	echo "Start Android QA build..."
@@ -541,6 +584,41 @@ buildAndroidQAE2E(){
 	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
+buildAndroidRunQAFlask(){
+	prebuild_android
+	# Use both Flask and QA environment variables
+	remapFlaskEnvVariables
+	remapEnvVariableQA
+	npx expo run:android --no-install --port $WATCHER_PORT --variant 'qaFlaskDebug'
+}
+
+buildAndroidQAFlask(){
+	echo "Start Android QA Flask build..."
+
+	# Configure both Flask and QA environment variables
+	remapFlaskEnvVariables
+	remapEnvVariableQA
+
+	prebuild_android
+
+	# Generate APK
+	cd android && ./gradlew assembleQaFlaskRelease --no-daemon --max-workers 2
+
+	# GENERATE BUNDLE
+	if [ "$GENERATE_BUNDLE" = true ] ; then
+		./gradlew bundleQaFlaskRelease
+	fi
+
+	if [ "$PRE_RELEASE" = true ] ; then
+		# Generate checksum
+		yarn build:android:checksum:qaflask
+	fi
+
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb install app/build/outputs/apk/qaFlask/release/app-qaFlask-release.apk
+	fi
+}
+
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
 		buildAndroidRelease
@@ -548,6 +626,8 @@ buildAndroid() {
 		buildAndroidFlaskRelease
 	elif [ "$MODE" == "QA" ] ; then
 		buildAndroidQA
+	elif [ "$MODE" == "QAFlask" ] ; then
+		buildAndroidQAFlask
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "QAE2E" ] ; then
@@ -558,6 +638,8 @@ buildAndroid() {
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
+	elif [ "$MODE" == "qaFlaskDebug" ] ; then
+		buildAndroidRunQAFlask
 	elif [ "$MODE" == "devBuild" ] ; then
 		buildAndroidDevBuild
 	else
@@ -582,12 +664,14 @@ buildIos() {
 		buildIosFlaskRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
-  elif [ "$MODE" == "debugE2E" ] ; then
+	elif [ "$MODE" == "debugE2E" ] ; then
 		buildIosSimulatorE2E
-  elif [ "$MODE" == "qadebugE2E" ] ; then
+	elif [ "$MODE" == "qadebugE2E" ] ; then
 		buildIosQASimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
+	elif [ "$MODE" == "QAFlask" ] ; then
+		buildIosQAFlask
 	elif [ "$MODE" == "qaDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDeviceQA
@@ -599,6 +683,12 @@ buildIos() {
 			buildIosDeviceFlask
 		else
 			buildIosSimulatorFlask
+		fi
+	elif [ "$MODE" == "qaFlaskDebug" ] ; then
+		if [ "$RUN_DEVICE" = true ] ; then
+			buildIosDeviceQAFlask
+		else
+			buildIosSimulatorQAFlask
 		fi
 	elif [ "$MODE" == "devbuild" ] ; then
 		buildIosDevBuild

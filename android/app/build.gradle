@@ -257,6 +257,13 @@ android {
             applicationId "io.metamask"
             signingConfig signingConfigs.flask
           }
+          qaFlask {
+            dimension "version"
+            applicationIdSuffix ".flask.qa"
+            applicationId "io.metamask"
+            // Using the QA signing config since this is a QA build
+            signingConfig signingConfigs.qa
+          }
     	  }
 
 	  buildTypes.each {

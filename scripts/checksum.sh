@@ -10,6 +10,9 @@ case "$MODE" in
   "flask")
     DIR="flask/release"
     ;;
+  "qaflask")
+    DIR="qaFlask/release"
+    ;;
   *)
     DIR="prod/release"
     MODE="prod" 
