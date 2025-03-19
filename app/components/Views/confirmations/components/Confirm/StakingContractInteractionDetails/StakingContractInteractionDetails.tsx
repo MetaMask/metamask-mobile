@@ -70,7 +70,7 @@ const StakingContractInteractionDetails = () => {
           </View>
         </InfoRow>
       </>
-    )
-  }
+    );
+  };
 
 export default StakingContractInteractionDetails;
