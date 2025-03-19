@@ -1,16 +1,17 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
+import { UnstakeConfirmationViewProps } from '../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useQRHardwareContext } from '../../../context/QRHardwareContext';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import PersonalSign from './PersonalSign';
 import QRInfo from './QRInfo';
+import StakingClaim from './StakingClaim';
 import StakingDeposit from './StakingDeposit';
 import StakingWithdrawal from './StakingWithdrawal';
 import TypedSignV1 from './TypedSignV1';
 import TypedSignV3V4 from './TypedSignV3V4';
-import { UnstakeConfirmationViewProps } from '../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
   transactionType?: TransactionType;
@@ -32,6 +33,8 @@ const ConfirmationInfoComponentMap = {
         return StakingDeposit;
       case TransactionType.stakingUnstake:
         return StakingWithdrawal;
+      case TransactionType.stakingClaim:
+        return StakingClaim;
       default:
         return null;
     }
@@ -67,9 +70,19 @@ const Info = ({ route }: InfoProps) => {
 
   if (!InfoComponent) return null;
 
-  if (transactionType === TransactionType.stakingUnstake) {
-    const StakingWithdrawalComponent = InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
-    return <StakingWithdrawalComponent route={route as UnstakeConfirmationViewProps['route']} />;
+  if (
+    transactionType && [
+      // We only need this path for stake withdrawal and claim confirmations
+      // because they are passed the same route object as an argument that
+      // contains the wei amount to be withdrawn / claimed. Staking deposit
+      // doesn't need it because it reads the amount to stake from the
+      // transaction value in the transaction metadata directly.
+      TransactionType.stakingUnstake,
+      TransactionType.stakingClaim,
+    ].includes(transactionType)
+  ) {
+    const StakingComponentWithArgs = InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
+    return <StakingComponentWithArgs route={route as UnstakeConfirmationViewProps['route']} />;
   }
 
   const GenericComponent = InfoComponent as React.ComponentType<Record<string, never>>;
