@@ -121,7 +121,7 @@ const createStyles = (colors: Colors, typography: ThemeTypography) =>
       marginRight: 5,
     },
     listItemStatus: {
-      ...(typography.sBodyMDBold as TextStyle),
+      ...(typography.lBodyMDBold as TextStyle),
     },
   });
 
@@ -225,7 +225,7 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>{strings(`transaction.${type}`)}</Text>
+          <Text style={styles.title}>{strings(`transactions.${type}`)}</Text>
           <Text style={styles.date}>
             {timestamp && toDateFormat(new Date(timestamp * 1000))}
           </Text>

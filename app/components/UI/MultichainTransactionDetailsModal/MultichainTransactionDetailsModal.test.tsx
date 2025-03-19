@@ -73,7 +73,7 @@ describe('MultichainTransactionDetailsModal', () => {
       />,
     );
 
-    expect(getByText('transaction.send')).toBeTruthy();
+    expect(getByText('transactions.send')).toBeTruthy();
     expect(getByText('Mar 15, 2025')).toBeTruthy();
     expect(getByText('transactions.transaction_id')).toBeTruthy();
     expect(getByText('transactions.from')).toBeTruthy();
