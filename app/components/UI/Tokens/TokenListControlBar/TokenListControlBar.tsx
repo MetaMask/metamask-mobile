@@ -92,7 +92,13 @@ export const TokenListControlBar = ({
             testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
             onPress={goToAddToken}
             iconName={IconName.Add}
-            style={styles.controlIconButton}
+            style={
+              isEvmSelected
+                ? styles.controlIconButton
+                : // eslint-disable-next-line react-native/no-inline-styles
+                  { ...styles.controlIconButton, opacity: 0.5 }
+            }
+            disabled={!isEvmSelected}
           />
         </View>
       </View>

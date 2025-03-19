@@ -24,7 +24,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { strings } from '../../../../locales/i18n';
 import { selectTokenSortConfig } from '../../../selectors/preferencesController';
 import {
-  refreshEvmTokens,
+  refreshTokens,
   sortAssets,
   removeEvmToken,
   goToAddEvmToken,
@@ -34,13 +34,19 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import {
   selectEvmTokenFiatBalances,
   selectEvmTokens,
+  selectMultichainBalances,
+  selectMultichainTokenList,
 } from '../../../selectors/multichain';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { TokenListControlBar } from './TokenListControlBar';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -55,6 +61,8 @@ const Tokens = memo(() => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
+
+  // evm
   const evmNetworkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -69,6 +77,15 @@ const Tokens = memo(() => {
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
 
+  // non-evm
+  const multichainBalances = useSelector(selectMultichainBalances);
+  const nonEvmTokens = useSelector(selectMultichainTokenList);
+  const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+
+  const tokenList = isEvmSelected ? evmTokens : nonEvmTokens;
+  console.log(nonEvmTokens[0]);
+
   const styles = createStyles(colors);
 
   const tokensList = useMemo((): TokenI[] => {
@@ -78,9 +95,9 @@ const Tokens = memo(() => {
     });
 
     // we need to calculate fiat balances here in order to sort by descending fiat amount
-    const tokensWithBalances = evmTokens.map((token, i) => ({
+    const tokensWithBalances = tokenList.map((token, i) => ({
       ...token,
-      tokenFiatAmount: tokenFiatBalances[i],
+      tokenFiatAmount: isEvmSelected ? tokenFiatBalances[i] : token.balanceFiat,
     }));
 
     const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
@@ -88,36 +105,39 @@ const Tokens = memo(() => {
       name: TraceName.Tokens,
     });
     return tokensSorted;
-  }, [evmTokens, tokenFiatBalances, tokenSortConfig]);
+  }, [isEvmSelected, tokenFiatBalances, tokenList, tokenSortConfig]);
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {
-      if (actionSheet.current) {
+      // remove token currently only supported on evm
+      if (isEvmSelected && actionSheet.current) {
         setTokenToRemove(token);
         actionSheet.current.show();
       }
     },
-    [setTokenToRemove, actionSheet],
+    [isEvmSelected],
   );
 
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(() => {
-      refreshEvmTokens({
+      refreshTokens({
         isEvmSelected,
         setRefreshing,
         evmNetworkConfigurationsByChainId,
         nativeCurrencies,
+        selectedAccount,
       });
     });
   }, [
     isEvmSelected,
-    setRefreshing,
     evmNetworkConfigurationsByChainId,
     nativeCurrencies,
+    selectedAccount,
   ]);
 
   const removeToken = useCallback(async () => {
-    if (tokenToRemove) {
+    // remove token currently only supported on evm
+    if (isEvmSelected && tokenToRemove) {
       await removeEvmToken({
         tokenToRemove,
         currentChainId,
@@ -127,19 +147,28 @@ const Tokens = memo(() => {
         createEventBuilder, // Now passed as a prop
       });
     }
-  }, [tokenToRemove, currentChainId, trackEvent, createEventBuilder]);
+  }, [
+    isEvmSelected,
+    tokenToRemove,
+    currentChainId,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const goToAddToken = useCallback(() => {
-    goToAddEvmToken({
-      setIsAddTokenEnabled,
-      navigation,
-      trackEvent,
-      createEventBuilder,
-      getDecimalChainId,
-      currentChainId,
-    });
+    // add token currently only support on evm
+    if (isEvmSelected) {
+      goToAddEvmToken({
+        setIsAddTokenEnabled,
+        navigation,
+        trackEvent,
+        createEventBuilder,
+        getDecimalChainId,
+        currentChainId,
+      });
+    }
   }, [
-    setIsAddTokenEnabled,
+    isEvmSelected,
     navigation,
     trackEvent,
     createEventBuilder,
@@ -170,6 +199,7 @@ const Tokens = memo(() => {
             onRefresh={onRefresh}
             showRemoveMenu={showRemoveMenu}
             goToAddToken={goToAddToken}
+            showNetworkBadge={isEvmSelected}
           />
         )}
         <ActionSheet

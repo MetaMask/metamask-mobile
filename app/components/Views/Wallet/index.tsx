@@ -649,7 +649,8 @@ const Wallet = ({
           renderTabBar={renderTabBar}
           onChangeTab={onChangeTab}
         >
-          <NonEvmTokens {...nonEvmTokensTabProps} />
+          {/* <NonEvmTokens {...nonEvmTokensTabProps} /> */}
+          <Tokens {...nonEvmTokensTabProps} />
         </ScrollableTabView>
       );
     }

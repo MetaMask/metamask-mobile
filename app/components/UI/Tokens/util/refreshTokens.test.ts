@@ -1,4 +1,4 @@
-import { refreshEvmTokens } from './refreshEvmTokens';
+import { refreshTokens } from './refreshTokens';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
@@ -27,7 +27,7 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-describe('refreshEvmTokens', () => {
+describe('refreshTokens', () => {
   const mockSetRefreshing = jest.fn();
 
   const mockProps = {
@@ -38,6 +38,7 @@ describe('refreshEvmTokens', () => {
       '0x89': { chainId: '0x89' as Hex, nativeCurrency: 'POL' },
     },
     nativeCurrencies: ['ETH', 'POL'],
+    internalAccount: '',
   };
 
   afterEach(() => {
@@ -45,7 +46,7 @@ describe('refreshEvmTokens', () => {
   });
 
   it('should refresh tokens when EVM is selected', async () => {
-    await refreshEvmTokens(mockProps);
+    await refreshTokens(mockProps);
 
     // Ensure setRefreshing is called correctly
     expect(mockSetRefreshing).toHaveBeenCalledWith(true);
