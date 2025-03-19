@@ -29,8 +29,8 @@ describe('useQuotesAndCustomActions', () => {
     expect(result.current).toMatchObject(sortedQuotesMock);
   });
 
-  describe('customActionOrRecommendedQuote', () => {
-    it('returns the recommended quote if there are no custom actions', () => {
+  describe('recommendedCustomAction', () => {
+    it('returns the undefined if there are no custom actions', () => {
       (useSortedQuotes as jest.Mock).mockReturnValue({
         recommendedQuote: { id: 'quote-1', provider: { id: 'provider-id-1' } },
         customActions: [],
@@ -42,13 +42,10 @@ describe('useQuotesAndCustomActions', () => {
       const { result } = renderHookWithProvider(() =>
         useQuotesAndCustomActions(100),
       );
-      expect(result.current.customActionOrRecommendedQuote).toEqual({
-        id: 'quote-1',
-        provider: { id: 'provider-id-1' },
-      });
+      expect(result.current.recommendedCustomAction).toBeUndefined();
     });
 
-    it('returns the recommended quote if it is a previously used provider', () => {
+    it('returns the undefined if the recommended quote is a previously used provider', () => {
       (useSortedQuotes as jest.Mock).mockReturnValue({
         recommendedQuote: { id: 'quote-1', provider: { id: 'provider-id-1' } },
         customActions: [
@@ -72,10 +69,7 @@ describe('useQuotesAndCustomActions', () => {
       const { result } = renderHookWithProvider(() =>
         useQuotesAndCustomActions(100),
       );
-      expect(result.current.customActionOrRecommendedQuote).toEqual({
-        id: 'quote-1',
-        provider: { id: 'provider-id-1' },
-      });
+      expect(result.current.recommendedCustomAction).toBeUndefined();
     });
 
     it('returns the first custom action', () => {
@@ -102,7 +96,7 @@ describe('useQuotesAndCustomActions', () => {
       const { result } = renderHookWithProvider(() =>
         useQuotesAndCustomActions(100),
       );
-      expect(result.current.customActionOrRecommendedQuote).toEqual({
+      expect(result.current.recommendedCustomAction).toEqual({
         button: { light: {}, dark: {} },
         buy: { providerId: '/providers/paypal' },
         buyButton: { light: {}, dark: {} },
@@ -114,45 +108,5 @@ describe('useQuotesAndCustomActions', () => {
         ],
       });
     });
-  });
-
-  it('asserts isRecommendedQuoteACustomAction correctly', () => {
-    (useSortedQuotes as jest.Mock).mockReturnValue({
-      recommendedQuote: { id: 'quote-1', provider: { id: 'provider-id-2' } },
-      customActions: [
-        {
-          button: { light: {}, dark: {} },
-          buy: { providerId: '/providers/paypal' },
-          buyButton: { light: {}, dark: {} },
-          paymentMethodId: '/payments/paypal',
-          sellButton: { light: {}, dark: {} },
-          supportedPaymentMethodIds: [
-            '/payments/paypal',
-            '/payments/paypal-staging',
-          ],
-        },
-      ],
-      quotes: [],
-      sorted: [],
-      error: null,
-      isFetching: false,
-    });
-    const { result } = renderHookWithProvider(() =>
-      useQuotesAndCustomActions(100),
-    );
-    expect(result.current.isRecommendedQuoteACustomAction).toBe(true);
-
-    (useSortedQuotes as jest.Mock).mockReturnValue({
-      recommendedQuote: { id: 'quote-1', provider: { id: 'provider-id-1' } },
-      customActions: [],
-      quotes: [],
-      sorted: [],
-      error: null,
-      isFetching: false,
-    });
-    const { result: result2 } = renderHookWithProvider(() =>
-      useQuotesAndCustomActions(100),
-    );
-    expect(result2.current.isRecommendedQuoteACustomAction).toBe(false);
   });
 });

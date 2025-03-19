@@ -10,27 +10,19 @@ function useQuotesAndCustomActions(amount: number | string) {
 
   const { recommendedQuote, customActions } = sortedQuotes;
 
-  const customActionOrRecommendedQuote = useMemo(() => {
-    if (customActions && customActions.length > 0) {
-      if (
-        recommendedQuote &&
-        ordersProviders.includes(recommendedQuote.provider.id)
-      ) {
-        return recommendedQuote;
-      }
+  const recommendedCustomAction = useMemo(() => {
+    if (
+      customActions &&
+      customActions?.length > 0 &&
+      (!recommendedQuote ||
+        !ordersProviders.includes(recommendedQuote.provider.id))
+    ) {
       return customActions[0];
     }
-
-    return recommendedQuote;
   }, [customActions, ordersProviders, recommendedQuote]);
 
-  const isRecommendedQuoteACustomAction =
-    customActionOrRecommendedQuote &&
-    !('provider' in customActionOrRecommendedQuote);
-
   return {
-    isRecommendedQuoteACustomAction,
-    customActionOrRecommendedQuote,
+    recommendedCustomAction,
     ...sortedQuotes,
   };
 }

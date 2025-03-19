@@ -123,9 +123,11 @@ function Quotes() {
 
   const {
     recommendedQuote,
+    recommendedCustomAction,
     quotesWithoutError,
     quotesWithError,
     quotesByPriceWithoutError,
+    customActions,
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,
@@ -755,6 +757,8 @@ function Quotes() {
           <ScrollView testID={QuoteSelectors.QUOTES}>
             {isFetchingQuotes && isInPolling ? (
               <LoadingQuotes count={1} />
+            ) : recommendedCustomAction ? (
+              <>{/*TODO: Implement Custom Action Fake Quote */}</>
             ) : recommendedQuote ? (
               <Row key={recommendedQuote.provider.id}>
                 <Quote
@@ -879,22 +883,32 @@ function Quotes() {
               {isFetchingQuotes && isInPolling ? (
                 <LoadingQuotes />
               ) : (
-                quotesByPriceWithoutError.map((quote, index) => (
-                  <Row key={quote.provider.id}>
-                    <Quote
-                      isLoading={isQuoteLoading}
-                      previouslyUsedProvider={ordersProviders.includes(
-                        quote.provider.id,
-                      )}
-                      quote={quote}
-                      onPress={() => handleOnQuotePress(quote)}
-                      onPressCTA={() => handleOnPressCTA(quote, index)}
-                      highlighted={quote.provider.id === providerId}
-                      showInfo={() => handleInfoPress(quote)}
-                      rampType={rampType}
-                    />
-                  </Row>
-                ))
+                <>
+                  {customActions
+                    ? customActions.map((_, index) => (
+                        <Row key={index}>
+                          {/*TODO: Implement Custom Action Fake Quote (list item)*/}
+                        </Row>
+                      ))
+                    : null}
+
+                  {quotesByPriceWithoutError.map((quote, index) => (
+                    <Row key={quote.provider.id}>
+                      <Quote
+                        isLoading={isQuoteLoading}
+                        previouslyUsedProvider={ordersProviders.includes(
+                          quote.provider.id,
+                        )}
+                        quote={quote}
+                        onPress={() => handleOnQuotePress(quote)}
+                        onPressCTA={() => handleOnPressCTA(quote, index)}
+                        highlighted={quote.provider.id === providerId}
+                        showInfo={() => handleInfoPress(quote)}
+                        rampType={rampType}
+                      />
+                    </Row>
+                  ))}
+                </>
               )}
             </ScreenLayout.Content>
           </Animated.ScrollView>
