@@ -4544,7 +4544,7 @@
     "@metamask/controller-utils" "^11.5.0"
     "@metamask/utils" "^11.1.0"
 
-"@metamask/approval-controller@^7.1.0", "@metamask/approval-controller@^7.1.2", "@metamask/approval-controller@^7.1.3":
+"@metamask/approval-controller@^7.1.0", "@metamask/approval-controller@^7.1.3":
   version "7.1.3"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-7.1.3.tgz#2d28dfb9261806ab31855ec63bd6781fbd7a4ebf"
   integrity sha512-1xfcJoHOTf2S+0JLN82ayYvO8VwxloZDvhTqJHNaqsDSgfx6TtC50+nBBahAGQxxtiTBrI3ZwwwDATpfutWwdg==
@@ -5183,17 +5183,16 @@
     "@metamask/utils" "^11.1.0"
     "@solana/addresses" "^2.0.0"
 
-"@metamask/multichain-transactions-controller@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-0.7.0.tgz#fab21da6233fcfc10d208ea96fd533591046bc8c"
-  integrity sha512-KsnxkC5BH7ZRiv7lVgcFoTLNcJamb4s5dPkjqqtqFMBW02OZxqQEo+EstDytWcsdNDvS9CRisAGsBkRGUM4F1A==
+"@metamask/multichain-transactions-controller@^0.7.2":
+  version "0.7.2"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-0.7.2.tgz#c92b1103ecf11400cad9ce272ab4cdd77053bbe3"
+  integrity sha512-C2TmESwhSunyEgbi9P39l5TwghtZOez+kJ0QHZBhHG/GlYb8Tr/FX435+B9nOEw1MkD3BjZYlM8IejTMIp+lsQ==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/keyring-api" "^17.2.0"
     "@metamask/keyring-internal-api" "^6.0.0"
     "@metamask/keyring-snap-client" "^4.0.1"
     "@metamask/polling-controller" "^12.0.3"
-    "@metamask/snaps-controllers" "^9.19.0"
     "@metamask/snaps-sdk" "^6.17.1"
     "@metamask/snaps-utils" "^8.10.0"
     "@metamask/utils" "^11.2.0"
@@ -5303,7 +5302,7 @@
     immer "^9.0.6"
     nanoid "^3.3.8"
 
-"@metamask/phishing-controller@^12.0.3", "@metamask/phishing-controller@^12.3.1", "@metamask/phishing-controller@^12.4.0":
+"@metamask/phishing-controller@^12.0.3", "@metamask/phishing-controller@^12.4.0":
   version "12.4.1"
   resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.4.1.tgz#afce80b16d04856c53a8be9d24961d3fb272a2db"
   integrity sha512-UOTl0z8lVXlx3p32Kp0YtLN5YiXgodT0JXNNS/f5Q2KLlwoYTvVctb/cDyKzBDf/mWvECy1+npKCM43aQ5clTA==
@@ -5588,40 +5587,6 @@
     semver "^7.5.4"
     tar-stream "^3.1.7"
 
-"@metamask/snaps-controllers@^9.19.0":
-  version "9.19.1"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-9.19.1.tgz#3864fe80412ac52f167ee79fa4f1a8b00f6c1288"
-  integrity sha512-UyzVAvSt9GyXRnogGuWrfCW5Xes/3uN/sJ5lnoF1qP4B8WaQmlS5tZKRr5MIqUp2sViDZ/rSYyOqzXMSPbJgkg==
-  dependencies:
-    "@metamask/approval-controller" "^7.1.2"
-    "@metamask/base-controller" "^7.0.3"
-    "@metamask/json-rpc-engine" "^10.0.2"
-    "@metamask/json-rpc-middleware-stream" "^8.0.6"
-    "@metamask/key-tree" "^10.0.2"
-    "@metamask/object-multiplex" "^2.1.0"
-    "@metamask/permission-controller" "^11.0.5"
-    "@metamask/phishing-controller" "^12.3.1"
-    "@metamask/post-message-stream" "^9.0.0"
-    "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/snaps-registry" "^3.2.3"
-    "@metamask/snaps-rpc-methods" "^11.11.0"
-    "@metamask/snaps-sdk" "^6.17.1"
-    "@metamask/snaps-utils" "^8.10.0"
-    "@metamask/utils" "^11.0.1"
-    "@xstate/fsm" "^2.0.0"
-    async-mutex "^0.5.0"
-    browserify-zlib "^0.2.0"
-    concat-stream "^2.0.0"
-    fast-deep-equal "^3.1.3"
-    get-npm-tarball-url "^2.0.3"
-    immer "^9.0.6"
-    luxon "^3.5.0"
-    nanoid "^3.1.31"
-    readable-stream "^3.6.2"
-    readable-web-to-node-stream "^3.0.2"
-    semver "^7.5.4"
-    tar-stream "^3.1.7"
-
 "@metamask/snaps-execution-environments@^7.0.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-execution-environments/-/snaps-execution-environments-7.0.0.tgz#0218b7bde9bf051308a0235dd4364905d772728c"
@@ -5648,21 +5613,6 @@
     "@metamask/utils" "^11.0.1"
     "@noble/curves" "^1.2.0"
     "@noble/hashes" "^1.3.2"
-
-"@metamask/snaps-rpc-methods@^11.11.0":
-  version "11.13.1"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-11.13.1.tgz#c9b6ad8cc71b3e3d159236e870790dba4d16d311"
-  integrity sha512-vrat0M3odlGNMFqpGKmd0JJ8Nqt2aqFh86ieDs6HEdJU2YFOlq4HZ+ttKI7oMH4FC8qnSgTEZayY5/sdzAr6xg==
-  dependencies:
-    "@metamask/key-tree" "^10.0.2"
-    "@metamask/permission-controller" "^11.0.6"
-    "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/snaps-sdk" "^6.19.0"
-    "@metamask/snaps-utils" "^9.0.1"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.2.0"
-    "@noble/hashes" "^1.3.1"
-    luxon "^3.5.0"
 
 "@metamask/snaps-rpc-methods@^12.0.0":
   version "12.0.0"
@@ -5760,10 +5710,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.12.0":
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.12.0.tgz#2b5652b98fd9426112db2c35f1ccbac193077ed9"
-  integrity sha512-WYPMI3fA41VxULSIGoFlH3/eD/nko5ttg52mXSPdYAcyERkCKSZ43/+0UJSHNMttMTpB98VCoWJmsQM3xT7XYw==
+"@metamask/solana-wallet-snap@^1.13.0":
+  version "1.13.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.13.0.tgz#fe4eb7fe96ed7a3b7c7226bf1e1a2b1bbda27036"
+  integrity sha512-z2DKPYdR03xicxfTuyV6YSc/GdI9jXwzE+ARLNF/C44rnO6YmLjL9R7qy32VCB1jbt1L93CYYPoM2tW/2nlF8w==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"

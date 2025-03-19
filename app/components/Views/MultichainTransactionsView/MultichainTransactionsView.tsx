@@ -24,6 +24,7 @@ import {
 import { selectSolanaAccountTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
+import { getBlockExplorerName } from '../../../util/networks';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -98,20 +99,18 @@ const MultichainTransactionsView = () => {
 
   const renderViewMore = () => {
     const chainId = nonEvmNetworkChainIdByAccountAddress(selectedAddress || '');
+    const url = getAddressUrl(selectedAddress || '', chainId as CaipChainId);
 
     return (
       <View style={styles.viewMoreWrapper}>
         <Button
           variant={ButtonVariants.Link}
           size={ButtonSize.Lg}
-          label={`${strings('transactions.view_full_history_on')}`}
+          label={`${strings(
+            'transactions.view_full_history_on',
+          )} ${getBlockExplorerName(url)}`}
           style={styles.viewMoreButton}
           onPress={() => {
-            const url = getAddressUrl(
-              selectedAddress || '',
-              chainId as CaipChainId,
-            );
-
             navigation.navigate('Webview', {
               screen: 'SimpleWebview',
               params: { url },
