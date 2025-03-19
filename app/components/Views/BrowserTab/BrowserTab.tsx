@@ -266,14 +266,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Go back to previous website in history
    */
   const goBack = useCallback(() => {
+    Logger.log('[BROWSER_TAB] Going back');
     if (!backEnabled) return;
 
     toggleOptionsIfNeeded();
     const { current } = webviewRef;
     if (!current) {
-      Logger.log('WebviewRef current is not defined!');
+      Logger.log('[BROWSER_TAB] WebviewRef current is not defined!');
     }
-    // Reset error state
     setError(false);
     current?.goBack?.();
   }, [backEnabled, toggleOptionsIfNeeded]);
@@ -282,6 +282,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Go forward to the next website in history
    */
   const goForward = async () => {
+    Logger.log('[BROWSER_TAB] Going forward');
     if (!forwardEnabled) return;
 
     toggleOptionsIfNeeded();
@@ -352,13 +353,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
+            }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
+            }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -542,8 +541,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       const disctinctId = await getMetaMetricsId();
       const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-                injectedBookmarks || bookmarks,
-              )};
+        injectedBookmarks || bookmarks,
+      )};
               window.__mmSearchEngine = "${searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
@@ -567,6 +566,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const handleError = useCallback(
     (webViewError: WebViewError) => {
+      Logger.log('[BROWSER_TAB] Handling error');
       resolvedUrlRef.current = submittedUrlRef.current;
       titleRef.current = `Can't Open Page`;
       iconRef.current = undefined;
@@ -669,6 +669,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       canGoBack: boolean;
       canGoForward: boolean;
     }) => {
+      Logger.log('[BROWSER_TAB] Successfully resolved page');
       resolvedUrlRef.current = siteInfo.url;
       titleRef.current = siteInfo.title;
       if (siteInfo.icon) iconRef.current = siteInfo.icon;
@@ -800,6 +801,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       event: WebViewNavigationEvent | WebViewErrorEvent;
       forceResolve?: boolean;
     }) => {
+      Logger.log('[BROWSER_TAB] Load ended');
       if ('code' in nativeEvent) {
         // Handle error - code is a property of WebViewErrorEvent
         return handleError(nativeEvent);
@@ -835,6 +837,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Handle message from website
    */
   const onMessage = ({ nativeEvent }: WebViewMessageEvent) => {
+    Logger.log('[BROWSER_TAB] Message received from webview');
     const data = nativeEvent.data;
     try {
       if (data.length > MAX_MESSAGE_LENGTH) {
@@ -926,6 +929,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const onLoadStart = useCallback(
     async ({ nativeEvent }: WebViewNavigationEvent) => {
+      Logger.log('[BROWSER_TAB] Load started');
       // Use URL to produce real url. This should be the actual website that the user is viewing.
       const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
@@ -1002,6 +1006,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Handle new tab button press
    */
   const onNewTabPress = () => {
+    Logger.log('[BROWSER_TAB] New tab button pressed');
     openNewTab();
     trackNewTabEvent();
   };
@@ -1010,6 +1015,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Show the different tabs
    */
   const triggerShowTabs = () => {
+    Logger.log('[BROWSER_TAB] Triggering show tabs');
     dismissTextSelectionIfNeeded();
     showTabs();
   };
@@ -1058,6 +1064,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const onSubmitEditing = useCallback(
     async (text: string) => {
+      Logger.log('[BROWSER_TAB] Submitting URL');
       if (!text) return;
       setConnectionType(ConnectionType.UNKNOWN);
       urlBarRef.current?.setNativeProps({ text });
@@ -1096,6 +1103,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Go to home page, reload if already on homepage
    */
   const goToHomepage = useCallback(async () => {
+    Logger.log('[BROWSER_TAB] Going to homepage');
     onSubmitEditing(homePageUrl);
     toggleOptionsIfNeeded();
     triggerDappViewedEvent(resolvedUrlRef.current);
@@ -1113,6 +1121,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Reload current page
    */
   const reload = useCallback(() => {
+    Logger.log('[BROWSER_TAB] Reloading page');
     onSubmitEditing(resolvedUrlRef.current);
     triggerDappViewedEvent(resolvedUrlRef.current);
   }, [onSubmitEditing, triggerDappViewedEvent]);
@@ -1135,6 +1144,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const handleOnFileDownload = useCallback(
     async ({ nativeEvent: { downloadUrl } }) => {
+      Logger.log('[BROWSER_TAB] Handling file download');
       const downloadResponse = await downloadFile(downloadUrl);
       if (downloadResponse) {
         reload();
@@ -1150,6 +1160,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Return to the MetaMask Dapp Homepage
    */
   const returnHome = () => {
+    Logger.log('[BROWSER_TAB] Returning to home');
     onSubmitEditing(HOMEPAGE_HOST);
   };
 

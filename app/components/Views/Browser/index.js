@@ -77,11 +77,11 @@ export const Browser = (props) => {
     }).href;
 
   const newTab = (url, linkType) => {
-    // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+    Logger.log('[BROWSER] Creating a new tab');
     if (tabs.length >= MAX_BROWSER_TABS) {
+      Logger.log('[BROWSER] Max browser tabs reached');
       navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
     } else {
-      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
       createNewTab(url || homePageUrl(), linkType);
     }
   };
@@ -100,6 +100,7 @@ export const Browser = (props) => {
   };
 
   const switchToTab = (tab) => {
+    Logger.log(`[BROWSER] Switching to tab with ID: ${tab.id}`);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
     );
@@ -111,6 +112,7 @@ export const Browser = (props) => {
   const hasAccounts = useRef(Boolean(accounts.length));
 
   useEffect(() => {
+    Logger.log('[BROWSER] Checking if active account changed');
     const checkIfActiveAccountChanged = async () => {
       const hostname = new URL(browserUrl).hostname;
       const permittedAccounts = await getPermittedAccounts(hostname);
@@ -152,6 +154,7 @@ export const Browser = (props) => {
   // componentDidMount
   useEffect(
     () => {
+      Logger.log('[BROWSER] Component did mount');
       const currentUrl = route.params?.newTabUrl;
       const existingTabId = route.params?.existingTabId;
       if (!currentUrl && !existingTabId) {
@@ -181,6 +184,7 @@ export const Browser = (props) => {
   // Detect when new tab is added and switch to it.
   useEffect(
     () => {
+      Logger.log('[BROWSER] Detecting new tab addition');
       if (previousTabs.current && tabs.length > previousTabs.current.length) {
         // New tab was added.
         const tabToSwitch = tabs[tabs.length - 1];
@@ -216,8 +220,9 @@ export const Browser = (props) => {
     ],
   );
 
-  const takeScreenshot = (url, tabID) =>
-    new Promise((resolve, reject) => {
+  const takeScreenshot = (url, tabID) => {
+    Logger.log(`[BROWSER] Taking screenshot for tab ID: ${tabID}`);
+    return new Promise((resolve, reject) => {
       captureScreen({
         format: 'jpg',
         quality: 0.2,
@@ -237,8 +242,10 @@ export const Browser = (props) => {
         },
       );
     });
+  };
 
   const showTabs = async () => {
+    Logger.log('[BROWSER] Showing tabs');
     try {
       const activeTab = tabs.find((tab) => tab.id === activeTabId);
       await takeScreenshot(activeTab.url, activeTab.id);
@@ -253,6 +260,7 @@ export const Browser = (props) => {
   };
 
   const closeAllTabs = () => {
+    Logger.log('[BROWSER] Closing all tabs');
     if (tabs.length) {
       triggerCloseAllTabs();
       navigation.setParams({
@@ -263,6 +271,7 @@ export const Browser = (props) => {
   };
 
   const closeTab = (tab) => {
+    Logger.log(`[BROWSER] Closing tab with ID: ${tab.id}`);
     // If the tab was selected we have to select
     // the next one, and if there's no next one,
     // we select the previous one.
@@ -302,6 +311,7 @@ export const Browser = (props) => {
   };
 
   const renderTabsView = () => {
+    Logger.log('[BROWSER] Rendering tabs view');
     const showTabs = route.params?.showTabs;
     if (showTabs) {
       return (
@@ -319,8 +329,9 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabs = () =>
-    tabs.map((tab) => (
+  const renderBrowserTabs = () => {
+    Logger.log('[BROWSER] Rendering browser tabs');
+    return tabs.map((tab) => (
       <BrowserTab
         id={tab.id}
         key={`tab_${tab.id}`}
@@ -333,6 +344,7 @@ export const Browser = (props) => {
         homePageUrl={homePageUrl()}
       />
     ));
+  };
 
   return (
     <View
