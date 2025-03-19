@@ -27,7 +27,7 @@ const createStyles = (params: { theme: Theme }) => {
 const ChainPopularity: Record<Hex, number> = {
   [ETH_CHAIN_ID]: 1,
   // TODO add solana as 2
-  [BASE_CHAIN_ID]: 3,
+  [BASE_CHAIN_ID]: 1,
 };
 
 export const BridgeDestNetworksBar = () => {
