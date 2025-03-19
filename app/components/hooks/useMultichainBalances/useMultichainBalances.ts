@@ -24,6 +24,8 @@ import {
   selectMultichainDefaultToken,
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
+  selectMultichainBalances,
+  selectMultichainNetworkAggregatedBalance,
 } from '../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
@@ -74,6 +76,9 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   const { symbol } = useSelector(selectMultichainDefaultToken);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
   const multichainConversionRate = useSelector(selectMultichainConversionRate);
+  const multichainBalance = useSelector(
+    selectMultichainNetworkAggregatedBalance,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   // Production balance calculation (EVM)
@@ -107,17 +112,16 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const getMultiChainFiatBalance = (
-    nativeTokenBalance: string,
-    conversionRate: number,
-    currency: string,
-  ) => {
-    const multichainBalance = Number(nativeTokenBalance);
-    const fiatBalance = multichainBalance * conversionRate;
-    return formatWithThreshold(fiatBalance, 0, I18n.locale, {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    });
+  const getMultiChainFiatBalance = (currency: string) => {
+    return formatWithThreshold(
+      parseFloat(multichainBalance.totalBalanceFiat),
+      0,
+      I18n.locale,
+      {
+        style: 'currency',
+        currency: currency.toUpperCase(),
+      },
+    );
   };
 
   const getNonEvmDisplayBalance = () => {
@@ -125,11 +129,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       return `${multichainSelectedAccountCachedBalance} ${symbol}`;
     }
     if (multichainSelectedAccountCachedBalance && multichainConversionRate) {
-      return getMultiChainFiatBalance(
-        multichainSelectedAccountCachedBalance,
-        multichainConversionRate,
-        currentCurrency,
-      );
+      return getMultiChainFiatBalance(currentCurrency);
     }
 
     // default to native token symbol

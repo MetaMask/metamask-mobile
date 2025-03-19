@@ -293,4 +293,49 @@ export const selectMultichainTokenList = createDeepEqualSelector(
   },
 );
 
+export const selectMultichainNetworkAggregatedBalance = createDeepEqualSelector(
+  selectSelectedInternalAccount,
+  selectMultichainBalances,
+  selectMultichainAssets,
+  selectMultichainAssetsRates,
+  selectSelectedNonEvmNetworkChainId,
+  (
+    selectedAccountAddress,
+    multichainBalances,
+    assets,
+    assetsRates,
+    nonEvmNetworkChainId,
+  ) => {
+    if (!selectedAccountAddress) {
+      return { totalBalance: '0', totalBalanceFiat: '0' };
+    }
+
+    const assetIds = assets?.[selectedAccountAddress.id] || [];
+    const balances = multichainBalances?.[selectedAccountAddress.id];
+
+    return assetIds
+      .filter((assetId) => {
+        const { chainId } = parseCaipAssetType(assetId);
+        return chainId === nonEvmNetworkChainId;
+      })
+      .reduce(
+        (acc, assetId) => {
+          const balance = balances?.[assetId] || { amount: '0', unit: '' };
+          const rate = assetsRates?.[assetId]?.rate || '0';
+          const balanceInFiat = new BigNumber(balance.amount).times(rate);
+
+          acc.totalBalance = new BigNumber(acc.totalBalance)
+            .plus(balance.amount)
+            .toString();
+          acc.totalBalanceFiat = new BigNumber(acc.totalBalanceFiat)
+            .plus(balanceInFiat)
+            .toString();
+
+          return acc;
+        },
+        { totalBalance: '0', totalBalanceFiat: '0' },
+      );
+  },
+);
+
 ///: END:ONLY_INCLUDE_IF

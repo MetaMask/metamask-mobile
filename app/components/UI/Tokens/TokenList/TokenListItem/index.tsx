@@ -7,10 +7,7 @@ import useTokenBalancesController from '../../../../hooks/useTokenBalancesContro
 import { useTheme } from '../../../../../util/theme';
 import { TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
-import {
-  selectNetworkConfigurations,
-  selectNetworkConfigurationByChainId,
-} from '../../../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
@@ -252,6 +249,7 @@ export const TokenListItem = React.memo(
           .build(),
       );
 
+      // token details only currently supported for evm
       if (!isEvmNetworkSelected) {
         return;
       }
