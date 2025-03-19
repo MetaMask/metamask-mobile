@@ -110,9 +110,6 @@ import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import NonEvmTokens from '../../UI/NonEvmTokens';
-///: END:ONLY_INCLUDE_IF
 import {
   selectNativeEvmAsset,
   selectStakedEvmAsset,
