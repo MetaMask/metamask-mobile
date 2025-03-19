@@ -1,16 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import React from 'react';
-
-import renderWithProvider, {
-  DeepPartial,
-  renderHookWithProvider,
-} from '../../../../../../util/test/renderWithProvider';
 import TransactionReviewEIP1559 from '.';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { RootState } from '../../../../../../reducers';
+import renderWithProvider, {
+  renderHookWithProvider
+} from '../../../../../../util/test/renderWithProvider';
 
-const initialState: DeepPartial<RootState> = {
+const initialState = {
   settings: {},
   engine: {
     backgroundState: {
