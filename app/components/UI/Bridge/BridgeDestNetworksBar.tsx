@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { Box } from '../Box/Box';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../component-library/components/Texts/Text';
 import Routes from '../../../constants/navigation/Routes';
@@ -7,9 +6,8 @@ import Button, { ButtonVariants } from '../../../component-library/components/Bu
 import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { AlignItems, FlexDirection } from '../Box/box.types';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectEnabledDestChains, setSelectedDestChainId } from '../../../core/redux/slices/bridge';
 import { ETH_CHAIN_ID, BASE_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
@@ -20,6 +18,15 @@ const createStyles = (params: { theme: Theme }) => {
   return StyleSheet.create({
     networksButton: {
       borderColor: theme.colors.border.muted,
+    },
+    scrollView: {
+      flexGrow: 0,
+    },
+    contentContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 4,
     },
   });
 };
@@ -53,7 +60,12 @@ export const BridgeDestNetworksBar = () => {
   };
 
   return (
-    <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.scrollView}
+      contentContainerStyle={styles.contentContainer}
+    >
       <Button
         onPress={navigateToNetworkSelector}
         variant={ButtonVariants.Secondary}
@@ -70,5 +82,6 @@ export const BridgeDestNetworksBar = () => {
           onPress={() => handleSelectNetwork(chain.chainId)}
         />
       ))}
-    </Box>
-  );};
+    </ScrollView>
+  );
+};
