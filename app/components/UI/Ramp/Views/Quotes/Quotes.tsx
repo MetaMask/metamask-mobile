@@ -41,7 +41,7 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 
 import useAnalytics from '../../hooks/useAnalytics';
-import useSortedQuotes from '../../hooks/useSortedQuotes';
+import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 import { useRampSDK } from '../../sdk';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
@@ -129,7 +129,7 @@ function Quotes() {
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,
-  } = useSortedQuotes(params.amount);
+  } = useQuotesAndCustomActions(params.amount);
 
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
