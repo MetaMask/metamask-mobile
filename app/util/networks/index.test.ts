@@ -1,4 +1,5 @@
 import { ChainId, NetworkType } from '@metamask/controller-utils';
+import { SolScope, BtcScope } from '@metamask/keyring-api';
 import {
   isMainNet,
   isTestNet,
@@ -9,6 +10,7 @@ import {
   getBlockExplorerAddressUrl,
   getBlockExplorerTxUrl,
   isPrivateConnection,
+  findBlockExplorerForNonEvmChainId,
 } from '.';
 import {
   convertNetworkId,
@@ -498,6 +500,35 @@ describe('network-utils', () => {
 
     it('returns false for an IP not in private ranges', () => {
       expect(isPrivateConnection('192.169.0.1')).toBe(false);
+    });
+  });
+
+  describe('findBlockExplorerForNonEvmChainId', () => {
+    it('should return block explorer URL for Solana Mainnet', () => {
+      const blockExplorerUrl = findBlockExplorerForNonEvmChainId(
+        SolScope.Mainnet,
+      );
+      expect(blockExplorerUrl).toBe('https://explorer.solana.com');
+    });
+
+    it('should return block explorer URL for Bitcoin Mainnet', () => {
+      const blockExplorerUrl = findBlockExplorerForNonEvmChainId(
+        BtcScope.Mainnet,
+      );
+      expect(blockExplorerUrl).toBe('https://blockstream.info');
+    });
+
+    it('should return block explorer URL for Solana Devnet', () => {
+      const blockExplorerUrl = findBlockExplorerForNonEvmChainId(
+        SolScope.Devnet,
+      );
+      expect(blockExplorerUrl).toBe('https://explorer.solana.com');
+    });
+
+    it('should return undefined for unknown chain ID', () => {
+      const blockExplorerUrl =
+        findBlockExplorerForNonEvmChainId('unknown-chain-id');
+      expect(blockExplorerUrl).toBeUndefined();
     });
   });
 });
