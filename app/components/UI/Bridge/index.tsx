@@ -11,11 +11,7 @@ import { Box } from '../Box/Box';
 import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
 import Text, { TextColor } from '../../../component-library/components/Texts/Text';
 import Icon, { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
-import images from '../../../images/image-icons';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { Hex } from '@metamask/utils';
-import { isTestNet, getTestNetImageByChainId, isMainnetByChainId, isLineaMainnetByChainId } from '../../../util/networks';
-import { PopularList, UnpopularNetworkList, CustomNetworkImgMapping } from '../../../util/networks/customNetworks';
+import { getNetworkImageSource } from '../../../util/networks';
 import { useLatestBalance } from './useLatestBalance';
 import {
   selectSourceAmount,
@@ -33,31 +29,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { getBridgeNavbar } from '../Navbar';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
-
-const getNetworkImage = (chainId: SupportedCaipChainId | Hex) => {
-  if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-  if (isMainnetByChainId(chainId)) return images.ETHEREUM;
-  if (isLineaMainnetByChainId(chainId)) return images['LINEA-MAINNET'];
-
-  if (CustomNetworkImgMapping[chainId as Hex]) {
-    return CustomNetworkImgMapping[chainId as Hex];
-  }
-
-  const unpopularNetwork = UnpopularNetworkList.find(
-    (networkConfig) => networkConfig.chainId === chainId,
-  );
-
-  const popularNetwork = PopularList.find(
-    (networkConfig) => networkConfig.chainId === chainId,
-  );
-
-  const network = unpopularNetwork || popularNetwork;
-  if (network) {
-    return network.rpcPrefs.imageSource;
-  }
-
-  return undefined;
-};
+import useSubmitBridgeTx from '../../../util/bridge/hooks/useSubmitBridgeTx';
+import { QuoteResponse } from './types';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -116,6 +89,7 @@ const BridgeView = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
+  const { submitBridgeTx } = useSubmitBridgeTx();
 
   // Bridge state from Redux
   const sourceToken = useSelector(selectSourceToken);
@@ -154,6 +128,11 @@ const BridgeView = () => {
 
   const handleContinue = () => {
     // TODO: Implement bridge transaction with source and destination amounts
+    // TESTING: Paste a quote from the Bridge API here to test the bridge flow
+    const quoteResponse = undefined;
+    if (quoteResponse) {
+        submitBridgeTx({quoteResponse: quoteResponse as QuoteResponse});
+    }
   };
 
   const handleTermsPress = () => {
@@ -214,9 +193,10 @@ const BridgeView = () => {
             value={sourceAmount}
             tokenSymbol={sourceToken?.symbol}
             tokenBalance={sourceBalance?.displayBalance}
-            tokenIconUrl={sourceToken?.image ? { uri: sourceToken.image } : undefined}
+            tokenIconUrl={sourceToken?.image}
             tokenAddress={sourceToken?.address}
-            networkImageSource={getNetworkImage(sourceChainId)}
+            //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+            networkImageSource={getNetworkImageSource({ chainId: sourceChainId })}
             autoFocus
             isReadonly
             testID="source-token-area"
@@ -234,8 +214,9 @@ const BridgeView = () => {
             value={destAmount}
             tokenSymbol={destToken?.symbol}
             tokenAddress={destToken?.address}
-            tokenIconUrl={destToken?.image ? { uri: destToken.image } : undefined}
-            networkImageSource={destChainId ? getNetworkImage(destChainId) : undefined}
+            tokenIconUrl={destToken?.image}
+            //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+            networkImageSource={destChainId ? getNetworkImageSource({ chainId: destChainId }) : undefined}
             isReadonly
             testID="dest-token-area"
           />

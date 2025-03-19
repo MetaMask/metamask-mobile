@@ -1,7 +1,6 @@
 import { act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
-// eslint-disable-next-line import/no-namespace
-import * as I18nModule from '../../../../locales/i18n';
+import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
 import * as Actions from '../../../actions/notification/helpers';
 // eslint-disable-next-line import/no-namespace
@@ -409,17 +408,12 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
       .spyOn(Selectors, 'selectIsUpdatingMetamaskNotificationsAccount')
       .mockReturnValue([]);
 
-    const mockStrings = jest
-      .spyOn(I18nModule, 'strings')
-      .mockReturnValue('Some Translation');
-
     return {
       mockSelectIsUpdatingMetamaskNotifications,
       mockSelectIsMetamaskNotificationsEnabled,
       mockSelectIsMetaMaskPushNotificationsLoading,
       mockSelectIsMetaMaskPushNotificationsEnabled,
       mockSelectIsUpdatingMetamaskNotificationsAccount,
-      mockStrings,
     };
   };
 
@@ -437,64 +431,58 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
   };
 
   it('returns disabling notifications text when notifications are being disabled', () => {
-    const { hook, mocks } = arrangeAct((m) => {
+    const { hook } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotifications.mockReturnValue(true);
       m.mockSelectIsMetamaskNotificationsEnabled.mockReturnValue(true);
     });
-    expect(hook.result.current).toBeDefined();
-    expect(mocks.mockStrings).toHaveBeenCalledWith(
-      'app_settings.disabling_notifications',
+    expect(hook.result.current).toBe(
+      strings('app_settings.updating_notifications'),
     );
   });
 
   it('returns enabling notifications text when notifications are being enabled', () => {
-    const { hook, mocks } = arrangeAct((m) => {
+    const { hook } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotifications.mockReturnValue(true);
       m.mockSelectIsMetamaskNotificationsEnabled.mockReturnValue(false);
     });
-    expect(hook.result.current).toBeDefined();
-    expect(mocks.mockStrings).toHaveBeenCalledWith(
-      'app_settings.enabling_notifications',
+    expect(hook.result.current).toBe(
+      strings('app_settings.updating_notifications'),
     );
   });
 
   it('returns disabling notifications text when push notifications are being disabled', () => {
-    const { hook, mocks } = arrangeAct((m) => {
+    const { hook } = arrangeAct((m) => {
       m.mockSelectIsMetaMaskPushNotificationsEnabled.mockReturnValue(true);
       m.mockSelectIsMetaMaskPushNotificationsLoading.mockReturnValue(true);
     });
-    expect(hook.result.current).toBeDefined();
-    expect(mocks.mockStrings).toHaveBeenCalledWith(
-      'app_settings.disabling_notifications',
+    expect(hook.result.current).toBe(
+      strings('app_settings.updating_notifications'),
     );
   });
 
   it('returns enabling notifications text when push notifications are being enabled', () => {
-    const { hook, mocks } = arrangeAct((m) => {
+    const { hook } = arrangeAct((m) => {
       m.mockSelectIsMetaMaskPushNotificationsEnabled.mockReturnValue(false);
       m.mockSelectIsMetaMaskPushNotificationsLoading.mockReturnValue(true);
     });
-    expect(hook.result.current).toBeDefined();
-    expect(mocks.mockStrings).toHaveBeenCalledWith(
-      'app_settings.enabling_notifications',
+    expect(hook.result.current).toBe(
+      strings('app_settings.updating_notifications'),
     );
   });
 
   it('returns updating account settings text when accounts are being updated', () => {
-    const { hook, mocks } = arrangeAct((m) => {
+    const { hook } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotificationsAccount.mockReturnValue([
         '0xAddr1',
       ]);
     });
-    expect(hook.result.current).toBeDefined();
-    expect(mocks.mockStrings).toHaveBeenCalledWith(
-      'app_settings.updating_account_settings',
+    expect(hook.result.current).toBe(
+      strings('app_settings.updating_account_settings'),
     );
   });
 
   it('returns undefined when no loading state is active', () => {
-    const { mocks, hook } = arrangeAct();
+    const { hook } = arrangeAct();
     expect(hook.result.current).toBeUndefined();
-    expect(mocks.mockStrings).not.toHaveBeenCalled();
   });
 });
