@@ -112,7 +112,7 @@ describe('networks', () => {
         const result = formatBlockExplorerAddressUrl(urls, address);
 
         expect(result).toBe(
-          'https://blockstream.info/address/bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+          'https://mempool.space/address/bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
         );
       });
 
@@ -124,7 +124,7 @@ describe('networks', () => {
         const result = formatBlockExplorerAddressUrl(urls, address);
 
         expect(result).toBe(
-          'https://blockstream.info/testnet/address/tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx',
+          'https://mempool.space/testnet/address/tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx',
         );
       });
     });
@@ -209,7 +209,7 @@ describe('networks', () => {
         const result = formatBlockExplorerUrl(urls.transaction, 'txId', txId);
 
         expect(result).toBe(
-          'https://blockstream.info/tx/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b',
+          'https://mempool.space/tx/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b',
         );
       });
 
@@ -253,7 +253,7 @@ describe('networks', () => {
       it('verifies Bitcoin base URL formats', () => {
         const bitcoinUrls =
           MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[BtcScope.Mainnet];
-        expect(bitcoinUrls.url).toBe('https://blockstream.info');
+        expect(bitcoinUrls.url).toBe('https://mempool.space/');
       });
 
       it('verifies Solana base URL formats', () => {

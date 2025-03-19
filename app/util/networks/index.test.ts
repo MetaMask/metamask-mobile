@@ -594,7 +594,7 @@ describe('network-utils', () => {
           mockSelectedNonEvmNetworkChainId,
         );
         expect(url).toBe(
-          `https://blockstream.info/address/${MOCK_ACCOUNT_BIP122_P2WPKH.address}`,
+          `https://mempool.space/address/${MOCK_ACCOUNT_BIP122_P2WPKH.address}`,
         );
       });
 
@@ -605,7 +605,7 @@ describe('network-utils', () => {
           mockSelectedNonEvmNetworkChainId,
         );
         expect(url).toBe(
-          `https://blockstream.info/testnet/address/${MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET.address}`,
+          `https://mempool.space/testnet/address/${MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET.address}`,
         );
       });
 
@@ -622,7 +622,7 @@ describe('network-utils', () => {
           mockSelectedNonEvmNetworkChainId,
         );
         expect(url).toBe(
-          `https://blockstream.info/address/${MOCK_ACCOUNT_BIP122_P2WPKH.address}`,
+          `https://mempool.space/address/${MOCK_ACCOUNT_BIP122_P2WPKH.address}`,
         );
       });
 
@@ -638,7 +638,7 @@ describe('network-utils', () => {
           mockSelectedNonEvmNetworkChainId,
         );
         expect(url).toBe(
-          `https://blockstream.info/address/${MOCK_ACCOUNT_BIP122_P2WPKH.address}`,
+          `https://mempool.space/address/${MOCK_ACCOUNT_BIP122_P2WPKH.address}`,
         );
       });
 
@@ -655,7 +655,7 @@ describe('network-utils', () => {
         );
 
         expect(url).toBe(
-          `https://blockstream.info/testnet/address/${mockBitcoinAccountWithMultipleScopes.address}`,
+          `https://mempool.space/testnet/address/${mockBitcoinAccountWithMultipleScopes.address}`,
         );
       });
     });

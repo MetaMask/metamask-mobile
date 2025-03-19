@@ -221,7 +221,7 @@ jest.mock('../../../util/networks', () => {
     ...original,
     findBlockExplorerForNonEvmAccount: jest.fn((account) => {
       if (account.type === 'p2wpkh') {
-        return 'https://blockstream.info/address/bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
+        return 'https://mempool.space/address/bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
       } else if (account.type === 'data_account') {
         return 'https://explorer.solana.com/address/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
       }
@@ -230,7 +230,7 @@ jest.mock('../../../util/networks', () => {
     findBlockExplorerForRpc: jest.fn(() => 'https://custom-explorer.com'),
     getBlockExplorerName: jest.fn((url) => {
       if (url.includes('etherscan')) return 'etherscan.io';
-      if (url.includes('blockstream.info')) return 'blockstream.info';
+      if (url.includes('mempool.space')) return 'mempool.space';
       if (url.includes('explorer.solana.com')) return 'explorer.solana.com';
       if (url.includes('custom-explorer.com')) return 'custom-explorer.com';
       return 'Block Explorer';
@@ -390,8 +390,8 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://blockstream.info/address/bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
-        title: 'blockstream.info',
+        url: 'https://mempool.space/address/bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
+        title: 'mempool.space',
       },
     });
   });
