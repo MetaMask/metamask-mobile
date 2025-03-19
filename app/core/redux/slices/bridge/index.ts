@@ -193,7 +193,6 @@ export const selectSelectedDestChainId = createSelector(
 export const {
   setSourceAmount,
   setDestAmount,
-  setDestChainId,
   resetBridgeState,
   switchTokens,
   setSourceToken,

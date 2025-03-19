@@ -10,7 +10,7 @@ import BottomSheetHeader from '../../../component-library/components/BottomSheet
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import {
   selectEnabledDestChains,
-  setDestChainId,
+  setSelectedDestChainId,
 } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
@@ -65,7 +65,7 @@ export const BridgeDestNetworkSelector: React.FC = () => {
   const enabledDestChains = useSelector(selectEnabledDestChains);
 
   const handleChainSelect = (chainId: Hex) => {
-    dispatch(setDestChainId(chainId));
+    dispatch(setSelectedDestChainId(chainId));
     navigation.goBack();
   };
 
