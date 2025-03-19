@@ -1,3 +1,4 @@
+import { hasProperty } from '@metamask/utils';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
@@ -17,15 +18,12 @@ const migration = (state: unknown): unknown => {
   }
 
   try {
-    // Create a copy of the state
-    const newState = { ...state } as Record<string, unknown>;
-
     // Remove the staking key if it exists
-    if ('staking' in newState) {
-      delete newState.staking;
+    if (hasProperty(state, 'staking')) {
+      delete state.staking;
     }
 
-    return newState;
+    return state;
   } catch (error) {
     captureException(
       new Error(

@@ -13,7 +13,6 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-// TODO: Test using console.log(store.getState())
 describe('Migration 070: Remove staking reducer', () => {
   beforeEach(() => {
     jest.resetAllMocks();
@@ -47,9 +46,6 @@ describe('Migration 070: Remove staking reducer', () => {
 
     // Other keys should remain
     expect(migratedState).toHaveProperty('otherKey', 'should remain');
-
-    // Original state should not be modified
-    expect(state).toHaveProperty('staking');
 
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
