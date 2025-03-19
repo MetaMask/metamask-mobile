@@ -36,19 +36,6 @@ export type MultichainProviderConfig = ProviderConfigWithImageUrl & {
   isAddressCompatible: (address: string) => boolean;
 };
 
-/**
- * @deprecated TEMPORARY SOURCE OF TRUTH TBD
- * Non evm network mapping.
- */
-export enum MultichainNetworks {
-  BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
-  BITCOIN_TESTNET = 'bip122:000000000933ea01ad0ee984209779ba',
-
-  SOLANA = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  SOLANA_DEVNET = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
-  SOLANA_TESTNET = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
-}
-
 export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
   [BtcAccountType.P2wpkh]: BtcScope.Mainnet,
   [SolAccountType.DataAccount]: SolScope.Mainnet,
@@ -58,28 +45,28 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
   CaipChainId,
   MultichainBlockExplorerFormatUrls
 > = {
-  [MultichainNetworks.BITCOIN]: {
+  [BtcScope.Mainnet]: {
     url: 'https://blockstream.info',
     address: 'https://blockstream.info/address/{address}',
     transaction: 'https://blockstream.info/tx/{txId}',
   },
-  [MultichainNetworks.BITCOIN_TESTNET]: {
+  [BtcScope.Testnet]: {
     url: 'https://blockstream.info',
     address: 'https://blockstream.info/testnet/address/{address}',
     transaction: 'https://blockstream.info/testnet/tx/{txId}',
   },
 
-  [MultichainNetworks.SOLANA]: {
+  [SolScope.Mainnet]: {
     url: 'https://explorer.solana.com',
     address: 'https://explorer.solana.com/address/{address}',
     transaction: 'https://explorer.solana.com/tx/{txId}',
   },
-  [MultichainNetworks.SOLANA_DEVNET]: {
+  [SolScope.Devnet]: {
     url: 'https://explorer.solana.com',
     address: 'https://explorer.solana.com/address/{address}?cluster=devnet',
     transaction: 'https://explorer.solana.com/tx/{txId}?cluster=devnet',
   },
-  [MultichainNetworks.SOLANA_TESTNET]: {
+  [SolScope.Testnet]: {
     url: 'https://explorer.solana.com',
     address: 'https://explorer.solana.com/address/{address}?cluster=testnet',
     transaction: 'https://explorer.solana.com/tx/{txId}?cluster=testnet',
