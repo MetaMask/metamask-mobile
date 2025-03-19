@@ -34,16 +34,12 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import {
   selectEvmTokenFiatBalances,
   selectEvmTokens,
-  selectMultichainBalances,
   selectMultichainTokenList,
 } from '../../../selectors/multichain';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
-import {
-  selectIsEvmNetworkSelected,
-  selectSelectedNonEvmNetworkChainId,
-} from '../../../selectors/multichainNetworkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
@@ -78,13 +74,10 @@ const Tokens = memo(() => {
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
 
   // non-evm
-  const multichainBalances = useSelector(selectMultichainBalances);
   const nonEvmTokens = useSelector(selectMultichainTokenList);
-  const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   const tokenList = isEvmSelected ? evmTokens : nonEvmTokens;
-  console.log(nonEvmTokens[0]);
 
   const styles = createStyles(colors);
 

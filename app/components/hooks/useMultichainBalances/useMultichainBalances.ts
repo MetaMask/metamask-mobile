@@ -24,7 +24,6 @@ import {
   selectMultichainDefaultToken,
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
-  selectMultichainBalances,
   selectMultichainNetworkAggregatedBalance,
 } from '../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
