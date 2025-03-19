@@ -21,4 +21,5 @@ export const TestDappSelectorsWebIDs = {
   SWITCH_ETHEREUM_CHAIN: 'switchEthereumChain',
   REVOKE_ACCOUNT_PERMISSIONS: 'revokeAccountsPermission',
   GET_PERMISSIONS: 'getPermissions',
+  PERMISSIONS_RESULT: 'permissionsResult',
 };

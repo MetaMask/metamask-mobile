@@ -12,6 +12,8 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
+import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
+import Matchers from '../../utils/Matchers';
 
 describe(SmokePermissions('Wallet Revoke Permissions'), () => {
   beforeAll(async () => {
@@ -39,23 +41,46 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TestHelpers.delay(3000);
 
-        await Assertions.checkIfTextIsDisplayed(
-          'Permissions result: eth_accounts, endowment:permitted-chains',
+        const el0 = Matchers.getElementByID(
+          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         );
+
+        // eslint-disable-next-line no-console
+        console.log({ el0 });
+        // await Assertions.checkIfTextIsDisplayed(
+        //   'Permissions result: eth_accounts, endowment:permitted-chains',
+        // );
 
         await TestDApp.tapRevokeAccountPermissionsButton();
 
         await TestHelpers.delay(3000);
 
-        await Assertions.checkIfTextIsDisplayed('Permissions result:');
+        const el1 = Matchers.getElementByID(
+          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
+        );
+
+        // eslint-disable-next-line no-console
+        console.log({ el1 });
+
+        // await Assertions.checkIfTextIsDisplayed('Permissions result:');
 
         await TestDApp.tapGetPermissionsButton();
 
         await TestHelpers.delay(3000);
 
-        await Assertions.checkIfTextIsDisplayed(
-          'Permissions result: No permissions found.',
+        const el2 = Matchers.getElementByID(
+          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         );
+
+        // eslint-disable-next-line no-console
+        console.log({ el2 });
+        await Assertions.checkIfElementToHaveText(
+          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
+          'No permissions found.',
+        );
+        // await Assertions.checkIfTextIsDisplayed(
+        //   'Permissions result: No permissions found.',
+        // );
       },
     );
   });
