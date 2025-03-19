@@ -24,7 +24,7 @@ import { useLatestBalance } from './useLatestBalance';
 import {
   selectSourceAmount,
   selectDestAmount,
-  selectDestChainId,
+  selectSelectedDestChainId,
   selectSourceToken,
   selectDestToken,
   setSourceAmount,
@@ -124,7 +124,7 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const destAmount = useSelector(selectDestAmount);
-  const destChainId = useSelector(selectDestChainId);
+  const destChainId = useSelector(selectSelectedDestChainId);
 
   // Add state for slippage
   const [slippage, setSlippage] = useState('0.5');
@@ -277,7 +277,7 @@ const BridgeView = () => {
             amount={destAmount}
             token={destToken}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            networkImageSource={destChainId ? getNetworkImageSource({ chainId: destChainId as Hex }) : undefined}
+            networkImageSource={destToken ? getNetworkImageSource({ chainId: destToken?.chainId as Hex }) : undefined}
             isReadonly
             testID="dest-token-area"
             tokenType={TokenInputAreaType.Destination}

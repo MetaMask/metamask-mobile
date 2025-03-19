@@ -9,7 +9,7 @@ import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { selectCurrencyRates, selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from '../Tokens/util';
 import { selectTokenSortConfig } from '../../../selectors/preferencesController';
-import { selectDestChainId } from '../../../core/redux/slices/bridge';
+import { selectSelectedDestChainId } from '../../../core/redux/slices/bridge';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
 
 export type TokenIWithFiatAmount = TokenI & { tokenFiatAmount: number };
@@ -108,7 +108,7 @@ export const useDestinationTokens: () => TokenIWithFiatAmount[] = () => {
   const multiChainTokenBalance = useSelector(selectTokensBalances);
 
   // Chain ids to filter by
-  const selectedDestChainId = useSelector(selectDestChainId);
+  const selectedDestChainId = useSelector(selectSelectedDestChainId);
 
   const sortedTokens = useMemo(() => {
     const allAccountTokens = (
