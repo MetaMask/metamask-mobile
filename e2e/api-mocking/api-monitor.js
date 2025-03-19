@@ -144,18 +144,12 @@ export const startApiMonitor = async (port) => {
   await mockServer.forUnmatchedRequest().thenPassThrough({
     beforeRequest: async ({ url, method, rawHeaders, requestBody }) => {
       const returnUrl = new URL(url).searchParams.get('url') || url;
-      // TODO: figure out how to get platform from the app
-      const platform = 'ios';
-      const updatedUrl =
-        platform === 'android'
-          ? returnUrl.replace('localhost', '127.0.0.1')
-          : returnUrl;
       
       const requestLog = {
         timestamp: new Date().toISOString(),
         type: 'request',
         method,
-        url: updatedUrl,
+        url: returnUrl,
         headers: rawHeaders || {},
       };
 
@@ -176,7 +170,7 @@ export const startApiMonitor = async (port) => {
 
       // Console logging
 
-      console.log(`\n📡 ${method} ${updatedUrl}`)
+      console.log(`\n📡 ${method} ${returnUrl}`)
       console.log('----------------------------------------');
 
       if (CONSOLE_LOG_CONFIG.showHeaders) {
@@ -202,7 +196,7 @@ export const startApiMonitor = async (port) => {
       // Write request to log file
       await writeToLogFile(logFile, requestLog);
 
-      return { url: updatedUrl };
+      return { url: returnUrl };
     },
     beforeResponse: async ({ statusCode, headers, body, statusMessage, }) => {
       try {
