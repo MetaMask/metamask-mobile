@@ -4747,16 +4747,16 @@
     "@metamask/utils" "^11.1.0"
     ethereum-cryptography "^2.1.2"
 
-"@metamask/eth-hd-keyring@^9.0.0":
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-9.0.0.tgz#cba58308af5cfb9b7b1b958eeea380ec9c798e64"
-  integrity sha512-dhvirCCWmFGd0HyiEmho0Zwdl2g86kLA+K78f3uHnV1PV0ELKsMgRqlcA8OuXlrz0jnGQPDRNFXGG6/yFyyLlg==
+"@metamask/eth-hd-keyring@^12.1.0":
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-12.1.0.tgz#f70e421cc7fbecc039b3f6347172444dadb10168"
+  integrity sha512-jL7l1oPasTClknOuT0LleqyV9WbuXdM7fU5POramgjyh+sl++PyRh1W6cZzskNEXSpPH08pVy1Xh/LU7rNBPqQ==
   dependencies:
-    "@ethereumjs/util" "^8.1.0"
-    "@metamask/eth-sig-util" "^8.0.0"
-    "@metamask/key-tree" "^10.0.0"
+    "@ethereumjs/util" "^9.1.0"
+    "@metamask/eth-sig-util" "^8.2.0"
+    "@metamask/key-tree" "^10.0.2"
     "@metamask/scure-bip39" "^2.1.1"
-    "@metamask/utils" "^9.2.1"
+    "@metamask/utils" "^11.1.0"
     ethereum-cryptography "^2.1.2"
 
 "@metamask/eth-json-rpc-filters@^9.0.0":
@@ -4999,14 +4999,14 @@
     "@metamask/utils" "^11.1.0"
     readable-stream "^3.6.2"
 
-"@metamask/key-tree@^10.0.0", "@metamask/key-tree@^10.0.2":
-  version "10.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/key-tree/-/key-tree-10.0.2.tgz#d6fe993cdae423adc5a755a14a19b4a951416f56"
-  integrity sha512-GFCPZfiiaJAjAXthdvgxa4/ZD41IOZyCVc5MjgWnzj6Euur5URPqhMuefak6hBtY/Hz50gbDwLn8ODj4hbFF3A==
+"@metamask/key-tree@^10.0.2", "@metamask/key-tree@^10.1.0":
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/key-tree/-/key-tree-10.1.0.tgz#fe0ab9f1fd5a60a8ed1726386ad666523c0644bf"
+  integrity sha512-IRPhStU3HFkajqjHWfMzYSWbKbh63PdJ7XptWKZP/xJO7fPioge8E+HvobBKxvgaOGLqDhEf/5feBh+2E7QHdg==
   dependencies:
     "@metamask/scure-bip39" "^2.1.1"
     "@metamask/utils" "^11.0.1"
-    "@noble/curves" "^1.2.0"
+    "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.3.2"
     "@scure/base" "^1.0.0"
 
@@ -5303,13 +5303,13 @@
     immer "^9.0.6"
     nanoid "^3.3.8"
 
-"@metamask/phishing-controller@^12.0.3", "@metamask/phishing-controller@^12.3.1", "@metamask/phishing-controller@^12.3.2":
-  version "12.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.4.0.tgz#268626b42b6bb89b8fd3c3abd024d4552bfdd622"
-  integrity sha512-faS+HuQiER5hlaAJz0tJHqGN2pSKkzN5gC6r3d/2nFLgkLJp2kwqzL80qWwnVKgG37/RtoeMhmcUYg9GVq5YKw==
+"@metamask/phishing-controller@^12.0.3", "@metamask/phishing-controller@^12.3.1", "@metamask/phishing-controller@^12.4.0":
+  version "12.4.1"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.4.1.tgz#afce80b16d04856c53a8be9d24961d3fb272a2db"
+  integrity sha512-UOTl0z8lVXlx3p32Kp0YtLN5YiXgodT0JXNNS/f5Q2KLlwoYTvVctb/cDyKzBDf/mWvECy1+npKCM43aQ5clTA==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/controller-utils" "^11.6.0"
     "@noble/hashes" "^1.4.0"
     "@types/punycode" "^2.1.0"
     ethereum-cryptography "^2.1.2"
@@ -5554,25 +5554,25 @@
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-10.0.0.tgz#f5a4cdb0642713248b0291dd1bd4bf9ba0a09887"
-  integrity sha512-OEsMhAEQA/ueA0IHb1vw+I85vrrqtjLyFCvB3ZbxROv0z7F1rBDGJf0KxuJPfe0iB6yskqDiTnXyxEqQxEjSfA==
+"@metamask/snaps-controllers@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-11.0.0.tgz#d555462a452557a52618d84009c51065c06101a6"
+  integrity sha512-UWwaYdL9oRSzmr9Vv9x8xfDLUWHDzhF39J9JxqlcvzwYa7XHe3AM3jjV+DNEbbhQj/UTFlxFCF9jAYg1stFZhw==
   dependencies:
     "@metamask/approval-controller" "^7.1.3"
     "@metamask/base-controller" "^8.0.0"
     "@metamask/json-rpc-engine" "^10.0.2"
     "@metamask/json-rpc-middleware-stream" "^8.0.7"
-    "@metamask/key-tree" "^10.0.2"
+    "@metamask/key-tree" "^10.1.0"
     "@metamask/object-multiplex" "^2.1.0"
     "@metamask/permission-controller" "^11.0.6"
-    "@metamask/phishing-controller" "^12.3.2"
+    "@metamask/phishing-controller" "^12.4.0"
     "@metamask/post-message-stream" "^9.0.0"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/snaps-registry" "^3.2.3"
-    "@metamask/snaps-rpc-methods" "^11.12.0"
-    "@metamask/snaps-sdk" "^6.18.0"
-    "@metamask/snaps-utils" "^9.0.0"
+    "@metamask/snaps-rpc-methods" "^12.0.0"
+    "@metamask/snaps-sdk" "^6.19.0"
+    "@metamask/snaps-utils" "^9.0.1"
     "@metamask/utils" "^11.2.0"
     "@xstate/fsm" "^2.0.0"
     async-mutex "^0.5.0"
@@ -5649,7 +5649,7 @@
     "@noble/curves" "^1.2.0"
     "@noble/hashes" "^1.3.2"
 
-"@metamask/snaps-rpc-methods@^11.11.0", "@metamask/snaps-rpc-methods@^11.12.0":
+"@metamask/snaps-rpc-methods@^11.11.0":
   version "11.13.1"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-11.13.1.tgz#c9b6ad8cc71b3e3d159236e870790dba4d16d311"
   integrity sha512-vrat0M3odlGNMFqpGKmd0JJ8Nqt2aqFh86ieDs6HEdJU2YFOlq4HZ+ttKI7oMH4FC8qnSgTEZayY5/sdzAr6xg==
@@ -5662,6 +5662,21 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.2.0"
     "@noble/hashes" "^1.3.1"
+    luxon "^3.5.0"
+
+"@metamask/snaps-rpc-methods@^12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-12.0.0.tgz#ff44f3a4b4f1216f3eecade08d000815b545e078"
+  integrity sha512-ItxTwtL0zlbwZPYJ2qhMeotMZDCvIilWvy/NJkC3ymBpA9QiqE++py4RTxWAC19e/GiYQx1ySf48lRFWwZ9V1w==
+  dependencies:
+    "@metamask/key-tree" "^10.1.0"
+    "@metamask/permission-controller" "^11.0.6"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/snaps-sdk" "^6.19.0"
+    "@metamask/snaps-utils" "^9.0.1"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.2.0"
+    "@noble/hashes" "^1.7.1"
     luxon "^3.5.0"
 
 "@metamask/snaps-sdk@^3.1.1":
@@ -5926,19 +5941,26 @@
   resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-0.5.3.tgz#48b536311587125e0d0c1535f73ec8375cd76b23"
   integrity sha512-B0+6IIHiqEs3BPMT0hcRmHvEj2QHOLu+uwt+tqDDeVd0oyVzh7BPrDcPjRnV1PV/5LaknXJJQvOuRGR0zQJz+w==
 
-"@noble/curves@1.4.2", "@noble/curves@^1.2.0", "@noble/curves@^1.4.0", "@noble/curves@~1.4.0":
+"@noble/curves@1.4.2", "@noble/curves@~1.4.0":
   version "1.4.2"
   resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.4.2.tgz#40309198c76ed71bc6dbf7ba24e81ceb4d0d1fe9"
   integrity sha512-TavHr8qycMChk8UwMld0ZDRvatedkzWfH8IiaeGCfymOP5i0hSCozz9vHOL0nkwk7HRMlFnAiKpS2jrUmSybcw==
   dependencies:
     "@noble/hashes" "1.4.0"
 
+"@noble/curves@^1.2.0", "@noble/curves@^1.4.0", "@noble/curves@^1.8.1":
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.8.1.tgz#19bc3970e205c99e4bdb1c64a4785706bce497ff"
+  integrity sha512-warwspo+UYUPep0Q+vtdVB4Ugn8GGQj8iyB3gnRWsztmUHTI3S1nhdiWNsPUGL0vud7JlRRk1XEu7Lq1KGTnMQ==
+  dependencies:
+    "@noble/hashes" "1.7.1"
+
 "@noble/hashes@1.4.0", "@noble/hashes@~1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.4.0.tgz#45814aa329f30e4fe0ba49426f49dfccdd066426"
   integrity sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==
 
-"@noble/hashes@^1.1.2", "@noble/hashes@^1.3.1", "@noble/hashes@^1.3.2", "@noble/hashes@^1.4.0", "@noble/hashes@^1.7.1":
+"@noble/hashes@1.7.1", "@noble/hashes@^1.1.2", "@noble/hashes@^1.3.1", "@noble/hashes@^1.3.2", "@noble/hashes@^1.4.0", "@noble/hashes@^1.7.1":
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.7.1.tgz#5738f6d765710921e7a751e00c20ae091ed8db0f"
   integrity sha512-B8XBPsn4vT/KJAGqDzbwztd+6Yte3P4V7iafm24bxgDe/mlRuK6xmWPuCNrKt2vDafZ8MfJLlchDG/vYafQEjQ==
