@@ -21,16 +21,13 @@ import {
   nonEvmNetworkChainIdByAccountAddress,
   lastSelectedAccountAddressInEvmNetwork,
   lastSelectedAccountAddressByNonEvmNetworkChainId,
-} from '../utils';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
-import Engine from '../../Engine';
-
-import {
   shortenTransactionId,
   getAddressUrl,
   getTransactionUrl,
 } from '../utils';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+import Engine from '../../Engine';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../constants';
 import { formatAddress } from '../../../util/address';
 import {

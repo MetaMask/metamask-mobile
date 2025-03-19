@@ -38,6 +38,7 @@ import {
   MOCK_KEYRING_CONTROLLER,
 } from './keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
+// eslint-disable-next-line import/namespace
 import * as utils from '../core/Multichain/utils';
 
 /**
@@ -267,9 +268,11 @@ describe('Bitcoin Account Selectors', () => {
 
 describe('Solana Account Selectors', () => {
   beforeEach(() => {
-    jest.spyOn(utils, 'isSolanaAccount').mockImplementation((account) => {
-      return account?.address === 'solana_address_123';
-    });
+    jest
+      .spyOn(utils, 'isSolanaAccount')
+      .mockImplementation(
+        (account) => account?.address === 'solana_address_123',
+      );
   });
 
   afterEach(() => {
