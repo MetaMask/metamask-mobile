@@ -65,6 +65,10 @@ jest.mock('react-native', () => {
   };
 });
 
+jest.mock('../../../util/networks', () => ({
+  getBlockExplorerName: jest.fn(() => 'Explorer'),
+}));
+
 describe('MultichainTransactionsView', () => {
   const mockNavigation = { navigate: jest.fn() };
   const mockSelectedAddress = '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV';
@@ -110,7 +114,9 @@ describe('MultichainTransactionsView', () => {
 
   const hasViewMoreButton = () => {
     const MockButton = getButtonMock();
-    return MockButton.lastProps.label === 'transactions.view_full_history_on';
+    return MockButton.lastProps.label.includes(
+      'transactions.view_full_history_on',
+    );
   };
 
   beforeEach(() => {
