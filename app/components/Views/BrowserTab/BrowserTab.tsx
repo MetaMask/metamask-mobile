@@ -313,7 +313,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         if (scanResult.fetchError) {
           // Log error but don't block the site based on a failed scan
           Logger.log(
-            '[BrowserTab][isAllowedOriginV2] Fetch error:',
+            '[BrowserTab][isAllowedOrigin] fetch error:',
             scanResult.fetchError,
           );
           return true;
@@ -465,9 +465,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const drawerOpenHandler = useCallback(() => {
     dismissTextSelectionIfNeeded();
   }, [dismissTextSelectionIfNeeded]);
-
-  const delay = (ms: number): Promise<void> =>
-    new Promise((resolve) => setTimeout(resolve, ms));
 
   const handleFirstUrl = useCallback(async () => {
     setIsResolvedIpfsUrl(false);
