@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   UIManager,
   View,
-  ViewStyle
+  ViewStyle,
 } from 'react-native';
 import Animated, {
   interpolate,
@@ -104,30 +104,32 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
   });
 
   return (
-    <View style={styles.wrapper}>
-      <View style={[styles.container, style]} testID={testID}>
-        <TouchableOpacity
-          style={[styles.header, headerStyle]}
-          onPress={toggleAccordion}
-          activeOpacity={0.7}
-          testID={`${testID}-header`}
-        >
-          {typeof header === 'string' ? (
-            <Animated.Text><Text style={styles.headerTitle}>{header}</Text></Animated.Text>
-          ) : (
-              header
-          )}
-          <Animated.View style={[styles.iconContainer, arrowStyle]}>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={styles.icon.color}
-              testID={`${testID}-arrow`}
-            />
-          </Animated.View>
-        </TouchableOpacity>
-        {isExpanded && <View style={[styles.content, contentStyle]}>{children}</View>}
-      </View>
+    <View style={[styles.container, style]} testID={testID}>
+      <TouchableOpacity
+        style={[styles.header, headerStyle]}
+        onPress={toggleAccordion}
+        activeOpacity={0.7}
+        testID={`${testID}-header`}
+      >
+        {typeof header === 'string' ? (
+          <Animated.Text>
+            <Text style={styles.headerTitle}>{header}</Text>
+          </Animated.Text>
+        ) : (
+          header
+        )}
+        <Animated.View style={[styles.iconContainer, arrowStyle]}>
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={styles.icon.color}
+            testID={`${testID}-arrow`}
+          />
+        </Animated.View>
+      </TouchableOpacity>
+      {isExpanded && (
+        <View style={[styles.content, contentStyle]}>{children}</View>
+      )}
     </View>
   );
 };
