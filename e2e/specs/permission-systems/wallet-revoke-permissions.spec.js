@@ -1,6 +1,6 @@
 'use strict';
 
-import { Regression } from '../../tags';
+import { SmokePermissions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 
@@ -13,7 +13,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
 
-describe(Regression('Wallet Revoke Permissions'), () => {
+describe(SmokePermissions('Wallet Revoke Permissions'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
