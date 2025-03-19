@@ -128,7 +128,7 @@ export const TokenListItem = React.memo(
           : {
               balanceFiat: formatWithThreshold(
                 parseFloat(asset.balanceFiat),
-                0.00001,
+                0.01,
                 I18n.locale,
                 { style: 'currency', currency: currentCurrency },
               ),
