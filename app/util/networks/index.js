@@ -44,7 +44,10 @@ import {
 import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { store } from '../../store';
-import { selectNonEvmNetworkConfigurationsByChainId } from '../../selectors/multichainNetworkController';
+import {
+  selectSelectedNonEvmNetworkChainId,
+  selectMultichainNetworkControllerState,
+} from '../../selectors/multichainNetworkController';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../core/Multichain/constants';
 import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
 /**
@@ -308,15 +311,14 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
  * Returns block explorer for non-evm chain id
  *
  * @param {object} internalAccount - Internal account object
- * @param {string} selectedNonEvmNetworkChainId - Currently selected non-EVM chain ID
  * @returns {string} - Block explorer url or undefined if not found
  */
-export function findBlockExplorerForNonEvmAccount(
-  internalAccount,
-  selectedNonEvmNetworkChainId,
-) {
+export function findBlockExplorerForNonEvmAccount(internalAccount) {
   let scope;
 
+  const selectedNonEvmNetworkChainId = selectSelectedNonEvmNetworkChainId(
+    store.getState(),
+  );
   // Check if the selectedNonEvmNetworkChainId exists in the scopes array
   if (
     selectedNonEvmNetworkChainId &&
@@ -325,12 +327,20 @@ export function findBlockExplorerForNonEvmAccount(
     // Prioritize the selected chain ID if it's in the scopes array
     scope = selectedNonEvmNetworkChainId;
   } else {
-    // Fall back to scope from options or scopes array from the account object
-    scope =
-      internalAccount.options?.scope ||
-      (internalAccount.scopes && internalAccount.scopes[0]);
-  }
+    // Fall back to a scope that is matching of our networks
+    const nonEvmNetworks = selectMultichainNetworkControllerState(
+      store.getState(),
+    );
+    const networkConfigs =
+      nonEvmNetworks.multichainNetworkConfigurationsByChainId;
+    const matchingNetwork = Object.values(networkConfigs || {}).find(
+      (network) => internalAccount.scopes.includes(network.chainId),
+    );
 
+    if (matchingNetwork) {
+      scope = matchingNetwork.chainId;
+    }
+  }
   // If we couldn't determine a scope, return undefined
   if (!scope) {
     return undefined;
