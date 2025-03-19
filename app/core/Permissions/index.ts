@@ -18,20 +18,6 @@ const Engine = ImportedEngine as any;
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountsCaveatFromPermission(accountsPermission: any = {}) {
-  return (
-    Array.isArray(accountsPermission.caveats) &&
-    accountsPermission.caveats.find(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (caveat: any) => caveat.type === CaveatTypes.restrictReturnedAccounts,
-    )
-  );
-}
-
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsFromSubject(subject: any) {
   const caveats =
   subject.permissions?.[Caip25EndowmentPermissionName]?.caveats || [];
@@ -39,7 +25,8 @@ function getAccountsFromSubject(subject: any) {
   const caveat = caveats.find(({ type }: CaveatConstraint) => type === Caip25CaveatType);
   if (caveat) {
     const ethAccounts = getEthAccounts(caveat.value);
-    return ethAccounts.map((address: string) => address.toLowerCase())
+    const lowercasedEthAccounts = ethAccounts.map((address: string) => address.toLowerCase())
+    return sortAccountsByLastSelected(lowercasedEthAccounts as Hex[])
   }
 
   return [];
@@ -67,42 +54,6 @@ export const getPermittedAccountsByHostname = (
 
   return accountsByHostname?.[hostname] || [];
 };
-
-// TODO: we can't be relying on ordering in the actual permission itself to determine active account
-export const switchActiveAccounts = (hostname: string, accAddress: string) => {
-  // const { PermissionController } = Engine.context;
-  // const existingPermittedAccountAddresses: string[] =
-  //   // TODO: Fix this
-  //   PermissionController.getCaveat(
-  //     hostname,
-  //     RestrictedMethods.eth_accounts,
-  //     CaveatTypes.restrictReturnedAccounts,
-  //   ).value;
-
-
-  // const accountIndex = existingPermittedAccountAddresses.findIndex(
-  //   (address) => address === accAddress,
-  // );
-  // if (accountIndex === -1) {
-  //   throw new Error(
-  //     `eth_accounts permission for hostname "${hostname}" does not permit "${accAddress} account".`,
-  //   );
-  // }
-  // let newPermittedAccountAddresses = [...existingPermittedAccountAddresses];
-  // newPermittedAccountAddresses.splice(accountIndex, 1);
-  // newPermittedAccountAddresses = getUniqueList([
-  //   accAddress,
-  //   ...newPermittedAccountAddresses,
-  // ]);
-
-  // PermissionController.updateCaveat(
-  //   hostname,
-  //   RestrictedMethods.eth_accounts,
-  //   CaveatTypes.restrictReturnedAccounts,
-  //   newPermittedAccountAddresses,
-  // );
-};
-
 
   // Returns the CAIP-25 caveat or undefined if it does not exist
   export const getCaip25Caveat = (origin: string) => {
@@ -300,7 +251,7 @@ const captureKeyringTypesWithMissingIdentities = (
    * @param accounts - The list of evm accounts addresses to sort.
    * @returns The sorted evm accounts addresses.
    */
-const sortAccountsByLastSelected = (accounts: Hex[]) => {
+export const sortAccountsByLastSelected = (accounts: Hex[]) => {
     const internalAccounts: InternalAccount[] = Engine.context.AccountsController.listAccounts();
 
     return accounts.sort((firstAddress, secondAddress) => {
