@@ -91,7 +91,7 @@ describe('refreshTokens', () => {
   });
 
   it('should not refresh tokens if EVM is not selected', async () => {
-    await refreshEvmTokens({ ...mockProps, isEvmSelected: false });
+    await refreshTokens({ ...mockProps, isEvmSelected: false });
 
     // Ensure setRefreshing is never called
     expect(mockSetRefreshing).not.toHaveBeenCalled();
@@ -119,7 +119,7 @@ describe('refreshTokens', () => {
       Engine.context.TokenDetectionController.detectTokens as jest.Mock
     ).mockRejectedValue(new Error('Failed to detect tokens'));
 
-    await refreshEvmTokens(mockProps);
+    await refreshTokens(mockProps);
 
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
