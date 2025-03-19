@@ -23,8 +23,8 @@ import { useTokenSearch } from './useTokenSearch';
 import TextFieldSearch from '../../../component-library/components/Form/TextFieldSearch';
 import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import Routes from '../../../constants/navigation/Routes';
-import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import { useSortedSourceNetworks } from './useSortedSourceNetworks';
+import { MAX_NETWORK_ICONS, SourceNetworksButtonLabel } from './SourceNetworksButtonLabel';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -58,16 +58,8 @@ const createStyles = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingVertical: 12,
     },
-    networkOverflowCircle: {
-      backgroundColor: theme.colors.background.alternative,
-      width: 20,
-      height: 20,
-      borderRadius: 10,
-    },
   });
 };
-
-const MAX_NETWORK_ICONS = 2;
 
 export const BridgeTokenSelector: React.FC = () => {
   const { styles, theme } = useStyles(createStyles, {});
@@ -139,42 +131,12 @@ export const BridgeTokenSelector: React.FC = () => {
     });
   }, [navigation]);
 
-  const numNetworksLabel = useMemo(() => {
-    let networkText = '';
-    if (selectedSourceChainIds.length === enabledSourceChains.length) {
-      networkText = strings('bridge.all_networks');
-    } else if (selectedSourceChainIds.length === 1) {
-      networkText = strings('bridge.one_network');
-    } else {
-      networkText = strings('bridge.num_networks', { numNetworks: selectedSourceChainIds.length });
-    }
-
-    const networksToShow = sortedSourceNetworks
+  const networksToShow = useMemo(() =>
+    sortedSourceNetworks
       .filter(({ chainId }) => selectedSourceChainIds.includes(chainId))
-      .filter((_, i) => i < MAX_NETWORK_ICONS);
-
-    return (
-      <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
-        <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={-8}>
-          {networksToShow.map(({ chainId }) => (
-            <Badge
-              key={chainId}
-            variant={BadgeVariant.Network}
-            // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            imageSource={getNetworkImageSource({ chainId })}
-            name={networkConfigurations[chainId]?.name}
-            />
-          ))}
-          {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
-            <Box style={styles.networkOverflowCircle} justifyContent={JustifyContent.center} alignItems={AlignItems.center}>
-              <Text variant={TextVariant.BodySM}>+{selectedSourceChainIds.length - MAX_NETWORK_ICONS}</Text>
-            </Box>
-          )}
-        </Box>
-        <Text>{networkText}</Text>
-      </Box>
-    );
-  }, [selectedSourceChainIds, enabledSourceChains, networkConfigurations, sortedSourceNetworks, styles]);
+      .filter((_, i) => i < MAX_NETWORK_ICONS),
+    [selectedSourceChainIds, sortedSourceNetworks],
+  );
 
   return (
     <BottomSheet isFullscreen>
@@ -209,7 +171,12 @@ export const BridgeTokenSelector: React.FC = () => {
           <Button
             onPress={navigateToNetworkSelector}
             variant={ButtonVariants.Secondary}
-            label={numNetworksLabel}
+            label={<SourceNetworksButtonLabel
+              networksToShow={networksToShow}
+              networkConfigurations={networkConfigurations}
+              selectedSourceChainIds={selectedSourceChainIds as Hex[]}
+              enabledSourceChains={enabledSourceChains}
+            />}
             style={styles.networksButton}
             endIconName={IconName.ArrowDown}
             />
