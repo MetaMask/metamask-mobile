@@ -44,11 +44,11 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
-    setDestChainId: (state, action: PayloadAction<SupportedCaipChainId | Hex | undefined>) => {
-      state.selectedDestChainId = action.payload;
-    },
     setSelectedSourceChainIds: (state, action: PayloadAction<string[]>) => {
       state.selectedSourceChainIds = action.payload;
+    },
+    setSelectedDestChainId: (state, action: PayloadAction<SupportedCaipChainId | Hex | undefined>) => {
+      state.selectedDestChainId = action.payload;
     },
     resetBridgeState: () => initialState,
     switchTokens: (state) => {
@@ -199,4 +199,5 @@ export const {
   setSourceToken,
   setDestToken,
   setSelectedSourceChainIds,
+  setSelectedDestChainId,
 } = actions;
