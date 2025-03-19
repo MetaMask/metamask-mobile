@@ -328,6 +328,10 @@ workflows:
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
+
+                # Install Detox CLI globally
+                echo "Installing Detox CLI globally"
+                npm install -g detox-cli
   install_applesimutils:
     steps:
       - script@1:
