@@ -1,33 +1,29 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import EditGasFee1559Update from '../EditGasFee1559Update';
-import { connect } from 'react-redux';
-import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import {
-  hexToBN,
-  fromWei,
-  renderFromWei,
-  addHexPrefix,
-} from '../../../../../util/number';
+import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
+import { isHexString } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
-import { getTicker } from '../../../../../util/transactions';
-import AppConstants from '../../../../../core/AppConstants';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { connect } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import AppConstants from '../../../../../core/AppConstants';
 import {
   startGasPolling,
   stopGasPolling,
 } from '../../../../../core/GasPolling/GasPolling';
-import { GasTransactionProps } from '../../../../../core/GasPolling/types';
-import { UpdateEIP1559Props, UpdateTx1559Options } from './types';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { getDecimalChainId } from '../../../../../util/networks';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
-import { isHexString } from '@metamask/utils';
 import { selectNativeCurrencyByChainId } from '../../../../../selectors/networkController';
+import { getDecimalChainId } from '../../../../../util/networks';
+import {
+  addHexPrefix,
+  fromWei,
+  hexToBN,
+  renderFromWei,
+} from '../../../../../util/number';
+import { getTicker } from '../../../../../util/transactions';
+import EditGasFee1559Update from '../EditGasFee1559Update';
 
 const UpdateEIP1559Tx = ({
   gas,
@@ -42,7 +38,7 @@ const UpdateEIP1559Tx = ({
   chainId,
   onCancel,
   onSave,
-}: UpdateEIP1559Props) => {
+}) => {
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [gasSelected, setGasSelected] = useState(
     AppConstants.GAS_OPTIONS.MEDIUM,
@@ -55,8 +51,8 @@ const UpdateEIP1559Tx = ({
   /**
    * Options
    */
-  const updateTx1559Options = useRef<UpdateTx1559Options | undefined>();
-  const pollToken = useRef(undefined);
+  const updateTx1559Options = useRef();
+  const pollToken = useRef();
   const firstTime = useRef(true);
 
   const suggestedGasLimit = fromWei(gas, 'wei');
@@ -77,7 +73,7 @@ const UpdateEIP1559Tx = ({
   }, []);
 
   const isMaxFeePerGasMoreThanLegacy = useCallback(
-    (maxFeePerGas: BigNumber) => {
+    (maxFeePerGas) => {
       const newDecMaxFeePerGas = new BigNumber(existingGas.maxFeePerGas).times(
         new BigNumber(isCancel ? CANCEL_RATE : SPEED_UP_RATE),
       );
@@ -90,7 +86,7 @@ const UpdateEIP1559Tx = ({
   );
 
   const isMaxPriorityFeePerGasMoreThanLegacy = useCallback(
-    (maxPriorityFeePerGas: BigNumber) => {
+    (maxPriorityFeePerGas) => {
       const newDecMaxPriorityFeePerGas = new BigNumber(
         existingGas.maxPriorityFeePerGas,
       ).times(new BigNumber(isCancel ? CANCEL_RATE : SPEED_UP_RATE));
@@ -110,12 +106,8 @@ const UpdateEIP1559Tx = ({
       if (!isHexString(totalMaxHexPrefixed)) {
         return strings('transaction.invalid_amount');
       }
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const updateTxCost: any = hexToBN(totalMaxHexPrefixed);
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const accountBalance: any = hexToBN(accounts[selectedAddress].balance);
+      const updateTxCost = hexToBN(totalMaxHexPrefixed);
+      const accountBalance = hexToBN(accounts[selectedAddress].balance);
       const isMaxFeePerGasMoreThanLegacyResult = isMaxFeePerGasMoreThanLegacy(
         new BigNumber(updateTx.suggestedMaxFeePerGas),
       );
@@ -219,12 +211,12 @@ const UpdateEIP1559Tx = ({
     isMaxPriorityFeePerGasMoreThanLegacy,
   ]);
 
-  const update1559TempGasValue = (selected: string) => {
+  const update1559TempGasValue = (selected) => {
     stopUpdateGas.current = !selected;
     setGasSelected(selected);
   };
 
-  const onSaveTxnWithError = (gasTxn: GasTransactionProps) => {
+  const onSaveTxnWithError = (gasTxn) => {
     gasTxn.error = validateAmount(gasTxn);
     onSave(gasTxn);
   };
@@ -265,9 +257,7 @@ const UpdateEIP1559Tx = ({
   );
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapStateToProps = (state: any, ownProps) => ({
+const mapStateToProps = (state, ownProps) => ({
   accounts: selectAccounts(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   ticker: selectNativeCurrencyByChainId(state, ownProps.chainId),
