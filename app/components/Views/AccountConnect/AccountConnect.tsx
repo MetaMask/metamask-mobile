@@ -84,6 +84,7 @@ import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { addPermittedChains } from '../../../core/Permissions';
 import { Hex } from '@metamask/utils';
+import { getCaip25PermissionsResponse, getRequestedCaip25CaveatValue } from './utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -236,18 +237,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     // No need to update selectedChainIds here since it's already initialized with all networks
   }, [networkConfigurations]);
-
-  // TODO: Verify if this can be called before CAIP-25 permissions have been granted
-  // Previous behavior was to incremental grant if no permittedChains permission existed
-  const handleUpdateNetworkPermissions = useCallback(async () => {
-    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
-    if (chainId && chainsToPermit.length === 0) {
-      chainsToPermit = [chainId];
-    }
-
-    const origin = new URL(hostname).hostname
-    addPermittedChains(origin, chainsToPermit as Hex[])
-  }, [selectedChainIds, chainId, hostname]);
 
   const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
@@ -402,13 +391,30 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
+    const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
+      // TODO: Fix this :(
+      hostInfo.permissions as any,
+    );
+
+    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
+    if (chainId && chainsToPermit.length === 0) {
+      chainsToPermit = [chainId];
+    }
+
     const request: PermissionsRequest = {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
         origin: channelIdOrHostname,
       },
-      approvedAccounts: selectedAddresses,
+      permissions: {
+        ...hostInfo.permissions,
+        ...getCaip25PermissionsResponse(
+          requestedCaip25CaveatValue,
+          selectedAddresses as Hex[],
+          chainsToPermit as Hex[],
+        ),
+      }
     };
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
@@ -532,7 +538,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           handleConnect();
-          handleUpdateNetworkPermissions();
           hideSheet();
           break;
         }
@@ -584,7 +589,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     handleCreateAccount,
     handleConnect,
     trackEvent,
-    handleUpdateNetworkPermissions,
     createEventBuilder,
   ]);
 
