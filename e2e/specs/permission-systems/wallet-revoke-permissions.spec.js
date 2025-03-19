@@ -37,6 +37,8 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TabBarComponent.tapBrowser();
 
+        await TestDApp.navigateToTestDapp();
+
         await TestDApp.tapGetPermissionsButton();
 
         await TestHelpers.delay(3000);
