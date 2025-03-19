@@ -6,16 +6,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import ShowDisplayNFTMediaSheet from './ShowDisplayNFTMediaSheet';
 import Routes from '../../../constants/navigation/Routes';
 import {fireEvent} from '@testing-library/react-native';
-import {MetricsEventBuilder} from '../../../core/Analytics/MetricsEventBuilder';
-import {MetaMetricsEvents} from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import {useMetrics} from '../../hooks/useMetrics';
-import {useNavigation} from '@react-navigation/native';
-
-const setUseNftDetectionSpy = jest.spyOn(
-    Engine.context.PreferencesController,
-    'setUseNftDetection',
-);
 
 const setDisplayNftMediaSpy = jest.spyOn(
     Engine.context.PreferencesController,
@@ -38,7 +30,6 @@ const initialState = {
 
 jest.mock('../../hooks/useMetrics');
 
-const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
 
 (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({

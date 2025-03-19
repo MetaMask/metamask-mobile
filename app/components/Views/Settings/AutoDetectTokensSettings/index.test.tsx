@@ -11,7 +11,6 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import AssetSettings from '.';
 import { TOKEN_DETECTION_TOGGLE } from './index.constants';
 import { useMetrics } from '../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 let mockSetUseTokenDetection: jest.Mock;
 
