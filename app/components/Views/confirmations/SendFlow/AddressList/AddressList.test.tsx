@@ -58,6 +58,9 @@ const renderComponent = (state: any) =>
       onIconPress={() => null}
       onAccountLongPress={() => null}
       onAccountPress={() => null}
+      chainId="0x1"
+      inputSearch=""
+      reloadAddressList={false}
     />,
     { state },
   );

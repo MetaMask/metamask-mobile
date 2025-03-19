@@ -1,45 +1,41 @@
 /* eslint-disable react/no-unstable-nested-components */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
-import React, { useCallback, useState, useMemo } from 'react';
+import BigNumber from 'bignumber.js';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
-  View,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   TouchableWithoutFeedback,
+  View,
 } from 'react-native';
-import Text from '../../../../Base/Text';
-import StyledButton from '../../../../UI/StyledButton';
-import RangeInput from '../../../../Base/RangeInput';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/EditGasView.selectors.js';
 import { strings } from '../../../../../../locales/i18n';
-import Alert, { AlertType } from '../../../../Base/Alert';
-import HorizontalSelector from '../../../../Base/HorizontalSelector';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import AppConstants from '../../../../../core/AppConstants';
+import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
+import {
+  GAS_PRICE_INCREMENT as GAS_INCREMENT,
+  GAS_LIMIT_INCREMENT,
+  GAS_LIMIT_MIN,
+  GAS_PRICE_MIN as GAS_MIN,
+} from '../../../../../util/gasUtils';
 import {
   getDecimalChainId,
   isMainnetByChainId,
 } from '../../../../../util/networks';
-import BigNumber from 'bignumber.js';
-import FadeAnimationView from '../../../../UI/FadeAnimationView';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-
-import TimeEstimateInfoModal from '../../../../UI/TimeEstimateInfoModal';
+import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
+import Alert, { AlertType } from '../../../../Base/Alert';
 import useModalHandler from '../../../../Base/hooks/useModalHandler';
-import AppConstants from '../../../../../core/AppConstants';
-import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
-import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
+import HorizontalSelector from '../../../../Base/HorizontalSelector';
+import RangeInput from '../../../../Base/RangeInput';
+import Text from '../../../../Base/Text';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import FadeAnimationView from '../../../../UI/FadeAnimationView';
+import StyledButton from '../../../../UI/StyledButton';
+import InfoModal from '../../../../UI/Swaps/components/InfoModal';
+import TimeEstimateInfoModal from '../../../../UI/TimeEstimateInfoModal';
 import createStyles from './styles';
-import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
-import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/EditGasView.selectors.js';
-import {
-  GAS_LIMIT_INCREMENT,
-  GAS_PRICE_INCREMENT as GAS_INCREMENT,
-  GAS_LIMIT_MIN,
-  GAS_PRICE_MIN as GAS_MIN,
-} from '../../../../../util/gasUtils';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 const EditGasFee1559Update = ({
   selectedGasValue,
@@ -63,7 +59,7 @@ const EditGasFee1559Update = ({
   warning,
   selectedGasObject,
   onlyGas,
-}: EditGasFee1559UpdateProps) => {
+}) => {
   const [modalInfo, updateModalInfo] = useState({
     isVisible: false,
     value: '',
@@ -146,7 +142,7 @@ const EditGasFee1559Update = ({
   }, [showLearnMoreModal]);
 
   const toggleInfoModal = useCallback(
-    (value: string) => {
+    (value) => {
       updateModalInfo({ isVisible: !modalInfo.isVisible, value });
     },
     [updateModalInfo, modalInfo.isVisible],
@@ -307,7 +303,7 @@ const EditGasFee1559Update = ({
   );
 
   const shouldIgnore = useCallback(
-    (option) => ignoreOptions?.find((item: string) => item === option),
+    (option) => ignoreOptions?.find((item) => item === option),
     [ignoreOptions],
   );
 
@@ -330,9 +326,7 @@ const EditGasFee1559Update = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          label: function LabelComponent(selected: any, disabled: any) {
+          label: function LabelComponent(selected, disabled) {
             return (
               <Text bold primary={selected && !disabled}>
                 {label}
@@ -350,8 +344,8 @@ const EditGasFee1559Update = ({
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 
   const switchNativeCurrencyDisplayOptions = (
-    nativeValue: string,
-    fiatValue: string,
+    nativeValue,
+    fiatValue,
   ) => {
     if (nativeCurrencySelected) return nativeValue;
     return fiatValue;
@@ -362,9 +356,6 @@ const EditGasFee1559Update = ({
   const LeftLabelComponent = ({
     value,
     infoValue,
-  }: {
-    value: string;
-    infoValue: string;
   }) => (
     <View style={styles.labelTextContainer}>
       <Text black bold noMargin>
@@ -383,7 +374,7 @@ const EditGasFee1559Update = ({
     </View>
   );
 
-  const RightLabelComponent = ({ value }: { value: string }) => (
+  const RightLabelComponent = ({ value }) => (
     <Text noMargin small grey>
       <Text bold reset>
         {strings(value)}:
@@ -395,9 +386,6 @@ const EditGasFee1559Update = ({
   const TextComponent = ({
     title,
     value,
-  }: {
-    title: string;
-    value: string;
   }) => (
     <>
       <Text noMargin primary infoModal bold style={styles.learnMoreLabels}>
@@ -409,7 +397,7 @@ const EditGasFee1559Update = ({
     </>
   );
 
-  const renderInputs = (option: RenderInputProps) => (
+  const renderInputs = (option) => (
     <View>
       <FadeAnimationView
         valueToWatch={valueToWatch}
