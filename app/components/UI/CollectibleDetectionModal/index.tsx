@@ -19,10 +19,8 @@ import {
   hideNftFetchingLoadingIndicator,
   showNftFetchingLoadingIndicator,
 } from '../../../reducers/collectibles';
-import {
-  UserProfileProperty
-} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import {useMetrics} from '../../hooks/useMetrics';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const styles = StyleSheet.create({
   alertBar: {
@@ -62,7 +60,7 @@ const CollectibleDetectionModal = () => {
     } finally {
       hideNftFetchingLoadingIndicator();
     }
-  }, [colors.primary.inverse, toastRef]);
+  }, [colors.primary.inverse, toastRef, addTraitsToUser]);
 
   return (
     <View style={styles.alertBar}>

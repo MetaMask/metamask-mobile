@@ -17,10 +17,8 @@ import Text, {
 // Internal dependencies
 import styleSheet from './index.styles';
 import { TOKEN_DETECTION_TOGGLE } from './index.constants';
-import {
-    UserProfileProperty
-} from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import {useMetrics} from '../../../hooks/useMetrics';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { useMetrics } from '../../../hooks/useMetrics';
 
 const AutoDetectTokensSettings = () => {
   const theme = useTheme();
@@ -30,10 +28,17 @@ const AutoDetectTokensSettings = () => {
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
 
-  const toggleTokenDetection = useCallback((value: boolean) => {
+  const toggleTokenDetection = useCallback(
+    (value: boolean) => {
       Engine.context.PreferencesController.setUseTokenDetection(value);
-      addTraitsToUser({ [UserProfileProperty.TOKEN_DETECTION]: value ? UserProfileProperty.ON : UserProfileProperty.OFF });
-  }, [addTraitsToUser]);
+      addTraitsToUser({
+        [UserProfileProperty.TOKEN_DETECTION]: value
+          ? UserProfileProperty.ON
+          : UserProfileProperty.OFF,
+      });
+    },
+    [addTraitsToUser],
+  );
 
   return (
     <View style={styles.setting}>

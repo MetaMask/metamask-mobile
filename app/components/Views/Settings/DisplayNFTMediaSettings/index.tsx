@@ -12,10 +12,8 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import styleSheet from './index.styles';
 import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
-import {
-    UserProfileProperty
-} from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import {useMetrics} from '../../../hooks/useMetrics';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { useMetrics } from '../../../hooks/useMetrics';
 
 const DisplayNFTMediaSettings = () => {
   const theme = useTheme();
@@ -29,13 +27,15 @@ const DisplayNFTMediaSettings = () => {
     const { PreferencesController } = Engine.context;
     PreferencesController?.setDisplayNftMedia(value);
     if (!value) {
-        PreferencesController?.setUseNftDetection(false);
+      PreferencesController?.setUseNftDetection(false);
     }
-      const traits = {
-          [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.OFF,
-          ...( !value && { [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.OFF } ),
-      };
-      addTraitsToUser(traits);
+    const traits = {
+      [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.OFF,
+      ...(!value && {
+        [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.OFF,
+      }),
+    };
+    addTraitsToUser(traits);
   };
 
   return (

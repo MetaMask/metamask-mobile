@@ -39,8 +39,8 @@ const AutoDetectNFTSettings = () => {
           ? UserProfileProperty.ON
           : UserProfileProperty.OFF,
         [UserProfileProperty.NFT_AUTODETECTION]: value
-              ? UserProfileProperty.ON
-              : UserProfileProperty.OFF,
+          ? UserProfileProperty.ON
+          : UserProfileProperty.OFF,
       };
       addTraitsToUser(traits);
       trackEvent(

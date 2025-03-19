@@ -25,9 +25,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
-import {
-  UserProfileProperty
-} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const walletImage = require('../../../images/wallet-alpha.png');
 
@@ -49,7 +47,9 @@ const NFTAutoDetectionModal = () => {
 
       const traits = {
         [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.ON,
-        ...( !displayNftMedia && { [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.ON } ),
+        ...(!displayNftMedia && {
+          [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.ON,
+        }),
       };
       addTraitsToUser(traits);
 
