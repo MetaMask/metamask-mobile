@@ -18,7 +18,6 @@ import {
   ADD_FAVORITES_OPTION,
   MENU_ID,
   NEW_TAB_OPTION,
-  OPEN_FAVORITES_OPTION,
   OPEN_IN_BROWSER_OPTION,
   RELOAD_OPTION,
   SHARE_OPTION,
@@ -26,7 +25,6 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import Logger from '../../../../../util/Logger';
-import { OLD_HOMEPAGE_URL_HOST } from '../../constants';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { SessionENSNames } from '../../types';
@@ -44,7 +42,6 @@ interface OptionsProps {
   activeUrl: string;
   isHomepage: () => boolean;
   getMaskedUrl: (urlToMask: string, sessionENSNames: SessionENSNames) => string;
-  onSubmitEditing: (url: string) => void;
   title: MutableRefObject<string>;
   reload: () => void;
   sessionENSNames: SessionENSNames;
@@ -62,7 +59,6 @@ const Options = ({
   activeUrl,
   isHomepage,
   getMaskedUrl,
-  onSubmitEditing,
   title,
   reload,
   sessionENSNames,
