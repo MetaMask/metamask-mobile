@@ -15,8 +15,6 @@ import BadgeWrapper, {
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
 import TokenIcon from '../Swaps/components/TokenIcon';
 
 interface TokenProps {
@@ -25,6 +23,7 @@ interface TokenProps {
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
   testID?: string;
+  onPress?: () => void;
 }
 
 interface StylesParams {
@@ -61,19 +60,11 @@ export const Token: React.FC<TokenProps> = ({
   networkImageSource,
   networkName,
   testID,
+  onPress,
 }) => {
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
-
-  const handlePress = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
-      params: {},
-    });
-  };
-
   return (
-    <TouchableOpacity onPress={handlePress} testID={testID}>
+    <TouchableOpacity onPress={onPress} testID={testID}>
       <Box
         style={styles.pillContainer}
         flexDirection={FlexDirection.Row}

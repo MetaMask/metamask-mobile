@@ -116,9 +116,9 @@ const Routes = {
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
-    BRIDGE_TOKEN_SELECTOR: 'BridgeTokenSelector',
-    BRIDGE_NETWORK_SELECTOR: 'BridgeNetworkSelector',
     SLIPPAGE_MODAL: 'SlippageModal',
+    BRIDGE_SOURCE_TOKEN_SELECTOR: 'BridgeTokenSelector',
+    BRIDGE_SOURCE_NETWORK_SELECTOR: 'BridgeNetworkSelector',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

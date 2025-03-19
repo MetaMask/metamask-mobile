@@ -138,7 +138,7 @@ import { Confirm } from '../../Views/confirmations/Confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
-import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
+import { BridgeSourceTokenSelector } from '../../UI/Bridge/BridgeSourceTokenSelector';
 import { BridgeNetworkSelector } from '../../UI/Bridge/BridgeNetworkSelector';
 import { SlippageModal } from '../../UI/Bridge/components/SlippageModal';
 
@@ -462,11 +462,11 @@ const RootModalFlow = () => (
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
     <Stack.Screen
-      name={Routes.SHEET.BRIDGE_TOKEN_SELECTOR}
-      component={BridgeTokenSelector}
+      name={Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR}
+      component={BridgeSourceTokenSelector}
     />
     <Stack.Screen
-      name={Routes.SHEET.BRIDGE_NETWORK_SELECTOR}
+      name={Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR}
       component={BridgeNetworkSelector}
       />
     <Stack.Screen

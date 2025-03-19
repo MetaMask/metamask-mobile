@@ -1,6 +1,6 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { BridgeTokenSelector } from './BridgeTokenSelector';
+import { BridgeSourceTokenSelector } from './BridgeSourceTokenSelector';
 import Routes from '../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSourceToken } from '../../../core/redux/slices/bridge';
@@ -27,7 +27,7 @@ jest.mock('../../../core/redux/slices/bridge', () => {
   };
 });
 
-describe('BridgeTokenSelector', () => {
+describe('BridgeSourceTokenSelector', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
   const mockChainId = '0x1' as Hex;
   const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
@@ -279,9 +279,9 @@ describe('BridgeTokenSelector', () => {
 
   it('renders with initial state and displays tokens', async () => {
     const { getByText } = renderScreen(
-      BridgeTokenSelector,
+      BridgeSourceTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -307,9 +307,9 @@ describe('BridgeTokenSelector', () => {
 
   it('handles token selection correctly', async () => {
     const { getByText } = renderScreen(
-      BridgeTokenSelector,
+      BridgeSourceTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -340,9 +340,9 @@ describe('BridgeTokenSelector', () => {
 
   it('handles close button correctly', () => {
     const { getByTestId } = renderScreen(
-      BridgeTokenSelector,
+      BridgeSourceTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -355,9 +355,9 @@ describe('BridgeTokenSelector', () => {
 
   it('handles token search functionality correctly', async () => {
     const { getByTestId, getByText, queryByText } = renderScreen(
-      BridgeTokenSelector,
+      BridgeSourceTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -389,9 +389,9 @@ describe('BridgeTokenSelector', () => {
 
   it('displays empty state when no tokens match search', async () => {
     const { getByTestId, getByText } = renderScreen(
-      BridgeTokenSelector,
+      BridgeSourceTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
       },
       { state: initialState }
     );

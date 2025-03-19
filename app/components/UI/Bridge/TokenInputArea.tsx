@@ -92,6 +92,7 @@ interface TokenInputAreaProps {
   isReadonly?: boolean;
   testID?: string;
   tokenType?: TokenInputAreaType;
+  onTokenPress?: () => void;
 }
 
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
@@ -103,7 +104,8 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   autoFocus,
   isReadonly = false,
   testID,
-  tokenType
+  tokenType,
+  onTokenPress,
 }) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -152,6 +154,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
             networkImageSource={networkImageSource}
             networkName={networkName}
             testID={testID}
+            onPress={onTokenPress}
           />
         </Box>
         <Box style={styles.row}>

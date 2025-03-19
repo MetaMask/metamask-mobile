@@ -35,6 +35,7 @@ interface TokenSelectorItemProps {
   onPress: (token: TokenIWithFiatAmount) => void;
   networkName: string;
   networkImageSource?: ImageSourcePropType;
+  shouldShowBalance?: boolean;
 }
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -42,6 +43,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   onPress,
   networkName,
   networkImageSource,
+  shouldShowBalance = true,
 }) => {
   const styles = createStyles();
 
@@ -53,8 +55,8 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       key={token.address}
       asset={token}
       onPress={() => onPress(token)}
-      balance={fiatValue}
-      secondaryBalance={balanceWithSymbol}
+      balance={shouldShowBalance ? fiatValue : undefined}
+      secondaryBalance={shouldShowBalance ? balanceWithSymbol : undefined}
     >
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
