@@ -413,7 +413,6 @@ export const getRpcMethodMiddleware = ({
           res,
           next,
           (err) => {
-            Logger.log('request object params', req.params, req.params[0]);
             if (err) {
               throw err;
             }

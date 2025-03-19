@@ -34,6 +34,20 @@ class TestDApp {
     );
   }
 
+  get RevokeAccountPermissionsButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.REVOKE_ACCOUNT_PERMISSIONS,
+    );
+  }
+
+  get GetPermissionsButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.GET_PERMISSIONS,
+    );
+  }
+
   get ApproveERC20TokensButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -166,6 +180,14 @@ class TestDApp {
 
   async connect() {
     await this.tapButton(this.DappConnectButton);
+  }
+
+  async tapRevokeAccountPermissionsButton() {
+    await this.tapButton(this.RevokeAccountPermissionsButton);
+  }
+
+  async tapGetPermissionsButton() {
+    await this.tapButton(this.GetPermissionsButton);
   }
 
   async tapApproveERC20TokensButton() {
