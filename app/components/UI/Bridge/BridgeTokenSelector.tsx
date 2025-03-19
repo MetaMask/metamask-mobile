@@ -58,8 +58,16 @@ const createStyles = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingVertical: 12,
     },
+    networkOverflowCircle: {
+      backgroundColor: theme.colors.background.alternative,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+    },
   });
 };
+
+const MAX_NETWORK_ICONS = 2;
 
 export const BridgeTokenSelector: React.FC = () => {
   const { styles, theme } = useStyles(createStyles, {});
@@ -141,7 +149,9 @@ export const BridgeTokenSelector: React.FC = () => {
       networkText = strings('bridge.num_networks', { numNetworks: selectedSourceChainIds.length });
     }
 
-    const networksToShow = sortedSourceNetworks.filter(({ chainId }) => selectedSourceChainIds.includes(chainId));
+    const networksToShow = sortedSourceNetworks
+      .filter(({ chainId }) => selectedSourceChainIds.includes(chainId))
+      .filter((_, i) => i < MAX_NETWORK_ICONS);
 
     return (
       <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
@@ -155,11 +165,16 @@ export const BridgeTokenSelector: React.FC = () => {
             name={networkConfigurations[chainId]?.name}
             />
           ))}
+          {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
+            <Box style={styles.networkOverflowCircle} justifyContent={JustifyContent.center} alignItems={AlignItems.center}>
+              <Text variant={TextVariant.BodySM}>+{selectedSourceChainIds.length - MAX_NETWORK_ICONS}</Text>
+            </Box>
+          )}
         </Box>
         <Text>{networkText}</Text>
       </Box>
     );
-  }, [selectedSourceChainIds, enabledSourceChains, networkConfigurations, sortedSourceNetworks]);
+  }, [selectedSourceChainIds, enabledSourceChains, networkConfigurations, sortedSourceNetworks, styles]);
 
   return (
     <BottomSheet isFullscreen>
