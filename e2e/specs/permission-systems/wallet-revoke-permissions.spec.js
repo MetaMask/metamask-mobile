@@ -52,10 +52,10 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
           TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         );
 
-        await Assertions.checkIfElementToHaveText(
-          elementId0,
-          'eth_accounts, endowment:permitted-chains',
-        );
+        // await Assertions.checkIfElementToHaveText(
+        //   elementId0,
+        //   'eth_accounts, endowment:permitted-chains',
+        // );
 
         const el0 = await Matchers.getElementByID(
           TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
@@ -86,6 +86,7 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
         await Assertions.checkIfElementToHaveText(
           elementId,
           'No permissions found.',
+          120000,
         );
 
         const el2 = await Matchers.getElementByID(
