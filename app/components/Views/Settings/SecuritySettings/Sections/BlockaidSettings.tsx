@@ -23,23 +23,21 @@ const BlockaidSettings = () => {
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
   const toggleSecurityAlertsEnabled = () => {
-    const { PreferencesController } = Engine.context;
+    const newSecurityAlertsEnabledState = !securityAlertsEnabled;
 
-    if (securityAlertsEnabled) {
-      PreferencesController?.setSecurityAlertsEnabled(false);
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED)
+    const { PreferencesController } = Engine.context;
+    PreferencesController?.setSecurityAlertsEnabled(newSecurityAlertsEnabledState);
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED)
           .addProperties({
-            security_alerts_enabled: false,
+              security_alerts_enabled: newSecurityAlertsEnabledState,
           })
           .build(),
-      );
-    } else {
-      PreferencesController?.setSecurityAlertsEnabled(true);
-    }
+    );
 
     addTraitsToUser({
-      [UserProfileProperty.SECURITY_PROVIDERS]: securityAlertsEnabled
+      [UserProfileProperty.SECURITY_PROVIDERS]: newSecurityAlertsEnabledState
         ? 'blockaid'
         : '',
     });
