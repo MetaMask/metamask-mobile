@@ -1,13 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { cloneDeep } from 'lodash';
 import ApproveTransactionModal from '.';
+import { getTokenDetails } from '../../../../../util/address';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { SET_APPROVAL_FOR_ALL_SIGNATURE } from '../../../../../util/transactions';
-import { cloneDeep } from 'lodash';
-import { fireEvent, waitFor } from '@testing-library/react-native';
-
-import { getTokenDetails } from '../../../../../util/address';
 
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
@@ -117,7 +114,7 @@ describe('ApproveTransactionModal', () => {
   });
 
   it('Approve button is enabled when standard is defined', async () => {
-    const mockGetTokenDetails = getTokenDetails as jest.Mock;
+    const mockGetTokenDetails = getTokenDetails;
     mockGetTokenDetails.mockReturnValue({
       standard: 'ERC20',
     });
@@ -176,7 +173,7 @@ describe('ApproveTransactionModal', () => {
   });
 
   it('Approve button is disabled when standard is undefined', async () => {
-    const mockGetTokenDetails = getTokenDetails as jest.Mock;
+    const mockGetTokenDetails = getTokenDetails;
     mockGetTokenDetails.mockReturnValue({});
     const state = cloneDeep(initialState);
     state.engine.backgroundState.AccountTrackerController.accounts = [];
