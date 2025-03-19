@@ -26,7 +26,7 @@ export const useConfirmActions = () => {
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
-  const isStakingDepositConfirmation = isStakingConfirmation(
+  const isOneOfTheStakingConfirmations = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
 
@@ -64,7 +64,7 @@ export const useConfirmActions = () => {
       handleErrors: false,
     });
 
-    if (isStakingDepositConfirmation) {
+    if (isOneOfTheStakingConfirmations) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -83,7 +83,7 @@ export const useConfirmActions = () => {
     captureSignatureMetrics,
     onRequestConfirm,
     isSignatureReq,
-    isStakingDepositConfirmation,
+    isOneOfTheStakingConfirmations,
   ]);
 
   return { onConfirm, onReject };
