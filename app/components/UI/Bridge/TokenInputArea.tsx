@@ -12,6 +12,7 @@ import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { TokenI } from '../Tokens/types';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
+import { ethers } from 'ethers';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -130,7 +131,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   const formattedBalance = token?.symbol && tokenBalance ? (
     `${renderNumber(tokenBalance)} ${token?.symbol}`
   ) : undefined;
-  const formattedAddress = token?.address ? formatAddress(token?.address) : undefined;
+  const formattedAddress = token?.address && token.address !== ethers.constants.AddressZero ? formatAddress(token?.address) : undefined;
 
   const subtitle = tokenType === TokenInputAreaType.Source ? formattedBalance : formattedAddress;
 
