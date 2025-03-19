@@ -190,7 +190,7 @@ describe('Footer', () => {
       expect(getByTestId('confirm-alert-checkbox')).toBeDefined();
 
       await act(async () => {
-        fireEvent.press(getByTestId('confirm-alert-reject-button'));
+        fireEvent.press(getByTestId('confirm-alert-cancel-button'));
       });
 
       expect(mockRejectSpy).toHaveBeenCalledTimes(1);
