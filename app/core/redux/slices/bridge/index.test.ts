@@ -92,14 +92,14 @@ describe('bridge slice', () => {
       const action = setDestChainId(chainId);
       const state = reducer(initialState, action);
 
-      expect(state.destChainId).toBe(chainId);
+      expect(state.selectedDestChainId).toBe(chainId);
     });
 
     it('should set dest chain ID to undefined', () => {
       const action = setDestChainId(undefined);
       const state = reducer(initialState, action);
 
-      expect(state.destChainId).toBeUndefined();
+      expect(state.selectedDestChainId).toBeUndefined();
     });
   });
 
@@ -136,7 +136,7 @@ describe('bridge slice', () => {
 
       expect(newState.sourceToken).toEqual(mockDestToken);
       expect(newState.destToken).toEqual(mockToken);
-      expect(newState.destChainId).toBe('eip155:2');
+      expect(newState.selectedDestChainId).toBe('eip155:2');
       expect(newState.sourceAmount).toBeUndefined();
       expect(newState.destAmount).toBeUndefined();
     });

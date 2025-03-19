@@ -352,7 +352,7 @@ describe('BridgeView', () => {
       destToken: undefined,
       sourceAmount: undefined,
       destAmount: undefined,
-      destChainId: undefined,
+      selectedDestChainId: undefined,
       selectedSourceChainIds: [mockChainId, optimismChainId],
     } as BridgeState,
   };
