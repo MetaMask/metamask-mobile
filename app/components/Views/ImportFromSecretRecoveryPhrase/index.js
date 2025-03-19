@@ -377,7 +377,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const hiddenSRPInput = useCallback(
     () => (
-      <TextInput
+      <OutlinedTextField
         style={styles.input}
         containerStyle={inputWidth}
         inputContainerStyle={styles.padding}
