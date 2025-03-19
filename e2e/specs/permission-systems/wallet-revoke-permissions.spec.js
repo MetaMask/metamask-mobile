@@ -72,13 +72,23 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
           TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         );
 
+        const elementId = Matchers.getElementByID(
+          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
+        );
+
         // eslint-disable-next-line no-console
-        console.log({ el2 });
+        console.log({ el2, elementId: await elementId });
         expect(true).toBeTruthy();
+        await Assertions.checkIfElementToHaveText(
+          elementId,
+          'No permissions found.',
+        );
+
         // await Assertions.checkIfElementToHaveText(
         //   TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         //   'No permissions found.',
         // );
+
         // await Assertions.checkIfTextIsDisplayed(
         //   'Permissions result: No permissions found.',
         // );
