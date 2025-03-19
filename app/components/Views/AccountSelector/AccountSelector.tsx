@@ -58,6 +58,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { accounts, ensByAccountAddress } = useAccounts({
     checkBalanceError,
     isLoading: reloadAccounts,
+    shouldAggregateAcrossChains: true,
   });
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
