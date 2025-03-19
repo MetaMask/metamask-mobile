@@ -1,16 +1,9 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 /* eslint-disable react/prop-types */
-
-// Third-Party dependencies
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Fuse from 'fuse.js';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { AddressBookEntry } from '@metamask/address-book-controller';
-
-// External dependencies
 import { isSmartContractAddress } from '../../../../../util/transactions';
 import { strings } from '../../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
@@ -20,17 +13,11 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 import { regex } from '../../../../../util/regex';
 import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
-
-// Internal dependencies
-import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
-import { RootState } from '../../../../../reducers';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const LabelElement = (styles: any, label: string) => (
+const LabelElement = (styles, label) => (
   <View key={label} style={styles.labelElementWrapper}>
     <Text variant={TextVariant.BodyMD} style={styles.contactLabel}>
       {label.toUpperCase()}
@@ -38,7 +25,7 @@ const LabelElement = (styles: any, label: string) => (
   </View>
 );
 
-const AddressList: React.FC<AddressListProps> = ({
+const AddressList = ({
   chainId,
   inputSearch,
   onAccountPress,
@@ -49,23 +36,21 @@ const AddressList: React.FC<AddressListProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
-  const [contactElements, setContactElements] = useState<Contact[]>([]);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [fuse, setFuse] = useState<any>(undefined);
+  const [contactElements, setContactElements] = useState([]);
+  const [fuse, setFuse] = useState(undefined);
   const internalAccounts = useSelector(selectInternalAccounts);
   const addressBook = useSelector(selectAddressBook);
   const ambiguousAddressEntries = useSelector(
-    (state: RootState) => state.user.ambiguousAddressEntries,
+    (state) => state.user.ambiguousAddressEntries,
   );
 
-  const networkAddressBook: { [address: string]: AddressBookEntry } = useMemo(
+  const networkAddressBook = useMemo(
     () => addressBook[chainId] || {},
     [addressBook, chainId],
   );
   const parseAddressBook = useCallback(
     (networkAddressBookList) => {
-      const contacts = networkAddressBookList.map((contact: Contact) => {
+      const contacts = networkAddressBookList.map((contact) => {
         const isAmbiguousAddress =
           chainId &&
           ambiguousAddressEntries?.[chainId]?.includes(contact.address);
@@ -77,9 +62,9 @@ const AddressList: React.FC<AddressListProps> = ({
       });
 
       Promise.all(
-        contacts.map((contact: Contact) =>
+        contacts.map((contact) =>
           isSmartContractAddress(contact.address, contact.chainId)
-            .then((isSmartContract: boolean) => {
+            .then((isSmartContract) => {
               if (isSmartContract) {
                 return { ...contact, isSmartContract: true };
               }
@@ -88,14 +73,10 @@ const AddressList: React.FC<AddressListProps> = ({
             .catch(() => contact),
         ),
       ).then((updatedContacts) => {
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const newContactElements: any[] = [];
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const addressBookTree: any = {};
+        const newContactElements = [];
+        const addressBookTree = {};
 
-        updatedContacts.forEach((contact: Contact) => {
+        updatedContacts.forEach((contact) => {
           const contactNameInitial = contact?.name?.[0];
           const nameInitial = regex.nameInitial.exec(contactNameInitial);
           const initial = nameInitial
@@ -114,7 +95,7 @@ const AddressList: React.FC<AddressListProps> = ({
           .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
           .forEach((initial) => {
             newContactElements.push(initial);
-            addressBookTree[initial].forEach((contact: Contact) => {
+            addressBookTree[initial].forEach((contact) => {
               newContactElements.push(contact);
             });
           });
@@ -194,7 +175,7 @@ const AddressList: React.FC<AddressListProps> = ({
     );
   };
 
-  const renderElement = (addressElement: Contact | string) => {
+  const renderElement = (addressElement) => {
     if (typeof addressElement === 'string') {
       return LabelElement(styles, addressElement);
     }
@@ -217,7 +198,7 @@ const AddressList: React.FC<AddressListProps> = ({
   };
 
   const renderContent = () => {
-    const sendFlowContacts: (string | Contact)[] = [];
+    const sendFlowContacts = [];
 
     contactElements.forEach((contractElement) => {
       if (
