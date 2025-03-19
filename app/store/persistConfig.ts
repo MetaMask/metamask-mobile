@@ -114,7 +114,7 @@ const persistConfig = {
     'rpcEvents',
     'accounts',
     'multichainSettings',
-    'transactionMetrics',
+    'confirmationMetrics',
   ],
   storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
