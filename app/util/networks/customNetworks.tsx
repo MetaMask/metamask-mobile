@@ -3,7 +3,6 @@ import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-import { MultichainNetworks } from '../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
@@ -242,7 +241,7 @@ export const NETWORK_CHAIN_ID: {
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 export const CustomNetworkImgMapping: Record<Hex, string> = {
-  [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/solana-logo.png'),
+  [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/flare-mainnet.png'),
   [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/songbird.png'),
   [NETWORK_CHAIN_ID.APE_CHAIN_TESTNET]: require('../../images/ape-network.png'),
   [NETWORK_CHAIN_ID.APE_CHAIN_MAINNET]: require('../../images/ape-network.png'),
