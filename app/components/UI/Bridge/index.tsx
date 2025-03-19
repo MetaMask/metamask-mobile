@@ -194,6 +194,13 @@ const BridgeView = () => {
     });
   };
 
+  const handleSourceTokenPress = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
+      params: {},
+    });
+  };
+
   const renderBottomContent = () => {
     if (
       !sourceAmount ||
@@ -248,6 +255,7 @@ const BridgeView = () => {
             isReadonly
             testID="source-token-area"
             tokenType={TokenInputAreaType.Source}
+            onTokenPress={handleSourceTokenPress}
           />
           <Box style={styles.arrowContainer}>
             <TouchableOpacity

@@ -312,7 +312,7 @@ describe('BridgeNetworkSelector', () => {
     const { getByText } = renderScreen(
       BridgeNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -341,7 +341,7 @@ describe('BridgeNetworkSelector', () => {
     const { getAllByTestId } = renderScreen(
       BridgeNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -372,7 +372,7 @@ describe('BridgeNetworkSelector', () => {
     const { getAllByTestId, getByText, queryByText } = renderScreen(
       BridgeNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -417,7 +417,7 @@ describe('BridgeNetworkSelector', () => {
     const { getAllByTestId, getByText } = renderScreen(
       BridgeNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -441,7 +441,7 @@ describe('BridgeNetworkSelector', () => {
     const { getByTestId } = renderScreen(
       BridgeNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -456,7 +456,7 @@ describe('BridgeNetworkSelector', () => {
     const { getByTestId, getByText } = renderScreen(
       BridgeNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -474,7 +474,7 @@ describe('BridgeNetworkSelector', () => {
     const { getAllByTestId } = renderScreen(
       BridgeNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );

@@ -388,7 +388,7 @@ describe('BridgeView', () => {
 
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+      screen: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
       params: {},
     });
   });
@@ -410,7 +410,7 @@ describe('BridgeView', () => {
 
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+      screen: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
       params: {},
     });
   });
