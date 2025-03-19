@@ -91,6 +91,10 @@ pipelines:
       - create_build_flask_release: {}
       - deploy_flask_build_release: {}
       - release_notify: {}
+  # Pipeline for QA Flask
+  build_qa_flask_pipeline:
+    stages:
+      - create_qa_flask_build: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_all_targets:
@@ -2369,29 +2373,8 @@ workflows:
         machine_type_id: elite-xl
         stack: linux-docker-android-22.04
 
-  build_qa_flask_stage:
-    abort_on_fail: true
-    workflows:
-      - create_qa_flask_build_pipeline: {}
-
-  create_qa_flask_build_pipeline:
-    before_run:
-      - setup
-    after_run:
-      - create_qa_flask_builds
-    
-  create_qa_flask_builds:
-    abort_on_fail: true
-    workflows:
-      - build_android_qa_flask:
-          name: "Build Android QA Flask"
-          is_always_run: false
-      - build_ios_qa_flask:
-          name: "Build iOS QA Flask"
-          is_always_run: false
-
+  # Add a workflow that we'll reference in the stages
   build_android_qa_flask:
-    abort_on_fail: true
     before_run:
       - setup_release_keystore
     after_run: []
@@ -2453,7 +2436,6 @@ workflows:
                 envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
 
   build_ios_qa_flask:
-    abort_on_fail: true
     before_run:
       - setup_certificates
     after_run: []
@@ -2602,10 +2584,14 @@ trigger_map:
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'qa-flask-*'
-    pipeline: build_qa_flask_stage
+    workflow: build_android_qa_flask
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
   - push_branch: detox/address-regression-tests-slowdown
     pipeline: multichain_permissions_e2e_pipeline
+  - tag: 'qa-flask-android-*'
+    workflow: build_android_qa_flask
+  - tag: 'qa-flask-ios-*'
+    workflow: build_ios_qa_flask
