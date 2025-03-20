@@ -28,7 +28,6 @@ import {
   NetworkController,
   NetworkState,
   NetworkStatus,
-  isConnectionError,
 } from '@metamask/network-controller';
 import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
@@ -344,66 +343,36 @@ export class Engine {
       getRpcServiceOptions: () => ({
         fetch,
         btoa,
-        policyOptions: {
-          maxRetries: 1,
-          maxConsecutiveFailures: 10,
-          circuitBreakDuration: 10000,
-        },
       }),
     };
     const networkController = new NetworkController(networkControllerOpts);
 
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointUnavailable',
-      async ({ chainId, endpointUrl, error }) => {
-        const parsedUrl = new URL(endpointUrl);
-        const hostParts = parsedUrl.host.split('.');
-        const rootDomainName = hostParts.slice(-2).join('.');
-        if (
-          (rootDomainName === 'infura.io' ||
-            rootDomainName === 'quicknode.pro') &&
-          isConnectionError(error)
-        ) {
-          // eslint-disable-next-line
-          console.log('RPC endpoint unavailable', {
-            chainId,
-            endpointUrl,
-            error,
-          });
-          const metricsEvent = MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE,
-          )
-            .addProperties({
-              chain_id_caip: `eip155:${chainId}`,
-              rpc_endpoint_url: endpointUrl,
-            })
-            .build();
-          MetaMetrics.getInstance().trackEvent(metricsEvent);
-        }
+      async ({ chainId, endpointUrl }) => {
+        const metricsEvent = MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE,
+        )
+          .addProperties({
+            chain_id_caip: `eip155:${chainId}`,
+            rpc_endpoint_url: endpointUrl,
+          })
+          .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
       },
     );
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
       async ({ chainId, endpointUrl }) => {
-        const parsedUrl = new URL(endpointUrl);
-        const hostParts = parsedUrl.host.split('.');
-        const rootDomainName = hostParts.slice(-2).join('.');
-        if (
-          rootDomainName === 'infura.io' ||
-          rootDomainName === 'quicknode.pro'
-        ) {
-          // eslint-disable-next-line
-          console.log('RPC endpoint degraded', { chainId, endpointUrl });
-          const metricsEvent = MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.RPC_SERVICE_DEGRADED,
-          )
-            .addProperties({
-              chain_id_caip: `eip155:${chainId}`,
-              rpc_endpoint_url: endpointUrl,
-            })
-            .build();
-          MetaMetrics.getInstance().trackEvent(metricsEvent);
-        }
+        const metricsEvent = MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.RPC_SERVICE_DEGRADED,
+        )
+          .addProperties({
+            chain_id_caip: `eip155:${chainId}`,
+            rpc_endpoint_url: endpointUrl,
+          })
+          .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
       },
     );
 
