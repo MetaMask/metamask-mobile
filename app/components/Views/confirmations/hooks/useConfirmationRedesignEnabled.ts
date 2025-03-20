@@ -25,7 +25,6 @@ const REDESIGNED_SIGNATURE_TYPES = [
 const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
-  TransactionType.stakingClaim,
 ];
 
 function isRedesignedSignature({

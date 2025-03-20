@@ -32,7 +32,6 @@ jest.mock('../../Navbar/Navbar', () => ({
   getNavbar: jest.fn(),
 }));
 
-const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -40,7 +39,6 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
-      addListener: jest.fn().mockReturnValue(noop),
     }),
   };
 });
@@ -101,7 +99,6 @@ describe('StakingWithdrawal', () => {
     expect(mockGetNavbar).toHaveBeenCalledWith({
       title: 'Unstake',
       onReject: mockOnReject,
-      addBackButton: true,
     });
   });
 

@@ -10,6 +10,8 @@ import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import { useStyles } from '../../../../component-library/hooks';
 import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { enableProfileSyncing } from '../../../../actions/identity';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import styleSheet from '../DefaultSettings/index.styles';
@@ -42,6 +44,13 @@ const GeneralSettings = () => {
   };
 
   const toggleProfileSyncing = async () => {
+    if (isProfileSyncingEnabled) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.PROFILE_SYNCING,
+      });
+    } else {
+      await enableProfileSyncing();
+    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
         .addProperties({
@@ -57,7 +66,13 @@ const GeneralSettings = () => {
   return (
     <ScrollView style={styles.root}>
       <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
-      <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
+      {isNotificationsFeatureEnabled() && (
+        <ProfileSyncingComponent
+          handleSwitchToggle={toggleProfileSyncing}
+          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+          isProfileSyncingEnabled={isProfileSyncingEnabled}
+        />
+      )}
       <ManageNetworksComponent />
     </ScrollView>
   );

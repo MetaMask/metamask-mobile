@@ -27,27 +27,16 @@ const StakingContractInteractionDetails = () => {
           <InfoRow
             label={strings('stake.staking_from')}
           >
-            <Name
-              type={NameType.EthereumAddress}
-              value={(transactionMeta as TransactionMeta).txParams.from}
-              variation={CHAIN_IDS.MAINNET}
+          <Name
+            type={NameType.EthereumAddress}
+            value={(transactionMeta as TransactionMeta).txParams.from}
+            variation={CHAIN_IDS.MAINNET}
             />
           </InfoRow>
         )}
         {transactionMeta?.type === TransactionType.stakingUnstake && (
           <InfoRow
             label={strings('stake.unstaking_to')}
-          >
-          <Name
-            type={NameType.EthereumAddress}
-            value={address as string}
-            variation={CHAIN_IDS.MAINNET}
-            />
-          </InfoRow>
-        )}
-        {transactionMeta?.type === TransactionType.stakingClaim && (
-          <InfoRow
-            label={strings('stake.claiming_to')}
           >
           <Name
             type={NameType.EthereumAddress}
@@ -81,7 +70,7 @@ const StakingContractInteractionDetails = () => {
           </View>
         </InfoRow>
       </>
-    );
-  };
+    )
+  }
 
 export default StakingContractInteractionDetails;

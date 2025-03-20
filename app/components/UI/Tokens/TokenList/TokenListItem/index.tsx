@@ -347,8 +347,8 @@ export const TokenListItem = React.memo(
         onPress={onItemPress}
         onLongPress={asset.isETH || asset.isNative ? null : showRemoveMenu}
         asset={asset}
-        balance={mainBalance}
-        secondaryBalance={secondaryBalance}
+        balance={secondaryBalance}
+        mainBalance={mainBalance}
         privacyMode={privacyMode}
       >
         {showNetworkBadge ? (

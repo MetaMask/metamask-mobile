@@ -848,15 +848,6 @@ const MainNavigator = () => (
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
     />
-    {/* TODO: This is added to support slide 4 in the carousel - once changed this can be safely removed*/}
-    <Stack.Screen
-      name="GeneralSettings"
-      component={GeneralSettings}
-      options={{
-        headerShown: true,
-        ...GeneralSettings.navigationOptions,
-      }}
-    />
     <Stack.Screen
       name={Routes.NOTIFICATIONS.OPT_IN_STACK}
       component={NotificationsOptInStack}

@@ -90,7 +90,6 @@ import { useConnectionHandler } from '../../../util/navigation/useConnectionHand
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
-import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 
 const Stack = createStackNavigator();
 
@@ -122,7 +121,6 @@ const Main = (props) => {
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useNotificationHandler();
-  useIdentityEffects();
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 

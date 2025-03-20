@@ -4,9 +4,8 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
 import StakeInputView from './StakeInputView';
-import {
+import renderWithProvider, {
   DeepPartial,
-  renderScreen,
 } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Stake } from '../../sdk/stakeSdkProvider';
@@ -238,20 +237,10 @@ describe('StakeInputView', () => {
     } as unknown as ReturnType<typeof useMetrics>);
   });
 
-  function render(Component: React.ComponentType<StakeInputViewProps>) {
-    return renderScreen(
-      Component as React.ComponentType,
-      {
-        name: Routes.STAKING.STAKE,
-      },
-      {
-        state: mockInitialState,
-      },
-      baseProps.route.params
-    );
-  }
-
-  const renderComponent = () => render(StakeInputView);
+  const renderComponent = () =>
+    renderWithProvider(<StakeInputView {...baseProps} />, {
+      state: mockInitialState,
+    });
 
   it('render matches snapshot', () => {
     const { toJSON } = renderComponent();

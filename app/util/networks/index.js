@@ -44,12 +44,8 @@ import {
 import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { store } from '../../store';
-import {
-  selectSelectedNonEvmNetworkChainId,
-  selectMultichainNetworkControllerState,
-} from '../../selectors/multichainNetworkController';
-import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../core/Multichain/constants';
-import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../selectors/multichainNetworkController';
+
 /**
  * List of the supported networks
  * including name, id, and color
@@ -306,57 +302,20 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
 
   return undefined;
 }
-
 /**
  * Returns block explorer for non-evm chain id
  *
- * @param {object} internalAccount - Internal account object
- * @returns {string} - Block explorer url or undefined if not found
+ * @param {string} chainId - Chain ID of the network
+ * @returns {string} - Block explorer url
  */
-export function findBlockExplorerForNonEvmAccount(internalAccount) {
-  let scope;
-
-  const selectedNonEvmNetworkChainId = selectSelectedNonEvmNetworkChainId(
+export function findBlockExplorerForNonEvmChainId(chainId) {
+  const nonEvmNetworks = selectNonEvmNetworkConfigurationsByChainId(
     store.getState(),
   );
-  // Check if the selectedNonEvmNetworkChainId exists in the scopes array
-  if (
-    selectedNonEvmNetworkChainId &&
-    internalAccount.scopes?.includes(selectedNonEvmNetworkChainId)
-  ) {
-    // Prioritize the selected chain ID if it's in the scopes array
-    scope = selectedNonEvmNetworkChainId;
-  } else {
-    // Fall back to a scope that is matching of our networks
-    const nonEvmNetworks = selectMultichainNetworkControllerState(
-      store.getState(),
-    );
-    const networkConfigs =
-      nonEvmNetworks.multichainNetworkConfigurationsByChainId;
-    const matchingNetwork = Object.values(networkConfigs || {}).find(
-      (network) => internalAccount.scopes.includes(network.chainId),
-    );
-
-    if (matchingNetwork) {
-      scope = matchingNetwork.chainId;
-    }
-  }
-  // If we couldn't determine a scope, return undefined
-  if (!scope) {
-    return undefined;
-  }
-
-  const blockExplorerFormatUrls =
-    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[scope];
-
-  if (!blockExplorerFormatUrls) {
-    return undefined;
-  }
-
-  return formatBlockExplorerAddressUrl(
-    blockExplorerFormatUrls,
-    internalAccount.address,
+  const network = Object.values(nonEvmNetworks).find(
+    (network) => network.chainId === chainId,
   );
+  return network?.blockExplorers?.urls[network?.blockExplorers?.defaultIndex];
 }
 
 /**

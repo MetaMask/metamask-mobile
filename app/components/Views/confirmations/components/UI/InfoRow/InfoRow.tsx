@@ -7,7 +7,7 @@ import styleSheet from './InfoRow.styles';
 
 interface InfoRowProps {
   label: string;
-  children?: ReactNode | string;
+  children: ReactNode | string;
   onTooltipPress?: () => void;
   tooltip?: string;
   style?: Record<string, unknown>;

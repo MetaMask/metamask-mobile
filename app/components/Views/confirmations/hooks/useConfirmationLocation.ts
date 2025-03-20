@@ -38,7 +38,7 @@ const ConfirmationLocationMap = {
       }
     },
   };
-
+  
 
 const determineConfirmationLocation = ({
   approvalRequest,
