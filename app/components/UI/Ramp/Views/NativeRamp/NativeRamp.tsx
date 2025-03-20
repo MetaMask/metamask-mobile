@@ -31,7 +31,6 @@ import {
 } from '@consensys/on-ramp-sdk/dist/NativeRampService';
 import { storeTransakToken, getTransakToken } from './TransakTokenVault';
 import { useRampSDK } from '../../sdk';
-import { baseStyles } from '../../../../../styles/common';
 
 function NativeRamp() {
   const navigation = useNavigation();
@@ -61,7 +60,6 @@ function NativeRamp() {
   const [idProofFormData, setIdProofFormData] = useState<KycForm | null>(null);
   const [purposeOfUsageFormData, setPurposeOfUsageFormData] =
     useState<KycForm | null>(null);
-  const [kycWebviewUrl, setKycWebviewUrl] = useState<string | null>(null);
 
   const { selectedAddress } = useRampSDK();
 
@@ -241,24 +239,55 @@ function NativeRamp() {
     }
   };
 
-  const waitForKycApproval = async (token: NativeTransakAccessToken) => {
+  const waitForKycApproval = async (
+    token: NativeTransakAccessToken,
+    updateLoadingMessage: (message: string) => void,
+  ) => {
     const maxRetries = 20; // 10 minutes max wait time
     let retries = 0;
 
     while (retries < maxRetries) {
+      retries++;
+      updateLoadingMessage(
+        `Waiting for KYC approval... Attempt ${retries} of ${maxRetries}`,
+      );
       await new Promise((resolve) => setTimeout(resolve, 30000)); // Wait 30 seconds
 
       const userDetails = await nativeRampService.getUserDetails(token);
-      console.log(`User KYC Status: ${userDetails.kyc?.l1?.status}`);
 
       if (userDetails.kyc?.l1?.status === 'APPROVED') {
         return true;
       }
-
-      retries++;
     }
 
     throw new Error('KYC approval timeout reached.');
+  };
+
+  const handleWebviewComplete = async () => {
+    try {
+      if (!accessToken || !purposeOfUsageFormData) return;
+
+      setIsLoading(true);
+      setLoadingMessage('Preparing to check KYC approval...');
+
+      // Wait for KYC approval
+      await waitForKycApproval(accessToken, setLoadingMessage);
+
+      // Submit purpose of usage form
+      setLoadingMessage('Submitting final verification...');
+      await nativeRampService.submitPurposeOfUsageForm(accessToken, [
+        'Buying/selling crypto for investments',
+      ]);
+
+      setIsKycApproved(true);
+      setCurrentStep(6);
+    } catch (error) {
+      console.error('Error completing KYC:', error);
+      Alert.alert('Error', getErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
   };
 
   const handleFormSubmit = async () => {
@@ -279,8 +308,14 @@ function NativeRamp() {
         );
 
         if (idProofFormDetails.data?.kycUrl) {
-          setKycWebviewUrl(idProofFormDetails.data.kycUrl);
-          setCurrentStep(5.5); // New step for webview
+          setCurrentStep(5.5); // KYC webview step
+          // Automatically navigate to webview when URL is available
+          navigation.navigate('Webview', {
+            screen: 'SimpleWebview',
+            params: {
+              url: idProofFormDetails.data.kycUrl,
+            },
+          });
         }
       } else {
         // Handle next regular form as before
@@ -304,33 +339,6 @@ function NativeRamp() {
     }
   };
 
-  const handleWebviewComplete = async () => {
-    try {
-      if (!accessToken || !purposeOfUsageFormData) return;
-
-      setIsLoading(true);
-      setLoadingMessage('Waiting for KYC approval...');
-
-      // Wait for KYC approval
-      await waitForKycApproval(accessToken);
-
-      // Submit purpose of usage form
-      setLoadingMessage('Submitting final verification...');
-      await nativeRampService.submitPurposeOfUsageForm(accessToken, [
-        'Buying/selling crypto for investments',
-      ]);
-
-      setIsKycApproved(true);
-      setCurrentStep(6);
-    } catch (error) {
-      console.error('Error completing KYC:', error);
-      Alert.alert('Error', getErrorMessage(error));
-    } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
-    }
-  };
-
   const waitForOrderCompletedStatus = async (order: BuyOrder) => {
     if (!accessToken) return;
 
@@ -343,12 +351,6 @@ function NativeRamp() {
       const transakOrderData = await nativeRampService.getOrder(
         accessToken,
         order.id,
-      );
-
-      console.log(
-        `Order Status: ${transakOrderData.status} (Retry ${
-          retries + 1
-        }/${maxRetries})`,
       );
 
       if (transakOrderData.status === 'COMPLETED') {
@@ -373,8 +375,6 @@ function NativeRamp() {
         selectedAddress,
       );
 
-      console.log('reservation', reservation);
-
       // Create order
       const order = await nativeRampService.createOrder(
         accessToken,
@@ -382,14 +382,10 @@ function NativeRamp() {
       );
       setOrderData(order);
 
-      console.log('order', order);
-
       // Find SEPA payment option
       const sepa = order.paymentOptions.find(
         (p) => p.id === 'sepa_bank_transfer',
       );
-
-      console.log('sepa', sepa);
 
       if (!sepa) throw new Error('SEPA payment option not found');
 
@@ -415,8 +411,7 @@ function NativeRamp() {
 
       // Wait for order completion
       setOrderStatus('waiting');
-      const completedOrder = await waitForOrderCompletedStatus(orderData);
-      console.log('completedOrder', completedOrder);
+      await waitForOrderCompletedStatus(orderData);
 
       // Move to success screen
       setCurrentStep(8);
@@ -451,7 +446,6 @@ function NativeRamp() {
               setCurrentStep(5);
             }
           } catch (error) {
-            console.log('Error checking user details:', error);
             // Token is invalid/expired, continue with normal flow
             setAccessToken(null);
             setCurrentStep(2);
@@ -735,28 +729,16 @@ function NativeRamp() {
 
   const renderWebviewStep = () => (
     <>
-      <Row>
-        <Text variant={TextVariant.BodyMD}>
-          Please complete your ID verification in the window below:
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary.default} />
+        <Text variant={TextVariant.BodyMD} style={styles.loadingText}>
+          {loadingMessage || 'Complete verification in the pop-up window...'}
         </Text>
-      </Row>
-      {kycWebviewUrl && (
-        <View style={baseStyles.flexGrow}>
-          <StyledButton
-            type="confirm"
-            onPress={() => {
-              navigation.navigate('Webview', {
-                screen: 'SimpleWebview',
-                params: {
-                  url: kycWebviewUrl,
-                },
-              });
-            }}
-          >
-            Start Verification
-          </StyledButton>
-        </View>
-      )}
+        <Text variant={TextVariant.BodyMD} style={styles.loadingText}>
+          Once you have completed the verification process, press the button
+          below to proceed.
+        </Text>
+      </View>
     </>
   );
 
@@ -836,7 +818,7 @@ function NativeRamp() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.keyboardAvoidingView}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
@@ -848,7 +830,7 @@ function NativeRamp() {
             </Row>
           )}
           <ScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={styles.scrollContentContainer}
             keyboardShouldPersistTaps="handled"
           >
             <ScreenLayout.Content>

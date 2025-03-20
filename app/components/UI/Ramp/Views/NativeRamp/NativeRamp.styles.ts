@@ -227,6 +227,12 @@ const styleSheet = (_params: { theme: Theme }) =>
       height: 400,
       marginVertical: 16,
     },
+    scrollContentContainer: {
+      flexGrow: 1,
+    },
+    keyboardAvoidingView: {
+      flex: 1,
+    },
   });
 
 export default styleSheet;
