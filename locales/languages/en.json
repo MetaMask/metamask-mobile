@@ -3752,6 +3752,9 @@
   "bridge": {
     "continue": "Continue",
     "terms_and_conditions": "Terms & Conditions",
-    "select_token": "Select token"
-  }
+    "select_token": "Select token",
+    "slippage": "Slippage",
+    "apply": "Apply",
+    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
+    }
 }
