@@ -70,12 +70,17 @@ export const useEarnTokenDetails = () => {
         .multipliedBy(rewardRateDecimal)
         .toNumber();
 
-      // Show cents ($0.50) for small amounts. Otherwise round up to nearest dollar ($2).
-      const numDecimalPlacesToShow = estimatedAnnualRewardsDecimal > 1 ? 0 : 2;
+      let estimatedAnnualRewardsFormatted = '';
 
-      const estimatedAnnualRewardsFormatted = `$${new BigNumber(
-        estimatedAnnualRewardsDecimal,
-      ).toFixed(numDecimalPlacesToShow, BigNumber.ROUND_UP)}`;
+      if (!Number.isNaN(estimatedAnnualRewardsDecimal)) {
+        // Show cents ($0.50) for small amounts. Otherwise round up to nearest dollar ($2).
+        const numDecimalPlacesToShow =
+          estimatedAnnualRewardsDecimal > 1 ? 0 : 2;
+
+        estimatedAnnualRewardsFormatted = `$${new BigNumber(
+          estimatedAnnualRewardsDecimal,
+        ).toFixed(numDecimalPlacesToShow, BigNumber.ROUND_UP)}`;
+      }
 
       return {
         ...token,

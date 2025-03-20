@@ -174,4 +174,20 @@ describe('useEarnTokenDetails', () => {
 
     expect(estimatedAnnualRewardsFormatted).toBe('$5');
   });
+
+  it('returns estimatedAnnualRewardsFormatted as empty string when token balance is empty', () => {
+    const usdcTokenWithEmptyBalance = {
+      ...mockUSDCToken,
+      balanceFiat: '',
+    };
+
+    const { result } = renderHookWithProvider(() => useEarnTokenDetails(), {
+      state: mockInitialState,
+    });
+
+    const { estimatedAnnualRewardsFormatted } =
+      result.current.getTokenWithBalanceAndApr(usdcTokenWithEmptyBalance);
+
+    expect(estimatedAnnualRewardsFormatted).toBe('');
+  });
 });
