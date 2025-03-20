@@ -47,8 +47,8 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       key={token.address}
       asset={token}
       onPress={() => onPress(token)}
-      mainBalance={balanceWithSymbol}
       balance={fiatValue}
+      secondaryBalance={balanceWithSymbol}
     >
       <BadgeWrapper
         badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
