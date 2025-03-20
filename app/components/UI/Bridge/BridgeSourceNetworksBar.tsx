@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { Box } from '../Box/Box';
-import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
+import Text, { TextColor, TextVariant } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
@@ -23,7 +23,7 @@ const createStyles = (params: { theme: Theme }) => {
       borderColor: theme.colors.border.muted,
     },
     networkOverflowCircle: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.overlay.default,
       width: 20,
       height: 20,
       borderRadius: 10,
@@ -82,7 +82,7 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
             ))}
             {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
               <Box style={styles.networkOverflowCircle} justifyContent={JustifyContent.center} alignItems={AlignItems.center}>
-                <Text variant={TextVariant.BodySM}>+{selectedSourceChainIds.length - MAX_NETWORK_ICONS}</Text>
+                <Text variant={TextVariant.BodySM} color={TextColor.Inverse}>+{selectedSourceChainIds.length - MAX_NETWORK_ICONS}</Text>
               </Box>
             )}
           </Box>
