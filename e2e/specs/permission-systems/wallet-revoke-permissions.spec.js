@@ -37,11 +37,32 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TestDApp.tapGetPermissionsButton();
 
-        await TestHelpers.delay(3000);
+        /**
+         * DEBUGGING
+         */
+        const element = await TestDApp.permissionsContainer;
+        // eslint-disable-next-line no-console
+        console.log('Element properties:', await element.getProperties());
 
-        await Assertions.checkIfVisible(TestDApp.permissionsContainer);
+        // eslint-disable-next-line no-console
+        console.log('Element attributes:', await element.getAttributes());
+
+        // eslint-disable-next-line no-console
+        console.log('tapped permission button!');
+        /**
+         * DEBUGGING END
+         */
+
+        await TestHelpers.delay(10000);
+
+        await Assertions.checkIfExists(TestDApp.permissionsContainer, 20000);
+        // eslint-disable-next-line no-console
+        console.log('element is existing check passed!');
+
+        await Assertions.checkIfVisible(TestDApp.permissionsContainer, 20000);
         // eslint-disable-next-line no-console
         console.log('element is visible check passed!');
+
         await Assertions.checkIfElementToHaveText(
           TestDApp.permissionsContainer,
           'eth_accounts',
@@ -52,12 +73,20 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TestDApp.tapRevokeAccountPermissionsButton();
 
-        await TestHelpers.delay(3000);
+        await TestHelpers.delay(10000);
 
         await TestDApp.tapGetPermissionsButton();
 
-        await TestHelpers.delay(3000);
+        await TestHelpers.delay(10000);
+
+        await Assertions.checkIfExists(TestDApp.permissionsContainer, 20000);
+        // eslint-disable-next-line no-console
+        console.log('(revoke) element is existing check passed!');
+
         await Assertions.checkIfVisible(TestDApp.permissionsContainer);
+        // eslint-disable-next-line no-console
+        console.log('(revoke) element is visible check passed!');
+
         await Assertions.checkIfElementToHaveText(
           TestDApp.permissionsContainer,
           'No permissions found',
