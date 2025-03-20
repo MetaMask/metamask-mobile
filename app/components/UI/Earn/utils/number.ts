@@ -10,8 +10,6 @@ const findFirstDigitIndex = (str: string) => {
   return -1;
 };
 
-const MATCH_E_FIRST_OCCURRENCE_REGEX = /[eE]/;
-
 // Build numeric string with only digits and at most one decimal point
 const buildFloatString = (str: string, firstDigitIndex: number) => {
   const isNegative = firstDigitIndex > 0 && str[firstDigitIndex - 1] === '-';
@@ -43,7 +41,7 @@ const buildFloatString = (str: string, firstDigitIndex: number) => {
     } else if (char === '-' && hasStartedDigits) {
       // Stop at minus sign after digits have started. The rest is junk
       break;
-    } else if (MATCH_E_FIRST_OCCURRENCE_REGEX.test(char)) {
+    } else if (char === 'e' || char === 'E') {
       // Stop at 'e' or 'E' to prevent scientific notation
       break;
     }
