@@ -538,13 +538,6 @@ exports[`Wallet should render correctly 1`] = `
                     </RNGestureHandlerButton>
                   </View>
                 </View>
-                <View
-                  style={
-                    {
-                      "marginHorizontal": 4,
-                    }
-                  }
-                />
                 <TouchableOpacity
                   accessible={true}
                   activeOpacity={1}
@@ -1037,7 +1030,7 @@ exports[`Wallet should render correctly 1`] = `
                                 }
                               >
                                 View: Wallet
-TypeError: Cannot read properties of undefined (reading 'tabs')
+TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                               </Text>
                             </View>
                           </RCTScrollView>
@@ -1692,13 +1685,6 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     </RNGestureHandlerButton>
                   </View>
                 </View>
-                <View
-                  style={
-                    {
-                      "marginHorizontal": 4,
-                    }
-                  }
-                />
                 <TouchableOpacity
                   accessible={true}
                   activeOpacity={1}
@@ -2191,7 +2177,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                 }
                               >
                                 View: Wallet
-TypeError: Cannot read properties of undefined (reading 'tabs')
+TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                               </Text>
                             </View>
                           </RCTScrollView>
