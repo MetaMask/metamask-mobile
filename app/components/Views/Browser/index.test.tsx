@@ -103,7 +103,7 @@ describe('Browser', () => {
           </NavigationContainer>
         </ThemeContext.Provider>
       </Provider>, { state: { ...mockInitialState } },
-    )
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 

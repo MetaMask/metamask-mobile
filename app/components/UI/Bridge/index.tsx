@@ -1,16 +1,24 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import Keypad from '../../Base/Keypad';
 import { TokenInputArea } from './TokenInputArea';
-import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
 import { FlexDirection, JustifyContent, AlignItems } from '../Box/box.types';
-import Text, { TextColor } from '../../../component-library/components/Texts/Text';
-import Icon, { IconName, IconSize } from '../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
 import { useLatestBalance } from './useLatestBalance';
 import {
@@ -32,6 +40,7 @@ import useSubmitBridgeTx from '../../../util/bridge/hooks/useSubmitBridgeTx';
 import { QuoteResponse } from './types';
 import Engine from '../../../core/Engine';
 import { Hex } from '@metamask/utils';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -111,6 +120,9 @@ const BridgeView = () => {
   const destAmount = useSelector(selectDestAmount);
   const destChainId = useSelector(selectDestChainId);
 
+  // Add state for slippage
+  const [slippage, setSlippage] = useState('0.5');
+
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
@@ -136,7 +148,13 @@ const BridgeView = () => {
     navigation.setOptions(getBridgeNavbar(navigation, route, colors));
   }, [navigation, route, colors]);
 
-  const handleKeypadChange = ({ value }: { value: string; valueAsNumber: number; pressedKey: string }) => {
+  const handleKeypadChange = ({
+    value,
+  }: {
+    value: string;
+    valueAsNumber: number;
+    pressedKey: string;
+  }) => {
     dispatch(setSourceAmount(value || undefined));
   };
 
@@ -145,7 +163,7 @@ const BridgeView = () => {
     // TESTING: Paste a quote from the Bridge API here to test the bridge flow
     const quoteResponse = undefined;
     if (quoteResponse) {
-        submitBridgeTx({quoteResponse: quoteResponse as QuoteResponse});
+      submitBridgeTx({ quoteResponse: quoteResponse as QuoteResponse });
     }
   };
 
@@ -159,21 +177,28 @@ const BridgeView = () => {
     }
   };
 
+  // Add function to navigate to slippage modal
+  const handleSlippagePress = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SLIPPAGE_MODAL,
+      params: {
+        selectedSlippage: slippage,
+        onSelectSlippage: setSlippage,
+      },
+    });
+  };
+
   const renderBottomContent = () => {
-    if (!sourceAmount || (sourceToken?.decimals && ethers.utils.parseUnits(sourceAmount, sourceToken.decimals).isZero())) {
-      return (
-        <Text color={TextColor.Alternative}>
-          Select amount
-        </Text>
-      );
+    if (
+      !sourceAmount ||
+      (sourceToken?.decimals &&
+        ethers.utils.parseUnits(sourceAmount, sourceToken.decimals).isZero())
+    ) {
+      return <Text color={TextColor.Alternative}>Select amount</Text>;
     }
 
     if (hasInsufficientBalance) {
-      return (
-        <Text color={TextColor.Error}>
-          Insufficient balance
-        </Text>
-      );
+      return <Text color={TextColor.Error}>Insufficient balance</Text>;
     }
 
     return (
@@ -186,7 +211,11 @@ const BridgeView = () => {
         />
         <Button
           variant={ButtonVariants.Link}
-          label={<Text color={TextColor.Alternative}>{strings('bridge.terms_and_conditions')}</Text>}
+          label={
+            <Text color={TextColor.Alternative}>
+              {strings('bridge.terms_and_conditions')}
+            </Text>
+          }
           onPress={handleTermsPress}
         />
       </>
@@ -233,6 +262,13 @@ const BridgeView = () => {
             tokenType="destination"
           />
         </Box>
+        <Button
+          variant={ButtonVariants.Secondary}
+          label={strings('bridge.slippage') + ' ' + slippage + '%'}
+          onPress={handleSlippagePress}
+          style={styles.button}
+          size={ButtonSize.Sm}
+        />
         <Box style={styles.bottomSection}>
           <Keypad
             value={sourceAmount}
