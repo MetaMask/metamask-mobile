@@ -12,7 +12,7 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import BigNumber from 'bignumber.js';
-import { parseCurrencyString } from '../../Earn/utils';
+import { parseFloatSafe } from '../../Earn/utils';
 
 // Mock APR values - will be replaced with real API data later
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
@@ -60,7 +60,7 @@ export const useEarnTokenDetails = () => {
 
       const rewardRateDecimal = new BigNumber(apr).dividedBy(100).toNumber();
 
-      const tokenFiatBalanceFloat = parseCurrencyString(
+      const tokenFiatBalanceFloat = parseFloatSafe(
         token.balanceFiat,
       ).toString();
 
