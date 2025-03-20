@@ -590,7 +590,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
 
       // Used to render tab title in tab selection
-      updateTabInfo(`Can't Open Page`, tabId);
+      updateTabInfo(tabId, { url: `Can't Open Page` });
       Logger.log(webViewError);
     },
     [
@@ -693,8 +693,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
 
       updateTabInfo(
-        getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         tabId,
+        {
+          url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+        },
       );
 
       addToBrowserHistory({

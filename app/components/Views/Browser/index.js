@@ -88,11 +88,9 @@ export const Browser = (props) => {
     }
   };
 
-  const updateTabInfo = (url, tabID) => {
-    Logger.log(`[BROWSER] Updating tab info for tab ID: ${tabID} to ${url}`);
-    updateTab(tabID, {
-      url,
-    });
+  const updateTabInfo = (tabID, info) => {
+    Logger.log(`[BROWSER] Updating tab info for tab ID: ${tabID} to ${JSON.stringify(info)}`);
+    updateTab(tabID, info);
   };
 
   const hideTabsAndUpdateUrl = (url) => {
@@ -108,9 +106,12 @@ export const Browser = (props) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
     );
-    setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
-    updateTabInfo(tab.url, tab.id);
+    updateTabInfo(tab.id, {
+      url: tab.url,
+      isArchived: false,
+    });
+    setTimeout(() => setActiveTab(tab.id), 5);
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
