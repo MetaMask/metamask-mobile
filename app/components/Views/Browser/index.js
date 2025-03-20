@@ -35,6 +35,8 @@ import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 
 const MAX_BROWSER_TABS = 5;
+const IDLE_TIME_MAX = 1000 * 30; // 30 seconds
+const IDLE_TIME_CALC_INTERVAL = 1000 * 30; // 30 seconds
 
 /**
  * Component that wraps all the browser
@@ -86,10 +88,12 @@ export const Browser = (props) => {
     }
   };
 
-  const updateTabInfo = (url, tabID) =>
+  const updateTabInfo = (url, tabID) => {
+    Logger.log(`[BROWSER] Updating tab info for tab ID: ${tabID} to ${url}`);
     updateTab(tabID, {
       url,
     });
+  };
 
   const hideTabsAndUpdateUrl = (url) => {
     navigation.setParams({
@@ -110,6 +114,35 @@ export const Browser = (props) => {
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
+
+  const [tabIdleTimes, setTabIdleTimes] = React.useState({});
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTabIdleTimes((prevIdleTimes) => {
+        const newIdleTimes = { ...prevIdleTimes };
+        tabs.forEach((tab) => {
+          if (tab.id !== activeTabId) {
+            newIdleTimes[tab.id] = (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL; // Increment by 10 seconds
+            if (newIdleTimes[tab.id] > IDLE_TIME_MAX) {
+              Logger.log(`[BROWSER *********] Tab URL ${tab.url} has been idle for more than ${IDLE_TIME_MAX} ms`);
+              updateTab(tab.id, {
+                isArchived: true,
+              });
+            }
+          } else {
+            updateTab(tab.id, {
+              isArchived: false,
+            });
+            newIdleTimes[tab.id] = 0; // Reset idle time for active tab
+          }
+        });
+        return newIdleTimes;
+      });
+    }, IDLE_TIME_CALC_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [tabs, activeTabId, updateTab]);
 
   useEffect(() => {
     Logger.log('[BROWSER] Checking if active account changed');
@@ -310,7 +343,7 @@ export const Browser = (props) => {
     }
   };
 
-  const renderTabsView = () => {
+  const renderTabList = () => {
     Logger.log('[BROWSER] Rendering tabs view');
     const showTabs = route.params?.showTabs;
     if (showTabs) {
@@ -329,9 +362,9 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabs = () => {
+  const renderBrowserTabWindows = () => {
     Logger.log('[BROWSER] Rendering browser tabs');
-    return tabs.map((tab) => (
+    return tabs.filter((tab) => !tab.isArchived).map((tab) => (
       <BrowserTab
         id={tab.id}
         key={`tab_${tab.id}`}
@@ -351,8 +384,8 @@ export const Browser = (props) => {
       style={styles.browserContainer}
       testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
-      {renderBrowserTabs()}
-      {renderTabsView()}
+      {renderBrowserTabWindows()}
+      {renderTabList()}
     </View>
   );
 };
