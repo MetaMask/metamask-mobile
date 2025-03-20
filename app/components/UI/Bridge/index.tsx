@@ -29,7 +29,8 @@ import {
   selectDestToken,
   setSourceAmount,
   resetBridgeState,
-  switchTokens,
+  setSourceToken,
+  setDestToken,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -178,8 +179,10 @@ const BridgeView = () => {
   };
 
   const handleArrowPress = () => {
-    if (destChainId && destToken) {
-      dispatch(switchTokens());
+    // Switch tokens
+    if (sourceToken && destToken) {
+      dispatch(setSourceToken(destToken));
+      dispatch(setDestToken(sourceToken));
     }
   };
 

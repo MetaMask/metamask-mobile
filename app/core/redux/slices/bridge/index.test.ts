@@ -3,7 +3,6 @@ import reducer, {
   setSourceAmount,
   setDestAmount,
   resetBridgeState,
-  switchTokens,
 } from '.';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../../../components/UI/Tokens/types';
@@ -99,60 +98,6 @@ describe('bridge slice', () => {
       const newState = reducer(state, action);
 
       expect(newState).toEqual(initialState);
-    });
-  });
-
-  describe('switchTokens', () => {
-    it('should switch source and destination tokens when both are defined', () => {
-      const state = {
-        ...initialState,
-        sourceToken: mockToken,
-        destToken: mockDestToken,
-        destChainId: 'eip155:2' as SupportedCaipChainId,
-        sourceAmount: '1.5',
-        destAmount: '100',
-      };
-
-      const action = switchTokens();
-      const newState = reducer(state, action);
-
-      expect(newState.sourceToken).toEqual(mockDestToken);
-      expect(newState.destToken).toEqual(mockToken);
-      expect(newState.selectedDestChainId).toBe('eip155:2');
-      expect(newState.sourceAmount).toBeUndefined();
-      expect(newState.destAmount).toBeUndefined();
-    });
-
-    it('should not switch tokens when destination token is undefined', () => {
-      const state = {
-        ...initialState,
-        sourceToken: mockToken,
-        destToken: undefined,
-        destChainId: undefined,
-        sourceAmount: '1.5',
-        destAmount: undefined,
-      };
-
-      const action = switchTokens();
-      const newState = reducer(state, action);
-
-      expect(newState).toEqual(state);
-    });
-
-    it('should not switch tokens when destination chain is undefined', () => {
-      const state = {
-        ...initialState,
-        sourceToken: mockToken,
-        destToken: mockDestToken,
-        destChainId: undefined,
-        sourceAmount: '1.5',
-        destAmount: '100',
-      };
-
-      const action = switchTokens();
-      const newState = reducer(state, action);
-
-      expect(newState).toEqual(state);
     });
   });
 });
