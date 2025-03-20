@@ -28,9 +28,14 @@ import {
   NativeTransakAccessToken,
   BuyOrder,
   TransakEnvironment,
+  BuyQuote,
+  OrderPaymentMethod,
+  OrderPaymentMethodField,
+  KycFormDetails,
 } from '@consensys/on-ramp-sdk/dist/NativeRampService';
 import { storeTransakToken, getTransakToken } from './TransakTokenVault';
 import { useRampSDK } from '../../sdk';
+import { createKycWebviewNavDetails } from './NativeRampWebView';
 
 function NativeRamp() {
   const navigation = useNavigation();
@@ -47,19 +52,24 @@ function NativeRamp() {
   const [forms, setForms] = useState<KycForm[]>([]);
   const [accessToken, setAccessToken] =
     useState<NativeTransakAccessToken | null>(null);
-  const [quote, setQuote] = useState<any>(null);
+  const [quote, setQuote] = useState<BuyQuote | null>(null);
   const [currentFormIndex, setCurrentFormIndex] = useState(0);
-  const [currentFormFields, setCurrentFormFields] = useState<any[]>([]);
+  const [currentFormFields, setCurrentFormFields] = useState<
+    {
+      id: string;
+      name: string;
+      isRequired: boolean;
+    }[]
+  >([]);
   const [formValues, setFormValues] = useState<Record<string, string>>({});
-  const [isKycApproved, setIsKycApproved] = useState(false);
   const [orderStatus, setOrderStatus] = useState<'creating' | 'waiting' | null>(
     null,
   );
   const [orderData, setOrderData] = useState<BuyOrder | null>(null);
-  const [sepaData, setSepaData] = useState<any>(null);
-  const [idProofFormData, setIdProofFormData] = useState<KycForm | null>(null);
-  const [purposeOfUsageFormData, setPurposeOfUsageFormData] =
-    useState<KycForm | null>(null);
+  const [sepaData, setSepaData] = useState<OrderPaymentMethod | null>(null);
+  const [idProofFormData, setIdProofFormData] = useState<KycFormDetails | null>(
+    null,
+  );
 
   const { selectedAddress } = useRampSDK();
 
@@ -155,6 +165,39 @@ function NativeRamp() {
     }
   };
 
+  const handleCreateOrder = async () => {
+    if (!accessToken || !quote) return;
+    try {
+      setIsLoading(true);
+      setLoadingMessage('Creating order...');
+      const reservation = await nativeRampService.walletReserve(
+        quote as BuyQuote,
+        selectedAddress,
+      );
+      const order = await nativeRampService.createOrder(
+        accessToken,
+        reservation,
+      );
+      setOrderData(order);
+      setOrderStatus('waiting');
+
+      const sepa = order.paymentOptions.find(
+        (p) => p.id === 'sepa_bank_transfer',
+      );
+
+      if (!sepa) throw new Error('SEPA payment option not found');
+
+      setSepaData(sepa);
+      setCurrentStep(7);
+    } catch (error) {
+      console.error('Error creating order:', error);
+      Alert.alert('Error', getErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+
   const fetchKycForms = async (token: NativeTransakAccessToken) => {
     try {
       setLoadingMessage('Getting quote...');
@@ -167,7 +210,10 @@ function NativeRamp() {
       );
       setQuote(newQuote);
       setLoadingMessage('Fetching KYC forms...');
-      const kycForms = await nativeRampService.getKYCForms(token, newQuote);
+      const kycForms = await nativeRampService.getKYCForms(
+        token,
+        newQuote as BuyQuote,
+      );
 
       const purposeOfUsageForm = kycForms.forms.find(
         (form) => form.id === 'purposeOfUsage',
@@ -186,19 +232,21 @@ function NativeRamp() {
         setLoadingMessage('Preparing KYC forms...');
         const formDetails = await nativeRampService.getKycForm(
           token,
-          newQuote,
+          newQuote as BuyQuote,
           filteredForms[0],
         );
         setCurrentFormFields(formDetails.fields || []);
       }
 
-      // Store idProof and purposeOfUsage form for later use
+      // Store idProof for later use
       if (idProofForm) {
-        setIdProofFormData(idProofForm);
-      }
+        const idProofDetails = await nativeRampService.getKycForm(
+          token,
+          newQuote as BuyQuote,
+          idProofForm,
+        );
 
-      if (purposeOfUsageForm) {
-        setPurposeOfUsageFormData(purposeOfUsageForm);
+        setIdProofFormData(idProofDetails);
       }
     } catch (error) {
       console.error('Error in fetchKycForms:', error);
@@ -223,7 +271,7 @@ function NativeRamp() {
       const userDetails = await nativeRampService.getUserDetails(token);
       // If KYC is already approved, we can skip the KYC forms
       if (userDetails.isKycApproved()) {
-        setIsKycApproved(true);
+        setOrderStatus('waiting');
         await fetchKycForms(token); // Still need quote for the next steps
         setCurrentStep(6);
       } else {
@@ -232,57 +280,6 @@ function NativeRamp() {
       }
     } catch (error) {
       console.error('Error verifying OTP:', error);
-      Alert.alert('Error', getErrorMessage(error));
-    } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
-    }
-  };
-
-  const waitForKycApproval = async (
-    token: NativeTransakAccessToken,
-    updateLoadingMessage: (message: string) => void,
-  ) => {
-    const maxRetries = 20; // 10 minutes max wait time
-    let retries = 0;
-
-    while (retries < maxRetries) {
-      retries++;
-      updateLoadingMessage(
-        `Waiting for KYC approval... Attempt ${retries} of ${maxRetries}`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, 30000)); // Wait 30 seconds
-
-      const userDetails = await nativeRampService.getUserDetails(token);
-
-      if (userDetails.kyc?.l1?.status === 'APPROVED') {
-        return true;
-      }
-    }
-
-    throw new Error('KYC approval timeout reached.');
-  };
-
-  const handleWebviewComplete = async () => {
-    try {
-      if (!accessToken || !purposeOfUsageFormData) return;
-
-      setIsLoading(true);
-      setLoadingMessage('Preparing to check KYC approval...');
-
-      // Wait for KYC approval
-      await waitForKycApproval(accessToken, setLoadingMessage);
-
-      // Submit purpose of usage form
-      setLoadingMessage('Submitting final verification...');
-      await nativeRampService.submitPurposeOfUsageForm(accessToken, [
-        'Buying/selling crypto for investments',
-      ]);
-
-      setIsKycApproved(true);
-      setCurrentStep(6);
-    } catch (error) {
-      console.error('Error completing KYC:', error);
       Alert.alert('Error', getErrorMessage(error));
     } finally {
       setIsLoading(false);
@@ -300,22 +297,66 @@ function NativeRamp() {
 
       // If we're done with regular forms, move to ID proof
       if (currentFormIndex === forms.length - 1) {
-        setLoadingMessage('Loading ID verification...');
-        const idProofFormDetails = await nativeRampService.getKycForm(
-          accessToken,
-          quote,
-          idProofFormData,
-        );
+        setLoadingMessage('Submitting purpose of usage...');
+        await nativeRampService.submitPurposeOfUsageForm(accessToken, [
+          'Buying/selling crypto for investments',
+        ]);
 
-        if (idProofFormDetails.data?.kycUrl) {
-          setCurrentStep(5.5); // KYC webview step
-          // Automatically navigate to webview when URL is available
-          navigation.navigate('Webview', {
-            screen: 'SimpleWebview',
-            params: {
-              url: idProofFormDetails.data.kycUrl,
-            },
-          });
+        setLoadingMessage('Loading ID verification...');
+
+        if (idProofFormData.data.kycUrl) {
+          // Start polling for KYC approval in parallel
+          setCurrentStep(5.5);
+          setLoadingMessage('Waiting for KYC approval...');
+
+          // Navigate to KYC webview
+          navigation.navigate(
+            ...createKycWebviewNavDetails({
+              url: idProofFormData.data.kycUrl,
+            }),
+          );
+
+          // Start polling for KYC approval
+          let retries = 0;
+          const maxRetries = 40; // 20 minutes max wait time
+          const pollInterval = 30000; // 30 seconds
+
+          const pollKycStatus = async () => {
+            try {
+              const userDetails = await nativeRampService.getUserDetails(
+                accessToken,
+              );
+
+              if (userDetails.kyc?.l1?.status === 'APPROVED') {
+                // KYC was approved, proceed with the flow
+
+                setCurrentStep(6);
+                setIsLoading(false);
+                return;
+              }
+
+              retries++;
+              if (retries >= maxRetries) {
+                throw new Error('KYC approval timeout reached.');
+              }
+
+              // Update loading message with attempt count
+              setLoadingMessage(
+                `Waiting for KYC approval... Attempt ${retries}`,
+              );
+
+              // Schedule next poll
+              setTimeout(pollKycStatus, pollInterval);
+            } catch (error: unknown) {
+              Alert.alert('Error', getErrorMessage(error));
+              setIsLoading(false);
+            }
+          };
+
+          // Start the first poll
+          pollKycStatus();
+        } else {
+          throw new Error('KYC URL not found');
         }
       } else {
         // Handle next regular form as before
@@ -323,7 +364,7 @@ function NativeRamp() {
         const nextForm = forms[currentFormIndex + 1];
         const formDetails = await nativeRampService.getKycForm(
           accessToken,
-          quote,
+          quote as BuyQuote,
           nextForm,
         );
         setCurrentFormFields(formDetails.fields || []);
@@ -331,95 +372,28 @@ function NativeRamp() {
         setFormValues({});
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
       Alert.alert('Error', getErrorMessage(error));
     } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
-    }
-  };
-
-  const waitForOrderCompletedStatus = async (order: BuyOrder) => {
-    if (!accessToken) return;
-
-    const maxRetries = 20; // 10 minutes max wait time
-    let retries = 0;
-
-    while (retries < maxRetries) {
-      await new Promise((resolve) => setTimeout(resolve, 10000)); // Wait 10 seconds
-
-      const transakOrderData = await nativeRampService.getOrder(
-        accessToken,
-        order.id,
-      );
-
-      if (transakOrderData.status === 'COMPLETED') {
-        return orderData;
+      if (currentFormIndex !== forms.length - 1) {
+        setIsLoading(false);
+        setLoadingMessage('');
       }
-
-      retries++;
-    }
-
-    throw new Error('Order completion timeout reached.');
-  };
-
-  const handleCreateOrder = async () => {
-    try {
-      if (!accessToken) return;
-      setIsLoading(true);
-      setLoadingMessage('Creating order...');
-
-      // Reserve wallet with actual address
-      const reservation = await nativeRampService.walletReserve(
-        quote,
-        selectedAddress,
-      );
-
-      // Create order
-      const order = await nativeRampService.createOrder(
-        accessToken,
-        reservation,
-      );
-      setOrderData(order);
-
-      // Find SEPA payment option
-      const sepa = order.paymentOptions.find(
-        (p) => p.id === 'sepa_bank_transfer',
-      );
-
-      if (!sepa) throw new Error('SEPA payment option not found');
-
-      setSepaData(sepa);
-      setCurrentStep(7);
-    } catch (error) {
-      console.error('Error creating order:', error);
-      Alert.alert('Error', getErrorMessage(error));
-    } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
     }
   };
 
   const handleConfirmBankTransfer = async () => {
+    if (!accessToken || !orderData || !sepaData) return;
     try {
-      if (!accessToken || !orderData || !sepaData) return;
-
-      setOrderStatus('creating');
-
-      // Confirm payment
+      setIsLoading(true);
+      setLoadingMessage('Confirming payment...');
       await nativeRampService.confirmPayment(accessToken, orderData, sepaData);
-
-      // Wait for order completion
-      setOrderStatus('waiting');
-      await waitForOrderCompletedStatus(orderData);
-
-      // Move to success screen
       setCurrentStep(8);
-      setOrderStatus(null);
     } catch (error) {
-      console.error('Error confirming bank transfer:', error);
+      console.error('Error confirming payment:', error);
       Alert.alert('Error', getErrorMessage(error));
-      setOrderStatus(null);
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -438,7 +412,7 @@ function NativeRamp() {
             );
 
             if (userDetails.isKycApproved()) {
-              setIsKycApproved(true);
+              setOrderStatus('waiting');
               await fetchKycForms(tokenResult.token); // Still need quote for the next steps
               setCurrentStep(6); // Skip to KYC approved screen
             } else {
@@ -644,103 +618,94 @@ function NativeRamp() {
     </>
   );
 
-  const renderConfirmationScreen = () => (
-    <>
-      <Row style={styles.confirmationAmountContainer}>
-        <Text variant={TextVariant.HeadingLG} style={styles.confirmationAmount}>
-          {amount} EUR
-        </Text>
-        <Text variant={TextVariant.BodyMD} style={styles.fiatAmount}>
-          ≈ {quote?.cryptoAmount || amount} USDC
-        </Text>
-      </Row>
-
-      <Row style={styles.bankTransferNote}>
-        <Text variant={TextVariant.BodyMD} style={styles.centered}>
-          Transfer funds to this account to complete your purchase
-        </Text>
-      </Row>
-
-      <View style={styles.confirmationDetails}>
-        <Row style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD}>Account Type</Text>
-          <Text variant={TextVariant.BodyMD}>
-            {sepaData?.fields?.find(
-              (f: { name: string; value: string }) => f.name === 'Account Type',
-            )?.value || ''}
+  const renderConfirmationScreen = () => {
+    if (!orderData || !sepaData) return null;
+    return (
+      <>
+        <Row style={styles.confirmationAmountContainer}>
+          <Text
+            variant={TextVariant.HeadingLG}
+            style={styles.confirmationAmount}
+          >
+            {amount} EUR
+          </Text>
+          <Text variant={TextVariant.BodyMD} style={styles.fiatAmount}>
+            ≈ {quote?.cryptoAmount || amount} USDC
           </Text>
         </Row>
 
-        <Row style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD}>Beneficiary Name</Text>
-          <Text variant={TextVariant.BodyMD}>
-            {`${
-              sepaData?.fields?.find(
-                (f: { name: string; value: string }) =>
-                  f.name === 'First Name (Beneficiary)',
-              )?.value || ''
-            } ${
-              sepaData?.fields?.find(
-                (f: { name: string; value: string }) =>
-                  f.name === 'Last Name (Beneficiary)',
-              )?.value || ''
-            }`}
+        <Row style={styles.bankTransferNote}>
+          <Text variant={TextVariant.BodyMD} style={styles.centered}>
+            Transfer funds to this account to complete your purchase
           </Text>
         </Row>
 
-        <Row style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD}>IBAN</Text>
-          <Text variant={TextVariant.BodyMD}>
-            {sepaData?.fields?.find(
-              (f: { name: string; value: string }) => f.name === 'IBAN',
-            )?.value || ''}
-          </Text>
-        </Row>
+        <View style={styles.confirmationDetails}>
+          <Row style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMD}>Account Type</Text>
+            <Text variant={TextVariant.BodyMD}>
+              {sepaData.fields?.find(
+                (f: OrderPaymentMethodField) => f.name === 'Account Type',
+              )?.name || ''}
+            </Text>
+          </Row>
 
-        <Row style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD}>Bank Name</Text>
-          <Text variant={TextVariant.BodyMD}>
-            {sepaData?.fields?.find(
-              (f: { name: string; value: string }) => f.name === 'Bank Name',
-            )?.value || ''}
-          </Text>
-        </Row>
+          <Row style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMD}>Beneficiary Name</Text>
+            <Text variant={TextVariant.BodyMD}>
+              {`${
+                sepaData.fields?.find(
+                  (f: OrderPaymentMethodField) =>
+                    f.name === 'First Name (Beneficiary)',
+                )?.name || ''
+              } ${
+                sepaData.fields?.find(
+                  (f: OrderPaymentMethodField) =>
+                    f.name === 'Last Name (Beneficiary)',
+                )?.name || ''
+              }`}
+            </Text>
+          </Row>
 
-        <Row style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD}>Bank Country</Text>
-          <Text variant={TextVariant.BodyMD}>
-            {sepaData?.fields?.find(
-              (f: { name: string; value: string }) => f.name === 'Bank Country',
-            )?.value || ''}
-          </Text>
-        </Row>
+          <Row style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMD}>IBAN</Text>
+            <Text variant={TextVariant.BodyMD}>
+              {sepaData.fields?.find(
+                (f: OrderPaymentMethodField) => f.name === 'IBAN',
+              )?.name || ''}
+            </Text>
+          </Row>
 
-        <Row style={[styles.detailRow, styles.totalRow]}>
-          <Text variant={TextVariant.BodyMD}>Bank Address</Text>
-          <Text variant={TextVariant.BodyMD} style={styles.bankAddress}>
-            {sepaData?.fields?.find(
-              (f: { name: string; value: string }) => f.name === 'Bank Address',
-            )?.value || ''}
-          </Text>
-        </Row>
-      </View>
-    </>
-  );
+          <Row style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMD}>Bank Name</Text>
+            <Text variant={TextVariant.BodyMD}>
+              {sepaData.fields?.find(
+                (f: OrderPaymentMethodField) => f.name === 'Bank Name',
+              )?.name || ''}
+            </Text>
+          </Row>
 
-  const renderWebviewStep = () => (
-    <>
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary.default} />
-        <Text variant={TextVariant.BodyMD} style={styles.loadingText}>
-          {loadingMessage || 'Complete verification in the pop-up window...'}
-        </Text>
-        <Text variant={TextVariant.BodyMD} style={styles.loadingText}>
-          Once you have completed the verification process, press the button
-          below to proceed.
-        </Text>
-      </View>
-    </>
-  );
+          <Row style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMD}>Bank Country</Text>
+            <Text variant={TextVariant.BodyMD}>
+              {sepaData.fields?.find(
+                (f: OrderPaymentMethodField) => f.name === 'Bank Country',
+              )?.name || ''}
+            </Text>
+          </Row>
+
+          <Row style={[styles.detailRow, styles.totalRow]}>
+            <Text variant={TextVariant.BodyMD}>Bank Address</Text>
+            <Text variant={TextVariant.BodyMD} style={styles.bankAddress}>
+              {sepaData.fields?.find(
+                (f: OrderPaymentMethodField) => f.name === 'Bank Address',
+              )?.name || ''}
+            </Text>
+          </Row>
+        </View>
+      </>
+    );
+  };
 
   const renderLoadingScreen = () => (
     <View style={styles.loadingContainer}>
@@ -843,7 +808,7 @@ function NativeRamp() {
                   {currentStep === 3 && renderStepOne()}
                   {currentStep === 4 && renderStepTwo()}
                   {currentStep === 5 && renderStepKycForms()}
-                  {currentStep === 5.5 && renderWebviewStep()}
+                  {currentStep === 5.5 && renderLoadingScreen()}
                   {currentStep === 6 && renderKycSuccessScreen()}
                   {currentStep === 7 &&
                     !orderStatus &&
@@ -861,15 +826,11 @@ function NativeRamp() {
             <Row style={styles.cta}>
               <StyledButton
                 type="confirm"
-                onPress={
-                  currentStep === 5.5 ? handleWebviewComplete : handleContinue
-                }
+                onPress={handleContinue}
                 loading={isLoading}
-                disabled={orderStatus !== null}
+                disabled={orderStatus !== null || currentStep === 5.5}
               >
-                {currentStep === 5.5
-                  ? 'Complete Verification'
-                  : currentStep === 8
+                {currentStep === 8
                   ? 'Swap for tokens'
                   : currentStep === 7
                   ? 'Confirm bank transfer'

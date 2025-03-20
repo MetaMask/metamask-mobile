@@ -92,6 +92,7 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import BridgeView from '../../UI/Bridge';
 import { RampSDKProvider } from '../../UI/Ramp/sdk';
+import NativeRampWebView from '../../UI/Ramp/Views/NativeRamp/NativeRampWebView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -210,6 +211,10 @@ const NativeRampFlow = () => (
   <RampSDKProvider>
     <Stack.Navigator>
       <Stack.Screen name={Routes.RAMP.NATIVE} component={NativeRamp} />
+      <Stack.Screen
+        name={Routes.RAMP.KYC_WEBVIEW}
+        component={NativeRampWebView}
+      />
     </Stack.Navigator>
   </RampSDKProvider>
 );

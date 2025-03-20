@@ -23,6 +23,7 @@ const Routes = {
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
     NATIVE: 'RampNative',
+    KYC_WEBVIEW: 'KycWebview',
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
