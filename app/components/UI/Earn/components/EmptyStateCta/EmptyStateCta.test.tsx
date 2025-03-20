@@ -12,6 +12,8 @@ import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventB
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 // eslint-disable-next-line import/no-namespace
 import * as StakeConstants from '../../../Stake/constants';
+// eslint-disable-next-line import/no-namespace
+import * as useEarnTokenDetails from '../../../Stake/hooks/useEarnTokenDetails';
 
 jest.mock('../../../../hooks/useMetrics');
 
@@ -67,6 +69,16 @@ describe('EmptyStateCta', () => {
     isStablecoinLendingFeatureEnabledSpy = jest
       .spyOn(StakeConstants, 'isStablecoinLendingFeatureEnabled')
       .mockReturnValue(true);
+
+    jest.spyOn(useEarnTokenDetails, 'useEarnTokenDetails').mockReturnValue({
+      getTokenWithBalanceAndApr: () => ({
+        ...MOCK_USDC_MAINNET_ASSET,
+        tokenBalanceFormatted: '$100 USDC',
+        balanceFiat: '$100',
+        apr: '4.5',
+        estimatedAnnualRewardsFormatted: '$5',
+      }),
+    });
   });
 
   it('renders correctly', () => {
@@ -123,7 +135,7 @@ describe('EmptyStateCta', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith({
       name: MetaMetricsEvents.EARN_EMPTY_STATE_CTA_CLICKED.category,
       properties: {
-        estimatedAnnualRewards: '$0.00',
+        estimatedAnnualRewards: '$5',
         location: EVENT_LOCATIONS.TOKEN_DETAILS_SCREEN,
         provider: EVENT_PROVIDERS.CONSENSYS,
         token_chain_id: '1',
