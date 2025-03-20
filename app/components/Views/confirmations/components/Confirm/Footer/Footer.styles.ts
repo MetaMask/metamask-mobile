@@ -13,7 +13,7 @@ const styleSheet = (params: {
 
   const basePaddingBottom = Device.isIos() 
     ? (isStakingConfirmationBool ? 16 : 8) 
-    : 28;
+    : (isStakingConfirmationBool ? 36 : 28);
 
   return StyleSheet.create({
     base: {
@@ -25,12 +25,12 @@ const styleSheet = (params: {
     linkText: {
       textDecorationLine: 'underline',
     },
-    textContainer: {
+    bottomTextContainer: {
       flexDirection: 'column',
       justifyContent: 'center',
       marginBottom: 12,
     },
-    line: {
+    bottomTextContainerLine: {
       flexDirection: 'row',
       justifyContent: 'center',
     },
