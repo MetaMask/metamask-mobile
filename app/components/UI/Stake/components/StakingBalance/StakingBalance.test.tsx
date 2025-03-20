@@ -50,7 +50,6 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
-    useFocusEffect: jest.fn((callback) => callback()),
   };
 });
 

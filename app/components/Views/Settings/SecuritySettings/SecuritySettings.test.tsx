@@ -23,7 +23,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsCo
 const initialState = {
   privacy: { approvedHosts: {} },
   browser: { history: [] },
-  settings: { lockTime: 1000, basicFunctionalityEnabled: true },
+  settings: { lockTime: 1000 },
   user: { passwordSet: true },
   engine: {
     backgroundState: {
@@ -70,6 +70,11 @@ let mockUseParamsValues: {
 jest.mock('../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
+}));
+
+jest.mock('../../../../util/notifications/constants', () => ({
+  ...jest.requireActual('../../../../util/notifications/constants'),
+  isNotificationsFeatureEnabled: () => false,
 }));
 
 describe('SecuritySettings', () => {

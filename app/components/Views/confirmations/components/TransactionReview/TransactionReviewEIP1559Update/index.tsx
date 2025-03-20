@@ -1,8 +1,12 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { EditGasViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/EditGasView.selectors';
+
 import { strings } from '../../../../../../../locales/i18n';
+import { EditGasViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/EditGasView.selectors';
+
 import AppConstants from '../../../../../../core/AppConstants';
 import { useGasTransaction } from '../../../../../../core/GasPolling/GasPolling';
 import Device from '../../../../../../util/device';
@@ -19,6 +23,7 @@ import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
 import TimeEstimateInfoModal from '../../../../../UI/TimeEstimateInfoModal';
 import SkeletonComponent from './skeletonComponent';
 import createStyles from './styles';
+import { TransactionEIP1559UpdateProps } from './types';
 
 const TransactionReviewEIP1559Update = ({
   primaryCurrency,
@@ -39,7 +44,7 @@ const TransactionReviewEIP1559Update = ({
   onlyGas,
   updateTransactionState,
   multiLayerL1FeeTotal,
-}) => {
+}: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
     isVisibleTimeEstimateInfoModal,
@@ -108,7 +113,10 @@ const TransactionReviewEIP1559Update = ({
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 
-  const switchNativeCurrencyDisplayOptions = (nativeValue, fiatValue) => {
+  const switchNativeCurrencyDisplayOptions = (
+    nativeValue: string,
+    fiatValue: string,
+  ) => {
     if (nativeCurrencySelected) return nativeValue;
     return fiatValue;
   };

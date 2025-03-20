@@ -343,7 +343,6 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         >
                           <RCTSwitch
                             accessibilityRole="switch"
-                            disabled={false}
                             onChange={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
@@ -466,7 +465,6 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         >
                           <RCTSwitch
                             accessibilityRole="switch"
-                            disabled={false}
                             onChange={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}

@@ -102,6 +102,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Device.isAndroid() ? 22 : 18,
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
+  notificationButton: {
+    marginHorizontal: 4,
+  },
   disabled: {
     opacity: 0.3,
   },
@@ -126,6 +129,9 @@ const styles = StyleSheet.create({
   leftElementContainer: {
     marginLeft: 16,
   },
+  notificationsWrapper: {
+    marginHorizontal: 4,
+  },
   notificationsBadge: {
     width: 8,
     height: 8,
@@ -133,7 +139,7 @@ const styles = StyleSheet.create({
 
     position: 'absolute',
     top: 2,
-    right: 4,
+    right: 10,
   },
   headerLeftButton: {
     marginHorizontal: 16,
@@ -1041,33 +1047,30 @@ export function getWalletNavbarOptions(
         >
           <AddressCopy />
         </View>
-        {isNotificationsFeatureEnabled() && (
-          <View>
-            {/* Icon */}
+        <View style={styles.notificationsWrapper}>
+          {isNotificationsFeatureEnabled() && (
             <ButtonIcon
-              iconColor={IconColor.Default}
+              iconColor={IconColor.Primary}
               onPress={handleNotificationOnPress}
               iconName={IconName.Notification}
               size={IconSize.Xl}
               testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
               style={styles.notificationButton}
             />
-
-            {/* Badge Dot */}
-            {isNotificationEnabled && (
-              <View
-                style={[
-                  styles.notificationsBadge,
-                  {
-                    backgroundColor: unreadNotificationCount
-                      ? themeColors.error.default
-                      : themeColors.background.transparent,
-                  },
-                ]}
-              />
-            )}
-          </View>
-        )}
+          )}
+          {isNotificationEnabled && (
+            <View
+              style={[
+                styles.notificationsBadge,
+                {
+                  backgroundColor: unreadNotificationCount
+                    ? themeColors.error.default
+                    : themeColors.background.transparent,
+                },
+              ]}
+            />
+          )}
+        </View>
 
         <ButtonIcon
           iconColor={IconColor.Default}

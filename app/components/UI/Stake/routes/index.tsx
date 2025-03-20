@@ -53,10 +53,6 @@ const StakeScreenStack = () => (
         name={Routes.STANDALONE_CONFIRMATIONS.STAKE_WITHDRAWAL}
         component={Confirm}
       />
-      <Stack.Screen
-        name={Routes.STANDALONE_CONFIRMATIONS.STAKE_CLAIM}
-        component={Confirm}
-      />
     </Stack.Navigator>
   </StakeSDKProvider>
 );

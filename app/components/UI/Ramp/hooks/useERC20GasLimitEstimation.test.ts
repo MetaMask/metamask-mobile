@@ -122,18 +122,12 @@ describe('useERC20GasLimitEstimation', () => {
 
     renderHook(() => useERC20GasLimitEstimation(defaultParams));
 
-    // Wait for immediate execution
     await act(async () => {
+      jest.runOnlyPendingTimers();
       await Promise.resolve();
     });
-    expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
 
-    // Advance timer and check interval execution
-    await act(async () => {
-      jest.advanceTimersByTime(POLLING_INTERVAL);
-      await Promise.resolve();
-    });
-    expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(3); // Immediate + first interval + immediate from interval
 
     jest.useRealTimers();
   });
@@ -167,22 +161,24 @@ describe('useERC20GasLimitEstimation', () => {
       useERC20GasLimitEstimation(defaultParams),
     );
 
-    // Wait for immediate execution
+    // Wait for initial call to complete
     await act(async () => {
       await Promise.resolve();
     });
-    expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
+
+    // 2 calls: one from immediate flag and one from initial render
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
 
     unmount();
 
     // Advance timers after unmount
     await act(async () => {
-      jest.advanceTimersByTime(POLLING_INTERVAL);
+      jest.advanceTimersByTime(15000);
       await Promise.resolve();
     });
 
-    // Should still be 1 since polling stopped
-    expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
+    // 2 calls since polling stopped after unmount
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
 
     jest.useRealTimers();
   });
@@ -197,16 +193,24 @@ describe('useERC20GasLimitEstimation', () => {
       },
     );
 
-    // Wait for initial call
+    // Initial render will trigger:
+    // 1. Initial call from hook execution
+    // 2. Immediate flag call
     await act(async () => {
       await Promise.resolve();
-      jest.runOnlyPendingTimers();
     });
 
-    // Should be 2 because of immediate flag + initial effect
     expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
 
-    mockGetGasLimit.mockClear(); // Clear the call count
+    // Advance timer to trigger interval
+    await act(async () => {
+      jest.advanceTimersByTime(POLLING_INTERVAL);
+      await Promise.resolve();
+    });
+
+    expect(mockGetGasLimit).toHaveBeenCalledTimes(3);
+
+    mockGetGasLimit.mockClear();
 
     // Trigger rerender with new amount
     rerender({
@@ -217,10 +221,9 @@ describe('useERC20GasLimitEstimation', () => {
     // Wait for rerender effect
     await act(async () => {
       await Promise.resolve();
-      jest.runOnlyPendingTimers();
     });
 
-    // Should be 1 new call from the rerender
+    // Should have 1 call from the rerender
     expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
     expect(mockGenerateTransferData).toHaveBeenCalledWith(
       'transfer',
@@ -230,7 +233,7 @@ describe('useERC20GasLimitEstimation', () => {
     );
 
     jest.useRealTimers();
-  });
+  }, 15000);
 
   it('handles invalid amount or decimals', async () => {
     const consoleSpy = jest
@@ -245,16 +248,15 @@ describe('useERC20GasLimitEstimation', () => {
 
     const { result } = renderHook(() => useERC20GasLimitEstimation(params));
 
-    // expect an immediate error
     await act(async () => {
-      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(result.current).toBe(21000); // Should maintain default gas limit
     expect(consoleSpy).toHaveBeenCalled();
 
     consoleSpy.mockRestore();
-  }, 10000);
+  });
 
   it('handles empty or invalid addresses', async () => {
     const params = {
@@ -265,14 +267,13 @@ describe('useERC20GasLimitEstimation', () => {
 
     const { result } = renderHook(() => useERC20GasLimitEstimation(params));
 
-    // expect an immediate result
     await act(async () => {
-      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(result.current).toBe(21000);
     expect(mockGetGasLimit).not.toHaveBeenCalled();
-  }, 10000);
+  });
 
   it('updates gas estimation when chainId changes', async () => {
     jest.useFakeTimers();
@@ -284,6 +285,10 @@ describe('useERC20GasLimitEstimation', () => {
       },
     );
 
+    await act(async () => {
+      await Promise.resolve();
+    });
+
     mockGetGasLimit.mockClear();
 
     // Trigger rerender with new chainId
@@ -294,7 +299,6 @@ describe('useERC20GasLimitEstimation', () => {
 
     await act(async () => {
       await Promise.resolve();
-      jest.runOnlyPendingTimers();
     });
 
     expect(mockGetGasLimit).toHaveBeenCalledWith(

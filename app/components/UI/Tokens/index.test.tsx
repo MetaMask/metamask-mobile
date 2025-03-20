@@ -286,7 +286,7 @@ describe('Tokens', () => {
       },
     });
 
-    const fiatBalances = getAllByTestId('balance-test-id');
+    const fiatBalances = getAllByTestId('fiat-balance-test-id');
 
     fiatBalances.forEach((balance) => {
       const originalText = balance.props.children;

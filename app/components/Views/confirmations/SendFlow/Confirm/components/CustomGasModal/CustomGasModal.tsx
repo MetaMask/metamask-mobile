@@ -1,14 +1,19 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
-import { selectGasFeeEstimates } from '../../../../../../../selectors/confirmTransaction';
-import { selectGasFeeControllerEstimateType } from '../../../../../../../selectors/gasFeeController';
-import { selectPrimaryCurrency } from '../../../../../../../selectors/settings';
+
 import { useAppThemeFromContext } from '../../../../../../../util/theme';
 import EditGasFee1559 from '../../../../components/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../../components/EditGasFeeLegacyUpdate';
 import createStyles from './CustomGasModal.styles';
+import { CustomGasModalProps } from './CustomGasModal.types';
+import { selectGasFeeEstimates } from '../../../../../../../selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '../../../../../../..//selectors/gasFeeController';
+import { RootState } from '../../../../../../../reducers';
+import { selectPrimaryCurrency } from '../../../../../../..//selectors/settings';
 
 const CustomGasModal = ({
   gasSelected,
@@ -23,16 +28,16 @@ const CustomGasModal = ({
   onGasChanged,
   onGasCanceled,
   updateGasState,
-}) => {
+}: CustomGasModalProps) => {
   const { colors } = useAppThemeFromContext();
   const styles = createStyles();
 
-  const transaction = useSelector((state) => state.transaction);
+  const transaction = useSelector((state: RootState) => state.transaction);
   const gasFeeEstimate = useSelector(selectGasFeeEstimates);
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const chainId = transaction?.chainId;
   const selectedAsset = useSelector(
-    (state) => state.transaction.selectedAsset,
+    (state: RootState) => state.transaction.selectedAsset,
   );
   const gasEstimateType = useSelector(selectGasFeeControllerEstimateType);
 
@@ -55,7 +60,7 @@ const CustomGasModal = ({
     gas_estimate_type: gasEstimateType,
   });
 
-  const onChangeGas = (gasValue) => {
+  const onChangeGas = (gasValue: string) => {
     setSelectedGas(gasValue);
     onGasChanged(selectedGas);
   };

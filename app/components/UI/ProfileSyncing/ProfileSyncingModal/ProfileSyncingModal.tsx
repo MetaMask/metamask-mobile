@@ -16,16 +16,15 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
-import { useDisableProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
+import { useProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import ModalContent from '../../Notification/Modal';
-import { InteractionManager } from 'react-native';
 
 const ProfileSyncingModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
-  const { disableProfileSyncing } = useDisableProfileSyncing();
+  const { disableProfileSyncing } = useProfileSyncing();
 
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const isMetamaskNotificationsEnabled = useSelector(
@@ -36,9 +35,7 @@ const ProfileSyncingModal = () => {
   const closeBottomSheet = () => {
     bottomSheetRef.current?.onCloseBottomSheet(async () => {
       if (isProfileSyncingEnabled) {
-        InteractionManager.runAfterInteractions(async () => {
-          await disableProfileSyncing();
-        });
+        await disableProfileSyncing();
       }
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)

@@ -6,9 +6,8 @@ interface IntervalOptions {
 }
 
 function useInterval(callback: () => void, options: IntervalOptions) {
-  const { delay = null, immediate = false } = options;
-
   const savedCallback = useRef<() => void>();
+
   // Remember the latest function.
   useEffect(() => {
     savedCallback.current = callback;
@@ -19,6 +18,7 @@ function useInterval(callback: () => void, options: IntervalOptions) {
     function tick() {
       savedCallback.current?.();
     }
+    const { delay = null, immediate = false } = options;
     if (delay !== null && delay > 0) {
       if (immediate) {
         tick();
@@ -27,7 +27,7 @@ function useInterval(callback: () => void, options: IntervalOptions) {
 
       return () => clearInterval(id);
     }
-  }, [delay, immediate]);
+  }, [options]);
 }
 
 export default useInterval;

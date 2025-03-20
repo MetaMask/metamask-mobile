@@ -1,30 +1,38 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import { useStyles } from '../../../../../../../component-library/hooks/useStyles';
 import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
-import useClearConfirmationOnBackSwipe from '../../../../hooks/useClearConfirmationOnBackSwipe';
-import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
-import useNavbar from '../../../../hooks/useNavbar';
+import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { useTokenValues } from '../../../../hooks/useTokenValues';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
+import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
+import { getNavbar } from '../../Navbar/Navbar';
 import StakingContractInteractionDetails from '../../StakingContractInteractionDetails/StakingContractInteractionDetails';
 import TokenHero from '../../TokenHero';
 import UnstakingTimeSection from '../../UnstakingTime/UnstakingTime';
 import GasFeesDetails from '../GasFeesDetails';
-import styleSheet from './StakingWithdrawal.styles';
 
 const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
-  const { styles } = useStyles(styleSheet, {});
   const amountWei = route?.params?.amountWei;
-  
-  useNavbar(strings('stake.unstake'));
-  useClearConfirmationOnBackSwipe();
 
+  const navigation = useNavigation();
+  const { onReject } = useConfirmActions();
   const { trackPageViewedEvent, setConfirmationMetric } =
     useConfirmationMetricEvents();
-  const { tokenAmountDisplayValue } = useTokenValues({ amountWei });  
+  const { tokenAmountDisplayValue } = useTokenValues({ amountWei });
+
+  useEffect(() => {
+    navigation.setOptions(
+      getNavbar({
+        title: strings('stake.unstake'),
+        onReject,
+      }),
+    );
+  }, [navigation, onReject]);
+
+  useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+
   useEffect(() => {
     setConfirmationMetric({
       properties: {
@@ -34,17 +42,13 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
     });
   }, [tokenAmountDisplayValue, setConfirmationMetric]);
 
-  useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
-  
   return (
     <>
       <TokenHero amountWei={amountWei} />
       <UnstakingTimeSection />
-      <View style={styles.stakingContractInteractionDetailsContainer}>
-        <InfoSection>
-          <StakingContractInteractionDetails />
-        </InfoSection>
-      </View>
+      <InfoSection>
+        <StakingContractInteractionDetails />
+      </InfoSection>
       <GasFeesDetails />
     </>
   );

@@ -1,3 +1,4 @@
+import Logger from '../../../../util/Logger';
 import { TokenI } from '../../../UI/Tokens/types';
 
 export const getHostFromUrl = (url: string) => {
@@ -7,10 +8,9 @@ export const getHostFromUrl = (url: string) => {
   try {
     return new URL(url).host;
   } catch (error) {
-    console.error(error as Error);
+    Logger.error(error as Error);
   }
   return;
 };
 
-export const isNativeToken = (selectedAsset: TokenI) =>
-  selectedAsset.isNative || selectedAsset.isETH;
+export const isNativeToken = (selectedAsset: TokenI) => selectedAsset.isNative || selectedAsset.isETH;

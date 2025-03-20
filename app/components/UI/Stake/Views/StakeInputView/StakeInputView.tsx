@@ -1,7 +1,5 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { formatEther } from 'ethers/lib/utils';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,30 +9,30 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
-import EarnTokenSelector from '../../components/EarnTokenSelector';
-import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
-import InputDisplay from '../../components/InputDisplay';
 import QuickAmounts from '../../components/QuickAmounts';
-import { isStablecoinLendingFeatureEnabled } from '../../constants';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
-import useStakingInputHandlers from '../../hooks/useStakingInput';
-import { StakeNavigationParamsList } from '../../types';
-import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
+import Routes from '../../../../../constants/navigation/Routes';
 import styleSheet from './StakeInputView.styles';
+import useStakingInputHandlers from '../../hooks/useStakingInput';
+import InputDisplay from '../../components/InputDisplay';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
+import { formatEther } from 'ethers/lib/utils';
+import { EVENT_PROVIDERS, EVENT_LOCATIONS } from '../../constants/events';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { StakeInputViewProps } from './StakeInputView.types';
 import { getStakeInputViewTitle } from './utils';
+import { isStablecoinLendingFeatureEnabled } from '../../constants';
+import EarnTokenSelector from '../../components/EarnTokenSelector';
 
 const StakeInputView = ({ route }: StakeInputViewProps) => {
-  const navigation = useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
@@ -78,14 +76,6 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     });
   };
 
-  const [isSubmittingStakeDepositTransaction, setIsSubmittingStakeDepositTransaction] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      setIsSubmittingStakeDepositTransaction(false);
-    }, [])
-  );
-
   const handleStakePress = useCallback(async () => {
     if (isHighGasCostImpact()) {
       trackEvent(
@@ -127,10 +117,6 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     };
 
     if (isStakingDepositRedesignedEnabled) {
-      // this prevents the user from adding the transaction deposit into the
-      // controller state multiple times
-      setIsSubmittingStakeDepositTransaction(true);
-
       // Here we add the transaction to the transaction controller. The
       // redesigned confirmations architecture relies on the transaction
       // metadata object being defined by the time the confirmation is displayed
@@ -157,6 +143,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       );
       return;
     }
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
@@ -318,9 +305,8 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
-          loading={isSubmittingStakeDepositTransaction}
           isDisabled={
-            isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee || isSubmittingStakeDepositTransaction
+            isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee
           }
           width={ButtonWidthTypes.Full}
           onPress={handleStakePress}

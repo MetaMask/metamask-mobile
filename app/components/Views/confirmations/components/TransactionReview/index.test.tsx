@@ -1,18 +1,24 @@
-import { fireEvent } from '@testing-library/react-native';
-import { shallow } from 'enzyme';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 import TransactionReview from '.';
-import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
-import * as BlockaidUtils from '../../../../../util/blockaid';
-import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import configureMockStore from 'redux-mock-store';
+import { shallow } from 'enzyme';
+import { Provider } from 'react-redux';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../../util/transactions';
 // eslint-disable-next-line import/no-namespace
+import * as BlockaidUtils from '../../../../../util/blockaid';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { fireEvent } from '@testing-library/react-native';
+import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
+import { AccountsControllerState } from '@metamask/accounts-controller';
+import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../../../reducers';
 
 jest.mock('../../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../../util/transactions'),
@@ -37,7 +43,9 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
 
 jest.mock(
   '../../../../../components/UI/QRHardware/withQRHardwareAwareness',
-  () => (obj) => obj,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  () => (obj: any) => obj,
 );
 
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
@@ -60,7 +68,7 @@ const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xB374Ca013934e498e5baD3409147F34E6c462389';
 const MOCK_ADDRESS_3 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
 
-const MOCK_ACCOUNTS_CONTROLLER_STATE =
+const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState =
   createMockAccountsControllerState(
     [MOCK_ADDRESS_1, MOCK_ADDRESS_2, MOCK_ADDRESS_3],
     MOCK_ADDRESS_3,
@@ -97,15 +105,19 @@ jest.mock('@react-navigation/compat', () => {
   const actualNav = jest.requireActual('@react-navigation/compat');
   return {
     actualNav,
-    withNavigation: (obj) => obj,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    withNavigation: (obj: any) => obj,
   };
 });
 
 jest.mock('react-native-gzip', () => ({
-  deflate: (val) => val,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  deflate: (val: any) => val,
 }));
 
-const mockState = {
+const mockState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -164,7 +176,9 @@ jest.mock('react-redux', () => {
   };
   return {
     ...jest.requireActual('react-redux'),
-    useSelector: (fn) =>
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    useSelector: (fn: any) =>
       fn({
         ...mockState,
         transaction: {
@@ -187,7 +201,11 @@ describe('TransactionReview', () => {
     const wrapper = shallow(
       <Provider store={store}>
         <TransactionReview
-          generateTransform={generateTransform}
+          generateTransform={
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            generateTransform as any
+          }
         />
       </Provider>,
     );
@@ -219,7 +237,9 @@ describe('TransactionReview', () => {
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
       .mockImplementation(
-        ({ result_type, reason, providerRequestsCount }) => ({
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ({ result_type, reason, providerRequestsCount }: any) => ({
           security_alert_response: result_type,
           security_alert_reason: reason,
           security_alert_provider_requests_count: providerRequestsCount,
@@ -303,7 +323,9 @@ describe('TransactionReview', () => {
     };
     jest.mock('react-redux', () => ({
       ...jest.requireActual('react-redux'),
-      useSelector: (fn) => fn(mockNewState),
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      useSelector: (fn: any) => fn(mockNewState),
     }));
     const { getByRole } = renderWithProvider(
       <TransactionReview
@@ -319,7 +341,9 @@ describe('TransactionReview', () => {
   it('should have confirm button disabled if error is defined', async () => {
     jest.mock('react-redux', () => ({
       ...jest.requireActual('react-redux'),
-      useSelector: (fn) => fn(mockState),
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      useSelector: (fn: any) => fn(mockState),
     }));
     const { getByRole } = renderWithProvider(
       <TransactionReview

@@ -10,8 +10,6 @@ import { useQRHardwareContext } from '../context/QRHardwareContext';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './useSignatureMetrics';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
-import { useSelector } from 'react-redux';
 
 export const useConfirmActions = () => {
   const {
@@ -28,10 +26,7 @@ export const useConfirmActions = () => {
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
-  const shouldUseSmartTransaction = useSelector(
-    selectShouldUseSmartTransaction,
-  );
-  const isOneOfTheStakingConfirmations = isStakingConfirmation(
+  const isStakingDepositConfirmation = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
 
@@ -64,12 +59,12 @@ export const useConfirmActions = () => {
       return;
     }
     await onRequestConfirm({
-      waitForResult: isSignatureReq || !shouldUseSmartTransaction,
+      waitForResult: false,
       deleteAfterResult: true,
       handleErrors: false,
     });
 
-    if (isOneOfTheStakingConfirmations) {
+    if (isStakingDepositConfirmation) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -88,8 +83,7 @@ export const useConfirmActions = () => {
     captureSignatureMetrics,
     onRequestConfirm,
     isSignatureReq,
-    isOneOfTheStakingConfirmations,
-    shouldUseSmartTransaction,
+    isStakingDepositConfirmation,
   ]);
 
   return { onConfirm, onReject };

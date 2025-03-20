@@ -1,23 +1,17 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
-const styleSheet = (
-  params: {
-    theme: Theme;
-    vars: { isTransactionsRedesign: boolean };
-  }) => {
-  const { theme, vars } = params;
-  const { isTransactionsRedesign } = vars;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
 
   return StyleSheet.create({
     container: {
-      borderWidth: isTransactionsRedesign ? 0 : 1,
+      borderWidth: 1,
       borderColor: theme.colors.border.default,
       flexDirection: 'column',
       borderRadius: 8,
       padding: 16,
       gap: 16,
-      backgroundColor: isTransactionsRedesign ? theme.colors.background.default: undefined,
     },
     errorContentContainer: {
       flexDirection: 'row',

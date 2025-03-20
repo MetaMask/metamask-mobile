@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
 
@@ -32,7 +33,7 @@ export const getMemoizedInterfaces = createDeepEqualSelector(
 /**
  * Get a Snap Interface with a given ID.
  */
-export const getInterface = createDeepEqualSelector(
+export const getInterface = createSelector(
   [getMemoizedInterfaces, selectInterfaceId],
   (interfaces, id) => interfaces[id],
 );
