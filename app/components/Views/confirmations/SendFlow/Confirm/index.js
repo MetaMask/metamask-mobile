@@ -519,16 +519,22 @@ class Confirm extends PureComponent {
       );
     }
     // add transaction
-    const { TransactionController } = Engine.context;
+    const { TransactionController, NetworkController } = Engine.context;
     const transactionParams = this.prepareTransactionToSend();
+    const contextualNetworkClientId =
+      NetworkController.findNetworkClientIdByChainId(chainId);
 
+    console.log(
+      '>>> Confirm component - contextualNetworkClientId',
+      contextualNetworkClientId,
+    );
     let result, transactionMeta;
     try {
       ({ result, transactionMeta } = await TransactionController.addTransaction(
         transactionParams,
         {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId: globalNetworkClientId,
+          networkClientId: contextualNetworkClientId ?? globalNetworkClientId,
           origin: TransactionTypes.MMM,
         },
       ));
@@ -1626,6 +1632,9 @@ const mapStateToProps = (state) => {
   const chainId = selectSendFlowContextualChainId(state);
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
+
+  console.log('>>> transaction?.networkClientId', transaction?.networkClientId);
+  console.log('>>> globnalNetworkClientId: ', selectNetworkClientId(state));
 
   return {
     accounts: selectAccounts(state),

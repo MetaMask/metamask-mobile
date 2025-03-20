@@ -297,9 +297,10 @@ const NetworkSelector = () => {
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
           if (source === 'SendFlow') {
             dispatch(setTransactionSendFlowContextualChainId(chainId));
+          } else {
+            await MultichainNetworkController.setActiveNetwork(networkClientId);
           }
         } catch (error) {
           Logger.error(new Error(`Error i setActiveNetwork: ${error}`));
