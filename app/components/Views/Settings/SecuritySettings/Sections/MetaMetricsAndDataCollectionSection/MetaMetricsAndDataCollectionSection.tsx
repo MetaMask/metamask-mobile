@@ -26,9 +26,9 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useMetrics } from '../../../../../hooks/useMetrics';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import {
-  UserProfileProperty
-} from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { RootState } from '../../../../../../reducers';
+import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
 
 const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const theme = useTheme();
@@ -44,10 +44,30 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     (state: any) => state.security.dataCollectionForMarketing,
   );
   const navigation = useNavigation();
+  const { autoSignIn } = useAutoSignIn();
+
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
 
   useEffect(() => {
+    if (!isBasicFunctionalityEnabled) {
+      enable(false);
+      setAnalyticsEnabled(false);
+      dispatch(setDataCollectionForMarketing(false));
+      return;
+    }
+
+    autoSignIn();
     setAnalyticsEnabled(isEnabled());
-  }, [setAnalyticsEnabled, isEnabled]);
+  }, [
+    setAnalyticsEnabled,
+    isEnabled,
+    enable,
+    autoSignIn,
+    isBasicFunctionalityEnabled,
+    dispatch,
+  ]);
 
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
     if (metricsEnabled) {
@@ -86,7 +106,9 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const addMarketingConsentToTraits = (marketingOptIn: boolean) => {
     InteractionManager.runAfterInteractions(async () => {
       await addTraitsToUser({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn ? UserProfileProperty.ON : UserProfileProperty.OFF,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn
+          ? UserProfileProperty.ON
+          : UserProfileProperty.OFF,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
@@ -126,6 +148,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         </Text>
         <View style={styles.switchElement}>
           <Switch
+            disabled={!isBasicFunctionalityEnabled}
             value={analyticsEnabled}
             onValueChange={toggleMetricsOptIn}
             trackColor={{
@@ -166,6 +189,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         </Text>
         <View style={styles.switchElement}>
           <Switch
+            disabled={!isBasicFunctionalityEnabled}
             value={isDataCollectionForMarketingEnabled}
             onValueChange={toggleDataCollectionForMarketing}
             trackColor={{
