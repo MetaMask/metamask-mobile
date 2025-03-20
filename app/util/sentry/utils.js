@@ -193,9 +193,6 @@ export const sentryStateMask = {
       TransactionController: {
         [AllProperties]: false,
       },
-      AuthenticationController: {
-        [AllProperties]: false,
-      },
       NotificationServicesController: {
         isCheckingAccountsPresence: false,
         isFeatureAnnouncementsEnabled: false,
@@ -208,9 +205,20 @@ export const sentryStateMask = {
         metamaskNotificationsReadList: [],
         subscriptionAccountsSeen: [],
       },
+      AuthenticationController: {
+        isSignedIn: false,
+        sessionData: {
+          profile: true,
+          accessToken: false,
+          expiresIn: true,
+        },
+      },
       UserStorageController: {
         isProfileSyncingEnabled: true,
         isProfileSyncingUpdateLoading: false,
+        hasAccountSyncingSyncedAtLeastOnce: false,
+        isAccountSyncingReadyToBeDispatched: false,
+        isAccountSyncingInProgress: false,
       },
     },
   },
