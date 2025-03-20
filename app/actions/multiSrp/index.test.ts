@@ -85,10 +85,12 @@ describe('MultiSRP Actions', () => {
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
     });
 
-    it('Does [action verb] on errors', async () => {
+    it('Does not set selected address or gets accounts on errors', async () => {
       mockAddNewKeyring.mockRejectedValue(new Error('Test error'));
 
-      await createNewSecretRecoveryPhrase();
+      await expect(await createNewSecretRecoveryPhrase()).rejects.toThrow(
+        'Test error',
+      );
 
       expect(mockGetAccounts).not.toHaveBeenCalled();
       expect(mockSetSelectedAddress).not.toHaveBeenCalled();

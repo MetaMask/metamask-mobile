@@ -38,14 +38,10 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
 
 export async function createNewSecretRecoveryPhrase() {
   const { KeyringController } = Engine.context;
-  try {
-    const newHdkeyring = (await KeyringController.addNewKeyring(
-      ExtendedKeyringTypes.hd,
-    )) as HdKeyring;
+  const newHdkeyring = (await KeyringController.addNewKeyring(
+    ExtendedKeyringTypes.hd,
+  )) as HdKeyring;
 
-    const newAccountAddress = (await newHdkeyring.getAccounts())[0];
-    return Engine.setSelectedAddress(newAccountAddress);
-  } catch (e: unknown) {
-    Logger.error(e as Error, 'error while trying to add a new srp');
-  }
+  const newAccountAddress = (await newHdkeyring.getAccounts())[0];
+  return Engine.setSelectedAddress(newAccountAddress);
 }
