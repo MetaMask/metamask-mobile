@@ -8,13 +8,14 @@ import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../util/networks';
 import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
-import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import { strings } from '../../../../locales/i18n';
 import { selectEnabledSourceChains } from '../../../core/redux/slices/bridge';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -22,16 +23,22 @@ const createStyles = (params: { theme: Theme }) => {
     networksButton: {
       borderColor: theme.colors.border.muted,
     },
+    avatarContainer: {
+    },
+    avatarNetwork: {
+      marginRight: 0,
+    },
     networkOverflowCircle: {
       backgroundColor: theme.colors.overlay.default,
-      width: 20,
-      height: 20,
-      borderRadius: 10,
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      marginLeft: -8,
     },
   });
 };
 
-export const MAX_NETWORK_ICONS = 2;
+export const MAX_NETWORK_ICONS = 3;
 
 interface SourceNetworksButtonProps {
   networksToShow: { chainId: Hex }[];
@@ -71,22 +78,25 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
       label={
         <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
         <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={-8}>
-            {networksToShow.map(({ chainId }) => (
-              <Badge
+          {networksToShow.map(({ chainId }) => (
+            <Box key={chainId} style={styles.avatarContainer}>
+              <AvatarNetwork
                 key={chainId}
-              variant={BadgeVariant.Network}
-              // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-              imageSource={getNetworkImageSource({ chainId })}
-              name={networkConfigurations[chainId]?.name}
+                // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+                imageSource={getNetworkImageSource({ chainId })}
+                name={networkConfigurations[chainId]?.name}
+                size={AvatarSize.Xs}
+                style={styles.avatarNetwork}
               />
-            ))}
-            {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
-              <Box style={styles.networkOverflowCircle} justifyContent={JustifyContent.center} alignItems={AlignItems.center}>
-                <Text variant={TextVariant.BodySM} color={TextColor.Inverse}>+{selectedSourceChainIds.length - MAX_NETWORK_ICONS}</Text>
-              </Box>
-            )}
-          </Box>
-          <Text>{networkText}</Text>
+            </Box>
+          ))}
+          {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
+            <Box style={styles.networkOverflowCircle} justifyContent={JustifyContent.center} alignItems={AlignItems.center}>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Inverse}>+{selectedSourceChainIds.length - MAX_NETWORK_ICONS}</Text>
+            </Box>
+          )}
+        </Box>
+        <Text>{networkText}</Text>
       </Box>
       }
       style={styles.networksButton}
