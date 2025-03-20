@@ -1,4 +1,4 @@
-import HdKeyring from '@metamask/eth-hd-keyring';
+import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { Json } from '@metamask/eth-query';
 import { EthKeyring } from '@metamask/keyring-internal-api';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -21,7 +21,9 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const alreadyImportedSRP = hdKeyrings.some((keyring) => {
     // Compare directly with stored codepoints
     const storedCodePoints = new Uint16Array(
-      Buffer.from(keyring.mnemonic).buffer,
+      // The mnemonic will not be undefined because there will be a keyring.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      Buffer.from(keyring.mnemonic!).buffer,
     );
 
     if (inputCodePoints.length !== storedCodePoints.length) return false;
