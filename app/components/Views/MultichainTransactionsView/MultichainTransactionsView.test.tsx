@@ -112,13 +112,6 @@ describe('MultichainTransactionsView', () => {
     };
   };
 
-  const hasViewMoreButton = () => {
-    const MockButton = getButtonMock();
-    return MockButton.lastProps.label.includes(
-      'transactions.view_full_history_on',
-    );
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();

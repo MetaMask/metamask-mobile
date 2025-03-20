@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { FlashList } from "@shopify/flash-list";
+import { FlashList } from '@shopify/flash-list';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { ThemeColors } from '@metamask/design-tokens';
 import { useTheme } from '../../../util/theme';
