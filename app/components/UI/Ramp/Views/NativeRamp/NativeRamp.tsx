@@ -10,7 +10,16 @@ import Row from '../../components/Row';
 import StyledButton from '../../../StyledButton';
 import { getNativeRampNavigationOptions } from '../../../Navbar';
 import ProgressBar from '../../../../Views/SmartTransactionStatus/ProgressBar';
-import { TextInput, View, Image, ActivityIndicator } from 'react-native';
+import {
+  TextInput,
+  View,
+  Image,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  Alert,
+} from 'react-native';
 import { NativeRampService } from '@consensys/on-ramp-sdk';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 import backupImage from '../../../../../images/explain-backup-seedphrase.png';
@@ -92,6 +101,47 @@ function NativeRamp() {
     );
   }, [navigation, colors, currentStep]);
 
+  // This is a helper function just for the POC to be able to identify errors
+  const getErrorMessage = (error: any): string => {
+    if (error?.isAxiosError) {
+      const axiosError = error.response?.data;
+
+      if (axiosError?.message) {
+        return axiosError.message;
+      }
+      if (axiosError?.error?.message) {
+        return axiosError.error.message;
+      }
+      if (axiosError?.errors?.[0]) {
+        return axiosError.errors[0];
+      }
+      if (typeof axiosError === 'string') {
+        return axiosError;
+      }
+      if (error.response?.status) {
+        return `Request failed (${error.response.status}): ${error.response.statusText}`;
+      }
+    }
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    if (error?.message) {
+      return error.message;
+    }
+
+    if (error?.error) {
+      return error.error;
+    }
+
+    if (typeof error === 'string') {
+      return error;
+    }
+
+    return 'An unexpected error occurred. Please try again.';
+  };
+
   const handleEmailSubmit = async () => {
     try {
       setIsLoading(true);
@@ -100,7 +150,7 @@ function NativeRamp() {
       setCurrentStep(4);
     } catch (error) {
       console.error('Error sending OTP:', error);
-      // Handle error
+      Alert.alert('Error', getErrorMessage(error));
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -154,6 +204,7 @@ function NativeRamp() {
       }
     } catch (error) {
       console.error('Error in fetchKycForms:', error);
+      Alert.alert('Error', getErrorMessage(error));
     }
   };
 
@@ -183,6 +234,7 @@ function NativeRamp() {
       }
     } catch (error) {
       console.error('Error verifying OTP:', error);
+      Alert.alert('Error', getErrorMessage(error));
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -245,6 +297,7 @@ function NativeRamp() {
       }
     } catch (error) {
       console.error('Error submitting form:', error);
+      Alert.alert('Error', getErrorMessage(error));
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -271,6 +324,7 @@ function NativeRamp() {
       setCurrentStep(6);
     } catch (error) {
       console.error('Error completing KYC:', error);
+      Alert.alert('Error', getErrorMessage(error));
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -343,7 +397,7 @@ function NativeRamp() {
       setCurrentStep(7);
     } catch (error) {
       console.error('Error creating order:', error);
-      // Handle error appropriately
+      Alert.alert('Error', getErrorMessage(error));
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -369,6 +423,7 @@ function NativeRamp() {
       setOrderStatus(null);
     } catch (error) {
       console.error('Error confirming bank transfer:', error);
+      Alert.alert('Error', getErrorMessage(error));
       setOrderStatus(null);
     }
   };
@@ -557,7 +612,15 @@ function NativeRamp() {
               onChangeText={(text) =>
                 setFormValues((prev) => ({ ...prev, [field.id]: text }))
               }
-              placeholder={field.name}
+              placeholder={
+                field.name.toLowerCase().includes('date of birth')
+                  ? 'MM-DD-YYYY'
+                  : field.name.toLowerCase().includes('mobile number')
+                  ? '5491161738392 (with country code)'
+                  : field.name.toLowerCase().includes('country')
+                  ? 'Country code (e.g. US, DE, etc.)'
+                  : field.name
+              }
             />
           </Row>
         ))}
@@ -772,60 +835,73 @@ function NativeRamp() {
   );
 
   return (
-    <ScreenLayout>
-      <ScreenLayout.Body>
-        {currentStep >= 3 && currentStep < 6 && (
-          <Row style={styles.progressBarContainer}>
-            <ProgressBar percentComplete={(currentStep - 2) * 25} />
-          </Row>
-        )}
-        <ScreenLayout.Content>
-          {isLoading ? (
-            renderLoadingScreen()
-          ) : (
-            <>
-              {currentStep === 1 && renderDepositStep()}
-              {currentStep === 2 && renderExplainerStep()}
-              {currentStep === 3 && renderStepOne()}
-              {currentStep === 4 && renderStepTwo()}
-              {currentStep === 5 && renderStepKycForms()}
-              {currentStep === 5.5 && renderWebviewStep()}
-              {currentStep === 6 && renderKycSuccessScreen()}
-              {currentStep === 7 && !orderStatus && renderConfirmationScreen()}
-              {currentStep === 8 && renderOrderSuccess()}
-              {currentStep === 7 && orderStatus && renderLoadingScreen()}
-            </>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          {currentStep >= 3 && currentStep < 6 && (
+            <Row style={styles.progressBarContainer}>
+              <ProgressBar percentComplete={(currentStep - 2) * 25} />
+            </Row>
           )}
-        </ScreenLayout.Content>
-      </ScreenLayout.Body>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <ScreenLayout.Content>
+              {isLoading ? (
+                renderLoadingScreen()
+              ) : (
+                <>
+                  {currentStep === 1 && renderDepositStep()}
+                  {currentStep === 2 && renderExplainerStep()}
+                  {currentStep === 3 && renderStepOne()}
+                  {currentStep === 4 && renderStepTwo()}
+                  {currentStep === 5 && renderStepKycForms()}
+                  {currentStep === 5.5 && renderWebviewStep()}
+                  {currentStep === 6 && renderKycSuccessScreen()}
+                  {currentStep === 7 &&
+                    !orderStatus &&
+                    renderConfirmationScreen()}
+                  {currentStep === 8 && renderOrderSuccess()}
+                  {currentStep === 7 && orderStatus && renderLoadingScreen()}
+                </>
+              )}
+            </ScreenLayout.Content>
+          </ScrollView>
+        </ScreenLayout.Body>
 
-      <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <Row style={styles.cta}>
-            <StyledButton
-              type="confirm"
-              onPress={
-                currentStep === 5.5 ? handleWebviewComplete : handleContinue
-              }
-              loading={isLoading}
-              disabled={orderStatus !== null}
-            >
-              {currentStep === 5.5
-                ? 'Complete Verification'
-                : currentStep === 8
-                ? 'Swap for tokens'
-                : currentStep === 7
-                ? 'Confirm bank transfer'
-                : currentStep === 6
-                ? 'Continue to purchase'
-                : currentStep === 2
-                ? 'Get started'
-                : 'Continue'}
-            </StyledButton>
-          </Row>
-        </ScreenLayout.Content>
-      </ScreenLayout.Footer>
-    </ScreenLayout>
+        <ScreenLayout.Footer>
+          <ScreenLayout.Content>
+            <Row style={styles.cta}>
+              <StyledButton
+                type="confirm"
+                onPress={
+                  currentStep === 5.5 ? handleWebviewComplete : handleContinue
+                }
+                loading={isLoading}
+                disabled={orderStatus !== null}
+              >
+                {currentStep === 5.5
+                  ? 'Complete Verification'
+                  : currentStep === 8
+                  ? 'Swap for tokens'
+                  : currentStep === 7
+                  ? 'Confirm bank transfer'
+                  : currentStep === 6
+                  ? 'Continue to purchase'
+                  : currentStep === 2
+                  ? 'Get started'
+                  : 'Continue'}
+              </StyledButton>
+            </Row>
+          </ScreenLayout.Content>
+        </ScreenLayout.Footer>
+      </ScreenLayout>
+    </KeyboardAvoidingView>
   );
 }
 
