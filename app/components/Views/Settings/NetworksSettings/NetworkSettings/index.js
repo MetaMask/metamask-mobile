@@ -44,6 +44,7 @@ import sanitizeUrl, {
   compareSanitizedUrl,
 } from '../../../../../util/sanitizeUrl';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
+import onlyKeepHost from '../../../../../util/onlyKeepHost';
 import { themeAppearanceLight } from '../../../../../constants/storage';
 import { scale, moderateScale } from 'react-native-size-matters';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
@@ -2008,7 +2009,7 @@ export class NetworkSettings extends PureComponent {
                   {...(failoverRpcUrls.length > 0
                     ? {
                         tertiaryText:
-                          '(' + hideKeyFromUrl(failoverRpcUrls[0]) + ')',
+                          '(' + onlyKeepHost(failoverRpcUrls[0]) + ')',
                       }
                     : {})}
                   isSelected={false}
@@ -2416,7 +2417,7 @@ export class NetworkSettings extends PureComponent {
                         secondaryText={hideKeyFromUrl(url)}
                         tertiaryText={
                           failoverUrls.length > 0
-                            ? '(' + hideKeyFromUrl(failoverUrls[0]) + ')'
+                            ? '(' + onlyKeepHost(failoverUrls[0]) + ')'
                             : null
                         }
                         isSelected={rpcUrl === url}
