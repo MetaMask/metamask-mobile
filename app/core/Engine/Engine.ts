@@ -565,7 +565,7 @@ export class Engine {
             {
               id: source,
             },
-            async (keyring) => ({
+            async ({ keyring }) => ({
               type: keyring.type,
               mnemonic: (keyring as unknown as HdKeyring).mnemonic,
             }),
@@ -594,7 +594,7 @@ export class Engine {
             {
               id: source,
             },
-            async (keyring) => ({
+            async ({ keyring }) => ({
               type: keyring.type,
               seed: (keyring as unknown as HdKeyring).seed,
             }),
