@@ -197,7 +197,7 @@ function addTransactionControllerListeners({
     transactionId: string,
   ): TransactionMetrics => {
     const state = getState();
-    return (state.transactionMetrics.metricsByTransactionId?.[transactionId] ||
+    return (state.confirmationMetrics.metricsById?.[transactionId] ||
       {}) as unknown as TransactionMetrics;
   };
 
