@@ -246,28 +246,26 @@ export const Browser = (props) => {
     ],
   );
 
-  const takeScreenshot = (url, tabID) => {
-    return new Promise((resolve, reject) => {
-      captureScreen({
-        format: 'jpg',
-        quality: 0.2,
-        THUMB_WIDTH,
-        THUMB_HEIGHT,
-      }).then(
-        (uri) => {
-          updateTab(tabID, {
-            url,
-            image: uri,
-          });
-          resolve(true);
-        },
-        (error) => {
-          Logger.error(error, `Error saving tab ${url}`);
-          reject(error);
-        },
-      );
-    });
-  };
+  const takeScreenshot = (url, tabID) => new Promise((resolve, reject) => {
+    captureScreen({
+      format: 'jpg',
+      quality: 0.2,
+      THUMB_WIDTH,
+      THUMB_HEIGHT,
+    }).then(
+      (uri) => {
+        updateTab(tabID, {
+          url,
+          image: uri,
+        });
+        resolve(true);
+      },
+      (error) => {
+        Logger.error(error, `Error saving tab ${url}`);
+        reject(error);
+      },
+    );
+  });
 
   const showTabs = async () => {
     try {
@@ -350,21 +348,19 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabWindows = () => {
-    return tabs.filter((tab) => !tab.isArchived).map((tab) => (
-      <BrowserTab
-        id={tab.id}
-        key={`tab_${tab.id}`}
-        initialUrl={tab.url}
-        linkType={tab.linkType}
-        updateTabInfo={updateTabInfo}
-        showTabs={showTabs}
-        newTab={newTab}
-        isInTabsView={route.params?.showTabs}
-        homePageUrl={homePageUrl()}
-      />
-    ));
-  };
+  const renderBrowserTabWindows = () => tabs.filter((tab) => !tab.isArchived).map((tab) => (
+    <BrowserTab
+      id={tab.id}
+      key={`tab_${tab.id}`}
+      initialUrl={tab.url}
+      linkType={tab.linkType}
+      updateTabInfo={updateTabInfo}
+      showTabs={showTabs}
+      newTab={newTab}
+      isInTabsView={route.params?.showTabs}
+      homePageUrl={homePageUrl()}
+    />
+  ));
 
   return (
     <View
