@@ -33,7 +33,7 @@ export const removeEvmToken = async ({
     chainId as Hex,
   );
   const tokenAddress = tokenToRemove?.address || '';
-  const symbol = tokenToRemove?.symbol;
+  const symbol = tokenToRemove?.symbol || '';
 
   try {
     await TokensController.ignoreTokens([tokenAddress], networkClientId);

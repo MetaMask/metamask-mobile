@@ -4,7 +4,6 @@ import Logger from '../../../../util/Logger';
 
 interface RefreshEvmTokensProps {
   isEvmSelected: boolean;
-  setRefreshing: (refreshing: boolean) => void;
   evmNetworkConfigurationsByChainId: Record<
     string,
     { chainId: Hex; nativeCurrency: string }
@@ -14,15 +13,12 @@ interface RefreshEvmTokensProps {
 
 export const refreshEvmTokens = async ({
   isEvmSelected,
-  setRefreshing,
   evmNetworkConfigurationsByChainId,
   nativeCurrencies,
 }: RefreshEvmTokensProps) => {
   if (!isEvmSelected) {
     return;
   }
-
-  setRefreshing(true);
 
   const {
     TokenDetectionController,
@@ -52,6 +48,4 @@ export const refreshEvmTokens = async ({
   await Promise.all(actions).catch((error) => {
     Logger.error(error, 'Error while refreshing tokens');
   });
-
-  setRefreshing(false);
 };

@@ -28,11 +28,8 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 describe('refreshEvmTokens', () => {
-  const mockSetRefreshing = jest.fn();
-
   const mockProps = {
     isEvmSelected: true,
-    setRefreshing: mockSetRefreshing,
     evmNetworkConfigurationsByChainId: {
       '0x1': { chainId: '0x1' as Hex, nativeCurrency: 'ETH' },
       '0x89': { chainId: '0x89' as Hex, nativeCurrency: 'POL' },
@@ -46,9 +43,6 @@ describe('refreshEvmTokens', () => {
 
   it('should refresh tokens when EVM is selected', async () => {
     await refreshEvmTokens(mockProps);
-
-    // Ensure setRefreshing is called correctly
-    expect(mockSetRefreshing).toHaveBeenCalledWith(true);
 
     // Check if controllers are called with expected arguments
     expect(
@@ -84,16 +78,10 @@ describe('refreshEvmTokens', () => {
       chainId: '0x89',
       nativeCurrency: 'POL',
     });
-
-    // Ensure setRefreshing is called again to reset state
-    expect(mockSetRefreshing).toHaveBeenCalledWith(false);
   });
 
   it('should not refresh tokens if EVM is not selected', async () => {
     await refreshEvmTokens({ ...mockProps, isEvmSelected: false });
-
-    // Ensure setRefreshing is never called
-    expect(mockSetRefreshing).not.toHaveBeenCalled();
 
     // Ensure controllers are never called
     expect(
@@ -124,8 +112,5 @@ describe('refreshEvmTokens', () => {
       expect.any(Error),
       'Error while refreshing tokens',
     );
-
-    // Ensure setRefreshing is still called to reset state
-    expect(mockSetRefreshing).toHaveBeenCalledWith(false);
   });
 });
