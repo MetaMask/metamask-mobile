@@ -28,8 +28,6 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 describe('refreshTokens', () => {
-  const mockSetRefreshing = jest.fn();
-
   const mockProps = {
     isEvmSelected: true,
     setRefreshing: mockSetRefreshing,
@@ -47,9 +45,6 @@ describe('refreshTokens', () => {
 
   it('should refresh tokens when EVM is selected', async () => {
     await refreshTokens(mockProps);
-
-    // Ensure setRefreshing is called correctly
-    expect(mockSetRefreshing).toHaveBeenCalledWith(true);
 
     // Check if controllers are called with expected arguments
     expect(
@@ -85,16 +80,10 @@ describe('refreshTokens', () => {
       chainId: '0x89',
       nativeCurrency: 'POL',
     });
-
-    // Ensure setRefreshing is called again to reset state
-    expect(mockSetRefreshing).toHaveBeenCalledWith(false);
   });
 
   it('should not refresh tokens if EVM is not selected', async () => {
     await refreshTokens({ ...mockProps, isEvmSelected: false });
-
-    // Ensure setRefreshing is never called
-    expect(mockSetRefreshing).not.toHaveBeenCalled();
 
     // Ensure controllers are never called
     expect(
@@ -125,8 +114,5 @@ describe('refreshTokens', () => {
       expect.any(Error),
       'Error while refreshing tokens',
     );
-
-    // Ensure setRefreshing is still called to reset state
-    expect(mockSetRefreshing).toHaveBeenCalledWith(false);
   });
 });

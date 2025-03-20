@@ -589,8 +589,8 @@ describe('MultichainNonEvm Selectors', () => {
 
   describe('selectMultichainTokenList', () => {
     it('returns a list of tokens', () => {
-      const selectedInternalAccountId = '30786334-3936-4663-b064-363539643939';
-      const state = getEvmState();
+      const selectedInternalAccountId = 'ae247df6-3911-47f7-9e36-28e6a7d96078';
+      const state = getNonEvmState();
       const mockBalances = {
         [selectedInternalAccountId]: {
           [MultichainNativeAssets.Bitcoin]: { amount: '10', unit: 'BTC' },
