@@ -618,7 +618,8 @@
       "appium": false,
       "appium>@appium/support>sharp": false,
       "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false,
-      "@storybook/addon-ondevice-controls>core-js": false
+      "@storybook/addon-ondevice-controls>core-js": false,
+      "detox>@wix-pilot/core>canvas": true
     }
   },
   "packageManager": "yarn@1.22.22"
