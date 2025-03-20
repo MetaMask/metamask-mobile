@@ -33,7 +33,11 @@ import {
   OrderPaymentMethodField,
   KycFormDetails,
 } from '@consensys/on-ramp-sdk/dist/NativeRampService';
-import { storeTransakToken, getTransakToken } from './TransakTokenVault';
+import {
+  storeTransakToken,
+  getTransakToken,
+  resetTransakToken,
+} from './TransakTokenVault';
 import { useRampSDK } from '../../sdk';
 import { createKycWebviewNavDetails } from './NativeRampWebView';
 
@@ -453,19 +457,33 @@ function NativeRamp() {
   };
 
   const renderDepositStep = () => (
-    <View style={styles.inputContainerWrapper}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType={'numeric'}
-          placeholderTextColor={colors.text.muted}
-          testID={AmountViewSelectorsIDs.AMOUNT_INPUT}
-        />
-        <Text style={styles.currencyText}>EUR</Text>
+    <>
+      <View style={styles.inputContainerWrapper}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.textInput}
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType={'numeric'}
+            placeholderTextColor={colors.text.muted}
+            testID={AmountViewSelectorsIDs.AMOUNT_INPUT}
+          />
+          <Text style={styles.currencyText}>EUR</Text>
+        </View>
       </View>
-    </View>
+      {/* Dev only button */}
+      {accessToken && (
+        <Row style={styles.devButtonContainer}>
+          <Text
+            variant={TextVariant.BodySM}
+            style={styles.devButtonText}
+            onPress={resetTransakToken}
+          >
+            reset auth token (dev only)
+          </Text>
+        </Row>
+      )}
+    </>
   );
 
   const renderExplainerStep = () => (

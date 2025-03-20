@@ -233,6 +233,15 @@ const styleSheet = (_params: { theme: Theme }) =>
     keyboardAvoidingView: {
       flex: 1,
     },
+    devButtonContainer: {
+      marginTop: 16,
+      alignItems: 'center',
+    },
+    devButtonText: {
+      color: _params.theme.colors.primary.default,
+      textDecorationLine: 'underline',
+      fontSize: 14,
+    },
   });
 
 export default styleSheet;
