@@ -1,27 +1,32 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import {
-  default as MorphText,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import {
+  default as MorphText,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import Device from '../../../../../../util/device';
 
 export function getNavbar({
   title,
   onReject,
+  addBackButton = true,
 }: {
   title: string;
   onReject: () => void;
+  addBackButton?: boolean;
 }) {
   const innerStyles = StyleSheet.create({
     headerLeft: {
       marginHorizontal: 16,
+      display: addBackButton ? undefined : 'none',
     },
     headerTitle: {
       alignItems: 'center',
+      marginRight: Device.isAndroid() ? 60 : undefined,
     },
   });
 
