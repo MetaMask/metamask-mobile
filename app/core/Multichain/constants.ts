@@ -7,6 +7,7 @@ import {
 } from '@metamask/keyring-api';
 import BTC from '../../images/bitcoin-logo.png';
 import SOL from '../../images/solana-logo.png';
+import { MultichainBlockExplorerFormatUrls } from './networks';
 
 // Image imports for React Native rendering
 export const MULTICHAIN_TOKEN_IMAGES = {
@@ -40,12 +41,36 @@ export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
   [SolAccountType.DataAccount]: SolScope.Mainnet,
 } as const;
 
-export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP = {
-  [BtcScope.Mainnet]: 'https://blockstream.info/address',
-  [BtcScope.Testnet]: 'https://blockstream.info/testnet/address',
-  [SolScope.Mainnet]: 'https://explorer.solana.com/',
-  [SolScope.Devnet]: 'https://explorer.solana.com/?cluster=devnet',
-  [SolScope.Testnet]: 'https://explorer.solana.com/?cluster=testnet',
+export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
+  CaipChainId,
+  MultichainBlockExplorerFormatUrls
+> = {
+  [BtcScope.Mainnet]: {
+    url: 'https://mempool.space/',
+    address: 'https://mempool.space/address/{address}',
+    transaction: 'https://mempool.space/tx/{txId}',
+  },
+  [BtcScope.Testnet]: {
+    url: 'https://mempool.space/',
+    address: 'https://mempool.space/testnet/address/{address}',
+    transaction: 'https://mempool.space/testnet/tx/{txId}',
+  },
+
+  [SolScope.Mainnet]: {
+    url: 'https://explorer.solana.com',
+    address: 'https://explorer.solana.com/address/{address}',
+    transaction: 'https://explorer.solana.com/tx/{txId}',
+  },
+  [SolScope.Devnet]: {
+    url: 'https://explorer.solana.com',
+    address: 'https://explorer.solana.com/address/{address}?cluster=devnet',
+    transaction: 'https://explorer.solana.com/tx/{txId}?cluster=devnet',
+  },
+  [SolScope.Testnet]: {
+    url: 'https://explorer.solana.com',
+    address: 'https://explorer.solana.com/address/{address}?cluster=testnet',
+    transaction: 'https://explorer.solana.com/tx/{txId}?cluster=testnet',
+  },
 } as const;
 
 export const PRICE_API_CURRENCIES = [
