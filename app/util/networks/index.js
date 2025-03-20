@@ -8,9 +8,10 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
+  MEGAETH_TESTNET
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import { BlockExplorerUrl, ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
@@ -20,6 +21,7 @@ const ethLogo = require('../../images/eth-logo-new.png');
 const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
 const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
+const megaEthTestnetLogo = require('../../images/megaeth-testnet-logo.png');
 
 /* eslint-enable */
 import {
@@ -105,6 +107,19 @@ export const NetworkList = {
     networkType: 'linea-sepolia',
     imageSource: lineaTestnetLogo,
     blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
+  },
+  [MEGAETH_TESTNET]: {
+    name: 'Mega Testnet',
+    shortName: 'Mega Testnet',
+    networkId: 6342,
+    chainId: toHex('6342'),
+    ticker: 'MegaETH',
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+    color: '#61dfff',
+    networkType: 'megaeth-testnet',
+    imageSource: megaEthTestnetLogo,
+    blockExplorerUrl: BlockExplorerUrl['megaeth-testnet'],
   },
   [RPC]: {
     name: 'Private Network',
