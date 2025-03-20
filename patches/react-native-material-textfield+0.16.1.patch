@@ -61,7 +61,7 @@ index 7005ddf..d1ac45f 100644
    }
  }
 diff --git a/node_modules/react-native-material-textfield/src/components/field/index.js b/node_modules/react-native-material-textfield/src/components/field/index.js
-index 494bbaa..d20a27b 100644
+index 494bbaa..86923e2 100644
 --- a/node_modules/react-native-material-textfield/src/components/field/index.js
 +++ b/node_modules/react-native-material-textfield/src/components/field/index.js
 @@ -2,12 +2,10 @@ import PropTypes from 'prop-types';
@@ -120,18 +120,46 @@ index 494bbaa..d20a27b 100644
      };
  
      startAnimation(focusAnimation, options, this.onFocusAnimationEnd);
-@@ -460,6 +461,10 @@ export default class TextField extends PureComponent {
-       }
-     }
- 
-+    if (this.props.testID) {
-+      store.testID = this.props.testID;
-+    }
-+
-     return store;
+@@ -447,22 +448,6 @@ export default class TextField extends PureComponent {
+       + contentInset.input;
    }
  
-@@ -644,7 +649,8 @@ export default class TextField extends PureComponent {
+-  inputProps() {
+-    let store = {};
+-
+-    for (let key in TextInput.propTypes) {
+-      if ('defaultValue' === key) {
+-        continue;
+-      }
+-
+-      if (key in this.props) {
+-        store[key] = this.props[key];
+-      }
+-    }
+-
+-    return store;
+-  }
+-
+   inputStyle() {
+     let { fontSize, baseColor, textColor, disabled, multiline } = this.props;
+ 
+@@ -608,14 +593,13 @@ export default class TextField extends PureComponent {
+       style: inputStyleOverrides,
+     } = this.props;
+ 
+-    let props = this.inputProps();
+     let inputStyle = this.inputStyle();
+ 
+     return (
+       <TextInput
+         selectionColor={tintColor}
+ 
+-        {...props}
++        {...this.props}
+ 
+         style={[styles.input, inputStyle, inputStyleOverrides]}
+         editable={!disabled && editable}
+@@ -644,7 +628,8 @@ export default class TextField extends PureComponent {
        baseColor,
        errorColor,
        containerStyle,
@@ -141,7 +169,7 @@ index 494bbaa..d20a27b 100644
      } = this.props;
  
      let restricted = this.isRestricted();
-@@ -702,11 +708,11 @@ export default class TextField extends PureComponent {
+@@ -702,11 +687,11 @@ export default class TextField extends PureComponent {
      return (
        <View {...containerProps}>
          <Animated.View {...inputContainerProps}>
