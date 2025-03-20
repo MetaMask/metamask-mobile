@@ -45,8 +45,7 @@ export function formatBlockExplorerUrl<Tag extends string>(
   tag: Tag,
   value: string,
 ) {
-
-  return url.replace(`{${tag}}`, value);
+  return url.replace(new RegExp(`{${tag}}`, 'g'), value);
 }
 
 /**

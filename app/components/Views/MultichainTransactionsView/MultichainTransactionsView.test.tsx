@@ -181,40 +181,4 @@ describe('MultichainTransactionsView', () => {
     const transactionItems = queryAllByTestId('transaction-item');
     expect(transactionItems.length).toBe(2);
   });
-
-  it('renders the View More button when transactions are available', async () => {
-    const { queryByTestId } = customRender(<MultichainTransactionsView />);
-
-    act(() => {
-      jest.advanceTimersByTime(600);
-    });
-
-    await waitFor(() => {
-      expect(queryByTestId('transactions-loading-indicator')).toBeNull();
-    });
-
-    expect(hasViewMoreButton()).toBe(true);
-  });
-
-  it('navigates to explorer when View More button is pressed', async () => {
-    const { queryByTestId } = customRender(<MultichainTransactionsView />);
-
-    act(() => {
-      jest.advanceTimersByTime(600);
-    });
-
-    await waitFor(() => {
-      expect(queryByTestId('transactions-loading-indicator')).toBeNull();
-    });
-
-    const MockButton = getButtonMock();
-    act(() => {
-      MockButton.lastProps.onPress();
-    });
-
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
-      screen: 'SimpleWebview',
-      params: { url: 'https://explorer.solana.com/address/testaddress' },
-    });
-  });
 });

@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
-  FlatList,
   Text,
   ActivityIndicator,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { FlashList } from "@shopify/flash-list";
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { ThemeColors } from '@metamask/design-tokens';
 import { useTheme } from '../../../util/theme';
@@ -143,13 +143,14 @@ const MultichainTransactionsView = () => {
 
   return (
     <View style={styles.wrapper}>
-      <FlatList
+      <FlashList
         data={transactions}
         renderItem={renderTransactionItem}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyList}
         style={baseStyles.flexGrow}
         ListFooterComponent={transactions.length > 0 ? renderViewMore() : null}
+        estimatedItemSize={200}
       />
     </View>
   );
