@@ -30,14 +30,41 @@ interface WebViewState {
 }
 
 // This is a class component because storing the references we are don't work in functional components.
-export class SnapsExecutionWebView extends Component {
+export class SnapsExecutionWebView extends Component<
+  EmptyObject,
+  { webViewIds: string[] }
+> {
   webViews: Record<string, WebViewState> = {};
+  pendingUpdates: string[] = [];
+  updateScheduled = false;
 
   constructor(props: EmptyObject) {
     super(props);
+    this.state = { webViewIds: [] };
 
     createWebView = this.createWebView.bind(this);
     removeWebView = this.removeWebView.bind(this);
+  }
+
+  componentWillUnmount() {
+    // Clean up all WebViews when component unmounts
+    Object.keys(this.webViews).forEach((jobId) => {
+      this.webViews[jobId].listener = undefined;
+      this.webViews[jobId].ref = undefined;
+    });
+    this.webViews = {};
+  }
+
+  scheduleUpdate() {
+    if (!this.updateScheduled) {
+      this.updateScheduled = true;
+      // Batch updates using setTimeout to allow multiple create/remove operations
+      // to be processed in a single render cycle
+      setTimeout(() => {
+        this.setState({ webViewIds: Object.keys(this.webViews) });
+        this.updateScheduled = false;
+      }, 0);
+    }
   }
 
   createWebView(jobId: string) {
@@ -93,38 +120,56 @@ export class SnapsExecutionWebView extends Component {
       };
     });
 
-    // Force re-render.
-    this.forceUpdate();
+    // Schedule state update instead of forcing immediate re-render
+    this.scheduleUpdate();
 
     return promise;
   }
 
   removeWebView(jobId: string) {
-    delete this.webViews[jobId];
+    // Clean up the WebView resources
+    if (this.webViews[jobId]) {
+      this.webViews[jobId].listener = undefined;
+      this.webViews[jobId].ref = undefined;
+      delete this.webViews[jobId];
+    }
 
-    // Force re-render.
-    this.forceUpdate();
+    // Schedule state update instead of forcing immediate re-render
+    this.scheduleUpdate();
   }
+
+  renderWebView = (jobId: string) => {
+    const { props } = this.webViews[jobId];
+
+    return (
+      <WebView
+        testID={jobId}
+        key={jobId}
+        ref={props.ref}
+        source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
+        onMessage={props.onWebViewMessage}
+        onError={props.onWebViewError}
+        onLoadEnd={props.onWebViewLoad}
+        originWhitelist={['*']}
+        javaScriptEnabled
+        cacheEnabled
+        cacheMode={'LOAD_CACHE_ELSE_NETWORK'}
+        androidLayerType="hardware"
+        renderToHardwareTextureAndroid
+        textZoom={100}
+        // Disable unnecessary features for better performance
+        startInLoadingState={false}
+        domStorageEnabled={false}
+        mediaPlaybackRequiresUserAction
+        sharedCookiesEnabled={false}
+      />
+    );
+  };
 
   render() {
     return (
       <View style={styles.container}>
-        {Object.entries(this.webViews).map(([key, { props }]) => (
-          <WebView
-            testID={key}
-            key={key}
-            ref={props.ref}
-            source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
-            onMessage={props.onWebViewMessage}
-            onError={props.onWebViewError}
-            onLoadEnd={props.onWebViewLoad}
-            originWhitelist={['*']}
-            javaScriptEnabled
-            cacheEnabled
-            cacheMode={'LOAD_CACHE_ELSE_NETWORK'}
-            androidLayerType="hardware"
-          />
-        ))}
+        {this.state.webViewIds.map((jobId) => this.renderWebView(jobId))}
       </View>
     );
   }
