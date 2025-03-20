@@ -279,6 +279,7 @@ export default class DeeplinkProtocolService {
       }
     ).PermissionController;
 
+    // TODO: this isn't right
     return permissionsController.requestPermissions(
       { origin: channelId },
       { eth_accounts: {} },

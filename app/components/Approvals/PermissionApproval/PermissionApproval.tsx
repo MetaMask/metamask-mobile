@@ -7,6 +7,8 @@ import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useOriginSource from '../../hooks/useOriginSource';
+import Logger from '../../../util/Logger';
+import { Caip25EndowmentPermissionName } from '@metamask/multichain';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type
@@ -23,6 +25,8 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
   const eventSource = useOriginSource({ origin: approvalRequest?.requestData?.metadata?.origin });
 
   useEffect(() => {
+    Logger.log('permissionApproval', {approvalRequest})
+
     if (approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS || !eventSource) {
       isProcessing.current = false;
       return;
@@ -30,7 +34,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
 
     const requestData = approvalRequest?.requestData;
 
-    if (!requestData?.permissions?.eth_accounts) return;
+    if (!requestData?.permissions?.[Caip25EndowmentPermissionName]) return;
 
     const {
       metadata: { id },

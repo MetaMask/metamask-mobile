@@ -8,11 +8,13 @@ import {
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
 
+// TODO: [ffmcgee] docs
 const wallet_switchEthereumChain = async ({
   req,
   res,
   requestUserApproval,
   analytics,
+  hooks,
 }) => {
   const {
     CurrencyRateController,
@@ -61,6 +63,15 @@ const wallet_switchEthereumChain = async ({
       return;
     }
 
+    const currentChainIdForOrigin = hooks.getCurrentChainIdForDomain(origin);
+
+    const fromNetworkConfiguration = hooks.getNetworkConfigurationByChainId(
+      currentChainIdForOrigin,
+    );
+
+    const toNetworkConfiguration =
+      hooks.getNetworkConfigurationByChainId(chainId);
+
     await switchToNetwork({
       network: existingNetwork,
       chainId: _chainId,
@@ -74,6 +85,11 @@ const wallet_switchEthereumChain = async ({
       analytics,
       origin,
       isAddNetworkFlow: false,
+      hooks: {
+        toNetworkConfiguration,
+        fromNetworkConfiguration,
+        ...hooks,
+      },
     });
 
     res.result = null;

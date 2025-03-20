@@ -1,6 +1,6 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import validUrl from 'valid-url';
-import { isSafeChainId } from '@metamask/controller-utils';
+import { ApprovalType, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
@@ -8,11 +8,10 @@ import {
   isChainPermissionsFeatureEnabled,
 } from '../../../util/networks';
 import {
-  CaveatFactories,
-  PermissionKeys,
-} from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  getPermittedEthChainIds,
+} from '@metamask/multichain';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
@@ -207,26 +206,22 @@ export async function switchToNetwork({
   analytics,
   origin,
   isAddNetworkFlow = false,
+  hooks,
 }) {
+  const {
+    getCaveat,
+    requestPermittedChainsPermissionIncrementalForOrigin,
+    hasApprovalRequestsForOrigin,
+    autoApprove, // TODO: [ffmcgee] this should come from the add/switch Ethereum Chain handler function, not from upstream hooks passed. Check.
+    toNetworkConfiguration,
+    fromNetworkConfiguration,
+  } = hooks;
   const {
     MultichainNetworkController,
     PermissionController,
     SelectedNetworkController,
   } = controllers;
-  const getCaveat = ({ target, caveatType }) => {
-    try {
-      return PermissionController.getCaveat(origin, target, caveatType);
-    } catch (e) {
-      if (e instanceof PermissionDoesNotExistError) {
-        // suppress expected error in case that the origin
-        // does not have the target permission yet
-      } else {
-        throw e;
-      }
-    }
 
-    return undefined;
-  };
   const [networkConfigurationId, networkConfiguration] = network;
   const requestData = {
     rpcUrl:
@@ -249,15 +244,41 @@ export async function switchToNetwork({
       ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
       : isChainPermissionsFeatureEnabled;
 
-  const { value: permissionedChainIds } =
-    getCaveat({
-      target: PermissionKeys.permittedChains,
-      caveatType: CaveatTypes.restrictNetworkSwitching,
-    }) ?? {};
+  const caip25Caveat = getCaveat({
+    target: Caip25EndowmentPermissionName,
+    caveatType: Caip25CaveatType,
+  });
+
+  let ethChainIds;
+
+  if (caip25Caveat) {
+    ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
+
+    if (!ethChainIds.includes(chainId)) {
+      await requestPermittedChainsPermissionIncrementalForOrigin({
+        chainId,
+        autoApprove,
+      });
+    } else if (hasApprovalRequestsForOrigin?.() && !isAddNetworkFlow) {
+      await requestUserApproval({
+        origin,
+        type: ApprovalType.SwitchEthereumChain,
+        requestData: {
+          toNetworkConfiguration,
+          fromNetworkConfiguration,
+        },
+      });
+    }
+  } else {
+    await requestPermittedChainsPermissionIncrementalForOrigin({
+      chainId,
+      autoApprove,
+    });
+  }
 
   const shouldGrantPermissions =
     chainPermissionsFeatureEnabled &&
-    (!permissionedChainIds || !permissionedChainIds.includes(chainId));
+    (!ethChainIds || !ethChainIds.includes(chainId));
 
   const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
 
@@ -276,15 +297,19 @@ export async function switchToNetwork({
     await PermissionController.grantPermissionsIncremental({
       subject: { origin },
       approvedPermissions: {
-        [PermissionKeys.permittedChains]: {
+        [Caip25EndowmentPermissionName]: {
           caveats: [
-            CaveatFactories[CaveatTypes.restrictNetworkSwitching]([chainId]),
+            {
+              type: Caip25CaveatType,
+              value: caip25Caveat.value,
+            },
           ],
         },
       },
     });
   }
 
+  // TODO: This isn't right
   const originHasAccountsPermission = PermissionController.hasPermission(
     origin,
     'eth_accounts',

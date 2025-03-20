@@ -22,7 +22,10 @@ import Port from './Port';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
-import { SubjectType } from '@metamask/permission-controller';
+import {
+  PermissionDoesNotExistError,
+  SubjectType,
+} from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
 
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
@@ -38,8 +41,19 @@ import { getPermittedAccounts } from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
-import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
+import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMethodMiddleware';
 import createTracingMiddleware from '../createTracingMiddleware';
+import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
+import { pick } from 'lodash';
+import { CaveatTypes, RestrictedMethods } from '../Permissions/constants';
+import { PermissionKeys } from '../Permissions/specifications';
+import { isSnapId } from '@metamask/snaps-utils';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  setEthAccounts,
+  setPermittedEthChainIds,
+} from '@metamask/multichain';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -276,9 +290,9 @@ export class BackgroundBridge extends EventEmitter {
         `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
       );
       if (this.isWalletConnect) {
-        approvedAccounts = await getPermittedAccounts(this.url);
+        approvedAccounts = getPermittedAccounts(this.url);
       } else {
-        approvedAccounts = await getPermittedAccounts(
+        approvedAccounts = getPermittedAccounts(
           this.channelId ?? this.hostname,
         );
       }
@@ -377,6 +391,74 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   /**
+   * Requests user approval for the CAIP-25 permission for the specified origin
+   * and returns a granted permissions object.
+   *
+   * @param {string} origin - The origin to request approval for.
+   * @param requestedPermissions - The legacy permissions to request approval for.
+   * @returns the approved permissions object.
+   */
+  getCaip25PermissionFromLegacyPermissions(origin, requestedPermissions = {}) {
+    const permissions = pick(requestedPermissions, [
+      RestrictedMethods.eth_accounts,
+      PermissionKeys.permittedChains,
+    ]);
+
+    if (!permissions[RestrictedMethods.eth_accounts]) {
+      permissions[RestrictedMethods.eth_accounts] = {};
+    }
+
+    if (!permissions[PermissionKeys.permittedChains]) {
+      permissions[PermissionKeys.permittedChains] = {};
+    }
+
+    if (isSnapId(origin)) {
+      delete permissions[PermissionKeys.permittedChains];
+    }
+
+    const requestedAccounts =
+      permissions[RestrictedMethods.eth_accounts]?.caveats?.find(
+        (caveat) => caveat.type === CaveatTypes.restrictReturnedAccounts,
+      )?.value ?? [];
+
+    const requestedChains =
+      permissions[PermissionKeys.permittedChains]?.caveats?.find(
+        (caveat) => caveat.type === CaveatTypes.restrictNetworkSwitching,
+      )?.value ?? [];
+
+    const newCaveatValue = {
+      requiredScopes: {},
+      optionalScopes: {
+        'wallet:eip155': {
+          accounts: [],
+        },
+      },
+      isMultichainOrigin: false,
+    };
+
+    const caveatValueWithChains = setPermittedEthChainIds(
+      newCaveatValue,
+      isSnapId(origin) ? [] : requestedChains,
+    );
+
+    const caveatValueWithAccountsAndChains = setEthAccounts(
+      caveatValueWithChains,
+      requestedAccounts,
+    );
+
+    return {
+      [Caip25EndowmentPermissionName]: {
+        caveats: [
+          {
+            type: Caip25CaveatType,
+            value: caveatValueWithAccountsAndChains,
+          },
+        ],
+      },
+    };
+  }
+
+  /**
    * A method for serving our ethereum provider over a given stream.
    * @param {*} outStream - The stream to provide over.
    */
@@ -400,6 +482,13 @@ export class BackgroundBridge extends EventEmitter {
     const origin = this.hostname;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
+
+    const {
+      ApprovalController,
+      PermissionController,
+      NetworkController,
+      SelectedNetworkController,
+    } = Engine.context;
 
     // If the origin is not in the selectedNetworkController's `domains` state
     // when the provider engine is created, the selectedNetworkController will
@@ -431,11 +520,123 @@ export class BackgroundBridge extends EventEmitter {
     // Handle unsupported RPC Methods
     engine.push(createUnsupportedMethodMiddleware());
 
+    console.log('creating eip1193 middleware');
+
+    // TODO: remove this try catch after we have things figured out
+    try {
+    engine.push(
+      createEip1193MethodMiddleware({
+        metamaskState: this.getState(), // FIX: this isn't correctly shaped for these handlers
+        // Permission-related
+        getAccounts: (...args) =>
+          getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
+        getCaip25PermissionFromLegacyPermissionsForOrigin:
+          this.getCaip25PermissionFromLegacyPermissions.bind(this, origin),
+        getPermissionsForOrigin: PermissionController.getPermissions.bind(
+          PermissionController,
+          origin,
+        ),
+        requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
+          Engine.requestPermittedChainsPermissionIncremental({
+            ...options,
+            origin,
+          }),
+        requestPermissionsForOrigin: (requestedPermissions) =>
+          PermissionController.requestPermissions(
+            { origin },
+            requestedPermissions,
+          ),
+        revokePermissionsForOrigin: (permissionKeys) => {
+          try {
+            PermissionController.revokePermissions({
+              [origin]: permissionKeys,
+            });
+          } catch (e) {
+            // we dont want to handle errors here because
+            // the revokePermissions api method should just
+            // return `null` if the permissions were not
+            // successfully revoked or if the permissions
+            // for the origin do not exist
+          }
+        },
+        getCaveat: ({ target, caveatType }) => {
+          try {
+            return PermissionController.getCaveat(origin, target, caveatType);
+          } catch (e) {
+            if (e instanceof PermissionDoesNotExistError) {
+              // suppress expected error in case that the origin
+              // does not have the target permission yet
+            } else {
+              throw e;
+            }
+          }
+
+          return undefined;
+        },
+
+        // network configuration-related
+        setActiveNetwork: async (networkClientId) => {
+          await NetworkController.setActiveNetwork(networkClientId);
+          // if the origin has the CAIP-25 permission
+          // we set per dapp network selection state
+          if (
+            PermissionController.hasPermission(
+              origin,
+              Caip25EndowmentPermissionName,
+            )
+          ) {
+            SelectedNetworkController.setNetworkClientIdForDomain(
+              origin,
+              networkClientId,
+            );
+          }
+        },
+        getCurrentChainIdForDomain: (domain) => {
+          const networkClientId =
+            SelectedNetworkController.getNetworkClientIdForDomain(domain);
+          const { chainId } =
+            NetworkController.getNetworkConfigurationByNetworkClientId(
+              networkClientId,
+            );
+          return chainId;
+        },
+        addNetwork: NetworkController.addNetwork.bind(
+          NetworkController,
+        ),
+        updateNetwork: NetworkController.updateNetwork.bind(
+          NetworkController,
+        ),
+        getNetworkConfigurationByChainId:
+          NetworkController.getNetworkConfigurationByChainId.bind(
+            NetworkController,
+          ),
+        requestUserApproval: ApprovalController.addAndShowApprovalRequest.bind(
+          ApprovalController,
+        ),
+        hasApprovalRequestsForOrigin: () => ApprovalController.has({ origin }),
+        updateCaveat: PermissionController.updateCaveat.bind(
+          PermissionController,
+          origin,
+        ),
+        // TODO: Fix these
+        getUnlockPromise: () => {},
+        rejectApprovalRequestsForOrigin: () => {},
+        handleWatchAssetRequest: () => {},
+        setTokenNetworkFilter: () => {},
+
+      }),
+    );
+    } catch (err) {
+      console.error(err);
+    }
+
+    console.log('created eip1193 middleware');
+
     // Legacy RPC methods that need to be implemented ahead of the permission middleware
     engine.push(
-      createLegacyMethodMiddleware({
-        getAccounts: async () =>
-          await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
+      createEthAccountsMethodMiddleware({
+        getAccounts: (...args) =>
+          getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
       }),
     );
 
@@ -443,13 +644,13 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(createTracingMiddleware());
 
     // Append PermissionController middleware
-    engine.push(
-      Engine.context.PermissionController.createPermissionMiddleware({
-        // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
-        // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
-        origin: this.isMMSDK ? this.channelId : origin,
-      }),
-    );
+    // engine.push(
+    //   Engine.context.PermissionController.createPermissionMiddleware({
+    //     // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
+    //     // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
+    //     origin: this.isMMSDK ? this.channelId : origin,
+    //   }),
+    // );
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     // Snaps middleware
@@ -493,7 +694,9 @@ export class BackgroundBridge extends EventEmitter {
    */
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
-    const { PreferencesController: { selectedAddress } } = Engine.datamodel.state;
+    const {
+      PreferencesController: { selectedAddress },
+    } = Engine.datamodel.state;
     return {
       isInitialized: !!vault,
       isUnlocked: true,

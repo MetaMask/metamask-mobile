@@ -28,6 +28,7 @@ import {
   PermissionControllerState,
   PermissionConstraint,
 } from '@metamask/permission-controller';
+import { Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds } from '@metamask/multichain';
 
 interface SDKSessionsManagerProps {
   navigation: NavigationProp<ParamListBase>;
@@ -91,16 +92,16 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
     });
 
     const mappedInAppBrowserPermissions: PermissionListItemViewModel[] =
-      inAppBrowserSubjects.map((subject) => ({
+      inAppBrowserSubjects.map((subject) => {
+        const caip25CaveatValue = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats?.[0]?.value
+
+        return {
         dappLogoUrl: '',
         dappHostName: subject.origin,
-        numberOfAccountPermissions:
-          subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
-        numberOfNetworkPermissions:
-          subject.permissions?.['endowment:permitted-chains']?.caveats?.[0]
-            ?.value?.length ?? 0,
+        numberOfAccountPermissions: caip25CaveatValue ? getEthAccounts(caip25CaveatValue).length : 0,
+        numberOfNetworkPermissions: caip25CaveatValue ? getPermittedEthChainIds(caip25CaveatValue).length : 0,
         permissionSource: PermissionSource.MetaMaskBrowser,
-      }));
+      }});
 
     const mappedPermissions: PermissionListItemViewModel[] = [
       ...mappedInAppBrowserPermissions,

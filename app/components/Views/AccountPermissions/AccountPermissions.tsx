@@ -18,6 +18,8 @@ import BottomSheet, {
 import Engine from '../../../core/Engine';
 import {
   addPermittedAccounts,
+  addPermittedChains,
+  getCaip25Caveat,
   getPermittedAccountsByHostname,
   removePermittedAccounts,
 } from '../../../core/Permissions';
@@ -65,6 +67,7 @@ import { AvatarVariant } from '../../../component-library/components/Avatars/Ava
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import NetworkPermissionsConnected from './NetworkPermissionsConnected';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { getPermittedEthChainIds } from '@metamask/multichain';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -144,16 +147,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   useEffect(() => {
     let currentlyPermittedChains: string[] = [];
     try {
-      const caveat = Engine.context.PermissionController.getCaveat(
-        hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-      if (Array.isArray(caveat?.value)) {
-        currentlyPermittedChains = caveat.value.filter(
-          (item): item is string => typeof item === 'string',
-        );
-      }
+      const caveat = getCaip25Caveat(hostname)
+      currentlyPermittedChains = caveat ? getPermittedEthChainIds(caveat.value) : []
     } catch (e) {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
@@ -774,36 +769,25 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       onEditNetworks: () =>
         setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
       onUserAction: setUserIntent,
+      // TODO: Verify if this collides with the added wallet_addEthereumChain behavior
       onAddNetwork: () => {
+        if (!chainId) {
+          throw new Error('No chainId provided');
+        }
+
         let currentlyPermittedChains: string[] = [];
         try {
-          const caveat = Engine.context.PermissionController.getCaveat(
-            hostname,
-            PermissionKeys.permittedChains,
-            CaveatTypes.restrictNetworkSwitching,
-          );
-          if (Array.isArray(caveat?.value)) {
-            currentlyPermittedChains = caveat.value.filter(
-              (item): item is string => typeof item === 'string',
-            );
-          }
+          const caveat = getCaip25Caveat(hostname)
+          currentlyPermittedChains = caveat ? getPermittedEthChainIds(caveat.value): []
         } catch (e) {
           Logger.error(e as Error, 'Error getting permitted chains caveat');
         }
 
-        // Add current chainId if no chains are permitted yet
-        if (chainId) {
-          currentlyPermittedChains = [chainId, ...currentlyPermittedChains];
-        } else {
-          throw new Error('No chainId provided');
+        if(currentlyPermittedChains.includes(chainId)) {
+          return;
         }
 
-        Engine.context.PermissionController.updateCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-          currentlyPermittedChains,
-        );
+        addPermittedChains(hostname, [chainId])
 
         const networkToastProps: ToastOptions = {
           variant: ToastVariants.Network,

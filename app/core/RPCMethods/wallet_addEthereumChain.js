@@ -37,6 +37,7 @@ const addOrUpdateIndex = (array, value, comparator) => {
   return { updatedArray: array, index };
 };
 
+// TODO: [ffmcgee] docs
 const wallet_addEthereumChain = async ({
   req,
   res,
@@ -44,6 +45,7 @@ const wallet_addEthereumChain = async ({
   analytics,
   startApprovalFlow,
   endApprovalFlow,
+  hooks,
 }) => {
   const {
     NetworkController,
@@ -68,6 +70,14 @@ const wallet_addEthereumChain = async ({
     const { networkClientId } =
       network.rpcEndpoints[network.defaultRpcEndpointIndex];
 
+    // TODO: [ffmcgee] check impl from extension, for now we default to true ? We need to come back to this
+    const shouldAddOrUpdateNetwork = true;
+    // const shouldAddOrUpdateNetwork =
+    //   !existingNetwork ||
+    //   rpcIndex !== existingNetwork.defaultRpcEndpointIndex ||
+    //   (firstValidBlockExplorerUrl &&
+    //     blockExplorerIndex !== existingNetwork.defaultBlockExplorerUrlIndex);
+
     await switchToNetwork({
       network: [networkClientId, network],
       chainId,
@@ -80,6 +90,10 @@ const wallet_addEthereumChain = async ({
       analytics,
       origin,
       isAddNetworkFlow,
+      hooks: {
+        autoApprove: shouldAddOrUpdateNetwork,
+        ...hooks,
+      },
     });
   };
 

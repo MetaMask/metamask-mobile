@@ -11,7 +11,7 @@ import {
   assertIsJsonRpcFailure,
   assertIsJsonRpcSuccess,
 } from '@metamask/utils';
-import createLegacyMethodMiddleware from '.';
+import createEthAccountsMethodMiddleware from '.';
 
 jest.mock('./util', () => {
   const getHandler = () => ({
@@ -54,7 +54,7 @@ jest.mock('./util', () => {
   return [getHandler()];
 });
 
-describe('createLegacyMethodMiddleware', () => {
+describe('createEthAccountsMethodMiddleware', () => {
   const method1 = 'method1';
 
   const getDefaultHooks = () => ({
@@ -63,14 +63,14 @@ describe('createLegacyMethodMiddleware', () => {
   });
 
   it('should return a function', () => {
-    const middleware = createLegacyMethodMiddleware(getDefaultHooks());
+    const middleware = createEthAccountsMethodMiddleware(getDefaultHooks());
     expect(typeof middleware).toBe('function');
   });
 
   it('should throw an error if a required hook is missing', () => {
     const hooks = { hook1: () => 42 };
 
-    expect(() => createLegacyMethodMiddleware(hooks)).toThrow(
+    expect(() => createEthAccountsMethodMiddleware(hooks)).toThrow(
       'Missing expected hooks',
     );
   });
@@ -81,13 +81,13 @@ describe('createLegacyMethodMiddleware', () => {
       extraneousHook: () => 100,
     };
 
-    expect(() => createLegacyMethodMiddleware(hooks)).toThrow(
+    expect(() => createEthAccountsMethodMiddleware(hooks)).toThrow(
       'Received unexpected hooks',
     );
   });
 
   it('should call the handler for the matching method (uses hook1)', async () => {
-    const middleware = createLegacyMethodMiddleware(getDefaultHooks());
+    const middleware = createEthAccountsMethodMiddleware(getDefaultHooks());
     const engine = new JsonRpcEngine();
     engine.push(middleware);
 
@@ -103,7 +103,7 @@ describe('createLegacyMethodMiddleware', () => {
   });
 
   it('should call the handler for the matching method (uses hook2)', async () => {
-    const middleware = createLegacyMethodMiddleware(getDefaultHooks());
+    const middleware = createEthAccountsMethodMiddleware(getDefaultHooks());
     const engine = new JsonRpcEngine();
     engine.push(middleware);
 
@@ -119,7 +119,7 @@ describe('createLegacyMethodMiddleware', () => {
   });
 
   it('should not call the handler for a non-matching method', async () => {
-    const middleware = createLegacyMethodMiddleware(getDefaultHooks());
+    const middleware = createEthAccountsMethodMiddleware(getDefaultHooks());
     const engine = new JsonRpcEngine();
     engine.push(middleware);
 
@@ -138,7 +138,7 @@ describe('createLegacyMethodMiddleware', () => {
   });
 
   it('should handle errors returned by the implementation', async () => {
-    const middleware = createLegacyMethodMiddleware(getDefaultHooks());
+    const middleware = createEthAccountsMethodMiddleware(getDefaultHooks());
     const engine = new JsonRpcEngine();
     engine.push(middleware);
 
@@ -158,7 +158,7 @@ describe('createLegacyMethodMiddleware', () => {
   });
 
   it('should handle errors thrown by the implementation', async () => {
-    const middleware = createLegacyMethodMiddleware(getDefaultHooks());
+    const middleware = createEthAccountsMethodMiddleware(getDefaultHooks());
     const engine = new JsonRpcEngine();
     engine.push(middleware);
 
@@ -178,7 +178,7 @@ describe('createLegacyMethodMiddleware', () => {
   });
 
   it('should handle non-errors thrown by the implementation', async () => {
-    const middleware = createLegacyMethodMiddleware(getDefaultHooks());
+    const middleware = createEthAccountsMethodMiddleware(getDefaultHooks());
     const engine = new JsonRpcEngine();
     engine.push(middleware);
 

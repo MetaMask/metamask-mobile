@@ -4,6 +4,7 @@ import legacyHandlers from './util';
 /**
  * Creates a middleware that handles legacy RPC methods
  */
-const createLegacyMethodMiddleware = makeMethodMiddlewareMaker(legacyHandlers);
+const createEthAccountsMethodMiddleware =
+  makeMethodMiddlewareMaker(legacyHandlers);
 
-export default createLegacyMethodMiddleware;
+export default createEthAccountsMethodMiddleware;

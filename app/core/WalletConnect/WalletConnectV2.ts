@@ -422,6 +422,7 @@ export class WC2Manager {
     store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
 
     try {
+      // TODO: This isn't right
       await permissionsController.requestPermissions(
         { origin: url },
         {

@@ -121,8 +121,6 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
 import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
-import { captureException } from '@sentry/react-native';
-import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
@@ -204,6 +202,12 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  setPermittedEthChainIds,
+} from '@metamask/multichain';
+import { isSnapId } from '@metamask/snaps-utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -751,8 +755,8 @@ export class Engine {
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
-        getInternalAccounts: (...args) =>
-          this.accountsController.listAccounts(...args),
+        // TODO: try to change this to bind? Will require reordering these controller instantiations :/
+        listAccounts: (...args) => this.accountsController.listAccounts(...args),
         findNetworkClientIdByChainId:
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
@@ -760,38 +764,7 @@ export class Engine {
       }),
       // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
-        ...getPermissionSpecifications({
-          getAllAccounts: () => this.keyringController.getAccounts(),
-          getInternalAccounts: (...args) =>
-            this.accountsController.listAccounts(...args),
-          captureKeyringTypesWithMissingIdentities: (
-            internalAccounts = [],
-            accounts = [],
-          ) => {
-            const accountsMissingIdentities = accounts.filter((address) => {
-              const lowerCaseAddress = lowerCase(address);
-              return !internalAccounts.some(
-                (account) => account.address.toLowerCase() === lowerCaseAddress,
-              );
-            });
-            const keyringTypesWithMissingIdentities =
-              accountsMissingIdentities.map((address) =>
-                this.keyringController.getAccountKeyringType(address),
-              );
-
-            const internalAccountCount = internalAccounts.length;
-
-            const accountTrackerCount = Object.keys(
-              accountTrackerController.state.accounts || {},
-            ).length;
-
-            captureException(
-              new Error(
-                `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
-              ),
-            );
-          },
-        }),
+        ...getPermissionSpecifications(),
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ...getSnapPermissionSpecifications(),
         ///: END:ONLY_INCLUDE_IF
@@ -1933,6 +1906,76 @@ export class Engine {
     }
     AccountsController.setAccountName(accountToBeNamed.id, label);
     PreferencesController.setAccountLabel(address, label);
+  }
+
+  /**
+   * Requests incremental permittedChains permission for the specified origin.
+   * and updates the existing CAIP-25 permission.
+   * Allows for granting without prompting for user approval which
+   * would be used as part of flows like `wallet_addEthereumChain`
+   * requests where the addition of the network and the permitting
+   * of the chain are combined into one approval.
+   *
+   * @param {object} options - The options object
+   * @param {string} options.origin - The origin to request approval for.
+   * @param {Hex} options.chainId - The chainId to add to the existing permittedChains.
+   * @param {boolean} options.autoApprove - If the chain should be granted without prompting for user approval.
+   */
+  async requestPermittedChainsPermissionIncremental({
+    origin,
+    chainId,
+    autoApprove,
+  }: {
+    origin: string;
+    chainId: Hex;
+    autoApprove: boolean;
+  }) {
+    if (isSnapId(origin)) {
+      throw new Error(
+        `Cannot request permittedChains permission for Snaps with origin "${origin}"`,
+      );
+    }
+
+    const permissionController = this.context.PermissionController;
+    const caveatValueWithChains = setPermittedEthChainIds(
+      {
+        requiredScopes: {},
+        optionalScopes: {},
+        isMultichainOrigin: false,
+      },
+      [chainId],
+    );
+
+    if (!autoApprove) {
+      await permissionController.requestPermissionsIncremental(
+        { origin },
+        {
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: caveatValueWithChains,
+              },
+            ],
+          },
+        },
+      );
+      return;
+    }
+
+    await permissionController.grantPermissionsIncremental({
+      subject: { origin },
+      approvedPermissions: {
+        [Caip25EndowmentPermissionName]: {
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: caveatValueWithChains,
+            },
+          ],
+        },
+      },
+    });
   }
 }
 
