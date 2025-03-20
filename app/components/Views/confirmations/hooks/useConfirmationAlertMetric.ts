@@ -1,20 +1,23 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  selectConfirmationMetrics,
+  selectConfirmationMetricsById,
 } from '../../../../core/redux/slices/confirmationMetrics';
 import { useAlerts } from '../AlertSystem/context';
 import { useConfirmationMetricEvents } from './useConfirmationMetricEvents';
 import { Alert } from '../types/alerts';
+import { RootState } from '../../../../reducers';
+import { useSignatureRequest } from './useSignatureRequest';
 
 export enum AlertNames {
   Blockaid = 'blockaid',
-  DomainMismatch = 'requestFrom',
+  DomainMismatch = 'domain_mismatch',
 }
 
 export function useConfirmationAlertMetric() {
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { alerts, isAlertConfirmed, alertKey } = useAlerts();
+  const signatureRequest = useSignatureRequest();
 
   const alertProperties = useMemo(() => ({
     alert_trigger_count: alerts.length,
@@ -27,50 +30,61 @@ export function useConfirmationAlertMetric() {
     ),
   }), [alerts, isAlertConfirmed]);
 
-  const confirmationMetricsProperties = useSelector(selectConfirmationMetrics);
-  console.log('confirmationMetricsProperties >>>>>>', confirmationMetricsProperties);
-  setConfirmationMetric({
-    properties: {
-      ...alertProperties,
-    },
-  });
-  console.log('alertProperties >>>>>>', alertProperties);
+  const confirmationMetrics = useSelector((state: RootState) =>
+    selectConfirmationMetricsById(state, signatureRequest?.id ?? '')
+  );
+
+  useEffect(() => {
+    setConfirmationMetric({
+      properties: {
+        ...alertProperties,
+      },
+    });
+  }, [alertProperties, setConfirmationMetric]);
 
   const trackers = useMemo(() => {
     const trackInlineAlertClicked = () => {
-      console.log('confirmationMetricsProperties >>>>>>', confirmationMetricsProperties);
+      console.log('trackInlineAlertClicked >>>>>>', confirmationMetrics.properties);
+      if (confirmationMetrics.properties && Array.isArray(confirmationMetrics.properties.alert_visualized)) {
+        const alertVisualized = uniqueFreshArrayPush(
+          confirmationMetrics.properties.alert_visualized as string[],
+          alertKey
+        );
+        console.log('alertVisualized >>>>>>', alertVisualized);
 
-      const alertVisualized = uniqueFreshArrayPush(confirmationMetricsProperties.alert_visualized, alertKey);
-      console.log('alertVisualized >>>>>>', alertVisualized);
-
-      setConfirmationMetric({
-        properties: {
-          ...alertProperties,
-          alert_visualized: alertVisualized,
-          alert_visualized_count: alertVisualized.length,
-        },
-      });
+        setConfirmationMetric({
+          properties: {
+            ...alertProperties,
+            alert_visualized: alertVisualized,
+            alert_visualized_count: alertVisualized.length,
+          },
+        });
+      }
     };
 
     const trackAlertRendered = () => {
-      console.log('confirmationMetricsProperties >>>>>>', confirmationMetricsProperties);
-      const alertRendered = uniqueFreshArrayPush(confirmationMetricsProperties.alert_rendered, alertKey);
-      console.log('alertRendered >>>>>>', alertRendered);
+      if (confirmationMetrics.properties && Array.isArray(confirmationMetrics.properties.alert_rendered)) {
+        const alertRendered = uniqueFreshArrayPush(
+          confirmationMetrics.properties.alert_rendered as string[],
+          alertKey
+        );
+        console.log('alertRendered >>>>>>', alertRendered);
 
-      setConfirmationMetric({
-        properties: {
-          ...alertProperties,
-          alert_rendered: alertRendered,
-          alert_rendered_count: alertRendered.length,
-        },
-      });
+        setConfirmationMetric({
+          properties: {
+            ...alertProperties,
+            alert_rendered: alertRendered,
+            alert_rendered_count: alertRendered.length,
+          },
+        });
+      }
     };
 
     return {
       trackAlertRendered,
       trackInlineAlertClicked,
     };
-  }, [confirmationMetricsProperties, alertKey, setConfirmationMetric, alertProperties]);
+  }, [confirmationMetrics, alertKey, setConfirmationMetric, alertProperties]);
 
   return { ...trackers };
 }

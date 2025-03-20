@@ -8,6 +8,12 @@ jest.mock('../context', () => ({
   useAlerts: jest.fn(),
 }));
 
+jest.mock('../../hooks/useConfirmationAlertMetric', () => ({
+  useConfirmationAlertMetric: jest.fn(() => ({
+    trackAlertRendered: jest.fn(),
+  })),
+}));
+
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
 const ALERT_DETAILS_MOCK = ['Detail 1', 'Detail 2'];
 const ALERT_ACTION_MOCK = { label: 'Action 1', callback: jest.fn() };

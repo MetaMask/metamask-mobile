@@ -1,17 +1,18 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View, ViewStyle } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
-import { useAlerts } from '../context';
 import BottomModal from '../../components/UI/BottomModal';
 import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import Icon, { IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 import Text, { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './AlertModal.styles';
-import { strings } from '../../../../../../locales/i18n';
 import { Alert, Severity } from '../../types/alerts';
 import { getSeverityStyle } from '../utils';
+import { strings } from '../../../../../../locales/i18n';
+import { useAlerts } from '../context';
+import { useConfirmationAlertMetric } from '../../hooks/useConfirmationAlertMetric';
+import { useStyles } from '../../../../hooks/useStyles';
+import { useTheme } from '../../../../../util/theme';
+import styleSheet from './AlertModal.styles';
 
 interface HeaderProps {
   iconColor: string;
@@ -136,6 +137,13 @@ const AlertModal: React.FC<AlertModalProps> = ({ headerAccessory, onAcknowledgeC
   const { colors } = useTheme();
   const styles = (useStyles(styleSheet, {})).styles as Record<string, ViewStyle>;
   const { hideAlertModal, alertModalVisible, fieldAlerts, alertKey, isAlertConfirmed, setAlertConfirmed } = useAlerts();
+  const { trackAlertRendered } = useConfirmationAlertMetric();
+
+  useEffect(() => {
+    if (alertModalVisible) {
+      trackAlertRendered();
+    }
+  }, [alertModalVisible, trackAlertRendered]);
 
   const handleClose = useCallback(
     () => {

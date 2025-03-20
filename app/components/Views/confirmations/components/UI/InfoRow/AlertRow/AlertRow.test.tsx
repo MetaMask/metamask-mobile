@@ -1,12 +1,17 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useAlerts } from '../../../../AlertSystem/context';
+import { useConfirmationAlertMetric } from '../../../../hooks/useConfirmationAlertMetric';
 import AlertRow, { AlertRowProps } from './AlertRow';
 import { Severity } from '../../../../types/alerts';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
 
 jest.mock('../../../../AlertSystem/context', () => ({
   useAlerts: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useConfirmationAlertMetric', () => ({
+  useConfirmationAlertMetric: jest.fn(),
 }));
 
 const ALERT_KEY_DANGER = 'DANGER_ALERT';
@@ -26,23 +31,28 @@ const mockAlerts = [
   {
     key: ALERT_KEY_INFO,
     severity: Severity.Info,
-    message: 'This is a info alert',
+    message: 'This is an info alert',
   },
 ];
 
 describe('AlertRow', () => {
   const mockShowAlertModal = jest.fn();
   const mockSetAlertKey = jest.fn();
+  const mockTrackInlineAlertClicked = jest.fn();
   const useAlertsBase = {
     alerts: mockAlerts,
     fieldAlerts: mockAlerts,
     showAlertModal: mockShowAlertModal,
     setAlertKey: mockSetAlertKey,
   };
+  const useConfirmationAlertMetricBase = {
+    trackInlineAlertClicked: mockTrackInlineAlertClicked,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useAlerts as jest.Mock).mockReturnValue(useAlertsBase);
+    (useConfirmationAlertMetric as jest.Mock).mockReturnValue(useConfirmationAlertMetricBase);
   });
 
   const LABEL_MOCK = 'Alert Label';
@@ -64,7 +74,7 @@ describe('AlertRow', () => {
 
   it('renders correctly with warning alert', () => {
     const props = { ...baseProps, alertKey: ALERT_KEY_WARNING };
-    const { getByText, getByTestId} = render(<AlertRow {...props} />);
+    const { getByText, getByTestId } = render(<AlertRow {...props} />);
     expect(getByText(LABEL_MOCK)).toBeDefined();
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
     const icon = getByTestId('inline-alert-icon');
@@ -94,11 +104,12 @@ describe('AlertRow', () => {
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
   });
 
-  it('calls showAlertModal and setAlertKey when inline alert is clicked', () => {
-    const { getByText } = render(<AlertRow {...baseProps} />);
-    const inlineAlert = getByText('Alert');
+  it('calls showAlertModal, setAlertKey and trackInlineAlertClicked when inline alert is clicked', () => {
+    const { getByTestId } = render(<AlertRow {...baseProps} />);
+    const inlineAlert = getByTestId('inline-alert');
     fireEvent.press(inlineAlert);
     expect(mockSetAlertKey).toHaveBeenCalledWith(ALERT_KEY_DANGER);
     expect(mockShowAlertModal).toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).toHaveBeenCalled();
   });
 });

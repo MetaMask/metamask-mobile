@@ -1,8 +1,9 @@
 import React from 'react';
-import { TextColor } from '../../../../../../../component-library/components/Texts/Text';
 import InlineAlert from '../../../../AlertSystem/InlineAlert/InlineAlert';
 import { useAlerts } from '../../../../AlertSystem/context';
+import { useConfirmationAlertMetric } from '../../../../hooks/useConfirmationAlertMetric';
 import { Severity } from '../../../../types/alerts';
+import { TextColor } from '../../../../../../../component-library/components/Texts/Text';
 import InfoRow, { InfoRowProps } from '../InfoRow';
 
 function getAlertTextColors(
@@ -26,11 +27,13 @@ export interface AlertRowProps extends InfoRowProps {
 
 const AlertRow = ({ alertKey, isShownWithAlertsOnly, ...props }: AlertRowProps) => {
   const { alerts, showAlertModal, setAlertKey } = useAlerts();
+  const { trackInlineAlertClicked } = useConfirmationAlertMetric();
   const alertSelected = alerts.find((a) => a.key === alertKey);
 
   const handleInlineAlertClick = () => {
     setAlertKey(alertKey);
     showAlertModal();
+    trackInlineAlertClicked();
   };
 
   if (!alertSelected && isShownWithAlertsOnly) {

@@ -15,6 +15,9 @@ import { useSignatureRequest } from './useSignatureRequest';
 import { useSecurityAlertResponse } from './useSecurityAlertResponse';
 import { useTypedSignSimulationEnabled } from './useTypedSignSimulationEnabled';
 import { parseTypedDataMessageFromSignatureRequest } from '../utils/signature';
+import { useSelector } from 'react-redux';
+import { selectConfirmationMetricsById } from '../../../../core/redux/slices/confirmationMetrics';
+import { RootState } from '../../../../reducers';
 
 interface MessageParamsType {
   meta: Record<string, unknown>;
@@ -32,6 +35,7 @@ const getAnalyticsParams = (
   decodingLoading: boolean,
   isSimulationEnabled: boolean,
   primaryType: string,
+  confirmationMetrics: Record<string, unknown>,
 ) => {
   const { meta = {}, from, version } = messageParams;
 
@@ -52,6 +56,7 @@ const getAnalyticsParams = (
       decodingLoading,
       isSimulationEnabled,
     ),
+    ...confirmationMetrics,
   };
 };
 
@@ -60,15 +65,18 @@ export const useSignatureMetrics = () => {
   const isSimulationEnabled = useTypedSignSimulationEnabled();
   const { securityAlertResponse } = useSecurityAlertResponse();
 
-  const { chainId, decodingData, decodingLoading, messageParams, type } =
+  const { chainId, decodingData, decodingLoading, messageParams, type, id } =
     signatureRequest ?? {};
   const { primaryType } = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
+
+  const confirmationMetrics = useSelector((state: RootState) =>
+    selectConfirmationMetricsById(state, id ?? '')
+  );
 
   const analyticsParams = useMemo(() => {
     if (!type || !isSignatureRequest(type)) {
       return;
     }
-
     return getAnalyticsParams(
       messageParams as unknown as MessageParamsType,
       securityAlertResponse as SecurityAlertResponse,
@@ -78,17 +86,9 @@ export const useSignatureMetrics = () => {
       !!decodingLoading,
       !!isSimulationEnabled,
       primaryType,
+      confirmationMetrics?.properties ?? {},
     );
-  }, [
-    chainId,
-    decodingData,
-    decodingLoading,
-    isSimulationEnabled,
-    messageParams,
-    primaryType,
-    securityAlertResponse,
-    type,
-  ]);
+  }, [chainId, confirmationMetrics, decodingData, decodingLoading, isSimulationEnabled, messageParams, primaryType, securityAlertResponse, type]);
 
   const captureSignatureMetrics = useCallback(
     async (
