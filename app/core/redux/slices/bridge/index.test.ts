@@ -2,7 +2,6 @@ import reducer, {
   initialState,
   setSourceAmount,
   setDestAmount,
-  setDestChainId,
   resetBridgeState,
   switchTokens,
 } from '.';
@@ -83,23 +82,6 @@ describe('bridge slice', () => {
       const state = reducer(initialState, action);
 
       expect(state.destAmount).toBeUndefined();
-    });
-  });
-
-  describe('setDestChainId', () => {
-    it('should set the destination chain ID', () => {
-      const chainId = 'eip155:2' as SupportedCaipChainId;
-      const action = setDestChainId(chainId);
-      const state = reducer(initialState, action);
-
-      expect(state.selectedDestChainId).toBe(chainId);
-    });
-
-    it('should set dest chain ID to undefined', () => {
-      const action = setDestChainId(undefined);
-      const state = reducer(initialState, action);
-
-      expect(state.selectedDestChainId).toBeUndefined();
     });
   });
 
