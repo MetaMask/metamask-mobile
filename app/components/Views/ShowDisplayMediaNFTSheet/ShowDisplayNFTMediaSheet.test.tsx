@@ -105,7 +105,7 @@ describe('ShowNftSheet', () => {
 
     fireEvent.press(cancelButton);
 
-    expect(setDisplayNftMediaSpy).not.toHaveBeenCalledWith();
+    expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
     expect(mockAddTraitsToUser).not.toHaveBeenCalled();
   });
 });
