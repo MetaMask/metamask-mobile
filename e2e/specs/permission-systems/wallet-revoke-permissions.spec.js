@@ -1,9 +1,7 @@
 'use strict';
-
 import { SmokePermissions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -12,11 +10,7 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
-import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
-import Matchers from '../../utils/Matchers';
 import Browser from '../../../app/components/Views/Browser';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 
 describe(SmokePermissions('Wallet Revoke Permissions'), () => {
   beforeAll(async () => {
@@ -45,19 +39,11 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TestHelpers.delay(3000);
 
-        // TODO: [ffmcgee] proper place to abstract and store this
-        const elementId0 = Matchers.getElementByID(
-          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
-        );
-
-        // eslint-disable-next-line no-console
-        console.log('fetched elementId0 passed!', { elementId0 });
-
-        await Assertions.checkIfVisible(elementId0);
+        await Assertions.checkIfVisible(TestDApp.permissionsContainer);
         // eslint-disable-next-line no-console
         console.log('element is visible check passed!');
         await Assertions.checkIfElementToHaveText(
-          elementId0,
+          TestDApp.permissionsContainer,
           'eth_accounts',
           120000,
         );
@@ -71,15 +57,9 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
         await TestDApp.tapGetPermissionsButton();
 
         await TestHelpers.delay(3000);
-
-        const elementId = Matchers.getElementByID(
-          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
-        );
-        // eslint-disable-next-line no-console
-        console.log('fetched elementId passed!', { elementId });
-
+        await Assertions.checkIfVisible(TestDApp.permissionsContainer);
         await Assertions.checkIfElementToHaveText(
-          elementId,
+          TestDApp.permissionsContainer,
           'No permissions found',
           120000,
         );

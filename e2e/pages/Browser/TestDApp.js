@@ -19,6 +19,10 @@ class TestDApp {
     return BrowserViewSelectorsIDs.ANDROID_CONTAINER;
   }
 
+  get permissionsContainer() {
+    return Matchers.getElementByID(TestDappSelectorsWebIDs.PERMISSIONS_RESULT);
+  }
+
   get confirmButtonText() {
     return Matchers.getElementByText(CONFIRM_BUTTON_TEXT);
   }
