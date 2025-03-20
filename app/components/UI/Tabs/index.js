@@ -179,7 +179,6 @@ class Tabs extends PureComponent {
   }
 
   componentDidMount() {
-    Logger.log('[BROWSER->TABS]] Component did mount');
     if (this.props.tabs.length > TABS_VISIBLE) {
       // Find the selected index
       let index = 0;
@@ -211,7 +210,6 @@ class Tabs extends PureComponent {
 
   componentDidUpdate(prevProps) {
     if (prevProps.tabs.length !== Object.keys(this.thumbnails).length) {
-      Logger.log('[BROWSER->TABS]] Tabs updated, creating new tab references');
       this.createTabsRef(this.props.tabs);
     }
   }
@@ -268,13 +266,11 @@ class Tabs extends PureComponent {
 
   onNewTabPress = () => {
     const { tabs, newTab } = this.props;
-    Logger.log('[BROWSER->TABS]] New tab button pressed');
     newTab();
     this.trackNewTabEvent(tabs.length);
   };
 
   trackNewTabEvent = (tabsNumber) => {
-    Logger.log(`[BROWSER->TABS]] Tracking new tab event, number of tabs: ${tabsNumber}`);
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
@@ -295,7 +291,6 @@ class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionleft]}
           onPress={() => {
-            Logger.log('[BROWSER->TABS]] Close all tabs button pressed');
             closeAllTabs();
           }}
           testID={BrowserViewSelectorsIDs.CLOSE_ALL_TABS}
@@ -326,7 +321,6 @@ class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionRight]}
           onPress={() => {
-            Logger.log('[BROWSER->TABS]] Done button pressed');
             closeTabsView();
           }}
           testID={BrowserViewSelectorsIDs.DONE_BUTTON}
