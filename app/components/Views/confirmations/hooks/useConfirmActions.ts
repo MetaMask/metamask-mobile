@@ -69,7 +69,7 @@ export const useConfirmActions = () => {
       handleErrors: false,
     });
 
-    if (isStakingDepositConfirmation) {
+    if (isOneOfTheStakingConfirmations) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
