@@ -20,7 +20,6 @@ import Text, {
 import {
   DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT,
   DEFAULT_CELLBASE_AVATAR_SIZE,
-  DEFAULT_CELLBASE_AVATAR_TERTIARYTEXT_TEXTVARIANT,
   DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT,
 } from '../../../component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
 import Icon, {
