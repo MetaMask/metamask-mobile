@@ -1,4 +1,6 @@
 import { NativeModules } from 'react-native';
+import Crypto from 'react-native-quick-crypto';
+import { bytesToHex, remove0x } from '@metamask/utils';
 import {
   KDF_ALGORITHM,
   ShaAlgorithm,
@@ -45,7 +47,7 @@ class AesEncryptionLibrary implements EncryptionLibrary {
   generateIV = async (size: number): Promise<string> =>
     // Naming isn't perfect here, but this is how the library generates random IV (and encodes it the right way)
     // See: https://www.npmjs.com/package/react-native-aes-crypto#example
-    await Aes.randomKey(size);
+    remove0x(bytesToHex(await Crypto.getRandomValues(new Uint8Array(size))));
 
   encrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
     await Aes.encrypt(data, key, iv, CipherAlgorithm.cbc);
@@ -79,7 +81,7 @@ class AesForkedEncryptionLibrary implements EncryptionLibrary {
     // NOTE: For some reason, we are not using the AesForked one here, so keep the previous behavior!
     // Naming isn't perfect here, but this is how the library generates random IV (and encodes it the right way)
     // See: https://www.npmjs.com/package/react-native-aes-crypto#example
-    await Aes.randomKey(size);
+    remove0x(bytesToHex(await Crypto.getRandomValues(new Uint8Array(size))));
 
   encrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
     // NOTE: For some reason, we are not using the AesForked one here, so keep the previous behavior!
