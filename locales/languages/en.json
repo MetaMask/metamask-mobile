@@ -403,6 +403,28 @@
     "scanner_tab": "Scan QR code",
     "receive_tab": "Your QR code"
   },
+  "banner": {
+    "bridge": {
+      "title": "Ready to bridge?",
+      "subtitle": "Move across 9 chains, all within your wallet"
+    },
+    "card": {
+      "title": "MetaMask Card",
+      "subtitle": "Available in select regions"
+    },
+    "fund": {
+      "title": "Fund your wallet", 
+      "subtitle": "Add or transfer tokens to get started"
+    },
+    "cashout": {
+      "title": "Cash out with MetaMask",
+      "subtitle": "Sell your crypto for cash"
+    },
+    "aggregated": {
+      "title": "Your balance is aggregated",
+      "subtitle": "Control your balance view in settings"
+    }
+  },
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",
@@ -1637,6 +1659,9 @@
     "tabs_done": "Done",
     "no_tabs_title": "No Open Tabs",
     "no_tabs_desc": "To browse the decentralized web, add a new tab",
+    "got_it": "Got it",
+    "max_tabs_title": "Maximum tabs reached",
+    "max_tabs_desc": "We currently only support 5 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
     "remove_bookmark_title": "Remove favorite",
     "remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
@@ -3522,6 +3547,7 @@
     "you_receive": "You receive",
     "up_to_n": "Up to {{count}}",
     "unstaking_to": "Unstaking to",
+    "claiming_to": "Claiming to",
     "max_modal": {
       "title": "Max",
       "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
@@ -3719,13 +3745,17 @@
     "add_account_button": "Add account",
     "name_taken_message": "This account name already exists"
   },
-    "smart_transactions_migration": {
+  "smart_transactions_migration": {
     "title": "Transactions just got smarter",
     "link": "Higher success rates",
     "description": " and MEV protection. Now on by default."
   },
   "bridge": {
     "continue": "Continue",
-    "terms_and_conditions": "Terms & Conditions"
-  }
+    "terms_and_conditions": "Terms & Conditions",
+    "select_token": "Select token",
+    "slippage": "Slippage",
+    "apply": "Apply",
+    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
+    }
 }

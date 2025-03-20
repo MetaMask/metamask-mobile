@@ -7,6 +7,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { BridgeState } from '../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
 
+jest.mock('../../../selectors/confirmTransaction');
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     SwapsController: {
