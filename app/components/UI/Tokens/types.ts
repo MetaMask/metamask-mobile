@@ -2,12 +2,6 @@ export interface BrowserTab {
   id: string;
   url: string;
 }
-export interface TokensI {
-  /**
-   * Array of assets (in this case ERC20 tokens)
-   */
-  tokens: TokenI[];
-}
 
 export interface TokenI {
   address: string;
