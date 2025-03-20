@@ -561,12 +561,12 @@ export function setupSentry() {
       environment,
       integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: isDev || isQa ? 1.0 : 0.03,
+      tracesSampleRate: 1.0,
       profilesSampleRate: 1.0,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
-      enabled: metricsOptIn === AGREED,
+      enabled: true,
     });
   };
   init();

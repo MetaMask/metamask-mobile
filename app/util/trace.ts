@@ -312,9 +312,9 @@ function initScope(scope: Scope, request: TraceRequest) {
   const tags = request.tags
     ? {
         ...request.tags,
-        branch: IS_QA ? process.env['GIT_BRANCH'] : undefined,
+        wallet_branch: process.env.GIT_BRANCH,
       }
-    : { branch: IS_QA ? process.env['GIT_BRANCH'] : undefined };
+    : { wallet_branch: process.env.GIT_BRANCH };
 
   for (const [key, value] of Object.entries(tags)) {
     if (typeof value !== 'number') {
