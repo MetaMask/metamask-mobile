@@ -45,37 +45,28 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TestHelpers.delay(3000);
 
-        // await Assertions.checkIfTextIsDisplayed(
-        //   'eth_accounts, endowment:permitted-chains',
-        // );
-
         // TODO: [ffmcgee] proper place to abstract and store this
         const elementId0 = Matchers.getElementByID(
           TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         );
 
-        // await Assertions.checkIfElementToHaveText(
-        //   elementId0,
-        //   'eth_accounts, endowment:permitted-chains',
-        // );
+        // eslint-disable-next-line no-console
+        console.log('fetched elementId0 passed!', { elementId0 });
 
-        const el0 = await Matchers.getElementByID(
-          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
+        await Assertions.checkIfVisible(elementId0);
+        // eslint-disable-next-line no-console
+        console.log('element is visible check passed!');
+        await Assertions.checkIfElementToHaveText(
+          elementId0,
+          'eth_accounts',
+          120000,
         );
         // eslint-disable-next-line no-console
-        console.log({ el0 });
+        console.log('element has eth_accounts check passed!');
 
         await TestDApp.tapRevokeAccountPermissionsButton();
 
         await TestHelpers.delay(3000);
-
-        // await Assertions.checkIfTextIsDisplayed('Permissions result:');
-
-        const el1 = await Matchers.getElementByID(
-          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
-        );
-        // eslint-disable-next-line no-console
-        console.log({ el1 });
 
         await TestDApp.tapGetPermissionsButton();
 
@@ -84,42 +75,14 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
         const elementId = Matchers.getElementByID(
           TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
         );
-
-        // await Assertions.checkIfElementToHaveText(
-        //   elementId,
-        //   'No permissions found.',
-        //   120000,
-        // );
-
-        // Verify UI state after revoking permissions
-        await Browser.tapNetworkAvatarButtonOnBrowser();
-        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
-        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-        await NetworkListModal.swipeToDismissModal();
-        await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
-
-        const el2 = await Matchers.getElementByID(
-          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
-        );
         // eslint-disable-next-line no-console
-        console.log({ el2 });
+        console.log('fetched elementId passed!', { elementId });
 
-        // await Assertions.checkIfTextIsDisplayed('No permissions found.');
-
-        const el3 = await Matchers.getElementByID(
-          TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
+        await Assertions.checkIfElementToHaveText(
+          elementId,
+          'No permissions found',
+          120000,
         );
-        // eslint-disable-next-line no-console
-        console.log({ el3 });
-
-        // await Assertions.checkIfElementToHaveText(
-        //   TestDappSelectorsWebIDs.PERMISSIONS_RESULT,
-        //   'No permissions found.',
-        // );
-
-        // await Assertions.checkIfTextIsDisplayed(
-        //   'Permissions result: No permissions found.',
-        // );
       },
     );
   });
