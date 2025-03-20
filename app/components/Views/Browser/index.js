@@ -63,6 +63,7 @@ export const Browser = (props) => {
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
   const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
+  const [_tabIdleTimes, setTabIdleTimes] = React.useState({});
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -112,25 +113,33 @@ export const Browser = (props) => {
 
   const hasAccounts = useRef(Boolean(accounts.length));
 
-  const [tabIdleTimes, setTabIdleTimes] = React.useState({});
-
   useEffect(() => {
     const interval = setInterval(() => {
+      // every so often calc each tab's idle time
       setTabIdleTimes((prevIdleTimes) => {
         const newIdleTimes = { ...prevIdleTimes };
+        // for each existing tab
         tabs.forEach((tab) => {
+          // if it isn't the active tab
           if (tab.id !== activeTabId) {
-            newIdleTimes[tab.id] = (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL; // Increment by 10 seconds
+            // add idle time for each non-active tab
+            newIdleTimes[tab.id] = (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL;
+            // if the tab has surpassed the maximum
             if (newIdleTimes[tab.id] > IDLE_TIME_MAX) {
+              // then "archive" it
               updateTab(tab.id, {
                 isArchived: true,
               });
             }
           } else {
+            // set any active tab as NOT "archived"
+            // this can mean "unarchiving" a tab so that, for example,
+            // the actual browser tab window is mounted again
             updateTab(tab.id, {
               isArchived: false,
             });
-            newIdleTimes[tab.id] = 0; // Reset idle time for active tab
+            // also set new tab idle time back to zero
+            newIdleTimes[tab.id] = 0;
           }
         });
         return newIdleTimes;
