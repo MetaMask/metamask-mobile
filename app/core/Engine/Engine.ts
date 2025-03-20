@@ -349,14 +349,13 @@ export class Engine {
 
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointUnavailable',
-      async ({ chainId, endpointUrl, failoverEndpointUrl }) => {
+      async ({ chainId, endpointUrl }) => {
         const metricsEvent = MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE,
         )
           .addProperties({
-            caip_chain_id: `eip155:${chainId}`,
+            chain_id_caip: `eip155:${chainId}`,
             rpc_endpoint_url: endpointUrl,
-            failover_endpoint_url: failoverEndpointUrl,
           })
           .build();
         MetaMetrics.getInstance().trackEvent(metricsEvent);
@@ -364,11 +363,12 @@ export class Engine {
     );
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
-      async ({ endpointUrl }) => {
+      async ({ chainId, endpointUrl }) => {
         const metricsEvent = MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.RPC_SERVICE_DEGRADED,
         )
           .addProperties({
+            chain_id_caip: `eip155:${chainId}`,
             rpc_endpoint_url: endpointUrl,
           })
           .build();

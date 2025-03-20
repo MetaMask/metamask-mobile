@@ -4770,17 +4770,7 @@
     async-mutex "^0.5.0"
     pify "^5.0.0"
 
-"@metamask/eth-json-rpc-infura@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-10.0.0.tgz#2b36b508199b0612be160492cab6eb959fa10b48"
-  integrity sha512-JpCMKD7DRBnfyS/kvF66kSfVHqtHSTMQP5GkzCgXl0VUXoDfh4h4N0gMCnl4hLCke/lLbQJptnZzFGNyprfdaw==
-  dependencies:
-    "@metamask/eth-json-rpc-provider" "^4.1.5"
-    "@metamask/json-rpc-engine" "^10.0.0"
-    "@metamask/rpc-errors" "^7.0.0"
-    "@metamask/utils" "^9.1.0"
-
-"@metamask/eth-json-rpc-infura@^10.1.0":
+"@metamask/eth-json-rpc-infura@^10.0.0", "@metamask/eth-json-rpc-infura@^10.1.0":
   version "10.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-10.1.0.tgz#bd291681e37506417a2e5e1d5ae99255233dc9db"
   integrity sha512-Ms8pRqmFPbQhHFVIWis7EJ+imFzeDDHJmYX9M2se/Lih+9QLAy1pcBi9C+tmeCpSfbiD1swoBO346ehBhq4cVw==
@@ -4790,7 +4780,7 @@
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/eth-json-rpc-middleware@^15.0.0", "@metamask/eth-json-rpc-middleware@^15.0.1":
+"@metamask/eth-json-rpc-middleware@^15.0.0":
   version "15.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-middleware/-/eth-json-rpc-middleware-15.2.0.tgz#9b14aa566ae95d2eb19cc4a1f89f937a9028ac4e"
   integrity sha512-5fcL7m/LKwSjlOqOSsVmjSgWIOy5GE0hxpoSmbcYHhQuYWiLYRtdNi9iPif6+tO8PdIabgxqrvoLND6Iz8RixQ==
@@ -4807,7 +4797,7 @@
     pify "^5.0.0"
     safe-stable-stringify "^2.4.3"
 
-"@metamask/eth-json-rpc-middleware@^15.1.0":
+"@metamask/eth-json-rpc-middleware@^15.0.1", "@metamask/eth-json-rpc-middleware@^15.1.0":
   version "15.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-middleware/-/eth-json-rpc-middleware-15.3.0.tgz#0c73b686cc13aa6a4a18d7867573c1b26714a1f9"
   integrity sha512-pEinhvCmEYi+7tYEjqP4gxU1H7cYzBtO9/UNQAn+df9zVuYGJoJj7PSV39pfrjXkg90UsVt9uHxblY68/nunxw==
@@ -5253,10 +5243,10 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^23.0.0":
-  version "23.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-23.0.0.tgz#1d445ef46f6d2f3f400c61439c893a2d08cbf55c"
-  integrity sha512-rS+aFWVMZBcmv1qLTdSfSAxg0RKwWBNdVeRH2IfKEUUYQGhU3ybfHezy3jJKk7apQnDxe05X42wCfehSq2emCg==
+"@metamask/network-controller@npm:@metamask-previews/network-controller@23.0.0-9d51a80":
+  version "23.0.0-preview-9d51a80"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/network-controller/-/network-controller-23.0.0-preview-9d51a80.tgz#828bb5927d24d66cb5ff3f36d928b9a752cb4a23"
+  integrity sha512-STEWUereeNhTnG7vUH842q99znazt3M3yC/DDdNCeCrz5rCtGN3DjDprXCNzsROBMvrRPJ0iSInQathsdXUtQQ==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
@@ -5523,7 +5513,7 @@
     "@metamask/utils" "^11.2.0"
     uuid "^8.3.2"
 
-"@metamask/rpc-errors@7.0.2", "@metamask/rpc-errors@^6.2.1", "@metamask/rpc-errors@^7.0.0", "@metamask/rpc-errors@^7.0.2":
+"@metamask/rpc-errors@7.0.2", "@metamask/rpc-errors@^6.2.1", "@metamask/rpc-errors@^7.0.2":
   version "7.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/rpc-errors/-/rpc-errors-7.0.2.tgz#d07b2ebfcf111556dfe93dc78699742ebe755359"
   integrity sha512-YYYHsVYd46XwY2QZzpGeU4PSdRhHdxnzkB8piWGvJW2xbikZ3R+epAYEL4q/K8bh9JPTucsUdwRFnACor1aOYw==
@@ -5931,7 +5921,7 @@
     semver "^7.5.4"
     uuid "^9.0.1"
 
-"@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1":
+"@metamask/utils@^9.0.0", "@metamask/utils@^9.2.1":
   version "9.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-9.3.0.tgz#4726bd7f5d6a43ea8425b6d663ab9207f617c2d1"
   integrity sha512-w8CVbdkDrVXFJbfBSlDfafDR6BAkpDmv1bC1UJVCoVny5tW2RKAdn9i68Xf7asYT4TnUhl/hN4zfUiKQq9II4g==
