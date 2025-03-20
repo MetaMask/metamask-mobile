@@ -307,11 +307,8 @@ export async function getRecentCommits(): Promise<string[]> {
     page++;
   }
 
-  // Filter out merge commits from main
-  const filteredCommits = allCommits.filter(commit => !commit.commit.message.startsWith(mergeFromMainCommitMessagePrefix));
-
   // Map the data to extract commit SHAs
-  const shas = filteredCommits.map(commit => commit.sha);
+  const shas = allCommits.map(commit => commit.sha);
   return shas.reverse().slice(0, 10); // Return the last 10 commits
 }
 
