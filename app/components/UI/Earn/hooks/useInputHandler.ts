@@ -1,72 +1,107 @@
 import BN4 from 'bnjs4';
-import { useState, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectCurrentCurrency,
-  selectConversionRate,
-} from '../../../../selectors/currencyRateController';
-import {
-  toWei,
-  weiToFiatNumber,
-  fiatNumberToWei,
-  renderFromWei,
-  fromWei,
-} from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import {
+  balanceToFiat,
+  fiatNumberToTokenMinimalUnit,
+  fromTokenMinimalUnit,
+  renderFromTokenMinimalUnit,
+  toTokenMinimalUnit,
+} from '../../../../util/number';
+import { EarnTokenDetails } from './useEarnTokenDetails';
 
 interface InputHandlerParams {
-  balance: BN4;
+  balance: string;
+  decimals: number;
+  ticker: string;
+  conversionRate: number;
+  exchangeRate: number;
 }
+
 const MAX_DIGITS = 12;
-const useInputHandler = ({ balance }: InputHandlerParams) => {
-  const [amountEth, setAmountEth] = useState('0');
-  const [amountWei, setAmountWei] = useState<BN4>(new BN4(0));
+
+const useInputHandler = ({
+  balance,
+  decimals = 18,
+  ticker = 'ETH',
+  conversionRate,
+  exchangeRate,
+}: InputHandlerParams) => {
+  // the asset ui amount
+  const [amountToken, setAmountToken] = useState('0');
+  // the asset minimal unit amount
+  const [amountTokenMinimalUnit, setAmountTokenMinimalUnit] = useState<BN4>(
+    new BN4(0),
+  );
+  // the converted fiat amount
   const [fiatAmount, setFiatAmount] = useState('0');
-  const [isEth, setIsEth] = useState<boolean>(true);
-
+  // currency toggle fiat / token
+  const [isFiat, setIsFiat] = useState<boolean>(false);
+  // the current selected currency
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const conversionRate = useSelector(selectConversionRate) || 1;
 
-  const isNonZeroAmount = useMemo(() => amountWei.gt(new BN4(0)), [amountWei]);
-
-  const isOverMaximum = useMemo(
-    () => amountWei.gt(balance),
-    [amountWei, balance],
+  const isNonZeroAmount = useMemo(
+    () => amountTokenMinimalUnit.gt(new BN4(0)),
+    [amountTokenMinimalUnit],
   );
 
-  const handleEthInput = useCallback(
+  const balanceMinimalUnit = useMemo(() => new BN4(balance), [balance]);
+
+  const isOverMaximum = useMemo(
+    () => amountTokenMinimalUnit.gt(balanceMinimalUnit),
+    [amountTokenMinimalUnit, balanceMinimalUnit],
+  );
+
+  const handleTokenInput = useCallback(
     (value: string) => {
-      setAmountEth(value);
-      setAmountWei(toWei(value, 'ether'));
-      const fiatValue = weiToFiatNumber(
-        toWei(value, 'ether'),
+      setAmountToken(value);
+      setAmountTokenMinimalUnit(new BN4(toTokenMinimalUnit(value, decimals)));
+      const fiatValue = balanceToFiat(
+        value,
         conversionRate,
-        2,
+        exchangeRate,
+        currentCurrency,
       ).toString();
       setFiatAmount(fiatValue);
     },
-    [conversionRate],
+    [conversionRate, decimals, exchangeRate, currentCurrency],
   );
 
   const handleFiatInput = useCallback(
     (value: string) => {
       setFiatAmount(value);
       try {
-        const ethValue = renderFromWei(
-          fiatNumberToWei(value, conversionRate).toString(),
+        const tokenValue = renderFromTokenMinimalUnit(
+          (
+            fiatNumberToTokenMinimalUnit(
+              value,
+              conversionRate,
+              exchangeRate,
+              decimals,
+            ) as BN4
+          ).toString(),
           5,
         );
-        setAmountEth(ethValue);
-        setAmountWei(toWei(ethValue, 'ether'));
-      } catch (error) {
-        const ethValue = fromWei(
-          fiatNumberToWei(value, conversionRate).toString(),
+        setAmountToken(tokenValue);
+        setAmountTokenMinimalUnit(
+          new BN4(toTokenMinimalUnit(tokenValue, decimals)),
         );
-        setAmountEth(ethValue);
-        setAmountWei(toWei(ethValue, 'ether'));
+      } catch (error) {
+        const tokenValue = fromTokenMinimalUnit(
+          fiatNumberToTokenMinimalUnit(
+            value,
+            conversionRate,
+            exchangeRate,
+            decimals,
+          ),
+          decimals,
+        );
+        setAmountToken(tokenValue);
       }
     },
-    [conversionRate],
+    [conversionRate, decimals, exchangeRate],
   );
 
   const handleKeypadChange = useCallback(
@@ -76,15 +111,15 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
       const totalDigits = whole.length + fraction.length;
 
       if (pressedKey === 'BACK' || totalDigits <= MAX_DIGITS) {
-        isEth ? handleEthInput(value) : handleFiatInput(value);
+        isFiat ? handleFiatInput(value) : handleTokenInput(value);
       }
     },
-    [handleEthInput, handleFiatInput, isEth],
+    [handleTokenInput, handleFiatInput, isFiat],
   );
 
   const handleCurrencySwitch = useCallback(() => {
-    setIsEth(!isEth);
-  }, [isEth]);
+    setIsFiat(!isFiat);
+  }, [isFiat]);
 
   const percentageOptions = [
     { value: 0.25, label: '25%' },
@@ -96,62 +131,81 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
   const handleQuickAmountPress = useCallback(
     ({ value }: { value: number }) => {
       const percentage = value * 100;
-      const amountPercentage = balance.mul(new BN4(percentage)).div(new BN4(100));
+      const amountPercentage = balanceMinimalUnit
+        .mul(new BN4(percentage))
+        .div(new BN4(100));
 
-      let newEthAmount;
+      let newTokenAmount;
       try {
-        newEthAmount = renderFromWei(amountPercentage, 5);
+        newTokenAmount = renderFromTokenMinimalUnit(
+          amountPercentage,
+          decimals,
+          5,
+        );
       } catch (error) {
-        newEthAmount = fromWei(amountPercentage);
+        newTokenAmount = fromTokenMinimalUnit(amountPercentage, decimals);
       }
-      setAmountEth(newEthAmount);
-      setAmountWei(amountPercentage);
+      setAmountToken(newTokenAmount);
+      setAmountTokenMinimalUnit(amountPercentage);
 
-      const newFiatAmount = weiToFiatNumber(
-        amountPercentage,
+      const newFiatAmount = balanceToFiat(
+        newTokenAmount,
         conversionRate,
-        2,
+        exchangeRate,
+        currentCurrency,
       ).toString();
       setFiatAmount(newFiatAmount);
     },
-    [balance, conversionRate],
+    [balanceMinimalUnit, conversionRate, decimals, exchangeRate],
   );
 
   const handleMaxInput = useCallback(
-    (maxStakeableWei: BN4) => {
-      setAmountWei(maxStakeableWei);
+    (maxStakeableMinimalUnit: BN4) => {
+      setAmountTokenMinimalUnit(maxStakeableMinimalUnit);
 
-      let ethValue;
+      let tokenValue;
 
       try {
-        ethValue = renderFromWei(maxStakeableWei, 5);
+        tokenValue = renderFromTokenMinimalUnit(
+          maxStakeableMinimalUnit,
+          decimals,
+          decimals,
+        );
       } catch (error) {
-        ethValue = fromWei(maxStakeableWei);
+        tokenValue = fromTokenMinimalUnit(maxStakeableMinimalUnit, decimals);
       }
-      setAmountEth(ethValue);
-      const fiatValue = weiToFiatNumber(
-        maxStakeableWei,
+      setAmountToken(tokenValue);
+
+      const fiatValue = balanceToFiat(
+        tokenValue,
         conversionRate,
-        2,
+        exchangeRate,
+        currentCurrency,
       ).toString();
       setFiatAmount(fiatValue);
     },
-    [conversionRate],
+    [conversionRate, decimals, exchangeRate],
   );
 
-  const currencyToggleValue = isEth
-    ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
-    : `${amountEth} ETH`;
+  const currencyToggleValue = isFiat
+    ? `${amountToken} ${ticker}`
+    : `${fiatAmount} ${currentCurrency.toUpperCase()}`;
+
+  useEffect(() => {
+    setAmountToken('0');
+    setAmountTokenMinimalUnit(new BN4(0));
+    setFiatAmount('0');
+  }, [ticker]);
 
   return {
-    amountEth,
-    amountWei,
+    amountToken,
+    amountTokenMinimalUnit,
     fiatAmount,
-    isEth,
+    isFiat,
     currencyToggleValue,
     isNonZeroAmount,
     isOverMaximum,
-    handleEthInput,
+    handleTokenInput,
     handleFiatInput,
     handleKeypadChange,
     handleCurrencySwitch,

@@ -1,8 +1,8 @@
+import { Hex } from '@metamask/utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
+import { RootState } from '../../../../reducers';
+import { selectAccountBalanceByChainId } from '../../../../selectors/accountTrackerController';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -16,22 +16,21 @@ import {
 } from '../../../../util/number';
 
 const useBalance = (chainId?: Hex) => {
-  const accountsByChainId = useSelector(selectAccountsByChainId);
-  const selectedChainId = useSelector(selectEvmChainId);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  // currently selected conversion currency from app settings
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
-  const balanceChainId = chainId || selectedChainId;
   const conversionRate = currencyRates?.ETH?.conversionRate ?? 1;
-  const rawAccountBalance = selectedAddress
-    ? accountsByChainId[balanceChainId]?.[selectedAddress]?.balance
-    : '0';
 
-  const stakedBalance = selectedAddress
-    ? accountsByChainId[balanceChainId]?.[selectedAddress]?.stakedBalance || '0'
-    : '0';
+  // currently selected chain id
+  const selectedChainId = useSelector(selectEvmChainId);
+  // override chain id if provided
+  const balanceChainId = chainId ?? selectedChainId;
+
+  const accountBalanceForChainId = useSelector((state: RootState) =>
+    selectAccountBalanceByChainId(state, balanceChainId),
+  );
+  const rawAccountBalance = accountBalanceForChainId?.balance ?? '0';
+  const stakedBalance = accountBalanceForChainId?.stakedBalance ?? '0';
 
   const balanceETH = useMemo(
     () => renderFromWei(rawAccountBalance),

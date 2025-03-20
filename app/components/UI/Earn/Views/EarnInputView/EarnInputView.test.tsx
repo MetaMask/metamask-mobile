@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
-import StakeInputView from './StakeInputView';
+import StakeInputView from './EarnInputView';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
@@ -18,9 +18,9 @@ import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
 import * as useStakingGasFee from '../../hooks/useStakingGasFee';
 import {
-  STAKE_INPUT_VIEW_ACTIONS,
-  StakeInputViewProps,
-} from './StakeInputView.types';
+  EARN_INPUT_VIEW_ACTIONS,
+  EarnInputViewProps,
+} from './EarnInputView.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -204,10 +204,10 @@ describe('StakeInputView', () => {
   const selectSelectedInternalAccountMock = jest.mocked(
     selectSelectedInternalAccount,
   );
-  const baseProps: StakeInputViewProps = {
+  const baseProps: EarnInputViewProps = {
     route: {
       params: {
-        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         token: MOCK_ETH_MAINNET_ASSET,
       },
       key: Routes.STAKING.STAKE,

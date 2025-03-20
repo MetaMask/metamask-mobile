@@ -8,6 +8,8 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../constants';
 import { TokenI } from '../types';
 import { Hex } from '@metamask/utils';
+import BN4 from 'bnjs4';
+import { hexToBN } from '@metamask/controller-utils';
 
 export const deriveBalanceFromAssetMarketDetails = (
   asset: TokenI,
@@ -30,6 +32,11 @@ export const deriveBalanceFromAssetMarketDetails = (
     }
   }
 
+  console.log(
+    'tokenBalances',
+    itemAddress,
+    hexToBN(tokenBalances[itemAddress]).toString(),
+  );
   const balance =
     asset.balance ||
     (itemAddress in tokenBalances

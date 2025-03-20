@@ -14,7 +14,7 @@ import { selectEvmChainId } from '../../../../../../selectors/networkController'
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import Engine from '../../../../../../core/Engine';
-import { STAKE_INPUT_VIEW_ACTIONS } from '../../../Views/StakeInputView/StakeInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../Views/EarnInputView/EarnInputView.types';
 import { TokenI } from '../../../../Tokens/types';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
@@ -65,7 +65,7 @@ const StakingButtons = ({
       screen: Routes.STAKING.STAKE,
       params: {
         token: asset,
-        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
       },
     });
     trackEvent(

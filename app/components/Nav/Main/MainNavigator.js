@@ -88,7 +88,7 @@ import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
-import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import { StakeModalStack, StakeScreenStack } from '../../UI/Earn/routes';
 import BridgeView from '../../UI/Bridge';
 
 const Stack = createStackNavigator();

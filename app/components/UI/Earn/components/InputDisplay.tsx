@@ -14,7 +14,8 @@ interface InputDisplayProps {
   balanceText: string;
   balanceValue: string;
   isNonZeroAmount: boolean;
-  isEth: boolean;
+  isFiat: boolean;
+  ticker: string;
   amountEth: string;
   fiatAmount: string;
   currentCurrency: string;
@@ -43,7 +44,8 @@ const InputDisplay = ({
   isOverMaximum,
   balanceText,
   balanceValue,
-  isEth,
+  isFiat,
+  ticker,
   amountEth,
   fiatAmount,
   currentCurrency,
@@ -52,7 +54,7 @@ const InputDisplay = ({
 }: InputDisplayProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
+  console.log('isFiat', isFiat);
   return (
     <View style={styles.inputContainer}>
       <View>
@@ -70,10 +72,10 @@ const InputDisplay = ({
       </View>
       <View style={styles.amountRow}>
         <Text color={TextColor.Default} variant={TextVariant.DisplayMD}>
-          {isEth ? amountEth : fiatAmount}
+          {isFiat ? fiatAmount : amountEth}
         </Text>
         <Text color={TextColor.Muted} variant={TextVariant.DisplayMD}>
-          {isEth ? 'ETH' : currentCurrency.toUpperCase()}
+          {isFiat ? currentCurrency.toUpperCase() : ticker}
         </Text>
       </View>
       <View>

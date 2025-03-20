@@ -1,6 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import StakeInputView from '../Views/StakeInputView/StakeInputView';
+import EarnInputView from '../Views/EarnInputView/EarnInputView';
 import Routes from '../../../../constants/navigation/Routes';
 import { Confirm } from '../../../Views/confirmations/Confirm/Confirm';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
@@ -28,7 +28,7 @@ const clearStackNavigatorOptions = {
 const StakeScreenStack = () => (
   <StakeSDKProvider>
     <Stack.Navigator>
-      <Stack.Screen name={Routes.STAKING.STAKE} component={StakeInputView} />
+      <Stack.Screen name={Routes.STAKING.STAKE} component={EarnInputView} />
       <Stack.Screen
         name={Routes.STAKING.UNSTAKE}
         component={UnstakeInputView}

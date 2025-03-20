@@ -1,20 +1,36 @@
+import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
-import { useState, useMemo, useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
+  balanceToFiatNumber,
   limitToMaximumDecimalPlaces,
   renderFiat,
+  weiToFiatNumber,
 } from '../../../../util/number';
-import useStakingGasFee from './useStakingGasFee';
 import useBalance from './useBalance';
+import { EarnTokenDetails } from './useEarnTokenDetails';
 import useInputHandler from './useInputHandler';
+import useStakingGasFee from './useStakingGasFee';
 import useVaultMetadata from './useVaultMetadata';
 
-const useStakingInputHandlers = () => {
+const useEarnInputHandlers = ({
+  earnToken,
+  conversionRate,
+  exchangeRate,
+}: {
+  earnToken: EarnTokenDetails;
+  conversionRate: number;
+  exchangeRate: number;
+}) => {
+  const { balanceWei, balanceETH, balanceFiatNumber } = useBalance();
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
-  const { balanceWei: balance, balanceETH, balanceFiatNumber } = useBalance();
+
+  let balance: BN4 = new BN4(earnToken.balanceMinimalUnit);
+
+  console.log('earnToken', earnToken);
 
   const {
-    isEth,
+    isFiat,
     currencyToggleValue,
     isNonZeroAmount,
     handleKeypadChange,
@@ -22,47 +38,69 @@ const useStakingInputHandlers = () => {
     percentageOptions,
     handleQuickAmountPress,
     currentCurrency,
-    handleEthInput,
+    handleTokenInput,
     handleFiatInput,
-    conversionRate,
-    amountEth,
-    amountWei,
+    amountToken,
+    amountTokenMinimalUnit,
     fiatAmount,
     handleMaxInput,
-  } = useInputHandler({ balance });
+  } = useInputHandler({
+    balance: earnToken.balance,
+    decimals: earnToken.decimals,
+    ticker: earnToken.ticker ?? earnToken.symbol,
+    conversionRate: conversionRate,
+    exchangeRate: exchangeRate,
+  });
 
   const { estimatedGasFeeWei, isLoadingStakingGasFee, isStakingGasFeeError } =
-    useStakingGasFee(balance.toString());
+    useStakingGasFee(balanceWei.toString());
 
+  // max amount of native currency stakable after gas fee
   const maxStakeableAmountWei = useMemo(
     () =>
-      !isStakingGasFeeError && balance.gt(estimatedGasFeeWei)
-        ? balance.sub(estimatedGasFeeWei)
+      !isStakingGasFeeError && balanceWei.gt(estimatedGasFeeWei)
+        ? balanceWei.sub(estimatedGasFeeWei)
         : new BN4(0),
 
-    [balance, estimatedGasFeeWei, isStakingGasFeeError],
+    [balanceWei, estimatedGasFeeWei, isStakingGasFeeError],
   );
 
   const isOverMaximum = useMemo(() => {
-    const additionalFundsRequired = amountWei.sub(maxStakeableAmountWei);
-    return isNonZeroAmount && additionalFundsRequired.gt(new BN4(0));
-  }, [amountWei, isNonZeroAmount, maxStakeableAmountWei]);
+    if (earnToken.isETH) {
+      const additionalFundsRequired = amountTokenMinimalUnit.sub(
+        maxStakeableAmountWei,
+      );
+      return isNonZeroAmount && additionalFundsRequired.gt(new BN4(0));
+    }
+    const additionalFundsRequired = amountTokenMinimalUnit.sub(balance);
+    return (
+      isNonZeroAmount &&
+      additionalFundsRequired.gt(new BN4(0)) &&
+      balanceWei.sub(estimatedGasFeeWei).gte(new BN4(0))
+    );
+  }, [
+    amountTokenMinimalUnit,
+    isNonZeroAmount,
+    maxStakeableAmountWei,
+    earnToken.isETH,
+    balance,
+  ]);
 
   const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
     useVaultMetadata();
 
   const handleMax = useCallback(async () => {
     if (!balance) return;
-    handleMaxInput(maxStakeableAmountWei);
-  }, [balance, handleMaxInput, maxStakeableAmountWei]);
+    handleMaxInput(earnToken.isETH ? maxStakeableAmountWei : balance);
+  }, [balance, handleMaxInput, maxStakeableAmountWei, earnToken.isETH]);
 
-  const annualRewardsETH = useMemo(
+  const annualRewardsToken = useMemo(
     () =>
       `${limitToMaximumDecimalPlaces(
-        parseFloat(amountEth) * annualRewardRateDecimal,
+        parseFloat(amountToken) * annualRewardRateDecimal,
         5,
       )} ETH`,
-    [amountEth, annualRewardRateDecimal],
+    [amountToken, annualRewardRateDecimal],
   );
 
   const annualRewardsFiat = useMemo(
@@ -77,8 +115,8 @@ const useStakingInputHandlers = () => {
 
   const calculateEstimatedAnnualRewards = useCallback(() => {
     if (isNonZeroAmount) {
-      if (isEth) {
-        setEstimatedAnnualRewards(annualRewardsETH);
+      if (!isFiat) {
+        setEstimatedAnnualRewards(annualRewardsToken);
       } else {
         setEstimatedAnnualRewards(annualRewardsFiat);
       }
@@ -87,20 +125,40 @@ const useStakingInputHandlers = () => {
     }
   }, [
     isNonZeroAmount,
-    isEth,
-    annualRewardsETH,
+    isFiat,
+    annualRewardsToken,
     annualRewardsFiat,
     annualRewardRate,
   ]);
 
-  const balanceValue = isEth
-    ? `${balanceETH} ETH`
-    : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
+  const tokenBalanceFiat = earnToken.isETH
+    ? balanceFiatNumber?.toString()
+    : earnToken.balanceFiat;
 
-  const getDepositTxGasPercentage = useCallback(
-    () => estimatedGasFeeWei.mul(new BN4(100)).div(amountWei).toString(),
-    [amountWei, estimatedGasFeeWei],
-  );
+  const tokenBalance = earnToken.isETH
+    ? `${balanceETH} ETH`
+    : earnToken.balanceFormatted;
+
+  const balanceValue = isFiat
+    ? `${tokenBalanceFiat} ${currentCurrency.toUpperCase()}`
+    : `${tokenBalance}`;
+
+  const getDepositTxGasPercentage = useCallback(() => {
+    if (!isNonZeroAmount || isLoadingStakingGasFee || !estimatedGasFeeWei) {
+      return '0';
+    }
+
+    const gasBN = new BigNumber(estimatedGasFeeWei.toString());
+    const gasFiatNumber = weiToFiatNumber(gasBN.toString(), conversionRate, 2);
+    const amountFiatNumber = earnToken.isETH
+      ? balanceFiatNumber
+      : balanceToFiatNumber(amountToken, conversionRate, exchangeRate, 2);
+    return new BigNumber(gasFiatNumber)
+      .multipliedBy(new BigNumber(100))
+      .div(new BigNumber(amountFiatNumber))
+      .toFixed(0, 1)
+      .toString();
+  }, [amountTokenMinimalUnit, estimatedGasFeeWei, earnToken.isETH]);
 
   // Gas fee make up 30% or more of the deposit amount.
   const isHighGasCostImpact = useCallback(
@@ -109,14 +167,14 @@ const useStakingInputHandlers = () => {
   );
 
   return {
-    amountEth,
-    amountWei,
+    amountToken,
+    amountTokenMinimalUnit,
     fiatAmount,
-    isEth,
+    isFiat,
     currencyToggleValue,
     isNonZeroAmount,
     isOverMaximum,
-    handleEthInput,
+    handleTokenInput,
     handleFiatInput,
     handleKeypadChange,
     handleCurrencySwitch,
@@ -126,7 +184,7 @@ const useStakingInputHandlers = () => {
     conversionRate,
     estimatedAnnualRewards,
     calculateEstimatedAnnualRewards,
-    annualRewardsETH,
+    annualRewardsToken,
     annualRewardsFiat,
     annualRewardRate,
     handleMax,
@@ -139,4 +197,4 @@ const useStakingInputHandlers = () => {
   };
 };
 
-export default useStakingInputHandlers;
+export default useEarnInputHandlers;

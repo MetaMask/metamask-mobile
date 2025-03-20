@@ -20,6 +20,7 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const DEFAULT_GAS_LIMIT = 21000;
 const GAS_LIMIT_BUFFER = 1.3;
 
+// TODO: update for handling earn token deposits generally
 const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
   const { stakingContract } = useStakeContext();
   const selectedAddress =

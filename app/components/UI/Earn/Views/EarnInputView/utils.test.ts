@@ -3,20 +3,20 @@ import {
   MOCK_SUPPORTED_EARN_TOKENS_WITH_FIAT_BALANCE,
 } from '../../__mocks__/mockData';
 import {
-  STAKE_INPUT_ACTION_TO_LABEL_MAP,
-  STAKE_INPUT_VIEW_ACTIONS,
-} from './StakeInputView.types';
-import { getStakeInputViewTitle } from './utils';
+  EARN_INPUT_ACTION_TO_LABEL_MAP,
+  EARN_INPUT_VIEW_ACTIONS,
+} from './EarnInputView.types';
+import { getEarnInputViewTitle } from './utils';
 
-describe('StakeInputView Utils', () => {
-  describe('getStakeInputViewTitle', () => {
+describe('EarnInputView Utils', () => {
+  describe('getEarnInputViewTitle', () => {
     it('returns ETH staking title', () => {
       const { symbol, isETH } = MOCK_ETH_MAINNET_ASSET;
       const action =
-        STAKE_INPUT_ACTION_TO_LABEL_MAP[STAKE_INPUT_VIEW_ACTIONS.STAKE];
+        EARN_INPUT_ACTION_TO_LABEL_MAP[EARN_INPUT_VIEW_ACTIONS.STAKE];
 
-      const result = getStakeInputViewTitle(
-        STAKE_INPUT_VIEW_ACTIONS.STAKE,
+      const result = getEarnInputViewTitle(
+        EARN_INPUT_VIEW_ACTIONS.STAKE,
         symbol,
         isETH,
       );
@@ -27,10 +27,10 @@ describe('StakeInputView Utils', () => {
       // Dai Stablecoin
       const { symbol, isETH } = MOCK_SUPPORTED_EARN_TOKENS_WITH_FIAT_BALANCE[1];
       const action =
-        STAKE_INPUT_ACTION_TO_LABEL_MAP[STAKE_INPUT_VIEW_ACTIONS.LEND];
+        EARN_INPUT_ACTION_TO_LABEL_MAP[EARN_INPUT_VIEW_ACTIONS.LEND];
 
-      const result = getStakeInputViewTitle(
-        STAKE_INPUT_VIEW_ACTIONS.LEND,
+      const result = getEarnInputViewTitle(
+        EARN_INPUT_VIEW_ACTIONS.LEND,
         symbol,
         isETH,
       );

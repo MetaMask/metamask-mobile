@@ -1,4 +1,6 @@
-import { useNavigation } from '@react-navigation/native';
+import { Hex } from '@metamask/utils';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { formatEther } from 'ethers/lib/utils';
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -9,33 +11,40 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../constants/navigation/Routes';
+import { RootState } from '../../../../../reducers';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectConversionRate } from '../../../../../selectors/currencyRateController';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import Keypad from '../../../../Base/Keypad';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
-import QuickAmounts from '../../components/QuickAmounts';
-import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
-import Routes from '../../../../../constants/navigation/Routes';
-import styleSheet from './StakeInputView.styles';
-import useStakingInputHandlers from '../../hooks/useStakingInput';
-import InputDisplay from '../../components/InputDisplay';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
-import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
-import { formatEther } from 'ethers/lib/utils';
-import { EVENT_PROVIDERS, EVENT_LOCATIONS } from '../../constants/events';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { StakeInputViewProps } from './StakeInputView.types';
-import { getStakeInputViewTitle } from './utils';
-import { isStablecoinLendingFeatureEnabled } from '../../constants';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
+import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
+import InputDisplay from '../../components/InputDisplay';
+import QuickAmounts from '../../components/QuickAmounts';
+import { isStablecoinLendingFeatureEnabled } from '../../constants';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
+import useStakingInputHandlers from '../../hooks/useStakingInput';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import styleSheet from './EarnInputView.styles';
+import { EarnInputViewProps } from './EarnInputView.types';
+import { getEarnInputViewTitle } from './utils';
+import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 
-const StakeInputView = ({ route }: StakeInputViewProps) => {
+const EarnInputView = () => {
   const navigation = useNavigation();
+  const route = useRoute<EarnInputViewProps['route']>();
+  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
+  const { action, token } = route.params;
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
+  const earnToken = getTokenWithBalanceAndApr(token);
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
@@ -43,12 +52,19 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     confirmationRedesignFlags?.staking_transactions;
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
+  const conversionRate = useSelector(selectConversionRate) ?? 1;
+  const contractExchangeRates = useSelector((state: RootState) =>
+    selectContractExchangeRatesByChainId(state, token.chainId as Hex),
+  );
+  const exchangeRate = contractExchangeRates?.[token.address as Hex]?.price;
+
+  console.log('conversionRate', conversionRate);
   const {
-    isEth,
+    isFiat,
     currentCurrency,
     isNonZeroAmount,
-    amountEth,
-    amountWei,
+    amountToken,
+    amountTokenMinimalUnit,
     fiatAmount,
     isOverMaximum,
     handleCurrencySwitch,
@@ -58,7 +74,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     handleKeypadChange,
     calculateEstimatedAnnualRewards,
     estimatedAnnualRewards,
-    annualRewardsETH,
+    annualRewardsToken,
     annualRewardsFiat,
     annualRewardRate,
     isLoadingVaultMetadata,
@@ -68,7 +84,11 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     getDepositTxGasPercentage,
     estimatedGasFeeWei,
     isLoadingStakingGasFee,
-  } = useStakingInputHandlers();
+  } = useStakingInputHandlers({
+    earnToken,
+    conversionRate,
+    exchangeRate,
+  });
 
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
@@ -85,7 +105,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
           .addProperties({
             selected_provider: EVENT_PROVIDERS.CONSENSYS,
             location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-            tokens_to_stake_native_value: amountEth,
+            tokens_to_stake_native_value: amountToken,
             tokens_to_stake_usd_value: fiatAmount,
             estimated_gas_fee: formatEther(estimatedGasFeeWei.toString()),
             estimated_gas_percentage_of_deposit: `${getDepositTxGasPercentage()}%`,
@@ -96,9 +116,9 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.GAS_IMPACT,
         params: {
-          amountWei: amountWei.toString(),
+          amountWei: amountTokenMinimalUnit.toString(),
           amountFiat: fiatAmount,
-          annualRewardsETH,
+          annualRewardsToken,
           annualRewardsFiat,
           annualRewardRate,
           estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
@@ -108,11 +128,11 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       return;
     }
 
-    const amountWeiString = amountWei.toString();
+    const amountWeiString = amountTokenMinimalUnit.toString();
 
     const stakeButtonClickEventProperties = {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
-      tokens_to_stake_native_value: amountEth,
+      tokens_to_stake_native_value: amountToken,
       tokens_to_stake_usd_value: fiatAmount,
     };
 
@@ -149,7 +169,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       params: {
         amountWei: amountWeiString,
         amountFiat: fiatAmount,
-        annualRewardsETH,
+        annualRewardsToken,
         annualRewardsFiat,
         annualRewardRate,
       },
@@ -163,14 +183,14 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
   }, [
     isHighGasCostImpact,
     navigation,
-    amountWei,
+    amountTokenMinimalUnit,
     fiatAmount,
-    annualRewardsETH,
+    annualRewardsToken,
     annualRewardsFiat,
     annualRewardRate,
     trackEvent,
     createEventBuilder,
-    amountEth,
+    amountToken,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isStakingDepositRedesignedEnabled,
@@ -197,11 +217,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
 
   useEffect(() => {
     const title = isStablecoinLendingFeatureEnabled()
-      ? getStakeInputViewTitle(
-          route?.params?.action,
-          route?.params?.token.symbol,
-          route?.params?.token.isETH,
-        )
+      ? getEarnInputViewTitle(action, token.symbol, token.isETH)
       : strings('stake.stake_eth');
 
     navigation.setOptions(
@@ -223,11 +239,16 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
         },
       ),
     );
-  }, [navigation, route.params, theme.colors]);
+  }, [navigation, action, token, theme.colors]);
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();
-  }, [amountEth, amountWei, isEth, calculateEstimatedAnnualRewards]);
+  }, [
+    amountToken,
+    amountTokenMinimalUnit,
+    isFiat,
+    calculateEstimatedAnnualRewards,
+  ]);
 
   return (
     <ScreenLayout style={styles.container}>
@@ -236,9 +257,10 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
         balanceText={balanceText}
         balanceValue={balanceValue}
         isNonZeroAmount={isNonZeroAmount}
-        amountEth={amountEth}
+        amountEth={amountToken}
         fiatAmount={fiatAmount}
-        isEth={isEth}
+        isFiat={isFiat}
+        ticker={token.ticker ?? token.symbol}
         currentCurrency={currentCurrency}
         handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
           event: MetaMetricsEvents.STAKE_INPUT_CURRENCY_SWITCH_CLICKED,
@@ -246,7 +268,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
             selected_provider: EVENT_PROVIDERS.CONSENSYS,
             text: 'Currency Switch Trigger',
             location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-            currency_type: isEth ? 'fiat' : 'native',
+            currency_type: !isFiat ? 'fiat' : 'native',
           },
         })}
         currencyToggleValue={currencyToggleValue}
@@ -279,7 +301,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
               location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
               amount: value,
               is_max: false,
-              mode: isEth ? 'native' : 'fiat',
+              mode: !isFiat ? 'native' : 'fiat',
             },
           })({ value })
         }
@@ -288,16 +310,16 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
           properties: {
             location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
             is_max: true,
-            mode: isEth ? 'native' : 'fiat',
+            mode: !isFiat ? 'native' : 'fiat',
           },
         })}
       />
       <Keypad
-        value={isEth ? amountEth : fiatAmount}
+        value={!isFiat ? amountToken : fiatAmount}
         onChange={handleKeypadChange}
         style={styles.keypad}
-        currency={'ETH'}
-        decimals={isEth ? 5 : 2}
+        currency={token.symbol}
+        decimals={!isFiat ? 5 : 2}
       />
       <View style={styles.reviewButtonContainer}>
         <Button
@@ -316,4 +338,4 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
   );
 };
 
-export default StakeInputView;
+export default EarnInputView;

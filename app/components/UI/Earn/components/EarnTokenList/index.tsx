@@ -34,7 +34,7 @@ import {
 } from '../../utils/token';
 import EarnTokenListItem from '../EarnTokenListItem';
 import Engine from '../../../../../core/Engine';
-import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
@@ -140,8 +140,8 @@ const EarnTokenList = () => {
     await Engine.context.NetworkController.setActiveNetwork(networkClientId);
 
     const action = token.isETH
-      ? STAKE_INPUT_VIEW_ACTIONS.STAKE
-      : STAKE_INPUT_VIEW_ACTIONS.LEND;
+      ? EARN_INPUT_VIEW_ACTIONS.STAKE
+      : EARN_INPUT_VIEW_ACTIONS.LEND;
 
     closeBottomSheetAndNavigate(() => {
       navigate('StakeScreens', {

@@ -11,6 +11,8 @@ import { selectTokenMarketData } from '../../../../selectors/tokenRatesControlle
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
+import { hexToBN } from '@metamask/controller-utils';
+import useBalance from './useBalance';
 
 // Mock APR values - will be replaced with real API data later
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
@@ -20,9 +22,10 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
   DAI: '5.0',
 };
 
-interface EarnTokenDetails extends TokenI {
+export interface EarnTokenDetails extends TokenI {
   apr: string;
-  tokenBalanceFormatted: string;
+  balanceFormatted: string;
+  balanceMinimalUnit: string;
   balanceFiat: string;
 }
 
@@ -35,13 +38,20 @@ export const useEarnTokenDetails = () => {
   );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const { balanceWei } = useBalance();
 
   const getTokenWithBalanceAndApr = useCallback(
     (token: TokenI): EarnTokenDetails => {
       const tokenChainId = token.chainId as Hex;
       const nativeCurrency =
         networkConfigurations?.[tokenChainId]?.nativeCurrency;
-
+      const tokenBalanceMinimalUnit = token.isETH
+        ? balanceWei
+        : hexToBN(
+            multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+              tokenChainId
+            ]?.[token.address as Hex],
+          ).toString();
       const { balanceValueFormatted, balanceFiat } =
         deriveBalanceFromAssetMarketDetails(
           token,
@@ -55,7 +65,8 @@ export const useEarnTokenDetails = () => {
 
       return {
         ...token,
-        tokenBalanceFormatted: balanceValueFormatted,
+        balanceMinimalUnit: tokenBalanceMinimalUnit.toString(),
+        balanceFormatted: balanceValueFormatted,
         balanceFiat,
         apr: MOCK_APR_VALUES[token.symbol] || '0.0',
       };
