@@ -103,8 +103,6 @@ describe('useEarnTokenDetails', () => {
       apr: '2.3',
       tokenBalanceFormatted: '100 ETH',
       balanceFiat: '$200,000.00',
-      rewardRateDecimal: 0.023,
-      estimatedAnnualRewardsDecimal: 4600,
       estimatedAnnualRewardsFormatted: '$4600',
     });
   });
@@ -122,8 +120,6 @@ describe('useEarnTokenDetails', () => {
       apr: '4.5',
       tokenBalanceFormatted: '100 USDC',
       balanceFiat: '$100',
-      rewardRateDecimal: 0.045,
-      estimatedAnnualRewardsDecimal: 4.5,
       estimatedAnnualRewardsFormatted: '$5',
     });
   });
@@ -162,11 +158,10 @@ describe('useEarnTokenDetails', () => {
       state: mockInitialState,
     });
 
-    const { estimatedAnnualRewardsFormatted, estimatedAnnualRewardsDecimal } =
+    const { estimatedAnnualRewardsFormatted } =
       result.current.getTokenWithBalanceAndApr(usdcTokenWithSmallBalance);
 
     expect(estimatedAnnualRewardsFormatted).toBe('$0.23');
-    expect(estimatedAnnualRewardsDecimal).toBe(0.225);
   });
 
   it('returns estimatedAnnualRewardsFormatted rounded up to nearest dollar for rewards greater than one dollar', () => {
@@ -174,10 +169,9 @@ describe('useEarnTokenDetails', () => {
       state: mockInitialState,
     });
 
-    const { estimatedAnnualRewardsFormatted, estimatedAnnualRewardsDecimal } =
+    const { estimatedAnnualRewardsFormatted } =
       result.current.getTokenWithBalanceAndApr(mockUSDCToken);
 
     expect(estimatedAnnualRewardsFormatted).toBe('$5');
-    expect(estimatedAnnualRewardsDecimal).toBe(4.5);
   });
 });

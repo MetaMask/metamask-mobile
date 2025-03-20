@@ -24,8 +24,6 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
 
 interface EarnTokenDetails extends TokenI {
   apr: string;
-  rewardRateDecimal: number;
-  estimatedAnnualRewardsDecimal: number;
   estimatedAnnualRewardsFormatted: string;
   tokenBalanceFormatted: string;
   balanceFiat: string;
@@ -84,8 +82,6 @@ export const useEarnTokenDetails = () => {
         tokenBalanceFormatted: balanceValueFormatted,
         balanceFiat,
         apr,
-        rewardRateDecimal,
-        estimatedAnnualRewardsDecimal,
         estimatedAnnualRewardsFormatted,
       };
     },
