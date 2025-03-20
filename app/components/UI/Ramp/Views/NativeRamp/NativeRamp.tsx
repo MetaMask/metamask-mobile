@@ -66,9 +66,6 @@ function NativeRamp() {
     }[]
   >([]);
   const [formValues, setFormValues] = useState<Record<string, string>>({});
-  const [orderStatus, setOrderStatus] = useState<'creating' | 'waiting' | null>(
-    null,
-  );
   const [orderData, setOrderData] = useState<BuyOrder | null>(null);
   const [sepaData, setSepaData] = useState<OrderPaymentMethod | null>(null);
   const [idProofFormData, setIdProofFormData] = useState<KycFormDetails | null>(
@@ -183,7 +180,6 @@ function NativeRamp() {
         reservation,
       );
       setOrderData(order);
-      setOrderStatus('waiting');
 
       const sepa = order.paymentOptions.find(
         (p) => p.id === 'sepa_bank_transfer',
@@ -275,9 +271,8 @@ function NativeRamp() {
       const userDetails = await nativeRampService.getUserDetails(token);
       // If KYC is already approved, we can skip the KYC forms
       if (userDetails.isKycApproved()) {
-        setOrderStatus('waiting');
-        await fetchKycForms(token); // Still need quote for the next steps
         setCurrentStep(6);
+        await fetchKycForms(token); // Still need quote for the next steps
       } else {
         await fetchKycForms(token);
         setCurrentStep(5);
@@ -391,11 +386,67 @@ function NativeRamp() {
       setIsLoading(true);
       setLoadingMessage('Confirming payment...');
       await nativeRampService.confirmPayment(accessToken, orderData, sepaData);
-      setCurrentStep(8);
+
+      // Start polling for order completion
+      let retries = 0;
+      const maxRetries = 20; // 10 minutes max wait time
+      const pollInterval = 30000; // 30 seconds
+
+      const pollOrderStatus = async () => {
+        try {
+          const updatedOrder = await nativeRampService.getOrder(
+            accessToken,
+            orderData.id,
+          );
+
+          if (updatedOrder.status === 'COMPLETED') {
+            setOrderData(updatedOrder);
+            setCurrentStep(8);
+            setIsLoading(false);
+            return;
+          }
+
+          retries++;
+          if (retries === 10) {
+            Alert.alert(
+              'Payment not detected',
+              "We haven't detected your payment yet. Would you like to review the bank details again?",
+              [
+                {
+                  text: 'Keep waiting',
+                  onPress: () => setTimeout(pollOrderStatus, pollInterval),
+                },
+                {
+                  text: 'Show bank details',
+                  onPress: () => {
+                    setCurrentStep(7);
+                    setIsLoading(false);
+                  },
+                },
+              ],
+            );
+            return;
+          }
+
+          if (retries >= maxRetries) {
+            throw new Error('Order completion timeout reached.');
+          }
+
+          setLoadingMessage(
+            `Checking payment status... Attempt ${retries} of ${maxRetries}`,
+          );
+          setTimeout(pollOrderStatus, pollInterval);
+        } catch (error) {
+          console.error('Error polling order status:', error);
+          Alert.alert('Error', getErrorMessage(error));
+          setIsLoading(false);
+        }
+      };
+
+      pollOrderStatus();
     } catch (error) {
       console.error('Error confirming payment:', error);
       Alert.alert('Error', getErrorMessage(error));
-    } finally {
       setIsLoading(false);
       setLoadingMessage('');
     }
@@ -416,9 +467,8 @@ function NativeRamp() {
             );
 
             if (userDetails.isKycApproved()) {
-              setOrderStatus('waiting');
+              setCurrentStep(6);
               await fetchKycForms(tokenResult.token); // Still need quote for the next steps
-              setCurrentStep(6); // Skip to KYC approved screen
             } else {
               await fetchKycForms(tokenResult.token);
               setCurrentStep(5);
@@ -662,9 +712,8 @@ function NativeRamp() {
           <Row style={styles.detailRow}>
             <Text variant={TextVariant.BodyMD}>Account Type</Text>
             <Text variant={TextVariant.BodyMD}>
-              {sepaData.fields?.find(
-                (f: OrderPaymentMethodField) => f.name === 'Account Type',
-              )?.name || ''}
+              {(sepaData.fields?.find((f) => f.name === 'Account Type') as any)
+                ?.value || ''}
             </Text>
           </Row>
 
@@ -672,15 +721,17 @@ function NativeRamp() {
             <Text variant={TextVariant.BodyMD}>Beneficiary Name</Text>
             <Text variant={TextVariant.BodyMD}>
               {`${
-                sepaData.fields?.find(
-                  (f: OrderPaymentMethodField) =>
-                    f.name === 'First Name (Beneficiary)',
-                )?.name || ''
+                (
+                  sepaData.fields?.find(
+                    (f) => f.name === 'First Name (Beneficiary)',
+                  ) as any
+                )?.value || ''
               } ${
-                sepaData.fields?.find(
-                  (f: OrderPaymentMethodField) =>
-                    f.name === 'Last Name (Beneficiary)',
-                )?.name || ''
+                (
+                  sepaData.fields?.find(
+                    (f) => f.name === 'Last Name (Beneficiary)',
+                  ) as any
+                )?.value || ''
               }`}
             </Text>
           </Row>
@@ -688,36 +739,32 @@ function NativeRamp() {
           <Row style={styles.detailRow}>
             <Text variant={TextVariant.BodyMD}>IBAN</Text>
             <Text variant={TextVariant.BodyMD}>
-              {sepaData.fields?.find(
-                (f: OrderPaymentMethodField) => f.name === 'IBAN',
-              )?.name || ''}
+              {(sepaData.fields?.find((f) => f.name === 'IBAN') as any)
+                ?.value || ''}
             </Text>
           </Row>
 
           <Row style={styles.detailRow}>
             <Text variant={TextVariant.BodyMD}>Bank Name</Text>
             <Text variant={TextVariant.BodyMD}>
-              {sepaData.fields?.find(
-                (f: OrderPaymentMethodField) => f.name === 'Bank Name',
-              )?.name || ''}
+              {(sepaData.fields?.find((f) => f.name === 'Bank Name') as any)
+                ?.value || ''}
             </Text>
           </Row>
 
           <Row style={styles.detailRow}>
             <Text variant={TextVariant.BodyMD}>Bank Country</Text>
             <Text variant={TextVariant.BodyMD}>
-              {sepaData.fields?.find(
-                (f: OrderPaymentMethodField) => f.name === 'Bank Country',
-              )?.name || ''}
+              {(sepaData.fields?.find((f) => f.name === 'Bank Country') as any)
+                ?.value || ''}
             </Text>
           </Row>
 
           <Row style={[styles.detailRow, styles.totalRow]}>
             <Text variant={TextVariant.BodyMD}>Bank Address</Text>
             <Text variant={TextVariant.BodyMD} style={styles.bankAddress}>
-              {sepaData.fields?.find(
-                (f: OrderPaymentMethodField) => f.name === 'Bank Address',
-              )?.name || ''}
+              {(sepaData.fields?.find((f) => f.name === 'Bank Address') as any)
+                ?.value || ''}
             </Text>
           </Row>
         </View>
@@ -729,10 +776,7 @@ function NativeRamp() {
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="large" color={colors.primary.default} />
       <Text variant={TextVariant.BodyMD} style={styles.loadingText}>
-        {loadingMessage ||
-          (orderStatus === 'creating'
-            ? 'Creating your order...'
-            : 'Waiting for order completion...')}
+        {loadingMessage || 'Loading...'}
       </Text>
     </View>
   );
@@ -828,11 +872,8 @@ function NativeRamp() {
                   {currentStep === 5 && renderStepKycForms()}
                   {currentStep === 5.5 && renderLoadingScreen()}
                   {currentStep === 6 && renderKycSuccessScreen()}
-                  {currentStep === 7 &&
-                    !orderStatus &&
-                    renderConfirmationScreen()}
+                  {currentStep === 7 && renderConfirmationScreen()}
                   {currentStep === 8 && renderOrderSuccess()}
-                  {currentStep === 7 && orderStatus && renderLoadingScreen()}
                 </>
               )}
             </ScreenLayout.Content>
@@ -846,7 +887,6 @@ function NativeRamp() {
                 type="confirm"
                 onPress={handleContinue}
                 loading={isLoading}
-                disabled={orderStatus !== null || currentStep === 5.5}
               >
                 {currentStep === 8
                   ? 'Swap for tokens'
