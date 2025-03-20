@@ -5,7 +5,6 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 
 interface RefreshTokensProps {
   isEvmSelected: boolean;
-  setRefreshing: (refreshing: boolean) => void;
   evmNetworkConfigurationsByChainId: Record<
     string,
     { chainId: Hex; nativeCurrency: string }
@@ -16,12 +15,10 @@ interface RefreshTokensProps {
 
 export const refreshTokens = async ({
   isEvmSelected,
-  setRefreshing,
   evmNetworkConfigurationsByChainId,
   nativeCurrencies,
   selectedAccount,
 }: RefreshTokensProps) => {
-  setRefreshing(true);
   if (!isEvmSelected) {
     const { MultichainBalancesController } = Engine.context;
     if (selectedAccount) {
@@ -62,5 +59,4 @@ export const refreshTokens = async ({
       Logger.error(error, 'Error while refreshing tokens');
     });
   }
-  setRefreshing(false);
 };

@@ -113,13 +113,14 @@ const Tokens = memo(() => {
 
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(() => {
+      setRefreshing(true);
       refreshTokens({
         isEvmSelected,
-        setRefreshing,
         evmNetworkConfigurationsByChainId,
         nativeCurrencies,
         selectedAccount,
       });
+      setRefreshing(false);
     });
   }, [
     isEvmSelected,
