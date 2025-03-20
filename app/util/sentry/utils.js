@@ -527,7 +527,7 @@ export function setupSentry() {
   const dsn = process.env.MM_SENTRY_DSN;
 
   // Disable Sentry for E2E tests or when DSN is not provided
-  if (isE2E || !dsn) {
+  if (!dsn) {
     return;
   }
 
