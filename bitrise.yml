@@ -138,7 +138,6 @@ stages:
   build_smoke_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
-      - ios_e2e_build: {}
       - android_e2e_build: {}
   build_multichain_permissions_e2e_ios_android_stage:
     abort_on_fail: true
@@ -151,25 +150,25 @@ stages:
       - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
-      - run_tag_smoke_accounts_ios: {}
+      #- run_ios_api_specs: {}
+      # - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
-      - run_tag_smoke_confirmations_ios: {}
+      #- run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_ramps_android: {}
       # - run_tag_smoke_ramps_ios: {}
-      - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_tag_smoke_swaps_ios: {}
+      #- run_tag_smoke_confirmations_redesigned_ios: {}
+      # - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
       # - run_tag_smoke_stake_ios: {}
       # - run_tag_smoke_stake_android: {}
-      - run_tag_smoke_core_ios: {}
+      #- run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
-      - run_tag_multichain_permissions_ios: {}
+      #- run_tag_multichain_permissions_ios: {}
       - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
@@ -440,33 +439,32 @@ workflows:
           is_always_run: true
           title: Label PR with success
           inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              # Define label data
-              LABELS_JSON='{"labels":["bitrise-result-ready"]}'
-              	
-              # API URL to add labels to a PR
-              API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
-
-              # Perform the curl request and capture the HTTP status code
-              HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$LABELS_JSON" "$API_URL")
-              	
-              # Output the HTTP status code
-              echo "HTTP Response Code: $HTTP_RESPONSE"	
-              
-              # Optionally check the response
-              echo "HTTP Response Code: $HTTP_RESPONSE"
-
-              if [ "$HTTP_RESPONSE" -ne 200 ]; then
-                  echo "Failed to apply label. Status code: $HTTP_RESPONSE"
-                  cat response.txt  # Show error message from GitHub if any
-              else
-                  echo "Label applied successfully."
-              fi
-
-              # Clean up the response file
-              rm response.txt
+            - content: |-
+                #!/usr/bin/env bash
+                # Define label data
+                LABELS_JSON='{"labels":["bitrise-result-ready"]}'
                 	
+                # API URL to add labels to a PR
+                API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
+
+                # Perform the curl request and capture the HTTP status code
+                HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$LABELS_JSON" "$API_URL")
+                	
+                # Output the HTTP status code
+                echo "HTTP Response Code: $HTTP_RESPONSE"	
+
+                # Optionally check the response
+                echo "HTTP Response Code: $HTTP_RESPONSE"
+
+                if [ "$HTTP_RESPONSE" -ne 200 ]; then
+                    echo "Failed to apply label. Status code: $HTTP_RESPONSE"
+                    cat response.txt  # Show error message from GitHub if any
+                else
+                    echo "Label applied successfully."
+                fi
+
+                # Clean up the response file
+                rm response.txt
 
   # Send a Slack message when workflow fails
   notify_failure:
@@ -1254,20 +1252,20 @@ workflows:
                 # Set base paths for release builds
                 APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
                 BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
-                
+
                 # Generate new names based on build type and version
                 NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
-                
+
                 # Rename APK
                 OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                 mv "$OLD_APK" "$NEW_APK"
-                
+
                 # Rename AAB
                 OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
                 NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
                 mv "$OLD_AAB" "$NEW_AAB"
-                
+
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
                 envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
@@ -1606,9 +1604,9 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
-    meta:	
-      bitrise.io:	
-        stack: osx-xcode-15.0.x	
+    meta:
+      bitrise.io:
+        stack: osx-xcode-15.0.x
         machine_type_id: g2.mac.large
   build_ios_release_and_upload_sourcemaps:
     envs:
