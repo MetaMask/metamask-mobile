@@ -137,6 +137,7 @@ import { Confirm } from '../../Views/confirmations/Confirm';
 import NavigationService from '../../../core/NavigationService';
 import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
 import { BridgeNetworkSelector } from '../../UI/Bridge/BridgeNetworkSelector';
+import { SlippageModal } from '../../UI/Bridge/components/SlippageModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -464,6 +465,10 @@ const RootModalFlow = () => (
     <Stack.Screen
       name={Routes.SHEET.BRIDGE_NETWORK_SELECTOR}
       component={BridgeNetworkSelector}
+      />
+    <Stack.Screen
+      name={Routes.SHEET.SLIPPAGE_MODAL}
+      component={SlippageModal}
     />
   </Stack.Navigator>
 );

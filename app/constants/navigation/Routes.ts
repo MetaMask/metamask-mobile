@@ -118,6 +118,7 @@ const Routes = {
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     BRIDGE_TOKEN_SELECTOR: 'BridgeTokenSelector',
     BRIDGE_NETWORK_SELECTOR: 'BridgeNetworkSelector',
+    SLIPPAGE_MODAL: 'SlippageModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -167,6 +168,7 @@ const Routes = {
   STANDALONE_CONFIRMATIONS: {
     STAKE_DEPOSIT: 'RedesignedStakeDeposit',
     STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
+    STAKE_CLAIM: 'RedesignedStakeClaim',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {

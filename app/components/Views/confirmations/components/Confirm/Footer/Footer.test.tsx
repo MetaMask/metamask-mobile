@@ -62,7 +62,7 @@ describe('Footer', () => {
     const { getByText, getAllByRole } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
-    expect(getByText('Reject')).toBeDefined();
+    expect(getByText('Cancel')).toBeDefined();
     expect(getByText('Confirm')).toBeDefined();
     expect(getAllByRole('button')).toHaveLength(2);
   });
@@ -77,11 +77,11 @@ describe('Footer', () => {
     });
   });
 
-  it('should call onReject when reject button is clicked', async () => {
+  it('should call onReject when cancel button is clicked', async () => {
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
-    fireEvent.press(getByText('Reject'));
+    fireEvent.press(getByText('Cancel'));
     await waitFor(() => {
       expect(mockRejectSpy).toHaveBeenCalledTimes(1);
     });
@@ -190,7 +190,7 @@ describe('Footer', () => {
       expect(getByTestId('confirm-alert-checkbox')).toBeDefined();
 
       await act(async () => {
-        fireEvent.press(getByTestId('confirm-alert-reject-button'));
+        fireEvent.press(getByTestId('confirm-alert-cancel-button'));
       });
 
       expect(mockRejectSpy).toHaveBeenCalledTimes(1);

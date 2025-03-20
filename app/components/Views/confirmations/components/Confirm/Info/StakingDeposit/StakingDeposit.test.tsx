@@ -34,6 +34,7 @@ jest.mock('../../../../hooks/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));
 
+const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -41,6 +42,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
+      addListener: jest.fn().mockReturnValue(noop),
     }),
   };
 });
@@ -90,6 +92,7 @@ describe('StakingDeposit', () => {
     expect(mockGetNavbar).toHaveBeenCalledWith({
       title: 'Stake',
       onReject: mockOnReject,
+      addBackButton: true,
     });
   });
 
