@@ -163,9 +163,8 @@ export const selectSelectedSourceChainIds = createSelector(
 
 export const selectSelectedDestChainId = createSelector(
   selectBridgeState,
-  selectEnabledDestChains,
   selectSourceToken,
-  (bridgeState, enabledDestChains, sourceToken) => {
+  (bridgeState, sourceToken) => {
     // If selectedDestChainIds is undefined, use the same chain as the source token
     if (bridgeState.selectedDestChainId === undefined) {
       return sourceToken?.chainId;
@@ -179,7 +178,6 @@ export const {
   setSourceAmount,
   setDestAmount,
   resetBridgeState,
-  switchTokens,
   setSourceToken,
   setDestToken,
   setSelectedSourceChainIds,
