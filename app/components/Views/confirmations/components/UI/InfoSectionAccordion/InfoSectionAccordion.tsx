@@ -18,7 +18,9 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './InfoSectionAccordion.styles';
 
@@ -113,7 +115,7 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
       >
         {typeof header === 'string' ? (
           <Animated.Text>
-            <Text style={styles.headerTitle}>{header}</Text>
+            <Text variant={TextVariant.BodyMDMedium}>{header}</Text>
           </Animated.Text>
         ) : (
           header
