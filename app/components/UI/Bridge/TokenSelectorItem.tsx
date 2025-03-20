@@ -20,6 +20,7 @@ import { TokenIWithFiatAmount } from './useSourceTokens';
 import ButtonIcon, { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconColor, IconName } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
+
 const createStyles = () =>
   StyleSheet.create({
     tokenIcon: {
