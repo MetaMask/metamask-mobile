@@ -35,7 +35,7 @@ import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 
 const MAX_BROWSER_TABS = 5;
-const IDLE_TIME_MAX = 1000 * 30; // 30 seconds
+const IDLE_TIME_MAX = 1000 * 60 * 2.5; // 2.5 minutes
 const IDLE_TIME_CALC_INTERVAL = 1000 * 30; // 30 seconds
 
 /**
@@ -108,7 +108,7 @@ export const Browser = (props) => {
       url: tab.url,
       isArchived: false,
     });
-    setTimeout(() => setActiveTab(tab.id), 5);
+    setActiveTab(tab.id);
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
@@ -371,7 +371,6 @@ export const Browser = (props) => {
     />
   ));
 
-  Logger.log('[BROWSER] activeTabId type is', typeof activeTabId);
   return (
     <View
       style={styles.browserContainer}
