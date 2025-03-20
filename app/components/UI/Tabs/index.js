@@ -195,7 +195,6 @@ class Tabs extends PureComponent {
       const pos = (row - 1) * THUMB_HEIGHT;
 
       InteractionManager.runAfterInteractions(() => {
-        Logger.log(`[BROWSER->TABS]] Scrolling to position: ${pos}`);
         this.scrollview.current &&
           this.scrollview.current.scrollTo({ x: 0, y: pos, animated: true });
       });
@@ -215,7 +214,6 @@ class Tabs extends PureComponent {
   }
 
   onSwitch = async (tab) => {
-    Logger.log(`[BROWSER->TABS]] Switching to tab with ID: ${tab.id}`);
     this.props.switchToTab(tab);
   };
 
