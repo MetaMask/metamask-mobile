@@ -253,15 +253,13 @@ stages:
       - build_ios_flask_release: {}
   deploy_flask_build_release:
     workflows:
-      - deploy_android_to_store:
-          envs:
-            - MM_ANDROID_PACKAGE_NAME: 'io.metamask.flask'
-      - deploy_ios_to_store:
+      - deploy_android_to_store: {}
+      - deploy_ios_to_store: {}
   build_e2e_flask_stage:
     abort_on_fail: true
     workflows:
-      - ios_e2e_build_flask: {}
-      - android_e2e_build_flask: {}
+      - build_android_flask_e2e: {}
+      - build_ios_flask_e2e: {}
   run_e2e_flask_stage:
     workflows:
       - ios_e2e_test_flask: {}
@@ -2404,9 +2402,17 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                # Make sure these are directly exported for gradle
+                export APP_NAME=qaFlask
+                export OUTPUT_PATH=qaFlask
+                export METAMASK_ENVIRONMENT=qa
+                export METAMASK_BUILD_TYPE=flask
+                
                 node -v
-                # Build QA Flask
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa:flask
+                # Build QA Flask - explicitly specify qaFlask variant
+                cd android && ./gradlew assembleQaFlaskRelease --no-daemon --max-workers 2
+                # Optional: also create bundle
+                ./gradlew bundleQaFlaskRelease --no-daemon --max-workers 2
       - save-gradle-cache@1: {}
       - script@1:
           title: Rename release files
@@ -2434,6 +2440,16 @@ workflows:
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
                 envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
                 envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
+      - deploy-to-bitrise-io@2.2.3:
+          title: Deploy QA Flask APK and AAB
+          inputs:
+            - deploy_path: $APK_DIR/$NEW_BASE_NAME.apk
+            - is_compress: 'false'
+      - deploy-to-bitrise-io@2.2.3:
+          title: Deploy QA Flask AAB
+          inputs:
+            - deploy_path: $BUNDLE_DIR/$NEW_BASE_NAME.aab
+            - is_compress: 'false'
 
   build_ios_qa_flask:
     before_run:
@@ -2457,6 +2473,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                # Export directly for Xcode build
+                export METAMASK_ENVIRONMENT=qa
+                export METAMASK_BUILD_TYPE=flask
+                
                 node -v
                 export LC_ALL=en_US.UTF-8
                 export LANG=en_US.UTF-8
@@ -2479,6 +2499,11 @@ workflows:
                   echo "ERROR: Could not find IPA file at any expected location"
                   exit 1
                 fi
+      - deploy-to-bitrise-io@2.2.3:
+          title: Deploy QA Flask IPA
+          inputs:
+            - deploy_path: ios/build/output/metamask-qa-flask-${NAME}-${NUMBER}.ipa
+            - is_compress: 'false'
 
 app:
   envs:
