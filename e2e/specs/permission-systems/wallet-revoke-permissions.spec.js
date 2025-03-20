@@ -41,8 +41,6 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
          * DEBUGGING
          */
         const element = await TestDApp.permissionsContainer;
-        // eslint-disable-next-line no-console
-        console.log('Element properties:', await element.getProperties());
 
         // eslint-disable-next-line no-console
         console.log('Element attributes:', await element.getAttributes());
