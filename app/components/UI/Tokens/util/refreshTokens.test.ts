@@ -30,7 +30,6 @@ jest.mock('../../../../util/Logger', () => ({
 describe('refreshTokens', () => {
   const mockProps = {
     isEvmSelected: true,
-    setRefreshing: mockSetRefreshing,
     evmNetworkConfigurationsByChainId: {
       '0x1': { chainId: '0x1' as Hex, nativeCurrency: 'ETH' },
       '0x89': { chainId: '0x89' as Hex, nativeCurrency: 'POL' },
