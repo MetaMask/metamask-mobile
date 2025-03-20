@@ -446,8 +446,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         : `${balance} ${asset.symbol}`;
     }
   } else {
-    mainBalance = `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`;
-    secondaryBalance = asset.balanceFiat || '';
+    mainBalance = asset.balanceFiat || '';
+    secondaryBalance = `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`;
   }
 
   const tokenResult = useSelector((state: RootState) => selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex));
