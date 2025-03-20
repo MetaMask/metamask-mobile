@@ -4,21 +4,31 @@ import { EthKeyring } from '@metamask/keyring-internal-api';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
-import Logger from '../../util/Logger';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
 
+  // Convert input mnemonic to codepoints
+  const mnemonicWords = mnemonic.toLowerCase().split(' ');
+  const inputCodePoints = new Uint16Array(
+    mnemonicWords.map((word) => wordlist.indexOf(word)),
+  );
+
   const hdKeyrings = (await KeyringController.getKeyringsByType(
     ExtendedKeyringTypes.hd,
   )) as HdKeyring[];
+
   const alreadyImportedSRP = hdKeyrings.some((keyring) => {
-    const codePointsToEnglishWords = Buffer.from(
-      Array.from(new Uint16Array(Buffer.from(keyring.mnemonic).buffer))
-        .map((i) => wordlist[i])
-        .join(' '),
+    // Compare directly with stored codepoints
+    const storedCodePoints = new Uint16Array(
+      Buffer.from(keyring.mnemonic).buffer,
     );
-    return Buffer.from(codePointsToEnglishWords).toString('utf8') === mnemonic;
+
+    if (inputCodePoints.length !== storedCodePoints.length) return false;
+
+    return inputCodePoints.every(
+      (code, index) => code === storedCodePoints[index],
+    );
   });
 
   if (alreadyImportedSRP) {
