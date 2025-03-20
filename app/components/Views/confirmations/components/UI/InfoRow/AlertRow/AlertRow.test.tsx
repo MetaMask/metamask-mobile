@@ -17,19 +17,25 @@ jest.mock('../../../../hooks/useConfirmationAlertMetric', () => ({
 const ALERT_KEY_DANGER = 'DANGER_ALERT';
 const ALERT_KEY_WARNING = 'WARNING_ALERT';
 const ALERT_KEY_INFO = 'INFO_ALERT';
+const ALERT_FIELD_DANGER = 'field_danger';
+const ALERT_FIELD_WARNING = 'field_warning';
+const ALERT_FIELD_INFO = 'field_info';
 const mockAlerts = [
   {
     key: ALERT_KEY_DANGER,
+    field: ALERT_FIELD_DANGER,
     severity: Severity.Danger,
     message: 'This is a danger alert',
   },
   {
     key: ALERT_KEY_WARNING,
+    field: ALERT_FIELD_WARNING,
     severity: Severity.Warning,
     message: 'This is a warning alert',
   },
   {
     key: ALERT_KEY_INFO,
+    field: ALERT_FIELD_INFO,
     severity: Severity.Info,
     message: 'This is an info alert',
   },
@@ -58,7 +64,7 @@ describe('AlertRow', () => {
   const LABEL_MOCK = 'Alert Label';
   const CHILDREN_MOCK = 'Test Children';
   const baseProps: AlertRowProps = {
-    alertKey: ALERT_KEY_DANGER,
+    alertField: ALERT_FIELD_DANGER,
     label: LABEL_MOCK,
     children: CHILDREN_MOCK,
   };
@@ -73,7 +79,7 @@ describe('AlertRow', () => {
   });
 
   it('renders correctly with warning alert', () => {
-    const props = { ...baseProps, alertKey: ALERT_KEY_WARNING };
+    const props = { ...baseProps, alertField: ALERT_FIELD_WARNING };
     const { getByText, getByTestId } = render(<AlertRow {...props} />);
     expect(getByText(LABEL_MOCK)).toBeDefined();
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
@@ -82,7 +88,7 @@ describe('AlertRow', () => {
   });
 
   it('renders correctly with default alert', () => {
-    const props = { ...baseProps, alertKey: ALERT_KEY_INFO };
+    const props = { ...baseProps, alertField: ALERT_FIELD_INFO };
     const { getByText, getByTestId } = render(<AlertRow {...props} />);
     expect(getByText(LABEL_MOCK)).toBeDefined();
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
@@ -91,7 +97,7 @@ describe('AlertRow', () => {
   });
 
   it('does not render when isShownWithAlertsOnly is true and no alert is present', () => {
-    const props = { ...baseProps, alertKey: 'alert4', isShownWithAlertsOnly: true };
+    const props = { ...baseProps, alertField: 'alert4', isShownWithAlertsOnly: true };
     const { queryByText } = render(<AlertRow {...props} />);
     expect(queryByText(LABEL_MOCK)).toBeNull();
     expect(queryByText(CHILDREN_MOCK)).toBeNull();

@@ -2,7 +2,8 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useAlerts } from '../AlertSystem/context';
 import { useConfirmationMetricEvents } from './useConfirmationMetricEvents';
-import { useConfirmationAlertMetric, AlertNames } from './useConfirmationAlertMetric';
+import { useConfirmationAlertMetric } from './useConfirmationAlertMetric';
+import { AlertKeys } from '../constants/alerts';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -20,11 +21,11 @@ describe('useConfirmationAlertMetric', () => {
   const mockSetConfirmationMetric = jest.fn();
   const mockUseAlerts = {
     alerts: [
-      { key: AlertNames.Blockaid },
-      { key: AlertNames.DomainMismatch },
+      { key: AlertKeys.Blockaid },
+      { key: AlertKeys.DomainMismatch },
     ],
     isAlertConfirmed: jest.fn(),
-    alertKey: AlertNames.DomainMismatch,
+    alertKey: AlertKeys.DomainMismatch,
   };
 
   beforeEach(() => {
@@ -37,7 +38,7 @@ describe('useConfirmationAlertMetric', () => {
 
   const baseAlertProperties = {
     alert_trigger_count: 2,
-    alert_trigger_name: [AlertNames.Blockaid, AlertNames.DomainMismatch],
+    alert_trigger_name: [AlertKeys.Blockaid, AlertKeys.DomainMismatch],
     alert_resolved_count: 0,
     alert_resolved: [],
   };
@@ -69,7 +70,7 @@ describe('useConfirmationAlertMetric', () => {
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
         ...baseAlertProperties,
-        alert_visualized: [AlertNames.DomainMismatch],
+        alert_visualized: [AlertKeys.DomainMismatch],
         alert_visualized_count: 1,
       },
     });
@@ -90,14 +91,14 @@ describe('useConfirmationAlertMetric', () => {
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
         ...baseAlertProperties,
-        alert_rendered: [AlertNames.DomainMismatch],
+        alert_rendered: [AlertKeys.DomainMismatch],
         alert_rendered_count: 1,
       },
     });
   });
 
   it('handles confirmed alerts correctly', () => {
-    (mockUseAlerts.isAlertConfirmed as jest.Mock).mockImplementation((key: string) => key === AlertNames.Blockaid);
+    (mockUseAlerts.isAlertConfirmed as jest.Mock).mockImplementation((key: string) => key === AlertKeys.Blockaid);
 
     (useSelector as jest.Mock).mockReturnValue({
       properties: baseAlertProperties,
@@ -109,7 +110,7 @@ describe('useConfirmationAlertMetric', () => {
       properties: {
         ...baseAlertProperties,
         alert_resolved_count: 1,
-        alert_resolved: [AlertNames.Blockaid],
+        alert_resolved: [AlertKeys.Blockaid],
       },
     });
   });

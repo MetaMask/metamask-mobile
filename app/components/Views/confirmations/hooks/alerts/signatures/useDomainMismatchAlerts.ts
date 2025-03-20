@@ -7,6 +7,7 @@ import { useSignatureRequest } from '../../useSignatureRequest';
 import { isSIWESignatureRequest } from '../../../utils/signature';
 import { strings } from '../../../../../../../locales/i18n';
 import { regex } from '../../../../../../util/regex';
+import { AlertKeys } from '../../../constants/alerts';
 
 export default function useDomainMismatchAlerts(): Alert[] {
   const { approvalRequest } = useApprovalRequest();
@@ -30,7 +31,7 @@ export default function useDomainMismatchAlerts(): Alert[] {
     return [
       {
         field: RowAlertKey.RequestFrom,
-        key: RowAlertKey.RequestFrom,
+        key: AlertKeys.DomainMismatch,
         message: strings('alert_system.domain_mismatch.message'),
         title: strings('alert_system.domain_mismatch.title'),
         severity: Severity.Danger,

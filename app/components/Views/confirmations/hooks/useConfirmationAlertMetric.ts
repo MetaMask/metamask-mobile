@@ -8,11 +8,11 @@ import { useConfirmationMetricEvents } from './useConfirmationMetricEvents';
 import { Alert } from '../types/alerts';
 import { RootState } from '../../../../reducers';
 import { useSignatureRequest } from './useSignatureRequest';
+import { AlertKeys } from '../constants/alerts';
 
-export enum AlertNames {
-  Blockaid = 'blockaid',
-  DomainMismatch = 'domain_mismatch',
-}
+type AlertNameMetrics = {
+  [K in AlertKeys]: string;
+};
 
 export function useConfirmationAlertMetric() {
   const { setConfirmationMetric } = useConfirmationMetricEvents();
@@ -44,13 +44,11 @@ export function useConfirmationAlertMetric() {
 
   const trackers = useMemo(() => {
     const trackInlineAlertClicked = () => {
-      console.log('trackInlineAlertClicked >>>>>>', confirmationMetrics.properties);
       if (confirmationMetrics.properties && Array.isArray(confirmationMetrics.properties.alert_visualized)) {
         const alertVisualized = uniqueFreshArrayPush(
           confirmationMetrics.properties.alert_visualized as string[],
           alertKey
         );
-        console.log('alertVisualized >>>>>>', alertVisualized);
 
         setConfirmationMetric({
           properties: {
@@ -68,7 +66,6 @@ export function useConfirmationAlertMetric() {
           confirmationMetrics.properties.alert_rendered as string[],
           alertKey
         );
-        console.log('alertRendered >>>>>>', alertRendered);
 
         setConfirmationMetric({
           properties: {
@@ -97,11 +94,11 @@ function getAlertNames(alerts: Alert[]): string[] {
   return alerts.map((alertSelected) => getAlertName(alertSelected.key));
 }
 
-const ALERTS_NAME_METRICS: Record<AlertNames | string, string> = {
-  [AlertNames.DomainMismatch]: 'domain_mismatch',
-  [AlertNames.Blockaid]: 'blockaid',
+const ALERTS_NAME_METRICS: AlertNameMetrics = {
+  [AlertKeys.Blockaid]: 'blockaid',
+  [AlertKeys.DomainMismatch]: 'domain_mismatch',
 };
 
 function getAlertName(alertKey: string): string {
-  return ALERTS_NAME_METRICS[alertKey] ?? alertKey;
+  return ALERTS_NAME_METRICS[alertKey as AlertKeys] ?? alertKey;
 }

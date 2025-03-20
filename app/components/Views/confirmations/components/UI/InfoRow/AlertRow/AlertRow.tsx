@@ -20,18 +20,19 @@ function getAlertTextColors(
 }
 
 export interface AlertRowProps extends InfoRowProps {
-  alertKey: string;
+  alertField: string;
   /** Determines whether to display the row only when an alert is present. */
   isShownWithAlertsOnly?: boolean;
 }
 
-const AlertRow = ({ alertKey, isShownWithAlertsOnly, ...props }: AlertRowProps) => {
-  const { alerts, showAlertModal, setAlertKey } = useAlerts();
+const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps) => {
+  const { fieldAlerts, showAlertModal, setAlertKey } = useAlerts();
   const { trackInlineAlertClicked } = useConfirmationAlertMetric();
-  const alertSelected = alerts.find((a) => a.key === alertKey);
+  const alertSelected = fieldAlerts.find((a) => a.field === alertField);
 
   const handleInlineAlertClick = () => {
-    setAlertKey(alertKey);
+    if(!alertSelected) return;
+    setAlertKey(alertSelected.key);
     showAlertModal();
     trackInlineAlertClicked();
   };
