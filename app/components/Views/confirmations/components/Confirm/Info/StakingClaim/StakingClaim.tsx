@@ -16,7 +16,9 @@ import { useTokenValues } from '../../../../hooks/useTokenValues';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
 
-const StakingClaim = ({ route }: {
+const StakingClaim = ({
+  route,
+}: {
   route: RouteProp<{ params: { amountWei: string } }, 'params'>;
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -48,11 +50,9 @@ const StakingClaim = ({ route }: {
           isTransactionsRedesign
         />
       </View>
-      <View style={styles.stakingContractInteractionDetailsContainer}>
-        <InfoSection>
-          <StakingContractInteractionDetails />
-        </InfoSection>
-      </View>
+      <InfoSection>
+        <StakingContractInteractionDetails />
+      </InfoSection>
       <GasFeesDetails />
     </>
   );
