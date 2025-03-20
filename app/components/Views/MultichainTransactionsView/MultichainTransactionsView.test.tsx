@@ -94,10 +94,6 @@ describe('MultichainTransactionsView', () => {
     },
   ];
 
-  const getButtonMock = () =>
-    jest.requireMock('../../../component-library/components/Buttons/Button')
-      .default;
-
   const customRender = (ui: React.ReactElement) => {
     const utils = render(ui);
 
