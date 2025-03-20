@@ -7425,7 +7425,7 @@
 
 "@shopify/flash-list@^1.7.6":
   version "1.7.6"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@shopify/flash-list/-/flash-list-1.7.6.tgz#367e76866c71d1f1be0ff70f0b28be4bbfbcf595"
+  resolved "https://registry.yarnpkg.com/@shopify/flash-list/-/flash-list-1.7.6.tgz#367e76866c71d1f1be0ff70f0b28be4bbfbcf595"
   integrity sha512-0kuuAbWgy4YSlN05mt0ScvxK8uiDixMsICWvDed+LTxvZ5+5iRyt3M8cRLUroB8sfiZlJJZWlxHrx0frBpsYOQ==
   dependencies:
     recyclerlistview "4.2.3"
@@ -25931,7 +25931,7 @@ recursive-readdir@^2.2.2:
 
 recyclerlistview@4.2.3:
   version "4.2.3"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/recyclerlistview/-/recyclerlistview-4.2.3.tgz#14032e7ad2f24396e24d5b3060c6ba76b567f000"
+  resolved "https://registry.yarnpkg.com/recyclerlistview/-/recyclerlistview-4.2.3.tgz#14032e7ad2f24396e24d5b3060c6ba76b567f000"
   integrity sha512-STR/wj/FyT8EMsBzzhZ1l2goYirMkIgfV3gYEPxI3Kf3lOnu6f7Dryhyw7/IkQrgX5xtTcDrZMqytvteH9rL3g==
   dependencies:
     lodash.debounce "4.0.8"
@@ -28318,7 +28318,7 @@ ts-node@^9:
 
 ts-object-utils@0.0.5:
   version "0.0.5"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/ts-object-utils/-/ts-object-utils-0.0.5.tgz#95361cdecd7e52167cfc5e634c76345e90a26077"
+  resolved "https://registry.yarnpkg.com/ts-object-utils/-/ts-object-utils-0.0.5.tgz#95361cdecd7e52167cfc5e634c76345e90a26077"
   integrity sha512-iV0GvHqOmilbIKJsfyfJY9/dNHCs969z3so90dQWsO1eMMozvTpnB1MEaUbb3FYtZTGjv5sIy/xmslEz0Rg2TA==
 
 ts-toolbelt@^6.15.1:
