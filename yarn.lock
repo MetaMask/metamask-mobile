@@ -5253,10 +5253,10 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-controller@npm:@metamask-previews/network-controller@22.2.1-preview-401a9c00":
-  version "22.2.1-preview-401a9c00"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/network-controller/-/network-controller-22.2.1-preview-401a9c00.tgz#c909846005c92a8fbd741282eec236d2265f2afb"
-  integrity sha512-ig5xHsHxgIHNN8cm7f9LAMSg8J3U1kRuAcTNOiN84AzsIF0NZ0rVxFIV2n2YtpN3VaAhpfVltr+FhD2NKaDDKw==
+"@metamask/network-controller@^23.0.0":
+  version "23.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-23.0.0.tgz#1d445ef46f6d2f3f400c61439c893a2d08cbf55c"
+  integrity sha512-rS+aFWVMZBcmv1qLTdSfSAxg0RKwWBNdVeRH2IfKEUUYQGhU3ybfHezy3jJKk7apQnDxe05X42wCfehSq2emCg==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
