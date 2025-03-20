@@ -1204,7 +1204,7 @@
 		};
 		B04B18D52D8B340C00C5C2CE /* Strip Bitcode */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
+			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
