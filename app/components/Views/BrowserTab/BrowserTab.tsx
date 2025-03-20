@@ -271,6 +271,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     toggleOptionsIfNeeded();
     const { current } = webviewRef;
     if (!current) {
+      Logger.log('WebviewRef current is not defined!');
     }
     setError(false);
     current?.goBack?.();

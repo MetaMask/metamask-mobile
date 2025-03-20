@@ -371,6 +371,7 @@ export const Browser = (props) => {
     />
   ));
 
+  Logger.log('[BROWSER] activeTabId type is', typeof activeTabId);
   return (
     <View
       style={styles.browserContainer}
