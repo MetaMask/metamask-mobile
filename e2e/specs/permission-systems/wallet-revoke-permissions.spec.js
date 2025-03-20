@@ -4,13 +4,13 @@ import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
+import BrowserView from '../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
-import Browser from '../../../app/components/Views/Browser';
 
 describe(SmokePermissions('Wallet Revoke Permissions'), () => {
   beforeAll(async () => {
@@ -33,7 +33,7 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
+        await BrowserView.navigateToTestDApp();
 
         await TestDApp.tapGetPermissionsButton();
 
