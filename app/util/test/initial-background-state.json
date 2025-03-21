@@ -68,7 +68,8 @@
           {
             "networkClientId": "mainnet",
             "type": "infura",
-            "url": "https://mainnet.infura.io/v3/{infuraProjectId}"
+            "url": "https://mainnet.infura.io/v3/{infuraProjectId}",
+            "failoverUrls": []
           }
         ]
       },
@@ -82,7 +83,8 @@
           {
             "networkClientId": "sepolia",
             "type": "infura",
-            "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
+            "url": "https://sepolia.infura.io/v3/{infuraProjectId}",
+            "failoverUrls": []
           }
         ]
       },
@@ -96,7 +98,8 @@
           {
             "networkClientId": "linea-sepolia",
             "type": "infura",
-            "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
+            "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}",
+            "failoverUrls": []
           }
         ]
       },
@@ -110,7 +113,8 @@
           {
             "networkClientId": "linea-mainnet",
             "type": "infura",
-            "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
+            "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}",
+            "failoverUrls": []
           }
         ]
       }

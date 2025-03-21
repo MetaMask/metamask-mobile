@@ -49,6 +49,7 @@ export default function useAddToken() {
         rpcEndpoints: [
           {
             url: featuredRpc.rpcUrl,
+            failoverUrls: featuredRpc.failoverRpcUrls,
             type: RpcEndpointType.Custom,
           },
         ],

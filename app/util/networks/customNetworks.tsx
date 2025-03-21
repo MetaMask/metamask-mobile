@@ -1,3 +1,4 @@
+import { ImageSourcePropType } from 'react-native';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -9,11 +10,31 @@ import { BtcScope, SolScope } from '@metamask/keyring-api';
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
+export interface Network {
+  chainId: Hex;
+  nickname: string;
+  rpcPrefs: {
+    blockExplorerUrl: string;
+    imageSource?: ImageSourcePropType;
+    imageUrl?: string;
+  };
+  rpcUrl: string;
+  failoverRpcUrls: string[];
+  ticker: string;
+  /**
+   * Not supported by Infura
+   */
+  warning?: boolean;
+}
+
 export const PopularList = [
   {
     chainId: toHex('43114'),
     nickname: 'Avalanche C-Chain',
     rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [process.env.QUICKNODE_AVALANCHE_URL ?? ''].filter(
+      Boolean,
+    ),
     ticker: 'AVAX',
     rpcPrefs: {
       blockExplorerUrl: 'https://snowtrace.io',
@@ -25,6 +46,7 @@ export const PopularList = [
     chainId: toHex('42161'),
     nickname: 'Arbitrum One',
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [process.env.QUICKNODE_ARBITRUM_URL ?? ''].filter(Boolean),
     ticker: 'ETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://arbiscan.io',
@@ -36,6 +58,7 @@ export const PopularList = [
     chainId: toHex('56'),
     nickname: 'BNB Smart Chain Mainnet',
     rpcUrl: 'https://bsc-dataseed1.binance.org',
+    failoverRpcUrls: [],
     ticker: 'BNB',
     warning: true,
     rpcPrefs: {
@@ -48,6 +71,7 @@ export const PopularList = [
     chainId: toHex('8453'),
     nickname: 'Base',
     rpcUrl: `https://base-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [process.env.QUICKNODE_BASE_URL ?? ''].filter(Boolean),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -60,6 +84,7 @@ export const PopularList = [
     chainId: toHex('10'),
     nickname: 'OP Mainnet',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [process.env.QUICKNODE_OPTIMISM_URL ?? ''].filter(Boolean),
     ticker: 'ETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://optimistic.etherscan.io',
@@ -71,6 +96,8 @@ export const PopularList = [
     chainId: toHex('11297108109'),
     nickname: 'Palm',
     rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
+    // Quicknode does not support Palm at this time
+    failoverRpcUrls: [],
     ticker: 'PALM',
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.palm.io',
@@ -82,6 +109,7 @@ export const PopularList = [
     chainId: toHex('137'),
     nickname: 'Polygon Mainnet',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [process.env.QUICKNODE_POLYGON_URL ?? ''].filter(Boolean),
     ticker: 'POL',
     rpcPrefs: {
       blockExplorerUrl: 'https://polygonscan.com',
@@ -93,6 +121,7 @@ export const PopularList = [
     chainId: toHex('324'),
     nickname: 'zkSync Mainnet',
     rpcUrl: `https://mainnet.era.zksync.io`,
+    failoverRpcUrls: [],
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -101,7 +130,7 @@ export const PopularList = [
       imageSource: require('../../images/zk-sync.png'),
     },
   },
-];
+] satisfies Network[];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
   if (chainId === SolScope.Mainnet) {
@@ -198,6 +227,7 @@ export const UnpopularNetworkList = [
     chainId: toHex('250'),
     nickname: 'Fantom Opera',
     rpcUrl: 'https://rpc.ftm.tools/',
+    failoverRpcUrls: [],
     ticker: 'FTM',
     warning: true,
     rpcPrefs: {
@@ -210,6 +240,7 @@ export const UnpopularNetworkList = [
     chainId: toHex('1666600000'),
     nickname: 'Harmony Mainnet Shard 0',
     rpcUrl: 'https://api.harmony.one/',
+    failoverRpcUrls: [],
     ticker: 'ONE',
     warning: true,
     rpcPrefs: {
