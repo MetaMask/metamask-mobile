@@ -2816,9 +2816,12 @@
     "n_quotes": "{{numberOfQuotes}} báo giá",
     "view_details": "Xem chi tiết",
     "estimated_gas_fee": "Phí gas ước tính",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Phí gas tối đa",
     "edit": "Sửa",
     "quotes_include_fee": "Báo giá bao gồm {{fee}}% phí MetaMask",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Chạm để hoán đổi",
     "swipe_to_swap": "Vuốt để hoán đổi",
     "swipe_to": "Vuốt để",
@@ -2888,6 +2891,8 @@
     "high_recommendation": "Giao dịch hoán đổi thường nhạy cảm về thời gian. Mức độ \"Cao\" sẽ giúp tránh những thua lỗ tiềm ẩn do tình hình thị trường biến động.",
     "recommended": "Được đề xuất",
     "recommended_gas": "Phí gas đề xuất",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Phí gas ước tính",
     "gas_education_1": "Phí gas được trả cho những người khai thác tiền mã hóa để xử lý các giao dịch trên ",
     "gas_education_2_ethereum": "mạng Ethereum.",
@@ -3431,11 +3436,11 @@
     "not_enough_eth": "Không đủ ETH",
     "balance": "Số dư",
     "stake_eth_and_earn": "Ký gửi ETH và kiếm tiền",
-    "stake_any_amount_of_eth": "Ký gửi bất kỳ số lượng ETH nào",
+    "stake_any_amount_of_eth": "Ký gửi bất kỳ số lượng ETH nào.",
     "no_minimum_required": "Không yêu cầu mức tối thiểu.",
-    "earn_eth_rewards": "Kiếm phần thưởng ETH",
+    "earn_eth_rewards": "Kiếm phần thưởng ETH.",
     "earn_eth_rewards_description": "Bắt đầu kiếm tiền ngay khi bạn ký gửi. Phần thưởng sẽ tự động cộng dồn.",
-    "flexible_unstaking": "Hủy ký gửi linh hoạt",
+    "flexible_unstaking": "Hủy ký gửi linh hoạt.",
     "flexible_unstaking_description": "Hủy ký gửi bất cứ lúc nào. Thường mất ít hơn 3 ngày, nhưng có thể mất đến 11 ngày để xử lý.",
     "disclaimer": "Việc ký gửi không đảm bảo bạn sẽ nhận được phần thưởng và đi kèm với nhiều rủi ro, bao gồm cả mất tiền.",
     "learn_more": "Tìm hiểu thêm",
@@ -3494,7 +3499,25 @@
     "estimated_unstaking_time": "1 đến 11 ngày",
     "proceed_anyway": "Vẫn tiếp tục",
     "gas_cost_impact": "Tác động của chi phí gas",
-    "gas_cost_impact_warning": "Cảnh báo: chi phí gas cho giao dịch sẽ chiếm hơn 30% khoản tiền gửi của bạn."
+    "gas_cost_impact_warning": "Cảnh báo: chi phí gas cho giao dịch sẽ chiếm hơn {{percentOverDeposit}}% khoản tiền gửi của bạn.",
+    "view_earnings_history": "Xem lịch sử thu nhập",
+    "earnings_history_title": "Thu nhập {{ticker}}",
+    "earnings_history_list_title": "Lịch sử trả thưởng",
+    "apr": "Lãi suất phần trăm hằng năm",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7 ngày",
+        "1M": "1 tháng",
+        "3M": "3 tháng",
+        "6M": "6 tháng"
+      }
+    },
+    "today": "Hôm nay",
+    "one_week_average": "Trung bình 1 tuần",
+    "one_month_average": "Trung bình 1 tháng",
+    "three_month_average": "Trung bình 3 tháng",
+    "six_month_average": "Trung bình 6 tháng",
+    "one_year_average": "Trung bình 1 năm"
   },
   "default_settings": {
     "title": "Ví của bạn đã sẵn sàng",
@@ -3579,12 +3602,15 @@
     "reject": "Từ chối",
     "confirm": "Xác nhận",
     "title": {
-      "signature": "Yêu cầu chữ ký"
+      "signature": "Yêu cầu chữ ký",
+      "signature_siwe": "Yêu cầu đăng nhập"
     },
     "sub_title": {
-      "signature": "Xem lại thông tin yêu cầu trước khi bạn xác nhận."
+      "signature": "Xem lại thông tin yêu cầu trước khi bạn xác nhận.",
+      "signature_siwe": "Trang web muốn bạn đăng nhập để chứng minh bạn sở hữu tài khoản này."
     },
     "request_from": "Yêu cầu từ",
+    "signing_in_with": "Đăng nhập bằng",
     "message": "Thông báo",
     "primary_type": "Loại chính",
     "personal_sign_tooltip": "Trang web này đang yêu cầu chữ ký của bạn",
@@ -3592,6 +3618,19 @@
     "account": "Tài khoản",
     "balance": "Số dư",
     "network": "Mạng",
+    "qr_get_sign": "Lấy Chữ Ký",
+    "qr_scan_text": "Quét bằng ví cứng của bạn",
+    "siwe_message": {
+      "url": "URL",
+      "network": "Mạng",
+      "account": "Tài khoản",
+      "version": "Phiên bản",
+      "chain_id": "ID Chuỗi",
+      "nonce": "Số Nonce",
+      "issued": "Đã phát hành",
+      "requestId": "Yêu cầu ID",
+      "resources": "Tài nguyên"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "NFT sẽ được hiển thị trong ví của bạn khi giá thầu được chấp nhận.",
       "decoded_tooltip_list_nft": "Chỉ thay đổi khi có người mua NFT của bạn.",
@@ -3610,7 +3649,7 @@
       "unavailable": "Không khả dụng"
     },
     "unlimited": "Không giới hạn",
-    "none": "None"
+    "none": "Không có"
   },
   "change_in_simulation_modal": {
     "title": "Kết quả đã thay đổi",
