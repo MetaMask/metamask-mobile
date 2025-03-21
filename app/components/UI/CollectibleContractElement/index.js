@@ -1,7 +1,13 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Device from '../../../util/device';
@@ -12,7 +18,10 @@ import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectIsAllNetworks,
+} from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import Icon, {
   IconName,
@@ -93,11 +102,19 @@ function CollectibleContractElement({
   contractCollectibles,
   collectiblesVisible: propsCollectiblesVisible,
   onPress,
-  collectibleContracts,
-  chainId,
+  collectibleContracts: allCollectibleContracts,
+  chainId, // todo fix this chainId for favorites to be retrieved from the collectible
   selectedAddress,
   removeFavoriteCollectible,
 }) {
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const collectibleContracts = useMemo(
+    () =>
+      isAllNetworks
+        ? Object.values(allCollectibleContracts).flat()
+        : allCollectibleContracts[chainId] || [],
+    [allCollectibleContracts, chainId, isAllNetworks],
+  );
   const [collectiblesGrid, setCollectiblesGrid] = useState([]);
   const [collectiblesVisible, setCollectiblesVisible] = useState(
     propsCollectiblesVisible,
@@ -131,7 +148,7 @@ function CollectibleContractElement({
     const { NftController } = Engine.context;
     removeFavoriteCollectible(
       selectedAddress,
-      chainId,
+      chainId, // todo check if the remove NFT flow is correct
       longPressedCollectible.current,
     );
     NftController.removeAndIgnoreNft(
