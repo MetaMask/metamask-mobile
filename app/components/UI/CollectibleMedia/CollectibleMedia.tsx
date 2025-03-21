@@ -192,6 +192,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
               cover && styles.cover,
               style,
             ]}
+            chainId={collectible.chainId}
             onError={fallback}
             testID="nft-image"
             isTokenImage={isTokenImage}
@@ -232,6 +233,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     fallback,
     isTokenImage,
     isFullRatio,
+    collectible.chainId,
   ]);
 
   return <View style={styles.container}>{renderMedia()}</View>;
