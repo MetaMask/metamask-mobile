@@ -103,7 +103,7 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
           type: 'custom',
           url: 'https://goerli.infura.io/v3/{infuraProjectId}',
           failoverUrls: [],
-        }
+        },
       ],
     },
   },
@@ -221,7 +221,7 @@ describe('NetworkSettings', () => {
     expect(component).toMatchSnapshot();
   });
 
-  it.only('should render the component correctly when isNetworkUiRedesignEnabled is true', () => {
+  it('should render the component correctly when isNetworkUiRedesignEnabled is true', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
 
     const component = shallow(
@@ -996,7 +996,7 @@ describe('NetworkSettings', () => {
             url: 'http://localhost:8545',
             failoverUrls: [],
             type: 'custom',
-            name: 'test'
+            name: 'test',
           },
         ],
         rpcUrl: 'http://localhost:8545',
@@ -1303,7 +1303,7 @@ describe('NetworkSettings', () => {
             rpcEndpoints: [
               {
                 url: 'https://custom-network.io',
-            failoverUrls: [],
+                failoverUrls: [],
                 type: RpcEndpointType.Custom,
               },
             ],
@@ -1390,7 +1390,7 @@ describe('NetworkSettings', () => {
               networkClientId: 'mainnet',
               type: 'Infura',
               url: 'https://mainnet.infura.io/v3/',
-            failoverUrls: [],
+              failoverUrls: [],
             },
           ],
           name: 'Ethereum Main Network',
@@ -1421,8 +1421,8 @@ describe('NetworkSettings', () => {
             url: 'http://localhost:8080',
             failoverUrls: [],
             type: 'custom',
-            name: ''
-          }
+            name: '',
+          },
         ],
         blockExplorerUrls: ['https://etherscan.io'],
         isNetworkExists: [],
@@ -1445,7 +1445,7 @@ describe('NetworkSettings', () => {
             {
               name: '',
               type: 'custom',
-              url: 'http://localhost:8080'
+              url: 'http://localhost:8080',
               failoverUrls: [],
             },
           ],
