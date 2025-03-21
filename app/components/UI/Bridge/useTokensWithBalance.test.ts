@@ -296,7 +296,9 @@ describe('useTokensWithBalance', () => {
   });
 
   it('should include native token with correct properties', async () => {
-    const { result } = renderHookWithProvider(() => useTokensWithBalance(), {
+    const { result } = renderHookWithProvider(() => useTokensWithBalance({
+      chainIds: [mockChainId, optimismChainId],
+    }), {
       state: initialState,
     });
 
@@ -316,7 +318,9 @@ describe('useTokensWithBalance', () => {
   });
 
   it('should show correct balances and fiat values for tokens', async () => {
-    const { result } = renderHookWithProvider(() => useTokensWithBalance(), {
+    const { result } = renderHookWithProvider(() => useTokensWithBalance({
+      chainIds: [mockChainId, optimismChainId],
+    }), {
       state: initialState,
     });
 
@@ -362,17 +366,10 @@ describe('useTokensWithBalance', () => {
   });
 
   it('should only show tokens for selected chains', async () => {
-    // Create a state with only the Ethereum chain selected
-    const stateWithOnlyEthereumSelected = {
-      ...initialState,
-      bridge: {
-        ...initialState.bridge,
-        selectedSourceChainIds: [mockChainId], // Only Ethereum chain selected
-      },
-    };
-
-    const { result } = renderHookWithProvider(() => useTokensWithBalance(), {
-      state: stateWithOnlyEthereumSelected,
+    const { result } = renderHookWithProvider(() => useTokensWithBalance({
+      chainIds: [mockChainId],
+    }), {
+      state: initialState,
     });
 
     await waitFor(() => {
@@ -420,7 +417,9 @@ describe('useTokensWithBalance', () => {
       },
     };
 
-    const { result } = renderHookWithProvider(() => useTokensWithBalance(), {
+    const { result } = renderHookWithProvider(() => useTokensWithBalance({
+      chainIds: [mockChainId, optimismChainId],
+    }), {
       state: stateWithSmallBalance,
     });
 
