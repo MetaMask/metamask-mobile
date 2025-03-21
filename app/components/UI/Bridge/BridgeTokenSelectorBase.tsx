@@ -10,7 +10,7 @@ import BottomSheet from '../../../component-library/components/BottomSheets/Bott
 import { TokenI } from '../Tokens/types';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
-import { TokenIWithFiatAmount } from './useSourceTokens';
+import { TokenIWithFiatAmount } from './useTokensWithBalance';
 import { strings } from '../../../../locales/i18n';
 import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
 import { useTokenSearch } from './useTokenSearch';

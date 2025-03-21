@@ -7,7 +7,7 @@ import { selectNetworkConfigurations } from '../../../selectors/networkControlle
 import { setDestToken } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
 import { TokenSelectorItem } from './TokenSelectorItem';
-import { TokenIWithFiatAmount } from './useSourceTokens';
+import { TokenIWithFiatAmount } from './useTokensWithBalance';
 import { BridgeDestNetworksBar } from './BridgeDestNetworksBar';
 import { useDestinationTokens } from './useDestinationTokens';
 import { BridgeTokenSelectorBase } from './BridgeTokenSelectorBase';
