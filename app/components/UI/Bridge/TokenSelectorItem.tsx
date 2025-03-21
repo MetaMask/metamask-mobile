@@ -114,7 +114,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       </AssetElement>
       {!shouldShowBalance && (
         <ButtonIcon
-          iconName={IconName.Info}
+          iconName={IconName.InfoHollow}
           size={ButtonIconSizes.Md}
           onPress={handleInfoButtonPress}
           iconColor={IconColor.Alternative}
