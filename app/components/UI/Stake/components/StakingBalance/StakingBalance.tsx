@@ -9,7 +9,9 @@ import { strings } from '../../../../../../locales/i18n';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
@@ -81,7 +83,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     isLoadingPooledStakesData,
   } = usePooledStakes();
 
-  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages()
+  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
 
   const {
     formattedStakedBalanceETH: stakedBalanceETH,
@@ -95,11 +97,13 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   const claimableWei = useMemo(
     () =>
-      claimableRequests.reduce(
-        (acc, { claimedAssets }) =>
-          claimedAssets ? acc.add(new BN4(claimedAssets)) : acc,
-        new BN4(0),
-      ).toString(),
+      claimableRequests
+        .reduce(
+          (acc, { claimedAssets }) =>
+            claimedAssets ? acc.add(new BN4(claimedAssets)) : acc,
+          new BN4(0),
+        )
+        .toString(),
     [claimableRequests],
   );
 
@@ -209,6 +213,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           balance={stakedBalanceFiat}
         >
           <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
             style={styles.badgeWrapper}
             badgeElement={
               <Badge
