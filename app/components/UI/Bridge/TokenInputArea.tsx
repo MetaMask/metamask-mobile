@@ -13,18 +13,6 @@ import { TokenI } from '../Tokens/types';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 
-interface TokenInputAreaProps {
-  amount?: string;
-  token?: TokenI;
-  tokenBalance?: string;
-  networkImageSource?: ImageSourcePropType;
-  networkName?: string;
-  autoFocus?: boolean;
-  isReadonly?: boolean;
-  testID?: string;
-  tokenType?: 'source' | 'destination';
-}
-
 const createStyles = () =>
   StyleSheet.create({
     container: {
@@ -90,6 +78,22 @@ export const getDisplayFiatValue = ({
   return `< ${addCurrencySymbol('0.01', currentCurrency)}`;
 };
 
+export enum TokenInputAreaType {
+  Source = 'source',
+  Destination = 'destination',
+}
+interface TokenInputAreaProps {
+  amount?: string;
+  token?: TokenI;
+  tokenBalance?: string;
+  networkImageSource?: ImageSourcePropType;
+  networkName?: string;
+  autoFocus?: boolean;
+  isReadonly?: boolean;
+  testID?: string;
+  tokenType?: TokenInputAreaType;
+}
+
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   amount,
   token,
@@ -126,7 +130,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   ) : undefined;
   const formattedAddress = token?.address ? formatAddress(token?.address) : undefined;
 
-  const subtitle = tokenType === 'source' ? formattedBalance : formattedAddress;
+  const subtitle = tokenType === TokenInputAreaType.Source ? formattedBalance : formattedAddress;
 
   return (
     <Box style={styles.container}>

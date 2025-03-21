@@ -3,7 +3,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import Keypad from '../../Base/Keypad';
-import { TokenInputArea } from './TokenInputArea';
+import { TokenInputArea, TokenInputAreaType } from './TokenInputArea';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -247,7 +247,7 @@ const BridgeView = () => {
             autoFocus
             isReadonly
             testID="source-token-area"
-            tokenType="source"
+            tokenType={TokenInputAreaType.Source}
           />
           <Box style={styles.arrowContainer}>
             <TouchableOpacity
@@ -265,7 +265,7 @@ const BridgeView = () => {
             networkImageSource={destChainId ? getNetworkImageSource({ chainId: destChainId as Hex }) : undefined}
             isReadonly
             testID="dest-token-area"
-            tokenType="destination"
+            tokenType={TokenInputAreaType.Destination}
           />
         </Box>
         <Button
