@@ -119,6 +119,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           onPress={handleInfoButtonPress}
           iconColor={IconColor.Alternative}
           style={styles.infoButton}
+          testID="token-info-button"
         />
       )}
     </Box>
