@@ -29,6 +29,7 @@ const MOCK_STORE_STATE = {
             rpcEndpoints: [
               {
                 url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                failoverUrls: [],
                 networkClientId: 'mainnet',
               },
             ],
@@ -46,6 +47,7 @@ const MOCK_STORE_STATE = {
             rpcEndpoints: [
               {
                 url: 'https://linea.infura.io/v3/{infuraProjectId}',
+                failoverUrls: [],
                 networkClientId: 'lineaMainnet',
               },
             ],
@@ -63,6 +65,7 @@ const MOCK_STORE_STATE = {
             rpcEndpoints: [
               {
                 url: 'https://test.infura.io/v3/{infuraProjectId}',
+                failoverUrls: [],
                 networkClientId: 'testMainnet',
               },
             ],
@@ -158,6 +161,7 @@ const mockNetworks: Record<Hex, NetworkConfiguration> = {
     rpcEndpoints: [
       {
         url: 'https://mainnet.infura.io/v3',
+        failoverUrls: [],
         networkClientId: NETWORK_CHAIN_ID.MAINNET,
         type: RpcEndpointType.Custom,
         name: 'Ethereum',
@@ -174,6 +178,7 @@ const mockNetworks: Record<Hex, NetworkConfiguration> = {
     rpcEndpoints: [
       {
         url: 'https://polygon-rpc.com',
+        failoverUrls: [],
         name: 'Polygon',
         networkClientId: NETWORK_CHAIN_ID.POLYGON,
         type: RpcEndpointType.Custom,

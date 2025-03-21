@@ -23,7 +23,6 @@ import imageIcons from '../../../../../images/image-icons';
 import Text from '../../../../Base/Text';
 import CustomNetwork from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import customNetworkStyles from '../../../../Views/Settings/NetworksSettings/NetworkSettings/styles';
-import { Network } from '../../../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
 import useFetchRampNetworks from '../../hooks/useFetchRampNetworks';
 import useRampNetwork from '../../hooks/useRampNetwork';
@@ -40,7 +39,10 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selector
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
-import { PopularList } from '../../../../../util/networks/customNetworks';
+import {
+  Network,
+  PopularList,
+} from '../../../../../util/networks/customNetworks';
 import { getDecimalChainId } from '../../../../../util/networks';
 
 function NetworkSwitcher() {
@@ -99,7 +101,11 @@ function NetworkSwitcher() {
         ({ chainId }) => toHex(chainId) === rampSupportedNetworkChainIdAsHex,
       );
       if (networkDetail) {
-        activeNetworkDetails.push(networkDetail);
+        activeNetworkDetails.push({
+          ...networkDetail,
+          chainId: toHex(networkDetail.chainId),
+          failoverRpcUrls: [],
+        });
       }
     });
 
