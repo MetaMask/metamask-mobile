@@ -10,6 +10,12 @@ import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { validate, Network } from 'bitcoin-address-validation';
+import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from './constants';
+import { formatAddress } from '../../util/address';
+import {
+  formatBlockExplorerAddressUrl,
+  formatBlockExplorerTransactionUrl,
+} from './networks';
 
 /**
  * Returns whether an account is an EVM account.
@@ -134,4 +140,65 @@ export function isBtcMainnetAddress(address: string): boolean {
  */
 export function isBtcTestnetAddress(address: string): boolean {
   return validate(address, Network.testnet);
+}
+
+/**
+ * Creates a transaction URL for block explorer based on network type
+ * Different networks have different URL patterns:
+ * Bitcoin Mainnet: https://blockstream.info/tx/{txId}
+ * Bitcoin Testnet: https://blockstream.info/testnet/tx/{txId}
+ * Solana Mainnet: https://explorer.solana.com/tx/{txId}
+ * Solana Devnet: https://explorer.solana.com/tx/{txId}?cluster=devnet
+ *
+ * @param txId - Transaction ID
+ * @param chainId - Network chain ID
+ * @returns Full URL to transaction in block explorer, or empty string if no explorer URL
+ */
+export const getTransactionUrl = (
+  txId: string,
+  chainId: CaipChainId,
+): string => {
+  const explorerUrls =
+    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[chainId];
+  if (!explorerUrls) {
+    return '';
+  }
+
+  return formatBlockExplorerTransactionUrl(explorerUrls, txId);
+};
+
+/**
+ * Creates an address URL for block explorer based on network type
+ * Different networks have different URL patterns:
+ * Bitcoin Mainnet: https://blockstream.info/address/{address}
+ * Bitcoin Testnet: https://blockstream.info/testnet/address/{address}
+ * Solana Mainnet: https://explorer.solana.com/address/{address}
+ * Solana Devnet: https://explorer.solana.com/address/{address}?cluster=devnet
+ *
+ * @param address - Wallet address
+ * @param chainId - Network chain ID
+ * @returns Full URL to address in block explorer, or empty string if no explorer URL
+ */
+export const getAddressUrl = (
+  address: string,
+  chainId: CaipChainId,
+): string => {
+  const explorerUrls =
+    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[chainId];
+  if (!explorerUrls) {
+    return '';
+  }
+
+  return formatBlockExplorerAddressUrl(explorerUrls, address);
+};
+
+/**
+ * Formats a shorten version of a transaction ID.
+ *
+ * @param txId - Transaction ID.
+ * @returns Formatted transaction ID.
+ */
+export function shortenTransactionId(txId: string) {
+  // For transactions we use a similar output for now, but shortenTransactionId will be added later.
+  return formatAddress(txId, 'short');
 }
