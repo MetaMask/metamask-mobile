@@ -52,6 +52,7 @@ import {
 import Logger from '../../util/Logger';
 import { handleMethodData } from '../../util/transaction-controller';
 import EthQuery from '@metamask/eth-query';
+import trackErrorAsAnalytics from '../metrics/TrackError/trackErrorAsAnalytics';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -366,7 +367,14 @@ export async function isSmartContractAddress(address, chainId, networkClientId =
   }
 
   const { NetworkController } = Engine.context;
-  const finalNetworkClientId = networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
+  let finalNetworkClientId
+  try {
+    finalNetworkClientId = networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
+  } catch (err) {
+    Logger.error(err, 'Error in isSmartContractAddress');
+    trackErrorAsAnalytics(`Unable to find network client id for chainId ${chainId}`, err.message);
+    return false;
+  }
   const ethQuery = new EthQuery(NetworkController.getNetworkClientById(finalNetworkClientId).provider);
 
   const code = address
