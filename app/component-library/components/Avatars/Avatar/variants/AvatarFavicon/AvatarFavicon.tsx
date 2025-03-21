@@ -15,6 +15,7 @@ import AvatarBase from '../../foundation/AvatarBase';
 import { isFaviconSVG } from '../../../../../../util/favicon';
 import {
   AVATARFAVICON_IMAGE_TESTID,
+  AVATARFAVICON_IMAGE_SVG_TESTID,
   DEFAULT_AVATARFAVICON_ERROR_ICON,
   DEFAULT_AVATARFAVICON_SIZE,
 } from './AvatarFavicon.constants';
@@ -94,7 +95,7 @@ const AvatarFavicon = ({
       const xml = decodeURIComponent(svgSource.slice(24));
       return (
         <SvgXml
-          testID={AVATARFAVICON_IMAGE_TESTID}
+          testID={AVATARFAVICON_IMAGE_SVG_TESTID}
           width="100%"
           height="100%"
           xml={xml}
@@ -106,7 +107,7 @@ const AvatarFavicon = ({
 
     return (
       <SvgUri
-        testID={AVATARFAVICON_IMAGE_TESTID}
+        testID={AVATARFAVICON_IMAGE_SVG_TESTID}
         width="100%"
         height="100%"
         uri={svgSource}
