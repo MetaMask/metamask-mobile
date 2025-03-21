@@ -208,9 +208,12 @@ export const sentryStateMask = {
       AuthenticationController: {
         isSignedIn: false,
         sessionData: {
+          token: {
+            accessToken: false,
+            expiresIn: true,
+            obtainedAt: true,
+          },
           profile: true,
-          accessToken: false,
-          expiresIn: true,
         },
       },
       UserStorageController: {
