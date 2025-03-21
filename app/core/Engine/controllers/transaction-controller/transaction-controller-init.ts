@@ -18,7 +18,9 @@ import Logger from '../../../../util/Logger';
 import { getGlobalChainId as getGlobalChainIdSelector } from '../../../../util/networks/global-network';
 import {
   submitSmartTransactionHook,
+  submitBatchSmartTransactionHook,
   type SubmitSmartTransactionRequest,
+  type SignedTransaction,
 } from '../../../../util/smart-transactions/smart-publish-hook';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
@@ -90,6 +92,15 @@ export const TransactionControllerInit: ControllerInitFunction<
               approvalController,
               initMessenger,
             }),
+          publishBatch: async (_request): Promise<any> =>
+            publishBatchHook({
+              getState,
+              transactionController,
+              smartTransactionsController,
+              approvalController,
+              initMessenger,
+              _request
+            }),
         },
         incomingTransactions: {
           isEnabled: () =>
@@ -146,6 +157,39 @@ function publishHook({
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
   return submitSmartTransactionHook({
     transactionMeta,
+    transactionController,
+    smartTransactionsController,
+    shouldUseSmartTransaction,
+    approvalController,
+    controllerMessenger:
+      initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
+    featureFlags: selectSwapsChainFeatureFlags(state),
+  });
+}
+
+function publishBatchHook({
+  getState,
+  transactionController,
+  smartTransactionsController,
+  approvalController,
+  initMessenger,
+  _request,
+}: {
+  transactionMeta: TransactionMeta;
+  getState: () => RootState;
+  transactionController: TransactionController;
+  smartTransactionsController: SmartTransactionsController;
+  approvalController: ApprovalController;
+  initMessenger: TransactionControllerInitMessenger;
+  _request: {
+    transactions: SignedTransaction[];
+  },
+}): Promise<{ results: { transactionHash: string }[] } | undefined> {
+  const state = getState();
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
+
+  return submitBatchSmartTransactionHook({
+    transactions: _request.transactions as SignedTransaction[],
     transactionController,
     smartTransactionsController,
     shouldUseSmartTransaction,
