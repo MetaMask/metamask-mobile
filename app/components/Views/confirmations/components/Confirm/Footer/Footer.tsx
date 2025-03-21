@@ -1,8 +1,9 @@
-import { TransactionType } from '@metamask/transaction-controller';
 import React, { useMemo } from 'react';
 import { Linking, View } from 'react-native';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
+import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
 import {
   ButtonSize,
   ButtonVariants,
@@ -14,11 +15,12 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import AppConstants from '../../../../../../core/AppConstants';
+import { useLedgerContext } from '../../../context/LedgerContext';
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
-import { useLedgerContext } from '../../../context/LedgerContext';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
+import { isStakingConfirmation } from '../../../utils/confirm';
 import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
 
@@ -30,14 +32,12 @@ export const Footer = () => {
   const { isLedgerAccount } = useLedgerContext();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
-  const isStakingConfirmation = [
-    TransactionType.stakingDeposit,
-    TransactionType.stakingUnstake,
-    TransactionType.stakingClaim,
-  ].includes(transactionMetadata?.type as TransactionType);
+  const isStakingConfirmationBool = isStakingConfirmation(
+    transactionMetadata?.type as string,
+  );
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,
-    isStakingConfirmation,
+    isStakingConfirmationBool,
   });
 
   const confirmButtonLabel = useMemo(() => {
@@ -76,7 +76,7 @@ export const Footer = () => {
         buttonPropsArray={buttons}
         style={styles.base}
       />
-      {isStakingConfirmation && (
+      {isStakingConfirmationBool && (
         <View style={styles.textContainer}>
           <Text variant={TextVariant.BodySM}>
             {strings('confirm.staking_footer.part1')}

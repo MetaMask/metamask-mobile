@@ -22,9 +22,13 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     accountName: {
       color: theme.colors.text.default,
-      ...fontStyles.normal,
+      ...fontStyles.bold,
       fontSize: 14,
-      fontWeight: '500',
+    },
+    accountLabel: {
+      borderRadius: 16,
+      marginStart: 8,
+      paddingHorizontal: 12,
     },
     accountLabel: {
       borderRadius: 16,
@@ -35,7 +39,6 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.normal,
       fontSize: 14,
-      fontWeight: '400',
     },
   });
 };

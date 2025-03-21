@@ -538,13 +538,6 @@ exports[`Wallet should render correctly 1`] = `
                     </RNGestureHandlerButton>
                   </View>
                 </View>
-                <View
-                  style={
-                    {
-                      "marginHorizontal": 4,
-                    }
-                  }
-                />
                 <TouchableOpacity
                   accessible={true}
                   activeOpacity={1}

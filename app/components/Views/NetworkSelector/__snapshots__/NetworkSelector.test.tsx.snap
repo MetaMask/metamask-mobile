@@ -479,6 +479,11 @@ exports[`Network Selector renders correctly 1`] = `
                           </View>
                           <View
                             onLayout={[Function]}
+                            style={
+                              {
+                                "minHeight": 667,
+                              }
+                            }
                           >
                             <RCTScrollView
                               collapsable={false}
@@ -1793,6 +1798,11 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                           </View>
                           <View
                             onLayout={[Function]}
+                            style={
+                              {
+                                "minHeight": 667,
+                              }
+                            }
                           >
                             <RCTScrollView
                               collapsable={false}

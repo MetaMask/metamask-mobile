@@ -1570,9 +1570,9 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
-    meta:	
-      bitrise.io:	
-        stack: osx-xcode-15.0.x	
+    meta:
+      bitrise.io:
+        stack: osx-xcode-15.0.x
         machine_type_id: g2.mac.large
   build_ios_release_and_upload_sourcemaps:
     envs:
@@ -1834,7 +1834,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 24.0.8215888
+      NDK_VERSION: 26.1.10909125
     - opts:
         is_expand: false
       QA_APK_NAME: app-qa-release
@@ -1861,16 +1861,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.42.1
+      VERSION_NAME: 7.43.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1631
+      VERSION_NUMBER: 1638
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.42.1
+      FLASK_VERSION_NAME: 7.43.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1631
+      FLASK_VERSION_NUMBER: 1638
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1897,7 +1897,7 @@ app:
       COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
-    stack: osx-xcode-15.0.x
+    stack: osx-xcode-16.2.x
     machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
@@ -1906,9 +1906,5 @@ trigger_map:
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
-  - tag: 'dev-e2e-*'
-    pipeline: pr_smoke_e2e_pipeline
-  - tag: 'v*.*.*-RC-*'
-    pipeline: release_e2e_pipeline
-  - push_branch: detox/address-regression-tests-slowdown
-    pipeline: multichain_permissions_e2e_pipeline
+  - tag: 'v*.*.*'
+    pipeline: create_qa_builds_pipeline
