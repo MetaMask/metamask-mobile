@@ -20,7 +20,10 @@ import { name } from './app.config.js';
 import { isE2E } from './app/util/test/utils.js';
 
 import { Performance } from './app/core/Performance';
-import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
+import {
+  handleCustomError,
+  setReactNativeDefaultHandler,
+} from './app/core/ErrorHandler';
 Performance.setupPerformanceObservers();
 
 LogBox.ignoreAllLogs();
@@ -90,7 +93,7 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
  */
 AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
-  isE2E ? Root : Sentry.wrap(Root),
+  Sentry.wrap(Root),
 );
 
 function setupGlobalErrorHandler() {
@@ -102,4 +105,3 @@ function setupGlobalErrorHandler() {
 }
 
 setupGlobalErrorHandler();
-
