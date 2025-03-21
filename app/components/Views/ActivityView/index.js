@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -17,20 +17,78 @@ import { selectAccountsByChainId } from '../../../selectors/accountTrackerContro
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useParams } from '../../../util/navigation/navUtils';
+import HeaderBase from '../../../component-library/components/HeaderBase';
+import { createTokenBottomSheetFilterNavDetails } from '../../UI/Tokens/TokensBottomSheet';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { isTestNet } from '../../../util/networks';
+import {
+  selectEvmChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+} from '../../../selectors/networkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectNetworkName } from '../../../selectors/networkInfos';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DEFAULT_HEADERBASE_TITLE_TEXTVARIANT } from '../../../component-library/components/HeaderBase/HeaderBase.constants';
+import { fontStyles } from '../../../styles/common';
 
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-});
+const createStyles = (colors, insets) =>
+  StyleSheet.create({
+    wrapper: {
+      flex: 1,
+    },
+    controlButtonOuterWrapper: {
+      flexDirection: 'row',
+      width: '100%',
+      justifyContent: 'space-between',
+      paddingVertical: 16,
+      paddingHorizontal: 8,
+    },
+    controlButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.muted,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      maxWidth: '60%',
+    },
+    controlButtonDisabled: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.muted,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      maxWidth: '60%',
+      opacity: 0.5,
+    },
+    header: {
+      backgroundColor: colors.background.default,
+      flexDirection: 'row',
+      marginTop: insets.top,
+      paddingHorizontal: 16,
+    },
+    title: { marginTop: 20, fontSize: 20, ...fontStyles.bold },
+  });
 
 const ActivityView = () => {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(colors, insets);
+
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  const currentChainId = useSelector(selectEvmChainId);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const networkName = useSelector(selectNetworkName);
   const hasOrders = useSelector((state) => getHasOrders(state) || false);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const tabViewRef = useRef();
@@ -57,6 +115,10 @@ const ActivityView = () => {
     trackEvent,
     createEventBuilder,
   ]);
+
+  const showFilterControls = () => {
+    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+  };
 
   useEffect(
     () => {
@@ -89,7 +151,38 @@ const ActivityView = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
+      <View style={styles.header}>
+        <Text
+          style={styles.title}
+          variant={DEFAULT_HEADERBASE_TITLE_TEXTVARIANT}
+        >
+          {strings('transactions_view.title')}
+        </Text>
+      </View>
       <View style={styles.wrapper}>
+        <View style={styles.controlButtonOuterWrapper}>
+          <ButtonBase
+            testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+            label={
+              <Text numberOfLines={1}>
+                {isAllNetworks && isPopularNetwork && isEvmSelected
+                  ? `${strings('app_settings.popular')} ${strings(
+                      'app_settings.networks',
+                    )}`
+                  : networkName ?? strings('wallet.current_network')}
+              </Text>
+            }
+            isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
+            onPress={isEvmSelected ? showFilterControls : () => null}
+            endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
+            style={
+              isTestNet(currentChainId) || !isPopularNetwork
+                ? styles.controlButtonDisabled
+                : styles.controlButton
+            }
+            disabled={isTestNet(currentChainId) || !isPopularNetwork}
+          />
+        </View>
         <ScrollableTabView
           ref={tabViewRef}
           renderTabBar={renderTabBar}
