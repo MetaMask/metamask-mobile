@@ -17,7 +17,7 @@ const createStyles = () => StyleSheet.create({
       fontWeight: '500',
     },
     nameWrapper: {
-      maxWidth: '50%',
+      flex: 1,
     },
     childrenWrapper: {
       flex: 1,
@@ -54,13 +54,15 @@ export const NetworkRow: React.FC<NetworkRowProps> = ({ chainId, chainName, chil
         <Text style={styles.chainName}>{chainName}</Text>
       </Box>
 
-      <Box
-        style={styles.childrenWrapper}
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.flexEnd}
-      >
-        {children}
-      </Box>
+      {children ? (
+        <Box
+          style={styles.childrenWrapper}
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.flexEnd}
+        >
+          {children}
+        </Box>
+      ) : null}
     </Box>
   );
 };
