@@ -91,6 +91,10 @@ jest.mock('../../../reducers/swaps', () => ({
   swapsControllerAndUserTokens: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock('../../../core/redux/slices/bridge', () => ({
+  selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
+}));
+
 jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn().mockReturnValue([]),
 }));
