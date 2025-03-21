@@ -176,6 +176,7 @@ const Routes = {
   },
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
+  SAMPLE_FEATURE: 'SampleFeature',
 };
 
 export default Routes;

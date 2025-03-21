@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DeveloperOptions should render correctly 1`] = `
+exports[`DeveloperOptions render matches snapshot 1`] = `
 <View
   style={
     {
@@ -446,6 +446,77 @@ exports[`DeveloperOptions should render correctly 1`] = `
                             }
                           >
                             Generate Trace Test
+                          </Text>
+                        </TouchableOpacity>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#141618",
+                              "fontFamily": "EuclidCircularB-Bold",
+                              "fontSize": 24,
+                              "fontWeight": "700",
+                              "letterSpacing": 0,
+                              "lineHeight": 32,
+                              "marginTop": 16,
+                            }
+                          }
+                        >
+                          Sample Feature
+                        </Text>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#6a737d",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 14,
+                              "fontWeight": "400",
+                              "letterSpacing": 0,
+                              "lineHeight": 22,
+                              "marginTop": 8,
+                            }
+                          }
+                        >
+                          A sample feature as a template for developers.
+                        </Text>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          onPressIn={[Function]}
+                          onPressOut={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "stretch",
+                              "backgroundColor": "transparent",
+                              "borderColor": "#0376c9",
+                              "borderRadius": 24,
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 48,
+                              "justifyContent": "center",
+                              "marginTop": 16,
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                        >
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#0376c9",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 14,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Navigate to Sample Feature
                           </Text>
                         </TouchableOpacity>
                       </View>

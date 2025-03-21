@@ -420,6 +420,9 @@ enum EVENT_NAME {
 
   // Tooltip
   TOOLTIP_OPENED = 'Tooltip Opened',
+
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
 }
 
 enum ACTIONS {
@@ -1005,6 +1008,9 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
+
+  // Sample feature
+  SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
 };
 
 /**

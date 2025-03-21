@@ -1169,7 +1169,9 @@
     "developer_options": {
       "title": "Developer Options",
       "generate_trace_test": "Generate Trace Test",
-      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+      "generate_trace_test_desc": "Generate a Developer Test Sentry trace.",
+      "navigate_to_sample_feature": "Navigate to Sample Feature",
+      "sample_feature_desc": "A sample feature as a template for developers."
     }
   },
   "aes_crypto_test_form": {
@@ -3764,5 +3766,9 @@
     "slippage": "Slippage",
     "apply": "Apply",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
-    }
+    },
+  "sample_feature": {
+    "title": "Sample Feature",
+    "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask."
+  }
 }
