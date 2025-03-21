@@ -232,6 +232,9 @@ export const getTestNetImageByChainId = (chainId) => {
   if (NETWORKS_CHAIN_ID.LINEA_SEPOLIA === chainId) {
     return networksWithImages?.['LINEA-SEPOLIA'];
   }
+  if (NETWORKS_CHAIN_ID.MEGAETH_TESTNET === chainId) {
+    return networksWithImages?.['MEGAETH-TESTNET'];
+  }
 };
 
 /**
