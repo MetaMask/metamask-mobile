@@ -21,6 +21,7 @@ import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
@@ -441,6 +442,18 @@ export class BackgroundBridge extends EventEmitter {
 
     // Sentry tracing middleware
     engine.push(createTracingMiddleware());
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    // These Snaps RPC methods are disabled in WalletConnect and SDK for now
+    if (this.isMMSDK || this.isWalletConnect) {
+      engine.push((req, _res, next, end) => {
+        if (['wallet_snap'].includes(req.method)) {
+          return end(rpcErrors.methodNotFound({ data: { method: req.method } }));
+        }
+        return next();
+      });
+    }
+    ///: END:ONLY_INCLUDE_IF
 
     // Append PermissionController middleware
     engine.push(
