@@ -360,19 +360,20 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabWindows = () => tabs.filter((tab) => !tab.isArchived).map((tab) => (
-    <BrowserTab
-      id={tab.id}
-      key={`tab_${tab.id}`}
-      initialUrl={tab.url}
-      linkType={tab.linkType}
-      updateTabInfo={updateTabInfo}
-      showTabs={showTabs}
-      newTab={newTab}
-      isInTabsView={route.params?.showTabs}
-      homePageUrl={homePageUrl()}
-    />
-  ));
+  const renderBrowserTabWindows = () =>
+    tabs.filter((tab) => !tab.isArchived).map((tab) => (
+      <BrowserTab
+        id={tab.id}
+        key={`tab_${tab.id}`}
+        initialUrl={tab.url}
+        linkType={tab.linkType}
+        updateTabInfo={updateTabInfo}
+        showTabs={showTabs}
+        newTab={newTab}
+        isInTabsView={route.params?.showTabs}
+        homePageUrl={homePageUrl()}
+      />
+    ));
 
   return (
     <View
