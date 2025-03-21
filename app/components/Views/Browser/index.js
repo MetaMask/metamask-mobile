@@ -29,14 +29,12 @@ import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appendURLParams } from '../../../util/browser';
-import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
+import { THUMB_WIDTH, THUMB_HEIGHT, IDLE_TIME_CALC_INTERVAL, IDLE_TIME_MAX } from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 
 const MAX_BROWSER_TABS = 5;
-const IDLE_TIME_MAX = 1000 * 60 * 2.5; // 2.5 minutes
-const IDLE_TIME_CALC_INTERVAL = 1000 * 30; // 30 seconds
 
 /**
  * Component that wraps all the browser
