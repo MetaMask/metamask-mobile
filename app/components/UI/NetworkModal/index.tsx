@@ -136,7 +136,7 @@ const NetworkModals = (props: NetworkProps) => {
     } else {
       PreferencesController.setTokenNetworkFilter({
         ...tokenNetworkFilter,
-        [customNetworkInformation.chainId]: true,
+        [customNetworkInformation.chainId]: 'true',
       });
     }
   }, [customNetworkInformation.chainId, isAllNetworks, tokenNetworkFilter]);
