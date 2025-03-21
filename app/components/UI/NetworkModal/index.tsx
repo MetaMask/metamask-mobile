@@ -134,9 +134,15 @@ const NetworkModals = (props: NetworkProps) => {
         [customNetworkInformation.chainId]: true,
       });
     } else {
+      const normalizedTokenNetworkFilter = Object.fromEntries(
+        Object.entries(tokenNetworkFilter).map(([key, value]) => [
+          key,
+          Boolean(value),
+        ]),
+      );
       PreferencesController.setTokenNetworkFilter({
-        ...tokenNetworkFilter,
-        [customNetworkInformation.chainId]: 'true',
+        ...normalizedTokenNetworkFilter,
+        [customNetworkInformation.chainId]: true,
       });
     }
   }, [customNetworkInformation.chainId, isAllNetworks, tokenNetworkFilter]);
