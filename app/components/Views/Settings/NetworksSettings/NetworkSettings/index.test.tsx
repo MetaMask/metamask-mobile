@@ -270,6 +270,7 @@ describe('NetworkSettings', () => {
               networkClientId: 'mainnet',
               type: 'Infura',
               url: 'https://mainnet.infura.io/v3/',
+              failoverUrls: [],
             },
           ],
           name: 'Ethereum Main Network',
@@ -1473,6 +1474,8 @@ describe('NetworkSettings', () => {
         name: 'Goerli',
         rpcEndpoints: [
           {
+            type: 'custom',
+            networkClientId: 'goerli',
             url: 'https://goerli.infura.io/v3/{infuraProjectId}',
             failoverUrls: [],
           },
@@ -1505,6 +1508,8 @@ describe('NetworkSettings', () => {
         name: 'Another Network',
         rpcEndpoints: [
           {
+            type: 'custom',
+            networkClientId: 'goerli',
             url: 'https://goerli.infura.io/v3/{infuraProjectId}',
             failoverUrls: [],
           },
