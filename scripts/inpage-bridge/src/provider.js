@@ -28,10 +28,17 @@ const init = () => {
     },
   });
 
+    // Initialize the multichain provider with wallet-standard
+    initializeMultichainProvider({
+      connectionStream: metamaskStream,
+    });
+
   // Set content script post-setup function
   Object.defineProperty(window, '_metamaskSetupProvider', {
     value: () => {
       setupProviderStreams();
+      // Also set up multichain streams
+      setupMultichainProviderStreams();
       delete window._metamaskSetupProvider;
     },
     configurable: true,
@@ -77,6 +84,38 @@ function setupProviderStreams() {
 
   // add web3 shim
   shimWeb3(window.ethereum);
+}
+
+// New function to set up multichain provider streams
+function setupMultichainProviderStreams() {
+  // Create dedicated streams for multichain communication
+  const multichainStream = pageMux.createStream('metamask-multichain');
+  const multichainBackgroundStream = appMux.createStream('metamask-multichain');
+  
+  // Connect the streams
+  pump(multichainStream, multichainBackgroundStream, multichainStream, (err) =>
+    logStreamDisconnectWarning('MetaMask Multichain Streams', err),
+  );
+
+  // Initialize wallet-standard adapters
+  setupWalletStandard(window.ethereum.multichain);
+}
+
+
+// Setup wallet-standard adapters for supported chains
+function setupWalletStandard(multichainProvider) {
+  // Register this provider with wallet-standard
+  if (window.navigator.wallets) {
+    window.navigator.wallets.register(multichainProvider);
+  } else {
+    window.navigator.wallets = {
+      register: (wallet) => {
+        window.navigator._wallets = window.navigator._wallets || [];
+        window.navigator._wallets.push(wallet);
+      }
+    };
+    window.navigator.wallets.register(multichainProvider);
+  }
 }
 
 /**

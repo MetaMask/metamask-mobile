@@ -472,10 +472,60 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
+    // Multichain middleware using the external package
+    engine.push(
+      createMultichainMiddleware({
+        origin: this.isMMSDK ? this.channelId : this.hostname,
+        messenger: Engine.controllerMessenger,
+        // The middleware handles routing to appropriate chain handlers
+      }),
+    );
+
     engine.push(createSanitizationMiddleware());
 
     // forward to metamask primary provider
     engine.push(providerAsMiddleware(proxyClient.provider));
+    return engine;
+  }
+
+  // ADDED: Setup dedicated multichain connection
+  setupMultichainConnection(outStream) {
+    // Create a separate engine for multichain requests
+    const multichainEngine = this.setupMultichainEngine();
+
+    // Setup connection
+    const multichainStream = createEngineStream({ engine: multichainEngine });
+
+    pump(outStream, multichainStream, outStream, (err) => {
+      multichainEngine.destroy();
+      if (err) Logger.log('Error with multichain provider stream', err);
+    });
+  }
+
+  // Setup multichain-specific provider engine
+  setupMultichainEngine() {
+    const engine = new JsonRpcEngine();
+
+    // Add multichain-specific middleware
+    engine.push(createOriginMiddleware({ origin: this.hostname }));
+    engine.push(createLoggerMiddleware({ origin: this.hostname }));
+
+    // Multichain permission middleware
+    engine.push(
+      Engine.context.PermissionController.createPermissionMiddleware({
+        origin: this.isMMSDK ? this.channelId : this.hostname,
+        methodPrefix: 'multichain_',
+      }),
+    );
+
+    // Add the multichain middleware that routes methods to appropriate handlers
+    engine.push(
+      createMultichainMiddleware({
+        origin: this.isMMSDK ? this.channelId : this.hostname,
+        messenger: Engine.controllerMessenger,
+      }),
+    );
+
     return engine;
   }
 
@@ -493,7 +543,9 @@ export class BackgroundBridge extends EventEmitter {
    */
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
-    const { PreferencesController: { selectedAddress } } = Engine.datamodel.state;
+    const {
+      PreferencesController: { selectedAddress },
+    } = Engine.datamodel.state;
     return {
       isInitialized: !!vault,
       isUnlocked: true,
