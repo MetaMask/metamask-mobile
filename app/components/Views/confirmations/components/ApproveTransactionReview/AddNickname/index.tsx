@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
@@ -8,7 +6,7 @@ import Engine from '../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 import { toChecksumAddress } from 'ethereumjs-util';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import StyledButton from '../../../../../UI/StyledButton';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import InfoModal from '../../../../../UI/Swaps/components/InfoModal';

@@ -852,6 +852,10 @@ class Approve extends PureComponent {
             address={address}
             savedContactListToArray={savedContactListToArray}
             addressNickname={addressNickname}
+            providerType={providerType}
+            providerChainId={chainId}
+            providerRpcTarget={providerRpcTarget}
+            networkConfigurations={networkConfigurations}
           />
         ) : this.state.isBlockExplorerVisible && !isNonEvmChainId(chainId) ? (
           <ShowBlockExplorer
