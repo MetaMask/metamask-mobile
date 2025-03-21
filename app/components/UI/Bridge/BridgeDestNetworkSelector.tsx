@@ -39,7 +39,6 @@ export const BridgeDestNetworkSelector: React.FC = () => {
           <TouchableOpacity
             key={chain.chainId}
             onPress={() => handleChainSelect(chain.chainId)}
-            testID={`chain-${chain.chainId}`}
           >
             <ListItem
               verticalAlignment={VerticalAlignment.Center}
