@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-  useMemo,
-} from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { connect, useSelector } from 'react-redux';
@@ -16,12 +10,8 @@ import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
-import {
-  selectChainId,
-  selectIsAllNetworks,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import Icon, {
   IconName,
@@ -102,19 +92,10 @@ function CollectibleContractElement({
   contractCollectibles,
   collectiblesVisible: propsCollectiblesVisible,
   onPress,
-  collectibleContracts: allCollectibleContracts,
   chainId, // todo fix this chainId for favorites to be retrieved from the collectible
   selectedAddress,
   removeFavoriteCollectible,
 }) {
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const collectibleContracts = useMemo(
-    () =>
-      isAllNetworks
-        ? Object.values(allCollectibleContracts).flat()
-        : allCollectibleContracts[chainId] || [],
-    [allCollectibleContracts, chainId, isAllNetworks],
-  );
   const [collectiblesGrid, setCollectiblesGrid] = useState([]);
   const [collectiblesVisible, setCollectiblesVisible] = useState(
     propsCollectiblesVisible,
@@ -131,12 +112,9 @@ function CollectibleContractElement({
 
   const onPressCollectible = useCallback(
     (collectible) => {
-      const contractName = collectibleContracts.find(
-        ({ address }) => address === collectible.address,
-      )?.name;
-      onPress(collectible, contractName || collectible.name);
+      onPress(collectible);
     },
-    [collectibleContracts, onPress],
+    [onPress],
   );
 
   const onLongPressCollectible = useCallback((collectible) => {
@@ -188,16 +166,9 @@ function CollectibleContractElement({
   const renderCollectible = useCallback(
     (collectible, index) => {
       if (!collectible) return null;
-      const name =
-        collectible.name ||
-        collectibleContracts.find(
-          ({ address }) => address === collectible.address,
-        )?.name;
-      const onPress = () => onPressCollectible({ ...collectible, name });
+      const onPress = () => onPressCollectible({ ...collectible });
       const onLongPress = () =>
-        !asset.favorites
-          ? onLongPressCollectible({ ...collectible, name })
-          : null;
+        !asset.favorites ? onLongPressCollectible({ ...collectible }) : null;
       return (
         <View
           key={collectible.address + collectible.tokenId}
@@ -212,26 +183,21 @@ function CollectibleContractElement({
             <View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
               <CollectibleMedia
                 style={styles.collectibleIcon}
-                collectible={{ ...collectible, name }}
+                collectible={{ ...collectible }}
                 onPressColectible={onPress}
-                isTokenImage
+                isTokenImage // todo: rename this to isNftImage for clarity
               />
             </View>
           </TouchableOpacity>
         </View>
       );
     },
-    [
-      asset.favorites,
-      collectibleContracts,
-      onPressCollectible,
-      onLongPressCollectible,
-      styles,
-    ],
+    [asset.favorites, onPressCollectible, onLongPressCollectible, styles],
   );
 
   useEffect(() => {
     const temp = splitIntoSubArrays(contractCollectibles, 3);
+
     setCollectiblesGrid(temp);
   }, [contractCollectibles, setCollectiblesGrid]);
 
@@ -323,7 +289,6 @@ CollectibleContractElement.propTypes = {
    * Called when the collectible is pressed
    */
   onPress: PropTypes.func,
-  collectibleContracts: PropTypes.array,
   /**
    * Selected address
    */
@@ -339,7 +304,6 @@ CollectibleContractElement.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  collectibleContracts: collectibleContractsSelector(state),
   chainId: selectChainId(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
 });
