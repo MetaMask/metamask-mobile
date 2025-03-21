@@ -41,6 +41,7 @@ import { QuoteResponse } from './types';
 import Engine from '../../../core/Engine';
 import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -94,17 +95,22 @@ const createStyles = (params: { theme: Theme }) => {
 
 // We get here through handleBridgeNavigation in AssetOverview and WalletActions
 const BridgeView = () => {
+  // The same as getUseExternalServices in Extension
+  const isBasicFunctionalityEnabled = useSelector(selectBasicFunctionalityEnabled);
+
   useEffect(() => {
     const setBridgeFeatureFlags = async () => {
       try {
-        await Engine.context.BridgeController.setBridgeFeatureFlags();
+        if (isBasicFunctionalityEnabled) {
+          await Engine.context.BridgeController.setBridgeFeatureFlags();
+        }
       } catch (error) {
         console.error('Error setting bridge feature flags', error);
       }
     };
 
     setBridgeFeatureFlags();
-  }, []);
+  }, [isBasicFunctionalityEnabled]);
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
