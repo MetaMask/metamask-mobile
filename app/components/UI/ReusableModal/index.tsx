@@ -17,6 +17,7 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
+  ReduceMotion,
   runOnJS,
   useAnimatedGestureHandler,
   useAnimatedStyle,
@@ -127,7 +128,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
 
         currentYOffset.value = withTiming(
           finalOffset,
-          { duration: SWIPE_TRIGGERED_ANIMATION_DURATION },
+          { duration: SWIPE_TRIGGERED_ANIMATION_DURATION, reduceMotion: ReduceMotion.Never },
           () => isDismissed && runOnJS(onHidden)(),
         );
       },
@@ -138,6 +139,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
       currentYOffset.value = screenHeight;
       currentYOffset.value = withTiming(visibleYOffset.value, {
         duration: INITIAL_RENDER_ANIMATION_DURATION,
+        reduceMotion: ReduceMotion.Never,
       });
       // Ref values do not affect deps.
       /* eslint-disable-next-line */
@@ -146,7 +148,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
     const hide = useCallback(() => {
       currentYOffset.value = withTiming(
         sheetHeight.value,
-        { duration: TAP_TRIGGERED_ANIMATION_DURATION },
+        { duration: TAP_TRIGGERED_ANIMATION_DURATION, reduceMotion: ReduceMotion.Never },
         () => runOnJS(onHidden)(),
       );
       // Ref values do not affect deps.

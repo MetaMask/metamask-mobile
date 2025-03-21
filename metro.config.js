@@ -6,9 +6,13 @@
  * @type {import('metro-config').MetroConfig}
  */
 
+
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const path = require('path');
+const {
+  wrapWithReanimatedMetroConfig,
+} = require('react-native-reanimated/metro-config');
 
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
@@ -16,7 +20,7 @@ module.exports = function (baseConfig) {
     resolver: { assetExts, sourceExts },
   } = defaultConfig;
 
-  return mergeConfig(defaultConfig, {
+  return wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, {
     resolver: {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
       sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
@@ -46,5 +50,5 @@ module.exports = function (baseConfig) {
       }),
     },
     resetCache: true,
-  });
+  }));
 };
