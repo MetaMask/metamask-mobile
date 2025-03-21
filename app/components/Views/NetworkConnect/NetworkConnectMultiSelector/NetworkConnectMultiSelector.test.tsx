@@ -7,8 +7,8 @@ import Engine from '../../../../core/Engine';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import {
-  selectNetworkConfigurations,
-  selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
+  selectEvmChainId,
 } from '../../../../selectors/networkController';
 
 const mockNavigate = jest.fn();
@@ -81,9 +81,9 @@ describe('NetworkConnectMultiSelector', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       // Use switch statement for better selector matching
       switch (selector) {
-        case selectNetworkConfigurations:
+        case selectEvmNetworkConfigurationsByChainId:
           return mockNetworkConfigurations;
-        case selectChainId:
+        case selectEvmChainId:
           return '0x1';
         default:
           return undefined;

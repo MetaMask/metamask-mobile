@@ -17,7 +17,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { useAccounts } from '../../../components/hooks/useAccounts';
+import { useAccounts } from '../../hooks/useAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { getPermittedAccounts } from '../../../core/Permissions';
@@ -26,12 +26,15 @@ import getAccountNameWithENS from '../../../util/accounts';
 import Tabs from '../../UI/Tabs';
 import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appendURLParams } from '../../../util/browser';
 import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
+import Routes from '../../../constants/navigation/Routes';
+
+const MAX_BROWSER_TABS = 5;
 
 /**
  * Component that wraps all the browser
@@ -57,7 +60,7 @@ export const Browser = (props) => {
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
-  const { accounts, ensByAccountAddress } = useAccounts();
+  const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -74,8 +77,13 @@ export const Browser = (props) => {
     }).href;
 
   const newTab = (url, linkType) => {
-    // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-    createNewTab(url || homePageUrl(), linkType);
+    // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+    if (tabs.length >= MAX_BROWSER_TABS) {
+      navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+    } else {
+      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+      createNewTab(url || homePageUrl(), linkType);
+    }
   };
 
   const updateTabInfo = (url, tabID) =>

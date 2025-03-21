@@ -2,7 +2,6 @@ import React from 'react';
 import NonEvmTokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { Cryptocurrency } from '@metamask/assets-controllers';
-import { MULTICHAIN_PROVIDER_CONFIGS } from '../../../core/Multichain/constants';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import {
   MOCK_SOLANA_ACCOUNT,
@@ -61,6 +60,15 @@ const initialState = {
           },
         },
       },
+      MultichainTransactionsController: {
+        nonEvmTransactions: {
+          [MOCK_SOLANA_ACCOUNT.id]: {
+            transactions: [],
+            next: null,
+            lastUpdated: 0,
+          },
+        },
+      },
       RatesController: {
         rates: {
           sol: {
@@ -72,20 +80,6 @@ const initialState = {
         fiatCurrency: 'usd',
         cryptocurrencies: ['sol' as Cryptocurrency],
       },
-      MultichainController: {
-        selectedNetwork: {
-          chainId: SolScope.Mainnet,
-          nickname: MULTICHAIN_PROVIDER_CONFIGS[SolScope.Mainnet].nickname,
-          isEvmNetwork: false,
-        },
-        defaultToken: {
-          symbol: 'SOL',
-          decimals: 9,
-          isNative: true,
-          name: MULTICHAIN_PROVIDER_CONFIGS[SolScope.Mainnet].nickname,
-        },
-        selectedAccountCachedBalance: '5.5',
-      },
       CurrencyRateController: {
         currentCurrency: 'USD',
         conversionRate: 100,
@@ -94,12 +88,26 @@ const initialState = {
         selectedAddress: MOCK_SOLANA_ACCOUNT.address,
         shouldShowFiat: true,
       },
+      MultichainNetworkController: {
+        isEvmSelected: false,
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+        multichainNetworkConfigurationsByChainId: {
+          [SolScope.Mainnet]: {
+            chainId: SolScope.Mainnet,
+            name: 'Solana Mainnet',
+            nativeCurrency:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:solAddress',
+            isEvm: false,
+          },
+        },
+      },
     },
   },
+
   settings: {
     showTestNetworks: true,
   },
-};
+} as unknown as RootState;
 
 const Stack = createStackNavigator();
 const renderComponent = (state: Partial<RootState> = {}) =>
@@ -124,15 +132,15 @@ describe('NonEvmTokens', () => {
 
   it('should display the Solana token with correct balance', async () => {
     const { getByTestId, getByText } = renderComponent();
-    expect(getByText('Solana')).toBeDefined();
-    const balanceText = getByTestId('fiat-balance-test-id');
+    expect(getByText('SOL')).toBeDefined();
+    const balanceText = getByTestId('secondary-balance-test-id');
     expect(balanceText.props.children).toBe('5.5 SOL');
   });
 
   it('should show fiat value', async () => {
     const { getByTestId } = renderComponent();
     // With balance 5.5 and conversion rate 100, fiat value should be $550.00
-    const balanceText = getByTestId('main-balance-test-id');
+    const balanceText = getByTestId('balance-test-id');
     expect(balanceText).toBeDefined();
   });
 

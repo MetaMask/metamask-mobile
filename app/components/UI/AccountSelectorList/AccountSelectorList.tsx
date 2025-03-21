@@ -115,16 +115,16 @@ const AccountSelectorList = ({
   const onLongPress = useCallback(
     ({
       address,
-      imported,
+      isAccountRemoveable,
       isSelected,
       index,
     }: {
       address: string;
-      imported: boolean;
+      isAccountRemoveable: boolean;
       isSelected: boolean;
       index: number;
     }) => {
-      if (!imported || !isRemoveAccountEnabled) return;
+      if (!isAccountRemoveable || !isRemoveAccountEnabled) return;
       Alert.alert(
         strings('accounts.remove_account_title'),
         strings('accounts.remove_account_message'),
@@ -146,7 +146,7 @@ const AccountSelectorList = ({
                       safeToChecksumAddress(accountAddress)
                     : isAccountSelected,
               ) as Account;
-              let nextActiveAddress = account?.address;
+              let nextActiveAddress = account.address;
               if (isSelected) {
                 const nextActiveIndex = index === 0 ? 1 : index - 1;
                 nextActiveAddress = accounts[nextActiveIndex]?.address;
@@ -230,7 +230,8 @@ const AccountSelectorList = ({
           onLongPress={() => {
             onLongPress({
               address,
-              imported: type === KeyringTypes.simple,
+              isAccountRemoveable:
+                type === KeyringTypes.simple || type === KeyringTypes.snap,
               isSelected: isSelectedAccount,
               index,
             });

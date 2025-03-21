@@ -25,7 +25,7 @@ import {
   getIsSwapApproveOrSwapTransaction,
   isApprovalTransaction,
 } from '../../../util/transactions';
-import { BN } from 'ethereumjs-util';
+import BN from 'bnjs4';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -40,7 +40,7 @@ import {
 } from '../../../util/address';
 
 import {
-  selectChainId,
+  selectEvmChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
@@ -74,6 +74,7 @@ import { updateSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapDialogApproval';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
@@ -536,6 +537,7 @@ const RootRPCMethodsUI = (props) => {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       }
       <InstallSnapApproval />
+      <SnapDialogApproval />
       {
         ///: END:ONLY_INCLUDE_IF
       }
@@ -583,7 +585,7 @@ RootRPCMethodsUI.propTypes = {
 
 const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
   tokens: selectTokens(state),
   providerType: selectProviderType(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),

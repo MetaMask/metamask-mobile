@@ -1,10 +1,5 @@
 import { CaipChainId } from '@metamask/utils';
 import {
-  isBtcMainnetAddress,
-  isBtcTestnetAddress,
-  isSolanaAddress,
-} from './utils';
-import {
   BtcAccountType,
   BtcScope,
   SolAccountType,
@@ -12,6 +7,7 @@ import {
 } from '@metamask/keyring-api';
 import BTC from '../../images/bitcoin-logo.png';
 import SOL from '../../images/solana-logo.png';
+import { MultichainBlockExplorerFormatUrls } from './networks';
 
 // Image imports for React Native rendering
 export const MULTICHAIN_TOKEN_IMAGES = {
@@ -45,89 +41,81 @@ export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
   [SolAccountType.DataAccount]: SolScope.Mainnet,
 } as const;
 
-export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP = {
-  [BtcScope.Mainnet]: 'https://blockstream.info/address',
-  [BtcScope.Testnet]: 'https://blockstream.info/testnet/address',
-  [SolScope.Mainnet]: 'https://explorer.solana.com/',
-  [SolScope.Devnet]: 'https://explorer.solana.com/?cluster=devnet',
-  [SolScope.Testnet]: 'https://explorer.solana.com/?cluster=testnet',
-} as const;
-
-export const MULTICHAIN_PROVIDER_CONFIGS: Record<
+export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
   CaipChainId,
-  MultichainProviderConfig
+  MultichainBlockExplorerFormatUrls
 > = {
   [BtcScope.Mainnet]: {
-    chainId: BtcScope.Mainnet,
-    rpcUrl: '', // not used
-    ticker: 'BTC',
-    nickname: 'Bitcoin',
-    id: 'btc-mainnet',
-    type: 'rpc',
-    decimal: 8,
-    rpcPrefs: {
-      blockExplorerUrl:
-        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[BtcScope.Mainnet],
-    },
-    isAddressCompatible: isBtcMainnetAddress,
+    url: 'https://mempool.space/',
+    address: 'https://mempool.space/address/{address}',
+    transaction: 'https://mempool.space/tx/{txId}',
   },
   [BtcScope.Testnet]: {
-    chainId: BtcScope.Testnet,
-    rpcUrl: '', // not used
-    ticker: 'BTC',
-    nickname: 'Bitcoin (testnet)',
-    id: 'btc-testnet',
-    type: 'rpc',
-    decimal: 8,
-    rpcPrefs: {
-      blockExplorerUrl:
-        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[BtcScope.Testnet],
-    },
-    isAddressCompatible: isBtcTestnetAddress,
+    url: 'https://mempool.space/',
+    address: 'https://mempool.space/testnet/address/{address}',
+    transaction: 'https://mempool.space/testnet/tx/{txId}',
   },
-  /**
-   * Solana
-   */
+
   [SolScope.Mainnet]: {
-    chainId: SolScope.Mainnet,
-    rpcUrl: '', // not used
-    ticker: 'SOL',
-    nickname: 'Solana',
-    id: 'solana-mainnet',
-    type: 'rpc',
-    decimal: 9,
-    rpcPrefs: {
-      blockExplorerUrl:
-        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[SolScope.Mainnet],
-    },
-    isAddressCompatible: isSolanaAddress,
+    url: 'https://explorer.solana.com',
+    address: 'https://explorer.solana.com/address/{address}',
+    transaction: 'https://explorer.solana.com/tx/{txId}',
   },
   [SolScope.Devnet]: {
-    chainId: SolScope.Devnet,
-    rpcUrl: '', // not used
-    ticker: 'SOL',
-    nickname: 'Solana (devnet)',
-    id: 'solana-devnet',
-    type: 'rpc',
-    decimal: 9,
-    rpcPrefs: {
-      blockExplorerUrl:
-        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[SolScope.Devnet],
-    },
-    isAddressCompatible: isSolanaAddress,
+    url: 'https://explorer.solana.com',
+    address: 'https://explorer.solana.com/address/{address}?cluster=devnet',
+    transaction: 'https://explorer.solana.com/tx/{txId}?cluster=devnet',
   },
   [SolScope.Testnet]: {
-    chainId: SolScope.Testnet,
-    rpcUrl: '', // not used
-    ticker: 'SOL',
-    nickname: 'Solana (testnet)',
-    id: 'solana-testnet',
-    type: 'rpc',
-    decimal: 9,
-    rpcPrefs: {
-      blockExplorerUrl:
-        MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP[SolScope.Testnet],
-    },
-    isAddressCompatible: isSolanaAddress,
+    url: 'https://explorer.solana.com',
+    address: 'https://explorer.solana.com/address/{address}?cluster=testnet',
+    transaction: 'https://explorer.solana.com/tx/{txId}?cluster=testnet',
   },
-};
+} as const;
+
+export const PRICE_API_CURRENCIES = [
+  'aud',
+  'hkd',
+  'sgd',
+  'idr',
+  'inr',
+  'nzd',
+  'php',
+  'btc',
+  'cad',
+  'eur',
+  'gbp',
+  'jpy',
+  'ltc',
+  'rub',
+  'uah',
+  'usd',
+  'xlm',
+  'xrp',
+  'sek',
+  'aed',
+  'ars',
+  'bch',
+  'bnb',
+  'brl',
+  'clp',
+  'cny',
+  'czk',
+  'dkk',
+  'chf',
+  'dot',
+  'eos',
+  'eth',
+  'gel',
+  'huf',
+  'ils',
+  'krw',
+  'mxn',
+  'myr',
+  'ngn',
+  'nok',
+  'pln',
+  'thb',
+  'try',
+  'zar',
+];

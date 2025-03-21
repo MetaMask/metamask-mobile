@@ -12,7 +12,6 @@ import { sanitizeString } from '../../../../../../../util/string';
 import { getSIWEDetails, SIWEMessage } from '../../../../utils/signature';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import Address from '../../../UI/InfoRow/InfoValue/Address';
-import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
 import InfoDate from '../../../UI/InfoRow/InfoValue/InfoDate';
 import InfoRow from '../../../UI/InfoRow';
 import Network from '../../../UI/InfoRow/InfoValue/Network';
@@ -59,9 +58,7 @@ const DetailedSIWEMessage = ({
   return (
     <View>
       <Text style={styles.siweTos}>{parsedMessage?.statement}</Text>
-      <InfoRow label={strings('confirm.siwe_message.url')}>
-        <DisplayURL url={uri} />
-      </InfoRow>
+      <InfoRow label={strings('confirm.siwe_message.url')}>{uri}</InfoRow>
       <InfoRow label={strings('confirm.siwe_message.network')}>
         <Network chainId={numberToHex(parseInt(chainId))} />
       </InfoRow>

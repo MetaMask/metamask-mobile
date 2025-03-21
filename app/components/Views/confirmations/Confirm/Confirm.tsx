@@ -1,40 +1,67 @@
 import React from 'react';
-import { View } from 'react-native';
-
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
-import BottomModal from '../components/UI/BottomModal';
-import Footer from '../components/Confirm/Footer';
+import { UnstakeConfirmationViewProps } from '../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
+import { Footer } from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
-import { ScrollContextProvider } from '../context/ScrollContext';
-import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
-import Title from '../components/Confirm/Title';
+import { LedgerContextProvider } from '../context/LedgerContext';
 import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
+import Title from '../components/Confirm/Title';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmActions } from '../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import styleSheet from './Confirm.styles';
+import { AlertsContextProvider } from '../AlertSystem/context';
+import useConfirmationAlerts from '../hooks/useConfirmationAlerts';
+import { Alert } from '../types/alerts';
+import GeneralAlertBanner from '../AlertSystem/GeneralAlertBanner';
+import MultipleAlertModal from '../AlertSystem/MultipleAlertModal';
 
-const ConfirmWrapped = () => (
-  <QRHardwareContextProvider>
-    <Title />
-    <ScrollContextProvider
-      scrollableSection={
-        <>
-          <SignatureBlockaidBanner />
-          <Info />
-        </>
-      }
-      staticFooter={<Footer />}
-    ></ScrollContextProvider>
-  </QRHardwareContextProvider>
+const ConfirmWrapped = ({
+  styles,
+  route,
+  alerts,
+}: {
+  styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+  route?: UnstakeConfirmationViewProps['route'];
+  alerts: Alert[];
+}) => (
+  <AlertsContextProvider alerts={alerts}>
+    <QRHardwareContextProvider>
+      <LedgerContextProvider>
+        <Title />
+        <ScrollView style={styles.scrollView}>
+          <TouchableWithoutFeedback>
+            <>
+              <GeneralAlertBanner />
+              <Info route={route} />
+            </>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+        <Footer />
+      </LedgerContextProvider>
+      <MultipleAlertModal />
+    </QRHardwareContextProvider>
+  </AlertsContextProvider>
 );
 
-export const Confirm = () => {
+interface ConfirmProps {
+  route?: UnstakeConfirmationViewProps['route'];
+}
+
+export const Confirm = ({ route }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const { onReject } = useConfirmActions();
+  const alerts = useConfirmationAlerts();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -45,16 +72,21 @@ export const Confirm = () => {
   if (isFlatConfirmation) {
     return (
       <View style={styles.flatContainer} testID="flat-confirmation-container">
-        <ConfirmWrapped />
+        <ConfirmWrapped styles={styles} route={route} alerts={alerts} />
       </View>
     );
   }
 
   return (
-    <BottomModal onClose={onReject} testID="modal-confirmation-container">
-      <View style={styles.modalContainer} testID={approvalRequest?.type}>
-        <ConfirmWrapped />
+    <BottomSheet
+      onClose={onReject}
+      shouldNavigateBack={false}
+      style={styles.bottomSheetDialogSheet}
+      testID="modal-confirmation-container"
+    >
+      <View testID={approvalRequest?.type} style={styles.confirmContainer}>
+        <ConfirmWrapped styles={styles} route={route} alerts={alerts} />
       </View>
-    </BottomModal>
+    </BottomSheet>
   );
 };

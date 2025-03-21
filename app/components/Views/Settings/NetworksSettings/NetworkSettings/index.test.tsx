@@ -58,14 +58,14 @@ jest.mock('../../../../../core/Engine', () => ({
       removeNetwork: jest.fn(),
       updateNetwork: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
     PreferencesController: {
       setTokenNetworkFilter: jest.fn(),
-    },
-    MultichainNetworkController: {
-      setActiveNetwork: jest.fn(),
     },
   },
 }));

@@ -47,6 +47,14 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.MAX_LIMIT_ERROR);
   }
 
+  get insufficientBalanceErrorMessage() {
+    return Matchers.getElementByID(BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR);
+  }
+
+  get keypadDeleteButton() {
+    return Matchers.getElementByID(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON);
+  }
+
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }
@@ -69,13 +77,13 @@ class BuildQuoteView {
     await Gestures.waitAndTap(this.selectCurrencyDropdown);
   }
 
-  async enterFiatAmount(amount) {
-    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT))
+  async enterAmount(amount) {
+    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT));
     for (let digit = 0; digit < amount.length; digit++) {
       const numberButton = Matchers.getElementByText(amount[digit]);
       await Gestures.waitAndTap(numberButton);
     }
-    await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON))
+    await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON));
   }
 
   async tapGetQuotesButton() {
@@ -89,6 +97,13 @@ class BuildQuoteView {
 
   async tapRegionSelector() {
     await Gestures.waitAndTap(this.regionDropdown);
+  }
+
+  async tapKeypadDeleteButton(times) {
+    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT));
+    for (let i = 0; i < times; i++) {
+      await Gestures.waitAndTap(this.keypadDeleteButton);
+    }
   }
 }
 

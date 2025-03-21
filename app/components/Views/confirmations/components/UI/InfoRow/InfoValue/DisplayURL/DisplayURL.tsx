@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import Icon, {
@@ -7,7 +7,6 @@ import Icon, {
   IconSize,
 } from '../../../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../../../component-library/components/Texts/Text';
-import Logger from '../../../../../../../../util/Logger';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import styleSheet from './DisplayURL.styles';
 
@@ -15,19 +14,26 @@ interface DisplayURLProps {
   url: string;
 }
 
+function extractHostname(url: string) {
+  // eslint-disable-next-line no-useless-escape
+  const match = url.match(/^(?:https?:\/\/)?([^\/:]+)/);
+  return match ? match[1] : null;
+}
+
 const DisplayURL = ({ url }: DisplayURLProps) => {
-  let urlObject;
+  const [isHTTP, setIsHTTP] = useState(false);
 
-  try {
-    urlObject = new URL(url);
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    Logger.error(e as Error, `DisplayURL: new URL(url) cannot parse ${url}`);
-  }
+  useEffect(() => {
+    let urlObject;
+    try {
+      urlObject = new URL(url);
+    } catch (e) {
+      console.error(e as Error, `DisplayURL: new URL(url) cannot parse ${url}`);
+    }
+    setIsHTTP(urlObject?.protocol === 'http:');
+  }, [url]);
 
-  const isHTTP = urlObject?.protocol === 'http:';
-
-  const urlWithoutProtocol = url?.replace(/https?:\/\//u, '');
+  const hostName = extractHostname(url);
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -43,7 +49,7 @@ const DisplayURL = ({ url }: DisplayURLProps) => {
           <Text style={styles.warningText}>HTTP</Text>
         </View>
       )}
-      <Text style={styles.value}>{urlWithoutProtocol}</Text>
+      <Text style={styles.value}>{hostName}</Text>
     </View>
   );
 };

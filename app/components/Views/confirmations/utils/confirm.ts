@@ -1,3 +1,5 @@
+import { TransactionType } from '@metamask/transaction-controller';
+
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 
 export const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
@@ -9,3 +11,10 @@ export function isSignatureRequest(requestType: string) {
   ].includes(requestType as ApprovalTypes);
 }
 
+export function isStakingConfirmation(requestType: string) {
+  return [
+    TransactionType.stakingDeposit,
+    TransactionType.stakingUnstake,
+    TransactionType.stakingClaim,
+  ].includes(requestType as TransactionType);
+}

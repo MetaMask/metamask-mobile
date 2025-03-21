@@ -13,7 +13,7 @@ import { fontStyles } from '../../../../styles/common';
 import { useDispatch, useSelector } from 'react-redux';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectEvmChainId } from '../../../../selectors/networkController';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
@@ -27,7 +27,9 @@ import { selectTokenMarketData } from '../../../../selectors/tokenRatesControlle
 import { selectTokensBalances } from '../../../../selectors/tokenBalancesController';
 import { Colors } from '../../../../util/theme/models';
 import { Hex } from '@metamask/utils';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
@@ -108,7 +110,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const styles = createStyles(colors);
   const [expandTokenList, setExpandTokenList] = useState(false);
   const tokenExchangeRatesAllChains = useSelector(selectTokenMarketData);
-  const currentChainId = useSelector(selectChainId);
+  const currentChainId = useSelector(selectEvmChainId);
   const tokenExchangeRates = tokenExchangeRatesAllChains[token.chainId];
   const tokenBalancesAllChains = useSelector(selectTokensBalances);
   const balanceAllChainsForAccount =
@@ -169,6 +171,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   return (
     <View style={styles.tokenContainer}>
       <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}

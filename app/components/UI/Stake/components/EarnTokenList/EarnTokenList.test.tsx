@@ -11,7 +11,7 @@ import {
   MOCK_USDC_BASE_MAINNET_ASSET,
 } from '../../__mocks__/mockData';
 import Engine from '../../../../../core/Engine';
-import * as tokenUtils from '../../utils/token';
+import * as tokenUtils from '../../../Earn/utils/token';
 import * as useStakingEligibilityHook from '../../hooks/useStakingEligibility';
 import * as stakeConstants from '../../constants';
 import * as portfolioNetworkUtils from '../../../../../util/networks';
@@ -50,6 +50,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: jest.fn(),
     }),
   };
 });
@@ -280,6 +281,8 @@ describe('EarnTokenList', () => {
           symbol: 'Ethereum',
           ticker: 'ETH',
           tokenBalanceFormatted: ' ETH',
+          apr: '2.3',
+          estimatedAnnualRewardsFormatted: '',
         },
       },
       screen: 'Stake',
@@ -321,6 +324,8 @@ describe('EarnTokenList', () => {
           symbol: 'USDC',
           ticker: 'USDC',
           tokenBalanceFormatted: 'tokenBalanceLoading',
+          apr: '4.5',
+          estimatedAnnualRewardsFormatted: '',
         },
       },
       screen: 'Stake',

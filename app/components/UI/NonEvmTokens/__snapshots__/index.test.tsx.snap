@@ -319,7 +319,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                 "isETH": false,
                                 "isNative": true,
                                 "logo": undefined,
-                                "name": "Solana",
+                                "name": "SOL",
                                 "symbol": "SOL",
                                 "ticker": "SOL",
                               },
@@ -339,7 +339,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                             "isETH": false,
                             "isNative": true,
                             "logo": undefined,
-                            "name": "Solana",
+                            "name": "SOL",
                             "symbol": "SOL",
                             "ticker": "SOL",
                           },
@@ -396,80 +396,67 @@ exports[`NonEvmTokens should render correctly 1`] = `
                             testID="asset-SOL"
                           >
                             <View
-                              style={
-                                [
-                                  {
-                                    "borderRadius": 12,
-                                    "height": 24,
-                                    "width": 24,
-                                  },
-                                  undefined,
-                                  false,
-                                  false,
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#f2f4f6",
-                                    "justifyContent": "center",
-                                  },
-                                  {
-                                    "borderRadius": 16,
-                                    "height": 32,
-                                    "overflow": "hidden",
-                                    "width": 32,
-                                  },
-                                ]
-                              }
-                              testID="PLACE HOLDER"
+                              useNativeDriver={true}
                             >
-                              <Text
+                              <Image
+                                fadeIn={true}
+                                onError={[Function]}
+                                onLoadEnd={[Function]}
+                                source={
+                                  {
+                                    "uri": "",
+                                  }
+                                }
                                 style={
                                   [
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 30,
-                                      "fontWeight": "400",
-                                      "marginVertical": 2,
+                                      "borderRadius": 12,
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    undefined,
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontSize": 16,
-                                        "textAlign": "center",
-                                        "textAlignVertical": "center",
-                                      },
-                                      undefined,
-                                      false,
-                                      false,
-                                    ],
+                                    false,
+                                    false,
+                                    {
+                                      "borderRadius": 16,
+                                      "height": 32,
+                                      "overflow": "hidden",
+                                      "width": 32,
+                                    },
                                   ]
                                 }
+                                testID="PLACE HOLDER"
+                              />
+                              <View
+                                collapsable={false}
+                                style={
+                                  {
+                                    "bottom": 0,
+                                    "left": 0,
+                                    "opacity": 1,
+                                    "position": "absolute",
+                                    "right": 0,
+                                    "top": 0,
+                                  }
+                                }
                               >
-                                S
-                              </Text>
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      },
+                                      {
+                                        "backgroundColor": "#eee",
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                />
+                              </View>
                             </View>
                             <View
                               style={
@@ -500,7 +487,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  Solana
+                                  SOL
                                 </Text>
                               </View>
                             </View>
@@ -554,25 +541,7 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                     "lineHeight": 24,
                                   }
                                 }
-                                testID="fiat-balance-test-id"
-                              >
-                                5.5 SOL
-                              </Text>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#6a737d",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                    "paddingHorizontal": 0,
-                                    "textTransform": "uppercase",
-                                  }
-                                }
-                                testID="main-balance-test-id"
+                                testID="balance-test-id"
                               >
                                 <View
                                   style={
@@ -603,6 +572,24 @@ exports[`NonEvmTokens should render correctly 1`] = `
                                     ]
                                   }
                                 />
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#6a737d",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                    "paddingHorizontal": 0,
+                                    "textTransform": "uppercase",
+                                  }
+                                }
+                                testID="secondary-balance-test-id"
+                              >
+                                5.5 SOL
                               </Text>
                             </View>
                           </TouchableOpacity>

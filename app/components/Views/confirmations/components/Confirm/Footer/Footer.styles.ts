@@ -1,43 +1,38 @@
+import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../../util/theme/models';
+import Device from '../../../../../../util/device';
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { confirmDisabled: boolean; isStakingConfirmation: boolean };
+  vars: { isStakingConfirmationBool: boolean };
 }) => {
   const {
-    theme,
-    vars: { confirmDisabled, isStakingConfirmation },
+    theme: { colors },
+    vars: { isStakingConfirmationBool },
   } = params;
 
+  const basePaddingBottom = Device.isIos() 
+    ? (isStakingConfirmationBool ? 16 : 8) 
+    : (isStakingConfirmationBool ? 36 : 28);
+
   return StyleSheet.create({
-    rejectButton: {
-      flex: 1,
-    },
-    confirmButton: {
-      flex: 1,
-      opacity: confirmDisabled ? 0.5 : 1,
-    },
-    divider: {
-      height: 1,
-      backgroundColor: theme.colors.border.muted,
-    },
-    buttonsContainer: {
-      flexDirection: 'row',
+    base: {
+      backgroundColor: colors.background.alternative,
+      paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: isStakingConfirmation ? 6 : 16,
-    },
-    buttonDivider: {
-      width: 8,
+      paddingBottom: basePaddingBottom,
     },
     linkText: {
       textDecorationLine: 'underline',
     },
-    textContainer: {
+    bottomTextContainer: {
+      flexDirection: 'column',
+      justifyContent: 'center',
+      marginBottom: 12,
+    },
+    bottomTextContainerLine: {
       flexDirection: 'row',
       justifyContent: 'center',
-      flexWrap: 'wrap',
-      marginBottom: 24,
     },
   });
 };

@@ -1,16 +1,53 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
-import AdvancedDetails from '../../AdvancedDetails/AdvancedDetails';
-import FlatNavHeader from '../../FlatNavHeader';
-import StakingDetails from '../../StakingDetails';
+import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
+import useClearConfirmationOnBackSwipe from '../../../../hooks/useClearConfirmationOnBackSwipe';
+import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
+import useNavbar from '../../../../hooks/useNavbar';
+import { useTokenValues } from '../../../../hooks/useTokenValues';
+import InfoSectionAccordion from '../../../UI/InfoSectionAccordion';
+import StakingContractInteractionDetails from '../../StakingContractInteractionDetails/StakingContractInteractionDetails';
+import StakingDetails from '../../StakingDetails/StakingDetails';
 import TokenHero from '../../TokenHero';
+import GasFeesDetails from '../GasFeesDetails';
 
-const StakingDeposit = () => (
-  <>
-    <FlatNavHeader title={strings('stake.stake')} />
-    <TokenHero />
-    <StakingDetails />
-    <AdvancedDetails />
-  </>
-);
+const StakingDeposit = () => {
+  useNavbar(strings('stake.stake'));
+  useClearConfirmationOnBackSwipe();
+
+  const {
+    trackAdvancedDetailsToggledEvent,
+    trackPageViewedEvent,
+    setConfirmationMetric,
+  } = useConfirmationMetricEvents();
+  const { tokenAmountDisplayValue } = useTokenValues();
+  useEffect(() => {
+    setConfirmationMetric({
+      properties: {
+        selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        transaction_amount_eth: tokenAmountDisplayValue,
+      },
+    });
+  }, [tokenAmountDisplayValue, setConfirmationMetric]);
+
+  useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
+  
+  const handleAdvancedDetailsToggledEvent = (isExpanded: boolean) => {
+    trackAdvancedDetailsToggledEvent({ isExpanded });
+  };
+
+  return (
+    <>
+      <TokenHero />
+      <StakingDetails />
+      <GasFeesDetails />
+      <InfoSectionAccordion
+        onStateChange={handleAdvancedDetailsToggledEvent}
+        header={strings('stake.advanced_details')}
+      >
+        <StakingContractInteractionDetails />
+      </InfoSectionAccordion>
+    </>
+  );
+};
 export default StakingDeposit;

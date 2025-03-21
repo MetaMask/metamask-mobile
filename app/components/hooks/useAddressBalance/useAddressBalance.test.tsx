@@ -8,7 +8,8 @@ import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
 import backgroundState from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import { BN } from 'ethereumjs-util';
+import { SolScope } from '@metamask/keyring-api';
+import type BN5 from 'bnjs5';
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
 
@@ -46,6 +47,12 @@ const mockInitialState = {
         selectedAddress: MOCK_ADDRESS_1,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      MultichainNetworkController: {
+        isEvmSelected: true,
+        selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+        multichainNetworkConfigurationsByChainId: {},
+      },
     },
   },
 };
@@ -69,7 +76,7 @@ describe('useAddressBalance', () => {
     address: string,
     selectedAddress: string,
     networkClientId?: string | undefined,
-  ) => Promise<BN>;
+  ) => Promise<BN5>;
   beforeEach(() => {
     mockGetERC20BalanceOf = jest
       .fn()
