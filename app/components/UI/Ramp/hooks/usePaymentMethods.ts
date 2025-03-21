@@ -37,7 +37,7 @@ function usePaymentMethods() {
 
             const cryptoCurrencies = await sdk?.[cryptoCurrenciesMethod](
               selectedRegion.id,
-              method.id,
+              [method.id],
             );
             if (
               cryptoCurrencies?.some(
