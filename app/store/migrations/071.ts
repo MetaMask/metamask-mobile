@@ -147,15 +147,12 @@ function updateState(state: unknown) {
   const { networkConfigurationsByChainId } =
     state.engine.backgroundState.NetworkController;
 
-  for (const [
-    chainId,
-    { subdomain, getFailoverUrl },
-  ] of INFURA_CHAINS_WITH_FAILOVERS) {
-    const networkConfiguration = networkConfigurationsByChainId[chainId];
-
-    if (!networkConfiguration) {
-      continue;
-    }
+  for (const [chainId, networkConfiguration] of Object.entries(
+    networkConfigurationsByChainId,
+  )) {
+    const infuraChainWithFailover = INFURA_CHAINS_WITH_FAILOVERS.get(
+      chainId as Hex,
+    );
 
     if (
       !isObject(networkConfiguration) ||
@@ -186,9 +183,12 @@ function updateState(state: unknown) {
             'u',
           ),
         );
-        const isInfuraLike = match && match[1] === subdomain;
+        const isInfuraLike =
+          match &&
+          infuraChainWithFailover &&
+          match[1] === infuraChainWithFailover.subdomain;
 
-        const failoverUrl = getFailoverUrl();
+        const failoverUrl = infuraChainWithFailover?.getFailoverUrl();
 
         const failoverUrls =
           failoverUrl &&

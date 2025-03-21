@@ -343,7 +343,7 @@ describe(`Migration #${VERSION}`, () => {
         backgroundState: {
           NetworkController: {
             networkConfigurationsByChainId: {
-              '0x1': {
+              '0x539': {
                 rpcEndpoints: [
                   {
                     type: RpcEndpointType.Custom,
@@ -369,7 +369,7 @@ describe(`Migration #${VERSION}`, () => {
         backgroundState: {
           NetworkController: {
             networkConfigurationsByChainId: {
-              '0x1': {
+              '0x539': {
                 rpcEndpoints: [
                   {
                     type: RpcEndpointType.Custom,
