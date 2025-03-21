@@ -19,7 +19,6 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
 import TabThumbnail from './TabThumbnail';
-import Logger from '../../../util/Logger';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -189,6 +188,7 @@ class Tabs extends PureComponent {
       });
 
       // Calculate the row
+
       const row = index + 1;
 
       // Scroll if needed
@@ -288,9 +288,7 @@ class Tabs extends PureComponent {
       <View style={styles.tabActions}>
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionleft]}
-          onPress={() => {
-            closeAllTabs();
-          }}
+          onPress={closeAllTabs}
           testID={BrowserViewSelectorsIDs.CLOSE_ALL_TABS}
         >
           <Text
@@ -318,9 +316,7 @@ class Tabs extends PureComponent {
 
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionRight]}
-          onPress={() => {
-            closeTabsView();
-          }}
+          onPress={closeTabsView}
           testID={BrowserViewSelectorsIDs.DONE_BUTTON}
         >
           <Text
