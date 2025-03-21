@@ -22,13 +22,13 @@ const styleSheet = (params: {
       paddingTop: 16,
     },
     content: {
-      padding: 12,
+      padding: 16,
       backgroundColor: theme.colors.error.muted,
       borderRadius: 8,
       marginVertical: 8,
     },
     headerContainer: {
-      paddingTop: 12,
+      paddingTop: 16,
     },
     footerButton: {
       flex: 1,
@@ -50,17 +50,12 @@ const styleSheet = (params: {
       paddingLeft: 16,
     },
     checkboxContainer: {
-      marginTop: 8,
+      marginTop: 12,
       backgroundColor: theme.colors.error.muted,
       borderRadius: 8,
       marginVertical: 8,
-      padding: 12,
-      minHeight: 63,
-    },
-    checkboxLabel: {
-      flex: 1,
-      flexWrap: 'wrap',
-      alignItems: 'flex-start',
+      padding: 16,
+      flexDirection: 'row',
     },
     iconWrapper: {
       justifyContent: 'center',
@@ -68,6 +63,11 @@ const styleSheet = (params: {
     },
     buttonDivider: {
       width: 8,
+    },
+    checkboxText: {
+      marginLeft: 8,
+      flex: 1,
+      color: theme.colors.text.default,
     },
   });
 };

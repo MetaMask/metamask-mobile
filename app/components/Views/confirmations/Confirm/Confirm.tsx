@@ -20,37 +20,36 @@ import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import styleSheet from './Confirm.styles';
 import { AlertsContextProvider } from '../AlertSystem/context';
 import useConfirmationAlerts from '../hooks/useConfirmationAlerts';
-import { Alert } from '../types/alerts';
 import GeneralAlertBanner from '../AlertSystem/GeneralAlertBanner';
-import MultipleAlertModal from '../AlertSystem/MultipleAlertModal';
 
 const ConfirmWrapped = ({
   styles,
   route,
-  alerts,
 }: {
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
   route?: UnstakeConfirmationViewProps['route'];
-  alerts: Alert[];
-}) => (
-  <AlertsContextProvider alerts={alerts}>
-    <QRHardwareContextProvider>
-      <LedgerContextProvider>
-        <Title />
-        <ScrollView style={styles.scrollView}>
-          <TouchableWithoutFeedback>
-            <>
-              <GeneralAlertBanner />
-              <Info route={route} />
-            </>
-          </TouchableWithoutFeedback>
-        </ScrollView>
-        <Footer />
-      </LedgerContextProvider>
-      <MultipleAlertModal />
-    </QRHardwareContextProvider>
-  </AlertsContextProvider>
-);
+}) => {
+  const alerts = useConfirmationAlerts();
+
+  return (
+    <AlertsContextProvider alerts={alerts}>
+      <QRHardwareContextProvider>
+        <LedgerContextProvider>
+          <Title />
+          <ScrollView style={styles.scrollView}>
+            <TouchableWithoutFeedback>
+              <>
+                <GeneralAlertBanner />
+                <Info route={route} />
+              </>
+            </TouchableWithoutFeedback>
+          </ScrollView>
+          <Footer />
+        </LedgerContextProvider>
+      </QRHardwareContextProvider>
+    </AlertsContextProvider>
+  );
+};
 
 interface ConfirmProps {
   route?: UnstakeConfirmationViewProps['route'];
@@ -61,7 +60,6 @@ export const Confirm = ({ route }: ConfirmProps) => {
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const { onReject } = useConfirmActions();
-  const alerts = useConfirmationAlerts();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -72,7 +70,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
   if (isFlatConfirmation) {
     return (
       <View style={styles.flatContainer} testID="flat-confirmation-container">
-        <ConfirmWrapped styles={styles} route={route} alerts={alerts} />
+        <ConfirmWrapped styles={styles} route={route} />
       </View>
     );
   }
@@ -85,7 +83,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
       testID="modal-confirmation-container"
     >
       <View testID={approvalRequest?.type} style={styles.confirmContainer}>
-        <ConfirmWrapped styles={styles} route={route} alerts={alerts} />
+        <ConfirmWrapped styles={styles} route={route} />
       </View>
     </BottomSheet>
   );

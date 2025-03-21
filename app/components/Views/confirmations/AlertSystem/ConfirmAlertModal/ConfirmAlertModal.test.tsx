@@ -39,6 +39,8 @@ describe('ConfirmAlertModal', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       showAlertModal: jest.fn(),
       fieldAlerts: [ALERT_MOCK],
+      hasUnconfirmedFieldDangerAlerts: false,
+      alertModalVisible: false,
     });
   });
 
@@ -55,6 +57,8 @@ describe('ConfirmAlertModal', () => {
   it('does not render the "Review all alerts" link when there are no field alerts', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       fieldAlerts: [],
+      hasUnconfirmedFieldDangerAlerts: false,
+      alertModalVisible: false,
     });
     const { queryByText } = render(<ConfirmAlertModal {...baseProps} />);
     expect(queryByText(REVIEW_ALERTS_LABEL)).toBeNull();
@@ -84,11 +88,26 @@ describe('ConfirmAlertModal', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       showAlertModal: mockShowAlertModal,
       fieldAlerts: [ALERT_MOCK],
+      hasUnconfirmedFieldDangerAlerts: false,
+      alertModalVisible: false,
     });
     const { getByText } = render(<ConfirmAlertModal {...baseProps} />);
     await act(async () => {
       fireEvent.press(getByText(REVIEW_ALERTS_LABEL));
     });
     expect(mockShowAlertModal).toHaveBeenCalled();
+  });
+
+  it('calls showAlertModal and returns null when alertModalVisible is false and hasUnconfirmedFieldDangerAlerts is true', () => {
+    const mockShowAlertModal = jest.fn();
+    (useAlerts as jest.Mock).mockReturnValue({
+      showAlertModal: mockShowAlertModal,
+      fieldAlerts: [ALERT_MOCK],
+      hasUnconfirmedFieldDangerAlerts: true,
+      alertModalVisible: false,
+    });
+    const { queryByText } = render(<ConfirmAlertModal {...baseProps} />);
+    expect(mockShowAlertModal).toHaveBeenCalled();
+    expect(queryByText(CONFIRM_MODAL_TITLE_LABEL)).toBeNull();
   });
 });
