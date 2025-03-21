@@ -407,6 +407,28 @@
     "scanner_tab": "Scan QR code",
     "receive_tab": "Your QR code"
   },
+  "banner": {
+    "bridge": {
+      "title": "Ready to bridge?",
+      "subtitle": "Move across 9 chains, all within your wallet"
+    },
+    "card": {
+      "title": "MetaMask Card",
+      "subtitle": "Available in select regions"
+    },
+    "fund": {
+      "title": "Fund your wallet", 
+      "subtitle": "Add or transfer tokens to get started"
+    },
+    "cashout": {
+      "title": "Cash out with MetaMask",
+      "subtitle": "Sell your crypto for cash"
+    },
+    "aggregated": {
+      "title": "Your balance is aggregated",
+      "subtitle": "Control your balance view in settings"
+    }
+  },
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",
@@ -3528,6 +3550,7 @@
     "you_receive": "You receive",
     "up_to_n": "Up to {{count}}",
     "unstaking_to": "Unstaking to",
+    "claiming_to": "Claiming to",
     "max_modal": {
       "title": "Max",
       "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
@@ -3640,7 +3663,7 @@
     }
   },
   "confirm": {
-    "reject": "Reject",
+    "cancel": "Cancel",
     "confirm": "Confirm",
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
@@ -3733,6 +3756,9 @@
   "bridge": {
     "continue": "Continue",
     "terms_and_conditions": "Terms & Conditions",
-    "select_token": "Select token"
-  }
+    "select_token": "Select token",
+    "slippage": "Slippage",
+    "apply": "Apply",
+    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
+    }
 }
