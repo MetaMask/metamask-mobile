@@ -19,6 +19,7 @@ import {
   ScrollView,
   Platform,
   Alert,
+  Linking,
 } from 'react-native';
 import { NativeRampService } from '@consensys/on-ramp-sdk';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
@@ -30,7 +31,6 @@ import {
   TransakEnvironment,
   BuyQuote,
   OrderPaymentMethod,
-  OrderPaymentMethodField,
   KycFormDetails,
 } from '@consensys/on-ramp-sdk/dist/NativeRampService';
 import {
@@ -288,7 +288,10 @@ function NativeRamp() {
 
   const handleFormSubmit = async () => {
     try {
-      if (!accessToken || !idProofFormData) return;
+      if (!accessToken || !quote) {
+        Alert.alert('Error', 'Missing required data. Please try again.');
+        return;
+      }
 
       setIsLoading(true);
       setLoadingMessage('Submitting form...');
@@ -303,7 +306,7 @@ function NativeRamp() {
 
         setLoadingMessage('Loading ID verification...');
 
-        if (idProofFormData.data.kycUrl) {
+        if (idProofFormData?.data.kycUrl) {
           // Start polling for KYC approval in parallel
           setCurrentStep(5.5);
           setLoadingMessage('Waiting for KYC approval...');
@@ -355,7 +358,10 @@ function NativeRamp() {
           // Start the first poll
           pollKycStatus();
         } else {
-          throw new Error('KYC URL not found');
+          setCurrentStep(6);
+          await fetchKycForms(accessToken);
+          setIsLoading(false);
+          return;
         }
       } else {
         // Handle next regular form as before
@@ -503,6 +509,9 @@ function NativeRamp() {
       case 7:
         handleConfirmBankTransfer();
         break;
+      case 8:
+        navigation.goBack();
+        break;
     }
   };
 
@@ -522,17 +531,15 @@ function NativeRamp() {
         </View>
       </View>
       {/* Dev only button */}
-      {accessToken && (
-        <Row style={styles.devButtonContainer}>
-          <Text
-            variant={TextVariant.BodySM}
-            style={styles.devButtonText}
-            onPress={resetTransakToken}
-          >
-            reset auth token (dev only)
-          </Text>
-        </Row>
-      )}
+      <Row style={styles.devButtonContainer}>
+        <Text
+          variant={TextVariant.BodySM}
+          style={styles.devButtonText}
+          onPress={resetTransakToken}
+        >
+          reset auth token (only for testing)
+        </Text>
+      </Row>
     </>
   );
 
@@ -801,45 +808,68 @@ function NativeRamp() {
       <View style={styles.successDetails}>
         <Row style={styles.detailRow}>
           <Text variant={TextVariant.BodyMD}>Account</Text>
-          <Text variant={TextVariant.BodyMD}>Account H (0x37b...B2e9)</Text>
+          <Text variant={TextVariant.BodyMD}>
+            {orderData?.walletAddress
+              ? `${orderData.walletAddress.slice(
+                  0,
+                  6,
+                )}...${orderData.walletAddress.slice(-4)}`
+              : 'Address'}
+          </Text>
         </Row>
 
         <Row style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD}>Order ID</Text>
-          <Text variant={TextVariant.BodyMD}>Feb 1 2025, 5:07PM</Text>
+          <Text variant={TextVariant.BodyMD}>Order date</Text>
+          <Text variant={TextVariant.BodyMD}>
+            {orderData?.completedAt
+              ? new Date(orderData.completedAt).toLocaleString()
+              : 'Date'}
+          </Text>
         </Row>
 
         <Row style={styles.detailRow}>
           <Text variant={TextVariant.BodyMD}>Paid with</Text>
           <View style={styles.detailRowEnd}>
-            <Text variant={TextVariant.BodyMD}>SEPA Bank Transfer</Text>
+            <Text variant={TextVariant.BodyMD}>
+              {orderData?.paymentOptionId === 'sepa_bank_transfer'
+                ? 'SEPA Bank Transfer'
+                : orderData?.paymentOptionId || 'Payment method'}
+            </Text>
           </View>
         </Row>
 
         <Row style={styles.detailRow}>
           <Text variant={TextVariant.BodyMD}>Total fees</Text>
-          <Text variant={TextVariant.BodyMD}>$0.00</Text>
+          <Text variant={TextVariant.BodyMD}>
+            {orderData?.totalFeeInFiat
+              ? `€${orderData.totalFeeInFiat}`
+              : '€0.00'}
+          </Text>
         </Row>
 
         <Row style={[styles.detailRow, styles.totalRow]}>
           <Text variant={TextVariant.BodyMD}>Purchase amount total</Text>
           <Text variant={TextVariant.BodyMD}>
-            {orderData?.fiatAmount || amount} EUR
+            €{orderData?.fiatAmount || amount}
           </Text>
         </Row>
       </View>
 
-      <Row style={styles.etherscanLink}>
-        <Text
-          variant={TextVariant.BodyMD}
-          style={styles.linkText}
-          onPress={() => {
-            // Handle etherscan link press
-          }}
-        >
-          View on Etherscan
-        </Text>
-      </Row>
+      {orderData?.transactionHash && (
+        <Row style={styles.etherscanLink}>
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.linkText}
+            onPress={() => {
+              Linking.openURL(
+                `https://etherscan.io/tx/${orderData.transactionHash}`,
+              );
+            }}
+          >
+            View on Etherscan
+          </Text>
+        </Row>
+      )}
     </>
   );
 
