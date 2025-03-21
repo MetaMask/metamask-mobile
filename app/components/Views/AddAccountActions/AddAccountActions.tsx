@@ -22,6 +22,12 @@ import { AddAccountActionsProps } from './AddAccountActions.types';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useStyles } from '../../hooks/useStyles';
+import styleSheet from './AddAccountActions.styles';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
@@ -42,6 +48,7 @@ import { BtcScope, SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
+  const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +70,12 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET).build(),
     );
   }, [onBack, navigate, trackEvent, createEventBuilder]);
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  const openImportSrp = useCallback(() => {
+    navigate(Routes.MULTI_SRP.IMPORT);
+    onBack();
+  }, [onBack, navigate]);
+  ///: END:ONLY_INCLUDE_IF
 
   const createNewAccount = useCallback(async () => {
     const { KeyringController } = Engine.context;
@@ -152,6 +165,13 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
           onBack={onBack}
         />
         <View>
+          <Text
+            style={styles.subHeaders}
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
+            {strings('account_actions.create_an_account')}
+          </Text>
           <AccountAction
             actionTitle={strings('account_actions.add_new_account')}
             iconName={IconName.Add}
@@ -208,13 +228,38 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
           {
             ///: END:ONLY_INCLUDE_IF
           }
+          <Text
+            style={styles.subHeaders}
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
+            {strings('account_actions.import_wallet_or_account')}
+          </Text>
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+            <AccountAction
+              actionTitle={strings('account_actions.import_srp')}
+              iconName={IconName.Wallet}
+              onPress={openImportSrp}
+              disabled={isLoading}
+              testID={AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON}
+            />
+            ///: END:ONLY_INCLUDE_IF
+          }
           <AccountAction
             actionTitle={strings('account_actions.import_account')}
-            iconName={IconName.Import}
+            iconName={IconName.Key}
             onPress={openImportAccount}
             disabled={isLoading}
             testID={AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON}
           />
+          <Text
+            style={styles.subHeaders}
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
+            {strings('account_actions.connect_hardware_wallet')}
+          </Text>
           <AccountAction
             actionTitle={strings('account_actions.add_hardware_wallet')}
             iconName={IconName.Hardware}
