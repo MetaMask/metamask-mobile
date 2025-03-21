@@ -542,8 +542,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       const disctinctId = await getMetaMetricsId();
       const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-        injectedBookmarks || bookmarks,
-      )};
+                injectedBookmarks || bookmarks,
+              )};
               window.__mmSearchEngine = "${searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
