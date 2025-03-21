@@ -30,8 +30,11 @@ import {
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DEFAULT_HEADERBASE_TITLE_TEXTVARIANT } from '../../../component-library/components/HeaderBase/HeaderBase.constants';
+import { fontStyles } from '../../../styles/common';
 
-const createStyles = (colors) =>
+const createStyles = (colors, insets) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
@@ -62,11 +65,19 @@ const createStyles = (colors) =>
       maxWidth: '60%',
       opacity: 0.5,
     },
+    header: {
+      backgroundColor: colors.background.default,
+      flexDirection: 'row',
+      marginTop: insets.top,
+      paddingHorizontal: 16,
+    },
+    title: { marginTop: 20, fontSize: 20, ...fontStyles.bold },
   });
 
 const ActivityView = () => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(colors, insets);
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
@@ -140,9 +151,14 @@ const ActivityView = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
-      <HeaderBase includesTopInset>
-        {strings('transactions_view.title')}
-      </HeaderBase>
+      <View style={styles.header}>
+        <Text
+          style={styles.title}
+          variant={DEFAULT_HEADERBASE_TITLE_TEXTVARIANT}
+        >
+          {strings('transactions_view.title')}
+        </Text>
+      </View>
       <View style={styles.wrapper}>
         <View style={styles.controlButtonOuterWrapper}>
           <ButtonBase
