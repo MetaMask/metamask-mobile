@@ -3664,7 +3664,7 @@
     }
   },
   "confirm": {
-    "reject": "Reject",
+    "cancel": "Cancel",
     "confirm": "Confirm",
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
