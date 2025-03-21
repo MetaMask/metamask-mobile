@@ -9,7 +9,9 @@ import { View } from 'react-native';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../component-library/components/Badges/BadgeWrapper';
 import AssetIcon from '../AssetIcon';
 import { useSelector } from 'react-redux';
 import { selectNetworkImageSource } from '../../../selectors/networkInfos';
@@ -87,6 +89,7 @@ const MultiAssetListItems = ({
           >
             <View style={styles.Icon}>
               <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
                 badgeElement={
                   <Badge
                     variant={BadgeVariant.Network}

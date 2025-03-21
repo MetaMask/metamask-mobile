@@ -2,29 +2,9 @@ import React from 'react';
 import { View } from 'react-native';
 import { useAlerts } from '../context';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { Severity } from '../../types/alerts';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
 import styleSheet from './GeneralAlertBanner.styles';
 import { useStyles } from '../../../../hooks/useStyles';
-
-/**
- * Converts the severity of a banner alert to the corresponding BannerAlertSeverity.
- *
- * @param severity - The severity of the banner alert.
- * @returns The corresponding BannerAlertSeverity.
- */
-export function getBannerAlertSeverity(
-  severity: Severity,
-): BannerAlertSeverity {
-  switch (severity) {
-    case Severity.Danger:
-      return BannerAlertSeverity.Error;
-    case Severity.Warning:
-      return BannerAlertSeverity.Warning;
-    default:
-      return BannerAlertSeverity.Info;
-  }
-}
+import { getBannerAlertSeverity } from '../utils';
 
 const GeneralAlertBanner = () => {
   const { generalAlerts } = useAlerts();
@@ -44,6 +24,7 @@ const GeneralAlertBanner = () => {
           title={selectedAlert.title}
           description={selectedAlert.content ?? selectedAlert.message}
           style={styles.wrapper}
+          testID={`security-alert-banner-${index}`}
         />
       ))}
     </View>

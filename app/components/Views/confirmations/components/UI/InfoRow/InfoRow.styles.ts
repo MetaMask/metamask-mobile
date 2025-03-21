@@ -24,21 +24,10 @@ const styleSheet = (params: { theme: Theme }) => {
       minHeight: 38,
       paddingEnd: 4,
     },
-    label: {
-      color: theme.colors.text.default,
-      ...fontStyles.bold,
-      fontSize: 14,
-      fontWeight: '500',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     value: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
       fontSize: 14,
-    },
-    valueComponent: {
-      marginLeft: 'auto',
     },
   });
 };

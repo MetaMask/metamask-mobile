@@ -1,25 +1,38 @@
 import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
+import Device from '../../../../../../util/device';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme: { colors }} = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { isStakingConfirmationBool: boolean };
+}) => {
+  const {
+    theme: { colors },
+    vars: { isStakingConfirmationBool },
+  } = params;
+
+  const basePaddingBottom = Device.isIos() 
+    ? (isStakingConfirmationBool ? 16 : 8) 
+    : (isStakingConfirmationBool ? 36 : 28);
 
   return StyleSheet.create({
     base: {
       backgroundColor: colors.background.alternative,
       paddingHorizontal: 16,
-      paddingBottom: 8,
       paddingTop: 16,
+      paddingBottom: basePaddingBottom,
     },
     linkText: {
       textDecorationLine: 'underline',
     },
-    textContainer: {
+    bottomTextContainer: {
+      flexDirection: 'column',
+      justifyContent: 'center',
+      marginBottom: 12,
+    },
+    bottomTextContainerLine: {
       flexDirection: 'row',
       justifyContent: 'center',
-      flexWrap: 'wrap',
-      marginBottom: 24,
-      paddingBottom: 16,
     },
   });
 };

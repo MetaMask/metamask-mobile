@@ -15,13 +15,17 @@ const AddChainApproval = () => {
 
   if (approvalRequest?.type !== ApprovalTypes.ADD_ETHEREUM_CHAIN) return null;
 
+  const { isNetworkRpcUpdate, ...customNetworkInformation } =
+    approvalRequest.requestData;
+
   return (
     <BottomSheet onClose={onReject} shouldNavigateBack={false}>
       <View style={styles.actionsContainer}>
         <NetworkVerificationInfo
-          customNetworkInformation={approvalRequest?.requestData}
+          customNetworkInformation={customNetworkInformation}
           onReject={onReject}
           onConfirm={onConfirm}
+          isNetworkRpcUpdate={isNetworkRpcUpdate}
         />
       </View>
     </BottomSheet>
