@@ -139,7 +139,7 @@ import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPh
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
 import { BridgeSourceTokenSelector } from '../../UI/Bridge/BridgeSourceTokenSelector';
-import { BridgeNetworkSelector } from '../../UI/Bridge/BridgeNetworkSelector';
+import { BridgeSourceNetworkSelector } from '../../UI/Bridge/BridgeSourceNetworkSelector';
 import { SlippageModal } from '../../UI/Bridge/components/SlippageModal';
 import { BridgeDestNetworkSelector } from '../../UI/Bridge/BridgeDestNetworkSelector';
 import { BridgeDestTokenSelector } from '../../UI/Bridge/BridgeDestTokenSelector';
@@ -469,7 +469,7 @@ const RootModalFlow = () => (
     />
     <Stack.Screen
       name={Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR}
-      component={BridgeNetworkSelector}
+      component={BridgeSourceNetworkSelector}
       />
     <Stack.Screen
       name={Routes.SHEET.SLIPPAGE_MODAL}

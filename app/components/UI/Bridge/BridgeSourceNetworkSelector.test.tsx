@@ -1,6 +1,6 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { BridgeNetworkSelector } from './BridgeNetworkSelector';
+import { BridgeSourceNetworkSelector } from './BridgeSourceNetworkSelector';
 import Routes from '../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedSourceChainIds } from '../../../core/redux/slices/bridge';
@@ -27,7 +27,7 @@ jest.mock('../../../core/redux/slices/bridge', () => {
   };
 });
 
-describe('BridgeNetworkSelector', () => {
+describe('BridgeSourceNetworkSelector', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
   const mockChainId = '0x1' as Hex;
   const optimismChainId = '0xa' as Hex;
@@ -310,7 +310,7 @@ describe('BridgeNetworkSelector', () => {
 
   it('renders with initial state and displays networks', async () => {
     const { getByText } = renderScreen(
-      BridgeNetworkSelector,
+      BridgeSourceNetworkSelector,
       {
         name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
@@ -339,7 +339,7 @@ describe('BridgeNetworkSelector', () => {
 
   it('handles network selection toggle correctly', async () => {
     const { getAllByTestId } = renderScreen(
-      BridgeNetworkSelector,
+      BridgeSourceNetworkSelector,
       {
         name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
@@ -370,7 +370,7 @@ describe('BridgeNetworkSelector', () => {
 
   it('handles "select all" and "deselect all" toggle correctly', async () => {
     const { getAllByTestId, getByText, queryByText } = renderScreen(
-      BridgeNetworkSelector,
+      BridgeSourceNetworkSelector,
       {
         name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
@@ -415,7 +415,7 @@ describe('BridgeNetworkSelector', () => {
 
   it('applies selected networks when clicking Apply button', async () => {
     const { getAllByTestId, getByText } = renderScreen(
-      BridgeNetworkSelector,
+      BridgeSourceNetworkSelector,
       {
         name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
@@ -439,7 +439,7 @@ describe('BridgeNetworkSelector', () => {
 
   it('handles close button correctly', () => {
     const { getByTestId } = renderScreen(
-      BridgeNetworkSelector,
+      BridgeSourceNetworkSelector,
       {
         name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
@@ -454,7 +454,7 @@ describe('BridgeNetworkSelector', () => {
 
   it('disables Apply button when no networks are selected', async () => {
     const { getByTestId, getByText } = renderScreen(
-      BridgeNetworkSelector,
+      BridgeSourceNetworkSelector,
       {
         name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
@@ -472,7 +472,7 @@ describe('BridgeNetworkSelector', () => {
 
   it('networks should be sorted by fiat value in descending order', async () => {
     const { getAllByTestId } = renderScreen(
-      BridgeNetworkSelector,
+      BridgeSourceNetworkSelector,
       {
         name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
       },
