@@ -39,6 +39,7 @@ import { BadgeAnchorElementShape } from '../../../component-library/components/B
 import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../util/Logger';
+import { toHex } from '@metamask/controller-utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -65,7 +66,9 @@ const RemoteImage = (props) => {
   const isImageUrl = isUrl(props?.source?.uri);
   const ipfsGateway = useIpfsGateway();
   const styles = createStyles();
-  const chainId = useSelector(selectChainId);
+  const currentChainId = useSelector(selectChainId);
+  // The chainId would be passed in props from parent for collectible media
+  const chainId = currentChainId; //props.chainId ? toHex(props.chainId) :
   const ticker = useSelector(selectEvmTicker);
   const networkName = useSelector(selectNetworkName);
   const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState(false);
@@ -290,6 +293,7 @@ RemoteImage.propTypes = {
   isTokenImage: PropTypes.bool,
 
   isFullRatio: PropTypes.bool,
+  chainId: PropTypes.string,
 };
 
 export default RemoteImage;

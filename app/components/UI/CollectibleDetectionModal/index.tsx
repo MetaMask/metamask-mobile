@@ -19,6 +19,7 @@ import {
   hideNftFetchingLoadingIndicator,
   showNftFetchingLoadingIndicator,
 } from '../../../reducers/collectibles';
+import { useGetChainIdsToDetectNfts } from '../../hooks/useGetChainIdsToDetectNfts';
 
 const styles = StyleSheet.create({
   alertBar: {
@@ -30,6 +31,7 @@ const styles = StyleSheet.create({
 const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
+  const chainIdsToDetectNftsFor = useGetChainIdsToDetectNfts();
 
   const showToastAndEnableNFtDetection = useCallback(async () => {
     // show toast
@@ -48,11 +50,11 @@ const CollectibleDetectionModal = () => {
     // Call detect nfts
     showNftFetchingLoadingIndicator();
     try {
-      await NftDetectionController.detectNfts();
+      await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
     } finally {
       hideNftFetchingLoadingIndicator();
     }
-  }, [colors.primary.inverse, toastRef]);
+  }, [colors.primary.inverse, toastRef, chainIdsToDetectNftsFor]);
 
   return (
     <View style={styles.alertBar}>
