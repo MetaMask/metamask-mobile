@@ -84,9 +84,8 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({ selectedAlert, isConfirmed, on
       style={styles.checkboxContainer}
       onPress={() => onCheckboxClick(isConfirmed)}
       activeOpacity={1}
-      testID="confirm-alert-checkbox"
     >
-      <Checkbox onPress={() => onCheckboxClick(isConfirmed)} isChecked={isConfirmed} />
+      <Checkbox onPress={() => onCheckboxClick(isConfirmed)} isChecked={isConfirmed} testID="alert-modal-checkbox"/>
       <Text style={styles.checkboxText}>{strings('alert_system.confirm_modal.checkbox_label')}</Text>
     </TouchableOpacity>
   );
@@ -110,6 +109,7 @@ const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHan
       variant={action ? ButtonVariants.Secondary : ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
       isDisabled={!isConfirmed}
+      testID="alert-modal-got-it-button"
     />
     {action ? (
       <>

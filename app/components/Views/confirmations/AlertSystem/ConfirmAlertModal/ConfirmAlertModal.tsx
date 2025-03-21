@@ -73,9 +73,8 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfi
           style={styles.checkboxContainer}
           onPress={handleConfirmCheckbox}
           activeOpacity={1}
-          testID="confirm-alert-checkbox"
         >
-          <Checkbox onPress={handleConfirmCheckbox} isChecked={confirmCheckbox} />
+          <Checkbox onPress={handleConfirmCheckbox} isChecked={confirmCheckbox} testID="confirm-alert-checkbox"/>
           <Text style={styles.checkboxText}>{strings('alert_system.confirm_modal.checkbox_label')}</Text>
         </TouchableOpacity>
         <View style={styles.buttonsContainer}>
