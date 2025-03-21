@@ -183,9 +183,7 @@ jest.mock('react-native-keychain', () => ({
 
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-branch', () => ({
-  BranchSubscriber: () => {
-    () => 'RNBranch';
-  },
+  subscribe: jest.fn(),
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('@metamask/react-native-search-api', () => 'SearchApi');

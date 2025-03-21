@@ -9,7 +9,6 @@ import {
 } from 'react-native-keychain';
 import {
   VAULT_BACKUP_FAILED,
-  VAULT_BACKUP_FAILED_UNDEFINED,
   VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP,
 } from '../../constants/error';
 
@@ -37,35 +36,26 @@ interface KeyringBackupResponse {
 export async function backupVault(
   keyringState: KeyringControllerState,
 ): Promise<KeyringBackupResponse> {
-  if (keyringState.vault) {
-    const backupResult = await setInternetCredentials(
-      VAULT_BACKUP_KEY,
-      VAULT_BACKUP_KEY,
-      keyringState.vault,
-      options,
-    );
-    if (backupResult === false) {
-      const vaultBackupFailedError = new Error(VAULT_BACKUP_KEY);
-      Logger.error(vaultBackupFailedError, VAULT_BACKUP_FAILED);
-      const response: KeyringBackupResponse = {
-        success: false,
-        error: VAULT_BACKUP_FAILED,
-      };
-      return response;
-    }
-    const response: KeyringBackupResponse = {
-      success: true,
-      vault: keyringState.vault,
-    };
-    return response;
+  const keyringVault = keyringState.vault as string;
+
+  // Backup vault
+  const backupResult = await setInternetCredentials(
+    VAULT_BACKUP_KEY,
+    VAULT_BACKUP_KEY,
+    keyringVault,
+    options,
+  );
+
+  // Vault backup failed, throw error
+  if (!backupResult) {
+    throw new Error(VAULT_BACKUP_FAILED);
   }
-  const vaultBackupUndefinedError = new Error(VAULT_BACKUP_KEY);
-  Logger.error(vaultBackupUndefinedError, VAULT_BACKUP_FAILED_UNDEFINED);
-  const response: KeyringBackupResponse = {
-    success: false,
-    error: VAULT_BACKUP_FAILED_UNDEFINED,
+
+  // Vault backup successful, return response
+  return {
+    success: true,
+    vault: keyringState.vault,
   };
-  return response;
 }
 
 /**
