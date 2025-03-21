@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
@@ -63,7 +63,7 @@ export const Browser = (props) => {
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
   const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
-  const [_tabIdleTimes, setTabIdleTimes] = React.useState({});
+  const [_tabIdleTimes, setTabIdleTimes] = useState({});
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -80,9 +80,11 @@ export const Browser = (props) => {
     }).href;
 
   const newTab = (url, linkType) => {
+    // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
     if (tabs.length >= MAX_BROWSER_TABS) {
       navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
     } else {
+      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
       createNewTab(url || homePageUrl(), linkType);
     }
   };
@@ -103,12 +105,12 @@ export const Browser = (props) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
     );
+    setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.id, {
       url: tab.url,
       isArchived: false,
     });
-    setActiveTab(tab.id);
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
@@ -255,26 +257,27 @@ export const Browser = (props) => {
     ],
   );
 
-  const takeScreenshot = (url, tabID) => new Promise((resolve, reject) => {
-    captureScreen({
-      format: 'jpg',
-      quality: 0.2,
-      THUMB_WIDTH,
-      THUMB_HEIGHT,
-    }).then(
-      (uri) => {
-        updateTab(tabID, {
-          url,
-          image: uri,
-        });
-        resolve(true);
-      },
-      (error) => {
-        Logger.error(error, `Error saving tab ${url}`);
-        reject(error);
-      },
-    );
-  });
+  const takeScreenshot = (url, tabID) =>
+    new Promise((resolve, reject) => {
+      captureScreen({
+        format: 'jpg',
+        quality: 0.2,
+        THUMB_WIDTH,
+        THUMB_HEIGHT,
+      }).then(
+        (uri) => {
+          updateTab(tabID, {
+            url,
+            image: uri,
+          });
+          resolve(true);
+        },
+        (error) => {
+          Logger.error(error, `Error saving tab ${url}`);
+          reject(error);
+        },
+      );
+    });
 
   const showTabs = async () => {
     try {

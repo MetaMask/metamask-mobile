@@ -212,7 +212,6 @@ exports[`Tabs should render correctly 1`] = `
     }
   >
     <TouchableOpacity
-      onPress={[Function]}
       style={
         [
           {
@@ -307,7 +306,6 @@ exports[`Tabs should render correctly 1`] = `
       </TouchableOpacity>
     </View>
     <TouchableOpacity
-      onPress={[Function]}
       style={
         [
           {

@@ -273,6 +273,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     if (!current) {
       Logger.log('WebviewRef current is not defined!');
     }
+    // Reset error state
     setError(false);
     current?.goBack?.();
   }, [backEnabled, toggleOptionsIfNeeded]);
@@ -351,11 +352,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
-            }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
+            pathname || '/'
+          }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
-            }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
+            pathname || '/'
+          }${query || ''}`;
         }
         return {
           url: gatewayUrl,
