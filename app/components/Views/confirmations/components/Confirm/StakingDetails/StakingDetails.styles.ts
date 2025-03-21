@@ -6,9 +6,6 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    container:{
-      paddingVertical: 8,
-    },
     primaryValue: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
