@@ -242,6 +242,7 @@ export const TESTNET_CHAIN_IDS = [
   ChainId[NetworkType.sepolia],
   ChainId[NetworkType['linea-goerli']],
   ChainId[NetworkType['linea-sepolia']],
+  ChainId[NetworkType['megaeth-testnet']],
 ];
 
 /**
