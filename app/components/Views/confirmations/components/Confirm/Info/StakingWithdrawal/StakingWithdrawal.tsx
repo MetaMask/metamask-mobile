@@ -1,7 +1,5 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import { useStyles } from '../../../../../../../component-library/hooks/useStyles';
 import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/useClearConfirmationOnBackSwipe';
@@ -13,18 +11,16 @@ import StakingContractInteractionDetails from '../../StakingContractInteractionD
 import TokenHero from '../../TokenHero';
 import UnstakingTimeSection from '../../UnstakingTime/UnstakingTime';
 import GasFeesDetails from '../GasFeesDetails';
-import styleSheet from './StakingWithdrawal.styles';
 
 const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
-  const { styles } = useStyles(styleSheet, {});
   const amountWei = route?.params?.amountWei;
-  
+
   useNavbar(strings('stake.unstake'));
   useClearConfirmationOnBackSwipe();
 
   const { trackPageViewedEvent, setConfirmationMetric } =
     useConfirmationMetricEvents();
-  const { tokenAmountDisplayValue } = useTokenValues({ amountWei });  
+  const { tokenAmountDisplayValue } = useTokenValues({ amountWei });
   useEffect(() => {
     setConfirmationMetric({
       properties: {
@@ -35,16 +31,14 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   }, [tokenAmountDisplayValue, setConfirmationMetric]);
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
-  
+
   return (
     <>
       <TokenHero amountWei={amountWei} />
       <UnstakingTimeSection />
-      <View style={styles.stakingContractInteractionDetailsContainer}>
-        <InfoSection>
-          <StakingContractInteractionDetails />
-        </InfoSection>
-      </View>
+      <InfoSection>
+        <StakingContractInteractionDetails />
+      </InfoSection>
       <GasFeesDetails />
     </>
   );
