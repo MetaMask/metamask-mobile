@@ -25,6 +25,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const walletImage = require('../../../images/wallet-alpha.png');
 
@@ -34,7 +35,7 @@ const NFTAutoDetectionModal = () => {
   const navigation = useNavigation();
   const chainId = useSelector(selectEvmChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
 
   const enableNftDetectionAndDismissModal = (value: boolean) => {
     if (value) {
@@ -43,6 +44,15 @@ const NFTAutoDetectionModal = () => {
         PreferencesController.setDisplayNftMedia(true);
       }
       PreferencesController.setUseNftDetection(true);
+
+      const traits = {
+        [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.ON,
+        ...(!displayNftMedia && {
+          [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.ON,
+        }),
+      };
+      addTraitsToUser(traits);
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE)
           .addProperties({

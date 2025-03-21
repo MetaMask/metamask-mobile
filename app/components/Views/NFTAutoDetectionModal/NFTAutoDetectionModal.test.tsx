@@ -8,6 +8,8 @@ import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const setUseNftDetectionSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -36,6 +38,25 @@ const initialState = {
     },
   },
 };
+
+jest.mock('../../hooks/useMetrics');
+
+const mockTrackEvent = jest.fn();
+const mockAddTraitsToUser = jest.fn();
+
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  enable: jest.fn(),
+  addTraitsToUser: mockAddTraitsToUser,
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
 
 const Stack = createStackNavigator();
 
@@ -72,6 +93,18 @@ describe('NFT Auto detection modal', () => {
     fireEvent.press(allowButton);
     expect(setUseNftDetectionSpy).toHaveBeenCalled();
     expect(setDisplayNftMediaSpy).toHaveBeenCalled();
+
+    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+      'Enable OpenSea API': 'ON',
+      'NFT Autodetection': 'ON',
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE,
+      )
+        .addProperties({ chainId: '0x1' })
+        .build(),
+    );
   });
 
   it('calls setDisplayNftMedia when clicking on allow button if displayNftMedia if on', () => {
@@ -81,6 +114,17 @@ describe('NFT Auto detection modal', () => {
     fireEvent.press(allowButton);
     expect(setUseNftDetectionSpy).toHaveBeenCalled();
     expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
+
+    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+      'NFT Autodetection': 'ON',
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE,
+      )
+        .addProperties({ chainId: '0x1' })
+        .build(),
+    );
   });
 
   it('Does not call setUseNftDetection nor setDisplayNftMedia when clicking on not right now button', () => {
@@ -90,5 +134,14 @@ describe('NFT Auto detection modal', () => {
     fireEvent.press(cancelButton);
     expect(setUseNftDetectionSpy).not.toHaveBeenCalled();
     expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
+
+    expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE,
+      )
+        .addProperties({ chainId: '0x1' })
+        .build(),
+    );
   });
 });
