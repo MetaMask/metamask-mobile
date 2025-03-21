@@ -1,7 +1,9 @@
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
+  KeyDerivationIteration,
   SALT_BYTES_COUNT,
   ENCRYPTION_LIBRARY,
+  DERIVATION_OPTIONS_MINIMUM_OWASP2023,
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
 import type {
@@ -77,6 +79,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   }: {
     keyDerivationOptions: KeyDerivationOptions;
   }) {
+    this.checkMinimalRequiredIterations(keyDerivationOptions.params.iterations);
     this.keyDerivationOptions = keyDerivationOptions;
   }
 
@@ -305,7 +308,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       password,
       salt,
       true,
-      keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
+      keyMetadata ?? DERIVATION_OPTIONS_MINIMUM_OWASP2023,
       payload.lib,
     );
     const exportedKeyString = await this.exportKey(key);
@@ -353,6 +356,52 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       exportedKeyString,
     };
   };
+
+    /**
+   * Updates the provided vault, re-encrypting
+   * data with a safer algorithm if one is available.
+   *
+   * If the provided vault is already using the latest available encryption method,
+   * it is returned as is.
+   *
+   * @param vault - The vault to update.
+   * @param password - The password to use for encryption.
+   * @param targetDerivationParams - The options to use for key derivation.
+   * @returns A promise resolving to the updated vault.
+   */
+    updateVault = async (
+      vault: string,
+      password: string,
+      targetDerivationParams = this.keyDerivationOptions,
+    ): Promise<string> => {
+      if (this.isVaultUpdated(vault, targetDerivationParams)) {
+        return vault;
+      }
+
+      return this.encrypt(password, await this.decrypt(password, vault) as Json);
+    };
+
+  /**
+   * Throws an error if the provided number of iterations does not meet the minimum required for key derivation.
+   * This method ensures that the key derivation process is secure by enforcing a minimum number of iterations.
+   * @param iterations - The number of iterations to check.
+   * @throws Error if the number of iterations is less than the minimum required.
+   */
+    private checkMinimalRequiredIterations = (iterations: number): void => {
+      if (!this.isMinimalRequiredIterationsMet(iterations)) {
+        throw new Error(
+          `Invalid key derivation iterations: ${iterations}. Recommended number of iterations is ${KeyDerivationIteration.OWASP2023Default}. Minimum required is ${KeyDerivationIteration.OWASP2023Minimum}.`,
+        );
+      }
+    };
+
+  /**
+   * Checks if the provided number of iterations meets the minimum required for key derivation.
+   * @param iterations - The number of iterations to check.
+   * @returns A boolean indicating whether the minimum required iterations are met.
+   */
+  private isMinimalRequiredIterationsMet = (iterations: number): boolean =>
+    iterations >= KeyDerivationIteration.OWASP2023Minimum;
 }
 
 export { Encryptor };

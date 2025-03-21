@@ -3,8 +3,11 @@ import { Encryptor } from './Encryptor';
 import {
   ShaAlgorithm,
   CipherAlgorithm,
+  KeyDerivationIteration,
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
+  DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+  DERIVATION_OPTIONS_DEFAULT_OWASP2023,
 } from './constants';
 
 const Aes = NativeModules.Aes;
@@ -15,12 +18,31 @@ describe('Encryptor', () => {
 
   beforeEach(() => {
     encryptor = new Encryptor({
-      keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
+      keyDerivationOptions: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+    });
+  });
+
+  describe('constructor', () => {
+    it('throws an error if the provided iterations do not meet the minimum required', () => {
+      const iterations = 100;
+      expect(
+        () =>
+          new Encryptor({
+            keyDerivationOptions: {
+              algorithm: 'PBKDF2',
+              params: {
+                iterations,
+              },
+            },
+          }),
+      ).toThrow(
+        `Invalid key derivation iterations: ${iterations}. Recommended number of iterations is ${KeyDerivationIteration.OWASP2023Default}. Minimum required is ${KeyDerivationIteration.OWASP2023Minimum}.`,
+      );
     });
   });
 
   describe('encrypt', () => {
-    it('should encrypt an object correctly', async () => {
+    it('encrypts an object correctly', async () => {
       const password = 'testPassword';
       const objectToEncrypt = { key: 'value' };
 
@@ -45,9 +67,9 @@ describe('Encryptor', () => {
 
     beforeEach(() => {
       decryptAesSpy = jest.spyOn(Aes, 'decrypt');
-      pbkdf2AesSpy = jest.spyOn(Aes, 'pbkdf2');
+      pbkdf2AesSpy = jest.spyOn(Aes, 'pbkdf2').mockResolvedValue('mockedAesKey');
       decryptAesForkedSpy = jest.spyOn(AesForked, 'decrypt');
-      pbkdf2AesForkedSpy = jest.spyOn(AesForked, 'pbkdf2');
+      pbkdf2AesForkedSpy = jest.spyOn(AesForked, 'pbkdf2').mockResolvedValue('mockedForkedAesKey');
     });
 
     afterEach(() => {
@@ -56,10 +78,25 @@ describe('Encryptor', () => {
 
     it.each([
       [
+        'with original library and default iterations number for key generation',
+        {
+          lib: ENCRYPTION_LIBRARY.original,
+          expectedKeyValue: 'mockedAesKey',
+          expectedPBKDF2Args: [
+            'testPassword',
+            'mockedSalt',
+            900000,
+            256,
+            ShaAlgorithm.Sha512,
+          ],
+          keyMetadata: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
+        },
+      ],
+      [
         'with original library and legacy iterations number for key generation',
         {
           lib: ENCRYPTION_LIBRARY.original,
-          expectedKeyValue: 'mockedKey',
+          expectedKeyValue: 'mockedAesKey',
           expectedPBKDF2Args: [
             'testPassword',
             'mockedSalt',
@@ -67,19 +104,21 @@ describe('Encryptor', () => {
             256,
             ShaAlgorithm.Sha512,
           ],
+          keyMetadata: undefined,
         },
       ],
       [
         'with library different to "original" and legacy iterations number for key generation',
         {
           lib: 'random-lib', // Assuming not using "original" should lead to AesForked
-          expectedKeyValue: 'mockedKeyForked',
+          expectedKeyValue: 'mockedForkedAesKey',
           expectedPBKDF2Args: ['testPassword', 'mockedSalt'],
+          keyMetadata: undefined,
         },
       ],
     ])(
       'decrypts a string correctly %s',
-      async (_, { lib, expectedKeyValue, expectedPBKDF2Args }) => {
+      async (_, { lib, expectedKeyValue, expectedPBKDF2Args, keyMetadata }) => {
         const password = 'testPassword';
         const mockVault = {
           cipher: 'mockedCipher',
@@ -90,7 +129,11 @@ describe('Encryptor', () => {
 
         const decryptedObject = await encryptor.decrypt(
           password,
-          JSON.stringify(mockVault),
+          JSON.stringify(
+            keyMetadata !== undefined
+              ? { ...mockVault, keyMetadata }
+              : mockVault,
+          ),
         );
 
         expect(decryptedObject).toEqual(expect.any(Object));
@@ -104,6 +147,7 @@ describe('Encryptor', () => {
                 CipherAlgorithm.cbc,
               ]
             : [mockVault.cipher, expectedKeyValue, mockVault.iv];
+
         expect(
           lib === ENCRYPTION_LIBRARY.original
             ? decryptAesSpy
@@ -127,7 +171,7 @@ describe('Encryptor', () => {
             iv: 'mockedIV',
             salt: 'mockedSalt',
             lib: 'original',
-            keyMetadata: LEGACY_DERIVATION_OPTIONS,
+            keyMetadata: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
           }),
         ),
       ).toBe(true);
@@ -297,7 +341,7 @@ describe('Encryptor', () => {
   });
 
   describe('encryptWithDetail', () => {
-    it('should encrypt data and return vault with exported key string', async () => {
+    it('encrypts data and return vault with exported key string', async () => {
       const password = 'testPassword';
       const dataToEncrypt = { test: 'data' };
       const mockSalt = 'mockSalt';
@@ -350,7 +394,7 @@ describe('Encryptor', () => {
       jest.clearAllMocks();
     });
 
-    it('should decrypt vault and return data with key details', async () => {
+    it('decrypts vault and return data with key details', async () => {
       // First encrypt some data to get a valid vault
       const password = 'testPassword';
       const originalData = { test: 'data' };
@@ -376,7 +420,7 @@ describe('Encryptor', () => {
       expect(importedKey).toHaveProperty('keyMetadata');
     });
 
-    it('should handle legacy vaults without keyMetadata', async () => {
+    it('handles legacy vaults without keyMetadata', async () => {
       const password = 'testPassword';
       const mockVault = {
         cipher: 'mockedCipher',
@@ -396,7 +440,69 @@ describe('Encryptor', () => {
 
       // Verify the exported key uses legacy derivation options
       const importedKey = await encryptor.importKey(result.exportedKeyString);
-      expect(importedKey.keyMetadata).toEqual(LEGACY_DERIVATION_OPTIONS);
+      expect(importedKey.keyMetadata).toEqual(DERIVATION_OPTIONS_MINIMUM_OWASP2023);
+    });
+  });
+
+  describe('updateVault', () => {
+    let encryptSpy: jest.SpyInstance, decryptSpy: jest.SpyInstance;
+    const expectedKeyMetadata = DERIVATION_OPTIONS_MINIMUM_OWASP2023;
+
+    beforeEach(() => {
+      encryptSpy = jest
+        .spyOn(Aes, 'encrypt')
+        .mockResolvedValue(() => Promise.resolve('mockedCipher'));
+      decryptSpy = jest
+        .spyOn(Aes, 'decrypt')
+        .mockResolvedValue('{"mockData": "mockedPlainText"}');
+    });
+
+    afterEach(() => {
+      encryptSpy.mockRestore();
+      decryptSpy.mockRestore();
+    });
+
+    it('updates a vault correctly if keyMetadata is not present', async () => {
+      const mockVault = {
+        cipher: 'mockedCipher',
+        iv: 'mockedIV',
+        salt: 'mockedSalt',
+        lib: 'original',
+      };
+
+      const updatedVault = await encryptor.updateVault(
+        JSON.stringify(mockVault),
+        'mockPassword',
+      );
+
+      const vault = JSON.parse(updatedVault);
+
+      expect(encryptSpy).toHaveBeenCalledTimes(1);
+      expect(decryptSpy).toHaveBeenCalledTimes(1);
+      expect(vault).toHaveProperty('keyMetadata');
+      expect(vault.keyMetadata).toStrictEqual(expectedKeyMetadata);
+    });
+
+    it('does not update a vault if algorithm is PBKDF2 and the number of iterations is 600000', async () => {
+      const mockVault = {
+        cipher: 'mockedCipher',
+        iv: 'mockedIV',
+        salt: 'mockedSalt',
+        lib: 'original',
+        keyMetadata: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+      };
+
+      const updatedVault = await encryptor.updateVault(
+        JSON.stringify(mockVault),
+        'mockPassword',
+      );
+
+      const vault = JSON.parse(updatedVault);
+
+      expect(encryptSpy).toHaveBeenCalledTimes(0);
+      expect(decryptSpy).toHaveBeenCalledTimes(0);
+      expect(vault).toHaveProperty('keyMetadata');
+      expect(vault.keyMetadata).toStrictEqual(expectedKeyMetadata);
     });
   });
 });
