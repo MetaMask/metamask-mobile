@@ -1,5 +1,5 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
-import { useSourceTokens } from './useSourceTokens';
+import { useTokensWithBalance } from './useTokensWithBalance';
 import { constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
@@ -16,7 +16,7 @@ jest.mock('../Tokens/util', () => ({
   sortAssets: jest.fn().mockImplementation((assets) => assets),
 }));
 
-describe('useSourceTokens', () => {
+describe('useTokensWithBalance', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
   const mockChainId = '0x1' as Hex;
   const optimismChainId = '0xa' as Hex;
@@ -296,7 +296,7 @@ describe('useSourceTokens', () => {
   });
 
   it('should include native token with correct properties', async () => {
-    const { result } = renderHookWithProvider(() => useSourceTokens(), {
+    const { result } = renderHookWithProvider(() => useTokensWithBalance(), {
       state: initialState,
     });
 
@@ -316,7 +316,7 @@ describe('useSourceTokens', () => {
   });
 
   it('should show correct balances and fiat values for tokens', async () => {
-    const { result } = renderHookWithProvider(() => useSourceTokens(), {
+    const { result } = renderHookWithProvider(() => useTokensWithBalance(), {
       state: initialState,
     });
 
@@ -371,7 +371,7 @@ describe('useSourceTokens', () => {
       },
     };
 
-    const { result } = renderHookWithProvider(() => useSourceTokens(), {
+    const { result } = renderHookWithProvider(() => useTokensWithBalance(), {
       state: stateWithOnlyEthereumSelected,
     });
 
@@ -420,7 +420,7 @@ describe('useSourceTokens', () => {
       },
     };
 
-    const { result } = renderHookWithProvider(() => useSourceTokens(), {
+    const { result } = renderHookWithProvider(() => useTokensWithBalance(), {
       state: stateWithSmallBalance,
     });
 

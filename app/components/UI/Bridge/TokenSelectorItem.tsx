@@ -16,7 +16,7 @@ import Text, {
 import TokenIcon from '../Swaps/components/TokenIcon';
 import { Box } from '../Box/Box';
 import { AlignItems, FlexDirection, JustifyContent } from '../Box/box.types';
-import { TokenIWithFiatAmount } from './useSourceTokens';
+import { TokenIWithFiatAmount } from './useTokensWithBalance';
 import ButtonIcon, { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconColor, IconName } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';

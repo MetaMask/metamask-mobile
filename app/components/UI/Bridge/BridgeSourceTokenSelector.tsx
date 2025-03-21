@@ -7,10 +7,11 @@ import { selectNetworkConfigurations } from '../../../selectors/networkControlle
 import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
 import { TokenSelectorItem } from './TokenSelectorItem';
-import { useSourceTokens, TokenIWithFiatAmount } from './useSourceTokens';
+import { TokenIWithFiatAmount } from './useTokensWithBalance';
 import { useSortedSourceNetworks } from './useSortedSourceNetworks';
 import { BridgeSourceNetworksBar, MAX_NETWORK_ICONS } from './BridgeSourceNetworksBar';
 import { BridgeTokenSelectorBase } from './BridgeTokenSelectorBase';
+import { useSourceTokens } from './useSourceTokens';
 
 export const BridgeSourceTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
