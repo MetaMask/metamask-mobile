@@ -3499,6 +3499,14 @@
     "error_title": "Install failed",
     "error_description": "Installation of {{snap}} failed."
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "Lend {{tokenSymbol}} and earn",
+      "body_prefix": "You could earn up to",
+      "body_suffix": "per year by lending your {{tokenSymbol}}.",
+      "start_earning": "Start earning"
+    }
+  },
   "stake": {
     "stake": "Stake",
     "earn": "Earn",
