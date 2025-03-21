@@ -12,6 +12,7 @@ import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { TokenI } from '../Tokens/types';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
+import { ethers } from 'ethers';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -92,6 +93,7 @@ interface TokenInputAreaProps {
   isReadonly?: boolean;
   testID?: string;
   tokenType?: TokenInputAreaType;
+  onTokenPress?: () => void;
 }
 
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
@@ -103,7 +105,8 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   autoFocus,
   isReadonly = false,
   testID,
-  tokenType
+  tokenType,
+  onTokenPress,
 }) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -128,7 +131,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   const formattedBalance = token?.symbol && tokenBalance ? (
     `${renderNumber(tokenBalance)} ${token?.symbol}`
   ) : undefined;
-  const formattedAddress = token?.address ? formatAddress(token?.address) : undefined;
+  const formattedAddress = token?.address && token.address !== ethers.constants.AddressZero ? formatAddress(token?.address) : undefined;
 
   const subtitle = tokenType === TokenInputAreaType.Source ? formattedBalance : formattedAddress;
 
@@ -152,6 +155,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
             networkImageSource={networkImageSource}
             networkName={networkName}
             testID={testID}
+            onPress={onTokenPress}
           />
         </Box>
         <Box style={styles.row}>

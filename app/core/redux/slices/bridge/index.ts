@@ -17,19 +17,19 @@ export const selectBridgeControllerState = (state: RootState) =>
 export interface BridgeState {
   sourceAmount: string | undefined;
   destAmount: string | undefined;
-  destChainId: SupportedCaipChainId | Hex | undefined;
   sourceToken: TokenI | undefined;
   destToken: TokenI | undefined;
   selectedSourceChainIds: undefined | string[];
+  selectedDestChainId: SupportedCaipChainId | Hex | undefined;
 }
 
 export const initialState: BridgeState = {
   sourceAmount: undefined,
   destAmount: undefined,
-  destChainId: undefined,
   sourceToken: undefined,
   destToken: undefined,
   selectedSourceChainIds: undefined,
+  selectedDestChainId: undefined,
 };
 
 const name = 'bridge';
@@ -44,30 +44,18 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
-    setDestChainId: (state, action: PayloadAction<SupportedCaipChainId | Hex | undefined>) => {
-      state.destChainId = action.payload;
-    },
     setSelectedSourceChainIds: (state, action: PayloadAction<string[]>) => {
       state.selectedSourceChainIds = action.payload;
     },
-    resetBridgeState: () => initialState,
-    switchTokens: (state) => {
-      // Don't switch if destination chain or token is undefined
-      if (!state.destChainId || !state.destToken) {
-        return;
-      }
-
-      // Switch tokens
-      const tempToken = state.sourceToken;
-      state.sourceToken = state.destToken;
-      state.destToken = tempToken;
-
-      // Reset amounts
-      state.sourceAmount = undefined;
-      state.destAmount = undefined;
+    setSelectedDestChainId: (state, action: PayloadAction<SupportedCaipChainId | Hex | undefined>) => {
+      state.selectedDestChainId = action.payload;
     },
+    resetBridgeState: () => initialState,
     setSourceToken: (state, action: PayloadAction<TokenI>) => {
       state.sourceToken = action.payload;
+    },
+    setDestToken: (state, action: PayloadAction<TokenI>) => {
+      state.destToken = action.payload;
     },
   },
 });
@@ -121,14 +109,11 @@ export const selectEnabledSourceChains = createSelector(
     bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[chainId]?.isActiveSrc)
 );
 
-export const getEnabledDestChains = createSelector(
+export const selectEnabledDestChains = createSelector(
   selectAllBridgeableNetworks,
-  (networks) => networks,
-);
-
-export const selectDestChainId = createSelector(
-  selectBridgeState,
-  (bridgeState) => bridgeState.destChainId,
+  selectBridgeFeatureFlags,
+  (networks, bridgeFeatureFlags) => networks.filter(({ chainId }) =>
+    bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[chainId]?.isActiveDest)
 );
 
 // Combined selectors for related state
@@ -176,13 +161,25 @@ export const selectSelectedSourceChainIds = createSelector(
   },
 );
 
+export const selectSelectedDestChainId = createSelector(
+  selectBridgeState,
+  selectSourceToken,
+  (bridgeState, sourceToken) => {
+    // If selectedDestChainIds is undefined, use the same chain as the source token
+    if (bridgeState.selectedDestChainId === undefined) {
+      return sourceToken?.chainId;
+    }
+    return bridgeState.selectedDestChainId;
+  },
+);
+
 // Actions
 export const {
   setSourceAmount,
   setDestAmount,
-  setDestChainId,
   resetBridgeState,
-  switchTokens,
   setSourceToken,
+  setDestToken,
   setSelectedSourceChainIds,
+  setSelectedDestChainId,
 } = actions;

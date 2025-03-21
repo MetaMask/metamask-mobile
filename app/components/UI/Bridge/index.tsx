@@ -24,12 +24,13 @@ import { useLatestBalance } from './useLatestBalance';
 import {
   selectSourceAmount,
   selectDestAmount,
-  selectDestChainId,
+  selectSelectedDestChainId,
   selectSourceToken,
   selectDestToken,
   setSourceAmount,
   resetBridgeState,
-  switchTokens,
+  setSourceToken,
+  setDestToken,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -124,7 +125,7 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const destAmount = useSelector(selectDestAmount);
-  const destChainId = useSelector(selectDestChainId);
+  const destChainId = useSelector(selectSelectedDestChainId);
 
   // Add state for slippage
   const [slippage, setSlippage] = useState('0.5');
@@ -178,8 +179,10 @@ const BridgeView = () => {
   };
 
   const handleArrowPress = () => {
-    if (destChainId && destToken) {
-      dispatch(switchTokens());
+    // Switch tokens
+    if (sourceToken && destToken) {
+      dispatch(setSourceToken(destToken));
+      dispatch(setDestToken(sourceToken));
     }
   };
 
@@ -191,6 +194,20 @@ const BridgeView = () => {
         selectedSlippage: slippage,
         onSelectSlippage: setSlippage,
       },
+    });
+  };
+
+  const handleSourceTokenPress = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
+      params: {},
+    });
+  };
+
+  const handleDestTokenPress = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+      params: {},
     });
   };
 
@@ -248,6 +265,7 @@ const BridgeView = () => {
             isReadonly
             testID="source-token-area"
             tokenType={TokenInputAreaType.Source}
+            onTokenPress={handleSourceTokenPress}
           />
           <Box style={styles.arrowContainer}>
             <TouchableOpacity
@@ -262,10 +280,11 @@ const BridgeView = () => {
             amount={destAmount}
             token={destToken}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            networkImageSource={destChainId ? getNetworkImageSource({ chainId: destChainId as Hex }) : undefined}
+            networkImageSource={destToken ? getNetworkImageSource({ chainId: destToken?.chainId as Hex }) : undefined}
             isReadonly
             testID="dest-token-area"
             tokenType={TokenInputAreaType.Destination}
+            onTokenPress={handleDestTokenPress}
           />
         </Box>
         <Button

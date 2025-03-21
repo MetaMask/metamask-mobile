@@ -135,9 +135,11 @@ import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
 import NavigationService from '../../../core/NavigationService';
-import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
-import { BridgeNetworkSelector } from '../../UI/Bridge/BridgeNetworkSelector';
+import { BridgeSourceTokenSelector } from '../../UI/Bridge/BridgeSourceTokenSelector';
+import { BridgeSourceNetworkSelector } from '../../UI/Bridge/BridgeSourceNetworkSelector';
 import { SlippageModal } from '../../UI/Bridge/components/SlippageModal';
+import { BridgeDestNetworkSelector } from '../../UI/Bridge/BridgeDestNetworkSelector';
+import { BridgeDestTokenSelector } from '../../UI/Bridge/BridgeDestTokenSelector';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -459,16 +461,24 @@ const RootModalFlow = () => (
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
     <Stack.Screen
-      name={Routes.SHEET.BRIDGE_TOKEN_SELECTOR}
-      component={BridgeTokenSelector}
+      name={Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR}
+      component={BridgeSourceTokenSelector}
     />
     <Stack.Screen
-      name={Routes.SHEET.BRIDGE_NETWORK_SELECTOR}
-      component={BridgeNetworkSelector}
+      name={Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR}
+      component={BridgeSourceNetworkSelector}
       />
     <Stack.Screen
       name={Routes.SHEET.SLIPPAGE_MODAL}
       component={SlippageModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR}
+      component={BridgeDestTokenSelector}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.BRIDGE_DEST_NETWORK_SELECTOR}
+      component={BridgeDestNetworkSelector}
     />
   </Stack.Navigator>
 );

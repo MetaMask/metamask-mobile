@@ -75,8 +75,8 @@ describe('BridgeView', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDst: true },
-                '0xa': { isActiveSrc: true, isActiveDst: true },
+                '0x1': { isActiveSrc: true, isActiveDest: true },
+                '0xa': { isActiveSrc: true, isActiveDest: true },
               },
             },
           },
@@ -352,7 +352,7 @@ describe('BridgeView', () => {
       destToken: undefined,
       sourceAmount: undefined,
       destAmount: undefined,
-      destChainId: undefined,
+      selectedDestChainId: undefined,
       selectedSourceChainIds: [mockChainId, optimismChainId],
     } as BridgeState,
   };
@@ -388,7 +388,7 @@ describe('BridgeView', () => {
 
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+      screen: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
       params: {},
     });
   });
@@ -410,7 +410,7 @@ describe('BridgeView', () => {
 
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+      screen: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
       params: {},
     });
   });
