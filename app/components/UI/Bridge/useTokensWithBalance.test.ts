@@ -31,8 +31,8 @@ describe('useTokensWithBalance', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDst: true },
-                '0xa': { isActiveSrc: true, isActiveDst: true },
+                '0x1': { isActiveSrc: true, isActiveDest: true },
+                '0xa': { isActiveSrc: true, isActiveDest: true },
               },
             },
           },
