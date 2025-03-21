@@ -338,6 +338,9 @@ describe('BridgeView', () => {
         },
       },
     },
+    settings: {
+      basicFunctionalityEnabled: true,
+    },
     bridge: {
       sourceToken: {
         symbol: 'ETH',
