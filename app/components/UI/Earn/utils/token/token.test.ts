@@ -1,16 +1,20 @@
 import {
   filterEligibleTokens,
   getSupportedEarnTokens,
+  isSupportedLendingTokenByChainId,
   SUPPORTED_LENDING_TOKENS,
 } from '.';
 import { TokenI } from '../../../Tokens/types';
 import {
   MOCK_ACCOUNT_MULTI_CHAIN_TOKENS,
   MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
-} from '../../__mocks__/mockData';
+} from '../../../Stake/__mocks__/mockData';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { createMockToken, getCreateMockTokenOptions } from '../../testUtils';
-import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../testUtils/testUtils.types';
+import {
+  createMockToken,
+  getCreateMockTokenOptions,
+} from '../../../Stake/testUtils';
+import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
 
 describe('tokenUtils', () => {
   describe('getSupportedEarnTokens', () => {
@@ -156,6 +160,52 @@ describe('tokenUtils', () => {
       );
 
       expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('isSupportedLendingTokenByChainId', () => {
+    it('returns true when token is supported', () => {
+      SUPPORTED_LENDING_TOKENS.forEach((token) => {
+        const isSupported = isSupportedLendingTokenByChainId(
+          token,
+          CHAIN_IDS.MAINNET,
+        );
+        expect(isSupported).toBe(true);
+      });
+    });
+
+    it('returns false when token is not supported but the chainId is', () => {
+      const isSupported = isSupportedLendingTokenByChainId(
+        'FAKE_TOKEN',
+        CHAIN_IDS.MAINNET,
+      );
+      expect(isSupported).toBe(false);
+    });
+
+    it('returns false when token is supported but the chainId is not', () => {
+      const isSupported = isSupportedLendingTokenByChainId('USDC', '0x123123');
+      expect(isSupported).toBe(false);
+    });
+
+    it('returns false when both token and chainId are not supported', () => {
+      const isSupported = isSupportedLendingTokenByChainId(
+        'FAKE_TOKEN',
+        '0x123123',
+      );
+      expect(isSupported).toBe(false);
+    });
+
+    it('returns false when token parameter is empty', () => {
+      const isSupported = isSupportedLendingTokenByChainId(
+        '',
+        CHAIN_IDS.MAINNET,
+      );
+      expect(isSupported).toBe(false);
+    });
+
+    it('returns false when chainId parameter is empty', () => {
+      const isSupported = isSupportedLendingTokenByChainId('USDC', '');
+      expect(isSupported).toBe(false);
     });
   });
 });
