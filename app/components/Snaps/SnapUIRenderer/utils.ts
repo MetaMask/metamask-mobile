@@ -128,10 +128,7 @@ export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
 
 export const mapTextToTemplate = (
   elements: NonEmptyArray<JSXElement | string>,
-  params: Pick<
-    MapToTemplateParams,
-    'map' | 'useFooter' | 'onCancel' | 'theme' | 'size'
-  >,
+  params: Pick<MapToTemplateParams, 'map' | 'useFooter' | 'onCancel' | 'theme'>,
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
     if (typeof e === 'string') {
@@ -144,19 +141,7 @@ export const mapTextToTemplate = (
         props: { color: 'inherit' },
       };
     }
-    return mapToTemplate({
-      ...params,
-      element:
-        e.type === 'Icon'
-          ? ({
-              ...e,
-              props: {
-                size: params.size,
-                ...e.props,
-              },
-            } as JSXElement)
-          : e,
-    });
+    return mapToTemplate({ ...params, element: e });
   }) as NonEmptyArray<UIComponent | string>;
 
 /**
