@@ -1472,11 +1472,6 @@ workflows:
                 mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_flask_apps.json
-      - share-pipeline-variable@1:
-          title: Persist BROWSERSTACK_ANDROID_FLASK_APP_URL across all stages
-          inputs:
-            - variables: |-
-                BROWSERSTACK_ANDROID_FLASK_APP_URL
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -1838,6 +1833,11 @@ workflows:
                 mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_flask_apps.json
+      - share-pipeline-variable@1:
+          title: Persist BROWSERSTACK_IOS_FLASK_APP_URL across all stages
+          inputs:
+            - variables: |-
+                BROWSERSTACK_IOS_FLASK_APP_URL
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
