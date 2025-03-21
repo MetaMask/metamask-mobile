@@ -32,8 +32,13 @@ export type AllowedActions = never;
 
 export type AllowedEvents = SmartTransactionsControllerSmartTransactionEvent;
 
+export type SignedTransaction = {
+  signedTx: string;
+  [key: string]: unknown;
+};
+
 export interface SubmitSmartTransactionRequest {
-  transactionMeta: TransactionMeta;
+  transactionMeta?: TransactionMeta;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   controllerMessenger: Messenger<AllowedActions, AllowedEvents>;
@@ -57,6 +62,7 @@ export interface SubmitSmartTransactionRequest {
         }
       | Record<string, never>;
   };
+  transactions: SignedTransaction[];
 }
 
 const LOG_PREFIX = 'STX publishHook';
@@ -68,7 +74,7 @@ export const STX_NO_HASH_ERROR =
 class SmartTransactionHook {
   #approvalEnded: boolean;
   #approvalId: string | undefined;
-  #chainId: Hex;
+  #chainId?: Hex;
   #featureFlags: {
     extensionActive: boolean;
     mobileActive: boolean;
@@ -83,8 +89,8 @@ class SmartTransactionHook {
   #smartTransactionsController: SmartTransactionsController;
   #transactionController: TransactionController;
   #approvalController: ApprovalController;
-  #transactionMeta: TransactionMeta;
-  #txParams: TransactionParams;
+  #transactionMeta?: TransactionMeta;
+  #txParams?: TransactionParams;
   #controllerMessenger: SubmitSmartTransactionRequest['controllerMessenger'];
 
   #isDapp: boolean;
@@ -97,6 +103,7 @@ class SmartTransactionHook {
   #shouldStartApprovalRequest: boolean;
   #shouldUpdateApprovalRequest: boolean;
   #mobileReturnTxHashAsap: boolean;
+  #transactions: SignedTransaction[];
 
   constructor(request: SubmitSmartTransactionRequest) {
     const {
@@ -107,6 +114,7 @@ class SmartTransactionHook {
       shouldUseSmartTransaction,
       approvalController,
       featureFlags,
+      transactions,
     } = request;
     this.#approvalId = undefined;
     this.#approvalEnded = false;
@@ -116,11 +124,12 @@ class SmartTransactionHook {
     this.#approvalController = approvalController;
     this.#shouldUseSmartTransaction = shouldUseSmartTransaction;
     this.#featureFlags = featureFlags;
-    this.#chainId = transactionMeta.chainId;
-    this.#txParams = transactionMeta.txParams;
+    this.#chainId = transactionMeta?.chainId;
+    this.#txParams = transactionMeta?.txParams;
     this.#controllerMessenger = controllerMessenger;
     this.#mobileReturnTxHashAsap =
       this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap ?? false;
+    this.#transactions = transactions;
 
     const {
       isDapp,
@@ -168,7 +177,7 @@ class SmartTransactionHook {
     const useRegularTransactionSubmit = { transactionHash: undefined };
     if (
       !this.#shouldUseSmartTransaction ||
-      this.#transactionMeta.origin === RAMPS_SEND
+      this.#transactionMeta?.origin === RAMPS_SEND
     ) {
       return useRegularTransactionSubmit;
     }
@@ -176,9 +185,9 @@ class SmartTransactionHook {
     Logger.log(
       LOG_PREFIX,
       'Started submit hook',
-      this.#transactionMeta.id,
+      this.#transactionMeta?.id,
       'transactionMeta.type',
-      this.#transactionMeta.type,
+      this.#transactionMeta?.type,
     );
 
     try {
@@ -188,9 +197,12 @@ class SmartTransactionHook {
         return useRegularTransactionSubmit;
       }
 
-      const batchStatusPollingInterval = this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+      const batchStatusPollingInterval =
+        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
       if (batchStatusPollingInterval) {
-        this.#smartTransactionsController.setStatusRefreshInterval(batchStatusPollingInterval);
+        this.#smartTransactionsController.setStatusRefreshInterval(
+          batchStatusPollingInterval,
+        );
       }
 
       const submitTransactionResponse = await this.#signAndSubmitTransactions({
@@ -230,6 +242,96 @@ class SmartTransactionHook {
       Logger.error(
         error,
         `${LOG_PREFIX} Error in smart transaction publish hook`,
+      );
+      throw error;
+    } finally {
+      if (!this.#mobileReturnTxHashAsap) {
+        this.#cleanup();
+      }
+    }
+  }
+
+  async submitBatch() {
+    // Will cause TransactionController to publish to the RPC provider as normal.
+    Logger.log(
+      LOG_PREFIX,
+      'shouldUseSmartTransaction',
+      this.#shouldUseSmartTransaction,
+    );
+    const useRegularTransactionSubmit = undefined;
+    if (!this.#shouldUseSmartTransaction || !this.#transactions || this.#transactions.length === 0) {
+      return useRegularTransactionSubmit;
+    }
+
+    Logger.log(
+      LOG_PREFIX,
+      'Started submit batch hook',
+      'Transaction IDs:',
+      this.#transactions.map((tx) => tx.id).join(', '),
+    );
+
+    try {
+      const batchStatusPollingInterval =
+        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+      if (batchStatusPollingInterval) {
+        this.#smartTransactionsController.setStatusRefreshInterval(
+          batchStatusPollingInterval,
+        );
+      }
+
+      const submitTransactionResponse = await this.#signAndSubmitTransactions();
+      const uuid = submitTransactionResponse?.uuid;
+      if (!uuid) {
+        throw new Error('No smart transaction UUID');
+      }
+
+      // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
+      if (this.#isSwapTransaction || this.#isSwapApproveTx) {
+        this.#updateSwapsTransactions(uuid);
+      }
+
+      if (this.#shouldStartApprovalRequest) {
+        this.#addApprovalRequest({
+          uuid,
+        });
+      }
+
+      if (this.#shouldUpdateApprovalRequest) {
+        this.#addListenerToUpdateStatusPage({
+          uuid,
+        });
+      }
+
+      const transactionHash = await this.#getTransactionHash(
+        submitTransactionResponse,
+        uuid,
+      );
+      if (transactionHash === null) {
+        throw new Error(
+          'Transaction does not have a transaction hash in the publish batch hook, there was a problem',
+        );
+      }
+
+      let submitBatchResponse;
+      if (submitTransactionResponse?.txHashes) {
+        submitBatchResponse = {
+          results: submitTransactionResponse.txHashes.map((txHash: string) => ({
+            transactionHash: txHash,
+          })),
+        };
+      } else {
+        submitBatchResponse = {
+          results: [],
+        };
+      }
+
+      return submitBatchResponse;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      Logger.error(
+        error,
+        `${LOG_PREFIX} Error in smart transaction publish batch hook`,
       );
       throw error;
     } finally {
@@ -329,28 +431,32 @@ class SmartTransactionHook {
   #signAndSubmitTransactions = async ({
     getFeesResponse,
   }: {
-    getFeesResponse: Fees;
-  }) => {
-    const signedTransactions = await this.#createSignedTransactions(
-      getFeesResponse.tradeTxFees?.fees ?? [],
-      false,
-    );
-    const signedCanceledTransactions = await this.#createSignedTransactions(
-      getFeesResponse.tradeTxFees?.cancelFees || [],
-      true,
-    );
+    getFeesResponse?: Fees;
+  } = {}) => {
+    let signedTransactions;
+    if (this.#transactions && Array.isArray(this.#transactions)) {
+      // Batch transaction mode - extract signed transactions from this.#transactions[].signedTx
+      signedTransactions = this.#transactions
+        .filter((tx) => tx?.signedTx)
+        .map((tx) => tx.signedTx);
+    } else {
+      signedTransactions = await this.#createSignedTransactions(
+        getFeesResponse?.tradeTxFees?.fees ?? [],
+        false,
+      );
+    }
     return await this.#smartTransactionsController.submitSignedTransactions({
       signedTransactions,
-      signedCanceledTransactions,
-      txParams: this.#txParams,
-      transactionMeta: this.#transactionMeta,
+      signedCanceledTransactions: [],
+      ...(this.#txParams && { txParams: this.#txParams }),
+      ...(this.#transactionMeta && { transactionMeta: this.#transactionMeta }),
     });
   };
 
   #addApprovalRequest = ({ uuid }: { uuid: string }) => {
-    const origin = this.#transactionMeta.origin;
+    const origin = this.#transactionMeta?.origin || 'submitBatch'; // TODO: Load origin correctly for submitBatch.
 
-    if (!origin) throw new Error('Origin is required');
+    // if (!origin) throw new Error('Origin is required');
 
     this.#approvalId = random();
 
@@ -474,4 +580,11 @@ export const submitSmartTransactionHook = (
 ) => {
   const smartTransactionHook = new SmartTransactionHook(request);
   return smartTransactionHook.submit();
+};
+
+export const submitBatchSmartTransactionHook = (
+  request: SubmitSmartTransactionRequest,
+) => {
+  const smartTransactionHook = new SmartTransactionHook(request);
+  return smartTransactionHook.submitBatch();
 };
