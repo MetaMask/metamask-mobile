@@ -33,6 +33,9 @@ app/core/Engine/README.md                                   @MetaMask/mobile-pla
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
 
+# Platform & Snaps Code Fencing File
+metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
+
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
