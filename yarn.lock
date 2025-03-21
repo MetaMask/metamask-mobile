@@ -1716,12 +1716,12 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
-"@config-plugins/detox@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@config-plugins/detox/-/detox-8.0.0.tgz#95bef213049917520d1ea54648f591060707128d"
-  integrity sha512-t6J1W2RH6UKc8vt87NHQf6JG3B/Lu6rvVF24n5cqw+jWy9TmcqWrgxkDttKrR3dW/a0cfo3xpwBWvakpPQXGjw==
+"@config-plugins/detox@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@config-plugins/detox/-/detox-9.0.0.tgz#2f9a771761e13f879b29bd307d1befaba430ab6a"
+  integrity sha512-GJJlUvHIOdrkRvb3g0dxsEt2KhNIMyZGTdXK4kFWJX5MTUy5ynUytzV69pRbg2LxQ8UoGnNYIVyf9Yfuq+6xtg==
   dependencies:
-    expo-build-properties "~0.12.1"
+    expo-build-properties "^0.13.1"
 
 "@consensys/on-ramp-sdk@^2.0.5":
   version "2.0.5"
@@ -17278,10 +17278,10 @@ expo-asset@~11.0.3:
     invariant "^2.2.4"
     md5-file "^3.2.3"
 
-expo-build-properties@~0.12.1:
-  version "0.12.5"
-  resolved "https://registry.yarnpkg.com/expo-build-properties/-/expo-build-properties-0.12.5.tgz#4d6232389f00c846ba37ca5df2c0b5527c2d94ca"
-  integrity sha512-donC1le0PYfLKCPKRMGQoixuWuwDWCngzXSoQXUPsgHTDHQUKr8aw+lcWkTwZcItgNovcnk784I0dyfYDcxybA==
+expo-build-properties@^0.13.1:
+  version "0.13.2"
+  resolved "https://registry.yarnpkg.com/expo-build-properties/-/expo-build-properties-0.13.2.tgz#c9cef927fc8236551d940da4fd8dc1332e2d052d"
+  integrity sha512-ML2GwBgn0Bo4yPgnSGb7h3XVxCigS/KFdid3xPC2HldEioTP3UewB/2Qa4WBsam9Fb7lAuRyVHAfRoA3swpDzg==
   dependencies:
     ajv "^8.11.0"
     semver "^7.6.0"

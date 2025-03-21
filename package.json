@@ -144,7 +144,7 @@
     "**/@walletconnect/utils/elliptic": "^6.6.1"
   },
   "dependencies": {
-    "@config-plugins/detox": "^8.0.0",
+    "@config-plugins/detox": "^9.0.0",
     "@consensys/on-ramp-sdk": "^2.0.5",
     "@keystonehq/bc-ur-registry-eth": "^0.19.1",
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",
