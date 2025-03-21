@@ -19,6 +19,8 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
+import { parseCaipAssetType } from '@metamask/utils';
+import BigNumber from 'bignumber.js';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -197,6 +199,130 @@ export const selectMultichainTransactions = createDeepEqualSelector(
   selectMultichainTransactionsControllerState,
   (multichainTransactionsControllerState) =>
     multichainTransactionsControllerState.nonEvmTransactions,
+);
+
+export function selectMultichainAssets(state: RootState) {
+  return state.engine.backgroundState.MultichainAssetsController.accountsAssets;
+}
+
+export function selectMultichainAssetsMetadata(state: RootState) {
+  return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
+}
+
+export function selectMultichainAssetsRates(state: RootState) {
+  return state.engine.backgroundState.MultichainAssetsRatesController
+    .conversionRates;
+}
+
+export const selectMultichainTokenList = createDeepEqualSelector(
+  selectSelectedInternalAccount,
+  selectMultichainBalances,
+  selectMultichainAssets,
+  selectMultichainAssetsMetadata,
+  selectMultichainAssetsRates,
+  selectSelectedNonEvmNetworkChainId,
+  (
+    selectedAccountAddress,
+    multichainBalances,
+    assets,
+    assetsMetadata,
+    assetsRates,
+    nonEvmNetworkChainId,
+  ) => {
+    if (!selectedAccountAddress) {
+      return [];
+    }
+
+    const assetIds = assets?.[selectedAccountAddress.id] || [];
+    const balances = multichainBalances?.[selectedAccountAddress.id];
+
+    return assetIds
+      .filter((assetId) => {
+        const { chainId } = parseCaipAssetType(assetId);
+        return chainId === nonEvmNetworkChainId;
+      })
+      .map((assetId) => {
+        const { chainId, assetNamespace } = parseCaipAssetType(assetId);
+        const isNative = assetNamespace === 'slip44';
+        const balance = balances?.[assetId] || { amount: '0', unit: '' };
+        const rate = assetsRates?.[assetId]?.rate || '0';
+        const balanceInFiat = new BigNumber(balance.amount).times(rate);
+
+        const assetMetadataFallback = {
+          name: balance.unit,
+          symbol: balance.unit || '',
+          fungible: true,
+          units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
+        };
+
+        const metadata = assetsMetadata[assetId] || assetMetadataFallback;
+        const decimals = metadata.units[0]?.decimals || 0;
+
+        return {
+          name: metadata.name,
+          address: assetId,
+          symbol: metadata.symbol,
+          image: metadata.iconUrl,
+          logo: metadata.iconUrl,
+          decimals,
+          chainId,
+          isNative,
+          balance: balance.amount,
+          secondary: balanceInFiat.toString(),
+          string: '',
+          balanceFiat: balanceInFiat.toString(),
+          isStakeable: false,
+          aggregators: [],
+          isETH: false,
+          ticker: metadata.symbol,
+        };
+      });
+  },
+);
+
+export const selectMultichainNetworkAggregatedBalance = createDeepEqualSelector(
+  selectSelectedInternalAccount,
+  selectMultichainBalances,
+  selectMultichainAssets,
+  selectMultichainAssetsRates,
+  selectSelectedNonEvmNetworkChainId,
+  (
+    selectedAccountAddress,
+    multichainBalances,
+    assets,
+    assetsRates,
+    nonEvmNetworkChainId,
+  ) => {
+    if (!selectedAccountAddress) {
+      return { totalBalance: '0', totalBalanceFiat: '0' };
+    }
+
+    const assetIds = assets?.[selectedAccountAddress.id] || [];
+    const balances = multichainBalances?.[selectedAccountAddress.id];
+
+    return assetIds
+      .filter((assetId) => {
+        const { chainId } = parseCaipAssetType(assetId);
+        return chainId === nonEvmNetworkChainId;
+      })
+      .reduce(
+        (acc, assetId) => {
+          const balance = balances?.[assetId] || { amount: '0', unit: '' };
+          const rate = assetsRates?.[assetId]?.rate || '0';
+          const balanceInFiat = new BigNumber(balance.amount).times(rate);
+
+          acc.totalBalance = new BigNumber(acc.totalBalance)
+            .plus(balance.amount)
+            .toString();
+          acc.totalBalanceFiat = new BigNumber(acc.totalBalanceFiat)
+            .plus(balanceInFiat)
+            .toString();
+
+          return acc;
+        },
+        { totalBalance: '0', totalBalanceFiat: '0' },
+      );
+  },
 );
 
 ///: END:ONLY_INCLUDE_IF
