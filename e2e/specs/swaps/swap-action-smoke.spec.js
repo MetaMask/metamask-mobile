@@ -118,7 +118,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
 
-        await QuoteView.selectToken(sourceTokenSymbol);
+        await QuoteView.selectToken(sourceTokenSymbol,2);
       }
       await QuoteView.enterSwapAmount(quantity);
 
