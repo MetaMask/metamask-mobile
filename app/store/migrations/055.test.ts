@@ -231,7 +231,6 @@ describe(`migration #${version}`, () => {
         networkClientId: customNetwork.id,
         name: customNetwork.nickname,
         url: customNetwork.rpcUrl,
-        failoverUrls: [],
         type: RpcEndpointType.Custom,
       }) - 1;
 
@@ -516,7 +515,6 @@ function defaultPostMigrationState() {
           {
             networkClientId: 'mainnet',
             url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-            failoverUrls: [],
             type: 'infura',
           },
         ],
@@ -532,7 +530,6 @@ function defaultPostMigrationState() {
           {
             networkClientId: 'sepolia',
             url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
-            failoverUrls: [],
             type: 'infura',
           },
         ],
@@ -548,7 +545,6 @@ function defaultPostMigrationState() {
           {
             networkClientId: 'linea-sepolia',
             url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
-            failoverUrls: [],
             type: 'infura',
           },
         ],
@@ -564,7 +560,6 @@ function defaultPostMigrationState() {
           {
             networkClientId: 'linea-mainnet',
             url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-            failoverUrls: [],
             type: 'infura',
           },
         ],
