@@ -452,16 +452,18 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    // Snaps middleware
-    engine.push(
-      snapMethodMiddlewareBuilder(
-        Engine.context,
-        Engine.controllerMessenger,
-        this.url,
-        // We assume that origins connecting through the BackgroundBridge are websites
-        SubjectType.Website,
-      ),
-    );
+    // The Snaps middleware is disabled in WalletConnect and SDK for now.
+    if (!this.isMMSDK && !this.isWalletConnect) {
+      engine.push(
+        snapMethodMiddlewareBuilder(
+          Engine.context,
+          Engine.controllerMessenger,
+          this.url,
+          // We assume that origins connecting through the BackgroundBridge are websites
+          SubjectType.Website,
+        ),
+      );
+    }
     ///: END:ONLY_INCLUDE_IF
 
     // user-facing RPC methods
@@ -493,7 +495,9 @@ export class BackgroundBridge extends EventEmitter {
    */
   getState() {
     const vault = Engine.context.KeyringController.state.vault;
-    const { PreferencesController: { selectedAddress } } = Engine.datamodel.state;
+    const {
+      PreferencesController: { selectedAddress },
+    } = Engine.datamodel.state;
     return {
       isInitialized: !!vault,
       isUnlocked: true,
