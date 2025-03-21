@@ -18,7 +18,10 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
   const appThemeStyle =
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
   const isDataCollectionForMarketingEnabled =
-      reduxState?.security?.dataCollectionForMarketing;
+    reduxState?.security?.dataCollectionForMarketing;
+  const profileId =
+    reduxState?.engine?.backgroundState?.AuthenticationController?.sessionData
+      ?.profile?.profileId;
 
   return {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
@@ -40,9 +43,11 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
         : UserProfileProperty.OFF,
     [UserProfileProperty.SECURITY_PROVIDERS]:
       preferencesController?.securityAlertsEnabled ? 'blockaid' : '',
-    [UserProfileProperty.HAS_MARKETING_CONSENT]: isDataCollectionForMarketingEnabled
+    [UserProfileProperty.HAS_MARKETING_CONSENT]:
+      isDataCollectionForMarketingEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
+    [UserProfileProperty.PROFILE_ID]: profileId || '',
   };
 };
 
