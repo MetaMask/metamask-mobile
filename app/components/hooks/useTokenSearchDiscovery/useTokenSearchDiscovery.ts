@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import Engine from '../../../core/Engine';
@@ -8,7 +8,8 @@ import {
   TokenSearchParams,
 } from '@metamask/token-search-discovery-controller';
 
-const SEARCH_DEBOUNCE_DELAY = 300;
+const SEARCH_DEBOUNCE_DELAY = 50;
+const MINIMUM_QUERY_LENGTH = 2;
 
 export const useTokenSearchDiscovery = () => {
   const recentSearches = useSelector(selectRecentTokenSearches);
@@ -24,6 +25,12 @@ export const useTokenSearchDiscovery = () => {
         setError(null);
         const requestId = ++latestRequestId.current;
 
+        if (!params.query || params.query.length < MINIMUM_QUERY_LENGTH) {
+          setResults([]);
+          setIsLoading(false);
+          return;
+        }
+
         try {
           const { TokenSearchDiscoveryController } = Engine.context;
           const result = await TokenSearchDiscoveryController.searchTokens(
@@ -34,7 +41,7 @@ export const useTokenSearchDiscovery = () => {
           }
         } catch (err) {
           if (requestId === latestRequestId.current) {
-            setError(err as Error);
+          setError(err as Error);
           }
         } finally {
           if (requestId === latestRequestId.current) {
@@ -45,12 +52,19 @@ export const useTokenSearchDiscovery = () => {
     [],
   );
 
+  const reset = useCallback(() => {
+    setResults([]);
+    setError(null);
+    setIsLoading(false);
+  }, []);
+
   return {
     searchTokens,
     recentSearches,
     isLoading,
     error,
     results,
+    reset,
   };
 };
 

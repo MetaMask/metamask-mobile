@@ -37,7 +37,7 @@ export default async () => {
 
   await KeyringController.withKeyring(
     { type: ExtendedKeyringTypes.hd },
-    async (primaryKeyring) => {
+    async ({ keyring: primaryKeyring }) => {
       for (let i = 0; i < MAX; i++) {
         const [newAccount] = await primaryKeyring.addAccounts(1);
 

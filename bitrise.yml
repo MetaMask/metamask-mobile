@@ -1864,7 +1864,11 @@ app:
       VERSION_NAME: 7.42.0
     - opts:
         is_expand: false
+<<<<<<< HEAD
+      VERSION_NUMBER: 1596
+=======
       VERSION_NUMBER: 1600
+>>>>>>> origin/main
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.42.0
