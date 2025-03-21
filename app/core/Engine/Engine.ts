@@ -321,6 +321,10 @@ export class Engine {
       trackMetaMetricsEvent: () => {
         // noop
       },
+      getRpcServiceOptions: () => ({
+        btoa,
+        fetch,
+      }),
     };
     const networkController = new NetworkController(networkControllerOpts);
 

@@ -4541,10 +4541,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.4", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@npm:@metamask-previews/controller-utils@11.6.0-preview-86cafc23":
-  version "11.6.0-preview-86cafc23"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask-previews/controller-utils/-/controller-utils-11.6.0-preview-86cafc23.tgz#119a6b6eb924e00244747d71cc4772a0070f484b"
-  integrity sha512-BzVGHKpFSCTX8fuXcG0C+48mKwGXpr/Y9aRWNiNKiYb7JjdwwR6KmhPMs8V3zDAQbfwmWpx3n2CVVY34WG703w==
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.4", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@npm:@metamask-previews/controller-utils@11.6.0-preview-a47985c":
+  version "11.6.0-preview-a47985c"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask-previews/controller-utils/-/controller-utils-11.6.0-preview-a47985c.tgz#9a37f1ef97e50e74d198bb195288b66ffce885c2"
+  integrity sha512-/Ga4scWbpbRaQMNcm8O6kj2wP3fc8J7ospzsWZIfePkq/iSP287G7qZ9MvqzpCR5TL5q3mzMT6MvWLCnGpDDwA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/eth-query" "^4.0.0"
@@ -5069,10 +5069,10 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^22.2.1", "@metamask/network-controller@npm:@metamask-previews/network-controller@22.2.1-preview-86cafc23":
-  version "22.2.1-preview-86cafc23"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask-previews/network-controller/-/network-controller-22.2.1-preview-86cafc23.tgz#df0ede0a2a0e2ee6da33f3a86d09c6bf2383d2cc"
-  integrity sha512-sgXBEgThXKwyZTKbfRAKuP4yuuVVeGrJ9O+py1NVAz3XbrnSgEInxg1bb4TN4fVqK6GKe1Z2bEReF2MidtZprg==
+"@metamask/network-controller@^22.2.1", "@metamask/network-controller@npm:@metamask-previews/network-controller@23.0.0-preview-a47985c":
+  version "23.0.0-preview-a47985c"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask-previews/network-controller/-/network-controller-23.0.0-preview-a47985c.tgz#3c685fdbce358d4766af0710f6c215f243401c09"
+  integrity sha512-saUT+HPJZFDg9zZC6r64lCr+Mm9hYfHpkjPU87c3mrBf1hQgHeqSYWG6e2nR3pUB+sRQAg8a9IqcGWyFGkAz0Q==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
