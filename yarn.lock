@@ -4594,6 +4594,18 @@
     json-rpc-random-id "^1.0.1"
     pify "^5.0.0"
 
+"@metamask/eth-hd-keyring@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-11.0.0.tgz#c89db5b4ff2f61fd6ea75dbeddbd9fd5dbbe6bf8"
+  integrity sha512-QYs5ieXdrwhXnbo4u8exseSsPtKfLpGDXT7BVivbjYCV6H0Ksn+DiIJ785CnGs/GWdao29KFiQ8mwrj76DDd1A==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/eth-sig-util" "^8.2.0"
+    "@metamask/key-tree" "^10.0.2"
+    "@metamask/scure-bip39" "^2.1.1"
+    "@metamask/utils" "^11.1.0"
+    ethereum-cryptography "^2.1.2"
+
 "@metamask/eth-hd-keyring@^12.0.0", "@metamask/eth-hd-keyring@^12.1.0":
   version "12.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-12.1.0.tgz#f70e421cc7fbecc039b3f6347172444dadb10168"
@@ -4694,6 +4706,17 @@
   integrity sha512-zdPIhKsQDfLG5m8yFDHpaXe8nPYc3sBeTiVWw1BPxwGNIW7Y8ToeHMMIlOYFZzUP98ezrtrBjiB86tQdRZ377w==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
+    "@metamask/eth-sig-util" "^8.2.0"
+    "@metamask/utils" "^11.1.0"
+    ethereum-cryptography "^2.1.2"
+    randombytes "^2.1.0"
+
+"@metamask/eth-simple-keyring@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-simple-keyring/-/eth-simple-keyring-9.0.0.tgz#8f13b97bf527a3656cf57ac0acc5ecd4c4716701"
+  integrity sha512-5NGb2Y+ZAFWWmy8zhIVHh1Th1lXKgy3qRQScPB4asuFiwIc/YTanc3eu08M+OnblWWUOUaONo1hPV+jRhpUUFg==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
     "@metamask/eth-sig-util" "^8.2.0"
     "@metamask/utils" "^11.1.0"
     ethereum-cryptography "^2.1.2"
