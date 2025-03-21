@@ -44,9 +44,9 @@ export function useConfirmationAlertMetric() {
 
   const trackers = useMemo(() => {
     const trackInlineAlertClicked = () => {
-      if (confirmationMetrics.properties && Array.isArray(confirmationMetrics.properties.alert_visualized)) {
+      if (confirmationMetrics.properties) {
         const alertVisualized = uniqueFreshArrayPush(
-          confirmationMetrics.properties.alert_visualized as string[],
+          (confirmationMetrics.properties.alert_visualized as string[]) ?? [],
           alertKey
         );
 
@@ -61,9 +61,9 @@ export function useConfirmationAlertMetric() {
     };
 
     const trackAlertRendered = () => {
-      if (confirmationMetrics.properties && Array.isArray(confirmationMetrics.properties.alert_rendered)) {
+      if (confirmationMetrics.properties) {
         const alertRendered = uniqueFreshArrayPush(
-          confirmationMetrics.properties.alert_rendered as string[],
+          (confirmationMetrics.properties.alert_rendered as string[]) ?? [],
           alertKey
         );
 

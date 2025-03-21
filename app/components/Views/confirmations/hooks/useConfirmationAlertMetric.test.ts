@@ -114,4 +114,85 @@ describe('useConfirmationAlertMetric', () => {
       },
     });
   });
+
+  it('uses alertKey when there is no match in ALERTS_NAME_METRICS', () => {
+    const UNKNOWN_ALERT_KEY_MOCK = 'unknown_alert';
+    const mockUseAlertsWithUnknownKey = {
+      alerts: [
+        { key: UNKNOWN_ALERT_KEY_MOCK },
+      ],
+      isAlertConfirmed: jest.fn(),
+      alertKey: UNKNOWN_ALERT_KEY_MOCK,
+    };
+
+    (useAlerts as jest.Mock).mockReturnValue(mockUseAlertsWithUnknownKey);
+    (useSelector as jest.Mock).mockReturnValue({
+      properties: {
+        alert_trigger_count: 1,
+        alert_trigger_name: [UNKNOWN_ALERT_KEY_MOCK],
+        alert_resolved_count: 0,
+        alert_resolved: [],
+        alert_visualized: [],
+      },
+    });
+
+    const { result } = renderHook(() => useConfirmationAlertMetric());
+
+    result.current.trackInlineAlertClicked();
+
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+      properties: {
+        alert_trigger_count: 1,
+        alert_trigger_name: [UNKNOWN_ALERT_KEY_MOCK],
+        alert_resolved_count: 0,
+        alert_resolved: [],
+        alert_visualized: [UNKNOWN_ALERT_KEY_MOCK],
+        alert_visualized_count: 1,
+      },
+    });
+  });
+
+  it('handles undefined alert_rendered', () => {
+    (mockUseAlerts.isAlertConfirmed as jest.Mock).mockReturnValue(false);
+    (useSelector as jest.Mock).mockReturnValue({
+      properties: {
+        ...baseAlertProperties,
+        alert_rendered: undefined,
+      },
+    });
+
+    const { result } = renderHook(() => useConfirmationAlertMetric());
+
+    result.current.trackAlertRendered();
+
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+      properties: {
+        ...baseAlertProperties,
+        alert_rendered: [AlertKeys.DomainMismatch],
+        alert_rendered_count: 1,
+      },
+    });
+  });
+
+  it('handles undefined alert_visualized', () => {
+    (mockUseAlerts.isAlertConfirmed as jest.Mock).mockReturnValue(false);
+    (useSelector as jest.Mock).mockReturnValue({
+      properties: {
+        ...baseAlertProperties,
+        alert_visualized: undefined,
+      },
+    });
+
+    const { result } = renderHook(() => useConfirmationAlertMetric());
+
+    result.current.trackInlineAlertClicked();
+
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+      properties: {
+        ...baseAlertProperties,
+        alert_visualized: [AlertKeys.DomainMismatch],
+        alert_visualized_count: 1,
+      },
+    });
+  });
 });
