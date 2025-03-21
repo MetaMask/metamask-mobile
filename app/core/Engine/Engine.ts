@@ -41,7 +41,7 @@ import {
   AcceptOptions,
   ApprovalController,
 } from '@metamask/approval-controller';
-import HDKeyring from '@metamask/eth-hd-keyring';
+import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { SelectedNetworkController } from '@metamask/selected-network-controller';
 import {
   PermissionController,
@@ -169,6 +169,10 @@ import {
   snapControllerInit,
   snapInterfaceControllerInit,
   snapsRegistryInit,
+  SnapControllerClearSnapStateAction,
+  SnapControllerGetSnapAction,
+  SnapControllerGetSnapStateAction,
+  SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
@@ -194,18 +198,13 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import {
-  SnapControllerClearSnapStateAction,
-  SnapControllerGetSnapAction,
-  SnapControllerGetSnapStateAction,
-  SnapControllerUpdateSnapStateAction,
-} from './controllers/SnapController/constants';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { Platform } from '@metamask/profile-sync-controller/sdk';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -449,10 +448,10 @@ export class Engine {
     additionalKeyrings.push(ledgerKeyringBuilder);
 
     const hdKeyringBuilder = () =>
-      new HDKeyring({
+      new HdKeyring({
         cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
       });
-    hdKeyringBuilder.type = HDKeyring.type;
+    hdKeyringBuilder.type = HdKeyring.type;
     additionalKeyrings.push(hdKeyringBuilder);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -514,16 +513,27 @@ export class Engine {
      * Gets the mnemonic of the user's primary keyring.
      */
     const getPrimaryKeyringMnemonic = () => {
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const [keyring]: any = this.keyringController.getKeyringsByType(
+      const [keyring] = this.keyringController.getKeyringsByType(
         KeyringTypes.hd,
-      );
+      ) as HdKeyring[];
+
       if (!keyring.mnemonic) {
         throw new Error('Primary keyring mnemonic unavailable.');
       }
 
       return keyring.mnemonic;
+    };
+
+    const getPrimaryKeyringMnemonicSeed = () => {
+      const [keyring] = this.keyringController.getKeyringsByType(
+        KeyringTypes.hd,
+      ) as HdKeyring[];
+
+      if (!keyring.seed) {
+        throw new Error('Primary keyring mnemonic unavailable.');
+      }
+
+      return keyring.seed;
     };
 
     const getUnlockPromise = () => {
@@ -546,7 +556,64 @@ export class Engine {
         this.controllerMessenger,
         SnapControllerClearSnapStateAction,
       ),
-      getMnemonic: getPrimaryKeyringMnemonic.bind(this),
+      getMnemonic: async (source?: string) => {
+        if (!source) {
+          return getPrimaryKeyringMnemonic();
+        }
+
+        try {
+          const { type, mnemonic } = (await this.controllerMessenger.call(
+            'KeyringController:withKeyring',
+            {
+              id: source,
+            },
+            async (keyring) => ({
+              type: keyring.type,
+              mnemonic: (keyring as unknown as HdKeyring).mnemonic,
+            }),
+          )) as { type: string; mnemonic?: Uint8Array };
+
+          if (type !== KeyringTypes.hd || !mnemonic) {
+            // The keyring isn't guaranteed to have a mnemonic (e.g.,
+            // hardware wallets, which can't be used as entropy sources),
+            // so we throw an error if it doesn't.
+            throw new Error(`Entropy source with ID "${source}" not found.`);
+          }
+
+          return mnemonic;
+        } catch {
+          throw new Error(`Entropy source with ID "${source}" not found.`);
+        }
+      },
+      getMnemonicSeed: async (source?: string) => {
+        if (!source) {
+          return getPrimaryKeyringMnemonicSeed();
+        }
+
+        try {
+          const { type, seed } = (await this.controllerMessenger.call(
+            'KeyringController:withKeyring',
+            {
+              id: source,
+            },
+            async (keyring) => ({
+              type: keyring.type,
+              seed: (keyring as unknown as HdKeyring).seed,
+            }),
+          )) as { type: string; seed?: Uint8Array };
+
+          if (type !== KeyringTypes.hd || !seed) {
+            // The keyring isn't guaranteed to have a seed (e.g.,
+            // hardware wallets, which can't be used as entropy sources),
+            // so we throw an error if it doesn't.
+            throw new Error(`Entropy source with ID "${source}" not found.`);
+          }
+
+          return seed;
+        } catch {
+          throw new Error(`Entropy source with ID "${source}" not found.`);
+        }
+      },
       getUnlockPromise: getUnlockPromise.bind(this),
       getSnap: this.controllerMessenger.call.bind(
         this.controllerMessenger,
@@ -775,7 +842,7 @@ export class Engine {
       messenger: authenticationControllerMessenger,
       initialState: initialState.AuthenticationController,
       metametrics: {
-        agent: 'mobile',
+        agent: Platform.MOBILE,
         getMetaMetricsId: async () =>
           (await MetaMetrics.getInstance().getMetaMetricsId()) || '',
       },
@@ -1482,18 +1549,20 @@ export class Engine {
   handleVaultBackup() {
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
-      (state: KeyringControllerState) =>
+      (state: KeyringControllerState) => {
+        if (!state.vault) {
+          return;
+        }
+
+        // Back up vault if it exists
         backupVault(state)
-          .then((result) => {
-            if (result.success) {
-              Logger.log('Engine', 'Vault back up successful');
-            } else {
-              Logger.log('Engine', 'Vault backup failed', result.error);
-            }
+          .then(() => {
+            Logger.log('Engine', 'Vault back up successful');
           })
           .catch((error) => {
             Logger.error(error, 'Engine Vault backup failed');
-          }),
+          });
+      },
     );
   }
 

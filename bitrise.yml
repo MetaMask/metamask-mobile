@@ -161,12 +161,12 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_ramps_android: {}
-      # run_tag_smoke_ramps_ios: {}
+      # - run_tag_smoke_ramps_ios: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
-      # run_tag_smoke_stake_ios: {}
-      # run_tag_smoke_stake_android: {}
+      # - run_tag_smoke_stake_ios: {}
+      # - run_tag_smoke_stake_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
@@ -189,7 +189,7 @@ stages:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
-      # run_tag_smoke_ramps_ios: {}
+      - run_tag_smoke_ramps_ios: {}
       # - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
@@ -272,7 +272,7 @@ workflows:
       - setup
       - prep_environment
     steps:
-      - restore-cocoapods-cache@2: {}
+      # - restore-cocoapods-cache@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -436,6 +436,38 @@ workflows:
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
             - update_comment_tag: '$GITHUB_PR_HASH'
+      - script@1:
+          is_always_run: true
+          title: Label PR with success
+          inputs:
+          - content: |-
+              #!/usr/bin/env bash
+              # Define label data
+              LABELS_JSON='{"labels":["bitrise-result-ready"]}'
+              	
+              # API URL to add labels to a PR
+              API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
+
+              # Perform the curl request and capture the HTTP status code
+              HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$LABELS_JSON" "$API_URL")
+              	
+              # Output the HTTP status code
+              echo "HTTP Response Code: $HTTP_RESPONSE"	
+              
+              # Optionally check the response
+              echo "HTTP Response Code: $HTTP_RESPONSE"
+
+              if [ "$HTTP_RESPONSE" -ne 200 ]; then
+                  echo "Failed to apply label. Status code: $HTTP_RESPONSE"
+                  cat response.txt  # Show error message from GitHub if any
+              else
+                  echo "Label applied successfully."
+              fi
+
+              # Clean up the response file
+              rm response.txt
+                	
+
   # Send a Slack message when workflow fails
   notify_failure:
     before_run:
@@ -940,7 +972,7 @@ workflows:
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
-      - restore-cocoapods-cache@2: {}
+      # - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
@@ -1092,7 +1124,7 @@ workflows:
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
-      - restore-cocoapods-cache@2: {}
+      # - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
@@ -1538,6 +1570,10 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+    meta:	
+      bitrise.io:	
+        stack: osx-xcode-15.0.x	
+        machine_type_id: g2.mac.large
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
@@ -1771,7 +1807,7 @@ app:
   envs:
     - opts:
         is_expand: false
-      MM_NOTIFICATIONS_UI_ENABLED: true
+      MM_NOTIFICATIONS_UI_ENABLED: false
     - opts:
         is_expand: false
       MM_NETWORK_UI_REDESIGN_ENABLED: false
@@ -1825,16 +1861,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.41.0
+      VERSION_NAME: 7.42.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1586
+      VERSION_NUMBER: 1600
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.41.0
+      FLASK_VERSION_NAME: 7.42.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1586
+      FLASK_VERSION_NUMBER: 1600
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1861,7 +1897,7 @@ app:
       COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
-    stack: osx-xcode-15.0.x
+    stack: osx-xcode-16.2.x
     machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
@@ -1870,9 +1906,5 @@ trigger_map:
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
-  - tag: 'dev-e2e-*'
-    pipeline: pr_smoke_e2e_pipeline
-  - tag: 'v*.*.*-RC-*'
-    pipeline: release_e2e_pipeline
-  - push_branch: detox/address-regression-tests-slowdown
-    pipeline: multichain_permissions_e2e_pipeline
+  - tag: 'v*.*.*'
+    pipeline: create_qa_builds_pipeline
