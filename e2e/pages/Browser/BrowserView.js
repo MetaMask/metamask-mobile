@@ -147,11 +147,7 @@ class Browser {
 
   async tapNetworkAvatarButtonOnBrowser() {
     await TestHelpers.delay(4000);
-    await Gestures.waitAndTap(
-      this.networkAvatarButton,
-      15000,
-      'tapNetworkAvatarButtonOnBrowser', // TODO: [ffmcgee] remove log
-    );
+    await Gestures.waitAndTap(this.networkAvatarButton);
   }
 
   async tapAddToFavoritesButton() {

@@ -52,16 +52,8 @@ class Gestures {
    *
    * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
-   * @param {string} logStr - log string
    */
-  static async waitAndTap(
-    elementID,
-    timeout = 15000,
-    logStr = 'no log passed',
-  ) {
-    // TODO: [ffmcgee] remove debug log
-    // eslint-disable-next-line no-console
-    console.log(logStr);
+  static async waitAndTap(elementID, timeout = 15000) {
     const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
     await element.tap();

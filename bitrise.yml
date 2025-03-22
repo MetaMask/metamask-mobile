@@ -138,7 +138,7 @@ stages:
   build_smoke_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
-      # - ios_e2e_build: {} TODO: [ffmcgee] uncomment
+      - ios_e2e_build: {}
       - android_e2e_build: {}
   build_multichain_permissions_e2e_ios_android_stage:
     abort_on_fail: true
@@ -151,27 +151,27 @@ stages:
       - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      # - run_ios_api_specs: {} TODO [ffmcgee] uncomment
-      # - run_tag_smoke_accounts_ios: {} TODO [ffmcgee] uncomment
-      # - run_tag_smoke_accounts_android: {} TODO [ffmcgee] uncomment
+      - run_ios_api_specs: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
-      # - run_tag_smoke_assets_android: {} TODO [ffmcgee] uncomment
-      # - run_tag_smoke_confirmations_ios: {} TODO [ffmcgee] uncomment
-      # - run_tag_smoke_confirmations_android: {} TODO [ffmcgee] uncomment
-      # - run_tag_smoke_ramps_android: {} TODO [ffmcgee] uncomment
+      - run_tag_smoke_assets_android: {}
+      - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_ramps_android: {}
       # - run_tag_smoke_ramps_ios: {}
-      # - run_tag_smoke_confirmations_redesigned_ios: {} TODO [ffmcgee] uncomment
-      # - run_tag_smoke_swaps_ios: {} TODO [ffmcgee] uncomment
-      # - run_tag_smoke_swaps_android: {} TODO [ffmcgee] uncomment
+      - run_tag_smoke_confirmations_redesigned_ios: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
       # - run_tag_smoke_stake_ios: {}
       # - run_tag_smoke_stake_android: {}
-      # - run_tag_smoke_core_ios: {} TODO [ffmcgee] uncomment
-      # - run_tag_smoke_core_android: {} TODO [ffmcgee] uncomment
-      # - run_tag_multichain_permissions_ios: {} TODO [ffmcgee] uncomment
-      # - run_tag_multichain_permissions_android: {} TODO [ffmcgee] uncomment
-      # - run_tag_permissions_ios: {} TODO [ffmcgee] uncomment
+      - run_tag_smoke_core_ios: {}
+      - run_tag_smoke_core_android: {}
+      - run_tag_multichain_permissions_ios: {}
+      - run_tag_multichain_permissions_android: {}
+      - run_tag_permissions_ios: {}
       - run_tag_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:

@@ -26,7 +26,6 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          // .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
@@ -54,16 +53,11 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
           PermissionSummaryBottomSheetSelectorsText.ACCOUNT_ONE_LABEL,
         );
 
-        // // Step 4: Verify chain permissions
-        // await Assertions.checkIfVisible(
-        //   PermissionSummaryBottomSheet.ethereumMainnetText,
-        // );
-
-        // Step 5: Revoke permissions
+        // Step 4: Revoke permissions
         await TestDApp.tapRevokeAccountPermissionsButton();
         await TestHelpers.delay(5000);
 
-        // // Step 6: Verify all permissions revoked
+        // Step 5: Verify permissions revoked
         await TabBarComponent.tapBrowser();
         await BrowserView.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
