@@ -75,7 +75,7 @@ describe(SmokeCore('Carousel Tests'), () => {
     const firstSlideCloseButton =
       await WalletView.carouselFirstSlideCloseButton;
     await Assertions.checkIfVisible(firstSlideCloseButton, 5000);
-    await Gestures.tap(firstSlideCloseButton);
+    await Gestures.waitAndTap(firstSlideCloseButton);
     await TestHelpers.delay(5000);
     await Assertions.checkIfElementToHaveText(
       carouselSecondSlideTitle,
@@ -89,7 +89,7 @@ describe(SmokeCore('Carousel Tests'), () => {
     const carouselSecondSlide = await WalletView.carouselSecondSlide;
     const container = await WalletView.container;
     await Assertions.checkIfVisible(carouselSecondSlide, 5000);
-    await Gestures.tap(carouselSecondSlide);
+    await Gestures.waitAndTap(carouselSecondSlide);
     await Assertions.checkIfVisible(container, 5000);
     await TestHelpers.delay(5000);
     await device.enableSynchronization();
