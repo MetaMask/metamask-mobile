@@ -30,6 +30,11 @@ const styleSheet = (params: { theme: Theme }) => {
       marginStart: 8,
       paddingHorizontal: 12,
     },
+    accountLabel: {
+      borderRadius: 16,
+      marginStart: 8,
+      paddingHorizontal: 12,
+    },
     networkName: {
       color: theme.colors.text.default,
       ...fontStyles.normal,

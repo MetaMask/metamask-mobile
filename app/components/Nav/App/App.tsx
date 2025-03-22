@@ -455,6 +455,7 @@ const RootModalFlow = () => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+
     <Stack.Screen
       name={Routes.SHEET.BRIDGE_TOKEN_SELECTOR}
       component={BridgeTokenSelector}
