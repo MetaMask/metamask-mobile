@@ -383,6 +383,7 @@ export const unrestrictedMethods = Object.freeze([
   // Define unrestricted methods below to bypass PermissionController. These are eventually handled by RPCMethodMiddleware (User facing RPC methods)
   'wallet_getPermissions',
   'wallet_requestPermissions',
+  'wallet_revokePermissions',
   'eth_getTransactionByHash',
   'eth_getTransactionByBlockHashAndIndex',
   'eth_getTransactionByBlockNumberAndIndex',
