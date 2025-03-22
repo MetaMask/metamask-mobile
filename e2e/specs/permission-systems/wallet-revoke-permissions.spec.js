@@ -59,14 +59,14 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
         //   PermissionSummaryBottomSheet.ethereumMainnetText,
         // );
 
-        // // Step 5: Revoke permissions
-        // await TestDApp.tapRevokeAccountPermissionsButton();
-        // await TestHelpers.delay(5000);
+        // Step 5: Revoke permissions
+        await TestDApp.tapRevokeAccountPermissionsButton();
+        await TestHelpers.delay(5000);
 
         // // Step 6: Verify all permissions revoked
-        // await TabBarComponent.tapBrowser();
-        // await BrowserView.tapNetworkAvatarButtonOnBrowser();
-        // await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+        await TabBarComponent.tapBrowser();
+        await BrowserView.tapNetworkAvatarButtonOnBrowser();
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
       },
     );
   });
