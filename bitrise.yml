@@ -1221,7 +1221,8 @@ workflows:
       - file-downloader@1:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
-            - destination: android/keystores/release.keystore
+            - destination: $KEYSTORE_PATH
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -1232,10 +1233,45 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
-          title: Build Android Pre-Release Bundle
-          is_always_run: false
+                if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:devbuild
+                elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
+                    yarn build:android:pre-release:bundle
+                elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
+                    yarn build:android:pre-release:bundle:beta
+                elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                    yarn build:android:pre-release:bundle:flask
+                else
+                    echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
+                    exit 1
+                fi
       - save-gradle-cache@1: {}
+      - script@1:
+          title: Rename release files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Set base paths for release builds
+                APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
+                BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
+                
+                # Generate new names based on build type and version
+                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                
+                # Rename APK
+                OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+                NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
+                mv "$OLD_APK" "$NEW_APK"
+                
+                # Rename AAB
+                OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
+                NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+                mv "$OLD_AAB" "$NEW_AAB"
+                
+                # Export new names as environment variables
+                envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
+                envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
+                envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
