@@ -25,6 +25,13 @@ class ImportWalletView {
       ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
     );
   }
+  get importButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(ImportFromSeedSelectorsIDs.SUBMIT_BUTTON_ID)
+      : Matchers.getElementByText(
+        ImportFromSeedSelectorsIDs.IMPORT_BUTTON_TEXT,
+      );
+  }
 
   async enterPassword(password) {
     await Gestures.typeTextAndHideKeyboard(this.newPasswordInput, password);
@@ -40,8 +47,13 @@ class ImportWalletView {
       secretRecoveryPhrase,
     );
   }
+
   async clearSecretRecoveryPhraseInputBox() {
     await Gestures.clearField(this.seedPhraseInput);
+  }
+
+  async tapImportButton() {
+    await Gestures.waitAndTap(this.importButton);
   }
 }
 
