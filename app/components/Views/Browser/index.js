@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
@@ -29,7 +29,7 @@ import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appendURLParams } from '../../../util/browser';
-import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
+import { THUMB_WIDTH, THUMB_HEIGHT, IDLE_TIME_CALC_INTERVAL, IDLE_TIME_MAX } from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
@@ -61,6 +61,7 @@ export const Browser = (props) => {
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
   const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
+  const [_tabIdleTimes, setTabIdleTimes] = useState({});
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -86,10 +87,9 @@ export const Browser = (props) => {
     }
   };
 
-  const updateTabInfo = (url, tabID) =>
-    updateTab(tabID, {
-      url,
-    });
+  const updateTabInfo = (tabID, info) => {
+    updateTab(tabID, info);
+  };
 
   const hideTabsAndUpdateUrl = (url) => {
     navigation.setParams({
@@ -105,10 +105,49 @@ export const Browser = (props) => {
     );
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
-    updateTabInfo(tab.url, tab.id);
+    updateTabInfo(tab.id, {
+      url: tab.url,
+      isArchived: false,
+    });
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // every so often calc each tab's idle time
+      setTabIdleTimes((prevIdleTimes) => {
+        const newIdleTimes = { ...prevIdleTimes };
+        // for each existing tab
+        tabs.forEach((tab) => {
+          // if it isn't the active tab
+          if (tab.id !== activeTabId) {
+            // add idle time for each non-active tab
+            newIdleTimes[tab.id] = (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL;
+            // if the tab has surpassed the maximum
+            if (newIdleTimes[tab.id] > IDLE_TIME_MAX) {
+              // then "archive" it
+              updateTab(tab.id, {
+                isArchived: true,
+              });
+            }
+          } else {
+            // set any active tab as NOT "archived"
+            // this can mean "unarchiving" a tab so that, for example,
+            // the actual browser tab window is mounted again
+            updateTab(tab.id, {
+              isArchived: false,
+            });
+            // also set new tab idle time back to zero
+            newIdleTimes[tab.id] = 0;
+          }
+        });
+        return newIdleTimes;
+      });
+    }, IDLE_TIME_CALC_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [tabs, activeTabId, updateTab]);
 
   useEffect(() => {
     const checkIfActiveAccountChanged = async () => {
@@ -301,7 +340,7 @@ export const Browser = (props) => {
     }
   };
 
-  const renderTabsView = () => {
+  const renderTabList = () => {
     const showTabs = route.params?.showTabs;
     if (showTabs) {
       return (
@@ -319,8 +358,8 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabs = () =>
-    tabs.map((tab) => (
+  const renderBrowserTabWindows = () =>
+    tabs.filter((tab) => !tab.isArchived).map((tab) => (
       <BrowserTab
         id={tab.id}
         key={`tab_${tab.id}`}
@@ -339,8 +378,8 @@ export const Browser = (props) => {
       style={styles.browserContainer}
       testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
-      {renderBrowserTabs()}
-      {renderTabsView()}
+      {renderBrowserTabWindows()}
+      {renderTabList()}
     </View>
   );
 };
