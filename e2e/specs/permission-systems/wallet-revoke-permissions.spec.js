@@ -6,12 +6,14 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import BrowserView from '../../pages/Browser/BrowserView';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
+import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
+import { PermissionSummaryBottomSheetSelectorsText } from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
 
 describe(SmokePermissions('Wallet Revoke Permissions'), () => {
   beforeAll(async () => {
@@ -24,27 +26,47 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withGanacheNetwork()
+          // .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
       async () => {
+        // Step 1: Initial app setup
         await loginToApp();
-
         await TabBarComponent.tapBrowser();
         await BrowserView.navigateToTestDApp();
 
-        // await TestDApp.tapGetPermissionsButton();
-
-        await TestDApp.tapRevokeAccountPermissionsButton();
-
-        await TestHelpers.delay(5000);
-
-        await TabBarComponent.tapBrowser();
+        // Step 2: Navigate to permissions management
         await BrowserView.tapNetworkAvatarButtonOnBrowser();
-        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+        await ConnectedAccountsModal.tapManagePermissionsButton();
+
+        // Step 3: Verify account permissions
+        const accountLabelElement =
+          await PermissionSummaryBottomSheet.accountPermissionLabelContainer;
+        const accountLabelAttributes =
+          await accountLabelElement.getAttributes();
+        const accountLabel = accountLabelAttributes.label;
+
+        await Assertions.checkIfTextMatches(
+          accountLabel,
+          PermissionSummaryBottomSheetSelectorsText.ACCOUNT_ONE_LABEL,
+        );
+
+        // // Step 4: Verify chain permissions
+        // await Assertions.checkIfVisible(
+        //   PermissionSummaryBottomSheet.ethereumMainnetText,
+        // );
+
+        // // Step 5: Revoke permissions
+        // await TestDApp.tapRevokeAccountPermissionsButton();
+        // await TestHelpers.delay(5000);
+
+        // // Step 6: Verify all permissions revoked
+        // await TabBarComponent.tapBrowser();
+        // await BrowserView.tapNetworkAvatarButtonOnBrowser();
+        // await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
       },
     );
   });

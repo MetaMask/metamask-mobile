@@ -89,8 +89,13 @@ class ConnectedAccountsModal {
   }
 
   async tapManagePermissionsButton() {
+    // TODO: [ffmcgee] remove debug log
     await TestHelpers.delay(4000);
-    await Gestures.waitAndTap(this.managePermissionsButton);
+    await Gestures.waitAndTap(
+      this.managePermissionsButton,
+      15000,
+      'tapManagePermissionsButton',
+    );
   }
 
   async tapDisconnectButton() {
