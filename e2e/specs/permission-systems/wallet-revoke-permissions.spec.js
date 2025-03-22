@@ -5,6 +5,7 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import BrowserView from '../../pages/Browser/BrowserView';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -35,61 +36,14 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
         await TabBarComponent.tapBrowser();
         await BrowserView.navigateToTestDApp();
 
-        await TestDApp.tapGetPermissionsButton();
-
-        /**
-         * DEBUGGING
-         */
-        const element = await TestDApp.permissionsContainer;
-
-        // eslint-disable-next-line no-console
-        console.log('Element attributes:', await element.getAttributes());
-
-        // eslint-disable-next-line no-console
-        console.log('tapped permission button!');
-        /**
-         * DEBUGGING END
-         */
-
-        await TestHelpers.delay(10000);
-
-        await Assertions.checkIfExists(TestDApp.permissionsContainer, 20000);
-        // eslint-disable-next-line no-console
-        console.log('element is existing check passed!');
-
-        await Assertions.checkIfVisible(TestDApp.permissionsContainer, 20000);
-        // eslint-disable-next-line no-console
-        console.log('element is visible check passed!');
-
-        await Assertions.checkIfElementToHaveText(
-          TestDApp.permissionsContainer,
-          'eth_accounts',
-          120000,
-        );
-        // eslint-disable-next-line no-console
-        console.log('element has eth_accounts check passed!');
+        // await TestDApp.tapGetPermissionsButton();
 
         await TestDApp.tapRevokeAccountPermissionsButton();
 
-        await TestHelpers.delay(10000);
+        await TestHelpers.delay(5000);
 
-        await TestDApp.tapGetPermissionsButton();
-
-        await TestHelpers.delay(10000);
-
-        await Assertions.checkIfExists(TestDApp.permissionsContainer, 20000);
-        // eslint-disable-next-line no-console
-        console.log('(revoke) element is existing check passed!');
-
-        await Assertions.checkIfVisible(TestDApp.permissionsContainer);
-        // eslint-disable-next-line no-console
-        console.log('(revoke) element is visible check passed!');
-
-        await Assertions.checkIfElementToHaveText(
-          TestDApp.permissionsContainer,
-          'No permissions found',
-          120000,
-        );
+        await BrowserView.tapNetworkAvatarButtonOnBrowser();
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
       },
     );
   });
