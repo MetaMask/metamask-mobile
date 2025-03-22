@@ -42,6 +42,7 @@ describe(SmokePermissions('Wallet Revoke Permissions'), () => {
 
         await TestHelpers.delay(5000);
 
+        await TabBarComponent.tapBrowser();
         await BrowserView.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
       },
