@@ -17,6 +17,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
         "flexDirection": "row",
       }
     }
+    testID="collectible-contract-element"
   >
     <View
       style={
