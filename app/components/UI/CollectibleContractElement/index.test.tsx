@@ -147,4 +147,28 @@ describe('CollectibleContractElement Snapshot', () => {
 
     expect(onPressMock).toHaveBeenCalled();
   });
+
+  it('should show favorites icon', async () => {
+    const onPressMock = jest.fn();
+    const removeFavoriteMock = jest.fn();
+
+    const props = {
+      asset: { favorites: true, name: 'AssetName', logo: 'asset-logo.png' },
+      contractCollectibles: [
+        { address: '0xdef', tokenId: '1', name: 'Collectible11' },
+      ],
+      collectiblesVisible: true,
+      onPress: onPressMock,
+      removeFavoriteCollectible: removeFavoriteMock,
+    };
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <CollectibleContractElement {...props} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+    expect(getByTestId('favorites')).toBeTruthy();
+  });
 });
