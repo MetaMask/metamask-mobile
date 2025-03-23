@@ -45,6 +45,7 @@ import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { store } from '../../store';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../selectors/multichainNetworkController';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 /**
  * List of the supported networks
@@ -156,6 +157,8 @@ export const isDefaultMainnet = (networkType) => networkType === MAINNET;
 export const isMainNet = (chainId) => chainId === '0x1';
 
 export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
+export const isLineaMainnetChainId = (chainId) =>
+  chainId === CHAIN_IDS.LINEA_MAINNET;
 
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
