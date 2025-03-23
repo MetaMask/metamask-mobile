@@ -55,6 +55,10 @@ const defaultCollectibleContract = {
 
 const defaultCollectible = { address: '0x1', name: '', image: null };
 
+jest.mock('../../hooks/useGetChainIdsToDetectNfts', () => ({
+  useGetChainIdsToDetectNfts: jest.fn().mockReturnValue(['0x1']),
+}));
+
 describe('Collectible', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
