@@ -24,7 +24,7 @@ class TabBarComponent {
   }
 
   async tapBrowser() {
-    await Gestures.waitAndTap(this.tabBarBrowserButton, 15000, 'tapBrowser');
+    await Gestures.waitAndTap(this.tabBarBrowserButton);
   }
 
   async tapWallet() {

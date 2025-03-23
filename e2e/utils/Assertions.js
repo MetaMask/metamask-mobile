@@ -21,12 +21,6 @@ class Assertions {
       .withTimeout(timeout);
   }
 
-  static async checkIfExists(elementId, timeout = TIMEOUT) {
-    return await waitFor(await elementId)
-      .toExist()
-      .withTimeout(timeout);
-  }
-
   /**
    * Check if an element with the specified web selector exists.
    * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} elementId - The ID of the element to check.

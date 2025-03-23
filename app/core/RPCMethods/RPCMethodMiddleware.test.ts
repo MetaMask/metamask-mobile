@@ -601,7 +601,7 @@ describe('getRpcMethodMiddleware', () => {
         });
       });
 
-      it('revokes permissions if  endowment:permitted-chains permission key is passed', async () => {
+      it('revokes permissions if endowment:permitted-chains permission key is passed', async () => {
         const hostname = 'example.metamask.io';
         const middleware = getRpcMethodMiddleware({
           ...getMinimalOptions(),
