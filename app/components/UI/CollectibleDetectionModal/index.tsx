@@ -63,6 +63,7 @@ const CollectibleDetectionModal = () => {
         title={strings('wallet.nfts_autodetect_title')}
         description={strings('wallet.nfts_autodetection_desc')}
         actionButtonProps={{
+          testID: 'collectible-detection-modal-button',
           variant: ButtonVariants.Link,
           label: strings('wallet.nfts_autodetect_cta'),
           onPress: showToastAndEnableNFtDetection,
