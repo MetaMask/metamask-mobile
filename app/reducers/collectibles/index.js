@@ -24,7 +24,7 @@ export const collectibleContractsSelector = createSelector(
 export const multichainCollectibleContractsSelector = createSelector(
   selectSelectedInternalAccountAddress,
   selectAllNftContracts,
-  (address, allNftContracts) => allNftContracts[address] || [],
+  (address, allNftContracts) => allNftContracts[address] || {},
 );
 
 export const collectiblesSelector = createDeepEqualSelector(
@@ -37,7 +37,7 @@ export const collectiblesSelector = createDeepEqualSelector(
 export const multichainCollectiblesSelector = createDeepEqualSelector(
   selectSelectedInternalAccountAddress,
   selectAllNfts,
-  (address, allNfts) => allNfts[address] || [],
+  (address, allNfts) => allNfts[address] || {},
 );
 
 export const favoritesCollectiblesSelector = createSelector(

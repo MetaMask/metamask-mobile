@@ -17,8 +17,6 @@ import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
-  collectibleContractsSelector,
-  collectiblesSelector,
   favoritesCollectiblesSelector,
   isNftFetchingProgressSelector,
   multichainCollectibleContractsSelector,
