@@ -200,10 +200,10 @@ function CollectibleContractElement({
 
     setCollectiblesGrid(temp);
   }, [contractCollectibles, setCollectiblesGrid]);
-
   return (
     <View style={styles.itemWrapper}>
       <TouchableOpacity
+        testID="collectible-contract-element"
         onPress={toggleCollectibles}
         style={styles.titleContainer}
       >
