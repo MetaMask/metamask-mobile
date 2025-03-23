@@ -147,11 +147,6 @@ const RemoteImage = (props) => {
     if (isLineaMainnetChainId(chainId)) return images['LINEA-MAINNET'];
 
     if (isSolanaMainnet(chainId)) return images.SOLANA;
-    const defaultNetwork = getDefaultNetworkByChainId(chainId);
-
-    if (defaultNetwork) {
-      return defaultNetwork.imageSource;
-    }
 
     const unpopularNetwork = UnpopularNetworkList.find(
       (networkConfig) => networkConfig.chainId === chainId,
