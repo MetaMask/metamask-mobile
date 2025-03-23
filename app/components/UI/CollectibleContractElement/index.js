@@ -228,7 +228,7 @@ function CollectibleContractElement({
               tiny
             />
           ) : (
-            <View style={styles.favoritesLogoWrapper} testID="favorites">
+            <View style={styles.favoritesLogoWrapper}>
               <Icon
                 name={IconName.Star}
                 color={IconColor.Inverse}

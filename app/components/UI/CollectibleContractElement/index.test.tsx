@@ -148,12 +148,12 @@ describe('CollectibleContractElement Snapshot', () => {
     expect(onPressMock).toHaveBeenCalled();
   });
 
-  it('should show favorites icon', async () => {
+  it('should show untitled collection', async () => {
     const onPressMock = jest.fn();
     const removeFavoriteMock = jest.fn();
 
     const props = {
-      asset: { favorites: true, name: 'AssetName', logo: 'asset-logo.png' },
+      asset: { favorites: false, logo: 'asset-logo.png' },
       contractCollectibles: [
         { address: '0xdef', tokenId: '1', name: 'Collectible11' },
       ],
@@ -162,13 +162,13 @@ describe('CollectibleContractElement Snapshot', () => {
       removeFavoriteCollectible: removeFavoriteMock,
     };
 
-    const { getByTestId } = render(
+    const { getByText } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <CollectibleContractElement {...props} />
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(getByTestId('favorites')).toBeTruthy();
+    expect(getByText('Untitled Collection')).toBeTruthy();
   });
 });
