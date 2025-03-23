@@ -50,6 +50,8 @@ import {
 } from '../../selectors/multichainNetworkController';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../core/Multichain/constants';
 import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+
 /**
  * List of the supported networks
  * including name, id, and color
@@ -160,6 +162,8 @@ export const isDefaultMainnet = (networkType) => networkType === MAINNET;
 export const isMainNet = (chainId) => chainId === '0x1';
 
 export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
+export const isLineaMainnetChainId = (chainId) =>
+  chainId === CHAIN_IDS.LINEA_MAINNET;
 
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
