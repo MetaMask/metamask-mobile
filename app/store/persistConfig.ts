@@ -16,6 +16,7 @@ const debouncedSetItem = debounce(
   async (key: string, value: string) =>
     await FilesystemStorage.setItem(key, value, Device.isIos()),
   STORAGE_DEBOUNCE_DELAY,
+  { leading: false, trailing: true },
 );
 
 const MigratedStorage = {
