@@ -24,6 +24,11 @@ export enum UserActionType {
   SET_APP_THEME = 'SET_APP_THEME',
   CHECKED_AUTH = 'CHECKED_AUTH',
   SET_APP_SERVICES_READY = 'SET_APP_SERVICES_READY',
+
+  OAUTH2_LOGIN = 'OAUTH2_LOGIN',
+  OAUTH2_LOGIN_COMPLETE = 'OAUTH2_LOGIN_COMPLETE',
+  OAUTH2_LOGIN_SUCCESS = 'OAUTH2_LOGIN_SUCCESS',
+  OAUTH2_LOGIN_ERROR = 'OAUTH2_LOGIN_ERROR',
 }
 
 // User actions
@@ -89,6 +94,14 @@ export type CheckedAuthAction = Action<UserActionType.CHECKED_AUTH> & {
 export type SetAppServicesReadyAction =
   Action<UserActionType.SET_APP_SERVICES_READY>;
 
+export type OAuth2LoginAction = Action<UserActionType.OAUTH2_LOGIN>;
+
+export type OAuth2LoginSuccessAction = Action<UserActionType.OAUTH2_LOGIN_SUCCESS> & { payload: { existingUser: boolean } };
+
+export type OAuth2LoginErrorAction = Action<UserActionType.OAUTH2_LOGIN_ERROR> & { payload: { error: string } };
+
+export type OAuth2LoginCompleteAction = Action<UserActionType.OAUTH2_LOGIN_COMPLETE>;
+
 /**
  * User actions union type
  */
@@ -113,4 +126,8 @@ export type UserAction =
   | SetGasEducationCarouselSeenAction
   | SetAppThemeAction
   | CheckedAuthAction
-  | SetAppServicesReadyAction;
+  | SetAppServicesReadyAction
+  | OAuth2LoginAction
+  | OAuth2LoginSuccessAction
+  | OAuth2LoginErrorAction
+  | OAuth2LoginCompleteAction;

@@ -10,6 +10,8 @@ import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
+import handleOauth2RedirectUrl from './Handlers/handleOauth2RedirectUrl';
+import { ACTIONS, PREFIXES } from '../../constants/deeplinks';
 
 class DeeplinkManager {
   public navigation: NavigationProp<ParamListBase>;
@@ -85,6 +87,14 @@ class DeeplinkManager {
       rampPath,
       navigation: this.navigation,
       rampType: RampType.SELL,
+    });
+  }
+  // handle oauth2 redirect url
+  _handleOauth2RedirectUrl(url: string) {
+    handleOauth2RedirectUrl({
+      deeplinkManager: this,
+      url,
+      base: PREFIXES.METAMASK + ACTIONS.OAUTH2_REDIRECT,
     });
   }
 
