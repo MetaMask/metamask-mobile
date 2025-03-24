@@ -43,6 +43,7 @@ import Engine from '../../../core/Engine';
 import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -268,13 +269,13 @@ const BridgeView = () => {
             onTokenPress={handleSourceTokenPress}
           />
           <Box style={styles.arrowContainer}>
-            <TouchableOpacity
-              onPress={handleArrowPress}
-              disabled={!destChainId || !destToken}
-              style={styles.arrowCircle}
-            >
-              <Text style={styles.arrow}>↓</Text>
-            </TouchableOpacity>
+            <Box style={styles.arrowCircle}>
+              <ButtonIcon
+                iconName={IconName.Arrow2Down}
+                onPress={handleArrowPress}
+                disabled={!destChainId || !destToken}
+                />
+            </Box>
           </Box>
           <TokenInputArea
             amount={destAmount}
