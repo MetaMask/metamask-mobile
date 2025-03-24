@@ -185,6 +185,8 @@ class TransactionDetails extends PureComponent {
       swapsTokens,
       transactions,
     } = this.props;
+    // console.log('>>> transactionObject', transactionObject);
+    // console.log('>>> transactionDetails', transactionDetails);
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
     const transactionHash = transactionDetails?.hash;
     if (

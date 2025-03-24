@@ -271,6 +271,11 @@ export const makeSelectDomainIsConnectedDapp = () =>
       Boolean(hostname && networkClientIdsByDomains?.[hostname]),
   );
 
+export const selectPerOriginChainId = (state: RootState, hostname?: string) => {
+  const chainIdSelector = makeSelectChainId();
+  return chainIdSelector(state, hostname);
+};
+
 export const useNetworkInfo = (hostname?: string) => {
   const selectNetworkName = useMemo(() => makeSelectNetworkName(), []);
   const selectNetworkImageSource = useMemo(
