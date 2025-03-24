@@ -580,92 +580,108 @@ describe('getRpcMethodMiddleware', () => {
   }
 
   describe('wallet_revokePermissions', () => {
-    describe('revoke permissions for eth_accounts and endowment:permitted-chains', () => {
-      it('revokes permissions if eth_accounts permission key is passed', async () => {
-        const hostname = 'example.metamask.io';
-        const middleware = getRpcMethodMiddleware({
-          ...getMinimalOptions(),
-          hostname,
-        });
-        const request = {
-          jsonrpc,
-          id: 1,
-          method: 'wallet_revokePermissions',
-          params: [{ eth_accounts: {} }],
-        };
-        await callMiddleware({ middleware, request });
-        expect(
-          MockEngine.context.PermissionController.revokePermissions,
-        ).toHaveBeenCalledWith({
-          [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
-        });
+    it('revokes eth_accounts and endowment:permitted-chains permissions if eth_accounts permission key is passed', async () => {
+      const hostname = 'example.metamask.io';
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname,
       });
-
-      it('revokes permissions if endowment:permitted-chains permission key is passed', async () => {
-        const hostname = 'example.metamask.io';
-        const middleware = getRpcMethodMiddleware({
-          ...getMinimalOptions(),
-          hostname,
-        });
-        const request = {
-          jsonrpc,
-          id: 1,
-          method: 'wallet_revokePermissions',
-          params: [{ eth_accounts: {} }],
-        };
-        await callMiddleware({ middleware, request });
-        expect(
-          MockEngine.context.PermissionController.revokePermissions,
-        ).toHaveBeenCalledWith({
-          [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
-        });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_revokePermissions',
+        params: [{ eth_accounts: {} }],
+      };
+      await callMiddleware({ middleware, request });
+      expect(
+        MockEngine.context.PermissionController.revokePermissions,
+      ).toHaveBeenCalledWith({
+        [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
       });
     });
 
-    describe('no permissions revoked', () => {
-      it('will not revoke permissions for eth_accounts or endowment:permitted-chains, if neither key is passed', async () => {
-        const hostname = 'example.metamask.io';
-        const middleware = getRpcMethodMiddleware({
-          ...getMinimalOptions(),
-          hostname,
-        });
-        const request = {
-          jsonrpc,
-          id: 1,
-          method: 'wallet_revokePermissions',
-          params: [{ anotherPermission: {} }],
-        };
-        await callMiddleware({ middleware, request });
-        expect(
-          MockEngine.context.PermissionController.revokePermissions,
-        ).toHaveBeenCalledWith({
-          [hostname]: [],
-        });
+    it('revokes eth_accounts and endowment:permitted-chains permissions if endowment:permitted-chains permission key is passed', async () => {
+      const hostname = 'example.metamask.io';
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname,
       });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_revokePermissions',
+        params: [{ 'endowment:permitted-chains': {} }],
+      };
+      await callMiddleware({ middleware, request });
+      expect(
+        MockEngine.context.PermissionController.revokePermissions,
+      ).toHaveBeenCalledWith({
+        [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
+      });
+    });
 
-      it('returns null result if PermissionController throws an error', async () => {
-        MockEngine.context.PermissionController.revokePermissions.mockImplementation(
-          () => {
-            throw new Error('permission error');
-          },
-        );
-        const hostname = 'example.metamask.io';
-        const middleware = getRpcMethodMiddleware({
-          ...getMinimalOptions(),
-          hostname,
-        });
-        const request = {
-          jsonrpc,
-          id: 1,
-          method: 'wallet_revokePermissions',
-          params: [{ eth_accounts: {} }],
-        };
+    it('revokes eth_accounts and endowment:permitted-chains permissions if both permission keys are passed', async () => {
+      const hostname = 'example.metamask.io';
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname,
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_revokePermissions',
+        params: [{ eth_accounts: {}, 'endowment:permitted-chains': {} }],
+      };
+      await callMiddleware({ middleware, request });
+      expect(
+        MockEngine.context.PermissionController.revokePermissions,
+      ).toHaveBeenCalledWith({
+        [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
+      });
+    });
 
-        expect(await callMiddleware({ middleware, request })).toEqual({
-          result: null,
-          jsonrpc,
-          id: 1,
-        });
+    it('will not revoke permissions for eth_accounts or endowment:permitted-chains, if neither key is passed', async () => {
+      const hostname = 'example.metamask.io';
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname,
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_revokePermissions',
+        params: [{ anotherPermission: {} }],
+      };
+      await callMiddleware({ middleware, request });
+      expect(
+        MockEngine.context.PermissionController.revokePermissions,
+      ).toHaveBeenCalledWith({
+        [hostname]: [],
+      });
+    });
+
+    it('returns null result if PermissionController throws an error', async () => {
+      MockEngine.context.PermissionController.revokePermissions.mockImplementation(
+        () => {
+          throw new Error('permission error');
+        },
+      );
+      const hostname = 'example.metamask.io';
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname,
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_revokePermissions',
+        params: [{ eth_accounts: {} }],
+      };
+
+      expect(await callMiddleware({ middleware, request })).toEqual({
+        result: null,
+        jsonrpc,
+        id: 1,
       });
     });
   });
