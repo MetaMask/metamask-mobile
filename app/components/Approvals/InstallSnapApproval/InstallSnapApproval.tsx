@@ -1,7 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { useEffect, useState } from 'react';
 import ApprovalModal from '../ApprovalModal';
-import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest, { ApprovalRequestType } from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { SnapInstallState } from './InstallSnapApproval.types';
 import {
@@ -64,24 +64,26 @@ const InstallSnapApproval = () => {
     }
   }, [approvalRequest]);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getSnapIds = (request: ApprovalRequest<any>, permissions?: Record<string, PermissionConstraint>): string[] => {
-    const permission = request?.requestData?.permissions?.[WALLET_SNAP_PERMISSION_KEY];
+  const getConnectSnapIds = (
+    request: ApprovalRequestType,
+    permissions?: Record<string, PermissionConstraint>,
+  ): string[] => {
+    const permission =
+      request?.requestData?.permissions?.[WALLET_SNAP_PERMISSION_KEY];
     const requestedSnaps = permission?.caveats[0].value;
     const currentSnaps =
       permissions?.[WALLET_SNAP_PERMISSION_KEY]?.caveats?.[0].value;
-  
+
     if (!isObject(currentSnaps) && requestedSnaps) {
       return Object.keys(requestedSnaps);
     }
-  
+
     const requestedSnapKeys = requestedSnaps ? Object.keys(requestedSnaps) : [];
     const currentSnapKeys = currentSnaps ? Object.keys(currentSnaps) : [];
     const dedupedSnaps = requestedSnapKeys.filter(
       (snapId) => !currentSnapKeys.includes(snapId),
     );
-  
+
     return dedupedSnaps.length > 0 ? dedupedSnaps : requestedSnapKeys;
   };
 
@@ -110,7 +112,13 @@ const InstallSnapApproval = () => {
 
   if (!approvalRequest || installState === undefined) return null;
 
-  const snapId = getSnapIds(approvalRequest, currentPermissions)[0];
+  // In the Snap install stage, only one Snap ID is available.
+  const installSnapId = approvalRequest.requestData?.snapId;
+
+  // In the connection stage, multiple IDs are available.
+  const connectSnapIds = getConnectSnapIds(approvalRequest, currentPermissions);
+
+  const snapId = installSnapId ?? connectSnapIds[0];
   const snapName = getSnapMetadata(snapId).name;
 
   // TODO: This component should support connecting to multiple Snaps at once.
