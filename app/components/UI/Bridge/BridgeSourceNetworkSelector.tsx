@@ -24,8 +24,6 @@ import { useSortedSourceNetworks } from './useSortedSourceNetworks';
 import { BridgeNetworkSelectorBase } from './BridgeNetworkSelectorBase';
 import { NetworkRow } from './NetworkRow';
 import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
-import { AlignItems, JustifyContent } from '../Box/box.types';
-import { FlexDirection } from '../Box/box.types';
 
 const createStyles = () => StyleSheet.create({
   listContent: {
