@@ -206,6 +206,7 @@ import { currencyRateControllerInit } from './controllers/currency-rate-controll
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import onlyKeepHost from '../../util/onlyKeepHost';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -365,7 +366,7 @@ export class Engine {
           )
             .addProperties({
               chain_id_caip: `eip155:${chainId}`,
-              rpc_endpoint_url: endpointUrl,
+              rpc_endpoint_url: onlyKeepHost(endpointUrl),
             })
             .build();
           MetaMetrics.getInstance().trackEvent(metricsEvent);
@@ -387,7 +388,7 @@ export class Engine {
           )
             .addProperties({
               chain_id_caip: `eip155:${chainId}`,
-              rpc_endpoint_url: endpointUrl,
+              rpc_endpoint_url: onlyKeepHost(endpointUrl),
             })
             .build();
           MetaMetrics.getInstance().trackEvent(metricsEvent);
