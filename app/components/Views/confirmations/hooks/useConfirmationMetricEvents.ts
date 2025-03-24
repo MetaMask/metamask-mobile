@@ -5,7 +5,10 @@ import {
   JsonMap,
 } from '../../../../core/Analytics/MetaMetrics.types';
 import { useMetrics } from '../../../hooks/useMetrics';
-import { CONFIRMATION_EVENTS } from '../../../../core/Analytics/events/confirmations';
+import {
+  CONFIRMATION_EVENTS,
+  TOOLTIP_TYPES,
+} from '../../../../core/Analytics/events/confirmations';
 import {
   ConfirmationMetrics,
   updateConfirmationMetric,
@@ -35,7 +38,11 @@ export function useConfirmationMetricEvents() {
       trackEvent(event);
     };
 
-    const trackTooltipClickedEvent = ({ tooltip }: JsonMap) => {
+    const trackTooltipClickedEvent = ({
+      tooltip,
+    }: {
+      tooltip: TOOLTIP_TYPES;
+    }) => {
       const event = generateEvent({
         createEventBuilder,
         metametricsEvent: CONFIRMATION_EVENTS.TOOLTIP_CLICKED,
