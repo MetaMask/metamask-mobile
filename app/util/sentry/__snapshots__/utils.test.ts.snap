@@ -24,6 +24,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     "favorites": {},
     "isNftFetchingProgress": false,
   },
+  "confirmationMetrics": "object",
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
@@ -255,7 +256,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
   "signatureRequest": "object",
   "swaps": "object",
   "transaction": "object",
-  "transactionMetrics": "object",
   "user": {
     "ambiguousAddressEntries": "object",
     "backUpSeedphraseVisible": false,
