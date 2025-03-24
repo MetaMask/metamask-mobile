@@ -16,11 +16,14 @@ import {
 } from './components';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { useSelector } from 'react-redux';
-import { selectSnapsMetadata } from '../../../selectors/snaps/snapController';
+import { selectSnapsMetadata, getPermissions } from '../../../selectors/snaps';
 import {
   WALLET_SNAP_PERMISSION_KEY,
   stripSnapPrefix,
 } from '@metamask/snaps-utils';
+import { isObject } from '@metamask/utils';
+import { PermissionConstraint } from '@metamask/permission-controller';
+import { RootState } from '../../../reducers';
 
 const InstallSnapApproval = () => {
   const snapsMetadata = useSelector(selectSnapsMetadata);
@@ -36,6 +39,10 @@ const InstallSnapApproval = () => {
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
+
+  const currentPermissions = useSelector((state: RootState) =>
+    getPermissions(state, approvalRequest?.origin),
+  );
 
   useEffect(() => {
     if (approvalRequest) {
@@ -59,20 +66,23 @@ const InstallSnapApproval = () => {
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getSnapId = (request: ApprovalRequest<any>): string => {
-    // We first look for the name inside the snapId approvalRequest data
-    const snapId = request?.requestData?.snapId;
-    if (typeof snapId === 'string') {
-      return snapId;
+  const getSnapIds = (request: ApprovalRequest<any>, permissions?: Record<string, PermissionConstraint>): string[] => {
+    const permission = request?.requestData?.permissions?.[WALLET_SNAP_PERMISSION_KEY];
+    const requestedSnaps = permission?.caveats[0].value;
+    const currentSnaps =
+      permissions?.[WALLET_SNAP_PERMISSION_KEY]?.caveats?.[0].value;
+  
+    if (!isObject(currentSnaps) && requestedSnaps) {
+      return Object.keys(requestedSnaps);
     }
-    // If there is no snapId present in the approvalRequest data, we look for the name inside the snapIds caveat
-    const snapIdsCaveat =
-      request?.requestData?.permissions?.wallet_snap?.caveats?.find(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (c: any) => c.type === 'snapIds',
-      );
-    return Object.keys(snapIdsCaveat.value)[0];
+  
+    const requestedSnapKeys = requestedSnaps ? Object.keys(requestedSnaps) : [];
+    const currentSnapKeys = currentSnaps ? Object.keys(currentSnaps) : [];
+    const dedupedSnaps = requestedSnapKeys.filter(
+      (snapId) => !currentSnapKeys.includes(snapId),
+    );
+  
+    return dedupedSnaps.length > 0 ? dedupedSnaps : requestedSnapKeys;
   };
 
   const getSnapMetadata = (snapId: string) =>
@@ -100,7 +110,7 @@ const InstallSnapApproval = () => {
 
   if (!approvalRequest || installState === undefined) return null;
 
-  const snapId = getSnapId(approvalRequest);
+  const snapId = getSnapIds(approvalRequest, currentPermissions)[0];
   const snapName = getSnapMetadata(snapId).name;
 
   // TODO: This component should support connecting to multiple Snaps at once.
