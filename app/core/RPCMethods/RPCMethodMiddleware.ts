@@ -421,8 +421,7 @@ export const getRpcMethodMiddleware = ({
             revokePermissionsForOrigin: (permissionKeys) => {
               try {
                 /**
-                 * For now, we check if either eth_accounts or endowment:permitted-chains are sent. If either of those is sent, we revoke both,
-                 * Otherwise we don't attempt to revoke any permissions
+                 * For now, we check if either eth_accounts or endowment:permitted-chains are sent. If either of those is sent, we revoke both.
                  * This manual filtering will be handled / refactored once we implement [CAIP-25 permissions](https://github.com/MetaMask/MetaMask-planning/issues/4129)
                  */
                 const caip25EquivalentPermissions: string[] = [
@@ -433,8 +432,13 @@ export const getRpcMethodMiddleware = ({
                 const keysToRevoke = permissionKeys.some((key) =>
                   caip25EquivalentPermissions.includes(key),
                 )
-                  ? caip25EquivalentPermissions
-                  : [];
+                  ? Array.from(
+                      new Set([
+                        ...caip25EquivalentPermissions,
+                        ...permissionKeys,
+                      ]),
+                    )
+                  : permissionKeys;
 
                 Engine.context.PermissionController.revokePermissions({
                   [origin]: keysToRevoke,
