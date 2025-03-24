@@ -14,6 +14,7 @@ import {
   MULTICHAIN_NETWORK_TO_ASSET_TYPES,
   selectMultichainTransactions,
   selectMultichainTokenList,
+  selectMultichainNetworkAggregatedBalance,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -626,6 +627,49 @@ describe('MultichainNonEvm Selectors', () => {
       expect(tokenList[0].name).toEqual('Bitcoin');
       expect(tokenList[0].symbol).toEqual('BTC');
       expect(tokenList[0].balance).toEqual('10');
+    });
+  });
+
+  describe('selectMultichainNetworkAggregatedBalance', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns aggregated balances in native and fiat', () => {
+      const selectedInternalAccountId = 'ae247df6-3911-47f7-9e36-28e6a7d96078';
+      const assetId = MultichainNativeAssets.Bitcoin;
+      const assetId2 =
+        'bip122:000000000019d6689c085ae165831e93/slip44:WBTC' as MultichainNativeAssets;
+      const mockState = getNonEvmState();
+
+      const mockBalances = {
+        [selectedInternalAccountId]: {
+          [assetId]: { amount: '10', unit: 'BTC' },
+          [assetId2]: { amount: '20', unit: 'BTC' },
+        },
+      };
+
+      const mockAssets = {
+        [selectedInternalAccountId]: [assetId, assetId2],
+      };
+
+      const mockAssetsRates = {
+        [assetId]: { rate: '2000', conversionTime: 0 },
+        [assetId2]: { rate: '1000', conversionTime: 0 },
+      };
+
+      // Inject mocks into state
+      mockState.engine.backgroundState.MultichainBalancesController.balances =
+        mockBalances;
+      mockState.engine.backgroundState.MultichainAssetsController.accountsAssets =
+        mockAssets;
+      mockState.engine.backgroundState.MultichainAssetsRatesController.conversionRates =
+        mockAssetsRates;
+
+      const result = selectMultichainNetworkAggregatedBalance(mockState);
+
+      expect(result.totalBalance).toEqual('30');
+      expect(result.totalBalanceFiat).toEqual('40000');
     });
   });
 });
