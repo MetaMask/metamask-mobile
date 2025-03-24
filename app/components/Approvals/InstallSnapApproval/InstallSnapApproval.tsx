@@ -14,7 +14,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 } from './components';
-import { ApprovalRequest } from '@metamask/approval-controller';
 import { useSelector } from 'react-redux';
 import { selectSnapsMetadata, getPermissions } from '../../../selectors/snaps';
 import {
