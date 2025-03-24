@@ -161,12 +161,12 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_ramps_android: {}
-      # run_tag_smoke_ramps_ios: {}
+      - run_tag_smoke_ramps_ios: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
-      # run_tag_smoke_stake_ios: {}
-      # run_tag_smoke_stake_android: {}
+      # - run_tag_smoke_stake_ios: {}
+      # - run_tag_smoke_stake_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
@@ -272,7 +272,7 @@ workflows:
       - setup
       - prep_environment
     steps:
-      - restore-cocoapods-cache@2: {}
+      # - restore-cocoapods-cache@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -972,7 +972,7 @@ workflows:
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
-      - restore-cocoapods-cache@2: {}
+      # - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
@@ -1124,7 +1124,7 @@ workflows:
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
-      - restore-cocoapods-cache@2: {}
+      # - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
@@ -1570,9 +1570,9 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
-    meta:
-      bitrise.io:
-        stack: osx-xcode-15.0.x
+    meta: 
+      bitrise.io: 
+        stack: osx-xcode-15.0.x 
         machine_type_id: g2.mac.large
   build_ios_release_and_upload_sourcemaps:
     envs:
@@ -1834,7 +1834,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 24.0.8215888
+      NDK_VERSION: 26.1.10909125
     - opts:
         is_expand: false
       QA_APK_NAME: app-qa-release
@@ -1906,9 +1906,5 @@ trigger_map:
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
-  - tag: 'dev-e2e-*'
-    pipeline: pr_smoke_e2e_pipeline
-  - tag: 'v*.*.*-RC-*'
-    pipeline: release_e2e_pipeline
-  - push_branch: detox/address-regression-tests-slowdown
-    pipeline: multichain_permissions_e2e_pipeline
+  - tag: 'v*.*.*'
+    pipeline: create_qa_builds_pipeline
