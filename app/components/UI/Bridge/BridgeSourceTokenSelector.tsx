@@ -36,8 +36,11 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       networkName={networkConfigurations[item.chainId as Hex].name}
       //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       networkImageSource={getNetworkImageSource({ chainId: item.chainId as Hex })}
-      isSelected={selectedSourceToken?.address === item.address && selectedSourceToken?.chainId === item.chainId}
-      />
+      isSelected={
+        selectedSourceToken?.address === item.address &&
+        selectedSourceToken?.chainId === item.chainId
+      }
+    />
     ),
     [handleTokenPress, networkConfigurations, selectedSourceToken],
   );
