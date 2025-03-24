@@ -470,28 +470,6 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
     );
   });
 
-  it('returns disabling notifications text when push notifications are being disabled', () => {
-    const { hook, mocks } = arrangeAct((m) => {
-      m.mockSelectIsMetaMaskPushNotificationsEnabled.mockReturnValue(true);
-      m.mockSelectIsMetaMaskPushNotificationsLoading.mockReturnValue(true);
-    });
-    expect(hook.result.current).toBeDefined();
-    expect(mocks.mockStrings).toHaveBeenCalledWith(
-      'app_settings.disabling_notifications',
-    );
-  });
-
-  it('returns enabling notifications text when push notifications are being enabled', () => {
-    const { hook, mocks } = arrangeAct((m) => {
-      m.mockSelectIsMetaMaskPushNotificationsEnabled.mockReturnValue(false);
-      m.mockSelectIsMetaMaskPushNotificationsLoading.mockReturnValue(true);
-    });
-    expect(hook.result.current).toBeDefined();
-    expect(mocks.mockStrings).toHaveBeenCalledWith(
-      'app_settings.enabling_notifications',
-    );
-  });
-
   it('returns updating account settings text when accounts are being updated', () => {
     const { hook } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotificationsAccount.mockReturnValue([

@@ -1482,20 +1482,18 @@ export class Engine {
   handleVaultBackup() {
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
-      (state: KeyringControllerState) => {
-        if (!state.vault) {
-          return;
-        }
-
-        // Back up vault if it exists
+      (state: KeyringControllerState) =>
         backupVault(state)
-          .then(() => {
-            Logger.log('Engine', 'Vault back up successful');
+          .then((result) => {
+            if (result.success) {
+              Logger.log('Engine', 'Vault back up successful');
+            } else {
+              Logger.log('Engine', 'Vault backup failed', result.error);
+            }
           })
           .catch((error) => {
             Logger.error(error, 'Engine Vault backup failed');
-          });
-      },
+          }),
     );
   }
 
