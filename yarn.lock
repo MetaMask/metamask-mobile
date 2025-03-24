@@ -4858,10 +4858,10 @@
     "@metamask/utils" "^11.1.0"
     readable-stream "^3.6.2"
 
-"@metamask/key-tree@^10.0.2", "@metamask/key-tree@^10.1.0":
-  version "10.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/key-tree/-/key-tree-10.1.0.tgz#fe0ab9f1fd5a60a8ed1726386ad666523c0644bf"
-  integrity sha512-IRPhStU3HFkajqjHWfMzYSWbKbh63PdJ7XptWKZP/xJO7fPioge8E+HvobBKxvgaOGLqDhEf/5feBh+2E7QHdg==
+"@metamask/key-tree@^10.0.2", "@metamask/key-tree@^10.1.0", "@metamask/key-tree@^10.1.1":
+  version "10.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/key-tree/-/key-tree-10.1.1.tgz#31b965753962f690e99b120845c14e8a06e74d1f"
+  integrity sha512-k9/MljlUqXC86hAOp6QGUwNm9ODWuA/YkMxiEwXcChNJgQSYfPzDh+Hp6Agf3g2mLKagMbl2nkH0+4vas+Pnyw==
   dependencies:
     "@metamask/scure-bip39" "^2.1.1"
     "@metamask/utils" "^11.0.1"
