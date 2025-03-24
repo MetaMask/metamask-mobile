@@ -66,7 +66,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
-import { isAssetFromSearch, selectSupportedSwapTokenAddresses } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { isAssetFromSearch, selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const createStyles = (colors) =>
@@ -579,7 +579,7 @@ const mapStateToProps = (state, { route }) => ({
   swapsTokens: isPortfolioViewEnabled()
     ? swapsTokensMultiChainObjectSelector(state)
     : swapsTokensObjectSelector(state),
-  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddresses(state, route.params.chainId),
+  searchDiscoverySwapsTokens: selectSupportedSwapTokenAddressesForChainId(state, route.params.chainId),
   swapsTransactions: selectSwapsTransactions(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),

@@ -16,7 +16,13 @@ export const selectTokenDisplayData = createSelector(
   (state, currentCurrency, chainId, address) => state?.tokenDisplayData.find(d => d.chainId === chainId && d.address === address && d.currency === currentCurrency)
 );
 
-export const selectSupportedSwapTokenAddresses = createSelector(
+export const selectSupportedSwapTokenAddressesByChainId = createSelector(
+  selectTokenSearchDiscoveryDataControllerState,
+  (_state: RootState) => _state,
+  (state) => state?.swapsTokenAddressesByChainId,
+);
+
+export const selectSupportedSwapTokenAddressesForChainId = createSelector(
   selectTokenSearchDiscoveryDataControllerState,
   (_state: RootState, chainId: Hex) => chainId,
   (state, chainId) => state?.swapsTokenAddressesByChainId[chainId]?.addresses,

@@ -14,7 +14,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { selectSupportedSwapTokenAddresses } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { RootState } from '../../../reducers';
 import { isSwapsAllowed } from '../Swaps/utils';
 import AppConstants from '../../../core/AppConstants';
@@ -40,7 +40,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
         dispatch(removeBookmark(result));
     }, [dispatch, result]);
 
-    const swapTokenAddresses = useSelector((state: RootState) => selectSupportedSwapTokenAddresses(state, result.type === 'tokens' ? result.chainId : '0x'));
+    const swapTokenAddresses = useSelector((state: RootState) => selectSupportedSwapTokenAddressesForChainId(state, result.type === 'tokens' ? result.chainId : '0x'));
 
     const swapsEnabled = result.type === 'tokens' && isSwapsAllowed(result.chainId) && swapTokenAddresses?.includes(result.address) && AppConstants.SWAPS.ACTIVE;
 

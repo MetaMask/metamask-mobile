@@ -58,14 +58,21 @@ const UrlAutocomplete = forwardRef<
   const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>([]);
   const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearchDiscovery();
   const usdConversionRate = useSelector(selectUsdConversionRate);
-  const tokenResults: TokenSearchResult[] = useMemo(() => tokenSearchResults.map(({tokenAddress, usdPricePercentChange, usdPrice, chainId, ...rest}) => ({
-    ...rest,
-    type: 'tokens',
-    address: tokenAddress,
-    chainId: chainId as Hex,
-    price: usdConversionRate ? usdPrice / usdConversionRate : -1,
-    percentChange: usdPricePercentChange.oneDay,
-  })), [tokenSearchResults, usdConversionRate]);
+  const tokenResults: TokenSearchResult[] = useMemo(
+    () => (
+      tokenSearchResults
+      .map(({tokenAddress, usdPricePercentChange, usdPrice, chainId, ...rest}) => ({
+        ...rest,
+        type: 'tokens' as const,
+        address: tokenAddress,
+        chainId: chainId as Hex,
+        price: usdConversionRate ? usdPrice / usdConversionRate : -1,
+        percentChange: usdPricePercentChange.oneDay,
+      }))
+      .slice(0, TOKEN_SEARCH_LIMIT)
+    ),
+    [tokenSearchResults, usdConversionRate]
+  );
 
   const hasResults = fuseResults.length > 0 || tokenResults.length > 0;
 
@@ -139,7 +146,6 @@ const UrlAutocomplete = forwardRef<
 
     searchTokens({
       query: text,
-      limit: TOKEN_SEARCH_LIMIT.toString(),
     });
 
   }, [browserHistory, bookmarks, resetTokenSearch, searchTokens]);
@@ -197,20 +203,6 @@ const UrlAutocomplete = forwardRef<
       search(latestSearchTerm.current);
     }
   }, [browserHistory, bookmarks, search]);
-
-  useEffect(() => {
-    const chainIds = tokenResults.reduce((acc, result) => {
-      if (!acc.includes(result.chainId)) {
-        acc.push(result.chainId);
-      }
-      return acc;
-    }, [] as Hex[]);
-
-    for (const chainId of chainIds) {
-      Engine.context.TokenSearchDiscoveryDataController.fetchSwapsTokens(chainId);
-    }
-
-  }, [tokenResults]);
 
   const selectedChainId = useSelector(selectEvmChainId);
 

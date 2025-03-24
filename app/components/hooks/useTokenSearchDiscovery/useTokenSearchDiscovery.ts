@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback } from 'react';
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import Engine from '../../../core/Engine';
@@ -7,6 +7,10 @@ import {
   TokenSearchResponseItem,
   TokenSearchParams,
 } from '@metamask/token-search-discovery-controller';
+import { Hex } from '@metamask/utils';
+import { selectSupportedSwapTokenAddressesByChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { RootState } from '../../../reducers';
+import { allowedChainIds } from '../../UI/Swaps/utils';
 
 const SEARCH_DEBOUNCE_DELAY = 50;
 const MINIMUM_QUERY_LENGTH = 2;
@@ -17,6 +21,30 @@ export const useTokenSearchDiscovery = () => {
   const [error, setError] = useState<Error | null>(null);
   const [results, setResults] = useState<TokenSearchResponseItem[]>([]);
   const latestRequestId = useRef<number>(0);
+
+  useEffect(() => {
+    const chainIds = results.reduce((acc, result) => {
+      if (!acc.includes(result.chainId as Hex)) {
+        acc.push(result.chainId as Hex);
+      }
+      return acc;
+    }, [] as Hex[]);
+
+    for (const chainId of chainIds) {
+      Engine.context.TokenSearchDiscoveryDataController.fetchSwapsTokens(chainId);
+    }
+
+  }, [results]);
+
+  const swapsTokenAddresses = useSelector((state: RootState) => selectSupportedSwapTokenAddressesByChainId(state));
+
+  const filteredResults = useMemo(() => {
+    return results.filter((result) => {
+      const chainId = result.chainId as Hex;
+      const tokenAddresses = swapsTokenAddresses[chainId];
+      return tokenAddresses?.addresses.includes(result.tokenAddress);
+    });
+  }, [results, swapsTokenAddresses]);
 
   const searchTokens = useMemo(
     () =>
@@ -33,9 +61,10 @@ export const useTokenSearchDiscovery = () => {
 
         try {
           const { TokenSearchDiscoveryController } = Engine.context;
-          const result = await TokenSearchDiscoveryController.searchTokens(
-            params,
-          );
+          const result = await TokenSearchDiscoveryController.searchTokens({
+            ...params,
+            limit: '100'
+          });
           if (requestId === latestRequestId.current) {
             setResults(result);
           }
@@ -63,7 +92,7 @@ export const useTokenSearchDiscovery = () => {
     recentSearches,
     isLoading,
     error,
-    results,
+    results: filteredResults,
     reset,
   };
 };
