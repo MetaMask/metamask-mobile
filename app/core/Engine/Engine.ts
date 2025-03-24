@@ -708,6 +708,7 @@ export class Engine {
           batchCheckBalances: isMultiAccountBalancesEnabled,
           displayNftMedia,
           useNftDetection,
+          useExternalPricingData: true,
         };
       },
     };
