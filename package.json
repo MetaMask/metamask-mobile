@@ -416,13 +416,8 @@
     "@react-native/metro-config": "^0.72.12",
     "@rpii/wdio-html-reporter": "^7.7.1",
     "@sentry/types": "^7.117.0",
-    "@storybook/addon-actions": "^7.5.1",
     "@storybook/addon-controls": "^7.5.1",
-    "@storybook/addon-knobs": "^5.3",
-    "@storybook/addon-links": "^5.3",
-    "@storybook/addon-ondevice-actions": "^6.5.6",
     "@storybook/addon-ondevice-controls": "^6.5.6",
-    "@storybook/addon-ondevice-knobs": "^5.3.25",
     "@storybook/builder-webpack5": "^7.5.1",
     "@storybook/react-native": "^6.5.6",
     "@testing-library/react": "14.0.0",
@@ -583,8 +578,6 @@
       "@sentry/react-native>@sentry/cli": true,
       "@storybook/manager-webpack5>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>fsevents": false,
       "@storybook/addon-controls>@storybook/core-common>esbuild": false,
-      "@storybook/addon-knobs>@storybook/components>react-syntax-highlighter>highlight.js": false,
-      "@storybook/addon-knobs>core-js": false,
       "@wdio/cucumber-framework>@cucumber/cucumber>duration>es5-ext": false,
       "appium-adb>@appium/support>sharp": true,
       "appium>appium-android-driver>appium-chromedriver": false,
@@ -621,7 +614,8 @@
       "ethereumjs-util>ethereum-cryptography>keccak": true,
       "appium": false,
       "appium>@appium/support>sharp": false,
-      "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false
+      "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false,
+      "@storybook/addon-ondevice-controls>core-js": false
     }
   },
   "packageManager": "yarn@1.22.22"

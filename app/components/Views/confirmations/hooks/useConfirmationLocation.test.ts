@@ -116,6 +116,22 @@ describe('useConfirmationLocation', () => {
     );
   });
 
+  it('returns STAKING_CLAIM location for staking claim transactions', () => {
+    mockUseApprovalRequest.mockReturnValue(
+      createApprovalRequestMock({
+        type: ApprovalType.Transaction,
+        requestData: {},
+      }),
+    );
+
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      type: TransactionType.stakingClaim,
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook(() => useConfirmationLocation());
+    expect(result.current).toBe(CONFIRMATION_EVENT_LOCATIONS.STAKING_CLAIM);
+  });
+
   it('returns undefined for transaction approvals with unknown transaction type', () => {
     mockUseApprovalRequest.mockReturnValue(
       createApprovalRequestMock({
