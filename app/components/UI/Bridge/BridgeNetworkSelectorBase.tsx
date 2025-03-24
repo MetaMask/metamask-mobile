@@ -9,7 +9,7 @@ import BottomSheet from '../../../component-library/components/BottomSheets/Bott
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
 import { strings } from '../../../../locales/i18n';
-import { FlexDirection, AlignItems, JustifyContent, Display } from '../Box/box.types';
+import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
 import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (params: { theme: Theme }) => {

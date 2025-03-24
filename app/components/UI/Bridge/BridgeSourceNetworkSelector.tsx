@@ -138,8 +138,6 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
           const totalFiatValue = getChainTotalFiatValue(chain.chainId);
           const isSelected = candidateSourceChainIds.includes(chain.chainId);
 
-          console.log('chain', chain.name, totalFiatValue);
-
           return (
             <TouchableOpacity
               key={chain.chainId}

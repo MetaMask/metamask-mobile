@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import Keypad from '../../Base/Keypad';
