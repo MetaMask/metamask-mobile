@@ -12,6 +12,8 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import * as QRHardwareHook from '../context/QRHardwareContext/QRHardwareContext';
 // eslint-disable-next-line import/no-namespace
 import * as LedgerContext from '../context/LedgerContext/LedgerContext';
+// eslint-disable-next-line import/no-namespace
+import * as SmartTransactionsSelector from '../../../../selectors/smartTransactionsController';
 import { useConfirmActions } from './useConfirmActions';
 
 jest.mock('@react-navigation/native', () => ({
@@ -147,6 +149,24 @@ describe('useConfirmAction', () => {
     expect(clearSecurityAlertResponseSpy).not.toHaveBeenCalled();
   });
 
+  it('call acceptPendingApproval with parameters waitForResult as true for signatures even if smart transactions are enabled', async () => {
+    jest
+      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
+      .mockReturnValue(true);
+    const personalSignId = '76b33b40-7b5c-11ef-bc0a-25bce29dbc09';
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+    result?.current?.onConfirm();
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
+      personalSignId,
+      personalSignatureConfirmationState.engine.backgroundState
+        .ApprovalController.pendingApprovals[personalSignId].requestData,
+      { deleteAfterResult: true, handleErrors: false, waitForResult: true },
+    );
+  });
+
   it('call required callbacks when reject button is clicked', async () => {
     const clearSecurityAlertResponseSpy = jest.spyOn(
       PPOMUtil,
@@ -178,5 +198,41 @@ describe('useConfirmAction', () => {
 
     expect(navigateMock).toHaveBeenCalledTimes(1);
     expect(navigateMock).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+  });
+
+  it('call acceptPendingApproval with parameters waitForResult as false for transactions if smart transactions are enabled', async () => {
+    jest
+      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
+      .mockReturnValue(true);
+    const transactionId = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+    result?.current?.onConfirm();
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
+      transactionId,
+      stakingDepositConfirmationState.engine.backgroundState.ApprovalController
+        .pendingApprovals[transactionId].requestData,
+      { deleteAfterResult: true, handleErrors: false, waitForResult: false },
+    );
+  });
+
+  it('call acceptPendingApproval with parameters waitForResult as true for transactions if smart transactions are not enabled', async () => {
+    jest
+      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
+      .mockReturnValue(false);
+    const transactionId = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+    result?.current?.onConfirm();
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
+      transactionId,
+      stakingDepositConfirmationState.engine.backgroundState.ApprovalController
+        .pendingApprovals[transactionId].requestData,
+      { deleteAfterResult: true, handleErrors: false, waitForResult: true },
+    );
   });
 });

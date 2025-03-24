@@ -18,11 +18,6 @@ export type AccountType = InternalAccount & {
   label: string;
 };
 
-export interface SetIsProfileSyncingEnabledReturn {
-  setIsProfileSyncingEnabled: () => Promise<string | undefined>;
-  error?: string;
-}
-
 export interface SwitchSnapNotificationsChangeReturn {
   onChange: (state: boolean) => void;
   error?: string;
