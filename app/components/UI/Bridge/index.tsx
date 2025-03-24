@@ -189,8 +189,8 @@ const BridgeView = () => {
 
   // Add function to navigate to slippage modal
   const handleSlippagePress = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SLIPPAGE_MODAL,
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
       params: {
         selectedSlippage: slippage,
         onSelectSlippage: setSlippage,
@@ -199,15 +199,15 @@ const BridgeView = () => {
   };
 
   const handleSourceTokenPress = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       params: {},
     });
   };
 
   const handleDestTokenPress = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       params: {},
     });
   };

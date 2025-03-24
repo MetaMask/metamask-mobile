@@ -273,7 +273,7 @@ describe('BridgeDestTokenSelector', () => {
     const { getByText } = renderScreen(
       BridgeDestTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -291,7 +291,7 @@ describe('BridgeDestTokenSelector', () => {
     const { getByText } = renderScreen(
       BridgeDestTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -318,7 +318,7 @@ describe('BridgeDestTokenSelector', () => {
     const { getAllByTestId, getByText } = renderScreen(
       BridgeDestTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -361,7 +361,7 @@ describe('BridgeDestTokenSelector', () => {
     const { getByTestId } = renderScreen(
       BridgeDestTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -376,7 +376,7 @@ describe('BridgeDestTokenSelector', () => {
     const { getByTestId, getByText, queryByText } = renderScreen(
       BridgeDestTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -408,7 +408,7 @@ describe('BridgeDestTokenSelector', () => {
     const { getByTestId, getByText } = renderScreen(
       BridgeDestTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -425,7 +425,7 @@ describe('BridgeDestTokenSelector', () => {
     const { getByText } = renderScreen(
       BridgeDestTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -434,7 +434,7 @@ describe('BridgeDestTokenSelector', () => {
     fireEvent.press(seeAllButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-      screen: Routes.SHEET.BRIDGE_DEST_NETWORK_SELECTOR,
+      screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
     });
   });
 });

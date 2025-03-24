@@ -281,7 +281,7 @@ describe('BridgeSourceTokenSelector', () => {
     const { getByText } = renderScreen(
       BridgeSourceTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -309,7 +309,7 @@ describe('BridgeSourceTokenSelector', () => {
     const { getByText } = renderScreen(
       BridgeSourceTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -342,7 +342,7 @@ describe('BridgeSourceTokenSelector', () => {
     const { getByTestId } = renderScreen(
       BridgeSourceTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -357,7 +357,7 @@ describe('BridgeSourceTokenSelector', () => {
     const { getByTestId, getByText, queryByText } = renderScreen(
       BridgeSourceTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -391,7 +391,7 @@ describe('BridgeSourceTokenSelector', () => {
     const { getByTestId, getByText } = renderScreen(
       BridgeSourceTokenSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
       { state: initialState }
     );

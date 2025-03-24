@@ -312,7 +312,7 @@ describe('BridgeSourceNetworkSelector', () => {
     const { getByText } = renderScreen(
       BridgeSourceNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -341,7 +341,7 @@ describe('BridgeSourceNetworkSelector', () => {
     const { getAllByTestId } = renderScreen(
       BridgeSourceNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -372,7 +372,7 @@ describe('BridgeSourceNetworkSelector', () => {
     const { getAllByTestId, getByText, queryByText } = renderScreen(
       BridgeSourceNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -417,7 +417,7 @@ describe('BridgeSourceNetworkSelector', () => {
     const { getAllByTestId, getByText } = renderScreen(
       BridgeSourceNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -441,7 +441,7 @@ describe('BridgeSourceNetworkSelector', () => {
     const { getByTestId } = renderScreen(
       BridgeSourceNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -456,7 +456,7 @@ describe('BridgeSourceNetworkSelector', () => {
     const { getByTestId, getByText } = renderScreen(
       BridgeSourceNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -474,7 +474,7 @@ describe('BridgeSourceNetworkSelector', () => {
     const { getAllByTestId } = renderScreen(
       BridgeSourceNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
       { state: initialState }
     );

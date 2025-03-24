@@ -66,8 +66,8 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
   }
 
   const navigateToNetworkSelector = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_SOURCE_NETWORK_SELECTOR,
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
     });
   }, [navigation]);
 

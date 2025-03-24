@@ -391,7 +391,7 @@ describe('BridgeView', () => {
     const { getByText } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: mockInitialState },
     );
@@ -402,7 +402,7 @@ describe('BridgeView', () => {
     const { findByText } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: initialState },
     );
@@ -414,7 +414,7 @@ describe('BridgeView', () => {
 
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_SOURCE_TOKEN_SELECTOR,
+      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       params: {},
     });
   });
@@ -423,7 +423,7 @@ describe('BridgeView', () => {
     const { getByTestId } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: initialState },
     );
@@ -436,7 +436,7 @@ describe('BridgeView', () => {
 
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_DEST_TOKEN_SELECTOR,
+      screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       params: {},
     });
   });
@@ -445,7 +445,7 @@ describe('BridgeView', () => {
     const { getByTestId, getByText } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: initialState },
     );
@@ -475,7 +475,7 @@ describe('BridgeView', () => {
     const { getByText, getByTestId } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: stateWithAmount },
     );
@@ -536,7 +536,7 @@ describe('BridgeView', () => {
     const { getByTestId } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: initialStateWithTokens },
     );
@@ -553,7 +553,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: initialState },
       );
@@ -573,7 +573,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: stateWithZeroAmount },
       );
@@ -593,7 +593,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: stateWithHighAmount },
       );
@@ -613,7 +613,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: stateWithValidAmount },
       );
@@ -626,7 +626,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: {
           ...initialState,
@@ -667,7 +667,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: stateWithValidAmount },
       );

@@ -80,7 +80,7 @@ describe('BridgeDestNetworkSelector', () => {
     const { getByText } = renderScreen(
       BridgeDestNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -98,7 +98,7 @@ describe('BridgeDestNetworkSelector', () => {
     const { getByText } = renderScreen(
       BridgeDestNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -118,7 +118,7 @@ describe('BridgeDestNetworkSelector', () => {
     const { getByTestId } = renderScreen(
       BridgeDestNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
       },
       { state: initialState }
     );
@@ -155,7 +155,7 @@ describe('BridgeDestNetworkSelector', () => {
     const { queryByText } = renderScreen(
       BridgeDestNetworkSelector,
       {
-        name: Routes.SHEET.BRIDGE_DEST_NETWORK_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
       },
       { state: stateWithInactiveDest }
     );
