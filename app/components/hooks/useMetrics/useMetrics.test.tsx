@@ -84,7 +84,7 @@ describe('useMetrics', () => {
         "getMetaMetricsId": [MockFunction],
         "isDataRecorded": [MockFunction],
         "isEnabled": [MockFunction],
-        "trackEvent": [Function],
+        "trackEvent": [MockFunction],
       }
     `);
   });
@@ -152,5 +152,36 @@ describe('useMetrics', () => {
 
     expect(mockMetrics.isEnabled).toHaveBeenCalled();
     expect(isEnabledValue).toBeTruthy();
+  });
+
+  it('keeps the same reference to the functions after every call', async () => {
+    const {
+      result: { current: firstResult },
+    } = renderHook(() => useMetrics());
+    const {
+      result: { current: secondResult },
+    } = renderHook(() => useMetrics());
+
+    expect(firstResult.trackEvent).toBe(secondResult.trackEvent);
+    expect(firstResult.enable).toBe(secondResult.enable);
+    expect(firstResult.addTraitsToUser).toBe(secondResult.addTraitsToUser);
+    expect(firstResult.createDataDeletionTask).toBe(
+      secondResult.createDataDeletionTask,
+    );
+    expect(firstResult.checkDataDeleteStatus).toBe(
+      secondResult.checkDataDeleteStatus,
+    );
+    expect(firstResult.getDeleteRegulationCreationDate).toBe(
+      secondResult.getDeleteRegulationCreationDate,
+    );
+    expect(firstResult.getDeleteRegulationId).toBe(
+      secondResult.getDeleteRegulationId,
+    );
+    expect(firstResult.isDataRecorded).toBe(secondResult.isDataRecorded);
+    expect(firstResult.isEnabled).toBe(secondResult.isEnabled);
+    expect(firstResult.getMetaMetricsId).toBe(secondResult.getMetaMetricsId);
+    expect(firstResult.createEventBuilder).toBe(
+      secondResult.createEventBuilder,
+    );
   });
 });
