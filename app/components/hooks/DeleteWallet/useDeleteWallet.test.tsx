@@ -5,6 +5,12 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Engine from '../../../core/Engine';
 
+jest.mock('../../../core/NavigationService', () => ({
+  navigation: {
+    reset: jest.fn(),
+  },
+}));
+
 jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
   context: {
