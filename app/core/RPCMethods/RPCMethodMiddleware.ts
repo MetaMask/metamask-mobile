@@ -45,6 +45,7 @@ import {
   MessageParamsTyped,
   SignatureController,
 } from '@metamask/signature-controller';
+import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -171,6 +172,7 @@ export const checkActiveAccountAndChainId = async ({
   DevLogger.log(
     `checkActiveAccountAndChainId isInvalidAccount=${isInvalidAccount}`,
   );
+
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
     const networkType = providerConfig.type as NetworkType;
@@ -178,30 +180,43 @@ export const checkActiveAccountAndChainId = async ({
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
 
-    if (isInitialNetwork) {
-      activeChainId = ChainId[networkType as keyof typeof ChainId];
-    } else if (networkType === RPC) {
-      activeChainId = providerConfig.chainId;
-    }
-
-    if (activeChainId && !activeChainId.startsWith('0x')) {
-      // Convert to hex
-      activeChainId = `0x${parseInt(activeChainId, 10).toString(16)}`;
-    }
-
-    let chainIdRequest = String(chainId);
-    if (chainIdRequest && !chainIdRequest.startsWith('0x')) {
-      // Convert to hex
-      chainIdRequest = `0x${parseInt(chainIdRequest, 10).toString(16)}`;
-    }
-
-    if (activeChainId !== chainIdRequest) {
-      Alert.alert(
-        `Active chainId is ${activeChainId} but received ${chainIdRequest}`,
+    if (hostname) {
+      // eslint-disable-next-line no-console
+      console.log('>>> selecting per origin chainId', hostname);
+      const perOriginChainId = selectPerOriginChainId(
+        store.getState(),
+        hostname,
       );
-      throw rpcErrors.invalidParams({
-        message: `Invalid parameters: active chainId is different than the one provided.`,
-      });
+      // eslint-disable-next-line no-console
+      console.log('>>>  perOriginChainId', perOriginChainId);
+
+      activeChainId = perOriginChainId;
+    } else {
+      if (isInitialNetwork) {
+        activeChainId = ChainId[networkType as keyof typeof ChainId];
+      } else if (networkType === RPC) {
+        activeChainId = providerConfig.chainId;
+      }
+
+      if (activeChainId && !activeChainId.startsWith('0x')) {
+        // Convert to hex
+        activeChainId = `0x${parseInt(activeChainId, 10).toString(16)}`;
+      }
+
+      let chainIdRequest = String(chainId);
+      if (chainIdRequest && !chainIdRequest.startsWith('0x')) {
+        // Convert to hex
+        chainIdRequest = `0x${parseInt(chainIdRequest, 10).toString(16)}`;
+      }
+
+      if (activeChainId !== chainIdRequest) {
+        Alert.alert(
+          `Active chainId is ${activeChainId} but received ${chainIdRequest}`,
+        );
+        throw rpcErrors.invalidParams({
+          message: `Invalid parameters: active chainId is different than the one provided.`,
+        });
+      }
     }
   }
 };

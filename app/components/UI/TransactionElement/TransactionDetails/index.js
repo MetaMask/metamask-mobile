@@ -168,6 +168,8 @@ class TransactionDetails extends PureComponent {
       swapsTokens,
       transactions,
     } = this.props;
+    // console.log('>>> transactionObject', transactionObject);
+    // console.log('>>> transactionDetails', transactionDetails);
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
     const transactionHash = transactionDetails?.hash;
     if (
@@ -209,15 +211,13 @@ class TransactionDetails extends PureComponent {
 
   componentDidMount = () => {
     const {
-      providerConfig: { rpcUrl, type },
+      transactionObject: { chainId: txChainId },
       networkConfigurations,
     } = this.props;
-    let blockExplorer;
-    if (type === RPC) {
-      blockExplorer =
-        findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
-        NO_RPC_BLOCK_EXPLORER;
-    }
+    let blockExplorer =
+      networkConfigurations?.[txChainId]?.blockExplorerUrls[
+        networkConfigurations[txChainId]?.defaultBlockExplorerUrlIndex
+      ] || NO_RPC_BLOCK_EXPLORER;
     this.setState({ rpcBlockExplorer: blockExplorer });
     this.updateTransactionDetails();
   };
@@ -232,11 +232,7 @@ class TransactionDetails extends PureComponent {
     } = this.props;
     const { rpcBlockExplorer } = this.state;
     try {
-      const { url, title } = getBlockExplorerTxUrl(
-        type,
-        hash,
-        rpcBlockExplorer,
-      );
+      const { url, title } = getBlockExplorerTxUrl(RPC, hash, rpcBlockExplorer);
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: { url, title },
