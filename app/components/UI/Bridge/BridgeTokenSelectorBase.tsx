@@ -1,12 +1,11 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { Box } from '../Box/Box';
 import Text, { TextVariant, TextColor } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheet, { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { TokenI } from '../Tokens/types';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
@@ -60,7 +59,6 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = (
   tokensList,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
-  const navigation = useNavigation();
   const { searchString, setSearchString, searchResults } = useTokenSearch({
     tokens: tokensList || [],
   });
@@ -86,8 +84,16 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = (
     [searchString, styles],
   );
 
+  const modalRef = useRef<BottomSheetRef>(null);
+  const dismissModal = (): void => {
+    modalRef.current?.onCloseBottomSheet();
+  };
+
   return (
-    <BottomSheet isFullscreen>
+    <BottomSheet
+      isFullscreen
+      ref={modalRef}
+    >
       <Box style={styles.content}>
         <Box gap={4}>
           <BottomSheetHeader>
@@ -101,7 +107,7 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = (
               </Text>
               <Box style={[styles.closeButton, styles.closeIconBox]}>
                 <TouchableOpacity
-                  onPress={() => navigation.goBack()}
+                  onPress={dismissModal}
                   testID="bridge-token-selector-close-button"
                 >
                   <Icon
