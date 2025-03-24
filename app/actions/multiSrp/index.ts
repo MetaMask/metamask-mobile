@@ -18,6 +18,7 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     ExtendedKeyringTypes.hd,
   )) as HdKeyring[];
 
+  // TODO: This is temporary and will be removed once https://github.com/MetaMask/core/issues/5411 is resolved.
   const alreadyImportedSRP = hdKeyrings.some((keyring) => {
     // Compare directly with stored codepoints
     const storedCodePoints = new Uint16Array(
