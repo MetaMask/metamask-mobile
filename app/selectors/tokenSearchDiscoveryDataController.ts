@@ -18,7 +18,6 @@ export const selectTokenDisplayData = createSelector(
 
 export const selectSupportedSwapTokenAddressesByChainId = createSelector(
   selectTokenSearchDiscoveryDataControllerState,
-  (_state: RootState) => _state,
   (state) => state?.swapsTokenAddressesByChainId,
 );
 

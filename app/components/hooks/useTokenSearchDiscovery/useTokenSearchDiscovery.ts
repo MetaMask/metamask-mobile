@@ -9,11 +9,12 @@ import {
 } from '@metamask/token-search-discovery-controller';
 import { Hex } from '@metamask/utils';
 import { selectSupportedSwapTokenAddressesByChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
-import { RootState } from '../../../reducers';
-import { allowedChainIds } from '../../UI/Swaps/utils';
 
 const SEARCH_DEBOUNCE_DELAY = 50;
 const MINIMUM_QUERY_LENGTH = 2;
+export const MAX_RESULTS = '100';
+
+export type SearchDiscoveryParams = Omit<TokenSearchParams, 'limit'>;
 
 export const useTokenSearchDiscovery = () => {
   const recentSearches = useSelector(selectRecentTokenSearches);
@@ -36,7 +37,7 @@ export const useTokenSearchDiscovery = () => {
 
   }, [results]);
 
-  const swapsTokenAddresses = useSelector((state: RootState) => selectSupportedSwapTokenAddressesByChainId(state));
+  const swapsTokenAddresses = useSelector(selectSupportedSwapTokenAddressesByChainId);
 
   const filteredResults = useMemo(() => {
     return results.filter((result) => {
@@ -48,7 +49,7 @@ export const useTokenSearchDiscovery = () => {
 
   const searchTokens = useMemo(
     () =>
-      debounce(async (params: TokenSearchParams) => {
+      debounce(async (params: SearchDiscoveryParams) => {
         setIsLoading(true);
         setError(null);
         const requestId = ++latestRequestId.current;
@@ -63,7 +64,7 @@ export const useTokenSearchDiscovery = () => {
           const { TokenSearchDiscoveryController } = Engine.context;
           const result = await TokenSearchDiscoveryController.searchTokens({
             ...params,
-            limit: '100'
+            limit: MAX_RESULTS,
           });
           if (requestId === latestRequestId.current) {
             setResults(result);

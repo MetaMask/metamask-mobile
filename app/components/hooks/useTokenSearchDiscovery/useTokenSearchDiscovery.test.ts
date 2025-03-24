@@ -1,20 +1,37 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act } from '@testing-library/react-hooks';
 import Engine from '../../../core/Engine';
-import useTokenSearchDiscovery from './useTokenSearchDiscovery';
-import { TokenSearchParams } from '@metamask/token-search-discovery-controller';
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
+import useTokenSearchDiscovery, { MAX_RESULTS, SearchDiscoveryParams } from './useTokenSearchDiscovery';
+import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
     TokenSearchDiscoveryController: {
       searchTokens: jest.fn(),
     },
+    TokenSearchDiscoveryDataController: {
+      fetchSwapsTokens: jest.fn(),
+    },
   },
 }));
+
+const mockInitialState = {
+  engine: {
+    backgroundState: {
+      TokenSearchDiscoveryController: {
+        recentSearches: [],
+        lastSearchTimestamp: 0,
+      },
+      TokenSearchDiscoveryDataController: {
+        swapsTokenAddressesByChainId: {
+          '0x1': {
+            addresses: ['0x123'],
+          },
+        },
+        tokenDisplayData: [],
+      },
+    },
+  },
+};
 
 describe('useTokenSearchDiscovery', () => {
   beforeEach(() => {
@@ -27,18 +44,22 @@ describe('useTokenSearchDiscovery', () => {
   });
 
   it('updates states correctly when searching tokens', async () => {
-    const mockSearchParams: TokenSearchParams = {
+    const mockSearchParams: SearchDiscoveryParams = {
       chains: ['0x1'],
       query: 'DAI',
-      limit: '10',
     };
-    const mockSearchResult = [{ name: 'DAI', address: '0x123' }];
+    const mockSearchResult = [{ name: 'DAI', tokenAddress: '0x123', chainId: '0x1' }];
 
     (
       Engine.context.TokenSearchDiscoveryController.searchTokens as jest.Mock
     ).mockResolvedValueOnce(mockSearchResult);
 
-    const { result } = renderHook(() => useTokenSearchDiscovery());
+    const { result } = renderHookWithProvider(
+      () => useTokenSearchDiscovery(),
+      {
+        state: mockInitialState,
+      }
+    );
 
     // Initial state
     expect(result.current.isLoading).toBe(false);
@@ -58,11 +79,19 @@ describe('useTokenSearchDiscovery', () => {
     expect(result.current.results).toEqual(mockSearchResult);
     expect(
       Engine.context.TokenSearchDiscoveryController.searchTokens,
-    ).toHaveBeenCalledWith(mockSearchParams);
+    ).toHaveBeenCalledWith({
+      ...mockSearchParams,
+      limit: MAX_RESULTS,
+    });
   });
 
   it('does not search when less than two characters are queried', async () => {
-    const { result } = renderHook(() => useTokenSearchDiscovery());
+    const { result } = renderHookWithProvider(
+      () => useTokenSearchDiscovery(),
+      {
+        state: mockInitialState,
+      }
+    );
     await act(async () => {
       result.current.searchTokens({ query: 'a' });
       jest.advanceTimersByTime(300);
@@ -73,13 +102,18 @@ describe('useTokenSearchDiscovery', () => {
   });
 
   it('resets the state when reset() is called', async () => {
-    const mockSearchResult = [{ name: 'DAI', address: '0x123' }];
+    const mockSearchResult = [{ name: 'DAI', tokenAddress: '0x123', chainId: '0x1' }];
 
     (
       Engine.context.TokenSearchDiscoveryController.searchTokens as jest.Mock
     ).mockResolvedValueOnce(mockSearchResult);
 
-    const { result } = renderHook(() => useTokenSearchDiscovery());
+    const { result } = renderHookWithProvider(
+      () => useTokenSearchDiscovery(),
+      {
+        state: mockInitialState,
+      }
+    );
 
     await act(async () => {
       result.current.searchTokens({
@@ -104,7 +138,12 @@ describe('useTokenSearchDiscovery', () => {
       Engine.context.TokenSearchDiscoveryController.searchTokens as jest.Mock
     ).mockRejectedValueOnce(mockError);
 
-    const { result } = renderHook(() => useTokenSearchDiscovery());
+    const { result } = renderHookWithProvider(
+      () => useTokenSearchDiscovery(),
+      {
+        state: mockInitialState,
+      }
+    );
 
     await act(async () => {
       result.current.searchTokens({
