@@ -25,6 +25,7 @@ import {
 } from '@metamask/keyring-controller';
 import {
   getDefaultNetworkControllerState,
+  isConnectionError,
   NetworkController,
   NetworkState,
   NetworkStatus,
@@ -350,30 +351,47 @@ export class Engine {
 
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointUnavailable',
-      async ({ chainId, endpointUrl }) => {
-        const metricsEvent = MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE,
-        )
-          .addProperties({
-            chain_id_caip: `eip155:${chainId}`,
-            rpc_endpoint_url: endpointUrl,
-          })
-          .build();
-        MetaMetrics.getInstance().trackEvent(metricsEvent);
+      async ({ chainId, endpointUrl, error }) => {
+        const parsedUrl = new URL(endpointUrl);
+        const hostParts = parsedUrl.host.split('.');
+        const rootDomainName = hostParts.slice(-2).join('.');
+        if (
+          (rootDomainName === 'infura.io' ||
+            rootDomainName === 'quicknode.pro') &&
+          !isConnectionError(error)
+        ) {
+          const metricsEvent = MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE,
+          )
+            .addProperties({
+              chain_id_caip: `eip155:${chainId}`,
+              rpc_endpoint_url: endpointUrl,
+            })
+            .build();
+          MetaMetrics.getInstance().trackEvent(metricsEvent);
+        }
       },
     );
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
       async ({ chainId, endpointUrl }) => {
-        const metricsEvent = MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.RPC_SERVICE_DEGRADED,
-        )
-          .addProperties({
-            chain_id_caip: `eip155:${chainId}`,
-            rpc_endpoint_url: endpointUrl,
-          })
-          .build();
-        MetaMetrics.getInstance().trackEvent(metricsEvent);
+        const parsedUrl = new URL(endpointUrl);
+        const hostParts = parsedUrl.host.split('.');
+        const rootDomainName = hostParts.slice(-2).join('.');
+        if (
+          rootDomainName === 'infura.io' ||
+          rootDomainName === 'quicknode.pro'
+        ) {
+          const metricsEvent = MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.RPC_SERVICE_DEGRADED,
+          )
+            .addProperties({
+              chain_id_caip: `eip155:${chainId}`,
+              rpc_endpoint_url: endpointUrl,
+            })
+            .build();
+          MetaMetrics.getInstance().trackEvent(metricsEvent);
+        }
       },
     );
 
