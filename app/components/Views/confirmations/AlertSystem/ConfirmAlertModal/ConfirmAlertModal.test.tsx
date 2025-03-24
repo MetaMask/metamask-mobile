@@ -133,7 +133,7 @@ describe('ConfirmAlertModal', () => {
     expect(getByText('Your assets may be at risk')).toBeDefined();
     expect(getByText(BLOCKAID_ALERT_MOCK.message)).toBeDefined();
     expect(getByText(CHECKBOX_LABEL)).toBeDefined();
-    expect(getByText(REJECT_BTN)).toBeDefined();
+    expect(getByText(CANCEL_BTN)).toBeDefined();
     expect(getByText(CONFIRM_BTN)).toBeDefined();
   });
 });
