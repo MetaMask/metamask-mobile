@@ -3461,6 +3461,14 @@
     "error_title": "Install failed",
     "error_description": "Installation of {{snap}} failed."
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "Lend {{tokenSymbol}} and earn",
+      "body_prefix": "You could earn up to",
+      "body_suffix": "per year by lending your {{tokenSymbol}}.",
+      "start_earning": "Start earning"
+    }
+  },
   "stake": {
     "stake": "Stake",
     "earn": "Earn",
@@ -3659,7 +3667,7 @@
     }
   },
   "confirm": {
-    "reject": "Reject",
+    "cancel": "Cancel",
     "confirm": "Confirm",
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
@@ -3752,6 +3760,9 @@
   "bridge": {
     "continue": "Continue",
     "terms_and_conditions": "Terms & Conditions",
-    "select_token": "Select token"
-  }
+    "select_token": "Select token",
+    "slippage": "Slippage",
+    "apply": "Apply",
+    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
+    }
 }

@@ -103,6 +103,7 @@ describe('useEarnTokenDetails', () => {
       apr: '2.3',
       tokenBalanceFormatted: '100 ETH',
       balanceFiat: '$200,000.00',
+      estimatedAnnualRewardsFormatted: '$4600',
     });
   });
 
@@ -119,6 +120,7 @@ describe('useEarnTokenDetails', () => {
       apr: '4.5',
       tokenBalanceFormatted: '100 USDC',
       balanceFiat: '$100',
+      estimatedAnnualRewardsFormatted: '$5',
     });
   });
 
@@ -144,5 +146,48 @@ describe('useEarnTokenDetails', () => {
     const tokenDetails = result.current.getTokenWithBalanceAndApr(mockToken);
 
     expect(tokenDetails.apr).toBe('0.0');
+  });
+
+  it('returns estimatedAnnualRewardsFormatted with two decimal places for rewards under one dollar', () => {
+    const usdcTokenWithSmallBalance = {
+      ...mockUSDCToken,
+      balanceFiat: '$5.00',
+    };
+
+    const { result } = renderHookWithProvider(() => useEarnTokenDetails(), {
+      state: mockInitialState,
+    });
+
+    const { estimatedAnnualRewardsFormatted } =
+      result.current.getTokenWithBalanceAndApr(usdcTokenWithSmallBalance);
+
+    expect(estimatedAnnualRewardsFormatted).toBe('$0.23');
+  });
+
+  it('returns estimatedAnnualRewardsFormatted rounded up to nearest dollar for rewards greater than one dollar', () => {
+    const { result } = renderHookWithProvider(() => useEarnTokenDetails(), {
+      state: mockInitialState,
+    });
+
+    const { estimatedAnnualRewardsFormatted } =
+      result.current.getTokenWithBalanceAndApr(mockUSDCToken);
+
+    expect(estimatedAnnualRewardsFormatted).toBe('$5');
+  });
+
+  it('returns estimatedAnnualRewardsFormatted as empty string when token balance is empty', () => {
+    const usdcTokenWithEmptyBalance = {
+      ...mockUSDCToken,
+      balanceFiat: '',
+    };
+
+    const { result } = renderHookWithProvider(() => useEarnTokenDetails(), {
+      state: mockInitialState,
+    });
+
+    const { estimatedAnnualRewardsFormatted } =
+      result.current.getTokenWithBalanceAndApr(usdcTokenWithEmptyBalance);
+
+    expect(estimatedAnnualRewardsFormatted).toBe('');
   });
 });

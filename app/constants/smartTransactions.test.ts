@@ -22,6 +22,7 @@ describe('smartTransactions', () => {
         NETWORKS_CHAIN_ID.MAINNET,
         NETWORKS_CHAIN_ID.SEPOLIA,
         NETWORKS_CHAIN_ID.BASE,
+        NETWORKS_CHAIN_ID.BSC,
       ]);
     });
 
@@ -31,6 +32,7 @@ describe('smartTransactions', () => {
       expect(allowedChainIds).toStrictEqual([
         NETWORKS_CHAIN_ID.MAINNET,
         // NETWORKS_CHAIN_ID.BASE, // TODO: Add base to production when ready
+        // NETWORKS_CHAIN_ID.BSC,  // TODO: Add base to production when ready
       ]);
     });
   });

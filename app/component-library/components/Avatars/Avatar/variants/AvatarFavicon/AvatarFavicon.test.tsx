@@ -1,17 +1,23 @@
 // Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
+import { render, waitFor } from '@testing-library/react-native';
 
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
 import {
   AVATARFAVICON_IMAGE_TESTID,
+  AVATARFAVICON_IMAGE_SVG_TESTID,
   SAMPLE_AVATARFAVICON_PROPS,
   SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL,
   SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE,
 } from './AvatarFavicon.constants';
 
 describe('AvatarFavicon', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn();
+  });
+
   it('should match the snapshot', () => {
     const wrapper = shallow(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
     expect(wrapper).toMatchSnapshot();
@@ -38,15 +44,19 @@ describe('AvatarFavicon', () => {
     expect(imageComponent.exists()).toBe(true);
   });
 
-  it('should render SVG', () => {
-    const wrapper = shallow(
+  it('should render SVG', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, headers: new Headers({'Content-Type': 'image/svg+xml'}), text: () => '<svg />' });
+
+    const { getByTestId, toJSON } = render(
       <AvatarFavicon
         {...SAMPLE_AVATARFAVICON_PROPS}
         imageSource={SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE}
       />,
     );
 
-    expect(wrapper).toMatchSnapshot();
+    await waitFor(() => expect(getByTestId(AVATARFAVICON_IMAGE_SVG_TESTID)).toBeDefined());
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render fallback', () => {
