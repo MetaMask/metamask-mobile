@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Skeleton should match snapshot 1`] = `
+<View
+  style={
+    {
+      "borderRadius": 4,
+      "overflow": "hidden",
+    }
+  }
+>
+  <View
+    collapsable={false}
+    pointerEvents="none"
+    style={
+      {
+        "backgroundColor": "#6a737d",
+        "borderRadius": 4,
+        "bottom": 0,
+        "left": 0,
+        "opacity": 0.2,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  />
+</View>
+`;

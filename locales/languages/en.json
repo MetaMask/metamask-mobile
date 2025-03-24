@@ -11,6 +11,13 @@
       "checkbox_label": "I have acknowledged the alert and still want to proceed",
       "review_alerts": "Review all alerts",
       "message": "We suggest you reject this request. If you continue, you might put your assets at risk."
+    },
+    "inline_alert_label": "Alert",
+    "review_alerts": "Review alerts",
+    "review_alert": "Review alert",
+    "domain_mismatch": {
+      "title": "Suspicious sign-in request",
+      "message": "The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials."
     }
   },
   "blockaid_banner": {
@@ -399,6 +406,28 @@
   "qr_tab_switcher": {
     "scanner_tab": "Scan QR code",
     "receive_tab": "Your QR code"
+  },
+  "banner": {
+    "bridge": {
+      "title": "Ready to bridge?",
+      "subtitle": "Move across 9 chains, all within your wallet"
+    },
+    "card": {
+      "title": "MetaMask Card",
+      "subtitle": "Available in select regions"
+    },
+    "fund": {
+      "title": "Fund your wallet", 
+      "subtitle": "Add or transfer tokens to get started"
+    },
+    "cashout": {
+      "title": "Cash out with MetaMask",
+      "subtitle": "Sell your crypto for cash"
+    },
+    "aggregated": {
+      "title": "Your balance is aggregated",
+      "subtitle": "Control your balance view in settings"
+    }
   },
   "wallet": {
     "title": "Wallet",
@@ -796,7 +825,7 @@
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
-    "disabling_notifications": "Disabling notifications...",
+    "updating_notifications": "Updating notifications...",
     "updating_account_settings": "Updating account settings...",
     "reset_notifications_title": "Reset notifications",
     "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
@@ -1143,7 +1172,7 @@
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
-    "smart_transactions_opt_in_desc": "Turn on Smart Transactions for more reliable and secure transactions on Ethereum Mainnet.",
+    "smart_transactions_opt_in_desc_supported_networks": "Turn on Smart Transactions for more reliable and secure transactions on supported networks.",
     "smart_transactions_learn_more": "Learn more.",
     "simulation_details": "Estimate balance changes",
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
@@ -1643,6 +1672,9 @@
     "tabs_done": "Done",
     "no_tabs_title": "No Open Tabs",
     "no_tabs_desc": "To browse the decentralized web, add a new tab",
+    "got_it": "Got it",
+    "max_tabs_title": "Maximum tabs reached",
+    "max_tabs_desc": "We currently only support 5 open tabs at once. Please close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
     "remove_bookmark_title": "Remove favorite",
     "remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
@@ -1867,6 +1899,7 @@
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
     "add_specific_network": "Add {{network_name}}",
+    "update_network": "Update {{network_name}}",
     "select_network": "Select a network",
     "enabled_networks": "Enabled networks",
     "additional_networks": "Additional networks",
@@ -2013,7 +2046,7 @@
     "error_srp_word_error_2": " is incorrect or misspelled.",
     "error_multiple_srp_word_error_1": "Word ",
     "error_multiple_srp_word_error_2": " and ",
-    "error_multiple_srp_word_error_3": " is incorrect or misspelled.",
+    "error_multiple_srp_word_error_3": " are incorrect or misspelled.",
     "error_invalid_srp": "Invalid Secret Recovery Phrase",
     "success_1": "Secret Recovery Phrase",
     "success_2": "imported"
@@ -2814,7 +2847,7 @@
     "token_to_verify": "to verify this is the token you're looking for.",
     "continue": "Continue",
     "select_a_token": "Select a token",
-    "search_token": "Search for a token",
+    "search_token": "Enter token name or paste address",
     "no_tokens_result": "No tokens match “{{searchString}}”",
     "find_token_address": "Find token address",
     "cant_find_token": "Can’t find a token?",
@@ -2866,9 +2899,12 @@
     "n_quotes": "{{numberOfQuotes}} quotes",
     "view_details": "View details",
     "estimated_gas_fee": "Estimated gas fee",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Max gas fee",
     "edit": "Edit",
     "quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Tap to Swap",
     "swipe_to_swap": "Swipe to swap",
     "swipe_to": "Swipe to",
@@ -2938,6 +2974,8 @@
     "high_recommendation": "Swaps are typically time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "recommended": "Recommended",
     "recommended_gas": "Recommended gas fee",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Estimated gas fees",
     "gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
     "gas_education_2_ethereum": "Ethereum network.",
@@ -3026,6 +3064,8 @@
     "title_new_network": "New network added",
     "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
     "add_network_and_give_dapp_permission_warning": "You're adding this network to MetaMask and giving {{dapp_origin}} permission to use it.",
+    "update_network_and_give_dapp_permission_warning": "You're updating this network in MetaMask and giving {{dapp_origin}} permission to use it.",
+    "request_update_network_url": "{{dapp_origin}} is requesting to update your default network URL. You can edit defaults and network information any time.",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
     "switch": "Switch Network"
@@ -3463,6 +3503,14 @@
     "error_title": "Install failed",
     "error_description": "Installation of {{snap}} failed."
   },
+  "earn": {
+    "empty_state_cta": {
+      "heading": "Lend {{tokenSymbol}} and earn",
+      "body_prefix": "You could earn up to",
+      "body_suffix": "per year by lending your {{tokenSymbol}}.",
+      "start_earning": "Start earning"
+    }
+  },
   "stake": {
     "stake": "Stake",
     "earn": "Earn",
@@ -3548,6 +3596,7 @@
     "you_receive": "You receive",
     "up_to_n": "Up to {{count}}",
     "unstaking_to": "Unstaking to",
+    "claiming_to": "Claiming to",
     "max_modal": {
       "title": "Max",
       "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
@@ -3660,7 +3709,7 @@
     }
   },
   "confirm": {
-    "reject": "Reject",
+    "cancel": "Cancel",
     "confirm": "Confirm",
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
@@ -3682,6 +3731,7 @@
     "title": {
       "signature": "Signature request",
       "permit": "Spending cap request",
+      "permit_revoke": "Remove permission",
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request"
     },
@@ -3715,6 +3765,7 @@
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
+      "info_revoke": "You're removing someone's permission to spend tokens from your account.",
       "label_change_type_bidding": "You bid",
       "label_change_type_listing": "You list",
       "label_change_type_nft_listing": "Listing price",
@@ -3743,9 +3794,17 @@
     "add_account_button": "Add account",
     "name_taken_message": "This account name already exists"
   },
-    "smart_transactions_migration": {
+  "smart_transactions_migration": {
     "title": "Transactions just got smarter",
     "link": "Higher success rates",
     "description": " and MEV protection. Now on by default."
-  }
+  },
+  "bridge": {
+    "continue": "Continue",
+    "terms_and_conditions": "Terms & Conditions",
+    "select_token": "Select token",
+    "slippage": "Slippage",
+    "apply": "Apply",
+    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
+    }
 }

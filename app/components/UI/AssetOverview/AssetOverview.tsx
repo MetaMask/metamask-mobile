@@ -364,12 +364,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   if (asset.isETH || asset.isNative) {
     balance = renderFromWei(
       //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+      accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
     );
     balanceFiat = weiToFiat(
       hexToBN(
         //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-        accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+        accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
       ),
       conversionRate,
       currentCurrency,
@@ -412,8 +412,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         : `${balance} ${asset.symbol}`;
     }
   } else {
-    mainBalance = `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`;
-    secondaryBalance = asset.balanceFiat || '';
+    mainBalance = asset.balanceFiat || '';
+    secondaryBalance = `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`;
   }
 
   let currentPrice = 0;

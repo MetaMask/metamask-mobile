@@ -13,6 +13,11 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
+///: END:ONLY_INCLUDE_IF
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
@@ -23,6 +28,10 @@ import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddAccountActions.styles';
 
 import { addNewHdAccount } from '../../../actions/multiSrp';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
@@ -39,14 +48,10 @@ import {
   selectIsSolanaSupportEnabled,
 } from '../../../selectors/multichain';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-import { selectHdKeyrings } from '../../../selectors/keyringController';
+import { selectHDKeyrings } from '../../../selectors/keyringController';
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = (props: AddAccountActionsProps) => {
@@ -64,7 +69,7 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-  const hdKeyrings = useSelector(selectHdKeyrings);
+  const hdKeyrings = useSelector(selectHDKeyrings);
   ///: END:ONLY_INCLUDE_IF
 
   const openImportAccount = useCallback(() => {
@@ -167,6 +172,11 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
   const createSolanaAccount = async (scope: CaipChainId) => {
     try {
       setIsLoading(true);
+      trace({
+        name: TraceName.CreateSnapAccount,
+        op: TraceOperation.CreateSnapAccount,
+        tags: getTraceTags(store.getState()),
+      });
       // Client to create the account using the Solana Snap
       const client = new KeyringClient(new SolanaWalletSnapSender());
       // This will trigger the Snap account creation flow (+ account renaming)

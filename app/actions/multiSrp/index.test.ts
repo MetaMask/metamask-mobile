@@ -40,7 +40,7 @@ describe('MultiSRP Actions', () => {
   });
 
   describe('importNewSecretRecoveryPhrase', () => {
-    it('should import new SRP successfully', async () => {
+    it('imports new SRP', async () => {
       mockGetKeyringsByType.mockResolvedValue([]);
       mockAddNewKeyring.mockResolvedValue({ getAccounts: () => [testAddress] });
 
@@ -53,7 +53,7 @@ describe('MultiSRP Actions', () => {
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
     });
 
-    it('should throw error if SRP already imported', async () => {
+    it('throws error if SRP already imported', async () => {
       mockGetKeyringsByType.mockResolvedValue([
         {
           mnemonic: new Uint16Array(
@@ -62,14 +62,16 @@ describe('MultiSRP Actions', () => {
         },
       ]);
 
-      await importNewSecretRecoveryPhrase(testMnemonic);
+      await expect(
+        async () => await importNewSecretRecoveryPhrase(testMnemonic),
+      ).rejects.toThrow('This mnemonic has already been imported.');
 
       expect(mockAddNewKeyring).not.toHaveBeenCalled();
     });
   });
 
   describe('createNewSecretRecoveryPhrase', () => {
-    it('should create new SRP successfully', async () => {
+    it('creates new SRP', async () => {
       mockAddNewKeyring.mockResolvedValue({
         getAccounts: () => Promise.resolve([testAddress]),
       });
@@ -83,11 +85,14 @@ describe('MultiSRP Actions', () => {
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
     });
 
-    it('should handle errors gracefully', async () => {
+    it('Does not set selected address or gets accounts on errors', async () => {
       mockAddNewKeyring.mockRejectedValue(new Error('Test error'));
 
-      await createNewSecretRecoveryPhrase();
+      await expect(
+        async () => await createNewSecretRecoveryPhrase(),
+      ).rejects.toThrow('Test error');
 
+      expect(mockGetAccounts).not.toHaveBeenCalled();
       expect(mockSetSelectedAddress).not.toHaveBeenCalled();
     });
   });

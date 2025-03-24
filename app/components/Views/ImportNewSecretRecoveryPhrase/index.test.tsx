@@ -56,7 +56,7 @@ const initialState = {
   },
 };
 
-const renderAndPasteSRP = async (srp = valid24WordMnemonic) => {
+const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
   mockPaste.mockResolvedValue(srp);
 
   const render = renderScreen(
@@ -79,7 +79,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     jest.clearAllMocks();
   });
 
-  it('handles valid 12 word srps being input manually', async () => {
+  it('imports valid manually entered 12-word SRP', async () => {
     const { getByTestId } = renderScreen(
       ImportNewSecretRecoveryPhrase,
       { name: 'ImportNewSecretRecoveryPhrase' },
@@ -98,9 +98,16 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
     expect(importButton.props.disabled).toBe(false);
+
+    await fireEvent.press(importButton);
+
+    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
+      valid12WordMnemonic,
+    );
+    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 
-  it('handles valid 24 word srps being input manually', async () => {
+  it('imports valid manually entered 24-word SRP', async () => {
     const { getByTestId, getByText } = renderScreen(
       ImportNewSecretRecoveryPhrase,
       { name: 'ImportNewSecretRecoveryPhrase' },
@@ -127,10 +134,19 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
     expect(importButton.props.disabled).toBe(false);
+
+    await fireEvent.press(importButton);
+
+    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
+      valid24WordMnemonic,
+    );
+    expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 
-  it('handles pasting of 12 word srp', async () => {
-    const { getByTestId } = await renderAndPasteSRP();
+  it('imports valid pasted 12-word SRP', async () => {
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
 
     await act(() => {
       for (const [index, word] of valid24WordMnemonic.split(' ').entries()) {
@@ -141,10 +157,19 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         expect(value.props.value).toBe(word);
       }
     });
+
+    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+    await fireEvent.press(importButton);
+
+    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
+      valid24WordMnemonic,
+    );
   });
 
-  it('handles pasting of 24 word srp', async () => {
-    const { getByTestId } = await renderAndPasteSRP();
+  it('imports valid pasted 24-word SRP', async () => {
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
 
     await act(() => {
       for (const [index, word] of valid24WordMnemonic.split(' ').entries()) {
@@ -155,10 +180,18 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         expect(value.props.value).toBe(word);
       }
     });
-  });
 
-  it('should handle successful import', async () => {
-    const { getByTestId } = await renderAndPasteSRP();
+    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
+    await fireEvent.press(importButton);
+
+    expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
+      valid24WordMnemonic,
+    );
+  });
+  it('imports valid SRP', async () => {
+    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
+      valid24WordMnemonic,
+    );
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
     await fireEvent.press(importButton);
@@ -170,8 +203,10 @@ describe('ImportNewSecretRecoveryPhrase', () => {
   });
 
   describe('errors', () => {
-    it('should display error when the user inputs an invalid srp', async () => {
-      const { getByText } = await renderAndPasteSRP('invalid mnemonic');
+    it('displays error for invalid SRP', async () => {
+      const { getByText } = await renderSRPImportComponentAndPasteSRP(
+        'invalid mnemonic',
+      );
 
       expect(
         getByText(
@@ -181,8 +216,8 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       ).toBeTruthy();
     });
 
-    it('should display which word is incorrect', async () => {
-      const { getByText } = await renderAndPasteSRP(
+    it('displays single incorrect word', async () => {
+      const { getByText } = await renderSRPImportComponentAndPasteSRP(
         valid24WordMnemonic.replace('verb', 'asdf'), // replace the first word
       );
 
@@ -197,8 +232,8 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       ).toBeTruthy();
     });
 
-    it('display which words are incorrect', async () => {
-      const { getByText } = await renderAndPasteSRP(
+    it('displays multiple incorrect words', async () => {
+      const { getByText } = await renderSRPImportComponentAndPasteSRP(
         valid24WordMnemonic.replace('verb', 'asdf').replace('middle', 'sdfsdf'), // replace the first two word
       );
 
@@ -219,9 +254,8 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
 
     it('displays case sensitive error', async () => {
-      const { getByText, getByTestId } = await renderAndPasteSRP(
-        valid24WordMnemonic,
-      );
+      const { getByText, getByTestId } =
+        await renderSRPImportComponentAndPasteSRP(valid24WordMnemonic);
 
       const firstWord = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-1`);
       fireEvent.changeText(firstWord, 'Verb');

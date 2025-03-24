@@ -17,8 +17,8 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -102,7 +102,6 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -126,7 +125,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -164,8 +163,8 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -285,8 +284,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -465,8 +464,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -645,8 +644,8 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -728,8 +727,8 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -791,8 +790,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   "flexDirection": "row",
                   "flexWrap": "wrap",
                   "justifyContent": "space-between",
-                  "paddingBottom": 8,
+                  "marginLeft": -8,
+                  "marginRight": -8,
+                  "paddingBottom": 0,
                   "paddingHorizontal": 8,
+                  "paddingTop": 0,
                 }
               }
               testID="info-row"
@@ -813,12 +815,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "alignItems": "center",
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
-                      "fontWeight": "600",
-                      "justifyContent": "center",
+                      "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -828,58 +828,50 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                 </Text>
               </View>
               <View
+                alignItems="center"
+                flexDirection="row"
+                gap={4}
                 style={
-                  {
-                    "marginLeft": "auto",
-                  }
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 4,
+                    },
+                    undefined,
+                  ]
                 }
               >
-                <View
-                  alignItems="center"
-                  flexDirection="row"
-                  gap={4}
+                <Text
+                  accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "gap": 4,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#9fa6ae",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
                   }
                 >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#9fa6ae",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
+                  Extra
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
-                  >
-                    Extra
-                  </Text>
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Value
-                  </Text>
-                </View>
+                  }
+                >
+                  Value
+                </Text>
               </View>
             </View>
             <View
@@ -1076,7 +1068,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1100,7 +1091,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -1117,7 +1108,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1223,8 +1213,8 @@ exports[`SnapUIRenderer renders footers 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -1307,7 +1297,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1331,7 +1320,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -1348,7 +1337,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1461,8 +1449,8 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -1713,8 +1701,8 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -2750,8 +2738,8 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -2871,8 +2859,8 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
       [
         {},
         {
-          "flex": 1,
           "flexDirection": "column",
+          "flexGrow": 1,
         },
       ]
     }
@@ -2955,7 +2943,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -2979,7 +2966,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -2996,7 +2983,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
