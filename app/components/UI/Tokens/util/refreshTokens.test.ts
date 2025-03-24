@@ -2,6 +2,7 @@ import { refreshTokens } from './refreshTokens';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -19,6 +20,9 @@ jest.mock('../../../../core/Engine', () => ({
     },
     TokenRatesController: {
       updateExchangeRatesByChainId: jest.fn(),
+    },
+    MultichainBalancesController: {
+      updateBalance: jest.fn(),
     },
   },
 }));
@@ -113,5 +117,33 @@ describe('refreshTokens', () => {
       expect.any(Error),
       'Error while refreshing tokens',
     );
+  });
+
+  it('should call updateBalance with selectedAccount ID when EVM is not selected', async () => {
+    const selectedAccount = { id: 'test-account-id' } as InternalAccount;
+
+    await refreshTokens({
+      isEvmSelected: false,
+      evmNetworkConfigurationsByChainId: {},
+      nativeCurrencies: [],
+      selectedAccount,
+    });
+
+    expect(
+      Engine.context.MultichainBalancesController.updateBalance,
+    ).toHaveBeenCalledWith('test-account-id');
+  });
+
+  it('should not call updateBalance if selectedAccount is undefined', async () => {
+    await refreshTokens({
+      isEvmSelected: false,
+      evmNetworkConfigurationsByChainId: {},
+      nativeCurrencies: [],
+      selectedAccount: undefined,
+    });
+
+    expect(
+      Engine.context.MultichainBalancesController.updateBalance,
+    ).not.toHaveBeenCalled();
   });
 });
