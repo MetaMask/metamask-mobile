@@ -10,7 +10,17 @@
       "title": "High risk request",
       "checkbox_label": "I have acknowledged the alert and still want to proceed",
       "review_alerts": "Review all alerts",
-      "message": "We suggest you reject this request. If you continue, you might put your assets at risk."
+      "message": "We suggest you reject this request. If you continue, you might put your assets at risk.",
+      "title_blockaid": "Your assets may be at risk",
+      "blockaid": {
+        "message": "A third party known for scams has access to this site. If you proceed, you'll lose assets.",
+        "message2": "The site may look safe, but a third party might have access to its information. If you sign in, your assets could get stolen.",
+        "message3": "If you confirm, you could lose all your funds and assets.",
+        "message4": "If you sign in, any or all assets you've listed on OpenSea are at risk.",
+        "message5": "If you sign in, any or all assets you've listed on Blur are at risk.",
+        "message6": "This site is recognized as a malicious domain. If you sign in, you will lose funds and assets. We strongly suggest you cancel this request.",
+        "message7": "If you sign in, you could lose all your assets. We recommend you cancel this request."
+      }
     },
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
