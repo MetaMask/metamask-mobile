@@ -14,6 +14,8 @@ import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import * as networks from '../../../util/networks';
 // eslint-disable-next-line import/no-namespace
 import * as multichain from '../../../selectors/multichain/';
+// eslint-disable-next-line import/no-namespace
+import * as tokenUtils from './util';
 
 jest.mock('../../../selectors/multichain/', () => ({
   ...jest.requireActual('../../../selectors/multichain/'),
@@ -22,6 +24,11 @@ jest.mock('../../../selectors/multichain/', () => ({
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('./util', () => ({
+  ...jest.requireActual('./util'),
+  refreshTokens: jest.fn(() => ({})),
 }));
 
 const selectedAddress = '0x123';
@@ -386,6 +393,71 @@ describe('Tokens', () => {
       },
       { timeout: 3000 },
     );
+  });
+
+  it('does not call goToAddEvmToken when non-EVM network is selected', () => {
+    const state = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          MultichainNetworkController: {
+            selectedNetworkType: 'non-evm',
+          },
+        },
+      },
+      settings: {
+        hideZeroBalanceTokens: false,
+      },
+    };
+
+    const { getByTestId } = renderComponent(state);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
+
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('calls refreshTokens on pull-to-refresh', async () => {
+    const refreshTokensSpy = jest
+      .spyOn(tokenUtils, 'refreshTokens')
+      .mockResolvedValue(undefined);
+
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      'refresh',
+      { refreshing: true },
+    );
+
+    await waitFor(() => {
+      expect(refreshTokensSpy).toHaveBeenCalled();
+    });
+
+    refreshTokensSpy.mockRestore();
+  });
+
+  it('renders correctly when token list is empty', () => {
+    const state = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [selectedAddress]: [],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderComponent(state);
+    expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
   });
 
   it('triggers bottom sheet when sort controls are pressed', async () => {
