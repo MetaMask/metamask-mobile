@@ -23,7 +23,9 @@ import {
   getDefaultNetworkByChainId,
 } from '../../../../../util/networks';
 import createStyles from '../../styles';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -308,6 +310,7 @@ export const TokenListItem = React.memo(
       >
         {showNetworkBadge ? (
           <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
