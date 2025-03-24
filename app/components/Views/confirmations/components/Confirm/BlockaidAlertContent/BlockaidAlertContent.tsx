@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { deflate } from 'react-native-gzip';
-import BlockaidVersionInfo from '../../../../../../lib/ppom/blockaid-version';
-import { Reason, SecurityAlertResponse } from '../../BlockaidBanner/BlockaidBanner.types';
-import { FALSE_POSITIVE_REPORT_BASE_URL, UTM_SOURCE } from '../../../../../../constants/urls';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../../util/walletconnect';
+import { strings } from '../../../../../../../locales/i18n';
 import AppConstants from '../../../../../../core/AppConstants';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../../util/networks';
+import { WALLET_CONNECT_ORIGIN } from '../../../../../../util/walletconnect';
+import BlockaidVersionInfo from '../../../../../../lib/ppom/blockaid-version';
+import { FALSE_POSITIVE_REPORT_BASE_URL, UTM_SOURCE } from '../../../../../../constants/urls';
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
-import { FALSE_POSITIVE_REPOST_LINE_TEST_ID, REASON_DESCRIPTION_I18N_KEY_MAP } from '../../BlockaidBanner/BlockaidBanner.constants';
 import Accordion, { AccordionHeaderHorizontalAlignment } from '../../../../../../component-library/components/Accordions/Accordion';
-import { strings } from '../../../../../../../locales/i18n';
 import Text from '../../../../../../component-library/components/Texts/Text';
-import BlockaidBannerLink from '../../BlockaidBanner/BlockaidBannerLink';
-import styleSheet from './BlockaidAlertContent.styles';
 import { useStyles } from '../../../../../../component-library/hooks';
+import BlockaidBannerLink from '../../BlockaidBanner/BlockaidBannerLink';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID, REASON_DESCRIPTION_I18N_KEY_MAP } from '../../BlockaidBanner/BlockaidBanner.constants';
+import { Reason, SecurityAlertResponse } from '../../BlockaidBanner/BlockaidBanner.types';
+import styleSheet from './BlockaidAlertContent.styles';
 
 interface BlockaidAlertContentProps {
   alertDetails?: string[];
@@ -65,9 +65,11 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({ alertDetail
 
     (async () => {
       const compressed = await deflate(JSON.stringify(reportData));
-      setReportUrl(getReportUrl(compressed));
+      if (isExpanded) {
+        setReportUrl(getReportUrl(compressed));
+      }
     })();
-  }, [securityAlertResponse]);
+  }, [securityAlertResponse, isExpanded]);
 
   return (
     <>
