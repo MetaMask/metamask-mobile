@@ -18,6 +18,7 @@ const availableFeatures = new Set([
   'external-snaps',
   'beta',
   'keyring-snaps',
+  'multi-srp',
 ]);
 
 const mainFeatureSet = new Set(['preinstalled-snaps']);
@@ -27,6 +28,7 @@ const flaskFeatureSet = new Set([
   'preinstalled-snaps',
   'external-snaps',
   'keyring-snaps',
+  'multi-srp',
 ]);
 
 /**
