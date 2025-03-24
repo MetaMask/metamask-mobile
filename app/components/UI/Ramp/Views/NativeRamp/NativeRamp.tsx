@@ -77,7 +77,9 @@ function NativeRamp() {
   const [nativeRampService] = useState(
     () =>
       new NativeRampService(
-        TransakEnvironment.Staging,
+        process.env.TRANSAK_ENVIRONMENT === 'staging'
+          ? TransakEnvironment.Staging
+          : TransakEnvironment.Production,
         process.env.TRANSAK_API_KEY || '',
         process.env.TRANSAK_FRONTEND_AUTH || '',
       ),
