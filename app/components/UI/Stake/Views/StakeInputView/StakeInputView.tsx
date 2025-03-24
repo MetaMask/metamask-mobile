@@ -1,5 +1,7 @@
-import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { formatEther } from 'ethers/lib/utils';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -9,30 +11,30 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../constants/navigation/Routes';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
 import Keypad from '../../../../Base/Keypad';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
-import QuickAmounts from '../../components/QuickAmounts';
+import EarnTokenSelector from '../../components/EarnTokenSelector';
 import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
-import Routes from '../../../../../constants/navigation/Routes';
-import styleSheet from './StakeInputView.styles';
-import useStakingInputHandlers from '../../hooks/useStakingInput';
 import InputDisplay from '../../components/InputDisplay';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import QuickAmounts from '../../components/QuickAmounts';
+import { isStablecoinLendingFeatureEnabled } from '../../constants';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
-import { formatEther } from 'ethers/lib/utils';
-import { EVENT_PROVIDERS, EVENT_LOCATIONS } from '../../constants/events';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import useStakingInputHandlers from '../../hooks/useStakingInput';
+import { StakeNavigationParamsList } from '../../types';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import styleSheet from './StakeInputView.styles';
 import { StakeInputViewProps } from './StakeInputView.types';
 import { getStakeInputViewTitle } from './utils';
-import { isStablecoinLendingFeatureEnabled } from '../../constants';
-import EarnTokenSelector from '../../components/EarnTokenSelector';
 
 const StakeInputView = ({ route }: StakeInputViewProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
@@ -61,7 +63,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    isLoadingVaultApyAverages,
+    isLoadingVaultMetadata,
     handleMax,
     balanceValue,
     isHighGasCostImpact,
@@ -76,18 +78,15 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     });
   };
 
-  const handleStakePress = useCallback(async () => {
-    if (isStakingDepositRedesignedEnabled) {
-      await attemptDepositTransaction(
-        amountWei.toString(),
-        activeAccount?.address as string,
-      );
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
-      });
-      return;
-    }
+  const [isSubmittingStakeDepositTransaction, setIsSubmittingStakeDepositTransaction] = useState(false);
 
+  useFocusEffect(
+    useCallback(() => {
+      setIsSubmittingStakeDepositTransaction(false);
+    }, [])
+  );
+
+  const handleStakePress = useCallback(async () => {
     if (isHighGasCostImpact()) {
       trackEvent(
         createEventBuilder(
@@ -119,23 +118,59 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       return;
     }
 
+    const amountWeiString = amountWei.toString();
+
+    const stakeButtonClickEventProperties = {
+      selected_provider: EVENT_PROVIDERS.CONSENSYS,
+      tokens_to_stake_native_value: amountEth,
+      tokens_to_stake_usd_value: fiatAmount,
+    };
+
+    if (isStakingDepositRedesignedEnabled) {
+      // this prevents the user from adding the transaction deposit into the
+      // controller state multiple times
+      setIsSubmittingStakeDepositTransaction(true);
+
+      // Here we add the transaction to the transaction controller. The
+      // redesigned confirmations architecture relies on the transaction
+      // metadata object being defined by the time the confirmation is displayed
+      // to the user.
+      await attemptDepositTransaction(
+        amountWeiString,
+        activeAccount?.address as string,
+        undefined,
+        true,
+      );
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
+      });
+
+      const withRedesignedPropEventProperties = {
+        ...stakeButtonClickEventProperties,
+        is_redesigned: true,
+      };
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
+          .addProperties(withRedesignedPropEventProperties)
+          .build(),
+      );
+      return;
+    }
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
-        amountWei: amountWei.toString(),
+        amountWei: amountWeiString,
         amountFiat: fiatAmount,
         annualRewardsETH,
         annualRewardsFiat,
         annualRewardRate,
       },
     });
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
-        .addProperties({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          tokens_to_stake_native_value: amountEth,
-          tokens_to_stake_usd_value: fiatAmount,
-        })
+        .addProperties(stakeButtonClickEventProperties)
         .build(),
     );
   }, [
@@ -244,7 +279,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
                 tooltip_name: 'MetaMask Pool Estimated Rewards',
               },
             })}
-            isLoading={isLoadingVaultApyAverages}
+            isLoading={isLoadingVaultMetadata}
           />
         )}
       </View>
@@ -283,8 +318,9 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
+          loading={isSubmittingStakeDepositTransaction}
           isDisabled={
-            isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee
+            isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee || isSubmittingStakeDepositTransaction
           }
           width={ButtonWidthTypes.Full}
           onPress={handleStakePress}

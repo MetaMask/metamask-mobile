@@ -1,5 +1,4 @@
 import React from 'react';
-import { withNavigation } from '../../../../storybook/decorators';
 import { View, StyleSheet } from 'react-native';
 import KeyValueRowComponent, {
   KeyValueRowFieldIconSides,
@@ -13,7 +12,6 @@ import Button, { ButtonVariants } from '../../components/Buttons/Button';
 const KeyValueRowMeta = {
   title: 'Components Temp / KeyValueRow',
   component: KeyValueRowComponent,
-  decorators: [withNavigation],
 };
 
 export default KeyValueRowMeta;

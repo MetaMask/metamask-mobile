@@ -49,13 +49,26 @@ export const container: UIComponentFactory<BoxElement> = ({
   const content = templateChildren[0];
   const footer = templateChildren[1];
 
+  // The first element inside the container has larger margins and gap.
+  const styledContent = {
+    ...content,
+    props: {
+      ...content.props,
+      style: {
+        ...(content.props?.style ?? {}),
+        gap: 16,
+        margin: 16,
+      },
+    },
+  };
+
   return {
     element: 'Box',
     children: [
       {
         element: 'ScrollView',
         key: 'default-scrollview',
-        children: content,
+        children: styledContent,
         props: {
           style: {
             marginBottom: useFooter && footer ? 80 : 0,
@@ -66,7 +79,7 @@ export const container: UIComponentFactory<BoxElement> = ({
     ],
     props: {
       style: {
-        flex: 1,
+        flexGrow: 1,
         flexDirection: 'column',
       },
     },

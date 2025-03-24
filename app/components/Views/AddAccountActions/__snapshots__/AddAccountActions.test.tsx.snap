@@ -368,7 +368,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             }
                           }
                         >
-                          Add account
+                          Create a new account
                         </Text>
                         <View
                           style={
@@ -380,6 +380,22 @@ exports[`AddAccountActions renders correctly 1`] = `
                         />
                       </View>
                       <View>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#6a737d",
+                              "fontFamily": "EuclidCircularB-Medium",
+                              "fontSize": 12,
+                              "fontWeight": "500",
+                              "letterSpacing": 0,
+                              "lineHeight": 20,
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                        >
+                          Create a new account
+                        </Text>
                         <TouchableOpacity
                           disabled={false}
                           onPress={[Function]}
@@ -420,7 +436,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               }
                             }
                           >
-                            Add new account
+                            Ethereum account
                           </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -463,7 +479,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               }
                             }
                           >
-                            Add a new Solana Account (Beta)
+                            Solana account
                           </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -506,7 +522,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               }
                             }
                           >
-                            Add a new Bitcoin Account (Beta)
+                            Bitcoin account
                           </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -549,9 +565,25 @@ exports[`AddAccountActions renders correctly 1`] = `
                               }
                             }
                           >
-                            Add a new Bitcoin Account (Testnet)
+                            Bitcoin testnet account
                           </Text>
                         </TouchableOpacity>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#6a737d",
+                              "fontFamily": "EuclidCircularB-Medium",
+                              "fontSize": 12,
+                              "fontWeight": "500",
+                              "letterSpacing": 0,
+                              "lineHeight": 20,
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                        >
+                          Import a wallet or account
+                        </Text>
                         <TouchableOpacity
                           disabled={false}
                           onPress={[Function]}
@@ -563,12 +595,12 @@ exports[`AddAccountActions renders correctly 1`] = `
                               "width": "100%",
                             }
                           }
-                          testID="add-account-import-account"
+                          testID="add-account-srp-account"
                         >
                           <SvgMock
                             color="#141618"
                             height={20}
-                            name="Import"
+                            name="Wallet"
                             style={
                               {
                                 "color": "#141618",
@@ -592,9 +624,68 @@ exports[`AddAccountActions renders correctly 1`] = `
                               }
                             }
                           >
-                            Import account
+                            Secret Recovery Phrase
                           </Text>
                         </TouchableOpacity>
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                              "paddingVertical": 16,
+                              "width": "100%",
+                            }
+                          }
+                          testID="add-account-import-account"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={20}
+                            name="Key"
+                            style={
+                              {
+                                "color": "#141618",
+                                "height": 20,
+                                "marginHorizontal": 16,
+                                "width": 20,
+                              }
+                            }
+                            width={20}
+                          />
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 16,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
+                          >
+                            Private key
+                          </Text>
+                        </TouchableOpacity>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#6a737d",
+                              "fontFamily": "EuclidCircularB-Medium",
+                              "fontSize": 12,
+                              "fontWeight": "500",
+                              "letterSpacing": 0,
+                              "lineHeight": 20,
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                        >
+                          Connect an account
+                        </Text>
                         <TouchableOpacity
                           disabled={false}
                           onPress={[Function]}
@@ -635,7 +726,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               }
                             }
                           >
-                            Add hardware wallet
+                            Hardware wallet
                           </Text>
                         </TouchableOpacity>
                       </View>

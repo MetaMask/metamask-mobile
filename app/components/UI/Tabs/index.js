@@ -5,10 +5,10 @@ import {
   InteractionManager,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import Text from '../../../component-library/components/Texts/Text';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { strings } from '../../../../locales/i18n';
@@ -27,7 +27,7 @@ const THUMB_HEIGHT =
   THUMB_VERTICAL_MARGIN;
 const ROWS_VISIBLE = Math.floor(
   (Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) /
-    THUMB_HEIGHT,
+  THUMB_HEIGHT,
 );
 const TABS_VISIBLE = ROWS_VISIBLE;
 
@@ -117,7 +117,7 @@ const createStyles = (colors, shadows) =>
       width: 30,
       height: 30,
       marginTop: -7,
-    },
+    }
   });
 
 /**
@@ -161,7 +161,7 @@ class Tabs extends PureComponent {
     /**
      * Metrics injected by withMetricsAwareness HOC
      */
-    metrics: PropTypes.object,
+    metrics: PropTypes.object
   };
 
   thumbnails = {};

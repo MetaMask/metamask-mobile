@@ -335,6 +335,7 @@
   "UserStorageController": {
     "hasAccountSyncingSyncedAtLeastOnce": false,
     "isAccountSyncingReadyToBeDispatched": false,
+    "isAccountSyncingInProgress": false,
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
   },
@@ -373,8 +374,90 @@
       }
     }
   },
+  "MultichainTransactionsController": {
+    "nonEvmTransactions": {}
+  },
   "MultichainAssetsController": {
     "accountsAssets": {},
     "assetsMetadata": {}
+  },
+  "BridgeController": {
+    "bridgeFeatureFlags": {
+      "extensionConfig": {
+        "chains": {},
+        "maxRefreshCount": 5,
+        "refreshRate": 30000,
+        "support": false
+      },
+      "mobileConfig": {
+        "chains": {},
+        "maxRefreshCount": 5,
+        "refreshRate": 30000,
+        "support": false
+      }
+    },
+    "quoteFetchError": null,
+    "quoteRequest": {
+      "slippage": 0.5,
+      "srcTokenAddress": "0x0000000000000000000000000000000000000000"
+    },
+    "quotes": [],
+    "quotesInitialLoadTime": null,
+    "quotesLastFetched": null,
+    "quotesLoadingStatus": null,
+    "quotesRefreshCount": 0
+  },
+  "BridgeStatusController": {
+    "txHistory": {}
+  },
+  "MultichainAssetsRatesController": {
+    "conversionRates": {}
+  },
+  "CronjobController": {
+    "events": {},
+    "jobs": {}
+  },
+  "EarnController": {
+    "lastUpdated": 0,
+    "pooled_staking": {
+      "exchangeRate": "1",
+      "isEligible": false,
+      "pooledStakes": {
+        "account": "",
+        "assets": "0",
+        "exitRequests": [],
+        "lifetimeRewards": "0"
+      },
+      "vaultMetadata": {
+        "apy": "0",
+        "capacity": "0",
+        "feePercent": 0,
+        "totalAssets": "0",
+        "vaultAddress": "0x0000000000000000000000000000000000000000"
+      },
+      "vaultDailyApys": [],
+      "vaultApyAverages": {
+        "oneDay": "0",
+        "oneWeek": "0",
+        "oneMonth": "0",
+        "threeMonths": "0",
+        "sixMonths": "0",
+        "oneYear": "0"
+      }
+    },
+    "stablecoin_lending": {
+      "vaults": [
+        {
+          "symbol": "",
+          "name": "",
+          "chainId": 0,
+          "tokenAddress": "",
+          "vaultAddress": "",
+          "currentAPY": "0",
+          "supply": "0",
+          "liquidity": "0"
+        }
+      ]
+    }
   }
 }

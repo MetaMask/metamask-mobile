@@ -10,12 +10,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import {
-  Linking,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  View,
-  ///: END:ONLY_INCLUDE_IF
-} from 'react-native';
+import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -118,12 +113,10 @@ import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetec
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
+import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapsExecutionWebView } from '../../../lib/snaps';
-///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
@@ -141,7 +134,12 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
+///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
+import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
+import { SlippageModal } from '../../UI/Bridge/components/SlippageModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -462,6 +460,14 @@ const RootModalFlow = () => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+    <Stack.Screen
+      name={Routes.SHEET.BRIDGE_TOKEN_SELECTOR}
+      component={BridgeTokenSelector}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SLIPPAGE_MODAL}
+      component={SlippageModal}
+    />
   </Stack.Navigator>
 );
 
@@ -479,6 +485,18 @@ const ImportPrivateKeyView = () => (
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
   </Stack.Navigator>
 );
+
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+const ImportSRPView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="ImportSRP" component={ImportNewSecretRecoveryPhrase} />
+  </Stack.Navigator>
+);
+///: END:ONLY_INCLUDE_IF
 
 const ConnectQRHardwareFlow = () => (
   <Stack.Navigator
@@ -560,6 +578,10 @@ const AppFlow = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
+        component={MaxBrowserTabsModal}
+      />
+      <Stack.Screen
         name="OnboardingRootNav"
         component={OnboardingRootNav}
         options={{ headerShown: false }}
@@ -582,6 +604,15 @@ const AppFlow = () => {
         component={ImportPrivateKeyView}
         options={{ animationEnabled: true }}
       />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+        <Stack.Screen
+          name="ImportSRPView"
+          component={ImportSRPView}
+          options={{ animationEnabled: true }}
+        />
+        ///: END:ONLY_INCLUDE_IF
+      }
       <Stack.Screen
         name="ConnectQRHardwareFlow"
         component={ConnectQRHardwareFlow}
@@ -917,15 +948,6 @@ const App: React.FC = () => {
 
   return (
     <>
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      }
-      <View>
-        <SnapsExecutionWebView />
-      </View>
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />

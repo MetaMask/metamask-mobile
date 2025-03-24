@@ -1,7 +1,12 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
+import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
+import { useConfirmActions } from '../../../../hooks/useConfirmActions';
+import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
+import { getNavbar } from '../../Navbar/Navbar';
 import StakingDeposit from './StakingDeposit';
 
 jest.mock('../../../../../../../core/Engine', () => ({
@@ -17,6 +22,19 @@ jest.mock('../../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(),
+}));
+
+jest.mock('../../Navbar/Navbar', () => ({
+  getNavbar: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useConfirmationMetricEvents', () => ({
+  useConfirmationMetricEvents: jest.fn(),
+}));
+
+const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -24,12 +42,42 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
+      addListener: jest.fn().mockReturnValue(noop),
     }),
   };
 });
 
 describe('StakingDeposit', () => {
-  it('should render correctly', () => {
+  const mockTrackPageViewedEvent = jest.fn();
+  const mockTrackAdvancedDetailsToggledEvent = jest.fn();
+  const mockSetConfirmationMetric = jest.fn();
+  const mockGetNavbar = jest.mocked(getNavbar);
+  const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseConfirmationMetricEvents = jest.mocked(
+    useConfirmationMetricEvents,
+  );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseConfirmActions.mockReturnValue({
+      onReject: jest.fn(),
+      onConfirm: jest.fn(),
+    });
+
+    mockUseConfirmationMetricEvents.mockReturnValue({
+      trackAdvancedDetailsToggledEvent: mockTrackAdvancedDetailsToggledEvent,
+      trackPageViewedEvent: mockTrackPageViewedEvent,
+      setConfirmationMetric: mockSetConfirmationMetric,
+    } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
+  });
+
+  it('renders correctly', () => {
+    const mockOnReject = jest.fn();
+    mockUseConfirmActions.mockImplementation(() => ({
+      onConfirm: jest.fn(),
+      onReject: mockOnReject,
+    }));
+
     const { getByText } = renderWithProvider(<StakingDeposit />, {
       state: stakingDepositConfirmationState,
     });
@@ -39,5 +87,38 @@ describe('StakingDeposit', () => {
     expect(getByText('Withdrawal time')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
+
+    expect(mockGetNavbar).toHaveBeenCalled();
+    expect(mockGetNavbar).toHaveBeenCalledWith({
+      title: 'Stake',
+      onReject: mockOnReject,
+      addBackButton: true,
+    });
+  });
+
+  it('tracks metrics events', () => {
+    const { getByText } = renderWithProvider(<StakingDeposit />, {
+      state: stakingDepositConfirmationState,
+    });
+
+    fireEvent.press(getByText('Advanced details'));
+
+    expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isExpanded: true,
+      }),
+    );
+
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          transaction_amount_eth: '0.0001',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        }),
+      }),
+    );
   });
 });
