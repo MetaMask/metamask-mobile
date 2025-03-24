@@ -99,7 +99,7 @@ describe('AlertModal', () => {
 
     const { getByTestId } = render(<AlertModal />);
 
-    const checkbox = getByTestId('alert-modal-checkbox');
+    const checkbox = getByTestId('confirm-alert-checkbox');
 
     await act(async () => {
       fireEvent.press(checkbox);

@@ -10,4 +10,5 @@ export enum CONFIRMATION_EVENT_LOCATIONS {
   TYPED_SIGN_V3_V4 = 'TypedSignV3V4',
   STAKING_DEPOSIT = 'StakingDeposit',
   STAKING_WITHDRAWAL = 'StakingWithdrawal',
+  STAKING_CLAIM = 'StakingClaim',
 }

@@ -80,12 +80,12 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfi
         <View style={styles.buttonsContainer}>
           <Button
             onPress={handleReject}
-            label={strings('confirm.reject')}
+            label={strings('confirm.cancel')}
             style={styles.footerButton}
             size={ButtonSize.Lg}
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
-            testID="confirm-alert-reject-button"
+            testID="confirm-alert-cancel-button"
           />
           <View style={styles.buttonDivider} />
           <Button
