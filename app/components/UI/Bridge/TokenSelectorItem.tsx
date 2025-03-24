@@ -1,12 +1,18 @@
 import React from 'react';
 import { StyleSheet, ImageSourcePropType } from 'react-native';
 import AssetElement from '../AssetElement';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
-import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import Text, { TextVariant, TextColor } from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import TokenIcon from '../Swaps/components/TokenIcon';
 import { Box } from '../Box/Box';
 import { FlexDirection } from '../Box/box.types';
@@ -51,7 +57,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       secondaryBalance={balanceWithSymbol}
     >
       <BadgeWrapper
-        badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
@@ -77,10 +83,12 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           />
         )}
       </BadgeWrapper>
-      <Box style={styles.tokenInfo} flexDirection={FlexDirection.Column} gap={4}>
-        <Text variant={TextVariant.BodyLGMedium}>
-          {token.symbol}
-        </Text>
+      <Box
+        style={styles.tokenInfo}
+        flexDirection={FlexDirection.Column}
+        gap={4}
+      >
+        <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {token.name}
         </Text>
