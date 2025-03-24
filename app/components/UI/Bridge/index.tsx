@@ -274,7 +274,8 @@ const BridgeView = () => {
                 iconName={IconName.Arrow2Down}
                 onPress={handleArrowPress}
                 disabled={!destChainId || !destToken}
-                />
+                testID="arrow-button"
+              />
             </Box>
           </Box>
           <TokenInputArea
