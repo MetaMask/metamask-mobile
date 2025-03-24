@@ -70,8 +70,7 @@ describe('useConfirmationAlertMetric', () => {
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
         ...baseAlertProperties,
-        alert_visualized: [AlertKeys.DomainMismatch],
-        alert_visualized_count: 1,
+        alert_key_clicked: [AlertKeys.DomainMismatch],
       },
     });
   });
@@ -80,7 +79,6 @@ describe('useConfirmationAlertMetric', () => {
     (useSelector as jest.Mock).mockReturnValue({
       properties: {
         ...baseAlertProperties,
-        alert_rendered: [],
       },
     });
 
@@ -91,8 +89,8 @@ describe('useConfirmationAlertMetric', () => {
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
         ...baseAlertProperties,
-        alert_rendered: [AlertKeys.DomainMismatch],
-        alert_rendered_count: 1,
+        alert_visualized: [AlertKeys.DomainMismatch],
+        alert_visualized_count: 1,
       },
     });
   });
@@ -140,36 +138,14 @@ describe('useConfirmationAlertMetric', () => {
 
     result.current.trackInlineAlertClicked();
 
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(2);
+    expect(mockSetConfirmationMetric).toHaveBeenNthCalledWith(2, {
       properties: {
         alert_trigger_count: 1,
         alert_trigger_name: [UNKNOWN_ALERT_KEY_MOCK],
         alert_resolved_count: 0,
         alert_resolved: [],
-        alert_visualized: [UNKNOWN_ALERT_KEY_MOCK],
-        alert_visualized_count: 1,
-      },
-    });
-  });
-
-  it('handles undefined alert_rendered', () => {
-    (mockUseAlerts.isAlertConfirmed as jest.Mock).mockReturnValue(false);
-    (useSelector as jest.Mock).mockReturnValue({
-      properties: {
-        ...baseAlertProperties,
-        alert_rendered: undefined,
-      },
-    });
-
-    const { result } = renderHook(() => useConfirmationAlertMetric());
-
-    result.current.trackAlertRendered();
-
-    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
-      properties: {
-        ...baseAlertProperties,
-        alert_rendered: [AlertKeys.DomainMismatch],
-        alert_rendered_count: 1,
+        alert_key_clicked: [UNKNOWN_ALERT_KEY_MOCK],
       },
     });
   });
@@ -185,13 +161,34 @@ describe('useConfirmationAlertMetric', () => {
 
     const { result } = renderHook(() => useConfirmationAlertMetric());
 
-    result.current.trackInlineAlertClicked();
+    result.current.trackAlertRendered();
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
         ...baseAlertProperties,
         alert_visualized: [AlertKeys.DomainMismatch],
         alert_visualized_count: 1,
+      },
+    });
+  });
+
+  it('handles undefined alert_key', () => {
+    (mockUseAlerts.isAlertConfirmed as jest.Mock).mockReturnValue(false);
+    (useSelector as jest.Mock).mockReturnValue({
+      properties: {
+        ...baseAlertProperties,
+        alert_key_clicked: undefined,
+      },
+    });
+
+    const { result } = renderHook(() => useConfirmationAlertMetric());
+
+    result.current.trackInlineAlertClicked();
+
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+      properties: {
+        ...baseAlertProperties,
+        alert_key_clicked: [AlertKeys.DomainMismatch],
       },
     });
   });
