@@ -138,7 +138,6 @@ const RemoteImage = (props) => {
     );
   }, [uri]);
 
-  // TODO: remove this and use a hook instead that can be use also in TokenListItem
   const NetworkBadgeSource = useCallback(() => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 

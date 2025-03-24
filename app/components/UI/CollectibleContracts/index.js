@@ -196,7 +196,6 @@ const CollectibleContracts = ({
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
-  const currentChainId = useSelector(selectChainId); //todo remove this is unnecessary u can use chainId
   const showFilterControls = () => {
     navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
   };
@@ -474,15 +473,15 @@ const CollectibleContracts = ({
                   : networkName ?? strings('wallet.current_network')}
               </Text>
             }
-            isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
+            isDisabled={isTestNet(chainId) || !isPopularNetwork}
             onPress={isEvmSelected ? showFilterControls : () => null}
             endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
             style={
-              isTestNet(currentChainId) || !isPopularNetwork
+              isTestNet(chainId) || !isPopularNetwork
                 ? styles.controlButtonDisabled
                 : styles.controlButton
             }
-            disabled={isTestNet(currentChainId) || !isPopularNetwork}
+            disabled={isTestNet(chainId) || !isPopularNetwork}
           />
         </View>
       </View>
@@ -549,7 +548,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   useNftDetection: selectUseNftDetection(state),
-  collectibleContracts: multichainCollectibleContractsSelector(state), //todo fix this
+  collectibleContracts: multichainCollectibleContractsSelector(state),
   collectibles: multichainCollectiblesSelector(state),
   isNftFetchingProgress: isNftFetchingProgressSelector(state),
   favoriteCollectibles: favoritesCollectiblesSelector(state),

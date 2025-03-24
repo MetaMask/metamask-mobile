@@ -92,7 +92,7 @@ function CollectibleContractElement({
   contractCollectibles,
   collectiblesVisible: propsCollectiblesVisible,
   onPress,
-  chainId, // todo fix this chainId for favorites to be retrieved from the collectible
+  chainId,
   selectedAddress,
   removeFavoriteCollectible,
 }) {
@@ -126,7 +126,7 @@ function CollectibleContractElement({
     const { NftController } = Engine.context;
     removeFavoriteCollectible(
       selectedAddress,
-      chainId, // todo check if the remove NFT flow is correct
+      chainId,
       longPressedCollectible.current,
     );
     NftController.removeAndIgnoreNft(
@@ -185,7 +185,7 @@ function CollectibleContractElement({
                 style={styles.collectibleIcon}
                 collectible={{ ...collectible }}
                 onPressColectible={onPress}
-                isTokenImage // todo: rename this to isNftImage for clarity
+                isTokenImage
               />
             </View>
           </TouchableOpacity>
