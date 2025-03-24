@@ -8,8 +8,6 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';

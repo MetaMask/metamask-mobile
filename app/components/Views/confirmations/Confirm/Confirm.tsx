@@ -18,8 +18,6 @@ import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmActions } from '../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
-import useApprovalRequest from '../hooks/useApprovalRequest';
-import { useConfirmActions } from '../hooks/useConfirmActions';
 import styleSheet from './Confirm.styles';
 
 const ConfirmWrapped = ({
