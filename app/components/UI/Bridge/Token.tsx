@@ -1,13 +1,20 @@
 import React from 'react';
-import { StyleSheet, ImageSourcePropType, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  ImageSourcePropType,
+  TouchableOpacity,
+} from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { Theme } from '../../../util/theme/models';
 import { Box } from '../Box/Box';
 import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
-import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import TokenIcon from '../Swaps/components/TokenIcon';
@@ -75,7 +82,7 @@ export const Token: React.FC<TokenProps> = ({
         gap={4}
       >
         <BadgeWrapper
-          badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
+          badgePosition={BadgePosition.BottomRight}
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}
@@ -84,16 +91,10 @@ export const Token: React.FC<TokenProps> = ({
             />
           }
         >
-          <TokenIcon
-            symbol={symbol}
-            icon={iconUrl}
-            style={styles.icon}
-          />
+          <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
         </BadgeWrapper>
 
-        <Text style={styles.tokenSymbol}>
-          {symbol}
-        </Text>
+        <Text style={styles.tokenSymbol}>{symbol}</Text>
       </Box>
     </TouchableOpacity>
   );
