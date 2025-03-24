@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { TokenI } from '../Tokens/types';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken } from '../../../core/redux/slices/bridge';
+import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
 import { TokenSelectorItem } from './TokenSelectorItem';
 import { TokenIWithFiatAmount } from './useTokensWithBalance';
@@ -21,6 +21,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const tokensList = useSourceTokens();
   const { sortedSourceNetworks } = useSortedSourceNetworks();
+  const selectedSourceToken = useSelector(selectSourceToken);
 
   const handleTokenPress = useCallback((token: TokenI) => {
     dispatch(setSourceToken(token));
@@ -35,9 +36,10 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       networkName={networkConfigurations[item.chainId as Hex].name}
       //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       networkImageSource={getNetworkImageSource({ chainId: item.chainId as Hex })}
+      isSelected={selectedSourceToken?.address === item.address && selectedSourceToken?.chainId === item.chainId}
       />
     ),
-    [handleTokenPress, networkConfigurations],
+    [handleTokenPress, networkConfigurations, selectedSourceToken],
   );
 
   const networksToShow = useMemo(() =>

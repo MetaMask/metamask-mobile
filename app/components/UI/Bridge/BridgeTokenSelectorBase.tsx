@@ -34,9 +34,6 @@ const createStyles = (params: { theme: Theme }) => {
     closeIconBox: {
       padding: 8,
     },
-    listContent: {
-      padding: 4,
-    },
     emptyList: {
       marginVertical: 10,
       marginHorizontal: 24,
@@ -133,7 +130,6 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = (
           data={tokensToRender}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
-          contentContainerStyle={styles.listContent}
           ListEmptyComponent={renderEmptyList}
         />
       </Box>

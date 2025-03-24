@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ImageSourcePropType } from 'react-native';
+import { StyleSheet, ImageSourcePropType, View } from 'react-native';
 import AssetElement from '../AssetElement';
 import BadgeWrapper, {
   BadgePosition,
@@ -20,8 +20,10 @@ import { TokenIWithFiatAmount } from './useTokensWithBalance';
 import ButtonIcon, { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconColor, IconName } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
+import { useStyles } from '../../../component-library/hooks';
+import { Theme } from '../../../util/theme/models';
 
-const createStyles = () =>
+const createStyles = ({ theme, vars }: { theme: Theme, vars: { isSelected: boolean } }) =>
   StyleSheet.create({
     tokenIcon: {
       width: 40,
@@ -34,6 +36,16 @@ const createStyles = () =>
     infoButton: {
       marginRight: 12,
     },
+    container: {
+      backgroundColor: vars.isSelected ? theme.colors.primary.muted : theme.colors.background.default,
+      padding: 4,
+    },
+    selectedIndicator: {
+      width: 4,
+      height: '100%',
+      borderRadius: 8,
+      backgroundColor: theme.colors.primary.default,
+    },
   });
 
 interface TokenSelectorItemProps {
@@ -42,6 +54,7 @@ interface TokenSelectorItemProps {
   networkName: string;
   networkImageSource?: ImageSourcePropType;
   shouldShowBalance?: boolean;
+  isSelected?: boolean;
 }
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -50,8 +63,9 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   networkName,
   networkImageSource,
   shouldShowBalance = true,
+  isSelected = false,
 }) => {
-  const styles = createStyles();
+  const { styles } = useStyles(createStyles, { isSelected });
   const navigation = useNavigation();
   const fiatValue = token.balanceFiat;
   const balanceWithSymbol = `${token.balance} ${token.symbol}`;
@@ -68,7 +82,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
       flexDirection={FlexDirection.Row}
       justifyContent={JustifyContent.spaceBetween}
       alignItems={AlignItems.center}
+      style={styles.container}
     >
+      {isSelected && <View style={styles.selectedIndicator} />}
+
       <AssetElement
         key={token.address}
         asset={token}
