@@ -112,27 +112,25 @@ describe('Browser', () => {
     // Render the component with an initial prop value
     const { rerender } = renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
-        <ThemeContext.Provider value={mockTheme}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={routeMock}
-                    tabs={[]}
-                    activeTab={1}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn}
-                    closeAllTabs={jest.fn}
-                    closeTab={jest.fn}
-                    setActiveTab={jest.fn}
-                    updateTab={jest.fn}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </ThemeContext.Provider>
+        <NavigationContainer independent>
+          <Stack.Navigator>
+            <Stack.Screen name={Routes.BROWSER.VIEW}>
+              {() => (
+                <Browser
+                  route={routeMock}
+                  tabs={[]}
+                  activeTab={1}
+                  navigation={mockNavigation}
+                  createNewTab={jest.fn}
+                  closeAllTabs={jest.fn}
+                  closeTab={jest.fn}
+                  setActiveTab={jest.fn}
+                  updateTab={jest.fn}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
       </Provider>,
       { state: { ...mockInitialState } },
     );
@@ -143,27 +141,25 @@ describe('Browser', () => {
     // rerender with a different route value
     rerender(
       <Provider store={mockStore(mockInitialState)}>
-        <ThemeContext.Provider value={mockTheme}>
-          <NavigationContainer independent>
-            <Stack.Navigator>
-              <Stack.Screen name={Routes.BROWSER.VIEW}>
-                {() => (
-                  <Browser
-                    route={{ params: { newTabUrl: 'about:blank', timestamp: '987' } }}
-                    tabs={mockTabs}
-                    activeTab={1}
-                    navigation={mockNavigation}
-                    createNewTab={jest.fn}
-                    closeAllTabs={jest.fn}
-                    closeTab={jest.fn}
-                    setActiveTab={jest.fn}
-                    updateTab={jest.fn}
-                  />
-                )}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </ThemeContext.Provider>
+        <NavigationContainer independent>
+          <Stack.Navigator>
+            <Stack.Screen name={Routes.BROWSER.VIEW}>
+              {() => (
+                <Browser
+                  route={{ params: { newTabUrl: 'about:blank', timestamp: '987' } }}
+                  tabs={mockTabs}
+                  activeTab={1}
+                  navigation={mockNavigation}
+                  createNewTab={jest.fn}
+                  closeAllTabs={jest.fn}
+                  closeTab={jest.fn}
+                  setActiveTab={jest.fn}
+                  updateTab={jest.fn}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
       </Provider>
     );
     // Check if myFunction was called
@@ -185,7 +181,6 @@ describe('Browser', () => {
 
     renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
-
         <NavigationContainer independent>
           <Stack.Navigator>
             <Stack.Screen name="Browser">
@@ -205,7 +200,6 @@ describe('Browser', () => {
             </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
-
       </Provider>
     );
 
