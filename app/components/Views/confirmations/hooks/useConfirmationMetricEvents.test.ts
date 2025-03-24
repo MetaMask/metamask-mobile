@@ -1,23 +1,27 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { SignatureRequest } from '@metamask/signature-controller';
 import { renderHook } from '@testing-library/react-hooks';
 import {
   CONFIRMATION_EVENTS,
   CONFIRMATION_EVENT_LOCATIONS,
+  TOOLTIP_TYPES,
 } from '../../../../core/Analytics/events/confirmations';
-import { updateTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
+import { updateConfirmationMetric } from '../../../../core/redux/slices/confirmationMetrics';
 import { useMetrics } from '../../../hooks/useMetrics';
 import { useConfirmationMetricEvents } from './useConfirmationMetricEvents';
 import { useConfirmationLocation } from './useConfirmationLocation';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { useSignatureRequest } from './useSignatureRequest';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => jest.fn(),
 }));
-jest.mock('../../../../core/redux/slices/transactionMetrics');
+jest.mock('../../../../core/redux/slices/confirmationMetrics');
 jest.mock('../../../hooks/useMetrics');
 jest.mock('./useConfirmationLocation');
 jest.mock('./useTransactionMetadataRequest');
+jest.mock('./useSignatureRequest');
 
 const MOCK_LOCATION = 'test-location';
 const MOCK_TRANSACTION_META = {
@@ -25,6 +29,10 @@ const MOCK_TRANSACTION_META = {
   chainId: 'mockChainId',
   status: 'mockStatus',
 } as unknown as TransactionMeta;
+const MOCK_SIGNATURE_REQUEST = {
+  id: 'mockSignatureRequestId',
+  status: 'mockStatus',
+} as unknown as SignatureRequest;
 
 describe('useConfirmationMetricEvents', () => {
   const mockCreateEventBuilder = jest.fn();
@@ -33,10 +41,11 @@ describe('useConfirmationMetricEvents', () => {
   const mockAddSensitiveProperties = jest.fn();
   const mockBuild = jest.fn();
   const mockUseConfirmationLocation = jest.mocked(useConfirmationLocation);
-  const mockUpdateTransactionMetrics = jest.mocked(updateTransactionMetrics);
+  const mockUpdateConfirmationMetric = jest.mocked(updateConfirmationMetric);
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const mockUseSignatureRequest = jest.mocked(useSignatureRequest);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -59,6 +68,7 @@ describe('useConfirmationMetricEvents', () => {
     );
 
     mockUseTransactionMetadataRequest.mockReturnValue(MOCK_TRANSACTION_META);
+    mockUseSignatureRequest.mockReturnValue(undefined);
   });
 
   it('tracks advanced details toggled event', () => {
@@ -87,7 +97,7 @@ describe('useConfirmationMetricEvents', () => {
   it('tracks tooltip clicked event', () => {
     const expectedProperties = {
       location: MOCK_LOCATION,
-      tooltip: 'test-tooltip',
+      tooltip: 'test-tooltip' as TOOLTIP_TYPES,
     };
 
     mockBuild.mockReturnValue(expectedProperties);
@@ -95,8 +105,7 @@ describe('useConfirmationMetricEvents', () => {
     const { result } = renderHook(() => useConfirmationMetricEvents());
 
     result.current.trackTooltipClickedEvent({
-      location: MOCK_LOCATION,
-      tooltip: 'test-tooltip',
+      tooltip: 'test-tooltip' as TOOLTIP_TYPES,
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -127,22 +136,46 @@ describe('useConfirmationMetricEvents', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(expectedProperties);
   });
 
-  it('setTransactionMetrics callback calls updateTransactionMetrics', () => {
-    const { result } = renderHook(() => useConfirmationMetricEvents());
+  describe('setConfirmationMetric callback', () => {
+    it('calls updateConfirmationMetric when transactionMeta is present', () => {
+      const { result } = renderHook(() => useConfirmationMetricEvents());
 
-    result.current.setTransactionMetrics({
-      properties: {
-        transaction_amount_eth: '1.0',
-      },
-    });
-
-    expect(mockUpdateTransactionMetrics).toHaveBeenCalledWith({
-      transactionId: MOCK_TRANSACTION_META.id,
-      params: {
+      result.current.setConfirmationMetric({
         properties: {
           transaction_amount_eth: '1.0',
         },
-      },
+      });
+
+      expect(mockUpdateConfirmationMetric).toHaveBeenCalledWith({
+        id: MOCK_TRANSACTION_META.id,
+        params: {
+          properties: {
+            transaction_amount_eth: '1.0',
+          },
+        },
+      });
+    });
+
+    it('calls updateConfirmationMetric when signatureRequest is present', () => {
+      mockUseTransactionMetadataRequest.mockReturnValue(undefined);
+      mockUseSignatureRequest.mockReturnValue(MOCK_SIGNATURE_REQUEST);
+
+      const { result } = renderHook(() => useConfirmationMetricEvents());
+
+      result.current.setConfirmationMetric({
+        properties: {
+          signature_specific_property: 'signature-specific-value',
+        },
+      });
+
+      expect(mockUpdateConfirmationMetric).toHaveBeenCalledWith({
+        id: MOCK_SIGNATURE_REQUEST.id,
+        params: {
+          properties: {
+            signature_specific_property: 'signature-specific-value',
+          },
+        },
+      });
     });
   });
 });

@@ -5,19 +5,24 @@ import {
   JsonMap,
 } from '../../../../core/Analytics/MetaMetrics.types';
 import { useMetrics } from '../../../hooks/useMetrics';
-import { CONFIRMATION_EVENTS } from '../../../../core/Analytics/events/confirmations';
 import {
-  TransactionMetrics,
-  updateTransactionMetrics,
-} from '../../../../core/redux/slices/transactionMetrics';
+  CONFIRMATION_EVENTS,
+  TOOLTIP_TYPES,
+} from '../../../../core/Analytics/events/confirmations';
+import {
+  ConfirmationMetrics,
+  updateConfirmationMetric,
+} from '../../../../core/redux/slices/confirmationMetrics';
 import { useConfirmationLocation } from './useConfirmationLocation';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { useSignatureRequest } from './useSignatureRequest';
 
 export function useConfirmationMetricEvents() {
   const { createEventBuilder, trackEvent } = useMetrics();
   const location = useConfirmationLocation();
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
+  const signatureRequest = useSignatureRequest();
 
   const events = useMemo(() => {
     const trackAdvancedDetailsToggledEvent = ({ isExpanded }: JsonMap) => {
@@ -33,7 +38,11 @@ export function useConfirmationMetricEvents() {
       trackEvent(event);
     };
 
-    const trackTooltipClickedEvent = ({ tooltip }: JsonMap) => {
+    const trackTooltipClickedEvent = ({
+      tooltip,
+    }: {
+      tooltip: TOOLTIP_TYPES;
+    }) => {
       const event = generateEvent({
         createEventBuilder,
         metametricsEvent: CONFIRMATION_EVENTS.TOOLTIP_CLICKED,
@@ -58,13 +67,13 @@ export function useConfirmationMetricEvents() {
       trackEvent(event);
     };
 
-    const setTransactionMetrics = (metricParams: TransactionMetrics) => {
-      if (!transactionMeta) {
+    const setConfirmationMetric = (metricParams: ConfirmationMetrics) => {
+      if (!transactionMeta && !signatureRequest) {
         return;
       }
       dispatch(
-        updateTransactionMetrics({
-          transactionId: transactionMeta.id,
+        updateConfirmationMetric({
+          id: (transactionMeta?.id || signatureRequest?.id) as string,
           params: metricParams,
         }),
       );
@@ -74,9 +83,16 @@ export function useConfirmationMetricEvents() {
       trackAdvancedDetailsToggledEvent,
       trackTooltipClickedEvent,
       trackPageViewedEvent,
-      setTransactionMetrics,
+      setConfirmationMetric,
     };
-  }, [createEventBuilder, dispatch, location, trackEvent, transactionMeta]);
+  }, [
+    createEventBuilder,
+    dispatch,
+    location,
+    trackEvent,
+    transactionMeta,
+    signatureRequest,
+  ]);
 
   return { ...events };
 }

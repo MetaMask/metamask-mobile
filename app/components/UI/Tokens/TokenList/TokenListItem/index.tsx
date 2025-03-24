@@ -37,7 +37,9 @@ import {
   isPortfolioViewEnabled,
 } from '../../../../../util/networks';
 import createStyles from '../../styles';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -347,12 +349,13 @@ export const TokenListItem = React.memo(
         onPress={onItemPress}
         onLongPress={asset.isETH || asset.isNative ? null : showRemoveMenu}
         asset={asset}
-        balance={secondaryBalance}
-        mainBalance={mainBalance}
+        balance={mainBalance}
+        secondaryBalance={secondaryBalance}
         privacyMode={privacyMode}
       >
         {showNetworkBadge ? (
           <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
