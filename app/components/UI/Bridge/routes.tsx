@@ -6,6 +6,7 @@ import { BridgeSourceTokenSelector } from './BridgeSourceTokenSelector';
 import SlippageModal from './components/SlippageModal';
 import { BridgeSourceNetworkSelector } from './BridgeSourceNetworkSelector';
 import { BridgeDestNetworkSelector } from './BridgeDestNetworkSelector';
+import BridgeView from '.';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -15,8 +16,17 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-const ModalStack = createStackNavigator();
+const Stack = createStackNavigator();
+export const BridgeScreenStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="BridgeView"
+      component={BridgeView}
+    />
+  </Stack.Navigator>
+);
 
+const ModalStack = createStackNavigator();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
     mode={'modal'}
