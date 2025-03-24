@@ -3543,6 +3543,7 @@
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
+    "not_enough_token": "Not enough {{ticker}}",
     "balance": "Balance",
     "stake_eth_and_earn": "Stake ETH and earn",
     "stake_any_amount_of_eth": "Stake any amount of ETH.",
@@ -3605,7 +3606,12 @@
     "claiming_to": "Claiming to",
     "max_modal": {
       "title": "Max",
-      "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+      "eth": {
+        "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+      },
+      "token": {
+        "description": "Max is the total amount of {{ticker}} you have to deposit, not including the ETH gas fee. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+      }
     },
     "use_max": "Use max",
     "estimated_unstaking_time": "1 to 11 days",
