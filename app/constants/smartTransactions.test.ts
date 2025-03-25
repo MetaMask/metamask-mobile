@@ -34,7 +34,7 @@ describe('smartTransactions', () => {
         NETWORKS_CHAIN_ID.MAINNET,
         // NETWORKS_CHAIN_ID.BASE, // TODO: Add base to production when ready
         // NETWORKS_CHAIN_ID.LINEA_MAINNET, // TODO: Add linea mainnet to production when ready
-        // NETWORKS_CHAIN_ID.BSC,  // TODO: Add base to production when ready
+        NETWORKS_CHAIN_ID.BSC,
       ]);
     });
   });
